@@ -1,0 +1,28 @@
+#
+# プラグインテンプレート
+#
+
+# これを基にプラグインを作って行く
+# 別にこれを基にしなくてもいい
+# 以下、MyPluginプラグインを作る例
+
+require 'utils'
+require 'plugin/plugin'
+
+module Plugin
+  class MyPlugin < Plugin
+
+    # 毎分のイベントハンドラ
+    def onperiod(watch)
+      return watch.post(Message.new('hello, MyPlugin!', [self.name]))
+    end
+
+    def oncall(watch, message, tag)
+      return watch.post(Message.new("called by you", [self.name], message))
+    end
+  end
+
+end
+
+# プラグインの登録
+Plugin::Ring.push Plugin::MyPlugin.new,[:period, :call]
