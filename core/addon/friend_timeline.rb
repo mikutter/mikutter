@@ -8,7 +8,7 @@ module Addon
 
     def onboot(watch)
       @main = Gtk::TimeLine.new()
-      self.regist_tab(@main, 'TL')
+      self.regist_tab(watch, @main, 'TL')
     end
 
     def onupdate(messages)

@@ -12,8 +12,6 @@ require 'monitor'
 module Plugin
   class GUI < Plugin
 
-    include Singleton
-
     @@mutex = Monitor.new
 
     def initialize
@@ -42,6 +40,12 @@ module Plugin
         container.pack_start(self.book)
         @window.add(container)
         @window.show_all
+      end
+    end
+
+    def onplugincall(watch, command, container, label)
+      if(command == :mui_tab_regist) then
+        self.regist_tab(container, label)
       end
     end
 
@@ -163,6 +167,6 @@ module Plugin
 end
 
 # プラグインの登録
-Plugin::Ring.push Plugin::GUI.instance,[:boot]
+Plugin::Ring.push Plugin::GUI.new,[:boot, :plugincall]
 
 miquire :addon, 'addon'

@@ -10,9 +10,10 @@
 - libgnome2-ruby
 
 ***プラグインが必要とするもの(必須ではない):
-- libnotify-bin
+- notifyプラグイン
+-- notify-sendコマンド(ubuntuでは、sudo aptitude install libnotify-bin)
 
-***gemで入れるもの(* = 必須):
+***gemで入れるもの(なくてもOKです):
 - httpclient
 - classifier
 - stemmer
@@ -32,18 +33,22 @@
    -> 共通の設定へ
 
 ** 共通の設定
-  1. gemで上記パッケージをインストールする
-     - gem install httpclient stemmer classifier
-  2. ./mikutter.rb で起動できます。
-  3. ./mikutter.rb --debug とすると、人柱気分が味わえます。
-  4. -sをつけると、Karmicのバグをできるだけ回避するモード(safe mode)になります。
+  1. ./mikutter.rb で起動できます。
+  2. ./mikutter.rb --debug とすると、人柱気分が味わえます。
+  3. -sをつけると、Karmicのバグをできるだけ回避するモード(safe mode)になります。
 
 ** 起動
    単純に、いかのようなコマンドで実行できます。
    ruby mikutter.rb
    - Mac OS X
-         Window systemから起動して下さい。みくった〜♪自らXを立ち上げることはできません。
+         X Window systemから起動して下さい。みくった〜♪自らXを立ち上げることはできません。
          また、日本語入力をするためには、XにIMEをインストールする必要があるらしいです。現在調査中です。
+
+* ディレクトリ構成
+  - mikutter.rb 本体起動スクリプト
+  - core/ CHIのコアファイル。
+  - plugin/ サードパーティー製プラグイン
+  - skin/ スキン
 
 * 生成されるファイルとその意味
   みくった〜♪が生成するファイルは ~/.mikutter 以下に全て配置されます。

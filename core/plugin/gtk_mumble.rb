@@ -100,7 +100,7 @@ module Gtk
 
     def open_url_with_browser(url)
       if(defined? Win32API) then
-        shellExecuteA.Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
+        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
         shellExecuteA.call(0, 'open', url, 0, 0, 1)
       else
         system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &")

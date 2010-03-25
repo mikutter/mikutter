@@ -12,7 +12,7 @@ module Addon
     @@mutex = Monitor.new
 
     def onboot(watch)
-      self.regist_tab(self.book, 'Se')
+      self.regist_tab(watch, self.book, 'Se')
       rewind_interval
     end
 
