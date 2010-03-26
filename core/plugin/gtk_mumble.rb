@@ -157,8 +157,8 @@ module Gtk
       container = Gtk::HBox.new(false, 4)
       reply = Gtk::Button.new
       retweet = Gtk::Button.new
-      reply.add(Gtk::WebIcon.new('data/reply.png', 16, 16))
-      retweet.add(Gtk::WebIcon.new('data/retweet.png', 16, 16))
+      reply.add(Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}reply.png", 16, 16))
+      retweet.add(Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}retweet.png", 16, 16))
       container.pack_start(reply, false)
       container.pack_start(retweet, false)
       reply.signal_connect('clicked'){ self.gen_postbox(@replies, message); false }
