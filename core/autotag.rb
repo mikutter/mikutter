@@ -44,9 +44,7 @@ class AutoTag
   end
 
   def hashtags(post)
-    tags = post.split('#')
-    tags.delete_at(0)
-    tags.select{|n| n }.map{|m| m.split(/\s/,2)[0].strip }
+    post.split(' ').select{ |token| token =~ /^#[a-zA-Z0-9_]+$/ }
   end
 
   def regist(tags, src)

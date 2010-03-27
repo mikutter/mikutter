@@ -1,6 +1,6 @@
 require 'list'
 
-module YamLisp
+module HatsuneLisp
   class Cons
     include List
     include Enumerable
@@ -17,6 +17,12 @@ module YamLisp
       if(@cdr.is_a? Enumerable) then
         @cdr.each{|*args| yield *args}
       end
+    end
+
+    def inspect
+      "(#{car.inspect}"+(if @cdr.is_a?(Cons) then " #{@cdr.inspect[1..-1]}"
+                          elsif @cdr === nil then ')'
+                          else " . #{@cdr.inspect})" end)
     end
 
   end

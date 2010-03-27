@@ -1,6 +1,6 @@
 require 'node'
 
-module YamLisp
+module HatsuneLisp
   include Node
 
   module Atom
@@ -8,7 +8,7 @@ module YamLisp
       true
     end
 
-    def yamlisp_eval
+    def hatsunelisp_eval(symtable=nil)
       self
     end
   end
