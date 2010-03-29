@@ -69,6 +69,8 @@ module HatsuneLisp
       sym.to_i
     elsif(sym =~ /-?[0-9]+\.[0-9]+/) then
       sym.to_f
+    elsif(sym == 'nil') then
+      nil
     else
       sym.to_sym
     end
@@ -87,6 +89,16 @@ module HatsuneLisp
     c = s.getc.chr
     return skipspace(s) if(c =~ /\s/)
     c
+  end
+
+  def self.unparse(val)
+    if(val.is_a?(List)) then
+      val.unparse
+    elsif val == nil then
+      'nil'
+    else
+      val.to_s
+    end
   end
 
 end

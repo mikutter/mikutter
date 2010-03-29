@@ -4,6 +4,7 @@
 
 miquire :core, 'utils'
 miquire :plugin, 'plugin'
+miquire :mui
 
 require 'gtk2'
 require 'singleton'

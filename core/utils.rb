@@ -101,7 +101,7 @@ def miquire(kind, file=nil)
   path = ''
   case(kind)
   when :mui
-    path = 'core/plugin/gtk_'
+    path = 'core/mui/gtk_'
   when :core
     path = 'core/'
   else

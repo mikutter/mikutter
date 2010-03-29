@@ -21,4 +21,10 @@ class Array
     Cons.new(self.car, val)
   end
 
+  def unparse(start=true)
+    result = ''
+    result = '(' if start
+    result + self.map{ |n| HatsuneLisp.unparse(n) }.join(' ') + ')'
+  end
+
 end

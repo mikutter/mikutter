@@ -39,10 +39,37 @@ module Gtk
     def block_add_all(messages)
       Lock.synchronize do
         @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m) })
+        if self.vadjustment.value != 0 or self.has_mumbleinput? then
+          if self.should_return_top? then
+            self.vadjustment.value = 0
+          else
+            self.vadjustment.value += messages.size * Gtk::Mumble::DEFAULT_HEIGHT
+          end
+        end
         if(@tl.children.size > 200) then
           (@tl.children.size - 200).times{ @tl.remove(@tl.children.last) }
         end
       end
+    end
+
+    def should_return_top?
+      Gtk::PostBox.list.each{ |w|
+        if w.get_ancestor(Gtk::TimeLine) == self then
+          if w.return_to_top then
+            return w.posting?
+          end
+        end
+      }
+      p :nothing
+      false
+    end
+
+    def has_mumbleinput?
+      Gtk::PostBox.list.each{ |w|
+        return true if w.get_ancestor(Gtk::TimeLine) == self
+      }
+      p :nothing
+      false
     end
 
     def gen_timeline

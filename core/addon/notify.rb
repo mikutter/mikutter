@@ -1,6 +1,9 @@
 miquire :addon, 'addon'
 miquire :core, 'config'
 miquire :addon, 'settings'
+miquire :lib, 'escape'
+
+require 'gst'
 
 module Addon
   class Notify < Addon
@@ -18,9 +21,16 @@ module Addon
 
     def main(watch)
       box = Gtk::VBox.new(false, 8)
-      box.pack_start(gen_boolean(:notify_friend_timeline, 'フレンドタイムライン'), false)
-      box.pack_start(gen_boolean(:notify_mention, 'リプライ'), false)
-      box.pack_start(gen_boolean(:notify_follower, 'フォローされたとき'), false)
+      ft = gen_group('フレンドタイムライン',
+                     gen_boolean(:notify_friend_timeline, 'ポップアップ'),
+                     gen_fileselect(:notify_sound_friend_timeline, 'サウンド', 'core/skin/data/sounds'))
+      me = gen_group('リプライ',
+                     gen_boolean(:notify_mention, 'ポップアップ'),
+                     gen_fileselect(:notify_sound_mention, 'サウンド', 'core/skin/data/sounds'))
+      fd = gen_group('フォローされたとき',
+                     gen_boolean(:notify_followed, 'ポップアップ'),
+                     gen_fileselect(:notify_sound_followed, 'サウンド', 'core/skin/data/sounds/'))
+      box.pack_start(ft, false).pack_start(me, false).pack_start(fd, false)
       box.pack_start(gen_adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
       return box
     end
@@ -32,6 +42,9 @@ module Addon
             self.notify(message[:user], message) if not message.from_me?
           }
         end
+        if(UserConfig[:notify_sound_friend_timeline]) then
+          self.notify_sound(UserConfig[:notify_sound_friend_timeline])
+        end
       end
     end
 
@@ -42,6 +55,9 @@ module Addon
             self.notify(message[:user], message) if not message.from_me?
           }
         end
+        if(UserConfig[:notify_sound_mention]) then
+          self.notify_sound(UserConfig[:notify_sound_mention])
+        end
       end
     end
 
@@ -51,6 +67,9 @@ module Addon
           alist.each{ |post, user|
             self.notify(user, 'にフォローされました。')
           }
+        end
+        if(UserConfig[:notify_sound_followed]) then
+          self.notify_sound(UserConfig[:notify_sound_followed])
         end
       end
     end
@@ -77,6 +96,24 @@ module Addon
         command << "@#{user[:idname]} (#{user[:name]})" <<  text
         system(*command)
       }
+    end
+
+    def notify_sound(sndfile)
+      # hack! linux only
+      system('sh', '-c', "aplay -q #{Escape.shell_command(sndfile).to_s} &")
+      return
+      # if ubuntu karmic, always segmentation fault.
+      uri = 'file://'+ File.join(File.expand_path(sndfile))
+      if not defined? @sound then
+        @sound = Hash.new{ |hash,key|
+          result = Gst::ElementFactory.make("playbin")
+          result.ready
+          result.uri = uri
+          hash[key] = result
+        }
+      end
+      @sound[uri].seek(Gst::EventSeek::FLUSH_START, 0)
+      @sound[uri].play
     end
 
   end

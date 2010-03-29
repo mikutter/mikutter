@@ -92,7 +92,9 @@ class Message
   end
 
   def to_me?
-    self.receiver == self[:post].user
+    return true if self.receiver == self[:post].user
+    return true if self[:message].include?(self[:post].user)
+    false
   end
 
   # return receive user

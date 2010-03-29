@@ -4,12 +4,14 @@ require 'thread'
 module Gtk
   class PostBox < Gtk::EventBox
 
-    attr_accessor :post
+    attr_accessor :post, :return_to_top
 
     @@ringlock = Mutex.new
     @@postboxes = []
 
     def initialize(watch, options = {})
+      @posting = false
+      @return_to_top = nil
       @options = options
       Lock.synchronize do
         super()
@@ -75,6 +77,14 @@ module Gtk
           end
           false
         }
+        self.signal_connect('realize'){
+          sw = self.get_ancestor(Gtk::ScrolledWindow)
+          if(sw) then
+            @return_to_top = sw.vadjustment.value == 0
+          else
+            @return_to_top = false
+          end
+        }
         @box.pack_start(tool, false)
         @box.pack_start(post)
         @box.pack_start(w_remain, false)
@@ -126,6 +136,7 @@ module Gtk
     def post_it(watch, post, *other_widgets)
       if self.postable? then
         Lock.synchronize do
+          @posting = true
           post.editable = false
           if(@options[:postboxstorage]) then
             postbox = Gtk::PostBox.new(watch, @options)
@@ -188,6 +199,10 @@ module Gtk
           end
         end
       }
+    end
+
+    def posting?
+      @posting
     end
 
     def regist

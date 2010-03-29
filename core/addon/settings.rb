@@ -132,6 +132,38 @@ module Addon
       return container
     end
 
+    def gen_group(title, *children)
+      group = Gtk::Frame.new(title).set_border_width(8)
+      box = Gtk::VBox.new(false, 0).set_border_width(4)
+      group.add(box)
+      children.each{ |w|
+        box.pack_start(w, false)
+      }
+      group
+    end
+
+    def gen_fileselect(key, label, current=Dir.pwd)
+      container, input = gen_input(label, key)
+      button = Gtk::Button.new('参照')
+      container.pack_start(button, false)
+      button.signal_connect('clicked'){ |widget|
+        dialog = Gtk::FileChooserDialog.new("Open File",
+                                            widget.get_ancestor(Gtk::Window),
+                                            Gtk::FileChooser::ACTION_OPEN,
+                                            nil,
+                                            [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
+                                            [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
+        p dialog.current_folder = File.expand_path(current)
+        if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
+          puts "filename = #{dialog.filename}"
+          UserConfig[key] = dialog.filename
+          input.text = dialog.filename
+        end
+        dialog.destroy
+      }
+      container
+    end
+
   end
 
 end

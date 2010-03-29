@@ -183,7 +183,7 @@ class TwitterAPI < Mutex
   def status_show(args)
     path = "/statuses/show/#{args[:id]}.#{FORMAT}"
     head = {'Host' => HOST}
-    get_with_auth(path, head)
+    get(path, head)
   end
 
   def rate_limit_status

@@ -9,6 +9,8 @@ require_if_exist 'Win32API'
 module Gtk
   class Mumble < Gtk::EventBox
 
+    DEFAULT_HEIGHT = 64
+
     @@buttons = {
       :reply => Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}reply.png", 24, 24),
       :retweet => Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}retweet.png", 24, 24),
@@ -169,7 +171,7 @@ module Gtk
     def gen_mumble(message)
       Lock.synchronize{
         self.set_width_request(1)
-        self.set_height_request(64)
+        self.set_height_request(DEFAULT_HEIGHT)
         showing = false
         last_set_config = nil
         self.signal_connect('expose_event'){
@@ -232,19 +234,20 @@ module Gtk
         menu_column = []
         if widget.is_a?(Gtk::TextView) then
           if(widget.buffer.selection_bounds[2]) then
-            menu_column << Gtk::MenuItem.new("選択範囲をコピー")
+            menu_column << Gtk::MenuItem.new("コピー")
             menu_column.last.signal_connect('activate') { |w|
               widget.copy_clipboard
               false
             }
+          else
+            menu_column << Gtk::MenuItem.new("本文をコピー")
+            menu_column.last.signal_connect('activate') { |w|
+              widget.select_all(true)
+              widget.copy_clipboard
+              widget.select_all(false)
+              false
+            }
           end
-          menu_column << Gtk::MenuItem.new("つぶやきをコピー")
-          menu_column.last.signal_connect('activate') { |w|
-            widget.select_all(true)
-            widget.copy_clipboard
-            widget.select_all(false)
-            false
-          }
         end
         menu_column << Gtk::MenuItem.new("返信")
         menu_column.last.signal_connect('activate') { |w|

@@ -47,6 +47,20 @@ module HatsuneLisp
         method(operator.to_sym).call(*evalarg.call)
       end
     end
+
+    def unparse(first=true)
+      result = ''
+      result << '(' if first
+      result << HatsuneLisp.unparse(self.car)
+      if(self.cdr.is_a? List) then
+        result + ' ' + self.cdr.unparse(false)
+      elsif(self.cdr == nil) then
+        result + ')'
+      else
+        result + ' . ' + HatsuneLisp.unparse(self.cdr) + ')'
+      end
+    end
+    
   end
 end
 
