@@ -3,7 +3,7 @@ miquire :core, 'config'
 miquire :addon, 'settings'
 miquire :lib, 'escape'
 
-require 'gst'
+#require 'gst'
 
 module Addon
   class Notify < Addon
