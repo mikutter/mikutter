@@ -21,6 +21,8 @@ class TwitterAPI < Mutex
   OPEN_TIMEOUT = 10
   READ_TIMEOUT = 20
   FORMAT = 'json'
+  API_MAX = 150
+  API_RESET_INTERVAL = 3600
 
   @@failed_lock = Monitor.new
   @@last_success = nil
@@ -35,6 +37,15 @@ class TwitterAPI < Mutex
     else
       @fail_trap = nil
     end
+  end
+
+  def api_remain(response = nil)
+    if response and response['X-RateLimit-Reset'] then
+      @api_remain = [ response['X-RateLimit-Limit'].to_i,
+                      response['X-RateLimit-Remaining'].to_i,
+                      Time.at(response['X-RateLimit-Reset'].to_i) ]
+    end
+    return *@api_remain
   end
 
   def user
@@ -85,16 +96,21 @@ class TwitterAPI < Mutex
     auth = ["#{@user}:#{@pass}"].pack("m").chomp.gsub("\n", '')
     head['Authorization'] = "Basic #{auth}"
     res = get(path, head)
-    if(res.is_a?(Net::HTTPResponse) and res.code == '401') then
-      if @fail_trap then
-        last_success = @@last_success
-        @@failed_lock.synchronize{
-          if(@@last_success == last_success) then
-            @@last_success = @fail_trap.call()
-          end
-          @user,@pass = *@@last_success
-          res = self.get_with_auth(path, head_src)
-        }
+    if res.is_a?(Net::HTTPResponse) then
+      limit, remain, reset = self.api_remain(res)
+      if(res.code == '200') then
+        Plugin::Ring::call(nil, :apiremain, self, remain, reset)
+      elsif(res.code == '401') then
+        if @fail_trap then
+          last_success = @@last_success
+          @@failed_lock.synchronize{
+            if(@@last_success == last_success) then
+              @@last_success = @fail_trap.call()
+            end
+            @user,@pass = *@@last_success
+            res = self.get_with_auth(path, head_src)
+          }
+        end
       end
     end
     res

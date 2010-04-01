@@ -144,16 +144,13 @@ module Gtk
             @options[:postboxstorage].show_all
             @options[:postboxstorage].get_ancestor(Gtk::Window).set_focus(postbox.post)
           end
+          self.sensitive = false
+          [post, *other_widgets].compact.each{|widget| widget.sensitive = false }
           watch.post(Message.new(post.buffer.text)){ |event, msg|
             Lock.synchronize do
               case event
-              when :start
-                self.sensitive = false
-                [post, *other_widgets].compact.each{|widget|
-                  widget.sensitive = false
-                }
               when :exit
-                self.destroy
+                Delayer.new{ self.destroy }
               end
             end
           }

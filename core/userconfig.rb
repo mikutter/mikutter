@@ -54,17 +54,15 @@ class UserConfig
       if not(@@watcher[key].empty?) then
         before_val = UserConfig.instance.at(key, @@defaults[key.to_sym])
         @@watcher[key].each{ |id|
-          Thread.new(id){ |id|
-            proc = nil
-            @@connect_mutex.synchronize{
-              if @@watcher_id.has_key?(id) then
-                proc = @@watcher_id[id]
-              else
-                @@watcher[key].delete(id)
-              end
-            }
-            proc.call(key, val, before_val, id) if proc
+          proc = nil
+          @@connect_mutex.synchronize{
+            if @@watcher_id.has_key?(id) then
+              proc = @@watcher_id[id]
+            else
+              @@watcher[key].delete(id)
+            end
           }
+          proc.call(key, val, before_val, id) if proc
         }
       end
     }

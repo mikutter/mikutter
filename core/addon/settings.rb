@@ -42,17 +42,21 @@ module Addon
       container = Gtk::ScrolledWindow.new()
       container.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC)
       box = Gtk::VBox.new(false, 0)
-      retrieve_interval = Gtk::Frame.new('各情報を取りに行く間隔。単位は分').set_border_width(8)
-      ribox = Gtk::VBox.new(false, 0).set_border_width(4)
-      retrieve_interval.add(ribox)
-      ribox.pack_start(gen_adjustment('フレンドタイムライン', :retrieve_interval_friendtl, 1, 60*24), false)
-      ribox.pack_start(gen_adjustment('リプライ', :retrieve_interval_mention, 1, 60*24), false)
-      ribox.pack_start(gen_adjustment('フォロワー', :retrieve_interval_followed, 1, 60*24), false)
+      retrieve_interval = gen_group('各情報を取りに行く間隔。単位は分',
+                                    help(gen_adjustment('タイムラインとリプライ',
+                                                        :retrieve_interval_friendtl, 1, 60*24),
+                                         'あなたがフォローしている人からのリプライとつぶやきの取得間隔'),
+                                    help(gen_adjustment('フォローしていない人からのリプライ',
+                                                        :retrieve_interval_mention, 1, 60*24),
+                                         "あなたに送られてきたリプライを取得する間隔。\n上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"),
+                                    help(gen_adjustment('フォロワー',
+                                                        :retrieve_interval_followed, 1, 60*24),
+                                         'フォロワー一覧を確認しに行く間隔'))
       retrieve_count = Gtk::Frame.new('一度に取得するつぶやきの件数(1-3200)').set_border_width(8)
       rcbox = Gtk::VBox.new(false, 0).set_border_width(4)
       retrieve_count.add(rcbox)
-      rcbox.pack_start(gen_adjustment('フレンドタイムライン', :retrieve_count_friendtl, 1, 3200), false)
-      rcbox.pack_start(gen_adjustment('リプライ', :retrieve_count_mention, 1, 3200), false)
+      rcbox.pack_start(gen_adjustment('タイムラインとリプライ', :retrieve_count_friendtl, 1, 3200), false)
+      rcbox.pack_start(gen_adjustment('フォローしていない人からのリプライ', :retrieve_count_mention, 1, 3200), false)
       rcbox.pack_start(gen_adjustment('フォロワー', :retrieve_interval_followed, 1, 3200), false)
       box.pack_start(retrieve_interval, false)
       box.pack_start(retrieve_count, false)
@@ -66,6 +70,11 @@ module Addon
   end
 
   module SettingUtils
+
+    def help(widget, text)
+      Gtk::Tooltips.new.set_tip(widget, text, nil)
+      widget
+    end
 
     def gen_adjustment(name, config, min, max)
       container = Gtk::HBox.new(false, 0)

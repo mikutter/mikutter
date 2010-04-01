@@ -61,10 +61,12 @@ module Gtk
 
     def self.background_icon_loader(this, img, dim=[48,48])
       filename = WebIcon.local_path(img)
-      Lock.synchronize{
-        this.pixbuf = self.genpixbuf(filename, *dim)
-        this.changed
-        this.notify_observers
+      Delayer.new(Delayer::LATER){
+        Lock.synchronize{
+          this.pixbuf = self.genpixbuf(filename, *dim)
+          this.changed
+          this.notify_observers
+        }
       }
     end
 

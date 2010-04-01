@@ -12,8 +12,11 @@ module Gtk
         self.border_width = 0
         self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
         @evbox, @tl = gen_timeline
-        self.add_with_viewport(@evbox)
-        @tooltip = Gtk::Tooltips.new()
+        shell = Gtk::VBox.new(false, 0)
+        shell.pack_start(@evbox, false)
+        shell.pack_start(Gtk::VBox.new)
+        self.add_with_viewport(shell)
+        # @tooltip = Gtk::Tooltips.new()
       end
       @mumbles = []
     end
@@ -29,7 +32,7 @@ module Gtk
     def block_add(message)
       Lock.synchronize do
         mumble = Gtk::Mumble.new(message)
-        @tl.pack(mumble)
+        @tl.pack(mumble, false)
         if(@tl.children.size > 200) then
           @tl.remove(@tl.children.last)
         end
@@ -38,7 +41,7 @@ module Gtk
 
     def block_add_all(messages)
       Lock.synchronize do
-        @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m) })
+        @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m) }, false)
         if self.vadjustment.value != 0 or self.has_mumbleinput? then
           if self.should_return_top? then
             self.vadjustment.value = 0
@@ -60,7 +63,6 @@ module Gtk
           end
         end
       }
-      p :nothing
       false
     end
 
@@ -68,14 +70,13 @@ module Gtk
       Gtk::PostBox.list.each{ |w|
         return true if w.get_ancestor(Gtk::TimeLine) == self
       }
-      p :nothing
       false
     end
 
     def gen_timeline
       Lock.synchronize do
         container = Gtk::EventBox.new
-        box = Gtk::PriorityVBox.new(false, 0){ |widget| widget[:id].to_i }
+        box = Gtk::PriorityVBox.new(false, 0){ |widget| [widget[:created], widget[:id].to_i] }
         container.add(box)
         #box.spacing = 16
         style = Gtk::Style.new()

@@ -8,6 +8,7 @@ miquire :core, 'environment'
 miquire :core, 'watch'
 miquire :core, 'post'
 miquire :mui, 'extension'
+miquire :core, 'delayer'
 
 require 'benchmark'
 require 'webrick' # require to daemon
@@ -131,7 +132,7 @@ def main()
     }
     Gtk.timeout_add(100){
       Gtk::Lock.unlock
-      #CHICoroutine.run
+      Delayer.run
       if(count > 600) then
         notice 'run'
         action.run

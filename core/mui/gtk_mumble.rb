@@ -122,7 +122,7 @@ module Gtk
       header = Gtk::HBox.new(false, 16)
       idname = Gtk::Label.new(message[:user][:idname])
       name = Gtk::Label.new(message[:user][:name])
-      created = Gtk::Label.new(Time.parse(message[:created]).strftime('%H:%M:%S'))
+      created = Gtk::Label.new(message[:created].strftime('%H:%M:%S'))
       idname.style = Gtk::Style.new.set_font_desc(Pango::FontDescription.new('Sans 10').set_weight(700))
       created.style = Gtk::Style.new.set_fg(Gtk::STATE_NORMAL, *[0x66,0x66,0x66].map{|n| n*255 })
       header.pack_start(Gtk::Alignment.new(0, 0.5, 0, 0).add(idname), false)
@@ -136,14 +136,18 @@ module Gtk
       iconwindow = Gtk::IconOverButton.new
       iconwindow.set_size_request(48, 48)
       iconwindow.set_grid_size(2, 2)
-      iconwindow.add(@@buttons[:reply]){ self.gen_postbox(@replies, message) }
-      iconwindow.add(@@buttons[:retweet]){ self.gen_postbox(@replies, message, :retweet => true) }
+      if(message.repliable?) then
+        iconwindow.add(@@buttons[:reply]){ self.gen_postbox(@replies, message) }
+        iconwindow.add(@@buttons[:retweet]){ self.gen_postbox(@replies, message, :retweet => true) }
+      end
       iconwindow.add(@@buttons[:etc]){ self.menu_pop(iconwindow, @replies, message) }
-      iconwindow.add(@@buttons[:fav][message.favorite?], :always_show => message.favorite?){ |this, options|
-        message.favorite(!message.favorite?).join
-        options[:always_show] = message[:favorited] = !message.favorite?
-        [@@buttons[:fav][message.favorite?], options]
-      }
+      if message.favoriable? then
+        iconwindow.add(@@buttons[:fav][message.favorite?], :always_show => message.favorite?){ |this, options|
+          message.favorite(!message.favorite?).join
+          options[:always_show] = message[:favorited] = !message.favorite?
+          [@@buttons[:fav][message.favorite?], options]
+        }
+      end
       iconwindow.sub_button{ self.menu_pop(iconwindow, @replies, message) }
       iconwindow.set_buttonback("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton.png", "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton_mouseover.png")
       iconwindow.background = Gtk::WebIcon.new(self.april_fool(message[:user][:profile_image_url]))
@@ -190,9 +194,11 @@ module Gtk
               Thread.new(reply, message){ |reply, msg|
                 parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
                 if(parent.is_a?(Message)) then
-                  Lock.synchronize{ reply.add(gen_minimumble(parent).show_all) }
+                  Delayer.new{ |reply, parent|
+                    Lock.synchronize{ reply.add(gen_minimumble(parent).show_all) }
+                  }.args(reply, parent)
                 end
-              }.run
+              }
               mumble.add(@replies)
               container.add(mumble)
               self.set_height_request(-1)
@@ -249,16 +255,18 @@ module Gtk
             }
           end
         end
-        menu_column << Gtk::MenuItem.new("返信")
-        menu_column.last.signal_connect('activate') { |w|
-          self.gen_postbox(replies, message)
-          false
-        }
-        menu_column << Gtk::MenuItem.new("非公式リツイート")
-        menu_column.last.signal_connect('activate') { |w|
-          self.gen_postbox(replies, message, :retweet => true)
-          false
-        }
+        if message.repliable? then
+          menu_column << Gtk::MenuItem.new("返信")
+          menu_column.last.signal_connect('activate') { |w|
+            self.gen_postbox(replies, message)
+            false
+          }
+          menu_column << Gtk::MenuItem.new("非公式リツイート")
+          menu_column.last.signal_connect('activate') { |w|
+            self.gen_postbox(replies, message, :retweet => true)
+            false
+          }
+        end
         menu_column.each{|item| menu.append(item) }
         menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detaching" }
         menu.show_all

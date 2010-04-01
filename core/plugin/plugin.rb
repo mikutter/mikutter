@@ -136,14 +136,23 @@ module Plugin
       }
     end
 
+    def self.call(target, event, watch, *args)
+      Ring::fire(:plugincall, [target, watch, event.to_sym, *args])
+    end
+
     # イベントを呼び出す
     # argsには、引数リストを要求する
     def self.fire(handler, args)
-      @@lock.synchronize{
+      proc = lambda{
         Gtk::Lock.synchronize{
           @@mother.__send__(handler, [args])
         }
       }
+      if(Thread.main == Thread.current) then
+        proc.call
+      else
+        Delayer.new{ proc.call }
+      end
     end
 
     # イベントを予約

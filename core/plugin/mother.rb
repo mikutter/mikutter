@@ -46,7 +46,11 @@ module Plugin
         plugin_alist[plugin_name] = plugin_alist[plugin_name].push(remain)
       }
       plugin_alist.each{ |plugin_name, args|
-        self.fire(:plugincall, Ring::avail_plugins(:all)[plugin_name.to_sym], args)
+        if(plugin_name) then
+          self.fire(:plugincall, Ring::avail_plugins(:all)[plugin_name.to_sym], args)
+        else
+          self.plugin_call(:plugincall, args)
+        end
       }
     end
 

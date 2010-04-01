@@ -27,6 +27,7 @@ class Post < User
 
   def initialize(check=false)
     @scaned_events = []
+    @code = nil
     @twitter = Twitter.new(UserConfig[:twitter_idname], UserConfig[:twitter_password]){
       user, pass = self.auth_confirm_func.call(self)
       if user
@@ -56,10 +57,23 @@ class Post < User
 
   # twitterのタイムラインを見に行く
   def scan_data(kind, args)
+    result = nil
     tl = twitter.__send__(kind, args)
-    if (tl.is_a?(Net::HTTPResponse)) and (tl.code == '200') then
-      tl.body
+    if tl.is_a?(Net::HTTPResponse) then
+      case(tl.code)
+      when '200':
+          result = tl.body
+      when '400':
+          limit, remain, reset = twitter.api_remain
+          Plugin::Ring::call(nil, :apilimit, self, reset) if(@code != tl.code)
+      else
+          Plugin::Ring::call(nil, :apifail, self, tl.code) if(@code != tl.code)
+      end
+      @code = tl.code
+    else
+      Plugin::Ring::call(nil, :apifail, self, tl.code)
     end
+    return result
   end
 
   def scan(kind=:friends_timeline, args={})
@@ -84,7 +98,7 @@ class Post < User
       :proc => {
         :id => 'id',
         :message => 'text',
-        :created => 'created_at',
+        :created => lambda{ |msg| Time.parse(msg['created_at']) },
         :reciver => 'in_reply_to_user_id',
         :replyto => 'in_reply_to_status_id',
         :favorited => 'favorited',
@@ -120,7 +134,12 @@ class Post < User
   def parse_json(json, cache='friends_timeline')
     if json then
       result = nil
-      tl = JSON.parse(json)
+      ti = nil
+      begin
+        tl = JSON.parse(json)
+      rescue JSON::ParserError
+        return nil
+      end
       tl = [tl] if not self.rule(cache, :hasmany)
       result = tl.map{ |msg|
         param = Hash[*self.rule(cache, :proc).map { |key, proc|
@@ -187,8 +206,7 @@ class Post < User
         if(event == :try)
           twitter.update(message)
         elsif(event == :success) then
-          Plugin::Ring.fire(:update, [self, message])
-          Plugin::Ring.go
+          Delayer.new{|m| Plugin::Ring.fire(:update, [self, m]) }.args(message)
         end
       }
     end
@@ -232,11 +250,16 @@ class Post < User
         loop{
           notice "post:try:#{count}:#{message.inspect}"
           result = yield(:try, message)
-          if result.is_a?(Net::HTTPResponse) and result.code == '200' then
+          if result.is_a?(Net::HTTPResponse) and
+              not(result.is_a?(Net::HTTPBadGateway)) and
+              result.code == '200'
+          then
             notice "post:success:#{count}:#{message.inspect}"
             receive = parse_json(result.body, :status_show).first
-            yield(:success, receive)
-            break receive
+            if receive then
+              yield(:success, receive)
+              break receive
+            end
           end
           notice "post:fail:#{count}:#{message.inspect}"
           notice "post:fail:#{count}:retry #{count} seconds after"

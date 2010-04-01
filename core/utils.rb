@@ -17,11 +17,33 @@ MIKU = 39
 # 制御構文
 #
 
+def miquire(kind, file=nil)
+  path = ''
+  case(kind)
+  when :mui
+    path = 'core/mui/gtk_'
+  when :core
+    path = 'core/'
+  else
+    path = 'core/' + kind.to_s + '/'
+  end
+  if file then
+    require path + file.to_s
+  else
+    Dir.glob(path + "*.rb") do |rb|
+      require rb
+    end
+  end
+end
+
+miquire :lib, 'escape'
+
 # 複数条件if
 # 条件を二つ持ち、a&b,a&!b,!a&b,!a&!bの４パターンに分岐する
 # procs配列は前から順番に、上記の条件の順番に対応している。
 # 評価されたブロックの戻り値を返す。ブロックがない場合はfalseを返す。
 # なお、ブロックはa,bを引数に取り呼び出される。
+# 誰得すぎて自分でも使ってないけどどこかで使った気がするなぁ
 def biif(a, b, *procs, &last_proc)
   procs.push(last_proc)
   num = 0
@@ -95,25 +117,6 @@ end
 
 def command_exist?(cmd)
   system("which #{cmd} > /dev/null")
-end
-
-def miquire(kind, file=nil)
-  path = ''
-  case(kind)
-  when :mui
-    path = 'core/mui/gtk_'
-  when :core
-    path = 'core/'
-  else
-    path = 'core/' + kind.to_s + '/'
-  end
-  if file then
-    require path + file.to_s
-  else
-    Dir.glob(path + "*.rb") do |rb|
-      require rb
-    end
-  end
 end
 
 def require_if_exist(file)
@@ -204,6 +207,11 @@ end
 #Entity encode
 def entity_unescape(str)
   str.gsub(/&(.{2,3});/){|s| {'gt'=>'>', 'lt'=>'<', 'amp'=>'&'}[$1] }
+end
+
+def bg_system(*args)
+  cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
+  system('sh', '-c', cmd)
 end
 
 #

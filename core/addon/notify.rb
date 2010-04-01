@@ -1,7 +1,6 @@
 miquire :addon, 'addon'
 miquire :core, 'config'
 miquire :addon, 'settings'
-miquire :lib, 'escape'
 
 #require 'gst'
 
@@ -94,13 +93,13 @@ module Addon
         command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
         command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
         command << "@#{user[:idname]} (#{user[:name]})" <<  text
-        system(*command)
+        bg_system(*command)
       }
     end
 
     def notify_sound(sndfile)
       # hack! linux only
-      system('sh', '-c', "aplay -q #{Escape.shell_command(sndfile).to_s} &")
+      bg_system("aplay","-q", sndfile)
       return
       # if ubuntu karmic, always segmentation fault.
       uri = 'file://'+ File.join(File.expand_path(sndfile))

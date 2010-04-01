@@ -9,6 +9,7 @@ miquire :core, 'image'
 class Message
   @@autotag = AutoTag.new
   @@cache = Hash.new
+  @@system_id = 0
 
   # args format
   # key     | value(class)
@@ -33,12 +34,24 @@ class Message
       @value[:tags], @value[:replyto] = args
       @value[:message] = message
     end
-    @value[:tags] = @@autotag.get(@value[:message]) unless @value[:tags]
-    @value[:user] = User.generate(@value[:user]) if @value[:user]
-    if not(@value[:image].is_a?(Message::Image)) then
-      @value[:image] = Message::Image.new(@value[:image])
+    if @value[:system] then
+      self.systemize
+    else
+      @value[:tags] = @@autotag.get(@value[:message]) unless @value[:tags]
+      @value[:user] = User.generate(@value[:user]) if @value[:user]
+      if not(@value[:image].is_a?(Message::Image)) then
+        @value[:image] = Message::Image.new(@value[:image])
+      end
     end
+    @value[:created] = Time.parse(@value[:created]) if @value[:created].is_a?(String)
     self.regist
+  end
+
+  def systemize
+    @value[:id] = @@system_id += 1
+    @value[:user] = User.generate(:system)
+    @value[:created] = Time.now
+    @value[:tags] = []
   end
 
   def self.generate(message, args)
@@ -74,6 +87,10 @@ class Message
     end
   end
 
+  def favoriable?
+    not system?
+  end
+
   def update(other)
     @value.update(other){|*a| a[1] }
     return self
@@ -87,11 +104,21 @@ class Message
     end
   end
 
+  def system?
+    self[:system]
+  end
+
+  def repliable?
+    self[:post] != nil
+  end
+
   def from_me?
+    return false if self.system?
     self[:user] == self[:post].user
   end
 
   def to_me?
+    return true if self.system?
     return true if self.receiver == self[:post].user
     return true if self[:message].include?(self[:post].user)
     false
@@ -129,7 +156,8 @@ class Message
   end
 
   def [](key)
-    @value[key.to_sym]
+    key = key.to_sym
+    @value[key]
   end
 
   def []=(key, val)

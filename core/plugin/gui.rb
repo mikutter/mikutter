@@ -31,6 +31,7 @@ module Plugin
 
     def _onboot(watch)
       Gtk::Lock.synchronize do
+        self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user}? みっくみくにしてやんよ")
         @window = self.gen_window()
         container = Gtk::VBox.new(false, 0)
         mumbles = Gtk::VBox.new(false, 0)
@@ -39,15 +40,33 @@ module Plugin
         @window.set_focus(postbox.post)
         container.pack_start(mumbles, false)
         container.pack_start(self.book)
+        container.pack_start(self.statusbar, false)
         @window.add(container)
         @window.show_all
       end
     end
 
-    def onplugincall(watch, command, container, label)
-      if(command == :mui_tab_regist) then
-        self.regist_tab(container, label)
+    def onplugincall(watch, command, *args)
+      case command
+      when :mui_tab_regist:
+          self.regist_tab(*args)
+      when :apilimit:
+          Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                                  :system => true)])
+          self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{args[0].strftime('%H:%M')}に復活します")
+      when :apifail:
+          self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{args[0]})")
+      when :apiremain:
+          self.statusbar.push(self.statusbar.get_context_id('system'), "API あと#{args[0]}回くらい (#{args[1].strftime('%H:%M')}まで)")
       end
+    end
+
+    def statusbar
+      if not defined? @statusbar then
+        @statusbar = Gtk::Statusbar.new
+        @statusbar.has_resize_grip = true
+      end
+      @statusbar
     end
 
     def regist_tab(container, label)

@@ -20,7 +20,18 @@ class User
     self.regist
   end
 
+  def self.system
+    if not defined? @@system then
+      @@system = User.new({ :id => 0,
+                            :idname => Environment::ACRO,
+                            :name => Environment::NAME,
+                            :profile_image_url => "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}icon.png"})
+    end
+    @@system
+  end
+
   def self.generate(*args)
+    return User.system if(args[0] == :system)
     if(args[0].is_a?(User)) then
       return args[0]
     elsif(args[0].is_a?(Hash)) then
