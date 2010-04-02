@@ -132,13 +132,13 @@ def main()
     }
     Gtk.timeout_add(100){
       Gtk::Lock.unlock
-      Delayer.run
       if(count > 600) then
         notice 'run'
         action.run
         count = 0
       end
       count += 1
+      Delayer.run
       Gtk::Lock.lock
       true
     }

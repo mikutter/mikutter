@@ -10,7 +10,7 @@ class Gtk::Box
     }
     self.pack_end(child)
     front.reverse.each{|w|
-      self.pack_end(w)
+      self.__send__(self.insert_func, w)
     }
   end
 end
@@ -18,9 +18,12 @@ end
 class Gtk::PriorityVBox < Gtk::VBox
   protected :pack_start, :pack_end, :reorder_child
 
+  attr_accessor :insert_func
+
   def initialize(*args)
     super(*args)
     @priority = lambda{ |x| yield x }
+    @insert_func = :pack_end
   end
 
   def pack(child, expand = true, fill = true, padding = 0)
@@ -37,7 +40,7 @@ class Gtk::PriorityVBox < Gtk::VBox
           self.insert_child(child, self.children.size)
         end
       else
-        self.pack_end(child, expand, fill, padding)
+        self.__send__(self.insert_func, child, expand, fill, padding)
       end
     end
   end

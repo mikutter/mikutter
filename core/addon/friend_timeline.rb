@@ -8,7 +8,7 @@ module Addon
 
     def onboot(watch)
       @main = Gtk::TimeLine.new()
-      self.regist_tab(watch, @main, 'TL')
+      self.regist_tab(watch, @main, 'TL', "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}timeline.png")
     end
 
     def onupdate(messages)

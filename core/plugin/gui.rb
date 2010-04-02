@@ -34,12 +34,17 @@ module Plugin
         self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user}? みっくみくにしてやんよ")
         @window = self.gen_window()
         container = Gtk::VBox.new(false, 0)
+        main = Gtk::HBox.new(false, 0)
+        @pane = Gtk::HBox.new(true, 0)
         mumbles = Gtk::VBox.new(false, 0)
         postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles)
         mumbles.pack_start(postbox)
         @window.set_focus(postbox.post)
+        @pane.pack_end(self.book)
+        main.pack_start(@pane)
+        main.pack_start(self.tab, false)
         container.pack_start(mumbles, false)
-        container.pack_start(self.book)
+        container.pack_start(main)
         container.pack_start(self.statusbar, false)
         @window.add(container)
         @window.show_all
@@ -69,16 +74,62 @@ module Plugin
       @statusbar
     end
 
-    def regist_tab(container, label)
+    def regist_tab(container, label, image=nil)
+      default_active = 'TL'
       order = ['TL', 'Me', 'Se']
       @@mutex.synchronize{
+        @lc_store = Hash.new if not @lc_store
+        @lc_store[label] = container
         @book_children = [] if not(@book_children)
         Gtk::Lock.synchronize do
           idx = where_should_insert_it(label, @book_children, order)
           self.book.insert_page(idx, container, gen_label(label))
+          widget = Gtk::Button.new
+          widget.add((image or gen_label(label)))
+          Gtk::Tooltips.new.set_tip(widget, label, nil)
+          widget.signal_connect('clicked'){ |w|
+            Gtk::Lock.synchronize do
+              index = @book_children.index(label)
+              self.book.page = index if index
+            end
+            false
+          }
+          widget.signal_connect('key_press_event'){ |widget, event|
+            Gtk::Lock.synchronize{
+              case event.keyval
+              when 65361:
+                  index = @book_children.index(label)
+                  if index then
+                    self.book.remove_page(index)
+                    @book_children.delete_at(index)
+                    @pane.pack_end(container)
+                  end
+              when 65363:
+                  if not @book_children.index(label) then
+                    @pane.remove(container)
+                    self.book.append_page(container)
+                    @book_children << label
+                  end
+              end
+            }
+            true
+          }
+          self.tab.pack(widget, false)
+          widget.show_all
           self.book.show_all
         end
       }
+    end
+
+    def tab
+      order = ['TL', 'Me', 'Se']
+      Gtk::Lock.synchronize do
+        if not(defined? @tabbar) then
+          @tabbar = Gtk::PriorityVBox.new{ |w| order.index(Gtk::Tooltips.get_data(w)[1]) }
+          @tabbar.insert_func = :pack_start
+        end
+      end
+      @tabbar
     end
 
     def book()
@@ -87,6 +138,7 @@ module Plugin
           if not(@book) then
             @book = Gtk::Notebook.new
             @book.set_tab_pos(Gtk::POS_RIGHT)
+            @book.set_show_tabs(false)
           end
         end
       }

@@ -8,7 +8,7 @@ module Addon
 
     def onboot(watch)
       @main = Gtk::TimeLine.new()
-      self.regist_tab(watch, @main, 'Me')
+      self.regist_tab(watch, @main, 'Me', "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}reply.png")
     end
 
     def onmention(messages)

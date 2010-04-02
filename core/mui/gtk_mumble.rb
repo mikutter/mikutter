@@ -95,6 +95,7 @@ module Gtk
           Gtk::Lock.synchronize do
             self.menu_pop(widget, @replies, message) if (event.button == 3)
           end
+          false
         }
         return body
       }

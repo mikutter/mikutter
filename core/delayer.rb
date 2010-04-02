@@ -21,7 +21,9 @@ class Delayer
   end
 
   def run
+    notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
     @routine.call(*@args)
+    notice "end. #{@routine.inspect}"
     @routine = nil
   end
 
