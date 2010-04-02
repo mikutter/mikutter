@@ -71,7 +71,7 @@ class Post < User
       end
       @code = tl.code
     else
-      Plugin::Ring::call(nil, :apifail, self, tl.code)
+      Plugin::Ring::call(nil, :apifail, self, (tl.methods.include?(:code) and tl.code))
     end
     return result
   end
