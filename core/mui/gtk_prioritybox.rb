@@ -8,9 +8,9 @@ class Gtk::Box
     front.each{|w|
       self.remove(w)
     }
-    self.pack_end(child)
+    self.__send__(self.insert_func, child, false)
     front.reverse.each{|w|
-      self.__send__(self.insert_func, w)
+      self.__send__(self.insert_func, w, false)
     }
   end
 end

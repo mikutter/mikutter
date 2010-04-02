@@ -130,11 +130,8 @@ end
 
 def where_should_insert_it(insertion, src, order)
   if(order.include?(insertion)) then
-    return src.push(insertion).sort{|a, b|
-      if not(order.include?(a)) then 1
-      elsif not(order.include?(b)) then -1
-      else order.index(a) - order.index(b)
-      end
+    return src.dup.push(insertion).sort_by{|a|
+      order.index(a) or 0
     }.index(insertion)
   else
     return src.size
