@@ -10,14 +10,10 @@ class Delayer
   @@routines = [[],[],[],[],[]]
   @@lock = Monitor.new
 
-  def initialize(prio = NORMAL, &block)
+  def initialize(prio = NORMAL, *args, &block)
     @routine = block
-    @args = []
-    regist(prio)
-  end
-
-  def args(*args)
     @args = args
+    regist(prio)
   end
 
   def run

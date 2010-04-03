@@ -206,7 +206,9 @@ class Post < User
         if(event == :try)
           twitter.update(message)
         elsif(event == :success) then
-          Delayer.new{|m| Plugin::Ring.fire(:update, [self, m]) }.args(message)
+          Delayer.new(Delayer::NORMAL, message){ |message|
+            Plugin::Ring.fire(:update, [self, message])
+          }
         end
       }
     end

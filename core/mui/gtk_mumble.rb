@@ -195,9 +195,9 @@ module Gtk
               Thread.new(reply, message){ |reply, msg|
                 parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
                 if(parent.is_a?(Message)) then
-                  Delayer.new{ |reply, parent|
+                  Delayer.new(Delayer::NORMAL, reply, parent){ |reply, parent|
                     Lock.synchronize{ reply.add(gen_minimumble(parent).show_all) }
-                  }.args(reply, parent)
+                  }
                 end
               }
               mumble.add(@replies)

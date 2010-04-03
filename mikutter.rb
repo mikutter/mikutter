@@ -123,18 +123,12 @@ def main()
       end
     }
   else
-    count = 0
-    action = Thread.new{
-      loop{
-        watch.action
-        Thread.stop
-      }
-    }
+    count = 600
     Gtk.timeout_add(100){
       Gtk::Lock.unlock
       if(count > 600) then
         notice 'run'
-        action.run
+        watch.action
         count = 0
       end
       count += 1

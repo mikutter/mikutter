@@ -42,7 +42,12 @@ class Gtk::IconOverButton < Gtk::EventBox
     Gtk::Lock.synchronize do
       super(*args)
       self.set_app_paintable(true)
-      self.signal_connect('expose_event'){ |win, evt| redraw(evt); false }
+      self.signal_connect('expose_event'){ |win, evt|
+        Gtk::Lock.synchronize do
+          redraw(evt);
+        end
+        false
+      }
       self.signal_connect('enter_notify_event'){
         Gtk::Lock.synchronize do
           self.visible_button = true
@@ -141,8 +146,8 @@ class Gtk::IconOverButton < Gtk::EventBox
   end
 
   def redraw(event = nil, options = {})
-    return false if not(self.realized?)
     Gtk::Lock.synchronize do
+      return false if not(self.realized?)
       gc = Gdk::GC.new(self.window)
       width = self.width_request
       height = self.height_request

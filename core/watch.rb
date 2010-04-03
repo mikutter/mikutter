@@ -75,14 +75,22 @@ class Watch
   end
 
   def action(messages=nil)
+    plugin_counter = 0
+    counter_mutex = Mutex.new
     self.events.each{ |name, event|
       if not(Plugin::Ring.avail_plugins(name).empty?) then
         if((@counter % event[:interval]) == 0) then
-          event[:proc].call(self, name, @post, messages, event[:options])
+          counter_mutex.synchronize{ plugin_counter += 1 }
+          Thread.new(name, messages, event){ |name, messages, event|
+            event[:proc].call(self, name, @post, messages, event[:options])
+            counter_mutex.synchronize{
+              plugin_counter -= 1
+              Plugin::Ring.go if(plugin_counter == 0)
+            }
+          }
         end
       end
     }
-    Plugin::Ring.go
     @counter += 1
   end
 
