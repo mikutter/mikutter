@@ -123,7 +123,7 @@ module Retriever
     # 既にそのカラムのインスタンスが存在すればそちらを返します
     # また、引数のハッシュ値はmergeされます。
     def self.generate(args)
-      return args if args.is_a?(Model)
+      return args if args.is_a?(self)
       return self.findbyid(args) if not(args.is_a? Hash)
       result = self.findbyid(args[:id])
       return result.merge(args) if result
@@ -132,7 +132,7 @@ module Retriever
 
     # srcが正常にModel化できるかどうかを返します。
     def self.valid?(src)
-      return src.is_a?(self.class) if not src.is_a?(Hash)
+      return src.is_a?(self) if not src.is_a?(Hash)
       self.keys.each{ |column|
         key, type, required = *column
         begin
@@ -159,7 +159,6 @@ module Retriever
         result = catch(:found){
           self.retrievers.each{ |retriever|
             detection = retriever.findbyid_timer(id)
-            p detection
             throw :found, detection if self.valid?(detection)
           }
           throw :found, nil
