@@ -12,7 +12,7 @@ miquire :core, 'configloader'
 miquire :core, 'userconfig'
 miquire :core, "json"
 
-class Post < User
+class Post
   include ConfigLoader
 
   # タイムラインのキャッシュファイルのプレフィックス。
@@ -25,7 +25,7 @@ class Post < User
   @@xml_lock = Mutex.new
   @@auth_confirm_func = lambda{ nil }
 
-  def initialize(check=false)
+  def initialize
     @scaned_events = []
     @code = nil
     @twitter = Twitter.new(UserConfig[:twitter_idname], UserConfig[:twitter_password]){
@@ -36,12 +36,14 @@ class Post < User
       end
       [user, pass]
     }
-    super()
+    p caller(1).first
+    Message.add_data_retriever(MessageRetriever.new(self))
   end
 
-  def user()
+  def user
     UserConfig[:twitter_idname]
   end
+  alias :idname :user
 
   def twitter
     @twitter
@@ -92,6 +94,33 @@ class Post < User
   end
 
   def rule(kind, prop)
+    boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
+    users_parser = {
+      :hasmany => true,
+      :class => User,
+      :proc => {
+        :id => 'id',
+        :name => 'name',
+        :idname => 'screen_name',
+        :location => 'location',
+        :description => 'description',
+        :profile_image_url => 'profile_image_url',
+        :url => 'url',
+        :protected => 'protected',
+        :followers_count => 'followers_count',
+        :friends_count => 'friends_count',
+        :created => lambda{ |msg| Time.parse(msg['created_at']) }, # 登録日時
+        :favourites_count => 'favourites_count',                   # ふぁぼり数
+        :notifications => boolean.call('notifications'),           # ?
+        :geo => 'geo_enable',                                      # ジオタグ
+        :verified => boolean.call('verified'),
+        :following => boolean.call('following'),
+        :statuses_count => 'statuses_count',
+        :lang => 'lang',
+      }
+    }
+    user_parser = users_parser.clone
+    user_parser[:hasmany] = false
     timeline_parser = {
       :hasmany => true,
       :class => Message,
@@ -101,34 +130,37 @@ class Post < User
         :created => lambda{ |msg| Time.parse(msg['created_at']) },
         :reciver => 'in_reply_to_user_id',
         :replyto => 'in_reply_to_status_id',
-        :favorited => 'favorited',
-        :user => lambda{ |msg|
-          Hash[:id, msg['user']['id'],
-               :idname, msg['user']['screen_name'],
-               :name, msg['user']['name'],
-               :profile_image_url, msg['user']['profile_image_url']]
-        }
-      }
-    }
-    followers_perser = {
-      :hasmany => true,
-      :class => User,
-      :proc => {
-        :id => 'id',
-        :name => 'name',
-        :idname => 'screen_name',
-        :profile_image_url => 'profile_image_url',
+        :favorited => boolean.call('favorited'),
+        :user => lambda{ |msg| self.scan_rule(:user_show, msg['user']) },
+        :geo => 'geo',
       }
     }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
-      :followers => followers_perser,
+      :followers => users_parser,
       :favorite => unimessage_parser,
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
+      :user_show => user_parser,
     }[kind.to_sym][prop.to_sym]
+  end
+
+  def scan_rule(rule, msg)
+    param = Hash.new
+    self.rule(rule, :proc).map { |key, proc|
+      result = nil
+      if(proc.is_a? Proc) then
+        result = proc.call(msg)
+      else
+        result = msg[proc]
+        result = entity_unescape(result) if(result.is_a?(String))
+      end
+      param[key] = result
+    }
+    param.update({ :post => self, :exact => true })
+    self.rule(rule, :class).new_ifnecessary(param)
   end
 
   def parse_json(json, cache='friends_timeline')
@@ -141,19 +173,7 @@ class Post < User
         return nil
       end
       tl = [tl] if not self.rule(cache, :hasmany)
-      result = tl.map{ |msg|
-        param = Hash[*self.rule(cache, :proc).map { |key, proc|
-                       result = nil
-                       if(proc.is_a? Proc) then
-                         result = proc.call(msg)
-                       else
-                         result = msg[proc]
-                         result = entity_unescape(result) if(result.is_a?(String))
-                       end
-                       [key, result]
-                     }.flatten].update({ :post => self, :xml => msg.to_s })
-        self.rule(cache, :class).new(param)
-      }
+      result = tl.map{ |msg| self.scan_rule(cache, msg) }
       store(cache.to_s + "_lastid", result.first['id']) if result.first
       return result
     end
@@ -184,8 +204,9 @@ class Post < User
                            end
                          end
                          [key, result]
-                       }.flatten].update({ :post => self, :xml => msg.to_s })
-          self.rule(cache, :class).new(param)
+                       }.flatten]
+          param[:post] = self
+          self.rule(cache, :class).new_ifnecessary(param)
         }
       }
       return result
@@ -257,10 +278,10 @@ class Post < User
               result.code == '200'
           then
             notice "post:success:#{count}:#{message.inspect}"
-            receive = parse_json(result.body, :status_show).first
-            if receive then
-              yield(:success, receive)
-              break receive
+            receive = parse_json(result.body, :status_show)
+            if receive.is_a?(Array) then
+              yield(:success, receive.first)
+              break receive.first
             end
           end
           notice "post:fail:#{count}:#{message.inspect}"
@@ -280,6 +301,28 @@ class Post < User
     # @@threads.reject!{ |thread|
     #   thread.join(1)
     # }
+
   end
 
+  def marshal_dump
+    raise RuntimeError, 'Post cannot marshalize'
+  end
+
+  class MessageRetriever
+    include Retriever::DataSource
+
+    def initialize(post)
+      @post = post
+    end
+
+    def findbyid(id)
+      message = @post.scan(:status_show, :no_auto_since_id => true, :id => id)
+      return message.first if message
+    end
+
+    # データの保存
+    def store_datum(datum)
+      false
+    end
+  end
 end

@@ -4,11 +4,11 @@
 
 miquire :core, 'autotag'
 miquire :core, 'user'
-miquire :core, 'image'
+miquire :core, 'retriever'
 
-class Message
-  @@autotag = AutoTag.new
-  @@cache = Hash.new
+require 'net/http'
+
+class Message < Retriever::Model
   @@system_id = 0
 
   # args format
@@ -23,50 +23,38 @@ class Message
   # post    | post object(Post)
   # image   | image(URL or Image object)
   # xml     | source xml text
-  def initialize(message, *args)
-    if(args.size == 1 and args[0].is_a?(Hash)) then
-      @value = args[0]
-      @value[:message] = message
-    elsif(args.size == 0 and message.is_a?(Hash)) then
-      @value = message
-    else
-      @value = Hash.new
-      @value[:tags], @value[:replyto] = args
-      @value[:message] = message
+
+  self.keys = [[:id, :int, true],         # ID
+               [:message, :string, true], # Message description
+               [:user, User, true],       # Send by user
+               [:receiver, User],         # Send to user
+               [:replyto, Message],       # Reply to this message
+               [:created, :time],         # posted time
+              ]
+
+  def initialize(value)
+    assert_type(Hash, value)
+    value.update(self.system) if value[:system]
+    if not(value[:image].is_a?(Message::Image)) then
+      value[:image] = Message::Image.new(value[:image])
     end
-    if @value[:system] then
-      self.systemize
-    else
-      @value[:tags] = @@autotag.get(@value[:message]) unless @value[:tags]
-      @value[:user] = User.generate(@value[:user]) if @value[:user]
-      if not(@value[:image].is_a?(Message::Image)) then
-        @value[:image] = Message::Image.new(@value[:image])
-      end
-    end
-    @value[:created] = Time.parse(@value[:created]) if @value[:created].is_a?(String)
-    self.regist
+    super(value)
   end
 
-  def systemize
-    @value[:id] = @@system_id += 1
-    @value[:user] = User.generate(:system)
-    @value[:created] = Time.now
-    @value[:tags] = []
+  def system
+    { :id => @@system_id += 1,
+      :user => User.system,
+      :created => Time.now }
   end
 
-  def self.generate(message, args)
-    if(@@messages[args[:id]]) then
-      @@messages[args[:id]].merge(args)
-    else
-      @@messages[args[:id]] = Message.new(message, args)
-    end
+  def idname
+    self[:user][:idname]
   end
 
   # このつぶやきへのリプライをつぶやく
   def post(other, &proc)
-    if not(other.receive_message) then
-      other[:replyto] = self
-    end
+    other[:replyto] = self
+    other[:receiver] = self[:user]
     if self[:post] then
       self[:post].post(other){|*a| yield *a }
     elsif self.receive_message then
@@ -89,11 +77,6 @@ class Message
 
   def favoriable?
     not system?
-  end
-
-  def update(other)
-    @value.update(other){|*a| a[1] }
-    return self
   end
 
   def <<(msg)
@@ -140,42 +123,15 @@ class Message
   end
 
   def receive_message(force_retrieve=false)
-    result = (self[:replyto] or self[:retweet])
-    if(result) and not(result.is_a?(Message)) then
-      cache = at(result)
-      if(cache) then
-        result = cache
-      elsif(force_retrieve)
-        retrieve = self[:post].scan(:status_show, :id => result, :no_auto_since_id => true)
-        if(retrieve)
-           result = self[:replyto] = retrieve.first
-        end
-      end
-    end
-    return result
-  end
-
-  def [](key)
-    key = key.to_sym
-    @value[key]
-  end
-
-  def []=(key, val)
-    @value[key.to_sym] = val
-  end
-
-  def at(key)
-    return @@cache[key.to_i]
-  end
-
-  def regist
-    if(self[:id]) then
-      @@cache[self[:id].to_i] = self
-    end
+    return self[:replyto] if force_retrieve
+    return self.fetch(:replyto)
   end
 
   def to_s
-    result = [self[:message], self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"}]
+    result = [self[:message]]
+    if self[:tags].is_a?(Array)
+      result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"}
+    end
     if self.receiver then
       if self[:retweet] then
         result << 'RT' << "@#{self.receiver[:idname]}" << self.receive_message[:message]
@@ -188,7 +144,36 @@ class Message
     return result.join(' ').split(//u)[0,140].join
   end
 
-  def inspect
-    "Message[#{if self.favorite? then '*' end}#{@value[:user].inspect}: #{@value[:message]}] to #{(self.receive_message or self.receiver).inspect}"
+  def marshal_dump
+    raise RuntimeError, 'Message cannot marshalize'
+  end
+
+  #
+  # Sub classes
+  #
+
+  class Image
+    attr_accessor :url
+    attr_reader :resource
+
+    IS_URL = /^https?:\/\//
+
+    def initialize(resource)
+      if(not resource.is_a?(IO)) and (FileTest.exist?(resource.to_s)) then
+        @resource = open(resource)
+      else
+        @resource = resource
+        if((IS_URL === resource) != nil) then
+          @url = resource
+        end
+      end
+    end
+
+    def path
+      if(@resource.is_a?(File)) then
+        return @resource.path
+      end
+      return @url
+    end
   end
 end

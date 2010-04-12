@@ -5,6 +5,8 @@
 require 'yaml'
 require 'thread'
 require 'resolv-replace'
+require 'pstore'
+require 'monitor'
 
 #
 # グローバル変数
@@ -152,6 +154,22 @@ end
 # エラーメッセージを表示する
 def error(msg)
   log "error", msg if $debug_avail_level >= 1
+end
+
+def assert_type(type, obj)
+  if $debug and not obj.is_a?(type) then
+    raise RuntimeError, "#{obj} should be type #{type}"
+  end
+  obj
+end
+
+def assert_hasmethods(obj, *methods)
+  if $debug then
+    methods.all?{ |m|
+      raise RuntimeError, "#{obj.inspect} should have method #{m}" if not obj.methods.include? m
+    }
+  end
+  obj
 end
 
 def log(prefix, msg)
@@ -437,4 +455,14 @@ module GC
     }
   end
 
+end
+
+class HatsuneStore < PStore
+  @@mutex = Monitor.new
+
+  def transaction(ro = false, &block)
+    @@mutex.synchronize{
+      super(ro){ |db| block.call(db) }
+    }
+  end
 end

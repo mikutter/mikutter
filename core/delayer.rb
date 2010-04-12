@@ -13,12 +13,19 @@ class Delayer
   def initialize(prio = NORMAL, *args, &block)
     @routine = block
     @args = args
+    @backtrace = caller
     regist(prio)
   end
 
   def run
     notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
-    @routine.call(*@args)
+    now = caller.size
+    begin
+      @routine.call(*@args)
+    rescue Exception => e
+      $@ = e.backtrace[0, now] + @backtrace
+      raise e
+    end
     notice "end. #{@routine.inspect}"
     @routine = nil
   end

@@ -1,4 +1,7 @@
-class User
+miquire :core, 'retriever'
+
+class User < Retriever::Model
+
   @@users = Hash.new
   @@idname_id = Hash.new
 
@@ -11,14 +14,14 @@ class User
   # location| location(not required)
   # detail  | detail
   # profile_image_url | icon
-  def initialize(*args)
-    if(args[0].is_a?(Hash)) then
-      @value = args[0]
-    else
-      @value = Hash[*args]
-    end
-    self.regist
-  end
+
+  self.keys = [[:id, :int],
+               [:idname, :string],
+               [:name, :string],
+               [:location, :string],
+               [:detail, :string],
+               [:profile_image_url, :string],
+              ]
 
   def self.system
     if not defined? @@system then
@@ -30,25 +33,8 @@ class User
     @@system
   end
 
-  def self.generate(*args)
-    return User.system if(args[0] == :system)
-    if(args[0].is_a?(User)) then
-      return args[0]
-    elsif(args[0].is_a?(Hash)) then
-      args = args[0]
-    else
-      args = Hash[*args]
-    end
-    if(@@users[args[:id]]) then
-      return @@users[args[:id]].update(args)
-    else
-      return User.new(args)
-    end
-  end
-
-  def update(other)
-    @value.update(other.to_hash)
-    return self
+  def idname
+    self[:idname]
   end
 
   def follow
@@ -57,30 +43,15 @@ class User
     end
   end
 
-  def to_hash
-    @value.dup
-  end
-
-  def [](key)
-    @value[key.to_sym]
-  end
-
-  def []=(key, val)
-    @value[key.to_sym] = val
-  end
-
-  def regist
-    @@users[self[:id]] = self
-    @@idname_id[self[:idname]] = self[:id]
-  end
-
   def inspect
     "User(@#{@value[:idname]})"
   end
 
   def self.findById(id)
-    result = @@users[id]
-    return result
+    result = assert_type(User, @@users[id])
+    return result if result
+    result = watch.scan(:user_show, :id => id, :no_auto_since_id => true)
+    return assert_type(self, result.first) if result
   end
 
   def self.findByIdname(idname)
@@ -96,4 +67,7 @@ class User
     end
   end
 
+  def marshal_dump
+    raise RuntimeError, 'User cannot marshalize'
+  end
 end

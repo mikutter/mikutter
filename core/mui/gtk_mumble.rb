@@ -21,7 +21,7 @@ module Gtk
     }
 
     def initialize(message)
-      @message = message
+      @message = assert_type(Message, message)
       super()
       gen_mumble(message)
       self.border_width = 0
@@ -194,7 +194,7 @@ module Gtk
               mumble.add(reply)
               Thread.new(reply, message){ |reply, msg|
                 parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
-                if(parent.is_a?(Message)) then
+                if(parent.is_a?(Message) and parent[:message]) then
                   Delayer.new(Delayer::NORMAL, reply, parent){ |reply, parent|
                     Lock.synchronize{ reply.add(gen_minimumble(parent).show_all) }
                   }

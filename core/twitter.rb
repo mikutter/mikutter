@@ -12,9 +12,11 @@ class Twitter < TwitterAPI
   PROG_NAME = Environment::NAME
 
   def update(message)
-    data = 'status=' + self.encode(message)
-    data += '&in_reply_to_user_id=' + message.receiver[:id].to_s if message.receiver
-    data += '&in_reply_to_status_id=' + message.receive_message[:id].to_s if message.receive_message
+    replyto = message[:replyto]
+    receiver = get_receiver(message)
+    data = 'status=' + self.convert_message(message)
+    data += '&in_reply_to_user_id=' + User.generate(receiver)[:id].to_s if receiver
+    data += '&in_reply_to_status_id=' + Message.generate(replyto)[:id].to_s if replyto
     data += '&source=' + self.encode(PROG_NAME)
     post_with_auth('/statuses/update.'+FORMAT, data, 'Host' => HOST)
   end
@@ -64,4 +66,25 @@ class Twitter < TwitterAPI
     return URI.encode(message.to_s, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n)
   end
 
+  def convert_message(message)
+    result = [message[:message]]
+    if message[:tags].is_a?(Array)
+      result << message[:tags].select{|i| not message[:message].include?(i) }.map{|i| "##{i.to_s}"}
+    end
+    receiver = get_receiver(message)
+    if receiver then
+      if not(message[:message].include?("@#{receiver[:idname]}")) then
+        result = ["@#{receiver[:idname]}", *result]
+      end
+    end
+    return self.encode(result.join(' ').split(//u)[0,140].join)
+  end
+
+  def get_receiver(message)
+    if message[:receiver] then
+      User.generate(message[:receiver])
+    elsif(/@([a-zA-Z0-9_]+)/ === message[:message]) then
+      User.findByIdname($1)
+    end
+  end
 end

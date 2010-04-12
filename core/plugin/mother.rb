@@ -74,7 +74,7 @@ module Plugin
     #  return called
     #end
 
-    message_receive_events :update, :mention, :followed
+    message_receive_events :update, :mention, :followed, :mypost
 
     def plugin_call(handler, arglist)
       return nil if arglist.empty?

@@ -5,16 +5,15 @@
 # オブジェクトにデータ保存機能を付与する
 
 miquire :core, 'utils'
+miquire :core, 'environment'
 
 require 'fileutils'
-require 'pstore'
 require 'thread'
 
 module ConfigLoader
   SAVE_FILE = "#{Environment::CONFROOT}p_class_values.db"
 
   @@configloader_pstore = nil
-  @@configloader_mutex = Mutex.new
   @@configloader_cache = Hash.new
 
   def at(key, ifnone=nil)
@@ -48,18 +47,15 @@ module ConfigLoader
   end
 
   def self.transaction(ro = false)
-    @@configloader_mutex.synchronize{
-      result = self.pstore.transaction(ro){ |pstore|
+    self.pstore.transaction(ro){ |pstore|
         yield(pstore)
-      }
-      result
     }
   end
 
   def self.pstore
     if not(@@configloader_pstore) then
       FileUtils.mkdir_p(File.expand_path(File.dirname(SAVE_FILE)))
-      @@configloader_pstore = PStore.new(File.expand_path(SAVE_FILE))
+      @@configloader_pstore = HatsuneStore.new(File.expand_path(SAVE_FILE))
     end
     return @@configloader_pstore
   end

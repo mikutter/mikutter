@@ -19,7 +19,6 @@ Thread.abort_on_exception = true
 def boot()
   logfile(Environment::LOGDIR)
   argument_parser()
-  Post.new(true)
   #if(already_exists_another_instance?) then
   #  error('Already exist another instance')
   #  exit!

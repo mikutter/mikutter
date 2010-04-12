@@ -1,9 +1,11 @@
 # ruby
 
-require 'array'
-require 'symbol'
-require 'symboltable'
-require 'parser'
+Dir.chdir(File.dirname(__FILE__)){
+  require 'array'
+  require 'symbol'
+  require 'symboltable'
+  require 'parser'
+}
 
 def hatsunelisp(node, scope=HatsuneLisp::SymbolTable.new)
   if(node.is_a? HatsuneLisp::Node) then

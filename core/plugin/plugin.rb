@@ -82,6 +82,9 @@ module Plugin
     # イベントによって何もしなかった場合はnil、何かした場合はtrue、
     normal_event_handler :call
 
+    # 自分のつぶやきを受け取った／投稿した時のイベントハンドラ
+    normal_event_handler :mypost
+
     # リプライを受け取った時に呼ばれるイベントハンドラ。
     # postは、イベントを引き起こしたpost。
     # イベントによって何もしなかった場合はnil、何かした場合はtrue、

@@ -22,10 +22,10 @@ module Gtk
         send = Gtk::Button.new('!')
         tool = Gtk::Button.new('-')
         if(options[:retweet]) then
-          post.buffer.text = " RT @"+watch[:user][:idname]+": "+watch[:message]
+          post.buffer.text = " RT @"+watch.idname+": "+watch[:message]
           post.buffer.place_cursor(post.buffer.start_iter)
-        elsif(watch[:user]) then
-          post.buffer.text = '@'+watch[:user][:idname] + ' ' + post.buffer.text
+        elsif not(watch.is_a?(Post)) then
+          post.buffer.text = '@'+watch.idname + ' ' + post.buffer.text
         end
         post.accepts_tab = false
         w_remain = Gtk::Label.new((140 - post.buffer.text.split(//u).size).to_s)
@@ -146,7 +146,7 @@ module Gtk
           end
           self.sensitive = false
           [post, *other_widgets].compact.each{|widget| widget.sensitive = false }
-          watch.post(Message.new(post.buffer.text)){ |event, msg|
+          watch.post(:message => post.buffer.text){ |event, msg|
             Lock.synchronize do
               case event
               when :exit

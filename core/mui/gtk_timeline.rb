@@ -31,7 +31,7 @@ module Gtk
 
     def block_add(message)
       Lock.synchronize do
-        mumble = Gtk::Mumble.new(message)
+        mumble = Gtk::Mumble.new(message).show_all
         @tl.pack(mumble, false)
         if(@tl.children.size > 200) then
           @tl.remove(@tl.children.last)
@@ -41,7 +41,7 @@ module Gtk
 
     def block_add_all(messages)
       Lock.synchronize do
-        @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m) }, false)
+        @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m).show_all }, false)
         if self.vadjustment.value != 0 or self.has_mumbleinput? then
           if self.should_return_top? then
             self.vadjustment.value = 0

@@ -37,7 +37,8 @@ class Watch
         alist = messages.map{|m| [post, m] }
         me = post.user
         Plugin::Ring.reserve(:update, alist)
-        Plugin::Ring.reserve(:mention, alist.select{ |m| m[1].receiver == me })
+        Plugin::Ring.reserve(:mention, alist.select{ |m| m[1].to_me? })
+        Plugin::Ring.reserve(:mypost, alist.select{ |m| m[1].from_me? })
       }
     },
     :mention => {
@@ -45,6 +46,7 @@ class Watch
         alist = messages.map{|m| [post, m] }
         Plugin::Ring.reserve(:mention, alist)
         Plugin::Ring.reserve(:update, alist)
+        Plugin::Ring.reserve(:mypost, alist.select{ |m| m[1].from_me? })
       }
     },
     :followed => {
