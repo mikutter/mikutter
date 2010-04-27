@@ -47,9 +47,8 @@ module Retriever
       @value[key.to_sym]
     end
 
-    # カラムの内容を取得する
-    # カラムに入っているデータが外部キーであった場合、それを一段階だけ求めて返す
-    def [](key)
+    # 速い順にcount個のRetrieverだけに問い合わせて返します
+    def get(key, count=1)
       @instance_lock.synchronize{
         result = @value[key.to_sym]
         column = self.class.keys.assoc(key.to_sym)
@@ -58,12 +57,18 @@ module Retriever
           if type.is_a? Symbol then
             Retriever::cast_func(type).call(result)
           elsif not result.is_a?(Model) then
-            result = type.generate(result)
+            result = type.generate(result, count)
             return @value[key.to_sym] = result if result
           end
         end
         result
       }
+    end
+
+    # カラムの内容を取得する
+    # カラムに入っているデータが外部キーであった場合、それを一段階だけ求めて返す
+    def [](key)
+      get(key, -1)
     end
 
     # カラムに別の値を格納する。
@@ -122,10 +127,10 @@ module Retriever
     # 新しいオブジェクトを生成します
     # 既にそのカラムのインスタンスが存在すればそちらを返します
     # また、引数のハッシュ値はmergeされます。
-    def self.generate(args)
+    def self.generate(args, count=-1)
       return args if args.is_a?(self)
-      return self.findbyid(args) if not(args.is_a? Hash)
-      result = self.findbyid(args[:id])
+      return self.findbyid(args, count) if not(args.is_a? Hash)
+      result = self.findbyid(args[:id], count)
       return result.merge(args) if result
       self.new(args)
     end
@@ -153,11 +158,13 @@ module Retriever
 
     # 特定のIDを持つオブジェクトを各データソースに問い合わせて返します。
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
-    def self.findbyid(id)
+    def self.findbyid(id, count=-1)
       return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
       @@class_lock.synchronize{
         result = catch(:found){
-          self.retrievers.each{ |retriever|
+          retrievers = self.retrievers
+          retrievers = retrievers.slice(0, count) if(count != -1)
+          retrievers.each{ |retriever|
             detection = retriever.findbyid_timer(id)
             throw :found, detection if self.valid?(detection)
           }

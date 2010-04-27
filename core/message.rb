@@ -123,8 +123,8 @@ class Message < Retriever::Model
   end
 
   def receive_message(force_retrieve=false)
-    return self[:replyto] if force_retrieve
-    return self.fetch(:replyto)
+    count = if(force_retrieve) then -1 else 1 end
+    self.get(:replyto, count)
   end
 
   def to_s
