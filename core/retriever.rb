@@ -166,6 +166,7 @@ module Retriever
           retrievers = retrievers.slice(0, count) if(count != -1)
           retrievers.each{ |retriever|
             detection = retriever.findbyid_timer(id)
+            notice retriever.class.to_s + ": " + detection.class.to_s
             throw :found, detection if self.valid?(detection)
           }
           throw :found, nil
@@ -280,6 +281,9 @@ module Retriever
       @time or 0.0
     end
 
+    def inspect
+      self.class.to_s
+    end
   end
 
   class Memory

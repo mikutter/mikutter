@@ -66,7 +66,7 @@ module Plugin
     normal_event_handler :plugincall
 
     def onplugincall(*trash)
-      p 'undefined event onplugincall called '+trash.inspect
+      error 'undefined event onplugincall called '+trash.inspect
       return nil
     end
 

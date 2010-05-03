@@ -49,6 +49,9 @@ module Addon
                                     help(gen_adjustment('フォローしていない人からのリプライ',
                                                         :retrieve_interval_mention, 1, 60*24),
                                          "あなたに送られてきたリプライを取得する間隔。\n上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"),
+                                    help(gen_adjustment('公式ReTweet',
+                                                        :retrieve_interval_retweet, 1, 60*24),
+                                         '公式RTを確認しに行く間隔'),
                                     help(gen_adjustment('フォロワー',
                                                         :retrieve_interval_followed, 1, 60*24),
                                          'フォロワー一覧を確認しに行く間隔'))

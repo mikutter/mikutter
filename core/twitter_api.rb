@@ -72,9 +72,11 @@ class TwitterAPI < Mutex
     res = nil
     http = nil
     begin
-      http = self.connection()
-      http.start
-      res = http.get(path, head)
+      res = @getmutex.synchronize{
+        http = self.connection()
+        http.start
+        http.get(path, head)
+      }
     rescue Exception => evar
       res = evar
     ensure
@@ -121,9 +123,11 @@ class TwitterAPI < Mutex
     res = nil
     http = nil
     begin
-      http = self.connection()
-      http.start
-      res = http.post(path, data, head)
+      res = @getmutex.synchronize{
+        http = self.connection()
+        http.start
+        http.post(path, data, head)
+      }
     rescue Exception => evar
       res = evar
     ensure
@@ -165,6 +169,13 @@ class TwitterAPI < Mutex
 
   def replies(args = {})
     path = '/statuses/mentions.' + FORMAT
+    path += "?" + args.map{|k, v| "#{k.to_s}=#{v}"}.join('&') if not args.empty?
+    head = {'Host' => HOST}
+    get_with_auth(path, head)
+  end
+
+  def retweeted_to_me(args = {})
+    path = "/statuses/retweeted_to_me.#{FORMAT}"
     path += "?" + args.map{|k, v| "#{k.to_s}=#{v}"}.join('&') if not args.empty?
     head = {'Host' => HOST}
     get_with_auth(path, head)

@@ -22,10 +22,12 @@ class UserConfig
   @@defaults = {
     :retrieve_interval_friendtl => 1,   # TLを更新する間隔(int)
     :retrieve_interval_mention => 20,   # Replyを更新する間隔(int)
+    :retrieve_interval_retweet => 5,    # 公式RTを更新する間隔(int)
     :retrieve_interval_followed => 60,  # followerを更新する間隔(int)
 
     :retrieve_count_friendtl => MIKU,   # TLを取得する数(int)
     :retrieve_count_mention => MIKU,    # Replyを取得する数(int)
+    :retrieve_count_retweet => MIKU,    # 公式RTを取得する数(int)
     :retrieve_count_followed => MIKU,   # followerを取得する数(int)
 
     # つぶやきを投稿するキー

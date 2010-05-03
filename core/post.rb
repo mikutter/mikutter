@@ -36,7 +36,7 @@ class Post
       end
       [user, pass]
     }
-    p caller(1).first
+    notice caller(1).first
     Message.add_data_retriever(MessageRetriever.new(self))
   end
 
@@ -137,6 +137,8 @@ class Post
     }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
+    retweets_parser = timeline_parser.clone
+    retweets_parser[:parse_key] = :retweeted_status
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
@@ -144,11 +146,13 @@ class Post
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
       :user_show => user_parser,
+      :retweeted_to_me => retweets_parser
     }[kind.to_sym][prop.to_sym]
   end
 
   def scan_rule(rule, msg)
     param = Hash.new
+    msg = msg[self.rule(rule, :parse_key).to_s] if self.rule(rule, :parse_key)
     self.rule(rule, :proc).map { |key, proc|
       result = nil
       if(proc.is_a? Proc) then
@@ -170,6 +174,7 @@ class Post
       begin
         tl = JSON.parse(json)
       rescue JSON::ParserError
+        warn "json parse error"
         return nil
       end
       tl = [tl] if not self.rule(cache, :hasmany)
@@ -178,41 +183,6 @@ class Post
       return result
     end
   end
-
-  def parse_xml(xml, cache='friends_timeline')
-    if xml then
-      result = nil
-      @@xml_lock.synchronize{
-        if xml.is_a?(REXML::Document) then
-          result = xml.root.get_elements(self.rule(cache, :apiroot))
-        else
-          tl = REXML::Document.new xml
-          result = tl.root.get_elements(self.rule(cache, :apiroot))
-          store(cache.to_s + "_lastid", result.first.get_text('id').value) if result.first
-        end
-        result = result.map{ |msg|
-          param = Hash[*self.rule(cache, :proc).map { |key, proc|
-                         result = nil
-                         if(proc.is_a? Proc) then
-                           result = proc.call(msg)
-                         else
-                           val = msg.get_text(proc.to_s)
-                           if(val) then
-                             result = entity_unescape(val.value)
-                           else
-                             result = nil
-                           end
-                         end
-                         [key, result]
-                       }.flatten]
-          param[:post] = self
-          self.rule(cache, :class).new_ifnecessary(param)
-        }
-      }
-      return result
-    end
-  end
-
 
   # ポストキューにポストを格納する
   def post(message, &proc)

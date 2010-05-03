@@ -13,7 +13,6 @@ module Addon
 
     def onmention(messages)
       @main.add(messages.map{ |m| m[1] })
-      @main.show_all
     end
 
   end

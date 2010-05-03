@@ -97,13 +97,15 @@ class Message < Retriever::Model
 
   def from_me?
     return false if self.system?
-    self[:user] == self[:post].user
+    self[:user] == self[:post].user if self[:post]
   end
 
   def to_me?
     return true if self.system?
-    return true if self.receiver == self[:post].user
-    return true if self[:message].include?(self[:post].user)
+    if self[:post]
+      return true if self.receiver == self[:post].user
+      return true if self[:message].include?(self[:post].user)
+    end
     false
   end
 

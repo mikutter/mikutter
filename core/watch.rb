@@ -26,7 +26,7 @@ class Watch
   @@events = {
     :period => {
       :interval => 1,
-      :proc => lambda {|this, name, post, messages|
+      :proc => lambda {|this, name, post, messages, options|
         unless messages then
           Plugin::Ring.reserve(name, [post])
         end
@@ -52,6 +52,14 @@ class Watch
     :followed => {
       :proc => Watch.scan_and_fire(:followers)
     },
+    :retweeted_to_me => {
+      :proc => Watch.scan_and_yield(:retweeted_to_me){ |name, post, messages|
+        alist = messages.map{|m| [post, m] }
+        me = post.user
+        Plugin::Ring.reserve(:update, alist)
+        # Plugin::Ring.reserve(:update, alist)
+      }
+    }
   }
 
   def events
@@ -64,6 +72,8 @@ class Watch
     @@events[:followed][:interval] = UserConfig[:retrieve_interval_followed]
     @@events[:followed][:options] = {:count => UserConfig[:retrieve_count_followed]}
 
+    @@events[:retweeted_to_me][:interval] = UserConfig[:retrieve_interval_retweet]
+    @@events[:retweeted_to_me][:options] = {:count => UserConfig[:retrieve_count_retweet]}
     return @@events
   end
 
@@ -80,7 +90,7 @@ class Watch
     plugin_counter = 0
     counter_mutex = Mutex.new
     self.events.each{ |name, event|
-      if not(Plugin::Ring.avail_plugins(name).empty?) then
+      if true # not(Plugin::Ring.avail_plugins(name).empty?) then
         if((@counter % event[:interval]) == 0) then
           counter_mutex.synchronize{ plugin_counter += 1 }
           Thread.new(name, messages, event){ |name, messages, event|
