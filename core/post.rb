@@ -19,7 +19,7 @@ class Post
   TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
 
   # リクエストをリトライする回数。
-  TRY_LIMIT = 100
+  TRY_LIMIT = 5
 
   @@threads = []
   @@xml_lock = Mutex.new
@@ -37,7 +37,8 @@ class Post
       [user, pass]
     }
     notice caller(1).first
-    Message.add_data_retriever(MessageRetriever.new(self))
+    Message.add_data_retriever(ServiceRetriever.new(self, :status_show))
+    User.add_data_retriever(ServiceRetriever.new(self, :user_show))
   end
 
   def user
@@ -93,6 +94,13 @@ class Post
     end
   end
 
+  def search(q, args)
+    args[:q] = q
+    Thread.new(){
+      Delayer.new(Delayer::NORMAL, self.scan(:search, args)){ |res|
+        yield res } }
+  end
+
   def rule(kind, prop)
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
     users_parser = {
@@ -139,6 +147,20 @@ class Post
     unimessage_parser[:hasmany] = false
     retweets_parser = timeline_parser.clone
     retweets_parser[:parse_key] = :retweeted_status
+    search_parser = {
+      :hasmany => 'results',
+      :class => Message,
+      :proc => {
+        :id => 'id',
+        :message => 'text',
+        :created => lambda{ |msg| Time.parse(msg['created_at']) },
+        :user => lambda{ |msg|
+          user = User.new_ifnecessary(:idname => msg['from_user'],
+                                      :id => '+' + msg['from_user'],
+                                      :profile_image_url => msg['profile_image_url'])},
+        :geo => 'geo',
+      }
+    }
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
@@ -146,7 +168,8 @@ class Post
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
       :user_show => user_parser,
-      :retweeted_to_me => retweets_parser
+      :retweeted_to_me => retweets_parser,
+      :search => search_parser
     }[kind.to_sym][prop.to_sym]
   end
 
@@ -170,14 +193,19 @@ class Post
   def parse_json(json, cache='friends_timeline')
     if json then
       result = nil
-      ti = nil
+      tl = nil
       begin
         tl = JSON.parse(json)
       rescue JSON::ParserError
         warn "json parse error"
         return nil
       end
-      tl = [tl] if not self.rule(cache, :hasmany)
+      if self.rule(cache, :hasmany).is_a?(String)
+        p tl.keys
+        tl = tl[self.rule(cache, :hasmany)]
+      elsif not self.rule(cache, :hasmany)
+        tl = [tl]
+      end
       result = tl.map{ |msg| self.scan_rule(cache, msg) }
       store(cache.to_s + "_lastid", result.first['id']) if result.first
       return result
@@ -278,15 +306,16 @@ class Post
     raise RuntimeError, 'Post cannot marshalize'
   end
 
-  class MessageRetriever
+  class ServiceRetriever
     include Retriever::DataSource
 
-    def initialize(post)
+    def initialize(post, api)
       @post = post
+      @api = api
     end
 
     def findbyid(id)
-      message = @post.scan(:status_show, :no_auto_since_id => true, :id => id)
+      message = @post.scan(@api, :no_auto_since_id => true, :id => id)
       return message.first if message
     end
 

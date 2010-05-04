@@ -10,6 +10,7 @@ require 'net/http'
 require 'thread'
 require 'base64'
 require 'io/wait'
+miquire :lib, 'escape'
 
 Net::HTTP.version_1_2
 
@@ -161,22 +162,25 @@ class TwitterAPI < Mutex
   end
 
   def friends_timeline(args = {})
-    path = '/statuses/friends_timeline.' + FORMAT
-    path += "?" + args.map{|k, v| "#{k}=#{v}"}.join('&') if not args.empty?
+    path = '/statuses/friends_timeline.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
 
   def replies(args = {})
-    path = '/statuses/mentions.' + FORMAT
-    path += "?" + args.map{|k, v| "#{k.to_s}=#{v}"}.join('&') if not args.empty?
+    path = '/statuses/mentions.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
 
+  def search(args = {})
+    path = '/search.' + FORMAT + get_args(args)
+    head = {'Host' => HOST}
+    get(path, head)
+  end
+
   def retweeted_to_me(args = {})
-    path = "/statuses/retweeted_to_me.#{FORMAT}"
-    path += "?" + args.map{|k, v| "#{k.to_s}=#{v}"}.join('&') if not args.empty?
+    path = "/statuses/retweeted_to_me.#{FORMAT}" + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
@@ -188,8 +192,7 @@ class TwitterAPI < Mutex
   end
 
   def followers(args = {})
-    path = '/statuses/followers.' + FORMAT
-    path += "?" + args.map{|k, v| "#{k}=#{v}"}.join('&') if not args.empty?
+    path = '/statuses/followers.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
@@ -201,10 +204,10 @@ class TwitterAPI < Mutex
     get_with_auth(path, head)
   end
 
-  def users_show(args)
-    path = "/users/show/#{args[:id]}." + FORMAT
+  def user_show(args)
+    path = "/users/show." + FORMAT + get_args(args)
     head = {'Host' => HOST}
-    get_with_auth(path, head)
+    get(path, head)
   end
 
   def status_show(args)
@@ -259,5 +262,13 @@ class TwitterAPI < Mutex
     data = ''
     head = {'Host' => HOST}
     post_with_auth("/friendships/create/#{user[:id]}.#{FORMAT}", data, head)
+  end
+
+  def get_args(args)
+    if not args.empty?
+      "?" + args.map{|k, v| "#{Escape.uri_segment(k.to_s).to_s}=#{Escape.uri_segment(v.to_s).to_s}"}.join('&')
+    else
+      ''
+    end
   end
 end

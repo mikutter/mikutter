@@ -11,6 +11,8 @@ module Gtk
 
     DEFAULT_HEIGHT = 64
 
+    @@linkrule = [[ URI.regexp(['http','https']), lambda{ |u| Mumble.openurl u} ]]
+
     @@buttons = {
       :reply => Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}reply.png", 24, 24),
       :retweet => Gtk::WebIcon.new("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}retweet.png", 24, 24),
@@ -48,26 +50,29 @@ module Gtk
         else
           buffer.insert(body.buffer.start_iter, msg)
         end
-        msg.each_matches(URI.regexp(['http','https'])){ |match, index|
-          index = msg[0, index].split(//u).size
-          tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
-          tag.signal_connect('event'){ |this, textview, event, iter|
-            Lock.synchronize{
-              if(event.is_a?(Gdk::EventButton)) and
-                  (event.button == 1) and
-                  (event.event_type == Gdk::Event::BUTTON_RELEASE) and
-                  not(textview.buffer.selection_bounds[2]) then
-                self.open_url_with_browser(match)
-              elsif(event.is_a?(Gdk::EventMotion)) then
-                body.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
-                body.show_all
-              end
+        @@linkrule.each{ |pair|
+          reg, proc = pair
+          msg.each_matches(reg){ |match, index|
+            index = msg[0, index].split(//u).size
+            tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
+            tag.signal_connect('event'){ |this, textview, event, iter|
+              Lock.synchronize{
+                if(event.is_a?(Gdk::EventButton)) and
+                    (event.button == 1) and
+                    (event.event_type == Gdk::Event::BUTTON_RELEASE) and
+                    not(textview.buffer.selection_bounds[2]) then
+                  proc.call(match)
+                elsif(event.is_a?(Gdk::EventMotion)) then
+                  body.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+                  body.show_all
+                end
+              }
+              false
             }
-            false
+            buffer.apply_tag(tag,
+                             buffer.get_iter_at_offset(index),
+                             buffer.get_iter_at_offset(index + match.split(//u).size))
           }
-          buffer.apply_tag(tag,
-                           buffer.get_iter_at_offset(index),
-                           buffer.get_iter_at_offset(index + match.split(//u).size))
         }
         body.editable = false
         body.cursor_visible = false
@@ -101,15 +106,6 @@ module Gtk
       }
     end
 
-    def open_url_with_browser(url)
-      if(defined? Win32API) then
-        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-        shellExecuteA.call(0, 'open', url, 0, 0, 1)
-      else
-        system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &")
-      end
-    end
-
     def gen_minimumble(message)
       Lock.synchronize{
         control = Gtk::HBox.new(false, 8)
@@ -121,8 +117,9 @@ module Gtk
 
     def gen_header(message)
       header = Gtk::HBox.new(false, 16)
-      idname = Gtk::Label.new(message[:user][:idname])
-      name = Gtk::Label.new(message[:user][:name])
+      user = message[:user]
+      idname = Gtk::Label.new(user[:idname])
+      name = Gtk::Label.new(user[:name])
       created = Gtk::Label.new(message[:created].strftime('%H:%M:%S'))
       idname.style = Gtk::Style.new.set_font_desc(Pango::FontDescription.new('Sans 10').set_weight(700))
       created.style = Gtk::Style.new.set_fg(Gtk::STATE_NORMAL, *[0x66,0x66,0x66].map{|n| n*255 })
@@ -287,6 +284,18 @@ module Gtk
       end
     end
 
+    def self.addlinkrule(reg, proc)
+      @@linkrule = @@linkrule.push([reg, proc])
+    end
+
+    def self.openurl(url)
+      if(defined? Win32API) then
+        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
+        shellExecuteA.call(0, 'open', url, 0, 0, 1)
+      else
+        system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &")
+      end
+    end
   end
 
 end

@@ -55,6 +55,14 @@ module Gtk
       end
     end
 
+    def clear
+      Lock.synchronize do
+        @tl.children.each{ |elm|
+          @tl.remove(elm)
+        }
+      end
+    end
+
     def should_return_top?
       Gtk::PostBox.list.each{ |w|
         if w.get_ancestor(Gtk::TimeLine) == self then
@@ -84,6 +92,10 @@ module Gtk
         container.style = style
         return container, box
       end
+    end
+
+    def self.addlinkrule(reg, &proc)
+      Gtk::Mumble.addlinkrule(reg, proc)
     end
 
   end

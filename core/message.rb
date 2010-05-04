@@ -71,7 +71,7 @@ class Message < Retriever::Model
     if self[:favorited].is_a?(String) then
       self[:favorited] = self[:favorited] == 'true'
     else
-      self[:favorited]
+      self[:favorited] == true
     end
   end
 

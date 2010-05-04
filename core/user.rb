@@ -15,7 +15,7 @@ class User < Retriever::Model
   # detail  | detail
   # profile_image_url | icon
 
-  self.keys = [[:id, :int],
+  self.keys = [[:id, :string],
                [:idname, :string],
                [:name, :string],
                [:location, :string],
@@ -50,8 +50,6 @@ class User < Retriever::Model
   def self.findById(id)
     result = assert_type(User, @@users[id])
     return result if result
-    result = watch.scan(:user_show, :id => id, :no_auto_since_id => true)
-    return assert_type(self, result.first) if result
   end
 
   def self.findByIdname(idname)
