@@ -61,6 +61,11 @@ module Plugin
       case command
       when :mui_tab_regist:
           self.regist_tab(*args)
+      when :mui_tab_active:
+          index = @book_children.index(args[0])
+          if index
+            self.book.set_page(index)
+          end
       when :apilimit:
           Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
                                                   :system => true)])
@@ -82,7 +87,7 @@ module Plugin
 
     def regist_tab(container, label, image=nil)
       default_active = 'TL'
-      order = ['TL', 'Me', 'Se']
+      order = ['TL', 'Me', 'Search', 'Se']
       @@mutex.synchronize{
         @lc_store = Hash.new if not @lc_store
         @lc_store[label] = container

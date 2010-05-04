@@ -14,6 +14,7 @@ module Addon
         Gtk::TimeLine.addlinkrule(/#([a-zA-Z0-9_]+)/){ |text|
           @querybox.text = text
           @searchbtn.clicked
+          focus
         }
       }
       @service = service
