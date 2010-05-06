@@ -113,8 +113,8 @@ class Message < Retriever::Model
   def receiver
     if self[:receiver] then
       self[:receiver]
-    elsif self.receive_message.is_a?(Message) then
-      self.receive_message[:user]
+    #elsif self.receive_message.is_a?(Message) then
+    #  self.receive_message[:user]
     elsif(/@([a-zA-Z0-9_]+)/ === self[:message]) then
       result = User.findByIdname($1)
       if(result) then
@@ -125,7 +125,7 @@ class Message < Retriever::Model
   end
 
   def receive_message(force_retrieve=false)
-    count = if(force_retrieve) then -1 else 1 end
+    count = if(force_retrieve) then -1 else 0 end
     self.get(:replyto, count)
   end
 

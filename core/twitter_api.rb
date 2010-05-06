@@ -73,11 +73,11 @@ class TwitterAPI < Mutex
     res = nil
     http = nil
     begin
-      res = @getmutex.synchronize{
-        http = self.connection()
-        http.start
-        http.get(path, head)
-      }
+      #res = @getmutex.synchronize{
+      http = self.connection()
+      http.start
+      res = http.get(path, head)
+      #}
     rescue Exception => evar
       res = evar
     ensure

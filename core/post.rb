@@ -263,11 +263,10 @@ class Post
   end
 
   def _post(message)
-    # @@threads <<
     Thread.new(message){ |message|
       yield(:start, nil)
       count = 1
-      result = begin
+      begin
         loop{
           notice "post:try:#{count}:#{message.inspect}"
           result = yield(:try, message)
@@ -283,7 +282,6 @@ class Post
             end
           end
           notice "post:fail:#{count}:#{message.inspect}"
-          notice "post:fail:#{count}:retry #{count} seconds after"
           yield(:retry, result)
           sleep(count)
           count += 1
@@ -291,15 +289,10 @@ class Post
       rescue => err
         yield(:err, err)
         yield(:fail, err)
-        raise err
+      ensure
+        yield(:exit, nil)
       end
-      yield(:exit, nil)
-      result
     }
-    # @@threads.reject!{ |thread|
-    #   thread.join(1)
-    # }
-
   end
 
   def marshal_dump

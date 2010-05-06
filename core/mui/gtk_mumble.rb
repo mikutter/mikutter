@@ -141,13 +141,14 @@ module Gtk
       iconwindow.add(@@buttons[:etc]){ self.menu_pop(iconwindow, @replies, message) }
       if message.favoriable? then
         iconwindow.add(@@buttons[:fav][message.favorite?], :always_show => message.favorite?){ |this, options|
-          message.favorite(!message.favorite?).join
+          message.favorite(!message.favorite?)
           options[:always_show] = message[:favorited] = !message.favorite?
           [@@buttons[:fav][message.favorite?], options]
         }
       end
       iconwindow.sub_button{ self.menu_pop(iconwindow, @replies, message) }
-      iconwindow.set_buttonback("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton.png", "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton_mouseover.png")
+      iconwindow.set_buttonback("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton.png",
+                                "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}overbutton_mouseover.png")
       iconwindow.background = Gtk::WebIcon.new(self.april_fool(message[:user][:profile_image_url]))
       control.pack_start(Gtk::Alignment.new(0, 0, 0, 0).add(iconwindow), false)
       control.pack_start(gen_body(message))
