@@ -1,5 +1,6 @@
 miquire :core, 'utils'
 miquire :core, 'environment'
+miquire :mui, 'skin'
 
 require 'gtk2'
 require 'net/http'
@@ -25,7 +26,7 @@ module Gtk
         filename = WebIcon.get_filename(img)
         if not(File.exist?(filename)) then
           WebIcon.iconring(self, img, [width, height])
-          filename = File.expand_path("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}loading.png")
+          filename = File.expand_path(MUI::Skin.get("loading.png"))
         end
         img = filename
       end
@@ -54,7 +55,7 @@ module Gtk
           end
         }
       rescue Gdk::PixbufError
-        result = Gdk::Pixbuf.new(File.expand_path("core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}notfound.png"), width, height)
+        result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height)
       end
       return result
     end
@@ -81,10 +82,10 @@ module Gtk
                 f.write res.body
               }
             else
-              filename = "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}notfound.png"
+              filename = MUI::Skin.get("notfound.png")
             end
           rescue
-            filename = "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}notfound.png"
+            filename = MUI::Skin.get("notfound.png")
           end
         end
         filename

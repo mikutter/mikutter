@@ -57,9 +57,9 @@ module Gtk
           false
         }
         is_focus_out = lambda{ |widget|
-          Thread.new{
+          Delayer.new(Delayer::NORMAL, @options){ |options|
             Lock.synchronize do
-              if(not(@options.has_key?(:postboxstorage)) and self.post_is_empty?(post, watch)) then
+              if(not(options.has_key?(:postboxstorage)) and self.post_is_empty?(post, watch)) then
                 self.destroy_if_necessary(post, watch, send, tool)
               end
             end
@@ -147,11 +147,9 @@ module Gtk
           self.sensitive = false
           [post, *other_widgets].compact.each{|widget| widget.sensitive = false }
           watch.post(:message => post.buffer.text){ |event, msg|
-            Lock.synchronize do
-              case event
-              when :exit
-                Delayer.new{ self.destroy }
-              end
+            case event
+            when :exit
+              Delayer.new{ self.destroy }
             end
           }
         end

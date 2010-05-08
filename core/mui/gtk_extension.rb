@@ -8,6 +8,7 @@ class Gtk::Lock
   @@monitor = Monitor.new
 
   def self.synchronize
+    raise if Thread.main != Thread.current
     @@monitor.synchronize{
       #GC.synchronize{
         yield
@@ -25,6 +26,32 @@ class Gtk::Lock
     @@monitor.exit
   end
 
+end
+
+class Gtk::Widget < Gtk::Object
+  def top
+    Gtk::Alignment.new(0.0, 0, 0, 0).add(self)
+  end
+
+  def center
+    Gtk::Alignment.new(0.5, 0, 0, 0).add(self)
+  end
+
+  def right
+    Gtk::Alignment.new(1.0, 0, 0, 0).add(self)
+  end
+end
+
+class Gtk::Container < Gtk::Widget
+  def closeup(widget)
+    self.pack_start(widget, false)
+  end
+end
+
+class Gtk::TextBuffer < GLib::Object
+  def get_range(idx, size)
+    [self.get_iter_at_offset(idx), self.get_iter_at_offset(idx + size)]
+  end
 end
 
 module GLib::SignalAdditional

@@ -38,13 +38,14 @@ class Gtk::IconOverButton < Gtk::EventBox
 
   attr_accessor :visible_button
 
-  def initialize(*args)
+  def initialize(background_image, *args)
+    raise ArgumentError unless background_image
     Gtk::Lock.synchronize do
       super(*args)
       self.set_app_paintable(true)
       self.signal_connect('expose_event'){ |win, evt|
         Gtk::Lock.synchronize do
-          redraw(evt);
+          redraw(evt)
         end
         false
       }
@@ -80,6 +81,7 @@ class Gtk::IconOverButton < Gtk::EventBox
         false
       }
       @background = nil
+      self.background = background_image
       @visible_button = false
       @children = Array.new
       @grid_size = [1, 1]
@@ -135,6 +137,7 @@ class Gtk::IconOverButton < Gtk::EventBox
 
   def set_grid_size(x, y)
     @grid_size = [x, y]
+    self
   end
 
   def grid_x
