@@ -4,13 +4,15 @@
 
 # タイムラインやポストを管理する
 
+require 'utils'
+
 miquire :core, 'twitter'
-miquire :core, 'utils'
 miquire :core, 'environment'
 miquire :core, 'message'
 miquire :core, 'configloader'
 miquire :core, 'userconfig'
 miquire :core, "json"
+miquire :core, 'delayer'
 
 class Post
   include ConfigLoader
@@ -62,15 +64,23 @@ class Post
   def scan_data(kind, args)
     result = nil
     tl = twitter.__send__(kind, args)
-    if tl.is_a?(Net::HTTPResponse) then
+    if defined?(tl.code) and defined?(tl.body) then
       case(tl.code)
       when '200':
           result = tl.body
       when '400':
           limit, remain, reset = twitter.api_remain
-          Plugin::Ring::call(nil, :apilimit, self, reset) if(@code != tl.code)
+          if(@code != tl.code)
+            Delayer.new{
+              Plugin::Ring::call(nil, :apilimit, self, reset)
+            }
+          end
       else
-          Plugin::Ring::call(nil, :apifail, self, tl.code) if(@code != tl.code)
+        if(@code != tl.code)
+          Delayer.new{
+            Plugin::Ring::call(nil, :apifail, self, tl.code) if(@code != tl.code)
+          }
+        end
       end
       @code = tl.code
     else
@@ -106,43 +116,27 @@ class Post
     users_parser = {
       :hasmany => true,
       :class => User,
-      :proc => {
-        :id => 'id',
-        :name => 'name',
-        :idname => 'screen_name',
-        :location => 'location',
-        :description => 'description',
-        :profile_image_url => 'profile_image_url',
-        :url => 'url',
-        :protected => 'protected',
-        :followers_count => 'followers_count',
-        :friends_count => 'friends_count',
-        :created => lambda{ |msg| Time.parse(msg['created_at']) }, # 登録日時
-        :favourites_count => 'favourites_count',                   # ふぁぼり数
-        :notifications => boolean.call('notifications'),           # ?
-        :geo => 'geo_enable',                                      # ジオタグ
-        :verified => boolean.call('verified'),
-        :following => boolean.call('following'),
-        :statuses_count => 'statuses_count',
-        :lang => 'lang',
-      }
-    }
+      :proc => lambda{ |msg|
+        cnv = msg.convert_key('screen_name' =>:idname)
+        cnv[:created] = Time.parse(msg['created_at'])
+        cnv[:notifications] = msg['notifications']
+        cnv[:verified] = msg['verified']
+        cnv[:following] = msg['following']
+        cnv } }
     user_parser = users_parser.clone
     user_parser[:hasmany] = false
     timeline_parser = {
       :hasmany => true,
       :class => Message,
-      :proc => {
-        :id => 'id',
-        :message => 'text',
-        :created => lambda{ |msg| Time.parse(msg['created_at']) },
-        :reciver => 'in_reply_to_user_id',
-        :replyto => 'in_reply_to_status_id',
-        :favorited => boolean.call('favorited'),
-        :user => lambda{ |msg| self.scan_rule(:user_show, msg['user']) },
-        :geo => 'geo',
-      }
-    }
+      :proc => lambda{ |msg|
+        cnv = msg.convert_key('text' => :message,
+                              'in_reply_to_user_id' => :reciver,
+                              'in_reply_to_status_id' => :replyto)
+        cnv[:favorited] = !!msg['favorited']
+        cnv[:created] = Time.parse(msg['created_at'])
+        cnv[:user] = self.scan_rule(:user_show, msg['user'])
+        cnv[:retweet] = self.scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
+        cnv } }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
     retweets_parser = timeline_parser.clone
@@ -150,17 +144,15 @@ class Post
     search_parser = {
       :hasmany => 'results',
       :class => Message,
-      :proc => {
-        :id => 'id',
-        :message => 'text',
-        :created => lambda{ |msg| Time.parse(msg['created_at']) },
-        :user => lambda{ |msg|
-          user = User.new_ifnecessary(:idname => msg['from_user'],
-                                      :id => '+' + msg['from_user'],
-                                      :profile_image_url => msg['profile_image_url'])},
-        :geo => 'geo',
-      }
-    }
+      :proc => lambda{ |msg|
+        cnv = msg.convert_key('text' => :message,
+                              'in_reply_to_user_id' => :reciver,
+                              'in_reply_to_status_id' => :replyto)
+        cnv[:created] = Time.parse(msg['created_at'])
+        cnv[:user] =  User.new_ifnecessary(:idname => msg['from_user'],
+                                           :id => '+' + msg['from_user'],
+                                           :profile_image_url => msg['profile_image_url'])
+        cnv } }
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
@@ -168,25 +160,13 @@ class Post
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
       :user_show => user_parser,
-      :retweeted_to_me => retweets_parser,
+      :retweeted_to_me => timeline_parser,
       :search => search_parser
     }[kind.to_sym][prop.to_sym]
   end
 
   def scan_rule(rule, msg)
-    param = Hash.new
-    msg = msg[self.rule(rule, :parse_key).to_s] if self.rule(rule, :parse_key)
-    self.rule(rule, :proc).map { |key, proc|
-      result = nil
-      if(proc.is_a? Proc) then
-        result = proc.call(msg)
-      else
-        result = msg[proc]
-        result = entity_unescape(result) if(result.is_a?(String))
-      end
-      param[key] = result
-    }
-    param.update({ :post => self, :exact => true })
+    param = self.rule(rule, :proc).call(msg).update({ :post => self, :exact => true })
     self.rule(rule, :class).new_ifnecessary(param)
   end
 

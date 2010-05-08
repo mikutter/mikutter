@@ -11,6 +11,7 @@ require 'thread'
 require 'base64'
 require 'io/wait'
 miquire :lib, 'escape'
+miquire :plugin, 'plugin'
 
 Net::HTTP.version_1_2
 
@@ -27,6 +28,7 @@ class TwitterAPI < Mutex
 
   @@failed_lock = Monitor.new
   @@last_success = nil
+  @@testmode = false
 
   def initialize(user, pass, &fail_trap)
     super()
@@ -38,6 +40,10 @@ class TwitterAPI < Mutex
     else
       @fail_trap = nil
     end
+  end
+
+  def self.testmode
+    @@testmode = true
   end
 
   def api_remain(response = nil)
@@ -69,6 +75,7 @@ class TwitterAPI < Mutex
   end
 
   def get(path, head)
+    return get_file(path) if(@@testmode and get_file(path))
     #self.lock()
     res = nil
     http = nil
@@ -89,7 +96,35 @@ class TwitterAPI < Mutex
       #self.unlock()
     end
     notice "#{path} => #{res}"
+    get_save(res, path)
     res
+  end
+
+  def get_file(path)
+    cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
+    if(FileTest::exist?(cachefn))
+      return Class.new{
+        def initialize(cachefn)
+          @cachefn = cachefn
+        end
+
+        def code
+          '200'
+        end
+
+        def body
+          file_get_contents(@cachefn)
+        end
+      }.new(cachefn)
+    end
+  end
+
+  def get_save(res, path)
+    if defined? res.code
+      cachefn = File::expand_path('~/.mikutter/queries/' + path + '/' + res.code)
+      FileUtils.mkdir_p(File::dirname(cachefn))
+      file_put_contents(cachefn, res.body)
+    end
   end
 
   def get_with_auth(path, head_src)
@@ -162,7 +197,7 @@ class TwitterAPI < Mutex
   end
 
   def friends_timeline(args = {})
-    path = '/statuses/friends_timeline.' + FORMAT + get_args(args)
+    path = '/statuses/home_timeline.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end

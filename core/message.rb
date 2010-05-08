@@ -20,6 +20,7 @@ class Message < Retriever::Model
   # user    | user who post this message(User or Hash or mixed(User IDNumber))
   # reciver | recive user(User)
   # replyto | source message(Message or mixed(Status ID))
+  # retweet | retweet to this message(Message or StatusID)
   # post    | post object(Post)
   # image   | image(URL or Image object)
   # xml     | source xml text
@@ -29,6 +30,7 @@ class Message < Retriever::Model
                [:user, User, true],       # Send by user
                [:receiver, User],         # Send to user
                [:replyto, Message],       # Reply to this message
+               [:retweet, Message],       # ReTweet to this message
                [:created, :time],         # posted time
               ]
 

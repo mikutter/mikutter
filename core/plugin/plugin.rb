@@ -59,49 +59,12 @@ module Plugin
     # 起動時に一度だけ呼ばれるイベントハンドラ。
     # 一度しか呼ばれないことが保証されており、どのイベントハンドラ
     # よりも先に呼ばれる。
-    normal_event_handler :boot
-
-    # 他のプラグインを呼ぶためのイベント。
-    # commandはサブコマンド、messageにその引数を渡す。
-    normal_event_handler :plugincall
+    normal_event_handler :boot, :plugincall, :period, :call, :mypost ,:mention, :update, :followed
 
     def onplugincall(*trash)
       error 'undefined event onplugincall called '+trash.inspect
       return nil
     end
-
-    # 毎分呼ばれるイベントハンドラ。
-    # ある条件にマッチする時だけpostするようなコードを書くことを推奨。
-    # watchは、postメソッドを実装していて、もしpostしたいときはそれを
-    # 呼び出す。
-    # イベントによって何もしなかった場合はnil、何かした場合はtrue、
-    normal_event_handler :period
-
-    # ハッシュタグを受け取った時に呼ばれるイベントハンドラ。
-    # postは、イベントを引き起こしたpost。
-    # イベントによって何もしなかった場合はnil、何かした場合はtrue、
-    normal_event_handler :call
-
-    # 自分のつぶやきを受け取った／投稿した時のイベントハンドラ
-    normal_event_handler :mypost
-
-    # リプライを受け取った時に呼ばれるイベントハンドラ。
-    # postは、イベントを引き起こしたpost。
-    # イベントによって何もしなかった場合はnil、何かした場合はtrue、
-    normal_event_handler :mention
-
-    # タイムラインが更新されたときに、１ポスト毎に呼ばれるイベント
-    # ハンドラ。
-    # postは、イベントを引き起こしたpost。
-    # イベントによって何もしなかった場合はnil、何かした場合はtrue、
-    # postを返した場合はwatch.postの戻り値を返す。
-    normal_event_handler :update
-
-    # 誰かにフォローされた時に呼び出されるイベントハンドラ。
-    # userは、新たにフォローしてきたユーザ。
-    # イベントによって何もしなかった場合はnil、何かした場合はtrue、
-    # postを返した場合はwatch.postの戻り値を返す。
-    normal_event_handler :followed
 
   end
 end
@@ -153,6 +116,7 @@ module Plugin
       }
       if(Thread.main == Thread.current) then
         proc.call
+
       else
         Delayer.new{ proc.call }
       end
@@ -170,10 +134,8 @@ module Plugin
     # 予約されていたイベントを呼び出す
     def self.go
       @@lock.synchronize{
-        Gtk::Lock.synchronize{
-          @@fire.each{ |handler, event|
-            @@mother.__send__(handler, event)
-          }
+        @@fire.each{ |handler, event|
+          @@mother.__send__(handler, event)
         }
         @@fire = Hash.new{ Array.new }
       }

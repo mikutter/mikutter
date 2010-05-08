@@ -1,16 +1,17 @@
 
+miquire :mui, 'skin'
 miquire :addon, 'addon'
 
 module Addon
   class Search < Addon
 
     def onboot(service)
-      Gtk::Lock.synchronize{
+      Delayer.new{
         container = Gtk::VBox.new(false, 0)
         qc = gen_querycont()
         @main = Gtk::TimeLine.new()
         container.pack_start(qc, false).pack_start(@main, true)
-        self.regist_tab(service, container, 'Search', "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}search.png")
+        self.regist_tab(service, container, 'Search', MUI::Skin.get("search.png"))
         Gtk::TimeLine.addlinkrule(/#([a-zA-Z0-9_]+)/){ |text|
           @querybox.text = text
           @searchbtn.clicked

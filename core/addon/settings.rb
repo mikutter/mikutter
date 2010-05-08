@@ -1,6 +1,7 @@
 
 miquire :addon, 'addon'
 miquire :core, 'userconfig'
+miquire :mui, 'skin'
 
 module Addon
   module SettingUtils; end
@@ -9,11 +10,11 @@ module Addon
 
     include SettingUtils
 
-    @@mutex = Monitor.new
-
     def onboot(watch)
-      self.regist_tab(watch, self.book, 'Se', "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}settings.png")
-      rewind_interval
+      Gtk::Lock.synchronize{
+        self.regist_tab(watch, self.book, 'Se', MUI::Skin.get("settings.png"))
+        rewind_interval
+      }
     end
 
     def onplugincall(watch, command, *args)
@@ -25,14 +26,15 @@ module Addon
 
     def book()
       if not(@book) then
-        @book = Gtk::Notebook.new
-        @book.set_tab_pos(Gtk::POS_TOP)
+        @book = Gtk::Lock.synchronize{
+          Gtk::Notebook.new.set_tab_pos(Gtk::POS_TOP)
+        }
       end
       return @book
     end
 
     def regist_config_tab(container, label)
-      @@mutex.synchronize{
+      Gtk::Lock.synchronize{
         self.book.append_page(container, Gtk::Label.new(label))
         self.book.show_all
       }

@@ -23,11 +23,11 @@ def miquire(kind, file=nil)
   path = ''
   case(kind)
   when :mui
-    path = 'core/mui/gtk_'
+    path = 'mui/gtk_'
   when :core
-    path = 'core/'
+    path = ''
   else
-    path = 'core/' + kind.to_s + '/'
+    path = '' + kind.to_s + '/'
   end
   if file then
     require path + file.to_s
@@ -38,6 +38,7 @@ def miquire(kind, file=nil)
   end
 end
 
+Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'
 
 # 複数条件if
@@ -372,6 +373,21 @@ class Array
     self.clone.bubbledown!(index, length)
   end
 
+end
+
+class Hash
+  # キーの名前を変換する。
+  def convert_key(rule)
+    result = {}
+    self.each_pair { |key, val|
+      if rule[key]
+        result[rule[key]] = val
+      else
+        result[key.to_sym] = val
+      end
+    }
+    result
+  end
 end
 
 #

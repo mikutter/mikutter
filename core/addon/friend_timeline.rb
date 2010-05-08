@@ -1,5 +1,6 @@
 
 miquire :addon, 'addon'
+miquire :mui, 'skin'
 
 module Addon
   class FriendTimeline < Addon
@@ -7,12 +8,16 @@ module Addon
     get_all_parameter_once :update
 
     def onboot(watch)
-      @main = Gtk::TimeLine.new()
-      self.regist_tab(watch, @main, 'TL', "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}timeline.png")
+      Gtk::Lock.synchronize{
+        @main = Gtk::TimeLine.new()
+        self.regist_tab(watch, @main, 'TL', MUI::Skin.get("timeline.png"))
+      }
     end
 
     def onupdate(messages)
-      @main.add(messages.map{ |m| m[1] })
+      Gtk::Lock.synchronize{
+        @main.add(messages.map{ |m| m[1] })
+      }
     end
 
   end

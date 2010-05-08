@@ -1,9 +1,9 @@
 #! /usr/bin/ruby
 # -*- coding: utf-8 -*-
 
-Dir.chdir(File.dirname($0))
+Dir.chdir(File.join(File.dirname($0), 'core'))
 
-require 'core/utils'
+require 'utils'
 miquire :core, 'environment'
 miquire :core, 'watch'
 miquire :core, 'post'

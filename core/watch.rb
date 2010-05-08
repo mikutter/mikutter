@@ -52,14 +52,6 @@ class Watch
     :followed => {
       :proc => Watch.scan_and_fire(:followers)
     },
-    :retweeted_to_me => {
-      :proc => Watch.scan_and_yield(:retweeted_to_me){ |name, post, messages|
-        alist = messages.map{|m| [post, m] }
-        me = post.user
-        Plugin::Ring.reserve(:update, alist)
-        # Plugin::Ring.reserve(:update, alist)
-      }
-    }
   }
 
   def events
@@ -71,9 +63,6 @@ class Watch
 
     @@events[:followed][:interval] = UserConfig[:retrieve_interval_followed]
     @@events[:followed][:options] = {:count => UserConfig[:retrieve_count_followed]}
-
-    @@events[:retweeted_to_me][:interval] = UserConfig[:retrieve_interval_retweet]
-    @@events[:retweeted_to_me][:options] = {:count => UserConfig[:retrieve_count_retweet]}
     return @@events
   end
 
@@ -97,7 +86,7 @@ class Watch
             event[:proc].call(self, name, @post, messages, event[:options])
             counter_mutex.synchronize{
               plugin_counter -= 1
-              Plugin::Ring.go if(plugin_counter == 0)
+              Delayer.new{ Plugin::Ring.go } if(plugin_counter == 0)
             }
           }
         end
