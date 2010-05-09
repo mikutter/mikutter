@@ -28,7 +28,7 @@ class User < Retriever::Model
       @@system = User.new({ :id => 0,
                             :idname => Environment::ACRO,
                             :name => Environment::NAME,
-                            :profile_image_url => "core#{File::SEPARATOR}skin#{File::SEPARATOR}data#{File::SEPARATOR}icon.png"})
+                            :profile_image_url => MUI::Skin.get("icon.png")})
     end
     @@system
   end

@@ -14,7 +14,7 @@ module Retriever
     @@class_lock = Monitor.new
 
     #
-    # インスタンスメソッド
+    # ジェネレータ
     #
 
     def initialize(args)
@@ -23,6 +23,30 @@ module Retriever
       validate
       self.class.store_datum(self)
     end
+
+    # 新しいオブジェクトを生成します
+    # 既にそのカラムのインスタンスが存在すればそちらを返します
+    # また、引数のハッシュ値はmergeされます。
+    def self.generate(args, count=-1)
+      return args if args.is_a?(self)
+      return self.findbyid(args, count) if not(args.is_a? Hash)
+      result = self.findbyid(args[:id], count)
+      return result.merge(args) if result
+      self.new(args)
+    end
+
+    # まだそのレコードのインスタンスがない場合、それを生成して返します。
+    def self.new_ifnecessary(hash)
+      @@class_lock.synchronize{
+        result = @@storage[hash[:id]]
+        return result if result
+        self.new(hash)
+      }
+    end
+
+    #
+    # インスタンスメソッド
+    #
 
     # データをマージする。
     # selfにあってotherにもあるカラムはotherの内容で上書きされる。
@@ -124,17 +148,6 @@ module Retriever
       @keys
     end
 
-    # 新しいオブジェクトを生成します
-    # 既にそのカラムのインスタンスが存在すればそちらを返します
-    # また、引数のハッシュ値はmergeされます。
-    def self.generate(args, count=-1)
-      return args if args.is_a?(self)
-      return self.findbyid(args, count) if not(args.is_a? Hash)
-      result = self.findbyid(args[:id], count)
-      return result.merge(args) if result
-      self.new(args)
-    end
-
     # srcが正常にModel化できるかどうかを返します。
     def self.valid?(src)
       return src.is_a?(self) if not src.is_a?(Hash)
@@ -184,6 +197,7 @@ module Retriever
     # データを一件保存します。
     # 保存は、全てのデータソースに対して行われます
     def self.store_datum(datum)
+      return datum if datum[:system]
       converted = datum.filtering
       @@class_lock.synchronize{
         self.retrievers.each{ |retriever|
@@ -243,14 +257,6 @@ module Retriever
       }
     end
 
-    # まだそのレコードのインスタンスがない場合、それを生成して返します。
-    def self.new_ifnecessary(hash)
-      @@class_lock.synchronize{
-        result = @@storage[hash[:id]]
-        return result if result
-        self.new(hash)
-      }
-    end
   end
 
   # データの保存／復元を実際に担当するデータソース。

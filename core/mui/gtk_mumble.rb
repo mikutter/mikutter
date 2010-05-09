@@ -93,9 +93,8 @@ module Gtk
       Lock.synchronize{
         buffer = Gtk::TextBuffer.new
         body = Gtk::TextView.new(buffer)
-        msg = message.to_s
         buffer.create_tag('shell', tags)
-        buffer.insert(buffer.start_iter, msg, 'shell')
+        buffer.insert(buffer.start_iter, message.to_show, 'shell')
         apply_links(buffer)
         body.editable = false
         body.cursor_visible = false
@@ -226,36 +225,25 @@ module Gtk
     def menu_pop(widget, replies, message)
       Lock.synchronize{
         menu = Gtk::Menu.new
-        menu_column = []
+        menu.instance_eval{ |this|
+          def column_add(name, &proc)
+            item = Gtk::MenuItem.new(name)
+            self.append(item)
+            item.signal_connect('activate') { |w| proc.call(w); false } if block_given?
+            self end }
         if widget.is_a?(Gtk::TextView) then
           if(widget.buffer.selection_bounds[2]) then
-            menu_column << Gtk::MenuItem.new("コピー")
-            menu_column.last.signal_connect('activate') { |w|
-              widget.copy_clipboard
-              false }
+            menu.column_add('コピー'){ widget.copy_clipboard }
           else
-            menu_column << Gtk::MenuItem.new("本文をコピー")
-            menu_column.last.signal_connect('activate') { |w|
-              widget.select_all(true)
-              widget.copy_clipboard
-              widget.select_all(false)
-              false }
-          end
-        end
+            menu.column_add('本文をコピー'){ |w|
+              widget.select_all(true).copy_clipboard.widget.select_all(false) } end end
         if message.repliable? then
-          menu_column << Gtk::MenuItem.new("返信")
-          menu_column.last.signal_connect('activate') { |w|
-            gen_postbox(replies, message)
-            false }
-          menu_column << Gtk::MenuItem.new("非公式リツイート")
-          menu_column.last.signal_connect('activate') { |w|
-            gen_postbox(replies, message, :retweet => true)
-            false }
+          menu.column_add("返信"){ gen_postbox(replies, message) }
+          menu.column_add("引用"){ gen_postbox(replies, message, :retweet => true) }
+          menu.column_add("公式リツイート"){ message.retweet }
         end
-        menu_column.each{|item| menu.append(item) }
         menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detaching" }
-        menu.show_all
-        menu.popup(nil, nil, 0, 0) }
+        menu.show_all.popup(nil, nil, 0, 0) }
     end
 
     class IOB < Gtk::IconOverButton
@@ -272,7 +260,7 @@ module Gtk
         @msg = msg
         super(icon)
         set_size_request(48, 48).set_grid_size(2, 2)
-        sub_button{ menu_pop(self, @mumble.replies, msg) }
+        sub_button{ @mumble.menu_pop(self, @mumble.replies, msg) }
         set_buttonback(MUI::Skin.get("overbutton.png"),
                        MUI::Skin.get("overbutton_mouseover.png"))
       end

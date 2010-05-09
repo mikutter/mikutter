@@ -43,6 +43,21 @@ class Post
     User.add_data_retriever(ServiceRetriever.new(self, :user_show))
   end
 
+  def self.define_postal(api, *other)
+    define_method(api.to_sym){ |msg, &proc|
+      if $quiet then
+        notice "#{api}:#{msg.inspect}"
+        notice 'Actually, this post does not send.'
+      else
+        self._post(msg) {|event, msg|
+          proc.call(event, msg) if(proc)
+          if(event == :try)
+            twitter.__send__(api, msg)
+          elsif(event == :success)
+            Delayer.new(Delayer::NORMAL, msg){ |msg|
+              Plugin::Ring.fire(:update, [self, msg]) } end } end }
+    define_postal(*other) if not other.empty? end
+
   def user
     UserConfig[:twitter_idname]
   end
@@ -193,25 +208,8 @@ class Post
   end
 
   # ポストキューにポストを格納する
-  def post(message, &proc)
-    if $quiet then
-      notice "post:#{message.inspect}"
-      notice 'Actually, this post does not send.'
-    else
-      self._post(message) {|event, message|
-        if(block_given?) then
-          yield(event, message)
-        end
-        if(event == :try)
-          twitter.update(message)
-        elsif(event == :success) then
-          Delayer.new(Delayer::NORMAL, message){ |message|
-            Plugin::Ring.fire(:update, [self, message])
-          }
-        end
-      }
-    end
-  end
+  define_postal :update, :retweet
+  alias post update
 
   def follow(user)
     if $quiet then
@@ -221,9 +219,7 @@ class Post
       self._post(user) {|event, user|
         if(event == :try) then
           twitter.follow(user)
-        end }
-    end
-  end
+        end } end end
 
   def favorite(message, fav)
     if $quiet then
@@ -250,30 +246,25 @@ class Post
         loop{
           notice "post:try:#{count}:#{message.inspect}"
           result = yield(:try, message)
-          if result.is_a?(Net::HTTPResponse) and
-              not(result.is_a?(Net::HTTPBadGateway)) and
-              result.code == '200'
-          then
-            notice "post:success:#{count}:#{message.inspect}"
-            receive = parse_json(result.body, :status_show)
-            if receive.is_a?(Array) then
-              yield(:success, receive.first)
-              break receive.first
-            end
-          end
+          if defined?(result.code)
+            if result.code == '200'
+              notice "post:success:#{count}:#{message.inspect}"
+              receive = parse_json(result.body, :status_show)
+              if receive.is_a?(Array) then
+                yield(:success, receive.first)
+                break receive.first end
+            elsif not(result.code[0] == '5'[0])
+              yield(:fail, err)
+              break end end
           notice "post:fail:#{count}:#{message.inspect}"
           yield(:retry, result)
           sleep(count)
-          count += 1
-        }
+          count += 1 }
       rescue => err
         yield(:err, err)
         yield(:fail, err)
       ensure
-        yield(:exit, nil)
-      end
-    }
-  end
+        yield(:exit, nil) end } end
 
   def marshal_dump
     raise RuntimeError, 'Post cannot marshalize'

@@ -7,7 +7,7 @@
 
 module Config
   # このアプリケーションの名前。
-  NAME = "みくった〜♪"
+  NAME = "mikutter"
 
   # 名前の略称
   ACRO = "mikutter"

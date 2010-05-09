@@ -64,6 +64,11 @@ class Message < Retriever::Model
     end
   end
 
+  # リツイートする
+  def retweet
+    self[:post].retweet(self){|*a| yield *a if block_given? } if self[:post]
+  end
+
   # ふぁぼる／ふぁぼ解除
   def favorite(fav)
     self[:post].favorite(self, fav)
@@ -146,6 +151,10 @@ class Message < Retriever::Model
       end
     end
     return result.join(' ').split(//u)[0,140].join
+  end
+
+  def to_show
+    to_s.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }
   end
 
   def marshal_dump

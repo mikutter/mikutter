@@ -32,7 +32,7 @@ class UserConfig
     :retrieve_count_followed => MIKU,   # followerを取得する数(int)
 
     # つぶやきを投稿するキー
-    :mumble_post_key => defined? Gdk ? [65293, Gdk::Window::CONTROL_MASK] : nil,
+    :mumble_post_key => defined?(Gdk) ? [65293, Gdk::Window::CONTROL_MASK] : nil,
 
     # 通知を表示しておく秒数
     :notify_expire_time => 10

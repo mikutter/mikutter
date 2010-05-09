@@ -14,7 +14,6 @@ miquire :lib, 'escape'
 miquire :plugin, 'plugin'
 
 Net::HTTP.version_1_2
-
 =begin
 class TwitterAPI
 =end
@@ -29,6 +28,7 @@ class TwitterAPI < Mutex
   @@failed_lock = Monitor.new
   @@last_success = nil
   @@testmode = false
+  @@ntr = '200'
 
   def initialize(user, pass, &fail_trap)
     super()
@@ -44,6 +44,10 @@ class TwitterAPI < Mutex
 
   def self.testmode
     @@testmode = true
+  end
+
+  def self.next_test_response=(ntr)
+    @@ntr = ntr
   end
 
   def api_remain(response = nil)
@@ -104,18 +108,17 @@ class TwitterAPI < Mutex
     cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
     if(FileTest::exist?(cachefn))
       return Class.new{
-        def initialize(cachefn)
-          @cachefn = cachefn
-        end
+        attr_reader :code
 
-        def code
-          '200'
+        def initialize(cachefn, res)
+          @cachefn = cachefn
+          @code = res
         end
 
         def body
           file_get_contents(@cachefn)
         end
-      }.new(cachefn)
+      }.new(cachefn, @@ntr)
     end
   end
 
@@ -159,6 +162,7 @@ class TwitterAPI < Mutex
     res = nil
     http = nil
     begin
+      notice "post: try #{path}(#{data.inspect})"
       res = @getmutex.synchronize{
         http = self.connection()
         http.start
@@ -265,6 +269,10 @@ class TwitterAPI < Mutex
     # data += '&source=' + PROG_NAME
     head = {'Host' => HOST}
     post_with_auth(path, data, head)
+  end
+
+  def retweet(msg)
+    post_with_auth("/statuses/retweet/#{msg[:id]}.#{FORMAT}", '', 'Host' => HOST)
   end
 
   def send(user, text)
