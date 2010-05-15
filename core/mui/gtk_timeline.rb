@@ -5,6 +5,7 @@ miquire :mui, 'mumble'
 
 module Gtk
   class TimeLine < Gtk::ScrolledWindow
+    include Enumerable
 
     def initialize()
       super()
@@ -20,6 +21,9 @@ module Gtk
       end
       @mumbles = []
     end
+
+    def each(&iter)
+      @tl.children.each(&iter) end
 
     def add(message)
       if message.is_a?(Array) then

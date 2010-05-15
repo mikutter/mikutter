@@ -127,6 +127,7 @@ class Post
   end
 
   def rule(kind, prop)
+    shell_class = Class.new do def self.new_ifnecessary(arg) arg end end
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
     users_parser = {
       :hasmany => true,
@@ -154,8 +155,6 @@ class Post
         cnv } }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
-    retweets_parser = timeline_parser.clone
-    retweets_parser[:parse_key] = :retweeted_status
     search_parser = {
       :hasmany => 'results',
       :class => Message,
@@ -168,6 +167,10 @@ class Post
                                            :id => '+' + msg['from_user'],
                                            :profile_image_url => msg['profile_image_url'])
         cnv } }
+    saved_searches_parser = {
+      :hasmany => true,
+      :class => shell_class,
+      :proc => lambda{ |msg| msg } }
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
@@ -176,14 +179,13 @@ class Post
       :status_show => unimessage_parser,
       :user_show => user_parser,
       :retweeted_to_me => timeline_parser,
+      :saved_searches => saved_searches_parser,
       :search => search_parser
-    }[kind.to_sym][prop.to_sym]
-  end
+    }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)
     param = self.rule(rule, :proc).call(msg).update({ :post => self, :exact => true })
-    self.rule(rule, :class).new_ifnecessary(param)
-  end
+    self.rule(rule, :class).new_ifnecessary(param) end
 
   def parse_json(json, cache='friends_timeline')
     if json then
@@ -193,19 +195,14 @@ class Post
         tl = JSON.parse(json)
       rescue JSON::ParserError
         warn "json parse error"
-        return nil
-      end
+        return nil end
       if self.rule(cache, :hasmany).is_a?(String)
-        p tl.keys
         tl = tl[self.rule(cache, :hasmany)]
       elsif not self.rule(cache, :hasmany)
-        tl = [tl]
-      end
+        tl = [tl] end
       result = tl.map{ |msg| self.scan_rule(cache, msg) }
       store(cache.to_s + "_lastid", result.first['id']) if result.first
-      return result
-    end
-  end
+      result end end
 
   # ポストキューにポストを格納する
   define_postal :update, :retweet
@@ -217,9 +214,7 @@ class Post
       notice 'Actually, this post does not send.'
     else
       self._post(user) {|event, user|
-        if(event == :try) then
-          twitter.follow(user)
-        end } end end
+        twitter.follow(user) if(event == :try) } end end
 
   def favorite(message, fav)
     if $quiet then
@@ -231,12 +226,7 @@ class Post
           if(fav) then
             twitter.favorite(msg[:id])
           else
-            twitter.unfavorite(msg[:id])
-          end
-        end
-      }
-    end
-  end
+            twitter.unfavorite(msg[:id]) end end } end end
 
   def _post(message)
     Thread.new(message){ |message|

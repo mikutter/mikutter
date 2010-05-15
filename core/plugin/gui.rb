@@ -14,7 +14,17 @@ module Plugin
   class GUI < Plugin
 
     class TabButton < Gtk::Button
+      include Comparable
       attr_accessor :pane, :label
+
+      def ==(other)
+        @label == other.to_s end
+
+      def to_s
+        @label end
+
+      def <=>(other)
+        @label <=> other.to_s end
     end
 
     @@mutex = Monitor.new
@@ -61,6 +71,8 @@ module Plugin
       case command
       when :mui_tab_regist:
           self.regist_tab(*args)
+      when :mui_tab_remove:
+          self.remove_tab(*args)
       when :mui_tab_active:
           index = @book_children.index(args[0])
           if index
@@ -94,9 +106,10 @@ module Plugin
         @book_children = [] if not(@book_children)
         Gtk::Lock.synchronize do
           idx = where_should_insert_it(label, @book_children, order)
-          @book_children.insert(idx, label)
           self.book.insert_page(idx, container, gen_label(label))
           widget = TabButton.new
+          @book_children.insert(idx, label)
+          Gtk::Tooltips.new.set_tip(widget, label, nil)
           widget.pane = container
           widget.label = label
           widget.add((image or gen_label(label)))
@@ -114,14 +127,14 @@ module Plugin
                   index = @book_children.index(w.label)
                   if index then
                     self.book.remove_page(index)
-                    @book_children.delete_at(index)
+                    # @book_children.delete_at(index)
                     @pane.pack_end(w.pane)
                   end
               when 65363:
                   if not @book_children.index(w.label) then
                     @pane.remove(w.pane)
                     self.book.append_page(w.pane)
-                    @book_children << w.label
+                    # @book_children << w.label
                   end
               end
             }
@@ -133,6 +146,12 @@ module Plugin
         end
       }
     end
+
+    def remove_tab(label)
+      index = @book_children.index(label)
+      if index
+        self.book.remove_page(index)
+        self.tab.remove(self.tab.children.find{ |node| node.label == label }) end end
 
     def tab
       Gtk::Lock.synchronize do

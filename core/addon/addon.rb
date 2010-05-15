@@ -11,6 +11,10 @@ module Addon
       @label = label
     end
 
+    def remove_tab(label)
+      Plugin::Ring::fire(:plugincall, [:gui, nil, :mui_tab_remove, label])
+    end
+
     def focus
       Plugin::Ring::fire(:plugincall, [:gui, nil, :mui_tab_active, @label])
     end

@@ -17,7 +17,7 @@ module Addon
 
     def popup(watch)
       result = [nil]
-      alert_thread = Thread.current
+      alert_thread = if(Thread.main != Thread.current) then Thread.current end
       dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
       container, user, pass = self.main(watch)
       dialog.window_position = Gtk::Window::POS_CENTER
@@ -29,8 +29,12 @@ module Addon
         dialog.hide_all
         dialog.destroy
         Gtk.main_iteration_do(false)
-        alert_thread.run
         Gtk::Window.toplevels.first.show
+        if alert_thread
+          alert_thread.run
+        else
+          Gtk.main_quit
+        end
       end
       dialog.signal_connect("destroy") {
         false
@@ -38,7 +42,11 @@ module Addon
       container.show
       dialog.show_all
       Gtk::Window.toplevels.first.hide
-      Thread.stop
+      if(alert_thread)
+        Thread.stop
+      else
+        Gtk::main
+      end
       return *result
     end
 

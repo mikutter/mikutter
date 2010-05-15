@@ -255,6 +255,10 @@ class TwitterAPI < Mutex
     get(path, head)
   end
 
+  def saved_searches(args=nil)
+    get_with_auth('/saved_searches.' + FORMAT, {'Host' => HOST})
+  end
+
   def rate_limit_status
     path = "/account/rate_limit_status.#{FORMAT}"
     head = {'Host' => HOST}

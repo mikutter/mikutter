@@ -134,7 +134,7 @@ end
 def where_should_insert_it(insertion, src, order)
   if(order.include?(insertion)) then
     return src.dup.push(insertion).sort_by{|a|
-      order.index(a) or 0
+      order.index(a) or 65536
     }.index(insertion)
   else
     return src.size
@@ -423,6 +423,13 @@ class String
       io.close_write
       io.read
     }
+  end
+
+  def matches(regexp)
+    result = []
+    each_matches(regexp){ |m, pos|
+      result << m }
+    result
   end
 
   def each_matches(regexp)

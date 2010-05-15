@@ -4,6 +4,7 @@
 
 miquire :core, 'twitter_api'
 miquire :core, 'message'
+miquire :core, 'messageconverters'
 
 require "rexml/document"
 require_if_exist 'httpclient'
@@ -12,9 +13,11 @@ class Twitter < TwitterAPI
   PROG_NAME = Environment::NAME
 
   def update(message)
+    text = self.convert_message(message)
+    return nil if not text
     replyto = message[:replyto]
     receiver = get_receiver(message)
-    data = 'status=' + self.convert_message(message)
+    data = 'status=' + text
     data += '&in_reply_to_user_id=' + User.generate(receiver)[:id].to_s if receiver
     data += '&in_reply_to_status_id=' + Message.generate(replyto)[:id].to_s if replyto
     data += '&source=' + self.encode(PROG_NAME)
@@ -77,7 +80,11 @@ class Twitter < TwitterAPI
         result = ["@#{receiver[:idname]}", *result]
       end
     end
-    return self.encode(result.join(' ').split(//u)[0,140].join)
+    text = result.join(' ')
+    if(UserConfig[:shrinkurl_always] or text.split(//u).size > 140)
+      text = MessageConverters.shrink_url_all(text)
+    end
+    return self.encode(text.split(//u)[0,140].join) if text
   end
 
   def get_receiver(message)

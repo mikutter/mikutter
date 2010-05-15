@@ -15,6 +15,7 @@ module Addon
     def main(watch)
       box = Gtk::VBox.new(false, 8)
       box.pack_start(gen_keyconfig('つぶやきを投稿するキー', :mumble_post_key), false)
+      box.closeup(gen_boolean(:shrinkurl_always, '常にURLを短縮する'))
       return box
     end
 
