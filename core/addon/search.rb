@@ -74,7 +74,9 @@ module Addon
 
     def onperiod(service)
       @count += 1
-      update if(@count >= UserConfig[:retrieve_interval_search]) end
+      if(@count >= UserConfig[:retrieve_interval_search])
+        update
+        @count = 0 end end
 
     def onboot(service)
       @service = service
