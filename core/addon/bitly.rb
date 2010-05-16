@@ -25,10 +25,9 @@ class Bitly < MessageConverters
   def shrink_url(urls)
     query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "longUrl=#{Escape.uri_segment(url).to_s}" }.join('&')
-    p query
     3.times{
       result = JSON.parse(Net::HTTP.get("api.bit.ly", "/shorten?#{query}"))
-      return Hash[ result['results'].map {|pair| [pair[0], pair[1]['shortUrl']] } ] if result
+      return Hash[ *result['results'].map{|pair| [pair[0], pair[1]['shortUrl']] }.flatten ] if result
       sleep(1) }
     nil
   end end

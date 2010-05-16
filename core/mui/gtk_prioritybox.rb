@@ -20,9 +20,13 @@ class Gtk::PriorityVBox < Gtk::VBox
 
   attr_accessor :insert_func
 
-  def initialize(*args)
+  def initialize(*args, &proc)
     super(*args)
-    @priority = lambda{ |x| yield x }
+    @priority = if proc.arity == 1
+                  lambda{ |x| yield x }
+                else
+                  lambda{ |x| yield x, self }
+                end
     @insert_func = :pack_end
   end
 

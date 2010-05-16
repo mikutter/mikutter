@@ -16,7 +16,14 @@ module Addon
 
     def main(watch)
       box = Gtk::VBox.new(false, 8)
-      box.pack_start(gen_boolean(:show_cumbersome_buttons, 'つぶやきの右側にボタンを表示する'), false)
+      box.closeup(gen_group('フォント',
+                            gen_fontcolorselect(:mumble_basic_font, :mumble_basic_color, 'デフォルトのフォント'),
+                            gen_fontcolorselect(:mumble_reply_font, :mumble_reply_color, 'リプライ元のフォント')))
+      box.closeup(gen_group('背景色',
+                            gen_colorselect(:mumble_basic_bg, 'つぶやき'),
+                            gen_colorselect(:mumble_reply_bg, '自分宛'),
+                            gen_colorselect(:mumble_self_bg, '自分のつぶやき')))
+      box.closeup(gen_boolean(:show_cumbersome_buttons, 'つぶやきの右側にボタンを表示する'))
       return box
     end
 

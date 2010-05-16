@@ -97,55 +97,46 @@ module Plugin
       @statusbar
     end
 
+    def gen_tabbutton(container, label, image=nil)
+      widget =TabButton.new
+      Gtk::Tooltips.new.set_tip(widget, label, nil)
+      widget.pane = container
+      widget.label = label
+      widget.add((image or gen_label(label)))
+      widget.signal_connect('clicked'){ |w|
+        Gtk::Lock.synchronize{
+          index = @book_children.index(w.label)
+          self.book.page = index if index }
+        false }
+      widget.signal_connect('key_press_event'){ |w, event|
+        Gtk::Lock.synchronize{
+          case event.keyval
+          when 65361:
+              index = @book_children.index(w.label)
+            if index then
+              self.book.remove_page(index)
+              @book_children.delete_at(index)
+              @pane.pack_end(w.pane)
+            end
+          when 65363:
+              if not @book_children.index(w.label) then
+                @pane.remove(w.pane)
+                self.book.append_page(w.pane)
+                @book_children << w.label end end }
+        true }
+      widget end
+
     def regist_tab(container, label, image=nil)
       default_active = 'TL'
       order = ['TL', 'Me', 'Search', 'Se']
       @@mutex.synchronize{
-        @lc_store = Hash.new if not @lc_store
-        @lc_store[label] = container
-        @book_children = [] if not(@book_children)
-        Gtk::Lock.synchronize do
+      @book_children = [] if not(@book_children)
+        Gtk::Lock.synchronize{
           idx = where_should_insert_it(label, @book_children, order)
           self.book.insert_page(idx, container, gen_label(label))
-          widget = TabButton.new
           @book_children.insert(idx, label)
-          Gtk::Tooltips.new.set_tip(widget, label, nil)
-          widget.pane = container
-          widget.label = label
-          widget.add((image or gen_label(label)))
-          widget.signal_connect('clicked'){ |w|
-            Gtk::Lock.synchronize do
-              index = @book_children.index(w.label)
-              self.book.page = index if index
-            end
-            false
-          }
-          widget.signal_connect('key_press_event'){ |w, event|
-            Gtk::Lock.synchronize{
-              case event.keyval
-              when 65361:
-                  index = @book_children.index(w.label)
-                  if index then
-                    self.book.remove_page(index)
-                    # @book_children.delete_at(index)
-                    @pane.pack_end(w.pane)
-                  end
-              when 65363:
-                  if not @book_children.index(w.label) then
-                    @pane.remove(w.pane)
-                    self.book.append_page(w.pane)
-                    # @book_children << w.label
-                  end
-              end
-            }
-            true
-          }
-          self.tab.pack(widget, false)
-          widget.show_all
-          container.show_all
-        end
-      }
-    end
+          self.tab.pack(gen_tabbutton(container, label, image).show_all, false)
+          container.show_all } } end
 
     def remove_tab(label)
       index = @book_children.index(label)
@@ -156,14 +147,11 @@ module Plugin
     def tab
       Gtk::Lock.synchronize do
         if not(defined? @tabbar) then
-          @tabbar = Gtk::PriorityVBox.new(false, 0){ |w|
-            -( @book_children.index w.label )
-          }
-          @tabbar.insert_func = :pack_end
-        end
-      end
-      @tabbar
-    end
+          order = ['TL', 'Me', 'Search', 'Se']
+          @tabbar = Gtk::PriorityVBox.new(false, 0){ |w, tabbar|
+            -( @book_children.index(w.label) )
+          } end end
+      @tabbar end
 
     def book()
       @@mutex.synchronize{

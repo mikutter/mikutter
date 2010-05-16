@@ -167,9 +167,8 @@ module Addon
                                             nil,
                                             [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
                                             [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
-        p dialog.current_folder = File.expand_path(current)
+        dialog.current_folder = File.expand_path(current)
         if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-          puts "filename = #{dialog.filename}"
           UserConfig[key] = dialog.filename
           input.text = dialog.filename
         end
@@ -177,6 +176,34 @@ module Addon
       }
       container
     end
+
+    def colorselect(key, label)
+      color = UserConfig[key]
+      button = Gtk::ColorButton.new((color and Gdk::Color.new(*color)))
+      button.title = label
+      button.signal_connect('color-set'){ |w|
+        UserConfig[key] = w.color.to_a }
+      button end
+
+    def fontselect(key, label)
+      button = Gtk::FontButton.new(UserConfig[key])
+      button.title = label
+      button.signal_connect('font-set'){ |w|
+        UserConfig[key] = w.font_name }
+      button end
+
+    def gen_fontselect(key, label)
+      Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(fontselect(key, label))
+    end
+
+    def gen_colorselect(key, label)
+      Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(colorselect(key, label))
+    end
+
+    def gen_fontcolorselect(font, color, label)
+      gen_fontselect(font, label).closeup(colorselect(color, label))
+    end
+
 
   end
 

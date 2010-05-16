@@ -144,11 +144,12 @@ module Gtk
             @options[:postboxstorage].show_all
             @options[:postboxstorage].get_ancestor(Gtk::Window).set_focus(postbox.post)
           end
-          self.sensitive = false
-          [post, *other_widgets].compact.each{|widget| widget.sensitive = false }
+          [self, post, *other_widgets].compact.each{|widget| widget.sensitive = false }
           watch.post(:message => post.buffer.text){ |event, msg|
             case event
-            when :exit
+            when :fail
+              [self, post, *other_widgets].compact.each{|widget| widget.sensitive = true }
+            when :success
               Delayer.new{ self.destroy }
             end
           }
@@ -159,7 +160,7 @@ module Gtk
     def post_is_empty?(post, watch)
       Lock.synchronize do
         return true if (post.buffer.text == "")
-        return true if (watch[:user]) and (post.buffer.text == '@'+watch[:user][:idname] + ' ')
+        return true if (defined? watch[:user]) and (post.buffer.text == '@'+watch[:user][:idname] + ' ')
       end
       false
     end

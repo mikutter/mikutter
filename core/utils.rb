@@ -141,7 +141,6 @@ def where_should_insert_it(insertion, src, order)
   end
 end
 
-
 # 一般メッセージを表示する
 def notice(msg)
   log "notice", msg if $debug_avail_level >= 3

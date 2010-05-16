@@ -37,6 +37,10 @@ class Gtk::Widget < Gtk::Object
     Gtk::Alignment.new(0.5, 0, 0, 0).add(self)
   end
 
+  def left
+    Gtk::Alignment.new(0, 0, 0, 0).add(self)
+  end
+
   def right
     Gtk::Alignment.new(1.0, 0, 0, 0).add(self)
   end

@@ -53,11 +53,11 @@ module Gtk
 
     def get_backgroundcolor
       if(@message.from_me?) then
-        [255,255,222]
+        UserConfig[:mumble_self_bg]
       elsif(@message.to_me?) then
-        [255,222,222]
+        UserConfig[:mumble_reply_bg]
       else
-        [255,255,255]
+        UserConfig[:mumble_basic_bg]
       end
     end
 
@@ -89,23 +89,39 @@ module Gtk
       }
     end
 
-    def gen_body(message, tags={})
+    def fonts2tags(fonts)
+      tags = Hash.new
+      tags['font'] = UserConfig[fonts['font']] if fonts.has_key?('font')
+      if fonts.has_key?('foreground')
+        tags['foreground_gdk'] = Gdk::Color.new(*UserConfig[fonts['foreground']]) end
+      tags
+    end
+
+    def gen_body(message, fonts={})
+      tags = fonts2tags(fonts)
       Lock.synchronize{
         buffer = Gtk::TextBuffer.new
         body = Gtk::TextView.new(buffer)
-        buffer.create_tag('shell', tags)
+        tag_shell = buffer.create_tag('shell', tags)
         buffer.insert(buffer.start_iter, message.to_show, 'shell')
         apply_links(buffer)
         body.editable = false
         body.cursor_visible = false
         body.wrap_mode = Gtk::TextTag::WRAP_CHAR
-        body.signal_connect('realize'){ |body|
+        bg_modifier = lambda{
           Lock.synchronize{
             window = body.get_window(Gtk::TextView::WINDOW_TEXT)
-            c = Gdk::Color.new(*get_backgroundcolor.map{|a| a*255})
-            Gdk::Colormap.system.alloc_color(c, false, true)
-            window.background = c }
-          false }
+            window.background = self.style.bg(Gtk::STATE_NORMAL)
+            false } }
+        signal_connect('style-set', &bg_modifier)
+        body.signal_connect('realize', &bg_modifier)
+        body.signal_connect('visibility-notify-event'){
+          Lock.synchronize{
+            if fonts['font'] and tag_shell.font != UserConfig[fonts['font']]
+              tag_shell.font = UserConfig[fonts['font']] end
+            if fonts['foreground'] and tag_shell.foreground_gdk.to_s != UserConfig[fonts['foreground']]
+              tag_shell.foreground_gdk = Gdk::Color.new(*UserConfig[fonts['foreground']]) end
+            false } }
         body.signal_connect('event'){
           Lock.synchronize{ set_cursor(body, Gdk::Cursor::XTERM) }
           false }
@@ -126,7 +142,9 @@ module Gtk
       Lock.synchronize{
         cont = Gtk::HBox.new(false, 8)
         cont.pack_start(icon(msg, 24).top,false)
-        cont.pack_start(gen_body(msg, 'foreground' => 'blue', 'font' => "Sans 8")) }
+        cont.pack_start(gen_body(msg,
+                                 'foreground' => :mumble_reply_color,
+                                 'font' => :mumble_reply_font)) }
     end
 
     def gen_header(msg)
@@ -147,7 +165,9 @@ module Gtk
     end
 
     def gen_control(msg)
-      control = Gtk::HBox.new(false, 8).closeup(gen_iob(msg).top).add(gen_body(msg))
+      control = Gtk::HBox.new(false, 8).closeup(gen_iob(msg).top)
+      control.add(gen_body(msg, 'font' => :mumble_basic_font,
+                           'foreground' => :mumble_basic_color))
       control.closeup(cumbersome_buttons(msg)) if(UserConfig[:show_cumbersome_buttons])
       control
     end
@@ -170,10 +190,13 @@ module Gtk
             last_set_config = relation_configure
           end
           false }
-        signal_connect('realize'){
-          style = Gtk::Style.new()
-          style.set_bg(Gtk::STATE_NORMAL, *get_backgroundcolor.map{|a| a*255})
-          self.style = style
+        last_bg = []
+        signal_connect('visibility-notify-event'){
+          if(last_bg != get_backgroundcolor)
+            last_bg = get_backgroundcolor
+            style = Gtk::Style.new()
+            style.set_bg(Gtk::STATE_NORMAL, *get_backgroundcolor)
+            self.style = style end
           false } }
     end
 
