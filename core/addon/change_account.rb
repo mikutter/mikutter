@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'config'

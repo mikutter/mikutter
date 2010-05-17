@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # UserConfig
 #
@@ -42,7 +43,7 @@ class UserConfig
     :biyly_user => '',
     :bitly_apikey => '',
 
-    :mumble_basic_font => 'Sans 12',
+    :mumble_basic_font => 'Sans 10',
     :mumble_basic_color => [0, 0, 0],
     :mumble_reply_font => 'Sans 8',
     :mumble_reply_color => [255*0x66, 255*0x66, 255*0x66],

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 miquire :addon, 'addon'
 miquire :core, 'userconfig'
@@ -204,6 +205,82 @@ module Addon
       gen_fontselect(font, label).closeup(colorselect(color, label))
     end
 
+    def gen_accountdialog_button(label, kuser, lvuser,  kpasswd, lvpasswd, &validator)
+      btn = Gtk::Button.new(label)
+      btn.signal_connect('clicked'){
+        account_dialog(label, kuser, lvuser,  kpasswd, lvpasswd, &validator) }
+      btn
+    end
+
+    def account_dialog_inner(kuser, lvuser,  kpasswd, lvpasswd, cancel=true)
+      def input(label, visibility=true, default="")
+        container = Gtk::HBox.new(false, 0)
+        input = Gtk::Entry.new
+        input.text = default
+        input.visibility = visibility
+        container.pack_start(Gtk::Label.new(label), false, true, 0)
+        container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+        return container, input
+      end
+      box = Gtk::VBox.new(false, 8)
+      user, user_input = input(lvuser, true, (UserConfig[kuser] or ""))
+      pass, pass_input = input(lvpasswd, false)
+      return box.closeup(user).closeup(pass), user_input, pass_input
+    end
+
+    def account_dialog(label, kuser, lvuser,  kpasswd, lvpasswd, cancel=true, &validator)
+      alert_thread = if(Thread.main != Thread.current) then Thread.current end
+      dialog = Gtk::Dialog.new(label)
+      dialog.window_position = Gtk::Window::POS_CENTER
+      container,iuser,ipass = account_dialog_inner(kuser, lvuser,  kpasswd, lvpasswd)
+      dialog.vbox.pack_start(container, true, true, 30)
+      dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+      dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if cancel
+      dialog.default_response = Gtk::Dialog::RESPONSE_OK
+      quit = lambda{
+        dialog.hide_all.destroy
+        Gtk.main_iteration_do(false)
+        Gtk::Window.toplevels.first.show
+        if alert_thread
+          alert_thread.run
+        else
+          Gtk.main_quit
+        end }
+      dialog.signal_connect("response"){ |widget, response|
+        if response == Gtk::Dialog::RESPONSE_OK
+          if validator.call(iuser.text, ipass.text)
+            UserConfig[kuser] = iuser.text
+            UserConfig[kpasswd] = ipass.text
+            quit.call
+          else
+            alert("#{lvuser}か#{lvpasswd}が違います")
+          end
+        elsif (cancel and response == Gtk::Dialog::RESPONSE_CANCEL) or
+            response == Gtk::Dialog::RESPONSE_DELETE_EVENT
+          quit.call
+        end }
+      dialog.signal_connect("destroy") {
+        false
+      }
+      container.show
+      dialog.show_all
+      Gtk::Window.toplevels.first.hide
+      if(alert_thread)
+        Thread.stop
+      else
+        Gtk::main
+      end
+    end
+
+    def alert(message)
+      dialog = Gtk::MessageDialog.new(nil,
+                                      Gtk::Dialog::DESTROY_WITH_PARENT,
+                                      Gtk::MessageDialog::QUESTION,
+                                      Gtk::MessageDialog::BUTTONS_CLOSE,
+                                      message)
+      dialog.run
+      dialog.destroy
+    end
 
   end
 

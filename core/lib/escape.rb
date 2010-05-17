@@ -133,7 +133,17 @@ module Escape
     # pchar - pct-encoded = unreserved / sub-delims / ":" / "@"
     # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
     # sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
-    s = str.gsub(%r{[^A-Za-z0-9\-._~!$&'()*+,;=:@]}n) {
+    s = str.gsub(%r{[^A-Za-z0-9\-._~!$&'()*+,;=:@]}n) { #'#"
+      '%' + $&.unpack("H2")[0].upcase
+    }
+    PercentEncoded.new_no_dup(s)
+  end
+
+  def query_segment(str)
+    # pchar - pct-encoded = unreserved / sub-delims / ":" / "@"
+    # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    # sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+    s = str.gsub(%r{[^A-Za-z0-9_]}n) { #'#"
       '%' + $&.unpack("H2")[0].upcase
     }
     PercentEncoded.new_no_dup(s)

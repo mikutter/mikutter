@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 miquire :mui, 'extension'
 miquire :mui, 'webicon'
 miquire :mui, 'icon_over_button'
@@ -263,7 +264,7 @@ module Gtk
         if message.repliable? then
           menu.column_add("返信"){ gen_postbox(replies, message) }
           menu.column_add("引用"){ gen_postbox(replies, message, :retweet => true) }
-          menu.column_add("公式リツイート"){ message.retweet }
+          menu.column_add("公式リツイート"){ message.retweet } if not message.from_me?
         end
         menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detaching" }
         menu.show_all.popup(nil, nil, 0, 0) }
