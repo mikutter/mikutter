@@ -23,3 +23,4 @@ module Addon
 end
 
 miquire :addon
+miquire :user_plugin

@@ -31,6 +31,8 @@ class Message < Retriever::Model
                [:receiver, User],         # Send to user
                [:replyto, Message],       # Reply to this message
                [:retweet, Message],       # ReTweet to this message
+               [:source, :string],        # using client
+               [:geo, :string],           # geotag
                [:created, :time],         # posted time
               ]
 

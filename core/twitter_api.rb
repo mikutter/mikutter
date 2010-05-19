@@ -11,6 +11,7 @@ require 'thread'
 require 'base64'
 require 'io/wait'
 miquire :lib, 'escape'
+# miquire :lib, 'oauth'
 miquire :plugin, 'plugin'
 
 Net::HTTP.version_1_2
@@ -78,6 +79,14 @@ class TwitterAPI < Mutex
     @pass = pass
   end
 
+  def request_url
+    consumer = OAuth::Consumer.new("AmDS1hCCXWstbss5624kVw",
+                                   "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ",
+                                   :site => "http://twitter.com")
+    request_token = consumer.get_request_token
+    puts request_token.authorize_url
+  end
+
   def get(path, head)
     return get_file(path) if(@@testmode and get_file(path))
     #self.lock()
@@ -100,34 +109,8 @@ class TwitterAPI < Mutex
       #self.unlock()
     end
     notice "#{path} => #{res}"
-    get_save(res, path)
+    get_save(res, path) if @@testmode
     res
-  end
-
-  def get_file(path)
-    cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
-    if(FileTest::exist?(cachefn))
-      return Class.new{
-        attr_reader :code
-
-        def initialize(cachefn, res)
-          @cachefn = cachefn
-          @code = res
-        end
-
-        def body
-          file_get_contents(@cachefn)
-        end
-      }.new(cachefn, @@ntr)
-    end
-  end
-
-  def get_save(res, path)
-    if defined? res.code
-      cachefn = File::expand_path('~/.mikutter/queries/' + path + '/' + res.code)
-      FileUtils.mkdir_p(File::dirname(cachefn))
-      file_put_contents(cachefn, res.body)
-    end
   end
 
   def get_with_auth(path, head_src)
@@ -155,6 +138,32 @@ class TwitterAPI < Mutex
       end
     end
     res
+  end
+
+  def get_file(path)
+    cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
+    if(FileTest::exist?(cachefn))
+      return Class.new{
+        attr_reader :code
+
+        def initialize(cachefn, res)
+          @cachefn = cachefn
+          @code = res
+        end
+
+        def body
+          file_get_contents(@cachefn)
+        end
+      }.new(cachefn, @@ntr)
+    end
+  end
+
+  def get_save(res, path)
+    if defined? res.code
+      cachefn = File::expand_path('~/.mikutter/queries/' + path + '/' + res.code)
+      FileUtils.mkdir_p(File::dirname(cachefn))
+      file_put_contents(cachefn, res.body)
+    end
   end
 
   def post(path, data, head)
@@ -319,3 +328,4 @@ class TwitterAPI < Mutex
     end
   end
 end
+# ~> -:13: undefined method `miquire' for main:Object (NoMethodError)

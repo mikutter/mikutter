@@ -26,17 +26,20 @@ def miquire(kind, file=nil)
     path = 'mui/gtk_'
   when :core
     path = ''
+  when :user_plugin
+    path = '../plugin/'
   else
     path = '' + kind.to_s + '/'
   end
   if file then
-    require path + file.to_s
+    if kind == :lib
+      Dir.chdir(path){
+        require file.to_s }
+    else
+      require path + file.to_s end
   else
-    Dir.glob(path + "*.rb") do |rb|
-      require rb
-    end
-  end
-end
+    Dir.glob(path + "*.rb"){ |rb|
+      require rb } end end
 
 Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'

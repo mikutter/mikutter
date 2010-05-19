@@ -148,6 +148,8 @@ module Gtk
           watch.post(:message => post.buffer.text){ |event, msg|
             case event
             when :fail
+              @posting = false
+              post.editable = true
               [self, post, *other_widgets].compact.each{|widget| widget.sensitive = true }
             when :success
               Delayer.new{ self.destroy }
