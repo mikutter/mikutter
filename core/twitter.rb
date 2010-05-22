@@ -17,10 +17,9 @@ class Twitter < TwitterAPI
     return nil if not text
     replyto = message[:replyto]
     receiver = get_receiver(message)
-    data = 'status=' + text
-    data += '&in_reply_to_user_id=' + User.generate(receiver)[:id].to_s if receiver
-    data += '&in_reply_to_status_id=' + Message.generate(replyto)[:id].to_s if replyto
-    data += '&source=' + self.encode(PROG_NAME)
+    data = {:status => text }
+    data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
+    data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
     post_with_auth('/statuses/update.'+FORMAT, data, 'Host' => HOST)
   end
 
@@ -65,10 +64,6 @@ class Twitter < TwitterAPI
     return img.url
   end
 
-  def encode(message)
-    return URI.encode(message.to_s, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n)
-  end
-
   def convert_message(message)
     result = [message[:message]]
     if message[:tags].is_a?(Array)
@@ -84,7 +79,7 @@ class Twitter < TwitterAPI
     if(UserConfig[:shrinkurl_always] or text.split(//u).size > 140)
       text = MessageConverters.shrink_url_all(text)
     end
-    return self.encode(text.split(//u)[0,140].join) if text
+    return text.split(//u)[0,140].join if text
   end
 
   def get_receiver(message)

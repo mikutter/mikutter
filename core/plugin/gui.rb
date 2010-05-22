@@ -63,8 +63,13 @@ module Plugin
         container.pack_start(main)
         container.pack_start(self.statusbar, false)
         @window.add(container)
+        set_icon
         @window.show_all
       end
+    end
+
+    def set_icon
+      @window.icon = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('icon.png')), 256, 256)
     end
 
     def onplugincall(watch, command, *args)

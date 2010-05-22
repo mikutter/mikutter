@@ -1,13 +1,15 @@
 
-みくった〜♪　~ A moest twitter client ~
+mikutter　~ A moest twitter client ~
 
 全てのミク廃、そしてついった中毒者へ贈る、至高のツイッタークライアントを目指すツイッタークライアント。
+略して至高のツイッタークライアント。
 
-*用件
+* 用件
 ** 必須アプリケーション:
 ***ruby (1.8以上)
-- rubygems
 - libgnome2-ruby
+- libopenssl-ruby
+- libhmac-sha1
 
 ***プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
@@ -23,7 +25,7 @@
 
 ** Debian/Ubuntuでのインストール方法
 1. aptでインストール
-   - sudo aptitude install libgnome2-ruby ruby rubygems
+   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-sha1 ruby1.8
 2. 推奨パッケージたち（オプション）
    - sudo aptitude install libnotify-bin
    -> 共通の設定へ
@@ -35,13 +37,13 @@
 ** 共通の設定
   1. ./mikutter.rb で起動できます。
   2. ./mikutter.rb --debug とすると、人柱気分が味わえます。
-  3. -sをつけると、Karmicのバグをできるだけ回避するモード(safe mode)になります。
 
 ** 起動
    単純に、いかのようなコマンドで実行できます。
-   ruby mikutter.rb
+   :ruby mikutter.rb
    - Mac OS X
-         X Window systemから起動して下さい。みくった〜♪自らXを立ち上げることはできません。
+         portでrubyを入れて、以下のコマンドで起動して下さい。
+         :/opt/local/bin/ruby mikutter.rb
          また、日本語入力をするためには、XにIMEをインストールする必要があるらしいです。現在調査中です。
 
 * ディレクトリ構成
@@ -51,14 +53,13 @@
   - skin/ スキン
 
 * 生成されるファイルとその意味
-  みくった〜♪が生成するファイルは ~/.mikutter 以下に全て配置されます。
+  mikutterが生成するファイルは ~/.mikutter 以下に全て配置されます。
 
 | ファイル名        | 説明                                                     |
 |-------------------+----------------------------------------------------------|
 | icon/             | アイコンなど、画像のキャッシュ。                         |
 | p_store_values.db | 設定やアカウント情報などが保存されるデータベースファイル |
 | *.log             | エラーログなど。                                         |
-|                   |                                                          |
 
 各ファイルは、ない場合はすべて自動生成されます。ディスク容量が圧迫されているなど、削除したくなったら適宜削除してもらって構いません。
 というか、一定期間でいらんものは削除するようにします。ほんとすみません。
@@ -67,22 +68,27 @@
   - 響かせて　きれいなつぶやき　心揺さぶる　RT
   - 私は　つぶやくのが好き　私がそう　作られたからじゃない
     このつぶやきを好きだと言う　あなたがふぁぼってくれるから
-  - あなただけのみくった〜♪なの
+  - あなただけのmikutterなの
 
 * リンク
 ** 誰かタイトル考えて
    [[http://toshia.dip.jp/]]
    仮タイトルのまま定着してしまった悲劇のウェブページ
-** みくった〜♪
-   [[http://toshia.dip.jp/mikutter/]]
+** mikutter
+   [[http://mikutter.d.hachune.net/]]
    最初半分ネタだった悲劇のクライアント
+** hachune.net
+   [[http://hachune.net/]]
+   奇跡のドメイン
 ** Project みくんちゅ♪
    [[http://mikunchu.wiki.fc2.com/]]
    みくかわいいよみく
 
 * 連絡先
-  作者(toshi_a)には、ツイッターのリプライ or DMで連絡して下さい。だいたい連絡がつくと思います。
-  また、ハッシュタグ #mikutter にて、みくった〜♪について、活発に意見交換が行われています。
+  作者(toshi_a)には、ツイッターのリプライで連絡して下さい。だいたい連絡がつくと思います。
+  また、ハッシュタグ #mikutter に、mikutter関連のことを気軽につぶやいてください。Twitterらしく
+  適当に参考にします。
+
   @toshi_a [[http://twitter.com/toshi_a]]
 
 

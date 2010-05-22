@@ -138,7 +138,7 @@ class Message < Retriever::Model
     self.get(:replyto, count)
   end
 
-  def to_s
+  def body
     result = [self[:message]]
     if self[:tags].is_a?(Array)
       result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"}
@@ -152,11 +152,15 @@ class Message < Retriever::Model
         end
       end
     end
-    return result.join(' ').split(//u)[0,140].join
+    result.join(' ')
+  end
+
+  def to_s
+    body.split(//u)[0,140].join
   end
 
   def to_show
-    to_s.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }
+    body.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }
   end
 
   def marshal_dump

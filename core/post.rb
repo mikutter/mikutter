@@ -30,14 +30,19 @@ class Post
   def initialize
     @scaned_events = []
     @code = nil
-    @twitter = Twitter.new(UserConfig[:twitter_idname], UserConfig[:twitter_password]){
-      user, pass = self.auth_confirm_func.call(self)
-      if user
-        UserConfig[:twitter_idname] = user
-        UserConfig[:twitter_password] = pass
+    @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]){
+      token, secret = self.auth_confirm_func.call(self)
+      if token
+        UserConfig[:twitter_token] = token
+        UserConfig[:twitter_secret] = secret
       end
-      [user, pass]
-    }
+      store('idname', nil)
+      [token, secret, lambda{
+         if not user
+           scaned = scan(:verify_credentials, :no_auto_since_id => false)
+           p scaned
+           store('idname', scaned[0][:idname]) if scaned
+         end } ] }
     notice caller(1).first
     Message.add_data_retriever(ServiceRetriever.new(self, :status_show))
     User.add_data_retriever(ServiceRetriever.new(self, :user_show))
@@ -58,8 +63,12 @@ class Post
               Plugin::Ring.fire(:update, [self, msg]) } end } end }
     define_postal(*other) if not other.empty? end
 
+  def request_oauth_token
+    @twitter.request_oauth_token
+  end
+
   def user
-    UserConfig[:twitter_idname]
+    at('idname')
   end
   alias :idname :user
 
@@ -179,7 +188,9 @@ class Post
       :status_show => unimessage_parser,
       :user_show => user_parser,
       :retweeted_to_me => timeline_parser,
+      :retweets_of_me => timeline_parser,
       :saved_searches => saved_searches_parser,
+      :verify_credentials => user_parser,
       :search => search_parser
     }[kind.to_sym][prop.to_sym] end
 

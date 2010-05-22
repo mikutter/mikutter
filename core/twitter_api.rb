@@ -11,7 +11,7 @@ require 'thread'
 require 'base64'
 require 'io/wait'
 miquire :lib, 'escape'
-# miquire :lib, 'oauth'
+miquire :lib, 'oauth'
 miquire :plugin, 'plugin'
 
 Net::HTTP.version_1_2
@@ -25,16 +25,20 @@ class TwitterAPI < Mutex
   FORMAT = 'json'
   API_MAX = 150
   API_RESET_INTERVAL = 3600
+  OAUTH_VERSION = '1.0'
+  CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
+  CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
+
+  include ConfigLoader
 
   @@failed_lock = Monitor.new
   @@last_success = nil
   @@testmode = false
   @@ntr = '200'
 
-  def initialize(user, pass, &fail_trap)
+  def initialize(a_token, a_secret, &fail_trap)
     super()
-    @user = user
-    @pass = pass
+    @a_token, @a_secret = a_token, a_secret
     @getmutex = Mutex.new
     if(fail_trap) then
       @fail_trap = fail_trap
@@ -61,7 +65,7 @@ class TwitterAPI < Mutex
   end
 
   def user
-    @user
+    nil
   end
 
   def connection
@@ -71,20 +75,103 @@ class TwitterAPI < Mutex
     return http
   end
 
-  def set_user(user)
-    @user = user
+  def request(method, url, body = nil, headers = {})
+    method = method.to_s
+    url = URI.parse(url)
+    request = create_http_request(method, url, body, headers)
+    request['Authorization'] = auth_header(method, url, request.body)
+    Net::HTTP.new(url.host, url.port).request(request)
   end
 
-  def set_pass(pass)
-    @pass = pass
+  def create_http_request(method, path, body, headers)
+    method = method.capitalize.to_sym
+    request = Net::HTTP.const_get(method).new(path.to_s)
+    headers.each{ |pair|
+      request[pair[0]] = pair[1] }
+    request['User-Agent'] = Config::NAME + '/' + Config::VERSION.join('.')
+    if method == :Post || method == :Put
+      request.body = body.is_a?(Hash) ? encode_parameters(body) : body.to_s
+      request.content_type = 'application/x-www-form-urlencoded'
+      request.content_length = (request.body || '').length
+    end
+    request
   end
 
-  def request_url
-    consumer = OAuth::Consumer.new("AmDS1hCCXWstbss5624kVw",
-                                   "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ",
-                                   :site => "http://twitter.com")
-    request_token = consumer.get_request_token
-    puts request_token.authorize_url
+  def request_oauth_token
+    OAuth::Consumer.new(CONSUMER_KEY,
+                        CONSUMER_SECRET,
+                        :site => "http://twitter.com").get_request_token
+  end
+
+  def auth_header(method, url, body)
+    parameters = oauth_parameters
+    parameters[:oauth_signature] = signature(method, url, body, parameters)
+    'OAuth ' + encode_parameters(parameters, ', ', '"')
+  end
+
+  def signature(*args)
+    [digest_hmac_sha1(signature_base_string(*args))].pack('m').gsub(/\n/, '')
+  end
+
+  def digest_hmac_sha1(value)
+    OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, value)
+  end
+
+  def secret
+    escape(CONSUMER_SECRET) + '&' + escape(@a_secret)
+  end
+
+  def signature_base_string(method, url, body, parameters)
+    method = method.upcase
+    base_url = signature_base_url(url)
+    parameters = normalize_parameters(parameters, body, url.query)
+    encode_parameters([ method, base_url, parameters ])
+  end
+
+  def signature_base_url(url)
+    URI::HTTP.new(url.scheme, url.userinfo, url.host, nil, nil, url.path, nil, nil, nil)
+  end
+
+  def normalize_parameters(parameters, body, query)
+    parameters = encode_parameters(parameters, nil)
+    parameters += body.split('&') if body
+    parameters += query.split('&') if query
+    parameters.sort.join('&')
+  end
+
+  def encode_parameters(params, delimiter = '&', quote = nil)
+    if params.is_a?(Hash)
+      params = params.map do |key, value|
+        "#{escape(key)}=#{quote}#{escape(value)}#{quote}"
+      end
+    else
+      params = params.map { |value| escape(value) }
+    end
+    delimiter ? params.join(delimiter) : params
+  end
+
+  def escape(value)
+    URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
+  end
+
+
+  def oauth_parameters
+    {
+      :oauth_consumer_key => CONSUMER_KEY,
+      :oauth_token => @a_token,
+      :oauth_signature_method => 'HMAC-SHA1',
+      :oauth_timestamp => timestamp,
+      :oauth_nonce => nonce,
+      :oauth_version => OAUTH_VERSION
+    }
+  end
+
+  def timestamp
+    Time.now.to_i.to_s
+  end
+
+  def nonce
+    OpenSSL::Digest::Digest.hexdigest('MD5', "#{Time.now.to_f}#{rand}")
   end
 
   def get(path, head)
@@ -113,13 +200,14 @@ class TwitterAPI < Mutex
     res
   end
 
-  def get_with_auth(path, head_src)
-    head = head_src.clone
-    now = Time.now.getgm
-    now_str = now.strftime('%Y/%m/%d %H:%M:%S +0000')
-    auth = ["#{@user}:#{@pass}"].pack("m").chomp.gsub("\n", '')
-    head['Authorization'] = "Basic #{auth}"
-    res = get(path, head)
+  def get_with_auth(path, head)
+    res = nil
+    begin
+      res = request('GET', 'http://twitter.com'+path, nil, head)
+    rescue Exception => evar
+      res = evar
+    end
+    notice "#{path} => #{res}"
     if res.is_a?(Net::HTTPResponse) then
       limit, remain, reset = self.api_remain(res)
       if(res.code == '200') then
@@ -131,8 +219,9 @@ class TwitterAPI < Mutex
             if(@@last_success == last_success) then
               @@last_success = @fail_trap.call()
             end
-            @user,@pass = *@@last_success
-            res = self.get_with_auth(path, head_src)
+            @a_token, @a_secret, callback = *@@last_success
+            callback.call if callback
+            res = self.get_with_auth(path, head)
           }
         end
       end
@@ -167,33 +256,20 @@ class TwitterAPI < Mutex
   end
 
   def post(path, data, head)
-    #self.lock()
     res = nil
     http = nil
     begin
       notice "post: try #{path}(#{data.inspect})"
       res = @getmutex.synchronize{
-        http = self.connection()
-        http.start
-        http.post(path, data, head)
-      }
+        request('POST', 'http://twitter.com'+path, data, head) }
     rescue Exception => evar
       res = evar
-    ensure
-      begin
-        http.finish if http.active?
-      rescue Exception => evar
-        Log.warn('TwitterAPI.post:finish') do "#{evar.inspect}" end
-      end
-      #self.unlock()
     end
-    notice "#{path} => #{res}(#{data.inspect})"
+    notice "#{path} => #{res}(#{(defined?(res.body) and res.body)})"
     res
   end
 
   def post_with_auth(path, data, head)
-    auth = ["#{@user}:#{@pass}"].pack("m").chomp.gsub("\n", '')
-    head['Authorization'] = "Basic #{auth}"
     post(path, data, head)
   end
 
@@ -233,6 +309,12 @@ class TwitterAPI < Mutex
     get_with_auth(path, head)
   end
 
+  def retweets_of_me(args = {})
+    path = "/statuses/retweets_of_me.#{FORMAT}" + get_args(args)
+    head = {'Host' => HOST}
+    get_with_auth(path, head)
+  end
+
   def friends(since = nil)
     path = '/statuses/friends.' + FORMAT
     head = {'Host' => HOST}
@@ -268,8 +350,14 @@ class TwitterAPI < Mutex
     get_with_auth('/saved_searches.' + FORMAT, {'Host' => HOST})
   end
 
-  def rate_limit_status
+  def rate_limit_status(args=nil)
     path = "/account/rate_limit_status.#{FORMAT}"
+    head = {'Host' => HOST}
+    get_with_auth(path, head)
+  end
+
+  def verify_credentials(args=nil)
+    path = "/account/verify_credentials.#{FORMAT}"
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
