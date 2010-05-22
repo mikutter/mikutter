@@ -1,5 +1,5 @@
 
-mikutter　~ A moest twitter client ~
+mikutter - powerful, moeful and useful twitter client
 
 全てのミク廃、そしてついった中毒者へ贈る、至高のツイッタークライアントを目指すツイッタークライアント。
 略して至高のツイッタークライアント。
@@ -9,7 +9,7 @@ mikutter　~ A moest twitter client ~
 ***ruby (1.8以上)
 - libgnome2-ruby
 - libopenssl-ruby
-- libhmac-sha1
+- libhmac-ruby
 
 ***プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
@@ -25,7 +25,7 @@ mikutter　~ A moest twitter client ~
 
 ** Debian/Ubuntuでのインストール方法
 1. aptでインストール
-   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-sha1 ruby1.8
+   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8
 2. 推奨パッケージたち（オプション）
    - sudo aptitude install libnotify-bin
    -> 共通の設定へ
