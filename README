@@ -13,7 +13,7 @@ mikutter - powerful, moeful and useful twitter client
 
 ***プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
--- notify-sendコマンド(ubuntuでは、sudo aptitude install libnotify-bin)
+  - notify-sendコマンド(ubuntuでは、sudo aptitude install libnotify-bin)
 
 ***gemで入れるもの(なくてもOKです):
 - httpclient

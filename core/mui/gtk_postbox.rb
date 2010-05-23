@@ -116,7 +116,6 @@ module Gtk
         delete = Gtk::MenuItem.new("この入力欄を削除")
         delete.signal_connect('activate') { |w|
           Lock.synchronize do
-            p 'delete'
             self.destroy
           end
         }

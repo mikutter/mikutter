@@ -65,7 +65,7 @@ def biif(a, b, *procs, &last_proc)
 end
 
 # num番目の引数をそのまま返す関数を返す
-def ret_nth(num)
+def ret_nth(num=0)
   lambda { |*arg| arg[num] }
 end
 

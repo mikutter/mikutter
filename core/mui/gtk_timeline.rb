@@ -35,28 +35,40 @@ module Gtk
 
     def block_add(message)
       Lock.synchronize do
-        mumble = Gtk::Mumble.new(message).show_all
-        @tl.pack(mumble, false)
-        if(@tl.children.size > 200) then
-          @tl.remove(@tl.children.last)
-        end
-      end
-    end
+        if message[:rule] == :destroy
+          remove_if_exists_all([message])
+        else
+          mumble = Gtk::Mumble.new(message).show_all
+          @tl.pack(mumble, false)
+          if(@tl.children.size > 200) then
+            @tl.remove(@tl.children.last) end end end end
 
     def block_add_all(messages)
       Lock.synchronize do
-        @tl.pack_all(messages.map{ |m| Gtk::Mumble.new(m).show_all }, false)
+        removes, appends = *messages.partition{ |m| m[:rule] == :destroy }
+        remove_if_exists_all(removes)
+        @tl.pack_all(appends.map{ |m| Gtk::Mumble.new(m).show_all }, false)
         if self.vadjustment.value != 0 or self.has_mumbleinput? then
           if self.should_return_top? then
             self.vadjustment.value = 0
           else
-            self.vadjustment.value += messages.size * Gtk::Mumble::DEFAULT_HEIGHT
+            self.vadjustment.value += appends.size * Gtk::Mumble::DEFAULT_HEIGHT
           end
         end
         if(@tl.children.size > 200) then
           (@tl.children.size - 200).times{ @tl.remove(@tl.children.last) }
         end
       end
+    end
+
+    def remove_if_exists_all(msgs)
+      msgs.each{ |m|
+        w = @tl.children.find{ |x| x[:id] == m[:id] }
+        @tl.remove(w) if w }
+      self end
+
+    def include?(message)
+      @tl.children.any?{ |x| x[:id] == message[:id] }
     end
 
     def clear

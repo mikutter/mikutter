@@ -36,8 +36,11 @@ class Gtk::PriorityVBox < Gtk::VBox
       if not((self.children.empty?) or (@priority.call(self.children.first) <=> priority) < 0) then
         catch(:exit) do
           self.children.each_with_index{|widget, index|
-            if (@priority.call(widget) <=> priority) < 0 then
+            prio = @priority.call(widget) <=> priority
+            if prio < 0
               self.insert_child(child, index)
+              throw :exit
+            elsif prio == 0
               throw :exit
             end
           }

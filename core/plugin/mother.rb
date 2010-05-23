@@ -28,7 +28,8 @@ module Plugin
       names.each{ |name|
         cache_storage = cache
         define_method(name){ |arglist|
-          self.plugin_call(name, arglist.select{ |a| not(cache_storage.call(a[1][:id])) })
+          self.plugin_call(name, arglist.select{ |a|
+                             a[1][:rule] == :destroy or not(cache_storage.call(a[1][:id])) })
         }
       }
     end

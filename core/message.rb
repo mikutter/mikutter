@@ -71,6 +71,10 @@ class Message < Retriever::Model
     self[:post].retweet(self){|*a| yield *a if block_given? } if self[:post]
   end
 
+  def destroy
+    self[:post].destroy(self){|*a| yield *a if block_given? } if self[:post]
+  end
+
   # ふぁぼる／ふぁぼ解除
   def favorite(fav)
     self[:post].favorite(self, fav)
@@ -136,6 +140,18 @@ class Message < Retriever::Model
   def receive_message(force_retrieve=false)
     count = if(force_retrieve) then -1 else 0 end
     self.get(:replyto, count)
+  end
+
+  def ancestors(force_retrieve=false)
+    parent = receive_message(force_retrieve)
+    return [self, *parent.ancestors(force_retrieve)] if parent
+    [self]
+  end
+
+  def ancestor(force_retrieve=false)
+    parent = receive_message(force_retrieve)
+    return parent.ancestor(force_retrieve) if parent
+    self
   end
 
   def body

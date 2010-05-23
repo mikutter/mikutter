@@ -58,6 +58,39 @@ class Gtk::TextBuffer < GLib::Object
   end
 end
 
+class Gtk::Clipboard
+  def self.copy(t)
+    Gtk::Clipboard.get(Gdk::Atom.intern('CLIPBOARD', true)).text = t
+  end
+end
+
+class Gtk::Dialog
+  def self.alert(message)
+    Gtk::Lock.synchronize{
+      dialog = Gtk::MessageDialog.new(nil,
+                                      Gtk::Dialog::DESTROY_WITH_PARENT,
+                                      Gtk::MessageDialog::QUESTION,
+                                      Gtk::MessageDialog::BUTTONS_CLOSE,
+                                      message)
+      dialog.run
+      dialog.destroy
+    }
+  end
+
+  def self.confirm(message)
+    Gtk::Lock.synchronize{
+      dialog = Gtk::MessageDialog.new(nil,
+                                      Gtk::Dialog::DESTROY_WITH_PARENT,
+                                      Gtk::MessageDialog::QUESTION,
+                                      Gtk::MessageDialog::BUTTONS_YES_NO,
+                                      message)
+      res = dialog.run
+      dialog.destroy
+      res == Gtk::Dialog::RESPONSE_YES
+    }
+  end
+end
+
 module GLib::SignalAdditional
 
   def additional_signals

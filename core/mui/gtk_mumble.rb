@@ -3,6 +3,7 @@ miquire :mui, 'extension'
 miquire :mui, 'webicon'
 miquire :mui, 'icon_over_button'
 miquire :mui, 'skin'
+miquire :mui, 'contextmenu'
 miquire :core, 'message'
 
 require 'gtk2'
@@ -15,9 +16,42 @@ module Gtk
 
     DEFAULT_HEIGHT = 64
 
-    @@linkrule = [[ URI.regexp(['http','https']), lambda{ |u| Mumble.openurl u} ]]
+    @@linkrule = [ [ URI.regexp(['http','https']),
+                     lambda{ |u, clicked, mumble| Mumble.openurl u},
+                     lambda{ |u, clicked, mumble|
+                       ContextMenu.new(['ブラウザで開く', ret_nth(),
+                                        lambda{ |this, w|
+                                          Mumble.openurl(u) }],
+                                       ['リンクのURLをコピー', ret_nth(),
+                                        lambda{ |this, w|
+                                          Gtk::Clipboard.copy(u) }]).popup(clicked, mumble)}]]
+    @@contextmenu = Gtk::ContextMenu.new
 
     attr_accessor :replies
+    attr_reader :message
+
+    @@contextmenu.registmenu("コピー", lambda{ |m,w|
+                 w.is_a?(Gtk::TextView) and w.buffer.selection_bounds[2] }){ |this, w|
+      w.copy_clipboard }
+    @@contextmenu.registmenu('本文をコピー', lambda{ |m,w|
+                 w.is_a?(Gtk::TextView) and not w.buffer.selection_bounds[2] }){ |this, w|
+      w.select_all(true)
+      w.copy_clipboard
+      w.select_all(false) }
+    @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
+      this.gen_postbox(this.replies, this.message) }
+    @@contextmenu.registmenu("引用", lambda{ |m,w| m.message.repliable? }){ |this, w|
+      this.gen_postbox(this.replies, this.message, :retweet => true) }
+    @@contextmenu.registmenu("公式リツイート", lambda{ |m,w|
+                               m.message.repliable? and not m.message.from_me? }){ |this, w|
+      this.message.retweet }
+    @@contextmenu.registline
+    @@contextmenu.registmenu('削除', lambda{ |m,w| m.message.from_me? }){ |this, w|
+      this.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{this.message.to_show}") }
+    @@contextmenu.registline{ |m, w| m.message.from_me? }
+
+    def self.contextmenu
+      @@contextmenu end
 
     def initialize(message)
       @message = assert_type(Message, message)
@@ -38,8 +72,8 @@ module Gtk
       end
     end
 
-    def self.addlinkrule(reg, proc)
-      @@linkrule = @@linkrule.push([reg, proc]) end
+    def self.addlinkrule(reg, leftclick, rightclick=nil)
+      @@linkrule = @@linkrule.push([reg, leftclick, rightclick]) end
 
     def self.openurl(url)
       if(defined? Win32API) then
@@ -68,22 +102,26 @@ module Gtk
 
     def apply_links(buffer)
       @@linkrule.each{ |pair|
-        reg, proc = pair
+        reg, left, right = pair
         buffer.text.each_matches(reg){ |match, index|
           index = buffer.text[0, index].split(//u).size
           tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
           tag.signal_connect('event'){ |this, textview, event, iter|
+            result = false
             Lock.synchronize{
               if(event.is_a?(Gdk::EventButton)) and
-                  (event.button == 1) and
                   (event.event_type == Gdk::Event::BUTTON_RELEASE) and
                   not(textview.buffer.selection_bounds[2]) then
-                proc.call(match)
+                if (event.button == 1)
+                  left.call(match, textview, self)
+                elsif(event.button == 3 and right)
+                  right.call(match, textview, self)
+                  result = true end
               elsif(event.is_a?(Gdk::EventMotion)) then
                 set_cursor(textview, Gdk::Cursor::HAND2)
               end
             }
-            false
+            result
           }
           buffer.apply_tag(tag, *buffer.get_range(index, match.split(//u).size))
         }
@@ -248,26 +286,7 @@ module Gtk
 
     def menu_pop(widget, replies, message)
       Lock.synchronize{
-        menu = Gtk::Menu.new
-        menu.instance_eval{ |this|
-          def column_add(name, &proc)
-            item = Gtk::MenuItem.new(name)
-            self.append(item)
-            item.signal_connect('activate') { |w| proc.call(w); false } if block_given?
-            self end }
-        if widget.is_a?(Gtk::TextView) then
-          if(widget.buffer.selection_bounds[2]) then
-            menu.column_add('コピー'){ widget.copy_clipboard }
-          else
-            menu.column_add('本文をコピー'){ |w|
-              widget.select_all(true).copy_clipboard.widget.select_all(false) } end end
-        if message.repliable? then
-          menu.column_add("返信"){ gen_postbox(replies, message) }
-          menu.column_add("引用"){ gen_postbox(replies, message, :retweet => true) }
-          menu.column_add("公式リツイート"){ message.retweet } if not message.from_me?
-        end
-        menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detaching" }
-        menu.show_all.popup(nil, nil, 0, 0) }
+        @@contextmenu.popup(widget, self) }
     end
 
     class IOB < Gtk::IconOverButton

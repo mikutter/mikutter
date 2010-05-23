@@ -376,6 +376,14 @@ class TwitterAPI < Mutex
     post_with_auth("/statuses/retweet/#{msg[:id]}.#{FORMAT}", '', 'Host' => HOST)
   end
 
+  def destroy(msg)
+    post_with_auth("/statuses/destroy/#{msg[:id]}.#{FORMAT}", '', 'Host' => HOST)
+  end
+
+  def search_create(query)
+    post_with_auth("/saved_searches/create.#{FORMAT}", "query=#{URI.encode(query)}", 'Host' => HOST)
+  end
+
   def send(user, text)
     path = '/direct_messages/new.' + FORMAT
     data = "user=" + URI.encode(user)

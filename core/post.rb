@@ -40,7 +40,6 @@ class Post
       [token, secret, lambda{
          if not user
            scaned = scan(:verify_credentials, :no_auto_since_id => false)
-           p scaned
            store('idname', scaned[0][:idname]) if scaned
          end } ] }
     notice caller(1).first
@@ -54,7 +53,7 @@ class Post
         notice "#{api}:#{msg.inspect}"
         notice 'Actually, this post does not send.'
       else
-        self._post(msg) {|event, msg|
+        self._post(msg, api.to_sym) {|event, msg|
           proc.call(event, msg) if(proc)
           if(event == :try)
             twitter.__send__(api, msg)
@@ -191,12 +190,18 @@ class Post
       :retweets_of_me => timeline_parser,
       :saved_searches => saved_searches_parser,
       :verify_credentials => user_parser,
+      :update => unimessage_parser,
+      :retweet => unimessage_parser,
+      :destroy => unimessage_parser,
+      :search_create => nil,
       :search => search_parser
     }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)
-    param = self.rule(rule, :proc).call(msg).update({ :post => self, :exact => true })
-    self.rule(rule, :class).new_ifnecessary(param) end
+    param = self.rule(rule, :proc).call(msg)
+    self.rule(rule, :class).new_ifnecessary(param).merge({ :rule => rule,
+                                                           :post => self,
+                                                           :exact => true }) end
 
   def parse_json(json, cache='friends_timeline')
     if json then
@@ -216,7 +221,7 @@ class Post
       result end end
 
   # ポストキューにポストを格納する
-  define_postal :update, :retweet
+  define_postal :update, :retweet, :destroy, :search_create
   alias post update
 
   def follow(user)
@@ -224,7 +229,7 @@ class Post
       notice "follow:#{user.inspect}"
       notice 'Actually, this post does not send.'
     else
-      self._post(user) {|event, user|
+      self._post(user, :user_show) {|event, user|
         twitter.follow(user) if(event == :try) } end end
 
   def favorite(message, fav)
@@ -232,14 +237,14 @@ class Post
       notice "fav:#{message.inspect}"
       notice 'Actually, this post does not send.'
     else
-      self._post(message) {|event, msg|
+      self._post(message, :status_show) {|event, msg|
         if(event == :try)
           if(fav) then
             twitter.favorite(msg[:id])
           else
             twitter.unfavorite(msg[:id]) end end } end end
 
-  def _post(message)
+  def _post(message, api)
     Thread.new(message){ |message|
       yield(:start, nil)
       count = 1
@@ -250,7 +255,7 @@ class Post
           if defined?(result.code)
             if result.code == '200'
               notice "post:success:#{count}:#{message.inspect}"
-              receive = parse_json(result.body, :status_show)
+              receive = parse_json(result.body, api)
               if receive.is_a?(Array) then
                 yield(:success, receive.first)
                 break receive.first end
