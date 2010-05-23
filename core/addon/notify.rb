@@ -30,7 +30,6 @@ class Addon::Notify < Addon::Addon
                    gen_fileselect(:notify_sound_followed, 'サウンド', 'core/skin/data/sounds/'))
     box.pack_start(ft, false).pack_start(me, false).pack_start(fd, false)
     box.pack_start(gen_adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
-    return box
   end
 
   def onupdate(alist)
@@ -98,7 +97,7 @@ class Addon::Notify < Addon::Addon
 
   def notify_sound(sndfile)
     # hack! linux only
-    bg_system("aplay","-q", sndfile)
+    bg_system("aplay","-q", sndfile) if FileTest.exist?(sndfile)
     return
     # if ubuntu karmic, always segmentation fault.
     uri = 'file://'+ File.join(File.expand_path(sndfile))
