@@ -5,6 +5,6 @@ class Symbol
   include HatsuneLisp::Atom
 
   def hatsunelisp_eval(symtable=HatsuneLisp::SymbolTable.new)
-    symtable[self]
+    symtable[self].car
   end
 end

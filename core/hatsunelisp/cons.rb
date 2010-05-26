@@ -5,18 +5,24 @@ module HatsuneLisp
     include List
     include Enumerable
 
-    attr_accessor(:car, :cdr)
+    attr_reader(:car, :cdr)
 
     def initialize(car, cdr)
       @car = car
       @cdr = cdr
     end
 
-    def each
-      yield @car
-      if(@cdr.is_a? Enumerable) then
-        @cdr.each{|*args| yield *args}
-      end
+    def setcar(val)
+      self.class.new(val, @cdr)
+    end
+
+    def setcdr(val)
+      self.class.new(@car, val)
+    end
+
+    def each(&proc)
+      proc.call @car
+      @cdr.each(&proc) if(@cdr.is_a? Enumerable)
     end
 
     def inspect

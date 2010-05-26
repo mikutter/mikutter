@@ -11,8 +11,8 @@ class Addon::Thread < Addon::Addon
       self.regist_tab(service, container, 'Thread', MUI::Skin.get("list.png"))
       Gtk::Mumble.contextmenu.registmenu('スレッドを表示', lambda{ |m, w|
                                            m.message.repliable? }){ |m, w|
+        @main.clear
         set_ancestor(m.message).focus } }
-    @ancestor = nil
     @service = service end
 
   def onupdate(service, message)
@@ -22,10 +22,9 @@ class Addon::Thread < Addon::Addon
   private
 
   def set_ancestor(message)
-    members = message.ancestors(true)
-    @ancestor = members.last
-    @main.clear
-    @main.add([message, *members])
+    Thread.new{
+      message.each_ancestors(true){ |m|
+        Delayer.new{ @main.add([m]) } } }
     self end end
 
 Plugin::Ring.push Addon::Thread.new,[:boot]

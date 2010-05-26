@@ -1,4 +1,3 @@
-require 'hatsunelisp'
 require 'node'
 require 'error'
 
@@ -57,15 +56,11 @@ module HatsuneLisp
     end
 
     def set(symtable, key, val, *args)
-      if args.size == 1 then
-        raise ArgumentError('setに与える引数は偶数個にして下さい')
-      end
+      raise ArgumentError('setに与える引数は偶数個にして下さい') if args.size == 1
       key = eval(symtable, key)
       val = eval(symtable, val)
       symtable[key] = val
-      if args.empty? then
-        return val
-      end
+      return val if args.empty?
       set(symtable, *args)
     end
 

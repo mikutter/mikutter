@@ -1,9 +1,8 @@
 require 'node'
 
 module HatsuneLisp
-  include Node
-
   module Atom
+    include Node
     def atom
       true
     end

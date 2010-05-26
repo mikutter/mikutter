@@ -77,7 +77,9 @@ module HatsuneLisp
   end
 
   def self.read_to(s, &cond)
-    c = s.getc.chr
+    c = s.getc
+    return '' if not c
+    c = c.chr
     if cond.call(c) then
       s.ungetc(c[0])
       return ''

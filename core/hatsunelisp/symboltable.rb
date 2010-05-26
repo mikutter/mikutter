@@ -3,7 +3,7 @@ require 'error'
 
 module HatsuneLisp
   class SymbolTable < Hash
-    def initialize(parent = Hash.new)
+    def initialize(parent = Hash.new(Cons.new(nil, nil)))
       super(){ |key, this| parent[key] }
     end
 
@@ -11,7 +11,7 @@ module HatsuneLisp
       if not(key.is_a?(Symbol)) then
         raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました")
       end
-      super(key, val)
+      super(key, self[key].setcar(val))
     end
 
   end

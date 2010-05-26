@@ -33,8 +33,9 @@ class Message < Retriever::Model
                [:retweet, Message],       # ReTweet to this message
                [:source, :string],        # using client
                [:geo, :string],           # geotag
+               [:exact, :bool],           # true if complete data
                [:created, :time],         # posted time
-              ]
+             ]
 
   def initialize(value)
     assert_type(Hash, value)
@@ -43,6 +44,7 @@ class Message < Retriever::Model
       value[:image] = Message::Image.new(value[:image])
     end
     super(value)
+    raise 'type mismatch' if not self[:created].is_a?(Time)
   end
 
   def system
@@ -122,12 +124,13 @@ class Message < Retriever::Model
     false
   end
 
+  def user
+    self.get(:user, -1) end
+
   # return receive user
   def receiver
     if self[:receiver] then
       self[:receiver]
-    #elsif self.receive_message.is_a?(Message) then
-    #  self.receive_message[:user]
     elsif(/@([a-zA-Z0-9_]+)/ === self[:message]) then
       result = User.findByIdname($1)
       if(result) then
@@ -139,7 +142,13 @@ class Message < Retriever::Model
 
   def receive_message(force_retrieve=false)
     count = if(force_retrieve) then -1 else 0 end
-    self.get(:replyto, count)
+    self.get(:replyto, count) or self.get(:retweet, count)
+  end
+
+  def each_ancestors(force_retrieve=false, &proc)
+    proc.call(self)
+    parent = receive_message(force_retrieve)
+    parent.each_ancestors(force_retrieve, &proc) if parent
   end
 
   def ancestors(force_retrieve=false)
@@ -149,9 +158,7 @@ class Message < Retriever::Model
   end
 
   def ancestor(force_retrieve=false)
-    parent = receive_message(force_retrieve)
-    return parent.ancestor(force_retrieve) if parent
-    self
+    ancestors(force_retrieve).last
   end
 
   def body

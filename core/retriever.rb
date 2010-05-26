@@ -5,12 +5,14 @@
 # 多カラムのデータの保存／復元／変更を隠蔽するモジュール
 # ハッシュテーブルを保存し、後から検索できるようにする
 
+miquire :lib, 'weakstorage'
+
 module Retriever
 
   # モデルクラス。
   # と同時に、このクラスのインスタンスはレコードを表す
   class Model
-    @@storage = Hash.new # id => <Model>
+    @@storage = WeakStorage.new # id => <Model>
     @@class_lock = Monitor.new
 
     #
@@ -54,10 +56,10 @@ module Retriever
     def merge(other)
       @instance_lock.synchronize{
         @value.update(other.to_hash)
+        validate
         self.class.store_datum(self)
       }
     end
-
     def id
       @value[:id]
     end
@@ -81,7 +83,7 @@ module Retriever
           if type.is_a? Symbol then
             Retriever::cast_func(type).call(result)
           elsif not result.is_a?(Model) then
-            result = type.generate(result, count)
+            result = type.findbyid(result, count)
             return @value[key.to_sym] = result if result
           end
         end
@@ -113,6 +115,7 @@ module Retriever
         begin
           Model.cast(self.fetch(key), type, required)
         rescue InvalidTypeError=>e
+          warn @value.inspect
           raise InvalidTypeError, e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
         end
       }
@@ -151,16 +154,18 @@ module Retriever
     # srcが正常にModel化できるかどうかを返します。
     def self.valid?(src)
       return src.is_a?(self) if not src.is_a?(Hash)
+      not self.get_error(src) end
+
+    # srcがModel化できない理由を返します。
+    def self.get_error(src)
       self.keys.each{ |column|
         key, type, required = *column
         begin
           Model.cast(src[key], type, required)
         rescue InvalidTypeError=>e
-          return false
-        end
-      }
-      true
-    end
+          return e.to_s + "\nin key '#{key}' value '#{src[key]}'"
+        end }
+      false end
 
     # DataSourceを登録します
     def self.add_data_retriever(retriever)
@@ -174,21 +179,18 @@ module Retriever
     def self.findbyid(id, count=-1)
       return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
       @@class_lock.synchronize{
-        result = catch(:found){
-          retrievers = self.retrievers
-          retrievers = retrievers.slice(0, count) if(count != -1)
-          retrievers.each{ |retriever|
+        result = nil
+        catch(:found){
+          rs = self.retrievers
+          rs = rs.slice(0, count) if(count != -1)
+          rs.each{ |retriever|
             detection = retriever.findbyid_timer(id)
             notice retriever.class.to_s + ": " + detection.class.to_s
-            throw :found, detection if self.valid?(detection)
-          }
-          throw :found, nil
-        }
+            if detection
+              result = detection
+              throw :found end } }
         self.retrievers_reorder
-        return self.new_ifnecessary(result) if result
-      }
-      nil
-    end
+        self.new_ifnecessary(result) if result } end
 
     #
     # プライベートクラスメソッド
@@ -211,29 +213,21 @@ module Retriever
     # 値を、そのカラムの型にキャストします。
     # キャスト出来ない場合はInvalidTypeError例外を投げます
     def self.cast(value, type, required=false)
-      if not value then
-        if required then
-          raise InvalidTypeError, 'it is required value'
-        end
+      if not value
+        raise InvalidTypeError, 'it is required value' if required
       elsif type.is_a?(Symbol) then
         begin
           result = (value and Retriever::cast_func(type).call(value))
-          if required and not result then
-            raise InvalidTypeError, 'it is required value'
-          end
-          return result
+          if required and not result
+            raise InvalidTypeError, 'it is required value, but returned nil from cast function' end
+          result
         rescue InvalidTypeError=>e
-          raise InvalidTypeError, "#{value.inspect} is not #{type}"
-        end
+          raise InvalidTypeError, "#{value.inspect} is not #{type}" end
       elsif value.is_a?(type)
-        if required and not value.id then
-          raise InvalidTypeError, 'it is required value'
-        end
+        raise InvalidTypeError, 'invalid type' if required and not value.id
         value.id
       elsif self.cast(value, type.keys.assoc(:id)[1], true)
-        value
-      end
-    end
+        value end end
 
     # DataSourceの配列を返します。
     def self.retrievers
@@ -312,6 +306,7 @@ module Retriever
 
   @@cast = {
     :int => lambda{ |v| begin v.to_i; rescue NoMethodError=>e then raise InvalidTypeError end },
+    :bool => lambda{ |v| !!(v and not v == 'false') },
     :string => lambda{ |v| begin v.to_s; rescue NoMethodError=>e then raise InvalidTypeError end },
     :time => lambda{ |v|
       if not v then
@@ -331,16 +326,4 @@ module Retriever
   class InvalidTypeError < Exception
   end
 
-end
-
-if __FILE__ == $0 then
-  class Message < Retriever::Model
-    self.keys = [[:id, :int, :required],
-                 [:title, :string],
-                 [:desc, :string],
-                 [:replyto, Message, true],
-                 [:created, :time]]
-  end
-
-  p a = Message.generate(:id => 1, :title => 'hello')
 end

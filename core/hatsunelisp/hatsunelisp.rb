@@ -4,6 +4,7 @@ Dir.chdir(File.dirname(__FILE__)){
   require 'array'
   require 'symbol'
   require 'symboltable'
+  require 'nil'
   require 'parser'
 }
 
@@ -18,6 +19,7 @@ end
 if(__FILE__ == $0) then
   scope = HatsuneLisp::SymbolTable.new
   loop{
+    p scope
     print 'HatsuneLisp >'
     puts HatsuneLisp.unparse(hatsunelisp(HatsuneLisp.parse($stdin), scope))
   }

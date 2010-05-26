@@ -33,7 +33,7 @@ class Gtk::PriorityVBox < Gtk::VBox
   def pack(child, expand = true, fill = true, padding = 0)
     Gtk::Lock.synchronize do
       priority = @priority.call(child)
-      if not((self.children.empty?) or (@priority.call(self.children.first) <=> priority) < 0) then
+      if not((self.children.empty?) or ((@priority.call(self.children.first) <=> priority) < 0)) then
         catch(:exit) do
           self.children.each_with_index{|widget, index|
             prio = @priority.call(widget) <=> priority

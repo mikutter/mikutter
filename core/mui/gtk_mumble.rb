@@ -174,20 +174,24 @@ module Gtk
     end
 
     def icon(msg, x, y=x)
-      Gtk::WebIcon.new(april_fool(msg[:user][:profile_image_url]), x, y)
+      Gtk::WebIcon.new(april_fool(msg.user[:profile_image_url]), x, y)
     end
 
     def gen_minimumble(msg)
       Lock.synchronize{
-        cont = Gtk::HBox.new(false, 8)
-        cont.pack_start(icon(msg, 24).top,false)
-        cont.pack_start(gen_body(msg,
-                                 'foreground' => :mumble_reply_color,
-                                 'font' => :mumble_reply_font)) }
+        w = Gtk::HBox.new(false, 8)
+        Thread.new{
+          msg.user[:profile_image_url]
+          Delayer.new{
+            w.closeup(icon(msg, 24).top)
+            w.add(gen_body(msg,
+                           'foreground' => :mumble_reply_color,
+                           'font' => :mumble_reply_font)).show_all } }
+        w }
     end
 
     def gen_header(msg)
-      user = msg[:user]
+      user = msg.user
       idname = Gtk::Label.new(user[:idname])
       created = Gtk::Label.new(msg[:created].strftime('%H:%M:%S'))
       idname.style = Gtk::Style.new.set_font_desc(Pango::FontDescription.new('Sans 10').set_weight(700))
@@ -266,7 +270,7 @@ module Gtk
     end
 
     def gen_retweet(msg)
-      Gtk::HBox.new(false, 4).closeup(Gtk::Label.new('ReTweeted by ' + msg[:user][:idname])).
+      Gtk::HBox.new(false, 4).closeup(Gtk::Label.new('ReTweeted by ' + msg.user[:idname])).
         closeup(icon(msg, 24)).right
     end
 
