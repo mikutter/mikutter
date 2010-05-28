@@ -91,6 +91,8 @@ module Plugin
           self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{args[0]})")
       when :apiremain:
           self.statusbar.push(self.statusbar.get_context_id('system'), "API あと#{args[0]}回くらい (#{args[1].strftime('%H:%M')}まで)")
+      when :rewindstatus:
+          self.statusbar.push(self.statusbar.get_context_id('system'), args[0])
       end
     end
 

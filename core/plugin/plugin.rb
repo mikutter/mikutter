@@ -110,13 +110,10 @@ module Plugin
     # argsには、引数リストを要求する
     def self.fire(handler, args)
       proc = lambda{
-        Gtk::Lock.synchronize{
-          @@mother.__send__(handler, [args])
-        }
+        @@mother.__send__(handler, [args])
       }
       if(Thread.main == Thread.current) then
         proc.call
-
       else
         Delayer.new{ proc.call }
       end

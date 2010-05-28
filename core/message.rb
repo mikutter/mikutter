@@ -2,6 +2,7 @@
 # message.rb
 #
 
+require 'utils'
 miquire :core, 'autotag'
 miquire :core, 'user'
 miquire :core, 'retriever'
@@ -61,8 +62,8 @@ class Message < Retriever::Model
   def post(other, &proc)
     other[:replyto] = self
     other[:receiver] = self[:user]
-    if self[:post] then
-      self[:post].post(other){|*a| yield *a }
+    if self.service then
+      self.service.post(other){|*a| yield *a }
     elsif self.receive_message then
       self.receive_message.post(other){|*a| yield *a }
     end
@@ -70,16 +71,16 @@ class Message < Retriever::Model
 
   # リツイートする
   def retweet
-    self[:post].retweet(self){|*a| yield *a if block_given? } if self[:post]
+    self.service.retweet(self){|*a| yield *a if block_given? } if self.service
   end
 
   def destroy
-    self[:post].destroy(self){|*a| yield *a if block_given? } if self[:post]
+    self.service.destroy(self){|*a| yield *a if block_given? } if self.service
   end
 
   # ふぁぼる／ふぁぼ解除
   def favorite(fav)
-    self[:post].favorite(self, fav)
+    self.service.favorite(self, fav)
   end
 
   def favorite?
@@ -107,25 +108,31 @@ class Message < Retriever::Model
   end
 
   def repliable?
-    self[:post] != nil
+    self.service != nil
   end
 
   def from_me?
     return false if self.system?
-    self[:user] == self[:post].user if self[:post]
+    self[:user] == self.service.user if self.service
   end
 
   def to_me?
     return true if self.system?
-    if self[:post]
-      return true if self.receiver == self[:post].user
-      return true if self[:message].include?(self[:post].user)
+    if self.service
+      return true if self.receiver == self.service.user
+      return true if self[:message].include?(self.service.user)
     end
     false
   end
 
   def user
     self.get(:user, -1) end
+
+  def service
+    if self[:post] then
+      self[:post]
+    elsif self.receive_message then
+      self[:post] = self.receive_message.service end end
 
   # return receive user
   def receiver
@@ -141,7 +148,7 @@ class Message < Retriever::Model
   end
 
   def receive_message(force_retrieve=false)
-    count = if(force_retrieve) then -1 else 0 end
+    count = if(force_retrieve) then -1 else 1 end
     self.get(:replyto, count) or self.get(:retweet, count)
   end
 
@@ -159,6 +166,10 @@ class Message < Retriever::Model
 
   def ancestor(force_retrieve=false)
     ancestors(force_retrieve).last
+  end
+
+  def children
+    Message.selectby(:replyto, self[:id])
   end
 
   def body

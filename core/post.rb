@@ -182,6 +182,7 @@ class Post
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
+      :friends => users_parser,
       :favorite => unimessage_parser,
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
@@ -206,9 +207,9 @@ class Post
   def parse_json(json, cache='friends_timeline')
     if json then
       result = nil
-      tl = nil
+      tl = json
       begin
-        tl = JSON.parse(json)
+        tl = JSON.parse(json) if json.is_a?(String)
       rescue JSON::ParserError
         warn "json parse error"
         return nil end

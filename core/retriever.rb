@@ -192,6 +192,19 @@ module Retriever
         self.retrievers_reorder
         self.new_ifnecessary(result) if result } end
 
+    def self.selectby(key, value, count=-1)
+      key = key.to_sym
+      return @@storage[hash[key]] if @@storage.has_key?(hash[key])
+      @@class_lock.synchronize{
+        result = []
+        rs = self.retrievers
+        rs = rs.slice(0, count) if(count != -1)
+        rs.each{ |retriever|
+          detection = retriever.selectby_timer(key, value)
+          result += detection if detection }
+        self.retrievers_reorder
+        result.uniq.map{ |id| self.new_ifnecessary(:id => id) } } end
+
     #
     # プライベートクラスメソッド
     #
@@ -264,6 +277,10 @@ module Retriever
       nil
     end
 
+    def selectby(key, value)
+      []
+    end
+
     # データの保存
     # データ一件保存する。保存に成功したか否かを返す。
     def store_datum(datum)
@@ -273,6 +290,13 @@ module Retriever
     def findbyid_timer(id)
       st = Process.times.utime
       result = findbyid(id)
+      @time = Process.times.utime - st
+      result
+    end
+
+    def selectby_timer(key, value)
+      st = Process.times.utime
+      result = selectby(key, value)
       @time = Process.times.utime - st
       result
     end
@@ -291,15 +315,23 @@ module Retriever
 
     def initialize
       @storage = Hash.new
+      @children = Hash.new{ [] }
     end
 
     def findbyid(id)
       @storage[id]
     end
 
+    def selectby(key, value)
+      if key == :replyto
+        @children[value.to_i]
+      else
+        [] end end
+
     # データの保存
     def store_datum(datum)
       @storage[datum[:id]] = datum
+      @children[datum[:replyto]] = @children[datum[:replyto]].push(datum[:id])  if datum[:replyto]
       true
     end
   end

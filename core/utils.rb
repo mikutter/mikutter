@@ -444,6 +444,10 @@ class String
     end
   end
 
+  def inspect
+    to_s
+  end
+
 end
 
 module GC

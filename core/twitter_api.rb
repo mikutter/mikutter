@@ -315,8 +315,8 @@ class TwitterAPI < Mutex
     get_with_auth(path, head)
   end
 
-  def friends(since = nil)
-    path = '/statuses/friends.' + FORMAT
+  def friends(args = {})
+    path = '/statuses/friends.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end

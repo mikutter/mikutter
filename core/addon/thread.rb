@@ -16,15 +16,24 @@ class Addon::Thread < Addon::Addon
     @service = service end
 
   def onupdate(service, message)
-    ancestors = message.ancestors
-    @main.add(ancestors) if not(ancestors.empty?) and @main.include?(ancestors.last) end
+    if message.receive_message and @main.all_id.include?(message.receive_message(true)[:id].to_i)
+      @main.add([message]) end end
 
   private
+
+  def set_children(message)
+    if message.children.is_a? Array
+      Thread.new{
+        Delayer.new{ @main.add(message.children) }
+        message.children.each{ |m|
+          puts m.to_show
+          set_children(m) } } end end
 
   def set_ancestor(message)
     Thread.new{
       message.each_ancestors(true){ |m|
+        set_children(m)
         Delayer.new{ @main.add([m]) } } }
     self end end
 
-Plugin::Ring.push Addon::Thread.new,[:boot]
+Plugin::Ring.push Addon::Thread.new,[:boot, :update]

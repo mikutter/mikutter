@@ -67,8 +67,8 @@ module Gtk
         @tl.remove(w) if w }
       self end
 
-    def include?(message)
-      @tl.children.any?{ |x| x[:id] == message[:id] }
+    def all_id
+      @tl.children.map{ |x| x[:id].to_i }
     end
 
     def clear
