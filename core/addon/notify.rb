@@ -8,6 +8,8 @@ class Addon::Notify < Addon::Addon
 
   include Addon::SettingUtils
 
+  DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
+
   @@mutex = Monitor.new
 
   get_all_parameter_once :update, :mention, :followed
@@ -21,13 +23,13 @@ class Addon::Notify < Addon::Addon
     box = Gtk::VBox.new(false, 8)
     ft = gen_group('フレンドタイムライン',
                    gen_boolean(:notify_friend_timeline, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_friend_timeline, 'サウンド', 'core/skin/data/sounds'))
+                   gen_fileselect(:notify_sound_friend_timeline, 'サウンド', DEFAULT_SOUND_DIRECTORY))
     me = gen_group('リプライ',
                    gen_boolean(:notify_mention, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_mention, 'サウンド', 'core/skin/data/sounds'))
+                   gen_fileselect(:notify_sound_mention, 'サウンド', DEFAULT_SOUND_DIRECTORY))
     fd = gen_group('フォローされたとき',
                    gen_boolean(:notify_followed, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_followed, 'サウンド', 'core/skin/data/sounds/'))
+                   gen_fileselect(:notify_sound_followed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
     box.pack_start(ft, false).pack_start(me, false).pack_start(fd, false)
     box.pack_start(gen_adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end

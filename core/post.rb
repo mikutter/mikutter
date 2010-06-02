@@ -134,6 +134,21 @@ class Post
         yield res } }
   end
 
+  def message_parser(user_retrieve)
+    lambda{ |msg|
+      cnv = msg.convert_key('text' => :message,
+                            'in_reply_to_user_id' => :reciver,
+                            'in_reply_to_status_id' => :replyto)
+      cnv[:favorited] = !!msg['favorited']
+      cnv[:created] = Time.parse(msg['created_at'])
+      if user_retrieve
+        cnv[:user] = User.findbyid(msg['user']['id']) or self.scan_rule(:user_show, msg['user'])
+      else
+        cnv[:user] = self.scan_rule(:user_show, msg['user']) end
+      cnv[:retweet] = self.scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
+      cnv }
+  end
+
   def rule(kind, prop)
     shell_class = Class.new do def self.new_ifnecessary(arg) arg end end
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
@@ -152,17 +167,11 @@ class Post
     timeline_parser = {
       :hasmany => true,
       :class => Message,
-      :proc => lambda{ |msg|
-        cnv = msg.convert_key('text' => :message,
-                              'in_reply_to_user_id' => :reciver,
-                              'in_reply_to_status_id' => :replyto)
-        cnv[:favorited] = !!msg['favorited']
-        cnv[:created] = Time.parse(msg['created_at'])
-        cnv[:user] = self.scan_rule(:user_show, msg['user'])
-        cnv[:retweet] = self.scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
-        cnv } }
+      :proc => message_parser(false) }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
+    streaming_status = unimessage_parser.clone
+    streaming_status[:proc] = message_parser(true)
     search_parser = {
       :hasmany => 'results',
       :class => Message,
@@ -195,7 +204,8 @@ class Post
       :retweet => unimessage_parser,
       :destroy => unimessage_parser,
       :search_create => nil,
-      :search => search_parser
+      :search => search_parser,
+      :streaming_status => streaming_status
     }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)

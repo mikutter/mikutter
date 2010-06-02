@@ -80,9 +80,7 @@ module Plugin
           self.remove_tab(*args)
       when :mui_tab_active:
           index = @book_children.index(args[0])
-          if index
-            self.book.set_page(index)
-          end
+          self.book.set_page(index) if index
       when :apilimit:
           Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
                                                   :system => true)])
@@ -104,6 +102,17 @@ module Plugin
       @statusbar
     end
 
+    def get_tabindex(label)
+      pane = get_tabpane(label)
+      self.book.n_pages.times{ |index|
+        return index if self.book.get_nth_page(index) == pane }
+    end
+
+    def get_tabpane(label)
+      result = self.tab.children.find{ |w| w.label == label }
+      result.pane if result
+    end
+
     def gen_tabbutton(container, label, image=nil)
       widget =TabButton.new
       Gtk::Tooltips.new.set_tip(widget, label, nil)
@@ -112,21 +121,20 @@ module Plugin
       widget.add((image or gen_label(label)))
       widget.signal_connect('clicked'){ |w|
         Gtk::Lock.synchronize{
-          index = @book_children.index(w.label)
+          index = get_tabindex(w.label)
           self.book.page = index if index }
         false }
       widget.signal_connect('key_press_event'){ |w, event|
         Gtk::Lock.synchronize{
           case event.keyval
           when 65361:
-              index = @book_children.index(w.label)
-            if index then
-              self.book.remove_page(index)
-              @book_children.delete_at(index)
-              @pane.pack_end(w.pane)
-            end
+              index = get_tabindex(w.label)
+              if index then
+                self.book.remove_page(index)
+                @book_children.delete_at(index)
+                @pane.pack_end(w.pane) end
           when 65363:
-              if not @book_children.index(w.label) then
+              if not @book_children.include?(w.label) then
                 @pane.remove(w.pane)
                 self.book.append_page(w.pane)
                 @book_children << w.label end end }
@@ -137,7 +145,7 @@ module Plugin
       default_active = 'TL'
       order = ['TL', 'Me', 'Search', 'Se']
       @@mutex.synchronize{
-      @book_children = [] if not(@book_children)
+        @book_children = [] if not(@book_children)
         Gtk::Lock.synchronize{
           idx = where_should_insert_it(label, @book_children, order)
           self.book.insert_page(idx, container, gen_label(label))
@@ -145,18 +153,31 @@ module Plugin
           self.tab.pack(gen_tabbutton(container, label, image).show_all, false)
           container.show_all } } end
 
+    def focus_before_tab(idx)
+      idx -= 1
+      if idx > 0
+        return
+      elsif self.book.get_nth_page(idx)
+        self.book.set_page(idx)
+      else
+        focus_before_tab(idx) end end
+
     def remove_tab(label)
-      index = @book_children.index(label)
+      index = get_tabindex(label)
       if index
+        focus_before_tab(index)
+        w = self.tab.children.find{ |node| node.label == label }
         self.book.remove_page(index)
-        self.tab.remove(self.tab.children.find{ |node| node.label == label }) end end
+        @pane.remove(w.pane).show_all
+        self.tab.remove(w)
+      end end
 
     def tab
       Gtk::Lock.synchronize do
         if not(defined? @tabbar) then
           order = ['TL', 'Me', 'Search', 'Se']
           @tabbar = Gtk::PriorityVBox.new(false, 0){ |w, tabbar|
-            -( @book_children.index(w.label) )
+           0 - (@book_children.index(w.label) or 0)
           } end end
       @tabbar end
 

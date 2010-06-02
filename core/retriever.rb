@@ -13,7 +13,6 @@ module Retriever
   # と同時に、このクラスのインスタンスはレコードを表す
   class Model
     @@storage = WeakStorage.new # id => <Model>
-    @@class_lock = Monitor.new
 
     #
     # ジェネレータ
@@ -21,7 +20,6 @@ module Retriever
 
     def initialize(args)
       @value = args
-      @instance_lock = Monitor.new
       validate
       self.class.store_datum(self)
     end
@@ -39,7 +37,7 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      @@class_lock.synchronize{
+      atomic{
         result = @@storage[hash[:id]]
         return result if result
         self.new(hash)
@@ -54,7 +52,7 @@ module Retriever
     # selfにあってotherにもあるカラムはotherの内容で上書きされる。
     # 上書き後、データはDataSourceに保存される
     def merge(other)
-      @instance_lock.synchronize{
+      atomic{
         @value.update(other.to_hash)
         validate
         self.class.store_datum(self)
@@ -75,7 +73,7 @@ module Retriever
 
     # 速い順にcount個のRetrieverだけに問い合わせて返します
     def get(key, count=1)
-      @instance_lock.synchronize{
+      atomic{
         result = @value[key.to_sym]
         column = self.class.keys.assoc(key.to_sym)
         if column and result then
@@ -100,7 +98,7 @@ module Retriever
     # カラムに別の値を格納する。
     # 格納後、データはDataSourceに保存される
     def []=(key, value)
-      @instance_lock.synchronize{
+      atomic{
         @value[key.to_sym] = value
         self.class.store_datum(self)
       }
@@ -178,7 +176,7 @@ module Retriever
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
       return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
-      @@class_lock.synchronize{
+      atomic{
         result = nil
         catch(:found){
           rs = self.retrievers
@@ -195,7 +193,7 @@ module Retriever
     def self.selectby(key, value, count=-1)
       key = key.to_sym
       return @@storage[hash[key]] if @@storage.has_key?(hash[key])
-      @@class_lock.synchronize{
+      atomic{
         result = []
         rs = self.retrievers
         rs = rs.slice(0, count) if(count != -1)
@@ -214,7 +212,7 @@ module Retriever
     def self.store_datum(datum)
       return datum if datum[:system]
       converted = datum.filtering
-      @@class_lock.synchronize{
+      atomic{
         self.retrievers.each{ |retriever|
           retriever.store_datum(converted)
         }
@@ -244,14 +242,14 @@ module Retriever
 
     # DataSourceの配列を返します。
     def self.retrievers
-      @@class_lock.synchronize{
+      atomic{
         @retrievers = [Retriever::Memory.new] if not defined? @retrievers
       }
       @retrievers
     end
 
     def self.retrievers_add(retriever)
-      @@class_lock.synchronize{
+      atomic{
         self.retrievers << retriever
       }
       raise RuntimeError if not self.retrievers.include?(retriever)
@@ -259,7 +257,7 @@ module Retriever
 
     #DataSourceの配列を、最後の取得が早かった順番に並び替えます
     def self.retrievers_reorder
-      @@class_lock.synchronize{
+      atomic{
         @retrievers = self.retrievers.sort_by{ |r| r.time }
       }
     end
@@ -277,6 +275,8 @@ module Retriever
       nil
     end
 
+    # keyがvalueのオブジェクトを配列で返す。
+    # マッチしない場合は空の配列を返す。Arrayオブジェクト以外は返してはならない。
     def selectby(key, value)
       []
     end
@@ -290,14 +290,14 @@ module Retriever
     def findbyid_timer(id)
       st = Process.times.utime
       result = findbyid(id)
-      @time = Process.times.utime - st
+      @time = Process.times.utime - st if result
       result
     end
 
     def selectby_timer(key, value)
       st = Process.times.utime
       result = selectby(key, value)
-      @time = Process.times.utime - st
+      @time = Process.times.utime - st if not result.empty?
       result
     end
 

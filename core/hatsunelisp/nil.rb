@@ -8,6 +8,7 @@ class NilClass
 
   def car
     self end
+
   def cdr
     self end
 

@@ -40,37 +40,35 @@ class Bitly < MessageConverters
     nil
   end end
 
-module Addon
-  class Bitly < Addon
-    USER = 'mikutter'
-    APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'
-    include SettingUtils
+class Addon::Bitly < Addon::Addon
+  USER = 'mikutter'
+  APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'
+  include Addon::SettingUtils
 
-    def onboot(watch)
-      Plugin::Ring::fire(:plugincall, [:settings, watch, :regist_tab, self.main(watch), 'bit.ly'])
-    end
-
-    def main(watch)
-      box = Gtk::VBox.new(false, 8)
-      ft = gen_accountdialog_button('bit.ly アカウント設定',
-                                    :bitly_user, 'ユーザ名',
-                                    :bitly_apikey, 'APIキー'){ |user, pass|
-        if(user == pass and user == '')
-          true
-        else
-          query = "/v3/validate?x_login=#{user}&x_apiKey=#{pass}&apiKey=#{APIKEY}"+
-            "&login=#{USER}&format=json"
-          begin
-            result = JSON.parse(Net::HTTP.get("api.bit.ly", query))
-            result['data']['valid'] == '1'
-          rescue JSON::ParserError
-            nil
-          end end }
-      box.closeup(ft)
-      return box
-    end
-
+  def onboot(watch)
+    Plugin::Ring::fire(:plugincall, [:settings, watch, :regist_tab, main(watch), 'bit.ly'])
   end
+
+  def main(watch)
+    box = Gtk::VBox.new(false, 8)
+    ft = gen_accountdialog_button('bit.ly アカウント設定',
+                                  :bitly_user, 'ユーザ名',
+                                  :bitly_apikey, 'APIキー'){ |user, pass|
+      if(user == pass and user == '')
+        true
+      else
+        query = "/v3/validate?x_login=#{user}&x_apiKey=#{pass}&apiKey=#{APIKEY}"+
+          "&login=#{USER}&format=json"
+        begin
+          result = JSON.parse(Net::HTTP.get("api.bit.ly", query))
+          result['data']['valid'] == '1'
+        rescue JSON::ParserError
+          nil
+        end end }
+    box.closeup(ft)
+    return box
+  end
+
 end
 
 Plugin::Ring.push Addon::Bitly.new,[:boot]

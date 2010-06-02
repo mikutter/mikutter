@@ -10,7 +10,8 @@ require 'monitor'
 
 #
 # グローバル変数
-#
+
+$atomic = Monitor.new#
 $debug_avail_level = 2
 HYDE = 156
 MIKU = 39
@@ -208,6 +209,10 @@ def logfile(fn = nil)
     $logfile = fn
   end
   $logfile or nil
+end
+
+def atomic
+  $atomic.synchronize(&Proc.new)
 end
 
 #Memoize
