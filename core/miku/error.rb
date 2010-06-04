@@ -1,4 +1,4 @@
-module HatsuneLisp
+module MIKU
   class SyntaxError < Exception
     def initialize(msg, scan)
       super(msg + " in #{scan.pos}")

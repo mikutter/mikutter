@@ -1,13 +1,13 @@
 require 'list'
 
-module HatsuneLisp
+module MIKU
   class Cons
     include List
     include Enumerable
 
     attr_reader(:car, :cdr)
 
-    def initialize(car, cdr)
+    def initialize(car, cdr=nil)
       @car = car
       @cdr = cdr
     end

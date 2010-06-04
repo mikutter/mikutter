@@ -1,10 +1,10 @@
 # hatsune lisp is moest language
 
-require 'hatsunelisp'
+require 'miku'
 require 'error'
 require 'stringio'
 
-module HatsuneLisp
+module MIKU
 
   def self.parse(str)
     if(str.is_a?(String)) then
@@ -94,10 +94,10 @@ module HatsuneLisp
   end
 
   def self.unparse(val)
-    if(val.is_a?(List)) then
-      val.unparse
-    elsif val == nil then
+    if val === nil
       'nil'
+    elsif(val.is_a?(List))
+      val.unparse
     else
       val.to_s
     end

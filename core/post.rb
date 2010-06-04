@@ -71,6 +71,10 @@ class Post
   end
   alias :idname :user
 
+  def service
+    self
+  end
+
   def twitter
     @twitter
   end

@@ -144,7 +144,7 @@ module Gtk
             @options[:postboxstorage].get_ancestor(Gtk::Window).set_focus(postbox.post)
           end
           [self, post, *other_widgets].compact.each{|widget| widget.sensitive = false }
-          watch.post(:message => post.buffer.text){ |event, msg|
+          (@options[:retweet] ? watch.service : watch).post(:message => post.buffer.text){ |event, msg|
             case event
             when :fail
               @posting = false

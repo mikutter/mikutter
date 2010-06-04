@@ -1,9 +1,17 @@
-require 'node'
+require 'atom'
 require 'error'
 
-module HatsuneLisp
+module MIKU
   class Primitive
-    include Node
+    include Atom
+
+    def initialize(func)
+      @func = func.to_sym
+    end
+
+    def call(*args)
+      send(@func, *args)
+    end
 
     def backquote(symtable, val)
       result = []
@@ -28,7 +36,7 @@ module HatsuneLisp
     end
 
     def eval(symtable, node)
-      hatsunelisp_eval_another(symtable, node)
+      miku_eval_another(symtable, node)
     end
 
     def eq(symtable, a, b)

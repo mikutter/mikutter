@@ -79,7 +79,7 @@ module Plugin
       when :mui_tab_remove:
           self.remove_tab(*args)
       when :mui_tab_active:
-          index = @book_children.index(args[0])
+          index = get_tabindex(args[0])
           self.book.set_page(index) if index
       when :apilimit:
           Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
@@ -131,7 +131,7 @@ module Plugin
               index = get_tabindex(w.label)
               if index then
                 self.book.remove_page(index)
-                @book_children.delete_at(index)
+                @book_children.delete(w.label)
                 @pane.pack_end(w.pane) end
           when 65363:
               if not @book_children.include?(w.label) then

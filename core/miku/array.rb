@@ -1,7 +1,7 @@
 require 'list'
 
 class Array
-  include HatsuneLisp::List
+  include MIKU::List
 
   def car
     self.first
@@ -24,7 +24,7 @@ class Array
   def unparse(start=true)
     result = ''
     result = '(' if start
-    result + self.map{ |n| HatsuneLisp.unparse(n) }.join(' ') + ')'
+    result + self.map{ |n| MIKU.unparse(n) }.join(' ') + ')'
   end
 
 end

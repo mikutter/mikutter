@@ -1,13 +1,13 @@
 require 'node'
 
-module HatsuneLisp
+module MIKU
   module Atom
     include Node
     def atom
       true
     end
 
-    def hatsunelisp_eval(symtable=nil)
+    def miku_eval(symtable=nil)
       self
     end
   end

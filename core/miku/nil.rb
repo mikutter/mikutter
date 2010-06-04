@@ -3,8 +3,8 @@ require 'list'
 
 class NilClass
 
-  include HatsuneLisp::Atom
-  include HatsuneLisp::List
+  include MIKU::Atom
+  include MIKU::List
 
   def car
     self end
@@ -13,19 +13,19 @@ class NilClass
     self end
 
   def setcar(val)
-    HatsuneLisp::Cons.new(val, nil) end
+    MIKU::Cons.new(val, nil) end
 
   def setcdr(val)
-    HatsuneLisp::Cons.new(nil, val) end
+    MIKU::Cons.new(nil, val) end
 
   def each(&proc)
     nil end
 
   def unparse
-    self end
+    'nil' end
 
   def inspect
     'nil' end
 
-  def hatsunelisp_eval(symtable=HatsuneLisp::SymbolTable.new)
+  def miku_eval(symtable=MIKU::SymbolTable.new)
     self end end
