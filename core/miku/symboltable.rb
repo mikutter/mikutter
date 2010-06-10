@@ -3,30 +3,53 @@ require 'error'
 module MIKU
   class SymbolTable < Hash
     def initialize(parent = SymbolTable.defaults)
-      super(){ |this, key| parent[key.to_sym] }
-    end
+      @parent = parent
+      super(){ |this, key| parent[key.to_sym] } end
 
     def []=(key, val)
       if not(key.is_a?(Symbol)) then
-        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました")
-      end
-      super(key, self[key.to_sym].setcar(val))
+        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+      super(key, val) end
+
+    def bind(key, val, setfunc)
+      cons = self[key]
+      if cons
+        cons.method(setfunc).call(val)
+      else
+        self[key] = nil.method(setfunc).call(val) end end
+
+    def set(key, val)
+      if not(key.is_a?(Symbol)) then
+        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+      bind(key.to_sym, val, :setcar) end
+
+    def setf(key, val)
+      if not(key.is_a?(Symbol)) then
+        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+      bind(key.to_sym, val, :setcdr) end
+
+    def miracle_binding(keys, values)
+      result = SymbolTable.new(self)
+      count = 0
+      values.each{ |val|
+        result[keys[count]] = Cons.new(val)
+        count += 1 }
+      result
     end
 
     def self.defsform(fn=nil, *other)
       return [] if fn == nil
-      [fn , Cons.new(nil, Primitive.new(fn))] + defsform(*other)
-    end
+      [fn , Cons.new(nil, Primitive.new(fn))] + defsform(*other) end
 
     def self.defun(fn=nil, *other)
       return [] if fn == nil
-      [fn , Cons.new(nil, fn)] + defun(*other)
-    end
+      [fn , Cons.new(nil, fn)] + defun(*other) end
+
+    def self.consts
+      Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
-      Hash[*(defsform(:cons, :eq, :listp, :set, :quote, :eval, :list, :if, :backquote) +
-             defun(:car , :cdr))]
-    end
-
+      Hash[*(defsform(:cons, :eq, :listp, :set, :setf, :function, :quote, :eval, :list,
+                      :if, :backquote, :negi) + consts)] end
   end
 end

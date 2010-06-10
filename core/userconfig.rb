@@ -31,6 +31,12 @@ class UserConfig
     :retrieve_count_mention => MIKU,    # Replyを取得する数(int)
     :retrieve_count_followed => MIKU,   # followerを取得する数(int)
 
+    # リプライ元を常に取得する
+    :retrieve_force_mumbleparent => true,
+
+    # 遅延対策
+    :anti_retrieve_fail => false,
+
     # つぶやきを投稿するキー
     :mumble_post_key => defined?(Gdk) ? [65293, Gdk::Window::CONTROL_MASK] : nil,
 
@@ -58,7 +64,6 @@ class UserConfig
   @@watcher = Hash.new{ [] }
   @@watcher_id = Hash.new
   @@watcher_id_count = 0
-  @@connect_mutex = Mutex.new
 
   # self::[key]
   # 設定名keyにたいする値を取り出す
@@ -70,12 +75,12 @@ class UserConfig
   # self::[key] = value
   # 設定名keyに値valueを関連付ける
   def self.[]=(key, val)
-    @@connect_mutex.synchronize{
+    atomic{
       if not(@@watcher[key].empty?) then
         before_val = UserConfig.instance.at(key, @@defaults[key.to_sym])
         @@watcher[key].each{ |id|
           proc = nil
-          @@connect_mutex.synchronize{
+          atomic{
             if @@watcher_id.has_key?(id) then
               proc = @@watcher_id[id]
             else
@@ -90,7 +95,7 @@ class UserConfig
   end
 
   def self.connect(key, &watcher)
-    @@connect_mutex.synchronize{
+    atomic{
       id = @@watcher_id_count
       @@watcher_id_count += 1
       @@watcher[key] << id
@@ -100,7 +105,7 @@ class UserConfig
   end
 
   def self.disconnect(id)
-    @@connect_mutex.synchronize{
+    atomic{
       @@watcher_id.delete(id)
     }
   end

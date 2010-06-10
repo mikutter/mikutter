@@ -67,9 +67,30 @@ module MIKU
       raise ArgumentError('setに与える引数は偶数個にして下さい') if args.size == 1
       key = eval(symtable, key)
       val = eval(symtable, val)
-      symtable[key] = val
+      symtable.set(key, val)
       return val if args.empty?
       set(symtable, *args)
+    end
+
+    def setf(symtable, key, val, *args)
+      raise ArgumentError('setfに与える引数は偶数個にして下さい') if args.size == 1
+      key = eval(symtable, key)
+      val = eval(symtable, val)
+      symtable.setf(key, val)
+      return val if args.empty?
+      setf(symtable, *args)
+    end
+
+    def function(symtable, symbol)
+      symtable[symbol].cdr
+    end
+
+    def negi(parenttable, alist, *body)
+      lambda{ |*args|
+        symtable = parenttable.miracle_binding(alist, args)
+        body.inject(nil){ |last, operator|
+          symtable[:last] = last
+          eval(symtable, operator) } }
     end
 
   end

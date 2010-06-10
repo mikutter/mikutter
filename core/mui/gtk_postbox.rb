@@ -28,7 +28,7 @@ module Gtk
           post.buffer.text = '@'+watch.idname + ' ' + post.buffer.text
         end
         post.accepts_tab = false
-        w_remain = Gtk::Label.new((140 - post.buffer.text.split(//u).size).to_s)
+        w_remain = Gtk::Label.new((140 - UserConfig[:footer].strsize - post.buffer.text.split(//u).size).to_s)
         send.sensitive = self.postable?
         send.signal_connect('clicked'){|button|
           Lock.synchronize do
@@ -48,8 +48,8 @@ module Gtk
         }
         post.signal_connect('key_release_event'){ |textview, event|
           Lock.synchronize do
-            now = textview.buffer.text.split(//u).size
-            remain = 140 - now
+            now = textview.buffer.text.strsize
+            remain = 140 - UserConfig[:footer].strsize - now
             w_remain.set_text(remain.to_s)
             send.sensitive = self.postable?
             tool.sensitive = self.is_destroyable?(post, watch) if tool
@@ -144,7 +144,7 @@ module Gtk
             @options[:postboxstorage].get_ancestor(Gtk::Window).set_focus(postbox.post)
           end
           [self, post, *other_widgets].compact.each{|widget| widget.sensitive = false }
-          (@options[:retweet] ? watch.service : watch).post(:message => post.buffer.text){ |event, msg|
+          (@options[:retweet] ? watch.service : watch).post(:message => post.buffer.text + UserConfig[:footer]){ |event, msg|
             case event
             when :fail
               @posting = false

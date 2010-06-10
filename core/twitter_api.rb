@@ -176,15 +176,12 @@ class TwitterAPI < Mutex
 
   def get(path, head)
     return get_file(path) if(@@testmode and get_file(path))
-    #self.lock()
     res = nil
     http = nil
     begin
-      #res = @getmutex.synchronize{
       http = self.connection()
       http.start
       res = http.get(path, head)
-      #}
     rescue Exception => evar
       res = evar
     ensure
@@ -193,7 +190,6 @@ class TwitterAPI < Mutex
       rescue Exception => evar
         Log.warn('TwitterAPI.get:finish') do "#{evar.inspect}" end
       end
-      #self.unlock()
     end
     notice "#{path} => #{res}"
     get_save(res, path) if @@testmode
@@ -260,8 +256,7 @@ class TwitterAPI < Mutex
     http = nil
     begin
       notice "post: try #{path}(#{data.inspect})"
-      res = @getmutex.synchronize{
-        request('POST', 'http://twitter.com'+path, data, head) }
+      res = request('POST', 'http://twitter.com'+path, data, head)
     rescue Exception => evar
       res = evar
     end

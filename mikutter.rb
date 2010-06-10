@@ -147,11 +147,14 @@ def gen_xml(msg)
   return xml
 end
 
-begin
-  boot()
-rescue => err
-  error("#{err.class} #{err.message}")
-  err.backtrace.each{ |e| error e }
-  error("fatal error. abort")
+errfile = File.join(Environment::TMPDIR, 'mikutter_dump')
+if File.exist?(errfile)
+  File.rename(errfile, File.join(Environment::TMPDIR, 'mikutter_error'))
 end
 
+# $stderr.reopen(errfile, 'w') if not $debug
+
+boot()
+
+$stderr.close
+# File.delete(errfile) if not $debug

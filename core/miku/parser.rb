@@ -65,9 +65,9 @@ module MIKU
   def self._symbol(c, s)
     sym = c + read_to(s){ |c| not(c =~ /[^\(\)\.',#\s]/) }
     raise SyntaxError.new('### 深刻なエラーが発生しました ###',s) if not(sym)
-    if(sym =~ /-?[0-9]+/) then
+    if(sym =~ /^-?[0-9]+$/) then
       sym.to_i
-    elsif(sym =~ /-?[0-9]+\.[0-9]+/) then
+    elsif(sym =~ /^-?[0-9]+\.[0-9]+$/) then
       sym.to_f
     elsif(sym == 'nil') then
       nil
@@ -88,7 +88,9 @@ module MIKU
   end
 
   def self.skipspace(s)
-    c = s.getc.chr
+    c = s.getc
+    return '' if not c
+    c = c.chr
     return skipspace(s) if(c =~ /\s/)
     c
   end

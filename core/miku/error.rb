@@ -26,4 +26,7 @@ module MIKU
     end
   end
 
+  class NoMithodError < Exception
+  end
+
 end

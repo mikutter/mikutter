@@ -11,7 +11,7 @@ require 'monitor'
 #
 # グローバル変数
 
-$atomic = Monitor.new#
+$atomic = Monitor.new
 $debug_avail_level = 2
 HYDE = 156
 MIKU = 39
@@ -402,6 +402,10 @@ end
 #
 
 class String
+  def strsize
+    self.split(//u).size
+  end
+
   # 最初に文字列内に見つかった小数を返す
   def trim_f()
     if /-{0,1}\d+\.\d+/ =~ self then
@@ -492,10 +496,8 @@ module GC
 end
 
 class HatsuneStore < PStore
-  @@mutex = Monitor.new
-
   def transaction(ro = false, &block)
-    @@mutex.synchronize{
+    atomic{
       super(ro){ |db| block.call(db) }
     }
   end

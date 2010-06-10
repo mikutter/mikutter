@@ -16,6 +16,7 @@ module Addon
       box = Gtk::VBox.new(false, 8)
       box.pack_start(gen_keyconfig('つぶやきを投稿するキー', :mumble_post_key), false)
       box.closeup(gen_boolean(:shrinkurl_always, '常にURLを短縮する'))
+      box.closeup(gen_input('デフォルトで挿入するフッダ', :footer)[0])
       return box
     end
 

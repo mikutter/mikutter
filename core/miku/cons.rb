@@ -13,11 +13,13 @@ module MIKU
     end
 
     def setcar(val)
-      self.class.new(val, @cdr)
+      @car = val
+      self
     end
 
     def setcdr(val)
-      self.class.new(@car, val)
+      @cdr = val
+      self
     end
 
     def each(&proc)

@@ -101,7 +101,7 @@ class Gtk::IconOverButton < Gtk::EventBox
   end
 
   def call_proc(index)
-    return false if not(index)
+    return false if not(index and @options[index])
     proc = @options[index][:proc]
     if(proc) then
       Gtk::Lock.synchronize do

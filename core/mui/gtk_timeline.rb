@@ -1,6 +1,6 @@
-
 require 'gtk2'
 require 'time'
+miquire :mui, 'prioritybox'
 miquire :mui, 'mumble'
 
 module Gtk

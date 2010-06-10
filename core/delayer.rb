@@ -8,7 +8,6 @@ class Delayer
   LAST = 4
 
   @@routines = [[],[],[],[],[]]
-  @@lock = Monitor.new
 
   def initialize(prio = NORMAL, *args, &block)
     @routine = block
@@ -31,22 +30,17 @@ class Delayer
   end
 
   def self.run
-    @@lock.synchronize{
-      catch(:ran){
-        5.times{ |cnt|
-          if not @@routines[cnt].empty? then
-            @@routines[cnt].each{ |routine| routine.run }
-            @@routines[cnt].clear
-            # throw :ran
-          end
-        }
-      }
-    }
-  end
+    5.times{ |cnt|
+      procs = []
+      if not @@routines[cnt].empty? then
+        atomic{
+          procs = @@routines[cnt]
+          @@routines[cnt] = Array.new }
+        procs.each{ |routine| routine.run } end } end
 
   private
   def regist(prio)
-    @@lock.synchronize{
+    atomic{
       @@routines[prio] << self
     }
   end

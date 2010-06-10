@@ -5,6 +5,7 @@ miquire :mui, 'icon_over_button'
 miquire :mui, 'skin'
 miquire :mui, 'contextmenu'
 miquire :core, 'message'
+miquire :core, 'userconfig'
 
 require 'gtk2'
 require 'time'
@@ -62,6 +63,18 @@ module Gtk
 
     def [](key)
       @message[key]
+    end
+
+    def <=>(other)
+      if defined?(other.to_a)
+        to_a <=> other.to_a
+      elsif other.is_a? Integer
+        self[:id].to_i <=> other
+      elsif other.is_a? Time
+        self[:created] <=> other end end
+
+    def to_a
+      [self[:created], self[:id].to_i]
     end
 
     def april_fool(url)
