@@ -31,6 +31,9 @@ class UserConfig
     :retrieve_count_mention => MIKU,    # Replyを取得する数(int)
     :retrieve_count_followed => MIKU,   # followerを取得する数(int)
 
+    # デフォルトのフッダ
+    :footer => "",
+
     # リプライ元を常に取得する
     :retrieve_force_mumbleparent => true,
 
