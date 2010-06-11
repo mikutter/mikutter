@@ -113,9 +113,11 @@ module Gtk
       textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
     end
 
-    def apply_links(buffer)
+    def apply_links(body)
+      buffer = body.buffer
       @@linkrule.each{ |pair|
         reg, left, right = pair
+        offset = 0
         buffer.text.each_matches(reg){ |match, index|
           index = buffer.text[0, index].split(//u).size
           tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
@@ -124,19 +126,32 @@ module Gtk
             Lock.synchronize{
               if(event.is_a?(Gdk::EventButton)) and
                   (event.event_type == Gdk::Event::BUTTON_RELEASE) and
-                  not(textview.buffer.selection_bounds[2]) then
+                  not(textview.buffer.selection_bounds[2])
                 if (event.button == 1)
                   left.call(match, textview, self)
                 elsif(event.button == 3 and right)
                   right.call(match, textview, self)
                   result = true end
-              elsif(event.is_a?(Gdk::EventMotion)) then
+              elsif(event.is_a?(Gdk::EventMotion))
                 set_cursor(textview, Gdk::Cursor::HAND2)
               end
             }
             result
           }
-          buffer.apply_tag(tag, *buffer.get_range(index, match.split(//u).size))
+          range = buffer.get_range(index + offset, match.split(//u).size)
+          buffer.apply_tag(tag, *range)
+          if(['#arg', '#aus', '#bra', '#chi', '#civ', '#cmr', '#den', '#eng', '#esp', '#fra',
+              '#ger', '#gha', '#gre', '#hon', '#ita', '#jpn', '#kor', '#mex', '#ned', '#nga',
+              '#nzl', '#par', '#por', '#prk', '#rsa', '#sui', '#usa', '#srb'].include?(match.downcase))
+            child = Gtk::WebIcon.new('http://a1.twimg.com/a/1276197224/images/worldcup/24/'+
+                                     match[1, match.size]+ '.png', 12, 12)
+            body.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
+            offset += 1
+          elsif(['#worldcup'].include?(match.downcase))
+            child = Gtk::WebIcon.new('http://twitter.com/images/worldcup/16/worldcup.png', 12, 12)
+            body.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
+            offset += 1
+          end
         }
       }
     end
@@ -149,6 +164,10 @@ module Gtk
       tags
     end
 
+    def convert_body(body)
+      body.buffer.create_child_anchor
+    end
+
     def gen_body(message, fonts={})
       tags = fonts2tags(fonts)
       Lock.synchronize{
@@ -156,14 +175,13 @@ module Gtk
         body = Gtk::TextView.new(buffer)
         tag_shell = buffer.create_tag('shell', tags)
         buffer.insert(buffer.start_iter, message.to_show, 'shell')
-        apply_links(buffer)
+        apply_links(body)
         body.editable = false
         body.cursor_visible = false
         body.wrap_mode = Gtk::TextTag::WRAP_CHAR
         bg_modifier = lambda{
           Lock.synchronize{
-            window = body.get_window(Gtk::TextView::WINDOW_TEXT)
-            window.background = self.style.bg(Gtk::STATE_NORMAL)
+            body.get_window(Gtk::TextView::WINDOW_TEXT).background = style.bg(Gtk::STATE_NORMAL)
             false } }
         signal_connect('style-set', &bg_modifier)
         body.signal_connect('realize', &bg_modifier)

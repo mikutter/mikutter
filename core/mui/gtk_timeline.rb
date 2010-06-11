@@ -17,7 +17,6 @@ module Gtk
         shell.pack_start(@evbox, false)
         shell.pack_start(Gtk::VBox.new)
         self.add_with_viewport(shell)
-        # @tooltip = Gtk::Tooltips.new()
       end
       @mumbles = []
     end
