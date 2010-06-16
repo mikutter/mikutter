@@ -4,6 +4,7 @@ miquire :mui, 'webicon'
 miquire :mui, 'icon_over_button'
 miquire :mui, 'skin'
 miquire :mui, 'contextmenu'
+miquire :mui, 'intelligent_textview'
 miquire :core, 'message'
 miquire :core, 'userconfig'
 
@@ -17,15 +18,6 @@ module Gtk
 
     DEFAULT_HEIGHT = 64
 
-    @@linkrule = [ [ URI.regexp(['http','https']),
-                     lambda{ |u, clicked, mumble| Mumble.openurl u},
-                     lambda{ |u, clicked, mumble|
-                       ContextMenu.new(['ブラウザで開く', ret_nth(),
-                                        lambda{ |this, w|
-                                          Mumble.openurl(u) }],
-                                       ['リンクのURLをコピー', ret_nth(),
-                                        lambda{ |this, w|
-                                          Gtk::Clipboard.copy(u) }]).popup(clicked, mumble)}]]
     @@contextmenu = Gtk::ContextMenu.new
 
     attr_accessor :replies
@@ -86,7 +78,7 @@ module Gtk
     end
 
     def self.addlinkrule(reg, leftclick, rightclick=nil)
-      @@linkrule = @@linkrule.push([reg, leftclick, rightclick]) end
+      Gtk::IntelligentTextview.addlinkrule(reg, leftclick, rightclick) end
 
     def self.openurl(url)
       if(defined? Win32API) then
@@ -109,99 +101,14 @@ module Gtk
       end
     end
 
-    def set_cursor(textview, cursor)
-      textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
-    end
-
-    def apply_links(body)
-      buffer = body.buffer
-      @@linkrule.each{ |pair|
-        reg, left, right = pair
-        offset = 0
-        buffer.text.each_matches(reg){ |match, index|
-          index = buffer.text[0, index].split(//u).size
-          tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
-          tag.signal_connect('event'){ |this, textview, event, iter|
-            result = false
-            Lock.synchronize{
-              if(event.is_a?(Gdk::EventButton)) and
-                  (event.event_type == Gdk::Event::BUTTON_RELEASE) and
-                  not(textview.buffer.selection_bounds[2])
-                if (event.button == 1)
-                  left.call(match, textview, self)
-                elsif(event.button == 3 and right)
-                  right.call(match, textview, self)
-                  result = true end
-              elsif(event.is_a?(Gdk::EventMotion))
-                set_cursor(textview, Gdk::Cursor::HAND2)
-              end
-            }
-            result
-          }
-          range = buffer.get_range(index + offset, match.split(//u).size)
-          buffer.apply_tag(tag, *range)
-          if(['#arg', '#aus', '#bra', '#chi', '#civ', '#cmr', '#den', '#eng', '#esp', '#fra',
-              '#ger', '#gha', '#gre', '#hon', '#ita', '#jpn', '#kor', '#mex', '#ned', '#nga',
-              '#nzl', '#par', '#por', '#prk', '#rsa', '#sui', '#usa', '#srb'].include?(match.downcase))
-            child = Gtk::WebIcon.new('http://a1.twimg.com/a/1276197224/images/worldcup/24/'+
-                                     match[1, match.size]+ '.png', 12, 12)
-            body.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
-            offset += 1
-          elsif(['#worldcup'].include?(match.downcase))
-            child = Gtk::WebIcon.new('http://twitter.com/images/worldcup/16/worldcup.png', 12, 12)
-            body.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
-            offset += 1
-          end
-        }
-      }
-    end
-
-    def fonts2tags(fonts)
-      tags = Hash.new
-      tags['font'] = UserConfig[fonts['font']] if fonts.has_key?('font')
-      if fonts.has_key?('foreground')
-        tags['foreground_gdk'] = Gdk::Color.new(*UserConfig[fonts['foreground']]) end
-      tags
-    end
-
-    def convert_body(body)
-      body.buffer.create_child_anchor
-    end
-
     def gen_body(message, fonts={})
-      tags = fonts2tags(fonts)
-      Lock.synchronize{
-        buffer = Gtk::TextBuffer.new
-        body = Gtk::TextView.new(buffer)
-        tag_shell = buffer.create_tag('shell', tags)
-        buffer.insert(buffer.start_iter, message.to_show, 'shell')
-        apply_links(body)
-        body.editable = false
-        body.cursor_visible = false
-        body.wrap_mode = Gtk::TextTag::WRAP_CHAR
-        bg_modifier = lambda{
-          Lock.synchronize{
-            body.get_window(Gtk::TextView::WINDOW_TEXT).background = style.bg(Gtk::STATE_NORMAL)
-            false } }
-        signal_connect('style-set', &bg_modifier)
-        body.signal_connect('realize', &bg_modifier)
-        body.signal_connect('visibility-notify-event'){
-          Lock.synchronize{
-            if fonts['font'] and tag_shell.font != UserConfig[fonts['font']]
-              tag_shell.font = UserConfig[fonts['font']] end
-            if fonts['foreground'] and tag_shell.foreground_gdk.to_s != UserConfig[fonts['foreground']]
-              tag_shell.foreground_gdk = Gdk::Color.new(*UserConfig[fonts['foreground']]) end
-            false } }
-        body.signal_connect('event'){
-          Lock.synchronize{ set_cursor(body, Gdk::Cursor::XTERM) }
-          false }
-        body.signal_connect('button_press_event'){ |widget, event|
-          Gtk::Lock.synchronize{ event.button == 3 } }
-        body.signal_connect('button_release_event'){ |widget, event|
-          Gtk::Lock.synchronize{
-            menu_pop(widget, @replies, message) if (event.button == 3) }
-          false }
-        body }
+      body = Gtk::IntelligentTextview.new(message.to_show, fonts)
+      body.get_background = lambda{ style.bg(Gtk::STATE_NORMAL) }
+      body.signal_connect('button_release_event'){ |widget, event|
+       Gtk::Lock.synchronize{
+         menu_pop(widget) if (event.button == 3) }
+      false }
+      return body
     end
 
     def icon(msg, x, y=x)
@@ -319,7 +226,7 @@ module Gtk
       }
     end
 
-    def menu_pop(widget, replies, message)
+    def menu_pop(widget)
       Lock.synchronize{
         @@contextmenu.popup(widget, self) }
     end
@@ -338,10 +245,9 @@ module Gtk
         @msg = msg
         super(icon)
         set_size_request(48, 48).set_grid_size(2, 2)
-        sub_button{ @mumble.menu_pop(self, @mumble.replies, msg) }
+        sub_button{ @mumble.menu_pop(self) }
         set_buttonback(MUI::Skin.get("overbutton.png"),
-                       MUI::Skin.get("overbutton_mouseover.png"))
-      end
+                       MUI::Skin.get("overbutton_mouseover.png")) end
 
       def reply
         add(@@buttons[:reply]){ @mumble.gen_postbox(@mumble.replies, @msg) }
@@ -352,19 +258,11 @@ module Gtk
       end
 
       def etc
-        add(@@buttons[:etc]){ @mumble.menu_pop(self, @mumble.replies, @msg) }
+        add(@@buttons[:etc]){ @mumble.menu_pop(self) }
       end
 
       def favorite
         add(@@buttons[:fav][@msg.favorite?], :always_show => @msg.favorite?){ |this, options|
           @msg.favorite(!@msg.favorite?)
           options[:always_show] = @msg[:favorited] = !@msg.favorite?
-          [@@buttons[:fav][@msg.favorite?], options]
-        }
-      end
-
-    end
-
-  end
-
-end
+          [@@buttons[:fav][@msg.favorite?], options] } end end end end

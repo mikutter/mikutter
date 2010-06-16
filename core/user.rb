@@ -1,9 +1,9 @@
+require 'utils'
 miquire :core, 'retriever'
 
 class User < Retriever::Model
 
   @@users = Hash.new
-  @@idname_id = Hash.new
 
   # args format
   # key     | value
@@ -53,8 +53,7 @@ class User < Retriever::Model
   end
 
   def self.findByIdname(idname)
-    id = @@idname_id[idname]
-    self.findById(id) if(id)
+    selectby(:idname, idname).first
   end
 
   def ==(other)

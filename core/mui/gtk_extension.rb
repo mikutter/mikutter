@@ -5,25 +5,20 @@ require 'monitor'
 
 class Gtk::Lock
 
-  @@monitor = Monitor.new
-
   def self.synchronize
-    raise if Thread.main != Thread.current
-    @@monitor.synchronize{
-      #GC.synchronize{
-        yield
-      #}
-    }
+    begin
+      lock
+      yield
+    ensure
+      unlock
+    end
   end
 
   def self.lock
-    @@monitor.enter
-    #GC.lock
+    raise 'Gtk control should mainthread' if Thread.main != Thread.current
   end
 
   def self.unlock
-    #GC.unlock
-    @@monitor.exit
   end
 
 end

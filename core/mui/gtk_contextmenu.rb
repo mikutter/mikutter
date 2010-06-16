@@ -13,7 +13,7 @@ module Gtk
       else
         registmenu(nil){ |a,b| } end end
 
-    def popup(widget, optional)
+    def popup(widget, optional=nil)
       Lock.synchronize{
         menu = Gtk::Menu.new
         @contextmenu.each{ |param|

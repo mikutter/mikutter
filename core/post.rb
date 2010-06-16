@@ -37,11 +37,7 @@ class Post
         UserConfig[:twitter_secret] = secret
       end
       store('idname', nil)
-      [token, secret, lambda{
-         if not user
-           scaned = scan(:verify_credentials, :no_auto_since_id => false)
-           store('idname', scaned[0][:idname]) if scaned
-         end } ] }
+      [token, secret, lambda{ user } ] }
     notice caller(1).first
     Message.add_data_retriever(ServiceRetriever.new(self, :status_show))
     User.add_data_retriever(ServiceRetriever.new(self, :user_show))
@@ -67,7 +63,12 @@ class Post
   end
 
   def user
-    at('idname')
+    if at('idname')
+      at('idname')
+    else
+      scaned = scan(:verify_credentials, :no_auto_since_id => false)
+      store('idname', scaned[0][:idname]) if scaned
+    end
   end
   alias :idname :user
 
@@ -159,9 +160,11 @@ class Post
     users_parser = {
       :hasmany => true,
       :class => User,
+      :method => :rewind,
       :proc => lambda{ |msg|
         cnv = msg.convert_key('screen_name' =>:idname)
         cnv[:created] = Time.parse(msg['created_at'])
+        cnv[:detail] = msg['description']
         cnv[:notifications] = msg['notifications']
         cnv[:verified] = msg['verified']
         cnv[:following] = msg['following']
@@ -171,6 +174,7 @@ class Post
     timeline_parser = {
       :hasmany => true,
       :class => Message,
+      :method => :new_ifnecessary,
       :proc => message_parser(false) }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
@@ -179,6 +183,7 @@ class Post
     search_parser = {
       :hasmany => 'results',
       :class => Message,
+      :method => :new_ifnecessary,
       :proc => lambda{ |msg|
         cnv = msg.convert_key('text' => :message,
                               'in_reply_to_user_id' => :reciver,
@@ -191,6 +196,7 @@ class Post
     saved_searches_parser = {
       :hasmany => true,
       :class => shell_class,
+      :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
     { :friends_timeline => timeline_parser,
       :replies => timeline_parser,
@@ -214,9 +220,9 @@ class Post
 
   def scan_rule(rule, msg)
     param = self.rule(rule, :proc).call(msg)
-    self.rule(rule, :class).new_ifnecessary(param).merge({ :rule => rule,
-                                                           :post => self,
-                                                           :exact => true }) end
+    self.rule(rule, :class).method(self.rule(rule, :method)).call(param).merge({ :rule => rule,
+                                                                                 :post => self,
+                                                                                 :exact => true }) end
 
   def parse_json(json, cache='friends_timeline')
     if json then
@@ -303,6 +309,12 @@ class Post
       message = @post.scan(@api, :no_auto_since_id => true, :id => id)
       return message.first if message
     end
+
+#     def selectby(key, value)
+#       if key.to_sym == :idname
+#         @post.scan(@api, :no_auto_since_id => true, :screen_name => value)
+#       else
+#         [] end end
 
     # データの保存
     def store_datum(datum)

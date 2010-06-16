@@ -35,13 +35,16 @@ module Retriever
       self.new(args)
     end
 
+    def self.rewind(args)
+      new_ifnecessary(args).merge(args)
+    end
+
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      atomic{
-        result = @@storage[hash[:id]]
-        return result if result
-        self.new(hash)
-      }
+      raise if not hash[:id]
+      result = @@storage[hash[:id]]
+      return result if result
+      self.new(hash)
     end
 
     #
@@ -201,7 +204,7 @@ module Retriever
           detection = retriever.selectby_timer(key, value)
           result += detection if detection }
         self.retrievers_reorder
-        result.uniq.map{ |id| self.new_ifnecessary(:id => id) } } end
+        result.uniq.map{ |hash| self.new_ifnecessary(hash) } } end
 
     #
     # プライベートクラスメソッド

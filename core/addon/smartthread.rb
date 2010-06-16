@@ -3,52 +3,47 @@ miquire :mui, 'skin'
 miquire :addon, 'addon'
 
 class Addon::SmartThread < Addon::Addon
+  Tab = Class.new(Addon::Addon.gen_tabclass('', MUI::Skin.get("list.png"))){
+    def on_create
+      super
+      close = Gtk::Button.new('×')
+      close.signal_connect('clicked'){ self.remove }
+      header.closeup(close).show_all
+      set_ancestor(@options[:message]).focus end
+
+    def set_children(message)
+      if message.children.is_a? Array
+        Thread.new{
+          Delayer.new{ timeline.add(message.children) }
+          message.children.each{ |m|
+            set_children(m) } } end
+      self end
+
+    def set_ancestor(message)
+      Thread.new{
+        message.each_ancestors(true){ |m|
+          set_children(m)
+          Delayer.new{ timeline.add([m]) } } }
+      self end }
+
   def onboot(service)
     Delayer.new{
       Gtk::Mumble.contextmenu.registmenu('スレッドを表示', lambda{ |m, w|
                                            m.message.repliable? }){ |m, w|
         gen_timeline(m.message) } }
     @service = service
-    @timelines = []
     cnt = 0
     @counter = lambda{ cnt += 1 } end
 
   def onupdate(service, message)
-    @timelines.each{ |tl|
-      if message.receive_message and tl.all_id.include?(message.receive_message(true)[:id].to_i)
-        tl.add([message]) end } end
+    Tab.tabs.each{ |tab|
+      if message.receive_message and
+          tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i)
+        tab.timeline.add([message]) end } end
 
   private
 
   def gen_timeline(message)
-    tabname = "Thread #{@counter.call}"
-    container = Gtk::VBox.new(false, 0)
-    timeline = Gtk::TimeLine.new()
-    container.closeup(gen_toolbox(tabname, timeline)).add(timeline)
-    self.regist_tab(@service, container, tabname, MUI::Skin.get("list.png"))
-    @timelines << timeline
-    set_ancestor(timeline, message).focus end
-
-  def gen_toolbox(tabname, timeline)
-    close = Gtk::Button.new('×')
-    close.signal_connect('clicked'){
-      @timelines.delete(timeline)
-      remove_tab(tabname) }
-    Gtk::HBox.new(false, 0).closeup(close)
-  end
-
-  def set_children(timeline, message)
-    if message.children.is_a? Array
-      Thread.new{
-        Delayer.new{ timeline.add(message.children) }
-        message.children.each{ |m|
-          set_children(timeline, m) } } end end
-
-  def set_ancestor(timeline,message)
-    Thread.new{
-      message.each_ancestors(true){ |m|
-        set_children(timeline, m)
-        Delayer.new{ timeline.add([m]) } } }
-    self end end
+    tab = Tab.new("Thread #{@counter.call}", @service, :message => message) end end
 
 Plugin::Ring.push Addon::SmartThread.new,[:boot, :update]

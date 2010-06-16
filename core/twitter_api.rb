@@ -19,7 +19,8 @@ Net::HTTP.version_1_2
 class TwitterAPI
 =end
 class TwitterAPI < Mutex
-  HOST = 'twitter.com'
+  HOST = 'api.twitter.com'
+  BASE_PATH = "http://#{HOST}/1"
   OPEN_TIMEOUT = 10
   READ_TIMEOUT = 20
   FORMAT = 'json'
@@ -35,6 +36,7 @@ class TwitterAPI < Mutex
   @@last_success = nil
   @@testmode = false
   @@ntr = '200'
+  @@ip_limit_reset = nil
 
   def initialize(a_token, a_secret, &fail_trap)
     super()
@@ -100,7 +102,7 @@ class TwitterAPI < Mutex
   def request_oauth_token
     OAuth::Consumer.new(CONSUMER_KEY,
                         CONSUMER_SECRET,
-                        :site => "http://twitter.com").get_request_token
+                        :site => BASE_PATH).get_request_token
   end
 
   def auth_header(method, url, body)
@@ -174,8 +176,14 @@ class TwitterAPI < Mutex
     OpenSSL::Digest::Digest.hexdigest('MD5', "#{Time.now.to_f}#{rand}")
   end
 
+  def ip_limit
+    if @@ip_limit_reset
+      Time.now <= @@ip_limit_reset
+    end
+  end
+
   def get(path, head)
-    return get_file(path) if(@@testmode and get_file(path))
+    return get_with_auth(path, head) if ip_limit
     res = nil
     http = nil
     begin
@@ -192,14 +200,16 @@ class TwitterAPI < Mutex
       end
     end
     notice "#{path} => #{res}"
-    get_save(res, path) if @@testmode
+    if defined?(res.code) and res.code == '400'
+      @@ip_limit_reset = Time.at(res['X-RateLimit-Reset'].to_i)
+      return get_with_auth(path, head) end
     res
   end
 
   def get_with_auth(path, head)
     res = nil
     begin
-      res = request('GET', 'http://twitter.com'+path, nil, head)
+      res = request('GET', BASE_PATH+path, nil, head)
     rescue Exception => evar
       res = evar
     end
@@ -256,7 +266,7 @@ class TwitterAPI < Mutex
     http = nil
     begin
       notice "post: try #{path}(#{data.inspect})"
-      res = request('POST', 'http://twitter.com'+path, data, head)
+      res = request('POST', BASE_PATH+path, data, head)
     rescue Exception => evar
       res = evar
     end

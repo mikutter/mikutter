@@ -56,29 +56,12 @@ end
 
 class Addon::SavedSearch < Addon::Addon
 
-  class Tab < Addon::Addon
-    attr_reader :query, :name, :tab
-    attr_accessor :mark
-
-    def initialize(query, name, service)
-      @query, @name, @service, @tab, @mark = query, name, service, Gtk::TimeLine.new, true
-      self.regist_tab(@service, @tab, actual_name, MUI::Skin.get("savedsearch.png"))
-      search end
-
-    def actual_name
-      @name + '(Saved Search)' end
-
-    def update(msgs)
-      @tab.add(msgs.select{|msg| not @tab.any?{ |m| m[:id] == msg[:id] } }) end
-
-    def remove
-      self.remove_tab(actual_name) end
-
+  Tab = Class.new(Addon::Addon.gen_tabclass('(Saved Search)', MUI::Skin.get("savedsearch.png"))){
     def search
-      @service.search(@query, :rpp => 100){ |res|
+      @service.search(@options[:query], :rpp => 100){ |res|
         Gtk::Lock.synchronize{
           update(res) if res.is_a? Array } }
-      self end end
+      self end }
 
   def onperiod(service)
     @count += 1
@@ -88,16 +71,13 @@ class Addon::SavedSearch < Addon::Addon
 
   def onboot(service)
     @service = service
-    @tabs = Hash.new
     @count = 0
     update end
 
   def onplugincall(watch, command, *args)
     case command
     when :saved_search_regist:
-        add_tab(args[0], args[0])
-    end
-  end
+        add_tab(args[0], args[0]) end end
 
   def update
     Thread.new{
@@ -106,17 +86,13 @@ class Addon::SavedSearch < Addon::Addon
           found.each{ |record|
             add_tab(record['query'], record['name']) } } } } end
 
-  def remove(name)
-    @tabs[name].remove
-    @tabs.delete(name) end
-
   def remove_unmarked
     Gtk::Lock.synchronize{
-      @tabs.each_pair{ |name, tab|
+      Tab.tabs.each{ |tab|
         tab.mark = false }
       yield
-      @tabs.dup.each_pair{ |name, tab|
-        remove(name) if not tab.mark } } end
+      Tab.tabs.each{ |tab|
+        tab.remove if not tab.mark } } end
 
   def searches
     found = @service.scan(:saved_searches)
@@ -124,11 +100,12 @@ class Addon::SavedSearch < Addon::Addon
     searches end
 
   def add_tab(query, name)
-    if @tabs.has_key?(name)
-      @tabs[name].search.mark = true
+    tab = Tab.tabs.find{ |tab| tab.name == name }
+    if tab
+      tab.search.mark = true
     else
       Gtk::Lock.synchronize{
-        @tabs[name] = Tab.new(query, name, @service) } end end end
+        Tab.new(name, @service, :query => query).search } end end end
 
 Plugin::Ring.push Addon::Search.new,[:boot]
 Plugin::Ring.push Addon::SavedSearch.new,[:period, :boot, :plugincall]
