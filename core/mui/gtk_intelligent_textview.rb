@@ -3,6 +3,7 @@ miquire :mui, 'extension'
 miquire :mui, 'contextmenu'
 
 require 'gtk2'
+require 'uri'
 
 class Gtk::IntelligentTextview < Gtk::TextView
   attr_accessor :fonts, :get_background
@@ -36,6 +37,11 @@ class Gtk::IntelligentTextview < Gtk::TextView
     self.cursor_visible = false
     self.wrap_mode = Gtk::TextTag::WRAP_CHAR
     gen_body(msg)
+  end
+
+  # TODO プライベートにする
+  def set_cursor(textview, cursor)
+    textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
   end
 
   private
@@ -87,20 +93,16 @@ class Gtk::IntelligentTextview < Gtk::TextView
 #         menu_pop(widget) if (event.button == 3) }
       false } end
 
-  def set_cursor(textview, cursor)
-    textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
-  end
-
   def apply_links
     @@linkrule.each{ |pair|
       reg, left, right = pair
       offset = 0
       buffer.text.each_matches(reg){ |match, index|
-        index = buffer.text[0, index].split(//u).size
-        tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
-        tag.signal_connect('event'){ |this, textview, event, iter|
-          result = false
-          Gtk::Lock.synchronize{
+        if not buffer.tag_table.lookup(match)
+          index = buffer.text[0, index].split(//u).size
+          tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
+          tag.signal_connect('event'){ |this, textview, event, iter|
+            result = false
             if(event.is_a?(Gdk::EventButton)) and
                 (event.event_type == Gdk::Event::BUTTON_RELEASE) and
                 not(textview.buffer.selection_bounds[2])
@@ -111,10 +113,10 @@ class Gtk::IntelligentTextview < Gtk::TextView
                 result = true end
             elsif(event.is_a?(Gdk::EventMotion))
               set_cursor(textview, Gdk::Cursor::HAND2)
-            end }
-          result }
+            end
+            result } end
         range = buffer.get_range(index + offset, match.split(//u).size)
-        buffer.apply_tag(tag, *range)
+        buffer.apply_tag(match, *range)
         if(['#arg', '#aus', '#bra', '#chi', '#civ', '#cmr', '#den', '#eng', '#esp', '#fra',
             '#ger', '#gha', '#gre', '#hon', '#ita', '#jpn', '#kor', '#mex', '#ned', '#nga',
             '#nzl', '#par', '#por', '#prk', '#rsa', '#sui', '#usa', '#srb'].include?(match.downcase))

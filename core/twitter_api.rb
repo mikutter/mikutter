@@ -290,6 +290,11 @@ class TwitterAPI < Mutex
     get(path, head)
   end
 
+  def user_timeline(args = {})
+    path = '/statuses/user_timeline.' + FORMAT + get_args(args)
+    head = {'Host' => HOST}
+    get(path, head) end
+
   def friends_timeline(args = {})
     path = '/statuses/home_timeline.' + FORMAT + get_args(args)
     head = {'Host' => HOST}

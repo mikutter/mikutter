@@ -183,7 +183,8 @@ module Retriever
         result = nil
         catch(:found){
           rs = self.retrievers
-          rs = rs.slice(0, count) if(count != -1)
+          count = rs.length + count if(count <= -1)
+          rs = rs.slice(0, [count, 1].max)
           rs.each{ |retriever|
             detection = retriever.findbyid_timer(id)
             notice retriever.class.to_s + ": " + detection.class.to_s
@@ -199,7 +200,8 @@ module Retriever
       atomic{
         result = []
         rs = self.retrievers
-        rs = rs.slice(0, count) if(count != -1)
+        count = rs.length + count if(count <= -1)
+        rs = rs.slice(0, [count, 1].max)
         rs.each{ |retriever|
           detection = retriever.selectby_timer(key, value)
           result += detection if detection }

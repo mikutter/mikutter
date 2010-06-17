@@ -162,9 +162,14 @@ class Post
       :class => User,
       :method => :rewind,
       :proc => lambda{ |msg|
-        cnv = msg.convert_key('screen_name' =>:idname)
+        cnv = msg.convert_key('screen_name' =>:idname,
+                              'url' => :url)
         cnv[:created] = Time.parse(msg['created_at'])
         cnv[:detail] = msg['description']
+        cnv[:protected] = !!msg['protected']
+        cnv[:followers_count] = msg['followers_count'].to_i
+        cnv[:friends_count] = msg['friends_count'].to_i
+        cnv[:statuses_count] = msg['statuses_count'].to_i
         cnv[:notifications] = msg['notifications']
         cnv[:verified] = msg['verified']
         cnv[:following] = msg['following']
@@ -189,9 +194,13 @@ class Post
                               'in_reply_to_user_id' => :reciver,
                               'in_reply_to_status_id' => :replyto)
         cnv[:created] = Time.parse(msg['created_at'])
-        cnv[:user] =  User.new_ifnecessary(:idname => msg['from_user'],
-                                           :id => '+' + msg['from_user'],
-                                           :profile_image_url => msg['profile_image_url'])
+        user = User.selectby(:idname, msg['from_user'], -2)
+        if user.empty?
+          cnv[:user] = User.new_ifnecessary(:idname => msg['from_user'],
+                                            :id => '+' + msg['from_user'],
+                                            :profile_image_url => msg['profile_image_url'])
+        else
+          cnv[:user] = user.first end
         cnv } }
     saved_searches_parser = {
       :hasmany => true,
@@ -199,6 +208,7 @@ class Post
       :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
     { :friends_timeline => timeline_parser,
+      :user_timeline => timeline_parser,
       :replies => timeline_parser,
       :followers => users_parser,
       :friends => users_parser,

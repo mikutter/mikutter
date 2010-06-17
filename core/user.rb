@@ -21,6 +21,11 @@ class User < Retriever::Model
                [:location, :string],
                [:detail, :string],
                [:profile_image_url, :string],
+               [:url, :string],
+               [:protected, :bool],
+               [:followers_count, :int],
+               [:statuses_count, :int],
+               [:friends_count, :int],
               ]
 
   def self.system
@@ -54,6 +59,11 @@ class User < Retriever::Model
 
   def self.findByIdname(idname)
     selectby(:idname, idname).first
+  end
+
+  def self.store_datum(datum)
+    return datum if datum[:id][0] == '+'[0]
+    super
   end
 
   def ==(other)
