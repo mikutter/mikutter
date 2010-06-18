@@ -212,7 +212,10 @@ def logfile(fn = nil)
 end
 
 def atomic
-  $atomic.synchronize(&Proc.new)
+  start = Time.now
+  result = $atomic.synchronize(&Proc.new)
+  notice caller(1).first + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
+  result
 end
 
 #Memoize
@@ -497,8 +500,10 @@ end
 
 class HatsuneStore < PStore
   def transaction(ro = false, &block)
-    atomic{
-      super(ro){ |db| block.call(db) }
-    }
+    start = Time.now
+    result = atomic{
+      super(ro){ |db| block.call(db) } }
+    notice caller(1).first + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
+    result
   end
 end

@@ -19,6 +19,7 @@ module Retriever
     #
 
     def initialize(args)
+      @lock = Monitor.new
       @value = args
       validate
       self.class.store_datum(self)
@@ -55,12 +56,12 @@ module Retriever
     # selfにあってotherにもあるカラムはotherの内容で上書きされる。
     # 上書き後、データはDataSourceに保存される
     def merge(other)
-      atomic{
-        @value.update(other.to_hash)
-        validate
-        self.class.store_datum(self)
-      }
+      @lock.synchronize{
+        @value.update(other.to_hash) }
+      validate
+      self.class.store_datum(self)
     end
+
     def id
       @value[:id]
     end
@@ -76,21 +77,17 @@ module Retriever
 
     # 速い順にcount個のRetrieverだけに問い合わせて返します
     def get(key, count=1)
-      atomic{
-        result = @value[key.to_sym]
-        column = self.class.keys.assoc(key.to_sym)
-        if column and result then
-          type = column[1]
-          if type.is_a? Symbol then
-            Retriever::cast_func(type).call(result)
-          elsif not result.is_a?(Model) then
-            result = type.findbyid(result, count)
-            return @value[key.to_sym] = result if result
-          end
-        end
-        result
-      }
-    end
+      result = @value[key.to_sym]
+      column = self.class.keys.assoc(key.to_sym)
+      if column and result then
+        type = column[1]
+        if type.is_a? Symbol then
+          Retriever::cast_func(type).call(result)
+        elsif not result.is_a?(Model) then
+          result = type.findbyid(result, count)
+          if result
+            return @lock.synchronize{ @value[key.to_sym] = result } end end end
+      result end
 
     # カラムの内容を取得する
     # カラムに入っているデータが外部キーであった場合、それを一段階だけ求めて返す
@@ -101,10 +98,9 @@ module Retriever
     # カラムに別の値を格納する。
     # 格納後、データはDataSourceに保存される
     def []=(key, value)
-      atomic{
-        @value[key.to_sym] = value
-        self.class.store_datum(self)
-      }
+      @lock.synchronize{
+        @value[key.to_sym] = value }
+      self.class.store_datum(self)
       value
     end
 
@@ -116,11 +112,13 @@ module Retriever
         begin
           Model.cast(self.fetch(key), type, required)
         rescue InvalidTypeError=>e
+          warn e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
           warn @value.inspect
           raise InvalidTypeError, e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
         end
       }
     end
+
 
     # キーとして定義されていない値を全て除外した配列を生成して返す。
     # また、Modelを子に含んでいる場合、それを外部キーに変換する。
@@ -179,34 +177,32 @@ module Retriever
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
       return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
-      atomic{
-        result = nil
-        catch(:found){
-          rs = self.retrievers
-          count = rs.length + count if(count <= -1)
-          rs = rs.slice(0, [count, 1].max)
-          rs.each{ |retriever|
-            detection = retriever.findbyid_timer(id)
-            notice retriever.class.to_s + ": " + detection.class.to_s
-            if detection
-              result = detection
-              throw :found end } }
+      result = nil
+      catch(:found){
+        rs = self.retrievers
+        count = rs.length + count + 1 if(count <= -1)
+        rs = rs.slice(0, [count, 1].max)
+        rs.each{ |retriever|
+          detection = retriever.findbyid_timer(id)
+          notice retriever.class.to_s + ": " + detection.class.to_s
+          if detection
+            result = detection
+            throw :found end } }
         self.retrievers_reorder
-        self.new_ifnecessary(result) if result } end
+        self.new_ifnecessary(result) if result end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
       return @@storage[hash[key]] if @@storage.has_key?(hash[key])
-      atomic{
-        result = []
-        rs = self.retrievers
-        count = rs.length + count if(count <= -1)
-        rs = rs.slice(0, [count, 1].max)
-        rs.each{ |retriever|
-          detection = retriever.selectby_timer(key, value)
-          result += detection if detection }
-        self.retrievers_reorder
-        result.uniq.map{ |hash| self.new_ifnecessary(hash) } } end
+      result = []
+      rs = self.retrievers
+      count = rs.length + count + 1 if(count <= -1)
+      rs = rs.slice(0, [count, 1].max)
+      rs.each{ |retriever|
+        detection = retriever.selectby_timer(key, value)
+        result += detection if detection }
+      self.retrievers_reorder
+      result.uniq.map{ |hash| self.new_ifnecessary(hash) } end
 
     #
     # プライベートクラスメソッド
@@ -217,11 +213,8 @@ module Retriever
     def self.store_datum(datum)
       return datum if datum[:system]
       converted = datum.filtering
-      atomic{
-        self.retrievers.each{ |retriever|
-          retriever.store_datum(converted)
-        }
-      }
+      self.retrievers.each{ |retriever|
+        retriever.store_datum(converted) }
       @@storage[datum[:id]] = datum
       datum
     end
@@ -248,23 +241,20 @@ module Retriever
     # DataSourceの配列を返します。
     def self.retrievers
       atomic{
-        @retrievers = [Retriever::Memory.new] if not defined? @retrievers
-      }
+        @retrievers = [Retriever::Memory.new] if not defined? @retrievers }
       @retrievers
     end
 
     def self.retrievers_add(retriever)
       atomic{
-        self.retrievers << retriever
-      }
+        self.retrievers << retriever }
       raise RuntimeError if not self.retrievers.include?(retriever)
     end
 
     #DataSourceの配列を、最後の取得が早かった順番に並び替えます
     def self.retrievers_reorder
       atomic{
-        @retrievers = self.retrievers.sort_by{ |r| r.time }
-      }
+        @retrievers = self.retrievers.sort_by{ |r| r.time } }
     end
 
   end

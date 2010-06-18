@@ -30,11 +30,10 @@ module ConfigLoader
   end
 
   def store(key, val)
-    ConfigLoader.transaction{
-      ConfigLoader.pstore[configloader_key(key)] = val
-      @@configloader_cache[configloader_key(key)] = val
-    }
-  end
+    Thread.new{
+      ConfigLoader.transaction{
+        ConfigLoader.pstore[configloader_key(key)] = val } }
+    @@configloader_cache[configloader_key(key)] = val end
 
   def store_before_at(key, val)
     result = self.at(key)
@@ -48,9 +47,7 @@ module ConfigLoader
 
   def self.transaction(ro = false)
     self.pstore.transaction(ro){ |pstore|
-        yield(pstore)
-    }
-  end
+      yield(pstore) } end
 
   def self.pstore
     if not(@@configloader_pstore) then
