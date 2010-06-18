@@ -102,8 +102,7 @@ class TwitterAPI < Mutex
   def request_oauth_token
     OAuth::Consumer.new(CONSUMER_KEY,
                         CONSUMER_SECRET,
-                        :site => BASE_PATH).get_request_token
-  end
+                        :site => 'http://twitter.com').get_request_token end
 
   def auth_header(method, url, body)
     parameters = oauth_parameters

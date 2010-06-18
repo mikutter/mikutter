@@ -25,7 +25,7 @@ class Post
 
   @@threads = []
   @@xml_lock = Mutex.new
-  @@auth_confirm_func = lambda{ nil }
+  @@auth_confirm_func = lambda{ raise }
 
   def initialize
     @scaned_events = []
@@ -37,7 +37,7 @@ class Post
         UserConfig[:twitter_secret] = secret
       end
       store('idname', nil)
-      [token, secret, lambda{ user } ] }
+      [token, secret] }
     notice caller(1).first
     Message.add_data_retriever(ServiceRetriever.new(self, :status_show))
     User.add_data_retriever(ServiceRetriever.new(self, :user_show))
@@ -71,6 +71,10 @@ class Post
     end
   end
   alias :idname :user
+
+  def user_by_cache
+    at('idname')
+  end
 
   def service
     self

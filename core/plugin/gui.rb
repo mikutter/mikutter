@@ -45,7 +45,7 @@ module Plugin
 
     def _onboot(watch)
       Gtk::Lock.synchronize do
-        self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user}? みっくみくにしてやんよ")
+        self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user_by_cache}? みっくみくにしてやんよ")
         @window = self.gen_window()
         container = Gtk::VBox.new(false, 0)
         main = Gtk::HBox.new(false, 0)

@@ -67,10 +67,8 @@ class Watch
   end
 
   def initialize()
-    super()
     @counter = 0
     @post = Post.new
-    notice "start user @#{@post.user}"
     Plugin::Ring.fire(:boot, [@post])
     Plugin::Ring.go
   end
