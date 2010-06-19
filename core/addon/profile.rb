@@ -60,7 +60,7 @@ class Addon::Profile < Addon::Addon
     end
 
     def main(window_parent)
-      ago = (Time.now - (user[:created] or 1)) / (60 * 60 * 24)
+      ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
       tags = []
       text = "#{user[:idname]} #{user[:name]}\n"
       append = lambda{ |title, value|
@@ -123,9 +123,16 @@ class Addon::Profile < Addon::Addon
   private
 
   def makescreen(user)
-    Tab.new("#{user[:idname]}(#{user[:name]})", @service,
-            :user => user,
-            :icon => user[:profile_image_url]) end end
+    if user[:exact]
+      Tab.new("#{user[:idname]}(#{user[:name]})", @service,
+              :user => user,
+              :icon => user[:profile_image_url])
+    else
+      Thread.new{
+        retr = @service.scan(:user_show, :screen_name => user[:idname],
+                             :no_auto_since_id => true)
+        Delayer.new{ makescreen(retr.first) } if retr }
+    end end end
 
 Plugin::Ring.push Addon::Profile.new,[:boot]
 
