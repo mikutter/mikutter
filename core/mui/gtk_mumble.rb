@@ -104,10 +104,10 @@ module Gtk
     def gen_body(message, fonts={})
       body = Gtk::IntelligentTextview.new(message.to_show, fonts)
       body.get_background = lambda{ style.bg(Gtk::STATE_NORMAL) }
-      body.signal_connect('button_release_event'){ |widget, event|
-       Gtk::Lock.synchronize{
-         menu_pop(widget) if (event.button == 3) }
-      false }
+#       body.signal_connect('button_release_event'){ |widget, event|
+#        Gtk::Lock.synchronize{
+#          menu_pop(widget) if (event.button == 3) }
+#       false }
       return body
     end
 
@@ -146,9 +146,9 @@ module Gtk
     end
 
     def gen_control(msg)
+      @body = gen_body(msg, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
       control = Gtk::HBox.new(false, 8).closeup(gen_iob(msg).top)
-      control.add(gen_body(msg, 'font' => :mumble_basic_font,
-                           'foreground' => :mumble_basic_color))
+      control.add(@body)
       control.closeup(cumbersome_buttons(msg)) if(UserConfig[:show_cumbersome_buttons])
       control
     end
@@ -178,8 +178,12 @@ module Gtk
             style = Gtk::Style.new()
             style.set_bg(Gtk::STATE_NORMAL, *get_backgroundcolor)
             self.style = style end
-          false } }
-    end
+          false }
+        signal_connect('button_release_event'){ |widget, event|
+          Gtk::Lock.synchronize{
+            if (event.button == 3)
+              menu_pop(@body)
+              true end } } } end
 
     def append_contents
       msg = if @message[:retweet] then @message[:retweet] else @message end

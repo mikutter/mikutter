@@ -42,7 +42,7 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      raise if not hash[:id]
+      raise if not(hash[:id]) or hash[:id] == 0
       result = @@storage[hash[:id]]
       return result if result
       self.new(hash)
@@ -202,7 +202,11 @@ module Retriever
         detection = retriever.selectby_timer(key, value)
         result += detection if detection }
       self.retrievers_reorder
-      result.uniq.map{ |hash| self.new_ifnecessary(hash) } end
+      result.uniq.map{ |node|
+        if node.is_a? Hash
+          self.new_ifnecessary(node)
+        else
+          self.findbyid(node) end } end
 
     #
     # プライベートクラスメソッド

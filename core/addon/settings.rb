@@ -12,7 +12,7 @@ class Addon::Settings < Addon::Addon
 
   def onboot(watch)
     Gtk::Lock.synchronize{
-      self.regist_tab(watch, self.book, 'Se', MUI::Skin.get("settings.png"))
+      self.regist_tab(watch, self.book, 'Settings', MUI::Skin.get("settings.png"))
       rewind_interval
     }
   end

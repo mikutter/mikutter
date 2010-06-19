@@ -10,7 +10,7 @@ module Addon
     def onboot(watch)
       Gtk::Lock.synchronize{
         @main = Gtk::TimeLine.new()
-        self.regist_tab(watch, @main, 'Me', MUI::Skin.get("reply.png"))
+        self.regist_tab(watch, @main, 'Replies', MUI::Skin.get("reply.png"))
       }
     end
 

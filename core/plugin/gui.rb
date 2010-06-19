@@ -30,6 +30,7 @@ module Plugin
     @@mutex = Monitor.new
 
     def initialize
+      @tab_log = ['Home Timeline']
       @memo_color = memoize{ |r,g,b|
         Gtk::Lock.synchronize do
           c = Gdk::Color.new(r*255,g*255,b*255)
@@ -52,7 +53,7 @@ module Plugin
         @pane = Gtk::HBox.new(true, 0)
         sidebar = Gtk::VBox.new(false, 0)
         mumbles = Gtk::VBox.new(false, 0)
-        postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles)
+        postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
         mumbles.pack_start(postbox)
         @window.set_focus(postbox.post)
         @pane.pack_end(self.book)
@@ -121,6 +122,8 @@ module Plugin
       widget.add((image or gen_label(label)))
       widget.signal_connect('clicked'){ |w|
         Gtk::Lock.synchronize{
+          @tab_log.delete(w.label)
+          @tab_log.unshift(w.label)
           index = get_tabindex(w.label)
           self.book.page = index if index }
         false }
@@ -142,30 +145,29 @@ module Plugin
       widget end
 
     def regist_tab(container, label, image=nil)
-      default_active = 'TL'
-      order = ['TL', 'Me', 'Search', 'Se']
+      default_active = 'Home Timeline'
+      order = ['Home Timeline', 'Replies', 'Search', 'Settings']
       @@mutex.synchronize{
         @book_children = [] if not(@book_children)
         Gtk::Lock.synchronize{
           idx = where_should_insert_it(label, @book_children, order)
           self.book.insert_page(idx, container, gen_label(label))
           @book_children.insert(idx, label)
+          @tab_log.push(label)
           self.tab.pack(gen_tabbutton(container, label, image).show_all, false)
           container.show_all } } end
 
-    def focus_before_tab(idx)
-      idx -= 1
-      if idx > 0
-        return
-      elsif self.book.get_nth_page(idx)
-        self.book.set_page(idx)
-      else
-        focus_before_tab(idx) end end
+    def focus_before_tab(label)
+      @tab_log.delete(label)
+      idx = get_tabindex(@tab_log.first)
+      # self.book.get_nth_page(idx)
+      self.book.set_page(idx)
+    end
 
     def remove_tab(label)
       index = get_tabindex(label)
       if index
-        focus_before_tab(index)
+        focus_before_tab(label)
         w = self.tab.children.find{ |node| node.label == label }
         self.book.remove_page(index)
         @pane.remove(w.pane).show_all
@@ -175,7 +177,7 @@ module Plugin
     def tab
       Gtk::Lock.synchronize do
         if not(defined? @tabbar) then
-          order = ['TL', 'Me', 'Search', 'Se']
+          order = ['Home Timeline', 'Replies', 'Search', 'Settings']
           @tabbar = Gtk::PriorityVBox.new(false, 0){ |w, tabbar|
            0 - (@book_children.index(w.label) or 0)
           } end end

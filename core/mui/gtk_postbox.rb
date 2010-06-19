@@ -4,7 +4,7 @@ require 'thread'
 module Gtk
   class PostBox < Gtk::EventBox
 
-    attr_accessor :post, :return_to_top
+    attr_accessor :post, :send, :tool, :return_to_top
 
     @@ringlock = Mutex.new
     @@postboxes = []
@@ -16,36 +16,34 @@ module Gtk
       Lock.synchronize do
         super()
         @box = Gtk::HBox.new(false, 0)
-        @post = post = Gtk::TextView.new
+        @post = Gtk::TextView.new
         post.wrap_mode = Gtk::TextTag::WRAP_CHAR
         post.border_width = 2
-        send = Gtk::Button.new('!')
-        tool = Gtk::Button.new('-')
-        if(options[:retweet]) then
+        @send = Gtk::Button.new('!')
+        @tool = Gtk::Button.new('-')
+        if @options[:delegated_by]
+          post.buffer.text = @options[:delegated_by].post.buffer.text
+          @options[:delegated_by].post.buffer.text = ''
+        elsif(options[:retweet])
           post.buffer.text = " RT @"+watch.idname+": "+watch[:message]
           post.buffer.place_cursor(post.buffer.start_iter)
-        elsif not(watch.is_a?(Post)) then
-          post.buffer.text = '@'+watch.idname + ' ' + post.buffer.text
-        end
+        elsif not(watch.is_a?(Post))
+          post.buffer.text = '@'+watch.idname + ' ' + post.buffer.text end
         post.accepts_tab = false
         w_remain = Gtk::Label.new((140 - UserConfig[:footer].strsize - post.buffer.text.split(//u).size).to_s)
         send.sensitive = self.postable?
         send.signal_connect('clicked'){|button|
           Lock.synchronize do
-            self.post_it(watch, post, send, tool)
+            self.post_it(watch)
           end
           false
         }
         post.signal_connect('key_press_event'){ |widget, event|
-          Lock.synchronize do
-            if(widget.editable?) then
-              if(self.keyname([event.keyval, event.state]) == self.keyname(UserConfig[:mumble_post_key])) then
-                self.post_it(watch, post, send, tool)
-              end
-            end
-          end
-          false
-        }
+          Lock.synchronize{
+            if(widget.editable? and
+               keyname([event.keyval, event.state]) == keyname(UserConfig[:mumble_post_key]))
+              post_it(watch)
+              true end } }
         post.signal_connect('key_release_event'){ |textview, event|
           Lock.synchronize do
             now = textview.buffer.text.strsize
@@ -77,14 +75,14 @@ module Gtk
           end
           false
         }
-        self.signal_connect('realize'){
+        self_realize_id = signal_connect('realize'){
           sw = self.get_ancestor(Gtk::ScrolledWindow)
           if(sw) then
-            @return_to_top = sw.vadjustment.value == 0
-          else
-            @return_to_top = false
-          end
-        }
+            @return_to_top = sw.vadjustment.value == 0 else
+            @return_to_top = false end
+          if @options[:delegated_by]
+            post_it(watch) end
+          signal_handler_disconnect(self_realize_id) }
         @box.pack_start(tool, false)
         @box.pack_start(post)
         @box.pack_start(w_remain, false)
@@ -132,24 +130,43 @@ module Gtk
       end
     end
 
-    def post_it(watch, post, *other_widgets)
+    def start_post
+      @posting = true
+      post.editable = false
+      [self, post, send, tool].compact.each{|widget| widget.sensitive = false }
+    end
+
+    def end_post
+      @posting = false
+      post.editable = true
+      [self, post, send, tool].compact.each{|widget| widget.sensitive = true }
+    end
+
+    def delegate(watch)
+      if(@options[:postboxstorage] and @options[:delegate_other])
+        options = @options.clone
+        options[:delegate_other] = false
+        options[:delegated_by] = self
+        @options[:postboxstorage].pack_start(Gtk::PostBox.new(watch, options)).show_all
+        true end end
+
+    def post_it(watch)
       if self.postable? then
         Lock.synchronize do
-          @posting = true
-          post.editable = false
-          if(@options[:postboxstorage]) then
-            postbox = Gtk::PostBox.new(watch, @options)
-            @options[:postboxstorage].pack_start(postbox)
-            @options[:postboxstorage].show_all
-            @options[:postboxstorage].get_ancestor(Gtk::Window).set_focus(postbox.post)
-          end
-          [self, post, *other_widgets].compact.each{|widget| widget.sensitive = false }
+          if(@options[:postboxstorage])
+            return if delegate(watch)
+            if not @options[:delegated_by]
+              postbox = Gtk::PostBox.new(watch, @options)
+              @options[:postboxstorage].
+                pack_start(postbox).
+                show_all.
+                get_ancestor(Gtk::Window).
+                set_focus(postbox.post) end end
+          start_post
           (@options[:retweet] ? watch.service : watch).post(:message => post.buffer.text + UserConfig[:footer]){ |event, msg|
             case event
             when :fail
-              @posting = false
-              post.editable = true
-              [self, post, *other_widgets].compact.each{|widget| widget.sensitive = true }
+              end_post
             when :success
               Delayer.new{ self.destroy }
             end
@@ -166,17 +183,19 @@ module Gtk
       false
     end
 
+    def brothers
+      Lock.synchronize{
+        @options[:postboxstorage].children.find_all{|c| c.sensitive? } } end
+
+    def lonely?
+      brothers.size <= 1 end
+
     def is_destroyable?(post, watch)
       if(@options.has_key?(:postboxstorage))
-        Lock.synchronize do
-          if not(@options[:postboxstorage].children.find_all{|c| c.sensitive? }.size > 1) then
-            return false
-          end
-        end
-        return self.post_is_empty?(post, watch)
-      end
-      true
-    end
+        return false if lonely?
+        self.post_is_empty?(post, watch)
+      else
+        true end end
 
     def destroy_if_necessary(post, watch, *related_widgets)
       if not([post, *related_widgets].compact.any?{ |w| w.focus? }) and
