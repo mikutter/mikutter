@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 
 miquire :mui, 'skin'
 miquire :addon, 'addon'
+miquire :addon, 'settings'
 
 require 'enumerator'
 
