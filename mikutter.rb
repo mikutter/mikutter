@@ -18,7 +18,6 @@ Thread.abort_on_exception = true
 
 def boot()
   logfile(Environment::LOGDIR)
-  argument_parser()
   #if(already_exists_another_instance?) then
   #  error('Already exist another instance')
   #  exit!
@@ -152,9 +151,14 @@ if File.exist?(errfile)
   File.rename(errfile, File.join(Environment::TMPDIR, 'mikutter_error'))
 end
 
-# $stderr.reopen(errfile, 'w') if not $debug
+argument_parser()
 
-boot()
-
-$stderr.close
-# File.delete(errfile) if not $debug
+begin
+  errlog = File.open(errfile, 'w')
+  $stderr = errlog if not $debug
+  boot()
+  errlog.close
+  File.delete(errfile)
+ensure
+  errlog.close if errlog.closed?
+end

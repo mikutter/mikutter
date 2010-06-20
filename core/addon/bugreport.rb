@@ -1,0 +1,100 @@
+miquire :addon, 'addon'
+miquire :core, 'config'
+miquire :addon, 'settings'
+
+require 'net/http'
+
+class Addon::Bugreport < Addon::Addon
+
+  include Addon::SettingUtils
+
+  def onboot(watch)
+    if File.exist? File.join(Environment::TMPDIR, 'mikutter_error')
+      popup
+    end
+  end
+
+
+  private
+
+  def popup
+    alert_thread = if(Thread.main != Thread.current) then Thread.current end
+    dialog = Gtk::Dialog.new("bug report")
+    container = main
+    dialog.set_size_request(600, 400)
+    dialog.window_position = Gtk::Window::POS_CENTER
+    dialog.vbox.pack_start(container, true, true, 30)
+    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+    dialog.default_response = Gtk::Dialog::RESPONSE_OK
+    quit = lambda{
+      dialog.hide_all.destroy
+      Gtk.main_iteration_do(false)
+      Gtk::Window.toplevels.first.show
+      if alert_thread
+        alert_thread.run
+      else
+        Gtk.main_quit
+      end }
+    dialog.signal_connect("response"){ |widget, response|
+      if response == Gtk::Dialog::RESPONSE_OK
+        send
+      end
+      quit.call }
+    dialog.signal_connect("destroy") {
+      false
+    }
+    container.show
+    dialog.show_all
+    Gtk::Window.toplevels.first.hide
+    if(alert_thread)
+      Thread.stop
+    else
+      Gtk::main
+    end
+  end
+
+  def imsorry
+    "#{Config::NAME} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
+      'OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても'+
+      '役に立つんですよ。よかったら送ってくれません？'
+  end
+
+  def main
+    Gtk::VBox.new(false, 0).
+      closeup(Gtk::IntelligentTextview.new(imsorry)).
+      pack_start(Gtk::ScrolledWindow.
+                 new.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS).
+                 add(Gtk::IntelligentTextview.new(backtrace)))
+  end
+
+  def send
+    Thread.new{
+      Net::HTTP.start('mikutter.d.hachune.net'){ |http|
+        param = encode_parameters({ 'backtrace' => backtrace,
+                                    'url' => 'bugreport',
+                                    'version' => Environment::VERSION})
+        http.post('/', param) }
+      File.delete(File.join(Environment::TMPDIR, 'mikutter_error')) } end
+
+  def backtrace
+    file_get_contents(File.join(Environment::TMPDIR, 'mikutter_error'))
+  end
+
+  def encode_parameters(params, delimiter = '&', quote = nil)
+    if params.is_a?(Hash)
+      params = params.map do |key, value|
+        "#{escape(key)}=#{quote}#{escape(value)}#{quote}"
+      end
+    else
+      params = params.map { |value| escape(value) }
+    end
+    delimiter ? params.join(delimiter) : params
+  end
+
+  def escape(value)
+    URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
+  end
+
+end
+
+Plugin::Ring.push Addon::Bugreport.new,[:boot]

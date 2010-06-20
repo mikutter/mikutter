@@ -17,7 +17,6 @@ class Addon::ChangeAccount < Addon::Addon
   private
 
   def popup(watch)
-    p :popup
     result = [nil]
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")

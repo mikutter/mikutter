@@ -185,7 +185,7 @@ def log(prefix, msg)
     }
   end
   if not $daemon then
-    puts msg
+    $stderr.write(msg+"\n")
   end
 end
 

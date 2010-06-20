@@ -33,7 +33,10 @@ module Addon
           @@tabs end
 
         def icon
-          @options[:icon] or @@icon end
+          if @options[:icon]
+            @options[:icon]
+          else
+            @@icon end end
 
         def suffix
           @@default_suffix end
