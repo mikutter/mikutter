@@ -9,7 +9,7 @@ class Addon::Bugreport < Addon::Addon
   include Addon::SettingUtils
 
   def onboot(watch)
-    if File.size? File.join(Environment::TMPDIR, 'mikutter_error')
+    if File.size? File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))
       popup
     end
   end
@@ -70,15 +70,24 @@ class Addon::Bugreport < Addon::Addon
 
   def send
     Thread.new{
-      Net::HTTP.start('mikutter.d.hachune.net'){ |http|
+      Net::HTTP.start('192.168.0.129'){ |http|
         param = encode_parameters({ 'backtrace' => backtrace,
+                                    'svn' => revision,
+                                    'ruby_version' => RUBY_VERSION,
+                                    'platform' => RUBY_PLATFORM,
                                     'url' => 'bugreport',
                                     'version' => Environment::VERSION })
-        http.post('/', param) }
-      File.delete(File.join(Environment::TMPDIR, 'mikutter_error')) } end
+        http.post('/mikutter.d.hachune.net/', param) }
+      File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) } end
+
+  def revision
+    begin
+      open('|env LANG=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
+    rescue
+      '' end end
 
   def backtrace
-    file_get_contents(File.join(Environment::TMPDIR, 'mikutter_error'))
+    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
   end
 
   def encode_parameters(params, delimiter = '&', quote = nil)

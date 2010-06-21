@@ -13,6 +13,7 @@ miquire :core, 'delayer'
 require 'benchmark'
 require 'webrick' # require to daemon
 require 'thread'
+require 'fileutils'
 
 Thread.abort_on_exception = true
 
@@ -146,19 +147,20 @@ def gen_xml(msg)
   return xml
 end
 
-errfile = File.join(Environment::TMPDIR, 'mikutter_dump')
+FileUtils.mkdir_p(File.expand_path(Environment::TMPDIR))
+
+errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
 if File.exist?(errfile)
-  File.rename(errfile, File.join(Environment::TMPDIR, 'mikutter_error'))
+  File.rename(errfile, File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
 end
 
 argument_parser()
 
 begin
-  errlog = File.open(errfile, 'w')
-  $stderr = errlog if not $debug
+  $stderr = File.open(errfile, 'w') if not $debug
   boot()
   errlog.close
   File.delete(errfile)
 ensure
-  errlog.close if errlog.closed?
+  # $stderr.close if errlog.closed?
 end

@@ -4,6 +4,7 @@
 #
 
 # アプリケーションごとの設定たち
+# mikutterの設定
 
 module Config
   # このアプリケーションの名前。
@@ -19,7 +20,7 @@ module Config
   CONFROOT = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}"
 
   # 一時ディレクトリ
-  TMPDIR = "#{File::SEPARATOR}tmp#{File::SEPARATOR}"
+  TMPDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}tmp#{File::SEPARATOR}"
 
   # ログディレクトリ
   LOGDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}log#{File::SEPARATOR}"
@@ -34,3 +35,4 @@ module Config
   VERSION = [0,0,1,0]
 
 end
+

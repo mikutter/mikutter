@@ -5,6 +5,7 @@
 
 # 変更不能な設定たち
 # コアで変更されるもの
+# CHIの設定
 
 miquire :core, 'config'
 
