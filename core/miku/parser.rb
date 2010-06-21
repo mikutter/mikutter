@@ -71,6 +71,8 @@ module MIKU
       sym.to_f
     elsif(sym == 'nil') then
       nil
+    elsif(sym == '')
+      raise MIKU::EndofFile
     else
       sym.to_sym
     end

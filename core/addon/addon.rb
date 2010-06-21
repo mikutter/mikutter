@@ -20,8 +20,7 @@ module Addon
     end
 
     def self.gen_tabclass(default_suffix, default_icon)
-      Class.new(Addon::TabBaseClass) do
-        @@icon, @@default_suffix = default_icon, default_suffix
+      tc = Class.new(Addon::TabBaseClass) do
         @@tabs = []
         def on_create
           @@tabs.push(self) end
@@ -29,18 +28,26 @@ module Addon
         def on_remove
           @@tabs.delete(self) end
 
-        def self.tabs
-          @@tabs end
-
         def icon
           if @options[:icon]
             @options[:icon]
           else
-            @@icon end end
+            @@default_icon end end
 
-        def suffix
-          @@default_suffix end
-      end
+        def actual_name
+          @name + @@suffix end
+
+        def self.tabs
+          @@tabs end
+
+        def self.default_icon=(di)
+          @@default_icon = di end
+
+        def self.suffix=(suffix)
+          @@suffix = suffix end end
+      tc.default_icon = default_icon
+      tc.suffix = default_suffix
+      tc
     end
 
     class TabBaseClass < Addon
@@ -52,9 +59,6 @@ module Addon
         @tab, @mark = gen_main, true
         self.regist_tab(@service, @tab, actual_name, icon)
         on_create end
-
-      def actual_name
-        @name + suffix end
 
       def update(msgs)
         @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } }) end

@@ -44,10 +44,10 @@ module MIKU
     end
 
     def if(symtable, condition, true_case, false_case)
-      if(eval(condition)) then
-        eval(true_case)
+      if(eval(symtable, condition)) then
+        eval(symtable, true_case)
       else
-        eval(false_case)
+        eval(symtable, false_case)
       end
     end
 
@@ -72,11 +72,11 @@ module MIKU
       set(symtable, *args)
     end
 
-    def setf(symtable, key, val, *args)
-      raise ArgumentError('setfに与える引数は偶数個にして下さい') if args.size == 1
+    def defun(symtable, key, val, *args)
+      raise ArgumentError('defunに与える引数は偶数個にして下さい') if args.size == 1
       key = eval(symtable, key)
       val = eval(symtable, val)
-      symtable.setf(key, val)
+      symtable.defun(key, val)
       return val if args.empty?
       setf(symtable, *args)
     end

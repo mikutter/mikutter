@@ -28,7 +28,7 @@ module MIKU
       if operator.is_a? Primitive
         operator.call(symtable, *cdr.to_a)
       elsif defined? operator.call
-        operator.call(*cdr.to_a)
+        operator.call(*evaluate_args(symtable))
       elsif operator.is_a? Symbol
         call_rubyfunc(operator, *evaluate_args(symtable))
       else

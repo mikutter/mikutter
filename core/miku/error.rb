@@ -29,4 +29,7 @@ module MIKU
   class NoMithodError < Exception
   end
 
+  class EndofFile < Exception
+  end
+
 end

@@ -9,7 +9,7 @@ class Addon::Bugreport < Addon::Addon
   include Addon::SettingUtils
 
   def onboot(watch)
-    if File.exist? File.join(Environment::TMPDIR, 'mikutter_error')
+    if File.size? File.join(Environment::TMPDIR, 'mikutter_error')
       popup
     end
   end
@@ -38,7 +38,8 @@ class Addon::Bugreport < Addon::Addon
     dialog.signal_connect("response"){ |widget, response|
       if response == Gtk::Dialog::RESPONSE_OK
         send
-      end
+      else
+        File.delete(File.join(Environment::TMPDIR, 'mikutter_error')) end
       quit.call }
     dialog.signal_connect("destroy") {
       false
@@ -72,7 +73,7 @@ class Addon::Bugreport < Addon::Addon
       Net::HTTP.start('mikutter.d.hachune.net'){ |http|
         param = encode_parameters({ 'backtrace' => backtrace,
                                     'url' => 'bugreport',
-                                    'version' => Environment::VERSION})
+                                    'version' => Environment::VERSION })
         http.post('/', param) }
       File.delete(File.join(Environment::TMPDIR, 'mikutter_error')) } end
 

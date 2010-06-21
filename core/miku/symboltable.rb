@@ -23,7 +23,7 @@ module MIKU
         raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
       bind(key.to_sym, val, :setcar) end
 
-    def setf(key, val)
+    def defun(key, val)
       if not(key.is_a?(Symbol)) then
         raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
       bind(key.to_sym, val, :setcdr) end
@@ -49,7 +49,9 @@ module MIKU
       Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
-      Hash[*(defsform(:cons, :eq, :listp, :set, :setf, :function, :quote, :eval, :list,
-                      :if, :backquote, :negi) + consts)] end
+      Hash[*(defsform(:cons, :eq, :listp, :set, :function, :quote, :eval, :list,
+                      :if, :backquote) +
+             [:lambda , Cons.new(nil, Primitive.new(:negi))] +
+             [:def , Cons.new(nil, Primitive.new(:defun))] + consts)] end
   end
 end
