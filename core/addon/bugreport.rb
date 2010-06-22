@@ -39,7 +39,7 @@ class Addon::Bugreport < Addon::Addon
       if response == Gtk::Dialog::RESPONSE_OK
         send
       else
-        File.delete(File.join(Environment::TMPDIR, 'mikutter_error')) end
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) end
       quit.call }
     dialog.signal_connect("destroy") {
       false
@@ -70,15 +70,22 @@ class Addon::Bugreport < Addon::Addon
 
   def send
     Thread.new{
-      Net::HTTP.start('192.168.0.129'){ |http|
-        param = encode_parameters({ 'backtrace' => backtrace,
-                                    'svn' => revision,
-                                    'ruby_version' => RUBY_VERSION,
-                                    'platform' => RUBY_PLATFORM,
-                                    'url' => 'bugreport',
-                                    'version' => Environment::VERSION })
-        http.post('/mikutter.d.hachune.net/', param) }
-      File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) } end
+      begin
+        Net::HTTP.start('mikutter.d.hachune.net'){ |http|
+          param = encode_parameters({ 'backtrace' => backtrace,
+                                      'svn' => revision,
+                                      'ruby_version' => RUBY_VERSION,
+                                      'platform' => RUBY_PLATFORM,
+                                      'url' => 'bugreport',
+                                      'version' => Environment::VERSION })
+          http.post('/', param) }
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
+        Plugin::Ring::fire(:update, [nil, Message.new(:message => "エラー報告を送信しました。ありがとう♡",
+                                                      :system => true)])
+      rescue => e
+        Plugin::Ring::fire(:update, [nil, Message.new(:message => "ごめんなさい。エラー通知通知すらバグってるみたいだわ\n\n#{e.to_s}",
+                                                      :system => true)])
+      end } end
 
   def revision
     begin

@@ -176,7 +176,7 @@ module Retriever
     # 特定のIDを持つオブジェクトを各データソースに問い合わせて返します。
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
-      return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
+      # return @@storage[hash[:id]] if @@storage.has_key?(hash[:id])
       result = nil
       catch(:found){
         rs = self.retrievers
@@ -193,7 +193,7 @@ module Retriever
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
-      return @@storage[hash[key]] if @@storage.has_key?(hash[key])
+      # return @@storage[hash[key]] if @@storage.has_key?(hash[key])
       result = []
       rs = self.retrievers
       count = rs.length + count + 1 if(count <= -1)

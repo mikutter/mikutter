@@ -53,7 +53,7 @@ class Post
           proc.call(event, msg) if(proc)
           if(event == :try)
             twitter.__send__(api, msg)
-          elsif(event == :success)
+          elsif(event == :success and msg)
             Delayer.new(Delayer::NORMAL, msg){ |msg|
               Plugin::Ring.fire(:update, [self, msg]) } end } end }
     define_postal(*other) if not other.empty? end
@@ -294,6 +294,11 @@ class Post
               if receive.is_a?(Array) then
                 yield(:success, receive.first)
                 break receive.first end
+            elsif not(result.code[0] == '4'[0])
+              receive = parse_json(result.body, api)
+              if receive and receive["error"] == "Status is a duplicate."
+                yield(:success, nil)
+                break nil end
             elsif not(result.code[0] == '5'[0])
               yield(:fail, err)
               break end end

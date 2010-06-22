@@ -75,23 +75,23 @@ module Plugin
 
     def onplugincall(watch, command, *args)
       case command
-      when :mui_tab_regist:
-          self.regist_tab(*args)
-      when :mui_tab_remove:
-          self.remove_tab(*args)
-      when :mui_tab_active:
-          index = get_tabindex(args[0])
-          self.book.set_page(index) if index
-      when :apilimit:
-          Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                                  :system => true)])
-          self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{args[0].strftime('%H:%M')}に復活します")
-      when :apifail:
-          self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{args[0]})")
-      when :apiremain:
-          self.statusbar.push(self.statusbar.get_context_id('system'), "API あと#{args[0]}回くらい (#{args[1].strftime('%H:%M')}まで)")
-      when :rewindstatus:
-          self.statusbar.push(self.statusbar.get_context_id('system'), args[0])
+      when :mui_tab_regist
+        self.regist_tab(*args)
+      when :mui_tab_remove
+        self.remove_tab(*args)
+      when :mui_tab_active
+        index = get_tabindex(args[0])
+        self.book.set_page(index) if index
+      when :apilimit
+        Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                                :system => true)])
+        self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{args[0].strftime('%H:%M')}に復活します")
+      when :apifail
+        self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{args[0]})")
+      when :apiremain
+        self.statusbar.push(self.statusbar.get_context_id('system'), "API あと#{args[0]}回くらい (#{args[1].strftime('%H:%M')}まで)")
+      when :rewindstatus
+        self.statusbar.push(self.statusbar.get_context_id('system'), args[0])
       end
     end
 

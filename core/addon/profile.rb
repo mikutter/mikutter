@@ -106,9 +106,14 @@ class Addon::Profile < Addon::Addon
   def onboot(service)
     @service = service
     Gtk::Mumble.contextmenu.registmenu(lambda{ |m, w|
-                                         "#{m.message.user[:idname]}(#{m.message.user[:name]})について".gsub(/_/, '__') },
+                                         u = if(m.message[:retweet])
+                                               m.message[:retweet].user
+                                             else
+                                               m.message.user end
+                                         "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
                                        lambda{ |m, w| m.message.repliable? }){ |m, w|
-      makescreen(m.message.user) }
+      user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
+      makescreen(user) }
     Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
       user = User.findByIdname(match[1, match.length])
       if user

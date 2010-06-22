@@ -93,29 +93,32 @@ class Gtk::IntelligentTextview < Gtk::TextView
 #         menu_pop(widget) if (event.button == 3) }
       false } end
 
+  def create_tag_ifnecessary(tagname, buffer, leftclick, rightclick)
+    tag = buffer.create_tag(tagname, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
+    tag.signal_connect('event'){ |this, textview, event, iter|
+      result = false
+      if(event.is_a?(Gdk::EventButton)) and
+          (event.event_type == Gdk::Event::BUTTON_RELEASE) and
+          not(textview.buffer.selection_bounds[2])
+        if (event.button == 1 and leftclick)
+          leftclick.call(tagname, textview)
+        elsif(event.button == 3 and rightclick)
+          rightclick.call(tagname, textview)
+          result = true end
+      elsif(event.is_a?(Gdk::EventMotion))
+        set_cursor(textview, Gdk::Cursor::HAND2)
+      end
+      result }
+    tag end
+
   def apply_links
     @@linkrule.each{ |pair|
       reg, left, right = pair
       offset = 0
-      buffer.text.each_matches(reg){ |match, index|
-        if not buffer.tag_table.lookup(match)
-          index = buffer.text[0, index].split(//u).size
-          tag = buffer.create_tag(match, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
-          tag.signal_connect('event'){ |this, textview, event, iter|
-            result = false
-            if(event.is_a?(Gdk::EventButton)) and
-                (event.event_type == Gdk::Event::BUTTON_RELEASE) and
-                not(textview.buffer.selection_bounds[2])
-              if (event.button == 1)
-                left.call(match, textview)
-              elsif(event.button == 3 and right)
-                right.call(match, textview)
-                result = true end
-            elsif(event.is_a?(Gdk::EventMotion))
-              set_cursor(textview, Gdk::Cursor::HAND2)
-            end
-            result } end
-        range = buffer.get_range(index + offset, match.split(//u).size)
+      buffer.text.each_matches(reg) { |match, index|
+        index = buffer.text[0, index].strsize
+        create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
+        range = buffer.get_range(index + offset, match.strsize)
         buffer.apply_tag(match, *range)
         if(['#arg', '#aus', '#bra', '#chi', '#civ', '#cmr', '#den', '#eng', '#esp', '#fra',
             '#ger', '#gha', '#gre', '#hon', '#ita', '#jpn', '#kor', '#mex', '#ned', '#nga',
