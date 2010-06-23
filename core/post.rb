@@ -282,9 +282,8 @@ class Post
   def _post(message, api)
     Thread.new(message){ |message|
       yield(:start, nil)
-      count = 1
       begin
-        loop{
+        5.times{ |count|
           notice "post:try:#{count}:#{message.inspect}"
           result = yield(:try, message)
           if defined?(result.code)
@@ -294,18 +293,20 @@ class Post
               if receive.is_a?(Array) then
                 yield(:success, receive.first)
                 break receive.first end
-            elsif not(result.code[0] == '4'[0])
-              receive = parse_json(result.body, api)
-              if receive and receive["error"] == "Status is a duplicate."
-                yield(:success, nil)
-                break nil end
+            elsif result.code[0] == '4'[0]
+              begin
+                if JSON.parse(result.body)["error"] == "Status is a duplicate."
+                  yield(:success, nil)
+                  break nil end
+              rescue JSON::ParserError
+              end
             elsif not(result.code[0] == '5'[0])
               yield(:fail, err)
               break end end
           notice "post:fail:#{count}:#{message.inspect}"
           yield(:retry, result)
-          sleep(count)
-          count += 1 }
+          sleep(1) }
+        yield(:fail, nil)
       rescue => err
         yield(:err, err)
         yield(:fail, err)

@@ -13,11 +13,13 @@ module Addon
     end
 
     def main(watch)
-      box = Gtk::VBox.new(false, 8)
-      box.pack_start(gen_keyconfig('つぶやきを投稿するキー', :mumble_post_key), false)
-      box.closeup(gen_boolean(:shrinkurl_always, '常にURLを短縮する'))
-      box.closeup(gen_input('デフォルトで挿入するフッダ', :footer)[0])
-      return box
+      Gtk::VBox.new(false, 8).
+        closeup(gen_keyconfig('つぶやきを投稿するキー', :mumble_post_key)).
+        closeup(gen_boolean(:shrinkurl_always, '常にURLを短縮する')).
+        closeup(gen_group('フッタ',
+                          gen_input('デフォルトで挿入するフッタ', :footer)[0],
+                          gen_boolean(:footer_exclude_reply, 'リプライの場合はフッタを付与しない'),
+                          gen_boolean(:footer_exclude_retweet, '引用(非公式ReTweet)の場合はフッタを付与しない')))
     end
 
   end

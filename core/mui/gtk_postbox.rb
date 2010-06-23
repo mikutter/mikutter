@@ -12,6 +12,8 @@ module Gtk
     def initialize(watch, options = {})
       @posting = false
       @return_to_top = nil
+      @is_reply = !watch.is_a?(Post)
+      @is_retweet = !!options[:retweet]
       @options = options
       Lock.synchronize do
         super()
@@ -30,7 +32,7 @@ module Gtk
         elsif not(watch.is_a?(Post))
           post.buffer.text = '@'+watch.idname + ' ' + post.buffer.text end
         post.accepts_tab = false
-        w_remain = Gtk::Label.new((140 - UserConfig[:footer].strsize - post.buffer.text.split(//u).size).to_s)
+        w_remain = Gtk::Label.new(remain_charcount.to_s)
         send.sensitive = self.postable?
         send.signal_connect('clicked'){|button|
           Lock.synchronize do
@@ -46,9 +48,7 @@ module Gtk
               true end } }
         post.signal_connect('key_release_event'){ |textview, event|
           Lock.synchronize do
-            now = textview.buffer.text.strsize
-            remain = 140 - UserConfig[:footer].strsize - now
-            w_remain.set_text(remain.to_s)
+            w_remain.set_text(remain_charcount.to_s)
             send.sensitive = self.postable?
             tool.sensitive = self.is_destroyable?(post, watch) if tool
           end
@@ -163,17 +163,14 @@ module Gtk
                 get_ancestor(Gtk::Window).
                 set_focus(postbox.post) end end
           start_post
-          (@options[:retweet] ? watch.service : watch).post(:message => post.buffer.text + UserConfig[:footer]){ |event, msg|
+          text = post.buffer.text
+          text += UserConfig[:footer] if add_footer?
+          (@options[:retweet] ? watch.service : watch).post(:message => text){ |event, msg|
             case event
             when :fail
               end_post
             when :success
-              Delayer.new{ self.destroy }
-            end
-          }
-        end
-      end
-    end
+              Delayer.new{ self.destroy } end } end end end
 
     def post_is_empty?(post, watch)
       Lock.synchronize do
@@ -225,6 +222,19 @@ module Gtk
       @@ringlock.synchronize{
         @@postboxes << self
       }
+    end
+
+    def add_footer?
+      if @is_retweet
+        not UserConfig[:footer_exclude_retweet]
+      elsif @is_reply
+        not UserConfig[:footer_exclude_reply]
+      else
+        true end end
+
+    def remain_charcount
+      footer = if add_footer? then UserConfig[:footer].strsize else 0 end
+      140 - @post.buffer.text.strsize - footer
     end
 
     def self.list

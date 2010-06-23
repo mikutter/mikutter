@@ -37,8 +37,7 @@ class Bitly < MessageConverters
       p result
       return Hash[ *result['results'].map{|pair| [pair[0], pair[1]['shortUrl']] }.flatten ] if result
       sleep(1) }
-    nil
-  end end
+    nil end end
 
 class Addon::Bitly < Addon::Addon
   USER = 'mikutter'
@@ -54,18 +53,22 @@ class Addon::Bitly < Addon::Addon
     ft = gen_accountdialog_button('bit.ly アカウント設定',
                                   :bitly_user, 'ユーザ名',
                                   :bitly_apikey, 'APIキー'){ |user, pass|
-      if(user == pass and user == '')
+      if(pass == '' and user == '')
         true
       else
         query = "/v3/validate?x_login=#{user}&x_apiKey=#{pass}&apiKey=#{APIKEY}"+
           "&login=#{USER}&format=json"
         begin
           result = JSON.parse(Net::HTTP.get("api.bit.ly", query))
-          result['data']['valid'] == '1'
+          notice result.inspect
+          result['data']['valid'].to_i == 1
         rescue JSON::ParserError
-          nil
-        end end }
-    box.closeup(ft)
+          nil end end }
+    naviagtion = <<EOM
+設定しなくたって使えるけれど、設定するとbitlyのページからクリックされた回数とかわかるようになるよ。
+Bit.lyにログインし、 http://bit.ly/a/your_api_key にアクセスすると表示されるbit.ly API key を、下のボタンをクリックして「APIキー」に入力して下さい。
+EOM
+    box.closeup(Gtk::IntelligentTextview.new(naviagtion)).closeup(ft)
     return box
   end
 

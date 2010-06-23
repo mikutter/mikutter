@@ -457,7 +457,7 @@ class String
   end
 
   def inspect
-    to_s
+    '"'+to_s+'"'
   end
 
 end

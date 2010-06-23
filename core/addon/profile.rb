@@ -4,8 +4,6 @@ miquire :mui, 'skin'
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 
-require 'enumerator'
-
 class Addon::Profile < Addon::Addon
 
   Tab = Class.new(Addon::Addon.gen_tabclass('のプロフィール', nil)){
@@ -17,17 +15,12 @@ class Addon::Profile < Addon::Addon
     def user
       @options[:user] end
 
-    def next_page
-      Delayer.new{ timeline.add(@posts.pop) } if @posts end
-
     def on_create
       Thread.new{
         tl = @service.scan(:user_timeline, :user_id => user[:id],
                            :no_auto_since_id => true,
                            :count => 20)
-        if tl
-          @posts = tl.enum_slice(20).to_a
-          next_page end }
+        Delayer.new{ timeline.add(tl) } if tl }
       header.closeup(profile).show_all
       super
       focus end

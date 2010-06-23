@@ -159,7 +159,7 @@ argument_parser()
 begin
   $stderr = File.open(errfile, 'w') if not $debug
   boot()
-  File.delete(errfile)
+  File.delete(errfile) if File.exist?(errfile)
 ensure
   # $stderr.close if errlog.closed?
 end
