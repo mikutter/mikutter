@@ -96,7 +96,7 @@ class Addon::SavedSearch < Addon::Addon
   def searches
     found = @service.scan(:saved_searches)
     return found if(found)
-    searches end
+    [] end
 
   def add_tab(query, name)
     tab = Tab.tabs.find{ |tab| tab.name == name }
