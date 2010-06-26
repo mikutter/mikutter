@@ -43,6 +43,9 @@ class UserConfig
     # つぶやきを投稿するキー
     :mumble_post_key => defined?(Gdk) ? [65293, Gdk::Window::CONTROL_MASK] : nil,
 
+    # つぶやき送信をリトライする回数
+    :message_retry_limit => 10,
+
     # 通知を表示しておく秒数
     :notify_expire_time => 10,
 

@@ -33,16 +33,17 @@ class Addon::Settings < Addon::Addon
     return @book
   end
 
-  def regist_config_tab(container, label)
+  def regist_config_tab(box, label)
     Gtk::Lock.synchronize{
+      container = Gtk::ScrolledWindow.new()
+      container.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC)
+      container.add_with_viewport(box)
       self.book.append_page(container, Gtk::Label.new(label))
       self.book.show_all
     }
   end
 
   def rewind_interval
-    container = Gtk::ScrolledWindow.new()
-    container.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC)
     box = Gtk::VBox.new(false, 0)
     retrieve_interval = gen_group('各情報を取りに行く間隔。単位は分',
                                   help(gen_adjustment('タイムラインとリプライ',
@@ -68,8 +69,7 @@ class Addon::Settings < Addon::Addon
     box.pack_start(gen_boolean(:retrieve_force_mumbleparent, 'リプライ元をサーバに問い合わせて取得する'), false)
     box.pack_start(gen_boolean(:anti_retrieve_fail, 'つぶやきの取得漏れを防止する（遅延対策）'), false)
     box.pack_start(Gtk::Label.new('遅延に強くなりますが、ちょっと遅くなります。'), false)
-    container.add_with_viewport(box)
-    regist_config_tab(container, '基本設定')
+    regist_config_tab(box, '基本設定')
   end
 
 end
@@ -122,6 +122,25 @@ module Addon::SettingUtils
     return input
   end
 
+  def gen_default_or_custom(key, title, default_label, custom_label)
+    group = default = Gtk::RadioButton.new(default_label)
+    custom = Gtk::RadioButton.new(group, custom_label)
+    input = Gtk::Entry.new
+    default.active = !(input.sensitive = custom.active = UserConfig[key])
+    default.signal_connect('toggled'){ |widget|
+      UserConfig[key] = nil
+      input.sensitive = !widget.active?
+    }
+    custom.signal_connect('toggled'){ |widget|
+      UserConfig[key] = input.text
+      input.sensitive = widget.active?
+    }
+    input.signal_connect('changed'){ |widget|
+      UserConfig[key] = widget.text
+    }
+    gen_group(title, default, Gtk::HBox.new(false, 0).add(custom).add(input))
+  end
+
   def gen_input(label, key, visibility=true)
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
@@ -148,6 +167,17 @@ module Addon::SettingUtils
 
   def gen_group(title, *children)
     group = Gtk::Frame.new(title).set_border_width(8)
+    box = Gtk::VBox.new(false, 0).set_border_width(4)
+    group.add(box)
+    children.each{ |w|
+      box.pack_start(w, false)
+    }
+    group
+  end
+
+  def gen_expander(title, expanded, *children)
+    group = Gtk::Expander.new(title).set_border_width(8)
+    group.expanded = expanded
     box = Gtk::VBox.new(false, 0).set_border_width(4)
     group.add(box)
     children.each{ |w|

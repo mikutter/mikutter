@@ -1,4 +1,3 @@
-
 miquire :mui, 'skin'
 miquire :addon, 'addon'
 
@@ -11,12 +10,10 @@ class Addon::Search < Addon::Addon
       @main = Gtk::TimeLine.new()
       container.pack_start(qc, false).pack_start(@main, true)
       self.regist_tab(service, container, 'Search', MUI::Skin.get("search.png"))
-      Gtk::TimeLine.addlinkrule(/#([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
+      Gtk::TimeLine.addlinkrule(/(#|＃)([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
         @querybox.text = text
         @searchbtn.clicked
-        focus
-      }
-    }
+        focus } }
     @service = service
   end
 
@@ -41,6 +38,8 @@ class Addon::Search < Addon::Addon
 
   def search_trigger
     btn = Gtk::Button.new('検索')
+    btn.can_default = true
+    btn.grab_default
     btn.signal_connect('clicked'){ |elm|
       Gtk::Lock.synchronize{
         elm.sensitive = @querybox.sensitive = false
@@ -76,8 +75,8 @@ class Addon::SavedSearch < Addon::Addon
 
   def onplugincall(watch, command, *args)
     case command
-    when :saved_search_regist:
-        add_tab(args[0], args[0]) end end
+    when :saved_search_regist
+      add_tab(args[0], args[0]) end end
 
   def update
     Thread.new{

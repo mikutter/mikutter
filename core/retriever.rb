@@ -245,7 +245,7 @@ module Retriever
     # DataSourceの配列を返します。
     def self.retrievers
       atomic{
-        @retrievers = [Retriever::Memory.new] if not defined? @retrievers }
+        @retrievers = [Memory.new] if not defined? @retrievers }
       @retrievers
     end
 
@@ -309,8 +309,30 @@ module Retriever
     end
   end
 
-  class Memory
-    include DataSource
+  @@cast = {
+    :int => lambda{ |v| begin v.to_i; rescue NoMethodError=>e then raise InvalidTypeError end },
+    :bool => lambda{ |v| !!(v and not v == 'false') },
+    :string => lambda{ |v| begin v.to_s; rescue NoMethodError=>e then raise InvalidTypeError end },
+    :time => lambda{ |v|
+      if not v then
+        nil
+      elsif v.is_a? String then
+        Time.parse(v)
+      else
+        Time.at(v)
+      end
+    }
+  }
+
+  def self.cast_func(type)
+    @@cast[type]
+  end
+
+  class InvalidTypeError < Exception
+  end
+
+  class Model::Memory
+    include Retriever::DataSource
 
     def initialize
       @storage = Hash.new
@@ -333,28 +355,6 @@ module Retriever
       @children[datum[:replyto]] = @children[datum[:replyto]].push(datum[:id])  if datum[:replyto]
       true
     end
-  end
-
-  @@cast = {
-    :int => lambda{ |v| begin v.to_i; rescue NoMethodError=>e then raise InvalidTypeError end },
-    :bool => lambda{ |v| !!(v and not v == 'false') },
-    :string => lambda{ |v| begin v.to_s; rescue NoMethodError=>e then raise InvalidTypeError end },
-    :time => lambda{ |v|
-      if not v then
-        nil
-      elsif v.is_a? String then
-        Time.parse(v)
-      else
-        Time.at(v)
-      end
-    }
-  }
-
-  def self.cast_func(type)
-    @@cast[type]
-  end
-
-  class InvalidTypeError < Exception
   end
 
 end

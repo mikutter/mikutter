@@ -80,14 +80,8 @@ module Gtk
     def self.addlinkrule(reg, leftclick, rightclick=nil)
       Gtk::IntelligentTextview.addlinkrule(reg, leftclick, rightclick) end
 
-    def self.openurl(url)
-      if(defined? Win32API) then
-        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-        shellExecuteA.call(0, 'open', url, 0, 0, 1)
-      else
-        system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &")
-      end
-    end
+    def self.addwidgetrule(reg, proc)
+      Gtk::IntelligentTextview.addwidgetrule(reg, proc) end
 
     private
 
@@ -103,6 +97,8 @@ module Gtk
 
     def gen_body(message, fonts={})
       body = Gtk::IntelligentTextview.new(message.to_show, fonts)
+      body.signal_connect('button_press_event'){ |widget, event|
+        event.button == 3 }
       body.get_background = lambda{ style.bg(Gtk::STATE_NORMAL) }
 #       body.signal_connect('button_release_event'){ |widget, event|
 #        Gtk::Lock.synchronize{

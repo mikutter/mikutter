@@ -110,8 +110,10 @@ module Gtk
     end
 
     def self.addlinkrule(reg, &proc)
-      Gtk::Mumble.addlinkrule(reg, proc)
-    end
+      Gtk::Mumble.addlinkrule(reg, proc) end
+
+    def self.addwidgetrule(reg, &proc)
+      Gtk::Mumble.addwidgetrule(reg, proc) end
 
   end
 

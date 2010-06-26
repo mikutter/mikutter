@@ -38,6 +38,10 @@ class User < Retriever::Model
     @@system
   end
 
+  def initialize(*trash)
+    super
+  end
+
   def idname
     self[:idname]
   end
@@ -57,8 +61,8 @@ class User < Retriever::Model
     return result if result
   end
 
-  def self.findByIdname(idname)
-    selectby(:idname, idname).first
+  def self.findByIdname(idname, count=-1)
+    selectby(:idname, idname, count).first
   end
 
   def self.store_datum(datum)
@@ -77,4 +81,18 @@ class User < Retriever::Model
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'
   end
+
+  class Memory
+    @@idnames = Hash.new
+    def selectby(key, value)
+      p value
+      if key == :idname and @@idnames[value]
+        [findbyid(@@idnames[value])]
+      else
+        [] end end
+
+    def store_datum(datum)
+      @@idnames[datum[:idname]] = datum[:id]
+      super end end
+
 end

@@ -45,7 +45,7 @@ class Addon::Bitly < Addon::Addon
   include Addon::SettingUtils
 
   def onboot(watch)
-    Plugin::Ring::fire(:plugincall, [:settings, watch, :regist_tab, main(watch), 'bit.ly'])
+    Plugin::Ring::fire(:plugincall, [:setinput, watch, :regist_url_shrinker_setting, 'bit.ly', main(watch)])
   end
 
   def main(watch)

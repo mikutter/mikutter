@@ -24,6 +24,7 @@ module Addon
                             gen_colorselect(:mumble_reply_bg, '自分宛'),
                             gen_colorselect(:mumble_self_bg, '自分のつぶやき')))
       box.closeup(gen_boolean(:show_cumbersome_buttons, 'つぶやきの右側にボタンを表示する'))
+      box.closeup(gen_default_or_custom(:url_open_command, 'URLを開く方法', 'デフォルトブラウザを使う', '次のコマンドを使う'))
       return box
     end
 

@@ -9,24 +9,21 @@ class Gtk::IntelligentTextview < Gtk::TextView
   attr_accessor :fonts, :get_background
 
   @@linkrule = [ [ URI.regexp(['http','https']),
-                   lambda{ |u, clicked| self.openurl u},
+                   lambda{ |u, clicked| Gtk::openurl u},
                    lambda{ |u, clicked|
                      Gtk::ContextMenu.new(['ブラウザで開く', ret_nth(),
                                            lambda{ |opt, w|
-                                             self.openurl(u) }],
+                                             Gtk::openurl(u) }],
                                           ['リンクのURLをコピー', ret_nth(),
                                            lambda{ |opt, w|
                                              Gtk::Clipboard.copy(u) }]).popup(clicked, true)}]]
+  @@widgetrule = []
 
   def self.addlinkrule(reg, leftclick, rightclick=nil)
     @@linkrule = @@linkrule.push([reg, leftclick, rightclick]) end
 
-  def self.openurl(url)
-    if(defined? Win32API) then
-      shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-      shellExecuteA.call(0, 'open', url, 0, 0, 1)
-    else
-      system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &") end end
+  def self.addwidgetrule(reg, widget = nil)
+    @@widgetrule = @@widgetrule.push([reg, (widget or Proc.new)]) end
 
   def initialize(msg, default_fonts = {}, *args)
     assert_type(String, msg)
@@ -68,6 +65,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
       tag_shell = buffer.create_tag('shell', fonts2tags(fonts))
       buffer.insert(buffer.start_iter, msg, 'shell')
       apply_links
+      apply_inner_widget
       set_events(tag_shell)
       self }
   end
@@ -86,8 +84,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
     self.signal_connect('event'){
       set_cursor(self, Gdk::Cursor::XTERM)
       false }
-    self.signal_connect('button_press_event'){ |widget, event|
-      event.button == 3 }
     self.signal_connect('button_release_event'){ |widget, event|
 #       Gtk::Lock.synchronize{
 #         menu_pop(widget) if (event.button == 3) }
@@ -112,24 +108,24 @@ class Gtk::IntelligentTextview < Gtk::TextView
     tag end
 
   def apply_links
-    @@linkrule.each{ |pair|
-      reg, left, right = pair
-      offset = 0
+    @@linkrule.each{ |param|
+      reg, left, right = param
       buffer.text.each_matches(reg) { |match, index|
         index = buffer.text[0, index].strsize
         create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
-        range = buffer.get_range(index + offset, match.strsize)
+        range = buffer.get_range(index, match.strsize)
         buffer.apply_tag(match, *range)
-        if(['#arg', '#aus', '#bra', '#chi', '#civ', '#cmr', '#den', '#eng', '#esp', '#fra',
-            '#ger', '#gha', '#gre', '#hon', '#ita', '#jpn', '#kor', '#mex', '#ned', '#nga',
-            '#nzl', '#par', '#por', '#prk', '#rsa', '#sui', '#usa', '#srb'].include?(match.downcase))
-          child = Gtk::WebIcon.new('http://a1.twimg.com/a/1276197224/images/worldcup/24/'+
-                                   match[1, match.size].downcase+ '.png', 12, 12)
-          self.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
-          offset += 1
-        elsif(['#worldcup'].include?(match.downcase))
-          child = Gtk::WebIcon.new('http://twitter.com/images/worldcup/16/worldcup.png', 12, 12)
-          self.add_child_at_anchor(child, buffer.create_child_anchor(range[1]))
-          offset += 1 end } } end
+      } } end
 
+  def apply_inner_widget
+    offset = 0
+    @@widgetrule.each{ |param|
+      reg, widget_generator = param
+      buffer.text.each_matches(reg) { |match, index|
+        index = buffer.text[0, index].strsize
+        range = buffer.get_range(index, match.strsize + offset)
+        widget = widget_generator.call(match)
+        if widget
+          self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))
+          offset += 1 end } } end
 end

@@ -66,13 +66,19 @@ module Gtk
         post.signal_connect_after('focus_out_event'){ |widget,e| is_focus_out.call(widget); false }
         tool.signal_connect_after('focus_out_event'){ |widget,e| is_focus_out.call(widget); false }
         tool.signal_connect('event'){
+          # tool.sensitive = (brothers.size > 1) or post_is_empty?(post, watch)
           tool.sensitive = self.is_destroyable?(post, watch)
           false
         }
         tool.signal_connect('button_release_event'){
-          Lock.synchronize do
-            self.destroy_if_necessary(post, watch)
-          end
+          Lock.synchronize{
+            if posting?
+              @post_thread.kill
+              end_post
+            else
+              self.destroy
+            end
+          }
           false
         }
         self_realize_id = signal_connect('realize'){
@@ -133,13 +139,14 @@ module Gtk
     def start_post
       @posting = true
       post.editable = false
-      [self, post, send, tool].compact.each{|widget| widget.sensitive = false }
+      [post, send].compact.each{|widget| widget.sensitive = false }
+      tool.sensitive = true
     end
 
     def end_post
       @posting = false
       post.editable = true
-      [self, post, send, tool].compact.each{|widget| widget.sensitive = true }
+      [post, send].compact.each{|widget| widget.sensitive = true }
     end
 
     def delegate(watch)
@@ -149,6 +156,9 @@ module Gtk
         options[:delegated_by] = self
         @options[:postboxstorage].pack_start(Gtk::PostBox.new(watch, options)).show_all
         true end end
+
+    def service(watch)
+      (@options[:retweet] ? watch.service : watch) end
 
     def post_it(watch)
       if self.postable? then
@@ -162,11 +172,12 @@ module Gtk
                 show_all.
                 get_ancestor(Gtk::Window).
                 set_focus(postbox.post) end end
-          start_post
           text = post.buffer.text
           text += UserConfig[:footer] if add_footer?
-          (@options[:retweet] ? watch.service : watch).post(:message => text){ |event, msg|
+          @post_thread = service(watch).post(:message => text){ |event, msg|
             case event
+            when :start
+              start_post
             when :fail
               end_post
             when :success
@@ -182,7 +193,10 @@ module Gtk
 
     def brothers
       Lock.synchronize{
-        @options[:postboxstorage].children.find_all{|c| c.sensitive? } } end
+        if(@options[:postboxstorage])
+          @options[:postboxstorage].children.find_all{|c| c.sensitive? }
+        else
+          [] end } end
 
     def lonely?
       brothers.size <= 1 end

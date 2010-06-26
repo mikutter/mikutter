@@ -46,8 +46,9 @@ class Post
   def self.define_postal(api, *other)
     define_method(api.to_sym){ |msg, &proc|
       if $quiet then
-        notice "#{api}:#{msg.inspect}"
-        notice 'Actually, this post does not send.'
+        Thread.new{
+          notice "#{api}:#{msg.inspect}"
+          notice 'Actually, this post does not send.' }
       else
         self._post(msg, api.to_sym) {|event, msg|
           proc.call(event, msg) if(proc)
@@ -283,7 +284,7 @@ class Post
     Thread.new(message){ |message|
       yield(:start, nil)
       begin
-        5.times{ |count|
+        UserConfig[:message_retry_limit].times{ |count|
           notice "post:try:#{count}:#{message.inspect}"
           result = yield(:try, message)
           if defined?(result.code)
@@ -295,7 +296,10 @@ class Post
                 break receive.first end
             elsif result.code[0] == '4'[0]
               begin
-                if JSON.parse(result.body)["error"] == "Status is a duplicate."
+                errmes = JSON.parse(result.body)["error"]
+                Plugin::Ring::call(nil, :rewindstatus, self,
+                                   "twitter 投稿エラー: #{result.code} #{errmes}")
+                if errmes == "Status is a duplicate."
                   yield(:success, nil)
                   break nil end
               rescue JSON::ParserError

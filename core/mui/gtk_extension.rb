@@ -39,6 +39,10 @@ class Gtk::Widget < Gtk::Object
   def right
     Gtk::Alignment.new(1.0, 0, 0, 0).add(self)
   end
+
+  def tooltip(text)
+    Gtk::Tooltips.new.set_tip(self, text, '')
+    self end
 end
 
 class Gtk::Container < Gtk::Widget
@@ -124,3 +128,12 @@ module GLib::SignalAdditional
   end
 
 end
+
+def Gtk::openurl(url)
+  if UserConfig[:url_open_command]
+    system("#{UserConfig[:url_open_command]} #{url} &")
+  elsif(defined? Win32API) then
+    shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
+    shellExecuteA.call(0, 'open', url, 0, 0, 1)
+  else
+    system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &") end end
