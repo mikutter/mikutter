@@ -79,6 +79,6 @@ module Environment
   end
 
   # このソフトのバージョン。
-  VERSION = Version.new(0,0,1,1)
+  VERSION = Version.new(Config::VERSION)
 
 end

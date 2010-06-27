@@ -25,6 +25,7 @@ class Addon::Bugreport < Addon::Addon
     dialog.window_position = Gtk::Window::POS_CENTER
     dialog.vbox.pack_start(container, true, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
     dialog.default_response = Gtk::Dialog::RESPONSE_OK
     quit = lambda{
       dialog.hide_all.destroy
