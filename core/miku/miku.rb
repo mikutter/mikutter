@@ -23,10 +23,13 @@ if not $loaded_miku
     stream = if ARGV.last then open(ARGV.last, 'r') else $stdin end
     scope = MIKU::SymbolTable.new
     while(not stream.eof?) do
-      print 'MIKU >' if stream == $stdin
+      if stream == $stdin
+        print 'MIKU >'
+        $stdout.flush end
       begin
         puts MIKU.unparse(miku(MIKU.parse(stream), scope))
-      rescue MIKU::EndofFile
+      rescue MIKU::MikuException => e
+        puts e.to_s
       end
     end
   end

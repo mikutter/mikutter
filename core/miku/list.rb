@@ -32,7 +32,7 @@ module MIKU
       elsif operator.is_a? Symbol
         call_rubyfunc(operator, *evaluate_args(symtable))
       else
-        raise NoMithodError.new()
+        raise NoMithodError.new(operator, self)
       end
     end
 

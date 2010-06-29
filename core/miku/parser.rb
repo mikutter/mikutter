@@ -7,9 +7,11 @@ require 'stringio'
 module MIKU
 
   def self.parse(str)
-    if(str.is_a?(String)) then
-      _parse(StringIO.new(str, 'r'))
+    if(str.is_a?(String))
+      _parse(StringIO.new(str, 'r').extend(StaticCode))
     else
+      str.extend(StaticCode) if not str.is_a? StaticCode
+      str.staticcode_file = str.path if defined? str.path
       _parse(str)
     end
   end
@@ -49,32 +51,32 @@ module MIKU
       cdr = _parse(s)
       s.ungetc(skipspace(s)[0])
       raise SyntaxError.new('ドット対がちゃんと終わってないよ',s) if(s.getch != ')')
-      return Cons.new(car, cdr)
+      return Cons.new(car, cdr).extend(StaticCode).staticcode_copy_info(s)
     else
       s.ungetc(c[0])
-      return Cons.new(car, _list(s))
+      return Cons.new(car, _list(s)).extend(StaticCode).staticcode_copy_info(s)
     end
   end
 
   def self._string(s)
     result = read_to(s){ |c| c == '"' }
     s.getc
-    result
+    result.extend(StaticCode).staticcode_copy_info(s)
   end
 
   def self._symbol(c, s)
     sym = c + read_to(s){ |c| not(c =~ /[^\(\)\.',#\s]/) }
     raise SyntaxError.new('### 深刻なエラーが発生しました ###',s) if not(sym)
     if(sym =~ /^-?[0-9]+$/) then
-      sym.to_i
+      sym
     elsif(sym =~ /^-?[0-9]+\.[0-9]+$/) then
-      sym.to_f
+      sym
     elsif(sym == 'nil') then
       nil
     elsif(sym == '')
       raise MIKU::EndofFile
     else
-      sym.to_sym
+      sym
     end
   end
 
@@ -93,6 +95,7 @@ module MIKU
     c = s.getc
     return '' if not c
     c = c.chr
+    s.staticcode_line += 1 if c == "\n"
     return skipspace(s) if(c =~ /\s/)
     c
   end

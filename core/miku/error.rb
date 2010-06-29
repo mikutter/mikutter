@@ -1,19 +1,23 @@
 module MIKU
-  class SyntaxError < Exception
+
+  class MikuException < Exception
+  end
+
+  class SyntaxError < MikuException
     def initialize(msg, scan)
-      super(msg + " in #{scan.pos}")
+      super(msg + " #{scan.staticcode_file} in line #{scan.staticcode_line}")
     end
   end
 
-  class ArgumentError < Exception
-    def initialize(msg)
-      super(msg)
+  class ArgumentError < MikuException
+    def initialize(msg, scan)
+      super(msg + " #{scan.staticcode_file} in line #{scan.staticcode_line}")
     end
   end
 
-  class TypeError < Exception
-    def initialize(msg)
-      super(msg)
+  class TypeError < MikuException
+    def initialize(msg, scan)
+      super(msg + " #{scan.staticcode_file} in line #{scan.staticcode_line}")
     end
   end
 
@@ -26,10 +30,13 @@ module MIKU
     end
   end
 
-  class NoMithodError < Exception
+  class NoMithodError < MikuException
+    def initialize(name, scan)
+      super("undefined function '#{name}' #{scan.staticcode_file} in line #{scan.staticcode_line}")
+    end
   end
 
-  class EndofFile < Exception
+  class EndofFile < MikuException
   end
 
 end
