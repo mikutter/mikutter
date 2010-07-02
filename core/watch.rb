@@ -6,100 +6,89 @@ miquire :core, 'environment'
 miquire :core, 'userconfig'
 
 require 'singleton'
+require 'set'
 
 class Watch
   include Singleton
 
   def self.scan_and_yield(handler)
-    lambda {|this, name, post, messages, options|
-      mumbles = this.get_posts(handler, messages, options)
+    lambda {|name, post, options|
+      mumbles = post.scan(handler, options)
       yield(name, post, mumbles) if mumbles
     }
   end
 
-  def self.scan_and_fire(handler)
-    self.scan_and_yield(handler){ |name, post, messages|
-      Plugin::Ring.reserve(name, messages.map{ |m| [post, m] }) if messages
-    }
-  end
+#   def self.scan_and_fire(handler)
+#     self.scan_and_yield(handler){ |name, post, message|
+#       Plugin::Ring.reserve(name, messages.map{ |m| [post, m] }) if messages
+#     }
+#   end
 
-  @@events = {
-    :period => {
-      :interval => 1,
-      :proc => lambda {|this, name, post, messages, options|
-        unless messages then
-          Plugin::Ring.reserve(name, [post])
-        end
-      }
-    },
-    :update => {
-      :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, messages|
-        alist = messages.map{|m| [post, m] }
-        me = post.user
-        Plugin::Ring.reserve(:update, alist)
-        Plugin::Ring.reserve(:mention, alist.select{ |m| m[1].to_me? })
-        Plugin::Ring.reserve(:mypost, alist.select{ |m| m[1].from_me? })
-      }
-    },
-    :mention => {
-      :proc => Watch.scan_and_yield(:replies){ |name, post, messages|
-        alist = messages.map{|m| [post, m] }
-        Plugin::Ring.reserve(:mention, alist)
-        Plugin::Ring.reserve(:update, alist)
-        Plugin::Ring.reserve(:mypost, alist.select{ |m| m[1].from_me? })
-      }
-    },
-    :followed => {
-      :proc => Watch.scan_and_fire(:followers)
-    },
-  }
-
-  def events
-    @@events[:update][:interval] = UserConfig[:retrieve_interval_friendtl]
-    @@events[:update][:options] = {:count => UserConfig[:retrieve_count_friendtl]}
-
-    @@events[:mention][:interval] = UserConfig[:retrieve_interval_mention]
-    @@events[:mention][:options] = {:count => UserConfig[:retrieve_count_mention]}
-
-    @@events[:followed][:interval] = UserConfig[:retrieve_interval_followed]
-    @@events[:followed][:options] = {:count => UserConfig[:retrieve_count_followed]}
-    return @@events
-  end
+  def get_events
+    event_booking = Hash.new{ |h, k| h[k] = [] }
+    return {
+      :period => {
+        :interval => 1,
+        :proc => lambda {|name, post, messages|
+          unless messages then
+            Plugin.call(name, post)
+          end
+        }
+      },
+      :update => {
+        :interval => UserConfig[:retrieve_interval_friendtl],
+        :options => {:count => UserConfig[:retrieve_count_friendtl]},
+        :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, messages|
+          event_booking[:update].concat(messages)
+          event_booking[:mention].concat(messages.select{ |m| m.to_me? })
+          event_booking[:mypost].concat(messages.select{ |m| m.from_me? })
+        }
+      },
+      :mention => {
+        :interval => UserConfig[:retrieve_interval_mention],
+        :options => {:count => UserConfig[:retrieve_count_mention]},
+        :proc => Watch.scan_and_yield(:replies){ |name, post, messages|
+          event_booking[:update].concat(messages)
+          event_booking[:mention].concat(messages)
+          event_booking[:mypost].concat(messages.select{ |m| m.from_me? })
+        }
+      },
+      :followed => {
+        :interval => UserConfig[:retrieve_interval_followed],
+        :options => {:count => UserConfig[:retrieve_count_followed]},
+        :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, users|
+          event_booking[:followers].concat(users)
+        }
+      } }, lambda{ event_booking } end
 
   def initialize()
     @counter = 0
     @post = Post.new
-    Plugin::Ring.fire(:boot, [@post])
-    Plugin::Ring.go
+    @received = Hash.new{ |h, k| h[k] = Set.new }
+    Plugin.call(:boot, @post)
   end
 
-  def action(messages=nil)
-    plugin_counter = 0
-    counter_mutex = Mutex.new
-    self.events.each{ |name, event|
-      if true # not(Plugin::Ring.avail_plugins(name).empty?) then
-        if((@counter % event[:interval]) == 0) then
-          counter_mutex.synchronize{ plugin_counter += 1 }
-          Thread.new(name, messages, event){ |name, messages, event|
-            event[:proc].call(self, name, @post, messages, event[:options])
-            counter_mutex.synchronize{
-              plugin_counter -= 1
-              Delayer.new{ Plugin::Ring.go } if(plugin_counter == 0)
-            }
+  def action
+    events, booking = get_events
+    Thread.new(@counter){ |counter|
+      threads = ThreadGroup.new
+      events.each_pair{ |name, event|
+        if((counter % event[:interval]) == 0)
+          threads.add Thread.new(name, event){ |name, event|
+            event[:proc].call(name, @post, event[:options])
           }
         end
-      end
-    }
+      }
+      threads.list.each{ |t| t.join }
+      booking.call.each_pair{ |k, v|
+        messages = v.uniq.select{ |n| not @received[k].include?(n) }
+        @received[k].merge(messages)
+        Plugin.call(k, @post, messages) } }
     @counter += 1
   end
 
-  def get_posts(api, message=nil, options={})
-    if message then
-      messages = [message]
-    else
-      messages = @post.scan(api, options)
-    end
-    return messages
+  def get_posts(api, options={})
+    @post.scan(api, options)
   end
 
 end

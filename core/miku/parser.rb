@@ -42,6 +42,7 @@ module MIKU
   end
 
   def self._list(s)
+    scd = s.staticcode_dump
     c = s.getc.chr
     return nil if c == ')'
     s.ungetc(c[0])
@@ -51,10 +52,10 @@ module MIKU
       cdr = _parse(s)
       s.ungetc(skipspace(s)[0])
       raise SyntaxError.new('ドット対がちゃんと終わってないよ',s) if(s.getch != ')')
-      return Cons.new(car, cdr).extend(StaticCode).staticcode_copy_info(s)
+      return Cons.new(car, cdr).extend(StaticCode).staticcode_copy_info(scd)
     else
       s.ungetc(c[0])
-      return Cons.new(car, _list(s)).extend(StaticCode).staticcode_copy_info(s)
+      return Cons.new(car, _list(s)).extend(StaticCode).staticcode_copy_info(scd)
     end
   end
 
@@ -68,15 +69,15 @@ module MIKU
     sym = c + read_to(s){ |c| not(c =~ /[^\(\)\.',#\s]/) }
     raise SyntaxError.new('### 深刻なエラーが発生しました ###',s) if not(sym)
     if(sym =~ /^-?[0-9]+$/) then
-      sym
+      sym.to_i
     elsif(sym =~ /^-?[0-9]+\.[0-9]+$/) then
-      sym
+      sym.to_f
     elsif(sym == 'nil') then
       nil
     elsif(sym == '')
       raise MIKU::EndofFile
     else
-      sym
+      sym.to_sym
     end
   end
 

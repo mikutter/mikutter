@@ -27,7 +27,8 @@ if not $loaded_miku
         print 'MIKU >'
         $stdout.flush end
       begin
-        puts MIKU.unparse(miku(MIKU.parse(stream), scope))
+        obj = MIKU.parse(stream)
+        puts MIKU.unparse(miku(obj, scope))
       rescue MIKU::MikuException => e
         puts e.to_s
       end

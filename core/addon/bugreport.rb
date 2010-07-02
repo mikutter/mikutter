@@ -4,20 +4,16 @@ miquire :addon, 'settings'
 
 require 'net/http'
 
-class Addon::Bugreport < Addon::Addon
+Module.new do
 
-  include Addon::SettingUtils
-
-  def onboot(watch)
-    if File.size? File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))
-      popup
-    end
-  end
-
+  def self.boot
+    plugin = Plugin::create(:bugreport)
+    plugin.add_event(:boot){ |service|
+      popup if File.size? File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')) } end
 
   private
 
-  def popup
+  def self.popup
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new("bug report")
     container = main
@@ -55,13 +51,13 @@ class Addon::Bugreport < Addon::Addon
     end
   end
 
-  def imsorry
+  def self.imsorry
     "#{Config::NAME} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
       'OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても'+
       '役に立つんですよ。よかったら送ってくれません？'
   end
 
-  def main
+  def self.main
     Gtk::VBox.new(false, 0).
       closeup(Gtk::IntelligentTextview.new(imsorry)).
       pack_start(Gtk::ScrolledWindow.
@@ -69,7 +65,7 @@ class Addon::Bugreport < Addon::Addon
                  add(Gtk::IntelligentTextview.new(backtrace)))
   end
 
-  def send
+  def self.send
     Thread.new{
       begin
         Net::HTTP.start('mikutter.d.hachune.net'){ |http|
@@ -88,17 +84,17 @@ class Addon::Bugreport < Addon::Addon
                                                       :system => true)])
       end } end
 
-  def revision
+  def self.revision
     begin
       open('|env LANG=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
     rescue
       '' end end
 
-  def backtrace
+  def self.backtrace
     file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
   end
 
-  def encode_parameters(params, delimiter = '&', quote = nil)
+  def self.encode_parameters(params, delimiter = '&', quote = nil)
     if params.is_a?(Hash)
       params = params.map do |key, value|
         "#{escape(key)}=#{quote}#{escape(value)}#{quote}"
@@ -109,10 +105,10 @@ class Addon::Bugreport < Addon::Addon
     delimiter ? params.join(delimiter) : params
   end
 
-  def escape(value)
+  def self.escape(value)
     URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
   end
 
 end
 
-Plugin::Ring.push Addon::Bugreport.new,[:boot]
+# Plugin::Ring.push Addon::Bugreport.new,[:boot]

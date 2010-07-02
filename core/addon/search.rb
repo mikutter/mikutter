@@ -1,110 +1,107 @@
 miquire :mui, 'skin'
 miquire :addon, 'addon'
 
-class Addon::Search < Addon::Addon
+Module.new do
 
-  def onboot(service)
-    Delayer.new{
-      container = Gtk::VBox.new(false, 0)
-      qc = gen_querycont()
-      @main = Gtk::TimeLine.new()
-      container.pack_start(qc, false).pack_start(@main, true)
-      self.regist_tab(service, container, 'Search', MUI::Skin.get("search.png"))
-      Gtk::TimeLine.addlinkrule(/(#|＃)([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
-        @querybox.text = text
-        @searchbtn.clicked
-        focus } }
-    @service = service
-  end
+  plugin = Plugin::create(:friend_timeline)
 
-  def gen_querycont()
-    shell = Gtk::VBox.new(false, 0)
-    @querybox = Gtk::Entry.new()
-    shell.closeup(Gtk::HBox.new(false, 0).pack_start(@querybox).closeup(search_trigger))
-    shell.closeup(Gtk::HBox.new(false, 0).closeup(save_trigger))
-  end
+  main = Gtk::TimeLine.new()
+  service = nil
 
-  def save_trigger
-    btn = Gtk::Button.new('保存')
-    btn.signal_connect('clicked'){ |elm|
-      Gtk::Lock.synchronize{
-        query = @querybox.text
-        @service.search_create(query){ |stat, message|
-          if(stat = :success)
-            Plugin::Ring::fire(:plugincall, [:savedsearch, nil, :saved_search_regist, query]) end
-        } } }
-    @savebtn = btn
-  end
+  querybox = Gtk::Entry.new()
+  querycont = Gtk::VBox.new(false, 0)
+  searchbtn = Gtk::Button.new('検索')
+  savebtn = Gtk::Button.new('保存')
 
-  def search_trigger
-    btn = Gtk::Button.new('検索')
-    btn.can_default = true
-    btn.grab_default
-    btn.signal_connect('clicked'){ |elm|
-      Gtk::Lock.synchronize{
-        elm.sensitive = @querybox.sensitive = false
-        @main.clear
-        @service.search(@querybox.text, :rpp => 100){ |res|
-          Gtk::Lock.synchronize{
-            @main.add(res) if res.is_a? Array
-            elm.sensitive = @querybox.sensitive = true } } } }
-    @searchbtn = btn
-  end
+  searchbtn.can_default = true
+  searchbtn.grab_default
+  searchbtn.signal_connect('clicked'){ |elm|
+    Gtk::Lock.synchronize{
+      elm.sensitive = querybox.sensitive = false
+      main.clear
+      service.search(querybox.text, :rpp => 100){ |res|
+        Gtk::Lock.synchronize{
+          main.add(res) if res.is_a? Array
+          elm.sensitive = querybox.sensitive = true } } } }
+
+  savebtn.signal_connect('clicked'){ |elm|
+    Gtk::Lock.synchronize{
+      query = querybox.text
+      service.search_create(query){ |stat, message|
+        if(stat = :success)
+          Plugin::Ring::fire(:plugincall, [:savedsearch, nil, :saved_search_regist, query]) end
+      } } }
+
+  querycont.closeup(Gtk::HBox.new(false, 0).pack_start(querybox).closeup(searchbtn))
+  querycont.closeup(Gtk::HBox.new(false, 0).closeup(savebtn))
+
+  plugin.add_event(:boot){ |s|
+    service = s
+    container = Gtk::VBox.new(false, 0).pack_start(querycont, false).pack_start(main, true)
+    Plugin.call(:mui_tab_regist, container, 'Search', MUI::Skin.get("search.png"))
+    Gtk::TimeLine.addlinkrule(/(#|＃)([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
+      querybox.text = text
+      searchbtn.clicked
+      Addon.focus('Search') } }
 
 end
 
-class Addon::SavedSearch < Addon::Addon
+Module.new do
 
-  Tab = Class.new(Addon::Addon.gen_tabclass('(Saved Search)', MUI::Skin.get("savedsearch.png"))){
+  @@tab = Class.new(Addon.gen_tabclass('(Saved Search)', nil)){
     def search
       @service.search(@options[:query], :rpp => 100){ |res|
         Gtk::Lock.synchronize{
           update(res) if res.is_a? Array } }
       self end }
 
-  def onperiod(service)
-    @count += 1
-    if(@count >= UserConfig[:retrieve_interval_search])
-      update
-      @count = 0 end end
+  def self.boot
+    plugin = Plugin::create(:saved_search)
+    plugin.add_event(:boot){ |service|
+      @service = service
+      @count = 0
+      update }
 
-  def onboot(service)
-    @service = service
-    @count = 0
-    update end
+    plugin.add_event(:period){ |service|
+      @count += 1
+      if(@count >= UserConfig[:retrieve_interval_search])
+        update
+        @count = 0 end }
 
-  def onplugincall(watch, command, *args)
-    case command
-    when :saved_search_regist
-      add_tab(args[0], args[0]) end end
+    plugin.add_event(:saved_search_regist){ |query|
+      add_tab(query, query) } end
 
-  def update
+  def self.update
     Thread.new{
       Delayer.new(Delayer::NORMAL, searches){ |found|
         remove_unmarked{
           found.each{ |record|
             add_tab(record['query'], record['name']) } } } } end
 
-  def remove_unmarked
+  def self.remove_unmarked
     Gtk::Lock.synchronize{
-      Tab.tabs.each{ |tab|
+      @@tab.tabs.each{ |tab|
         tab.mark = false }
       yield
-      Tab.tabs.each{ |tab|
+      @@tab.tabs.each{ |tab|
         tab.remove if not tab.mark } } end
 
-  def searches
+  def self.searches
     found = @service.scan(:saved_searches)
     return found if(found)
     [] end
 
-  def add_tab(query, name)
-    tab = Tab.tabs.find{ |tab| tab.name == name }
+  def self.add_tab(query, name)
+    tab = @@tab.tabs.find{ |tab| tab.name == name }
     if tab
       tab.search.mark = true
     else
       Gtk::Lock.synchronize{
-        Tab.new(name, @service, :query => query).search } end end end
+        @@tab.new(name, @service,
+                  :query => query,
+                  :icon => MUI::Skin.get("savedsearch.png")).search } end end
+  boot
+end
 
-Plugin::Ring.push Addon::Search.new,[:boot]
-Plugin::Ring.push Addon::SavedSearch.new,[:period, :boot, :plugincall]
+# Plugin::Ring.push Addon::Search.new,[:boot]
+# Plugin::Ring.push Addon::SavedSearch.new,[:period, :boot, :plugincall]

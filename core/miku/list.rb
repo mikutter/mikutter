@@ -4,6 +4,7 @@ require 'primitive'
 module MIKU
   module List
     include Node
+    include Enumerable
 
     def [](n)
       nth(n)
@@ -37,8 +38,10 @@ module MIKU
     end
 
     def call_rubyfunc(fn, receiver, *args)
-      receiver.__send__(fn, *args)
-    end
+      if receiver.respond_to?(fn)
+        receiver.__send__(fn, *args)
+      else
+        raise NoMithodError.new(fn, self) end end
 
     def get_function(symtable)
       if car.is_a? Symbol

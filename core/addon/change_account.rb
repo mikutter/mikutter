@@ -3,20 +3,16 @@ miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'config'
 
-class Addon::ChangeAccount < Addon::Addon
-  include Addon::SettingUtils
+Module.new do
 
-  @@mutex = Monitor.new
-
-  def onboot(watch)
-    watch.auth_confirm_func = method(:popup)
-    Plugin::Ring::fire(:plugincall, [:settings, watch, :regist_tab,
-                                     main_for_tab(watch), 'アカウント情報'])
+  def self.boot
+    plugin = Plugin::create(:friend_timeline)
+    plugin.add_event(:boot){ |service|
+      service.auth_confirm_func = method(:popup)
+      Plugin.call(:setting_tab_regist, main_for_tab(service), 'アカウント情報') }
   end
 
-  private
-
-  def popup(watch)
+  def self.popup(watch)
     result = [nil]
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
@@ -61,7 +57,7 @@ class Addon::ChangeAccount < Addon::Addon
     return *result
   end
 
-  def main_for_tab(watch)
+  def self.main_for_tab(watch)
     decide = Gtk::Button.new('変更')
     attention = Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
     attention.wrap = true
@@ -73,7 +69,7 @@ class Addon::ChangeAccount < Addon::Addon
     Gtk::VBox.new(false, 0).closeup(attention).closeup(decide)
   end
 
-  def main(watch)
+  def self.main(watch)
     goaisatsu = Gtk::VBox.new(false, 0)
     box = Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
@@ -84,7 +80,7 @@ class Addon::ChangeAccount < Addon::Addon
     return box, key_input, request_token
   end
 
-  def gen_input(label, visibility=true, default="")
+  def self.gen_input(label, visibility=true, default="")
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.text = default
@@ -94,7 +90,7 @@ class Addon::ChangeAccount < Addon::Addon
     return container, input
   end
 
-  def hello(url)
+  def self.hello(url)
     first = if not at(:hello_first)
               "マスターったら、ツイッターまでみっくみくね！\n\n" end
     store(:hello_first, true)
@@ -104,6 +100,7 @@ class Addon::ChangeAccount < Addon::Addon
       'すると、みっくみくにされます。'
   end
 
+  boot
 end
 
-Plugin::Ring.push Addon::ChangeAccount.new,[:boot]
+#Plugin::Ring.push Addon::ChangeAccount.new,[:boot]

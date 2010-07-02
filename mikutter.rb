@@ -97,14 +97,14 @@ def main()
   #create_pidfile
   notice Environment::VERSION
 
-  if $debug then
-    notice '-- loaded plugins'
-    Plugin::Ring.avail_plugins.each_pair{|name, insts|
-      inst = insts.map{|inst| inst.class }.join(', ')
-      notice "#{name}: #{inst}"
-    }
-    notice '--'
-  end
+#   if $debug then
+#     notice '-- loaded plugins'
+#     Plugin::Ring.avail_plugins.each_pair{|name, insts|
+#       inst = insts.map{|inst| inst.class }.join(', ')
+#       notice "#{name}: #{inst}"
+#     }
+#     notice '--'
+#   end
 
   watch = Watch.instance
 

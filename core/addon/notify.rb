@@ -4,40 +4,39 @@ miquire :addon, 'settings'
 
 #require 'gst'
 
-class Addon::Notify < Addon::Addon
-
-  include Addon::SettingUtils
+Module.new do
 
   DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
 
-  @@mutex = Monitor.new
+  def self.boot
+    plugin = Plugin::create(:notify)
 
-  get_all_parameter_once :update, :mention, :followed
-
-  def onboot(watch)
-    container = self.main(watch)
-    Plugin::Ring::fire(:plugincall, [:settings, watch, :regist_tab, container, '通知'])
+    plugin.add_event(:boot){ |service|
+      Plugin.call(:setting_tab_regist, main, '通知') }
+    plugin.add_event(:update, &method(:onupdate))
+    plugin.add_event(:mention, &method(:onmention))
+    plugin.add_event(:followed, &method(:onfollowed))
   end
 
-  def main(watch)
+  def self.main
     box = Gtk::VBox.new(false, 8)
-    ft = gen_group('フレンドタイムライン',
-                   gen_boolean(:notify_friend_timeline, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_friend_timeline, 'サウンド', DEFAULT_SOUND_DIRECTORY))
-    me = gen_group('リプライ',
-                   gen_boolean(:notify_mention, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_mention, 'サウンド', DEFAULT_SOUND_DIRECTORY))
-    fd = gen_group('フォローされたとき',
-                   gen_boolean(:notify_followed, 'ポップアップ'),
-                   gen_fileselect(:notify_sound_followed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    ft = Mtk.group('フレンドタイムライン',
+                   Mtk.boolean(:notify_friend_timeline, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_friend_timeline, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    me = Mtk.group('リプライ',
+                   Mtk.boolean(:notify_mention, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_mention, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    fd = Mtk.group('フォローされたとき',
+                   Mtk.boolean(:notify_followed, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_followed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
     box.pack_start(ft, false).pack_start(me, false).pack_start(fd, false)
-    box.pack_start(gen_adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
+    box.pack_start(Mtk.adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end
 
-  def onupdate(alist)
+  def self.onupdate(post, messages)
     if(not first?(:update)) then
       if(UserConfig[:notify_friend_timeline]) then
-        alist.each{ |post, message|
+        messages.each{ |message|
           self.notify(message[:user], message) if not message.from_me?
         }
       end
@@ -47,10 +46,10 @@ class Addon::Notify < Addon::Addon
     end
   end
 
-  def onmention(alist)
+  def self.onmention(post, messages)
     if(not first?(:mention)) then
       if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention]) then
-        alist.each{ |post, message|
+        messages.each{ |message|
           self.notify(message[:user], message) if not message.from_me?
         }
       end
@@ -60,10 +59,10 @@ class Addon::Notify < Addon::Addon
     end
   end
 
-  def onfollowed(alist)
+  def self.onfollowed(post, messages)
     if(not first?(:followed)) then
       if(UserConfig[:notify_follower]) then
-        alist.each{ |post, user|
+        messages.each{ |message|
           self.notify(user, 'にフォローされました。')
         }
       end
@@ -73,7 +72,7 @@ class Addon::Notify < Addon::Addon
     end
   end
 
-  def first?(func)
+  def self.first?(func)
     @called = [] if not defined? @called
     if @called.include?(func) then
       false
@@ -83,7 +82,7 @@ class Addon::Notify < Addon::Addon
     end
   end
 
-  def notify(user, text)
+  def self.notify(user, text)
     Thread.new(user, text){ |user, text|
       command = ["notify-send"]
       if(text.is_a? Message) then
@@ -93,28 +92,13 @@ class Addon::Notify < Addon::Addon
       command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
       command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
       command << "@#{user[:idname]} (#{user[:name]})" <<  text
-      bg_system(*command)
-    }
-  end
+      bg_system(*command) } end
 
-  def notify_sound(sndfile)
+  def self.notify_sound(sndfile)
     # hack! linux only
-    bg_system("aplay","-q", sndfile) if FileTest.exist?(sndfile)
-    return
-    # if ubuntu karmic, always segmentation fault.
-    uri = 'file://'+ File.join(File.expand_path(sndfile))
-    if not defined? @sound then
-      @sound = Hash.new{ |hash,key|
-        result = Gst::ElementFactory.make("playbin")
-        result.ready
-        result.uri = uri
-        hash[key] = result
-      }
-    end
-    @sound[uri].seek(Gst::EventSeek::FLUSH_START, 0)
-    @sound[uri].play
-  end
+    bg_system("aplay","-q", sndfile) if FileTest.exist?(sndfile) end
 
+  boot
 end
 
-Plugin::Ring.push Addon::Notify.new,[:boot, :update, :mention, :followed]
+#Plugin::Ring.push Addon::Notify.new,[:boot, :update, :mention, :followed]

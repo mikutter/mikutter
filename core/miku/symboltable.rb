@@ -34,6 +34,7 @@ module MIKU
       values.each{ |val|
         result[keys[count]] = Cons.new(val)
         count += 1 }
+      p result
       result
     end
 
@@ -49,7 +50,7 @@ module MIKU
       Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
-      Hash[*(defsform(:cons, :eq, :listp, :set, :function, :quote, :eval, :list,
+      Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
                       :if, :backquote) +
              [:lambda , Cons.new(nil, Primitive.new(:negi))] +
              [:def , Cons.new(nil, Primitive.new(:defun))] + consts)] end

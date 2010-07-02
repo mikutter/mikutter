@@ -56,7 +56,7 @@ class Post
             twitter.__send__(api, msg)
           elsif(event == :success and msg)
             Delayer.new(Delayer::NORMAL, msg){ |msg|
-              Plugin::Ring.fire(:update, [self, msg]) } end } end }
+              Plugin.call(:update, self, [msg]) } end } end }
     define_postal(*other) if not other.empty? end
 
   def request_oauth_token
@@ -99,25 +99,17 @@ class Post
     tl = twitter.__send__(kind, args)
     if defined?(tl.code) and defined?(tl.body) then
       case(tl.code)
-      when '200':
-          result = tl.body
-      when '400':
-          limit, remain, reset = twitter.api_remain
-          if(@code != tl.code)
-            Delayer.new{
-              Plugin::Ring::call(nil, :apilimit, self, reset)
-            }
-          end
+      when '200'
+        result = tl.body
+      when '400'
+        limit, remain, reset = twitter.api_remain
+        Plugin.call(:apilimit, reset) if(@code != tl.code)
       else
-        if(@code != tl.code)
-          Delayer.new{
-            Plugin::Ring::call(nil, :apifail, self, tl.code) if(@code != tl.code)
-          }
-        end
+        Plugin.call(:apifail, tl.code) if(@code != tl.code)
       end
       @code = tl.code
     else
-      Plugin::Ring::call(nil, :apifail, self, (tl.methods.include?(:code) and tl.code))
+      Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code))
     end
     return result
   end

@@ -81,9 +81,17 @@ module MIKU
       setf(symtable, *args)
     end
 
+    def value(symtable, symbol)
+      if symbol.is_a? Symbol
+        symtable[symbol].car
+      else
+        symbol end end
+
     def function(symtable, symbol)
-      symtable[symbol].cdr
-    end
+      if symbol.is_a? Symbol
+        symtable[symbol].cdr
+      else
+        symbol end end
 
     def negi(parenttable, alist, *body)
       lambda{ |*args|

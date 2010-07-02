@@ -1,17 +1,19 @@
-#
+# -*- coding:utf-8 -*-
 # Plugin/GUI
 #
 
 miquire :core, 'utils'
 miquire :plugin, 'plugin'
 miquire :mui
+miquire :core, 'configloader'
 
 require 'gtk2'
 require 'singleton'
 require 'monitor'
 
 module Plugin
-  class GUI < Plugin
+  class GUI
+    include ConfigLoader
 
     class TabButton < Gtk::Button
       include Comparable
@@ -95,6 +97,11 @@ module Plugin
       end
     end
 
+    def on_mui_tab_active(tab)
+      index = get_tabindex(tab)
+      self.book.set_page(index) if index
+    end
+
     def statusbar
       if not defined? @statusbar then
         @statusbar = Gtk::Statusbar.new
@@ -119,7 +126,10 @@ module Plugin
       Gtk::Tooltips.new.set_tip(widget, label, nil)
       widget.pane = container
       widget.label = label
-      widget.add((image or gen_label(label)))
+      if image
+        widget.add(Gtk::WebIcon.new(image, 24, 24))
+      else
+        widget.add(gen_label(label)) end
       widget.signal_connect('clicked'){ |w|
         Gtk::Lock.synchronize{
           @tab_log.delete(w.label)
@@ -290,6 +300,25 @@ module Plugin
 end
 
 # プラグインの登録
-Plugin::Ring.push Plugin::GUI.new,[:boot, :plugincall]
+gui = Plugin::GUI.new
+plugin = Plugin::create(:gui)
+plugin.add_event(:boot, &gui.method(:onboot))
+
+# タブを登録
+# (Widget container, String label[, String iconpath])
+plugin.add_event(:mui_tab_regist, &gui.method(:regist_tab))
+
+plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
+plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
+plugin.add_event(:apilimit){ |time|
+  Plugin.call(:update, watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                          :system => true))
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") }
+plugin.add_event(:apifail){ |errmes|
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{errmes})") }
+plugin.add_event(:apiremain){ |remain, time|
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API あと#{remain}回くらい (#{time.strftime('%H:%M')}まで)") }
+plugin.add_event(:rewindstatus){ |mes|
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), mes) }
 
 miquire :addon, 'addon'

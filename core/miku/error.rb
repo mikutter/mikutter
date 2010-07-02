@@ -32,7 +32,7 @@ module MIKU
 
   class NoMithodError < MikuException
     def initialize(name, scan)
-      super("undefined function '#{name}' #{scan.staticcode_file} in line #{scan.staticcode_line}")
+      super("undefined function '#{name.inspect}' #{scan.staticcode_file} in line #{scan.staticcode_line}")
     end
   end
 

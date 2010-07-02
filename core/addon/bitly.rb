@@ -39,18 +39,22 @@ class Bitly < MessageConverters
       sleep(1) }
     nil end end
 
-class Addon::Bitly < Addon::Addon
+Module.new do
   USER = 'mikutter'
   APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'
-  include Addon::SettingUtils
+  NAVIGATION = <<EOM
+設定しなくたって使えるけれど、設定するとbitlyのページからクリックされた回数とかわかるようになるよ。
+Bit.lyにログインし、 http://bit.ly/a/your_api_key にアクセスすると表示されるbit.ly API key を、下のボタンをクリックして「APIキー」に入力して下さい。
+EOM
 
-  def onboot(watch)
-    Plugin::Ring::fire(:plugincall, [:setinput, watch, :regist_url_shrinker_setting, 'bit.ly', main(watch)])
-  end
 
-  def main(watch)
-    box = Gtk::VBox.new(false, 8)
-    ft = gen_accountdialog_button('bit.ly アカウント設定',
+  def self.boot
+    plugin = Plugin::create(:bitly)
+    plugin.add_event(:boot){ |service|
+      Plugin.call(:regist_url_shrinker_setting, 'bit.ly', main(service)) } end
+
+  def self.main(watch)
+    ft = Mtk.accountdialog_button('bit.ly アカウント設定',
                                   :bitly_user, 'ユーザ名',
                                   :bitly_apikey, 'APIキー'){ |user, pass|
       if(pass == '' and user == '')
@@ -64,14 +68,9 @@ class Addon::Bitly < Addon::Addon
           result['data']['valid'].to_i == 1
         rescue JSON::ParserError
           nil end end }
-    naviagtion = <<EOM
-設定しなくたって使えるけれど、設定するとbitlyのページからクリックされた回数とかわかるようになるよ。
-Bit.lyにログインし、 http://bit.ly/a/your_api_key にアクセスすると表示されるbit.ly API key を、下のボタンをクリックして「APIキー」に入力して下さい。
-EOM
-    box.closeup(Gtk::IntelligentTextview.new(naviagtion)).closeup(ft)
-    return box
-  end
+    Gtk::VBox.new(false, 8).closeup(Gtk::IntelligentTextview.new(NAVIGATION)).closeup(ft) end
 
+  boot
 end
 
-Plugin::Ring.push Addon::Bitly.new,[:boot]
+# Plugin::Ring.push Addon::Bitly.new,[:boot]

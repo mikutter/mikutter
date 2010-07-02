@@ -8,153 +8,58 @@ miquire :core, 'environment'
 require 'monitor'
 
 module Plugin
-  # プラグインのスーパクラス。
-  # 主にイベントハンドラを実装する
-  class Plugin
-    include ConfigLoader
+  @@event = Hash.new{ |hash, key| hash[key] = [] } # { event_name => [[plugintag, proc]] }
 
-    # プラグインの名前を返す
-    def name
-      self.class.to_s.split(/::/).last.downcase
-    end
+  def self.add_event(event_name, tag, &callback)
+    @@event[event_name.to_sym] << [tag, callback]
+    callback end
 
-    # oncallが呼ばれる条件。
-    # これに一致するタグが指定されたときのみ、ハンドラが呼ばれる。
-    def call_tag
-      self.name
-    end
+  def self.call(event_name, *args)
+    @@event[event_name.to_sym].each{ |plugin|
+      Delayer.new{
+        plugin[1].call(*args) } } end
 
-    # コンフィグファイルを返す。
-    def config
-      if(@config) then
-        return @config
-      else
-        @config = confload("#{Environment::CONFROOT}#{self.name}")
-      end
-    end
+  def self.create(name)
+    PluginTag.create(name) end
 
-    # 指定されたイベントハンドラを、イベント発生毎に呼ぶのではなく
-    # 全てをひとつの配列にまとめて呼び出すようにする
-    def self.get_all_parameter_once(*names)
-      names.each{ |name|
-        # remove_method(name.to_sym)
-        define_method(name.to_sym){ |args|
-          self.__send__("on#{name.to_s}".to_sym, args)
-        }
-      }
-    end
-
-    # on + 自分の名前をそのまま呼び出すメソッドを定義するメソッド
-    def self.normal_event_handler(*names)
-      names.each{ |name|
-        define_method(name.to_sym){ |args|
-          args.each{ |arg|
-            self.__send__("on#{name.to_s}".to_sym, *arg)
-          }
-        }
-      }
-    end
-    private_class_method :normal_event_handler
-
-    # 起動時に一度だけ呼ばれるイベントハンドラ。
-    # 一度しか呼ばれないことが保証されており、どのイベントハンドラ
-    # よりも先に呼ばれる。
-    normal_event_handler :boot, :plugincall, :period, :call, :mypost ,:mention, :update, :followed
-
-    def onplugincall(*trash)
-      error 'undefined event onplugincall called '+trash.inspect
-      return nil
-    end
-
+  # return {tag => {event => [proc]}}
+  def self.plugins
+    result = Hash.new{ |hash, key|
+      hash[key] = Hash.new{ |hash, key|
+        hash[key] = [] } }
+    @@event.each_pair{ |event, pair|
+      result[pair[0]][event] << proc
+    }
+    result
   end
+
 end
 
-miquire :plugin, 'mother'
+class Plugin::PluginTag
+  @@plugins = [] # plugin
 
-module Plugin
-  # プラグイン保存用の格納庫。
-  # 各プラグインから以下のように使う。
-  # Plugin::Ring.push Plugin::クラス名.new
-  # こうすることで、定期的にperiodが呼ばれたりする
-  module Ring
-    @@ring = Hash.new{ [] }
-    @@mother = Mother.new
-    @@lock = Monitor.new
-    @@plugins = Hash.new
-    @@fire = Hash.new{ Array.new }
+  attr_reader :name
 
-    # handlerにイベントハンドラvalを登録する。
-    # イベントが起こったときには、シンボル名と同名のメソッドが呼ばれる。
-    def self.push(val, handlers=[:period])
-      unless handlers.is_a?(Array) then
-        handlers = [handlers]
-      end
-      handlers.each{ |handler|
-        @@ring[handler] = @@ring[handler].push(val)
-      }
-      @@plugins[val.name.to_sym] = val
-    end
+  def initialize(name = :anonymous)
+    @name = name
+    regist end
 
-    # handler から特定のクラスを削除する
-    def self.delete(handler, item)
-      @@ring[handler].reject!{ |node|
-        node.class == item.class
-      }
-    end
+  def self.create(name)
+    plugin = @@plugins.find{ |p| p.name == name }
+    if plugin
+      plugin
+    else
+      Plugin::PluginTag.new(name) end end
 
-    def self.call(target, event, watch, *args)
-      Ring::fire(:plugincall, [target, watch, event.to_sym, *args])
-    end
-
-    # イベントを呼び出す
-    # argsには、引数リストを要求する
-    def self.fire(handler, args)
-      proc = lambda{
-        @@mother.__send__(handler, [args])
-      }
-      if(Thread.main == Thread.current) then
-        proc.call
-      else
-        Delayer.new{ proc.call }
-      end
-    end
-
-    # イベントを予約
-    # 実際の呼び出しはgoが呼ばれたときに行われる
-    # argsには、[[引数1], [引数2], ...[引数n]]を要求する
-    def self.reserve(handler, arglist)
-      @@lock.synchronize{
-        @@fire[handler] = @@fire[handler].concat(arglist)
-      }
-    end
-
-    # 予約されていたイベントを呼び出す
-    def self.go
-      @@lock.synchronize{
-        @@fire.each{ |handler, event|
-          @@mother.__send__(handler, event)
-        }
-        @@fire = Hash.new{ Array.new }
-      }
-    end
-
-    # 有効なプラグインを取得する
-    def self.avail_plugins(handler=nil)
-      if handler == :all then
-        @@plugins
-      elsif handler then
-        @@ring[handler]
-      else
-        @@ring
-      end
-    end
-
-    def self.[](handler)
-      return self.avail_plugins(handler)
-    end
-
+  def add_event(event_name, &callback)
+    Plugin.add_event(event_name, self, &callback)
   end
 
+  private
+
+  def regist
+    atomic{
+      @@plugins.push(self) } end
 end
 
 miquire :plugin

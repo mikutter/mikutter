@@ -13,9 +13,16 @@ module MIKU
     attr_accessor :staticcode_line, :staticcode_file
 
     def staticcode_copy_info(src)
-      @staticcode_line = src.staticcode_line
-      @staticcode_file = src.staticcode_file
+      if src.is_a? Array
+      @staticcode_line = src[0]
+      @staticcode_file = src[1]
+      else
+        @staticcode_line = src.staticcode_line
+        @staticcode_file = src.staticcode_file end
       self end
+
+    def staticcode_dump
+      [@staticcode_file, @staticcode_line] end
 
     def self.extended(obj)
       obj.staticcode_line = 1

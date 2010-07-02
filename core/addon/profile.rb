@@ -4,9 +4,9 @@ miquire :mui, 'skin'
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 
-class Addon::Profile < Addon::Addon
+Module.new do
 
-  Tab = Class.new(Addon::Addon.gen_tabclass('のプロフィール', nil)){
+  @@tabclass = Class.new(Addon.gen_tabclass('のプロフィール', nil)){
     def initialize(name, service, options = {})
       @page = 1
       options[:header] = Gtk::VBox.new(false, 0)
@@ -16,10 +16,10 @@ class Addon::Profile < Addon::Addon
       @options[:user] end
 
     def on_create
-      Thread.new{
-        tl = @service.scan(:user_timeline, :user_id => user[:id],
-                           :no_auto_since_id => true,
-                           :count => 20)
+      Thread.new(@service){ |service|
+        tl = service.scan(:user_timeline, :user_id => user[:id],
+                          :no_auto_since_id => true,
+                          :count => 20)
         Delayer.new{ timeline.add(tl) } if tl }
       header.closeup(profile).show_all
       super
@@ -94,43 +94,45 @@ class Addon::Profile < Addon::Addon
         result }
       tag end }
 
-  include Addon::SettingUtils
-
-  def onboot(service)
-    @service = service
-    Gtk::Mumble.contextmenu.registmenu(lambda{ |m, w|
-                                         u = if(m.message[:retweet])
-                                               m.message[:retweet].user
-                                             else
-                                               m.message.user end
-                                         "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
-                                       lambda{ |m, w| m.message.repliable? }){ |m, w|
-      user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
-      makescreen(user) }
-    Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
-      user = User.findByIdname(match[1, match.length])
-      if user
-        makescreen(user)
-      else
-        Thread.new{
-          user = @service.scan(:user_show,
-                               :no_auto_since_id => false,
-                               :screen_name => match[1, match.length])
-          Delayer.new{ makescreen(user.first) } if user } end } end
+  def self.boot
+    plugin = Plugin::create(:profile)
+    plugin.add_event(:boot){ |service|
+      Gtk::Mumble.contextmenu.registmenu(lambda{ |m, w|
+                                           u = if(m.message[:retweet])
+                                                 m.message[:retweet].user
+                                               else
+                                                 m.message.user end
+                                           "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
+                                         lambda{ |m, w| m.message.repliable? }){ |m, w|
+        user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
+        makescreen(user, service) }
+      Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
+        user = User.findByIdname(match[1, match.length])
+        if user
+          makescreen(user, service)
+        else
+          Thread.new{
+            user = service.scan(:user_show,
+                                :no_auto_since_id => false,
+                                :screen_name => match[1, match.length])
+            Delayer.new{ makescreen(user.first, service) } if user } end } } end
 
   private
 
-  def makescreen(user)
+  def self.makescreen(user, service)
     if user[:exact]
-      Tab.new("#{user[:idname]}(#{user[:name]})", @service,
+      @@tabclass.new("#{user[:idname]}(#{user[:name]})", service,
               :user => user,
               :icon => user[:profile_image_url])
     else
       Thread.new{
-        retr = @service.scan(:user_show, :screen_name => user[:idname],
+        retr = service.scan(:user_show, :screen_name => user[:idname],
                              :no_auto_since_id => true)
-        Delayer.new{ makescreen(retr.first) } if retr }
-    end end end
+        Delayer.new{ makescreen(retr.first, service) } if retr }
+    end end
 
-Plugin::Ring.push Addon::Profile.new,[:boot]
+  boot
+end
+
+# Plugin::Ring.push Addon::Profile.new,[:boot]
 

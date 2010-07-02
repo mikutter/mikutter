@@ -216,7 +216,7 @@ class TwitterAPI < Mutex
     if res.is_a?(Net::HTTPResponse) then
       limit, remain, reset = self.api_remain(res)
       if(res.code == '200') then
-        Plugin::Ring::call(nil, :apiremain, self, remain, reset)
+        Plugin.call(:apiremain, remain, reset)
       elsif(res.code == '401') then
         if @fail_trap then
           last_success = @@last_success

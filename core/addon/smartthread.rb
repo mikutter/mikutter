@@ -2,14 +2,16 @@
 miquire :mui, 'skin'
 miquire :addon, 'addon'
 
-class Addon::SmartThread < Addon::Addon
-  Tab = Class.new(Addon::Addon.gen_tabclass('', MUI::Skin.get("list.png"))){
+Module.new do
+  tabclass = Class.new(Addon.gen_tabclass('', nil)){
     def on_create
       super
+      raise if not @options[:message]
       close = Gtk::Button.new('×')
       close.signal_connect('clicked'){ self.remove }
       header.closeup(close).show_all
-      set_ancestor(@options[:message]).focus end
+      set_ancestor(@options[:message])
+      focus end
 
     def set_children(message)
       if message.children.is_a? Array
@@ -26,24 +28,24 @@ class Addon::SmartThread < Addon::Addon
           Delayer.new{ timeline.add([m]) } } }
       self end }
 
-  def onboot(service)
+  cnt = 0
+  counter = lambda{ atomic{ cnt += 1 } }
+
+  plugin = Plugin::create(:smartthread)
+
+  plugin.add_event(:boot){ |service|
     Delayer.new{
       Gtk::Mumble.contextmenu.registmenu('スレッドを表示', lambda{ |m, w|
                                            m.message.repliable? }){ |m, w|
-        gen_timeline(m.message) } }
-    @service = service
-    cnt = 0
-    @counter = lambda{ cnt += 1 } end
+        tabclass.new("Thread #{counter.call}", service,
+                  :message => m.message,
+                  :icon => MUI::Skin.get("list.png")) } } }
 
-  def onupdate(service, message)
-    Tab.tabs.each{ |tab|
-      if message.receive_message and
-          tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i)
-        tab.timeline.add([message]) end } end
+  plugin.add_event(:boot){ |service, messages|
+    tabclass.tabs.each{ |tab|
+      rel = messages.select{ |message| message.receive_message and
+        tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i) }
+      tab.timeline.add(rel) if not rel.empty? } }
+end
 
-  private
-
-  def gen_timeline(message)
-    tab = Tab.new("Thread #{@counter.call}", @service, :message => message) end end
-
-Plugin::Ring.push Addon::SmartThread.new,[:boot, :update]
+# Plugin::Ring.push Addon::SmartThread.new,[:boot, :update]
