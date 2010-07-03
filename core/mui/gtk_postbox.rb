@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 require 'gtk2'
 require 'thread'
 
@@ -21,13 +22,13 @@ module Gtk
         @watch = watch
         super()
         signal_connect('parent-set'){
-          sw = get_ancestor(Gtk::ScrolledWindow)
-          if(sw)
-            @return_to_top = sw.vadjustment.value == 0
-          else
-            @return_to_top = false end
-          if @options[:delegated_by]
-            post_it end }
+          if parent
+            sw = get_ancestor(Gtk::ScrolledWindow)
+            if(sw)
+              @return_to_top = sw.vadjustment.value == 0
+            else
+              @return_to_top = false end
+              post_it if @options[:delegated_by] end }
         add(generate_box)
         regist } end
 
@@ -38,7 +39,7 @@ module Gtk
 
     def keyname(key)
       if key.empty?
-        return '(í≥‰í§Íí≈ˆí§∆í§ í§∑)'
+        return '(Ââ≤„ÇäÂΩì„Å¶„Å™„Åó)'
       else
         r = ""
         r << 'Control + ' if (key[1] & Gdk::Window::CONTROL_MASK) != 0
@@ -48,61 +49,65 @@ module Gtk
         r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
         return r + Gdk::Keyval.to_name(key[0]) end end
 
-    def menu_pop(widget, event)
-      menu = Gtk::Menu.new
-      delete = Gtk::MenuItem.new("í§≥í§Œí∆˛íŒœíÕÛí§Úí∫ÔíΩ¸")
-      delete.signal_connect('activate') { |w| destroy }
-      [delete].each{|item| menu.append(item) }
-      menu.attach_to_widget(widget) {|*args| yield(*args) if defined? yield }
-      menu.show_all
-      menu.popup(nil, nil, 0, 0) end
+#     def menu_pop(widget, event)
+#       menu = Gtk::Menu.new
+#       delete = Gtk::MenuItem.new("„Å§„Å∂„ÇÑ„Åç„ÇíÂâäÈô§")
+#       delete.signal_connect('activate') { |w| destroy }
+#       [delete].each{|item| menu.append(item) }
+#       menu.attach_to_widget(widget) {|*args| yield(*args) if defined? yield }
+#       menu.show_all
+#       menu.popup(nil, nil, 0, 0) end
 
     def postable?
       not(@post.buffer.text.empty?) and (/[^\s]/ === @post.buffer.text) end
 
     def start_post
-      @posting = true
-      post.editable = false
-      [post, send].compact.each{|widget| widget.sensitive = false }
-      tool.sensitive = true end
+      Gtk::Lock.synchronize{
+        @posting = true
+        post.editable = false
+        [post, send].compact.each{|widget| widget.sensitive = false }
+        tool.sensitive = true } end
 
     def end_post
-      @posting = false
-      post.editable = true
-      [post, send].compact.each{|widget| widget.sensitive = true } end
+      Gtk::Lock.synchronize{
+        @posting = false
+        post.editable = true
+        [post, send].compact.each{|widget| widget.sensitive = true } } end
 
     def delegate
-      if(@options[:postboxstorage] and @options[:delegate_other])
-        options = @options.clone
-        options[:delegate_other] = false
-        options[:delegated_by] = self
-        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
-        true end end
+      Gtk::Lock.synchronize{
+        if(@options[:postboxstorage] and @options[:delegate_other])
+          options = @options.clone
+          options[:delegate_other] = false
+          options[:delegated_by] = self
+          @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
+          true end } end
 
     def service
       (retweet? ? @watch.service : @watch) end
 
     def post_it
-      if postable? then
-        if(@options[:postboxstorage])
-          return if delegate
-          if not @options[:delegated_by]
-            postbox = Gtk::PostBox.new(@watch, @options)
-            @options[:postboxstorage].
-              pack_start(postbox).
-              show_all.
-              get_ancestor(Gtk::Window).
-              set_focus(postbox.post) end end
-        text = post.buffer.text
-        text += UserConfig[:footer] if add_footer?
-        @post_thread = service.post(:message => text){ |event, msg|
-          case event
-          when :start
-            start_post
-          when :fail
-            end_post
-          when :success
-            Delayer.new{ destroy } end } end end
+      Gtk::Lock.synchronize{
+        if postable? then
+          if(@options[:postboxstorage])
+            return if delegate
+            if not @options[:delegated_by]
+              postbox = Gtk::PostBox.new(@watch, @options)
+              @options[:postboxstorage].
+                pack_start(postbox).
+                show_all.
+                get_ancestor(Gtk::Window).
+                set_focus(postbox.post) end end
+          text = post.buffer.text
+          text += UserConfig[:footer] if add_footer?
+          @post_thread = service.post(:message => text){ |event, msg|
+            case event
+            when :start
+              Delayer.new{ start_post }
+            when :fail
+              Delayer.new{ end_post }
+            when :success
+              Delayer.new{ destroy } end } end } end
 
     def post_is_empty?
       return true if (@post.buffer.text == "")
@@ -111,7 +116,8 @@ module Gtk
 
     def brothers
       if(@options[:postboxstorage])
-        @options[:postboxstorage].children.find_all{|c| c.sensitive? }
+        Gtk::Lock::synchronize{
+          @options[:postboxstorage].children.find_all{|c| c.sensitive? } }
       else
         [] end end
 
@@ -126,15 +132,18 @@ module Gtk
         true end end
 
     def destroy_if_necessary(*related_widgets)
-      if not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?
-        destroy
-        true end end
+      Gtk::Lock::synchronize{
+        if not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?
+          destroy
+          true end } end
 
     def destroy
-      @@ringlock.synchronize{
-        if parent
-          parent.remove(self)
-          @@postboxes.delete(self) end } end
+      Gtk::Lock.synchronize{
+        @@ringlock.synchronize{
+          if not(frozen?) and parent
+            parent.remove(self)
+            @@postboxes.delete(self)
+            self.freeze end } } end
 
     def reply?
       ! @watch.is_a?(Post) end
@@ -158,8 +167,6 @@ module Gtk
       footer = if add_footer? then UserConfig[:footer].strsize else 0 end
       140 - @post.buffer.text.strsize - footer end
 
-    # signal_connectí¿ÏíÕ—í°£post, toolíŒæí ˝í§´í§Èí∆±í§∏í§‚í§Œí§¨í∏∆í§–í§Ïí§Îí§Œí§«í°¢í•·í•‚í•Íí§Œí¿·íÃÛí§Œí§øí§·í§À
-    # í•Øí•Ìí°ºí•∏í•„í§«í§œí§ í§Øí•·í•Ωí•√í•…í§Àí§∑í§∆í§§í§Î
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|
         if(not(options.has_key?(:postboxstorage)) and post_is_empty?)

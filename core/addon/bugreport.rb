@@ -109,6 +109,7 @@ Module.new do
     URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
   end
 
+  boot
 end
 
 # Plugin::Ring.push Addon::Bugreport.new,[:boot]

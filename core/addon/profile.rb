@@ -6,11 +6,14 @@ miquire :addon, 'settings'
 
 Module.new do
 
-  @@tabclass = Class.new(Addon.gen_tabclass('のプロフィール', nil)){
+  @tabclass = Class.new(Addon.gen_tabclass){
     def initialize(name, service, options = {})
       @page = 1
       options[:header] = Gtk::VBox.new(false, 0)
       super(name, service, options) end
+
+    def suffix
+      'のプロフィール' end
 
     def user
       @options[:user] end
@@ -121,9 +124,9 @@ Module.new do
 
   def self.makescreen(user, service)
     if user[:exact]
-      @@tabclass.new("#{user[:idname]}(#{user[:name]})", service,
-              :user => user,
-              :icon => user[:profile_image_url])
+      @tabclass.new("#{user[:idname]}(#{user[:name]})", service,
+                    :user => user,
+                    :icon => user[:profile_image_url])
     else
       Thread.new{
         retr = service.scan(:user_show, :screen_name => user[:idname],

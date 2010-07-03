@@ -39,7 +39,7 @@ Module.new do
           result = [access_token.token, access_token.secret]
           quit.call
         rescue => e
-          alert("暗証番号が違うみたいです\n\n#{e}")
+          Mtk.alert("暗証番号が違うみたいです\n\n#{e}")
         end
       else
         quit.call end end
@@ -73,8 +73,9 @@ Module.new do
     goaisatsu = Gtk::VBox.new(false, 0)
     box = Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
-    Delayer.new(Delayer::NORMAL, goaisatsu, request_token.authorize_url){ |w, url|
-      w.closeup(Gtk::Mumble.new(Message.new(:message => hello(url), :system => true))).show_all }
+    #Delayer.new(Delayer::NORMAL, goaisatsu, request_token.authorize_url){ |w, url|
+      goaisatsu.add(Gtk::Mumble.new(Message.new(:message => hello(request_token.authorize_url), :system => true)))
+    # }
     user, key_input = gen_input('暗証番号', true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token
@@ -91,10 +92,8 @@ Module.new do
   end
 
   def self.hello(url)
-    first = if not at(:hello_first)
-              "マスターったら、ツイッターまでみっくみくね！\n\n" end
-    store(:hello_first, true)
-    "#{first}ログインの手順:\n下のリンクをクリックして、ユーザ名などを入れてから許可するボタンを"+
+    "マスターったら、ツイッターまでみっくみくね！\n\n"+
+    "ログインの手順:\n下のリンクをクリックして、ユーザ名などを入れてから許可するボタンを"+
       "押してください(クリックしても開かなかったら、アドレスバーにコピペだ！)。\n"+
       "#{url}\n表示された数字を「暗証番号」に入力してOKボタンを押してください。\n\n"+
       'すると、みっくみくにされます。'

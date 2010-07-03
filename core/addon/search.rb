@@ -1,9 +1,11 @@
+# -*- coding:utf-8 -*-
+
 miquire :mui, 'skin'
 miquire :addon, 'addon'
 
 Module.new do
 
-  plugin = Plugin::create(:friend_timeline)
+  plugin = Plugin::create(:search)
 
   main = Gtk::TimeLine.new()
   service = nil
@@ -13,8 +15,6 @@ Module.new do
   searchbtn = Gtk::Button.new('検索')
   savebtn = Gtk::Button.new('保存')
 
-  searchbtn.can_default = true
-  searchbtn.grab_default
   searchbtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{
       elm.sensitive = querybox.sensitive = false
@@ -29,7 +29,7 @@ Module.new do
       query = querybox.text
       service.search_create(query){ |stat, message|
         if(stat = :success)
-          Plugin::Ring::fire(:plugincall, [:savedsearch, nil, :saved_search_regist, query]) end
+          Plugin.call(:saved_search_regist, query) end
       } } }
 
   querycont.closeup(Gtk::HBox.new(false, 0).pack_start(querybox).closeup(searchbtn))
@@ -48,9 +48,12 @@ end
 
 Module.new do
 
-  @@tab = Class.new(Addon.gen_tabclass('(Saved Search)', nil)){
-    def search
-      @service.search(@options[:query], :rpp => 100){ |res|
+  @tab = Class.new(Addon.gen_tabclass){
+    def suffix
+      '(Saved Search)' end
+
+    def search(use_cache=false)
+      @service.search(@options[:query], :rpp => 100, :cache => use_cache){ |res|
         Gtk::Lock.synchronize{
           update(res) if res.is_a? Array } }
       self end }
@@ -60,7 +63,7 @@ Module.new do
     plugin.add_event(:boot){ |service|
       @service = service
       @count = 0
-      update }
+      update(true) }
 
     plugin.add_event(:period){ |service|
       @count += 1
@@ -71,35 +74,35 @@ Module.new do
     plugin.add_event(:saved_search_regist){ |query|
       add_tab(query, query) } end
 
-  def self.update
+  def self.update(use_cache=false)
     Thread.new{
-      Delayer.new(Delayer::NORMAL, searches){ |found|
+      Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
         remove_unmarked{
           found.each{ |record|
             add_tab(record['query'], record['name']) } } } } end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{
-      @@tab.tabs.each{ |tab|
+      @tab.tabs.each{ |tab|
         tab.mark = false }
       yield
-      @@tab.tabs.each{ |tab|
+      @tab.tabs.each{ |tab|
         tab.remove if not tab.mark } } end
 
-  def self.searches
-    found = @service.scan(:saved_searches)
+  def self.searches(use_cache)
+    found = @service.scan(:saved_searches, :cache => use_cache)
     return found if(found)
     [] end
 
   def self.add_tab(query, name)
-    tab = @@tab.tabs.find{ |tab| tab.name == name }
+    tab = @tab.tabs.find{ |tab| tab.name == name }
     if tab
       tab.search.mark = true
     else
       Gtk::Lock.synchronize{
-        @@tab.new(name, @service,
+        @tab.new(name, @service,
                   :query => query,
-                  :icon => MUI::Skin.get("savedsearch.png")).search } end end
+                  :icon => MUI::Skin.get("savedsearch.png")).search(true) } end end
   boot
 end
 

@@ -55,8 +55,7 @@ class Post
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg)
-            Delayer.new(Delayer::NORMAL, msg){ |msg|
-              Plugin.call(:update, self, [msg]) } end } end }
+            Plugin.call(:update, self, [msg]) end } end }
     define_postal(*other) if not other.empty? end
 
   def request_oauth_token
@@ -128,6 +127,11 @@ class Post
       return result.reverse
     end
   end
+
+  def call_api(api, args = {})
+    Thread.new{
+      Delayer.new(Delayer::NORMAL, self.scan(api.to_sym, args)){ |res|
+        yield res } } end
 
   def search(q, args)
     args[:q] = q
@@ -204,6 +208,11 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
+    lists_parser = {
+      :hasmany => 'lists',
+      :class => shell_class,
+      :method => :new_ifnecessary,
+      :proc => lambda{ |msg| msg } }
     { :friends_timeline => timeline_parser,
       :user_timeline => timeline_parser,
       :replies => timeline_parser,
@@ -222,6 +231,8 @@ class Post
       :destroy => unimessage_parser,
       :search_create => nil,
       :search => search_parser,
+      :lists => lists_parser,
+      :list_statuses => timeline_parser,
       :streaming_status => streaming_status
     }[kind.to_sym][prop.to_sym] end
 
@@ -272,37 +283,42 @@ class Post
           else
             twitter.unfavorite(msg[:id]) end end } end end
 
+  def try_post(message, api)
+    UserConfig[:message_retry_limit].times{ |count|
+      notice "post:try:#{count}:#{message.inspect}"
+      result = yield(:try, message)
+      if defined?(result.code)
+        if result.code == '200'
+          notice "post:success:#{count}:#{message.inspect}"
+          receive = parse_json(result.body, api)
+          if receive.is_a?(Array) then
+            yield(:success, receive.first)
+            return receive.first end
+        elsif result.code[0] == '4'[0]
+          begin
+            errmes = JSON.parse(result.body)["error"]
+            Plugin::Ring::call(nil, :rewindstatus, self,
+                               "twitter 投稿エラー: #{result.code} #{errmes}")
+            if errmes == "Status is a duplicate."
+              yield(:success, nil)
+              return true end
+          rescue JSON::ParserError
+          end
+        elsif not(result.code[0] == '5'[0])
+          yield(:fail, err)
+          return nil end end
+      notice "post:fail:#{count}:#{message.inspect}"
+      yield(:retry, result)
+      sleep(1) }
+    yield(:fail, nil)
+    return false
+  end
+
   def _post(message, api)
     Thread.new(message){ |message|
       yield(:start, nil)
       begin
-        UserConfig[:message_retry_limit].times{ |count|
-          notice "post:try:#{count}:#{message.inspect}"
-          result = yield(:try, message)
-          if defined?(result.code)
-            if result.code == '200'
-              notice "post:success:#{count}:#{message.inspect}"
-              receive = parse_json(result.body, api)
-              if receive.is_a?(Array) then
-                yield(:success, receive.first)
-                break receive.first end
-            elsif result.code[0] == '4'[0]
-              begin
-                errmes = JSON.parse(result.body)["error"]
-                Plugin::Ring::call(nil, :rewindstatus, self,
-                                   "twitter 投稿エラー: #{result.code} #{errmes}")
-                if errmes == "Status is a duplicate."
-                  yield(:success, nil)
-                  break nil end
-              rescue JSON::ParserError
-              end
-            elsif not(result.code[0] == '5'[0])
-              yield(:fail, err)
-              break end end
-          notice "post:fail:#{count}:#{message.inspect}"
-          yield(:retry, result)
-          sleep(1) }
-        yield(:fail, nil)
+        try_post(message, api, &Proc.new)
       rescue => err
         yield(:err, err)
         yield(:fail, err)

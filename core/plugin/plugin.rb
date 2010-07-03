@@ -4,6 +4,7 @@
 
 miquire :core, 'configloader'
 miquire :core, 'environment'
+miquire :core, 'delayer'
 
 require 'monitor'
 
@@ -36,6 +37,9 @@ module Plugin
 end
 
 class Plugin::PluginTag
+
+  include ConfigLoader
+
   @@plugins = [] # plugin
 
   attr_reader :name
@@ -54,6 +58,12 @@ class Plugin::PluginTag
   def add_event(event_name, &callback)
     Plugin.add_event(event_name, self, &callback)
   end
+
+  def at(key, ifnone=nil)
+    super("#{@name}_#{key}".to_sym, ifnone) end
+
+  def store(key, val)
+    super("#{@name}_#{key}".to_sym, val) end
 
   private
 

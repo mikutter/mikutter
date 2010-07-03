@@ -181,14 +181,44 @@ class TwitterAPI < Mutex
     end
   end
 
-  def get(path, head)
-    return get_with_auth(path, head) if ip_limit
+  def getopts(options)
+    result = Hash.new
+    result[:head] = Hash.new
+    options.each_pair{ |k,v|
+      case(k)
+      when 'Cache'
+        result[:cache] = v
+      else
+        result[:head][k] = v end }
+    result end
+
+  def cacheing(path, body)
+    cachefn = File::expand_path('~/.mikutter/queries/' + path)
+    FileUtils.mkdir_p(File::dirname(cachefn))
+    file_put_contents(cachefn, body) end
+
+  def get_cache(path)
+    cache_path = File::expand_path('~/.mikutter/queries/' + path)
+    if FileTest.exist?(cache_path)
+      return Class.new{
+        define_method(:body){
+          file_get_contents(cache_path) }
+        define_method(:code){
+          '200' } }.new end end
+
+  def get(path, raw_options)
+    options = getopts(raw_options)
+    if options[:cache]
+      cache = get_cache(path)
+      return cache if cache end
+    return get_with_auth(path, raw_options) if ip_limit
     res = nil
     http = nil
     begin
       http = self.connection()
       http.start
-      res = http.get(path, head)
+      res = http.get(path, options[:head])
+      cacheing(path, res.body) if res.code == '200' and options.has_key?(:cache)
     rescue Exception => evar
       res = evar
     ensure
@@ -201,14 +231,18 @@ class TwitterAPI < Mutex
     notice "#{path} => #{res}"
     if defined?(res.code) and res.code == '400'
       @@ip_limit_reset = Time.at(res['X-RateLimit-Reset'].to_i)
-      return get_with_auth(path, head) end
+      return get_with_auth(path, raw_options) end
     res
   end
 
-  def get_with_auth(path, head)
+  def get_with_auth(path, raw_options)
+    options = getopts(raw_options)
+    if options[:cache]
+      cache = get_cache(path)
+      return cache if cache end
     res = nil
     begin
-      res = request('GET', BASE_PATH+path, nil, head)
+      res = request('GET', BASE_PATH+path, nil, options[:head])
     rescue Exception => evar
       res = evar
     end
@@ -216,6 +250,7 @@ class TwitterAPI < Mutex
     if res.is_a?(Net::HTTPResponse) then
       limit, remain, reset = self.api_remain(res)
       if(res.code == '200') then
+        cacheing(path, res.body) if options.has_key?(:cache)
         Plugin.call(:apiremain, remain, reset)
       elsif(res.code == '401') then
         if @fail_trap then
@@ -226,7 +261,7 @@ class TwitterAPI < Mutex
             end
             @a_token, @a_secret, callback = *@@last_success
             callback.call if callback
-            res = self.get_with_auth(path, head)
+            res = self.get_with_auth(path, raw_options)
           }
         end
       end
@@ -356,8 +391,18 @@ class TwitterAPI < Mutex
   end
 
   def saved_searches(args=nil)
-    get_with_auth('/saved_searches.' + FORMAT, {'Host' => HOST})
+    get_with_auth('/saved_searches.' + FORMAT, head(args))
   end
+
+  def lists(args=nil)
+    get_with_auth("/#{args[:user]}/lists." + FORMAT, head(args))
+  end
+
+  def list_statuses(args=nil)
+    if args[:mode] == :public
+      get("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args))
+    else
+      get_with_auth("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args)) end end
 
   def rate_limit_status(args=nil)
     path = "/account/rate_limit_status.#{FORMAT}"
@@ -369,6 +414,12 @@ class TwitterAPI < Mutex
     path = "/account/verify_credentials.#{FORMAT}"
     head = {'Host' => HOST}
     get_with_auth(path, head)
+  end
+
+  def head(args={})
+    r = {'Host' => HOST}
+    r['Cache'] = args[:cache] if args.has_key? :cache
+    r
   end
 
   def update(status, reply_to = nil)

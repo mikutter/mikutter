@@ -75,28 +75,6 @@ module Plugin
       @window.icon = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('icon.png')), 256, 256)
     end
 
-    def onplugincall(watch, command, *args)
-      case command
-      when :mui_tab_regist
-        self.regist_tab(*args)
-      when :mui_tab_remove
-        self.remove_tab(*args)
-      when :mui_tab_active
-        index = get_tabindex(args[0])
-        self.book.set_page(index) if index
-      when :apilimit
-        Ring::fire(:update, [watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{args[0].strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                                :system => true)])
-        self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{args[0].strftime('%H:%M')}に復活します")
-      when :apifail
-        self.statusbar.push(self.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{args[0]})")
-      when :apiremain
-        self.statusbar.push(self.statusbar.get_context_id('system'), "API あと#{args[0]}回くらい (#{args[1].strftime('%H:%M')}まで)")
-      when :rewindstatus
-        self.statusbar.push(self.statusbar.get_context_id('system'), args[0])
-      end
-    end
-
     def on_mui_tab_active(tab)
       index = get_tabindex(tab)
       self.book.set_page(index) if index
@@ -180,9 +158,8 @@ module Plugin
         focus_before_tab(label)
         w = self.tab.children.find{ |node| node.label == label }
         self.book.remove_page(index)
-        @pane.remove(w.pane).show_all
-        self.tab.remove(w)
-      end end
+        @pane.remove(w.pane)
+        self.tab.remove(w) end end
 
     def tab
       Gtk::Lock.synchronize do
@@ -311,8 +288,8 @@ plugin.add_event(:mui_tab_regist, &gui.method(:regist_tab))
 plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
 plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
 plugin.add_event(:apilimit){ |time|
-  Plugin.call(:update, watch, Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                          :system => true))
+  Plugin.call(:update, nil, Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                        :system => true))
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") }
 plugin.add_event(:apifail){ |errmes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{errmes})") }

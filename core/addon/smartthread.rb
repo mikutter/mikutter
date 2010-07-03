@@ -3,7 +3,7 @@ miquire :mui, 'skin'
 miquire :addon, 'addon'
 
 Module.new do
-  tabclass = Class.new(Addon.gen_tabclass('', nil)){
+  tabclass = Class.new(Addon.gen_tabclass){
     def on_create
       super
       raise if not @options[:message]
