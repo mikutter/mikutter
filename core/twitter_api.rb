@@ -398,6 +398,14 @@ class TwitterAPI < Mutex
     get_with_auth("/#{args[:user]}/lists." + FORMAT, head(args))
   end
 
+  def list_subscriptions(args=nil)
+    get_with_auth("/#{args[:user]}/lists/subscriptions." + FORMAT, head(args))
+  end
+
+  def list_members(args=nil)
+    get_with_auth("/#{args[:user]}/#{args[:id]}/members." + FORMAT, head(args))
+  end
+
   def list_statuses(args=nil)
     if args[:mode] == :public
       get("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args))

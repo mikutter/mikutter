@@ -30,13 +30,15 @@ class Delayer
   end
 
   def self.run
+    st = Process.times.utime
     5.times{ |cnt|
       procs = []
       if not @@routines[cnt].empty? then
-        atomic{
-          procs = @@routines[cnt]
-          @@routines[cnt] = Array.new }
-        procs.each{ |routine| routine.run } end } end
+        procs = @@routines[cnt].clone
+        procs.each{ |routine|
+          @@routines[cnt].delete(routine)
+          routine.run
+          return if (Process.times.utime - st) > 0.1 } end } end
 
   private
   def regist(prio)

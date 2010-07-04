@@ -2,11 +2,15 @@
 miquire :mui, 'skin'
 miquire :addon, 'addon'
 
+require 'set'
+
 Module.new do
   tabclass = Class.new(Addon.gen_tabclass){
+
     def on_create
       super
       raise if not @options[:message]
+      @still_added = Set.new
       close = Gtk::Button.new('×')
       close.signal_connect('clicked'){ self.remove }
       header.closeup(close).show_all
@@ -15,10 +19,11 @@ Module.new do
 
     def set_children(message)
       if message.children.is_a? Array
-        Thread.new{
-          Delayer.new{ timeline.add(message.children) }
-          message.children.each{ |m|
-            set_children(m) } } end
+        Delayer.new{ timeline.add(message.children) }
+        message.children.each{ |m|
+          if not @still_added.include? m[:id]
+            @still_added << m[:id]
+            set_children(m) end } end
       self end
 
     def set_ancestor(message)

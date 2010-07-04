@@ -177,6 +177,8 @@ class Post
         cnv } }
     user_parser = users_parser.clone
     user_parser[:hasmany] = false
+    users_list_parser = users_parser.clone
+    users_list_parser[:hasmany] = 'users'
     timeline_parser = {
       :hasmany => true,
       :class => Message,
@@ -232,6 +234,8 @@ class Post
       :search_create => nil,
       :search => search_parser,
       :lists => lists_parser,
+      :list_subscriptions => lists_parser,
+      :list_members => users_list_parser,
       :list_statuses => timeline_parser,
       :streaming_status => streaming_status
     }[kind.to_sym][prop.to_sym] end
@@ -255,8 +259,9 @@ class Post
         tl = tl[self.rule(cache, :hasmany)]
       elsif not self.rule(cache, :hasmany)
         tl = [tl] end
-      result = tl.map{ |msg| self.scan_rule(cache, msg) }
+      result = tl.map{ |msg| self.scan_rule(cache, msg) }.freeze
       store(cache.to_s + "_lastid", result.first['id']) if result.first
+      Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
       result end end
 
   # ポストキューにポストを格納する

@@ -46,11 +46,12 @@ Module.new do
     end
   end
 
-  def self.onmention(post, messages)
-    if(not first?(:mention)) then
+  def self.onmention(post, raw_messages)
+    messages = raw_messages.select{ |m| not m.from_me? }
+    if not(first?(:mention) or messages.empty?) then
       if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention]) then
         messages.each{ |message|
-          self.notify(message[:user], message) if not message.from_me?
+          self.notify(message[:user], message)
         }
       end
       if(UserConfig[:notify_sound_mention]) then
