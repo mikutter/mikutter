@@ -81,25 +81,21 @@ module MIKU
       setf(symtable, *args)
     end
 
-    def value(symtable, symbol)
-      if symbol.is_a? Symbol
-        symtable[symbol].car
-      else
-        symbol end end
-
     def function(symtable, symbol)
       if symbol.is_a? Symbol
         symtable[symbol].cdr
       else
         symbol end end
 
+    def macro(*args)
+      negi(*args).extend(Miku::Macro) end
+
     def negi(parenttable, alist, *body)
       lambda{ |*args|
         symtable = parenttable.miracle_binding(alist, args)
         body.inject(nil){ |last, operator|
           symtable[:last] = last
-          eval(symtable, operator) } }
-    end
+          eval(symtable, operator) } } end
 
   end
 end

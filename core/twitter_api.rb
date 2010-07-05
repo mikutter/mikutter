@@ -193,13 +193,14 @@ class TwitterAPI < Mutex
     result end
 
   def cacheing(path, body)
-    cachefn = File::expand_path('~/.mikutter/queries/' + path)
+    cachefn = File::expand_path(Config::CACHE + path)
     FileUtils.mkdir_p(File::dirname(cachefn))
+    FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
     file_put_contents(cachefn, body) end
 
   def get_cache(path)
-    cache_path = File::expand_path('~/.mikutter/queries/' + path)
-    if FileTest.exist?(cache_path)
+    cache_path = File::expand_path(Config::CACHE + path)
+    if FileTest.file?(cache_path)
       return Class.new{
         define_method(:body){
           file_get_contents(cache_path) }

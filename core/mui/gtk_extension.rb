@@ -136,4 +136,8 @@ def Gtk::openurl(url)
     shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
     shellExecuteA.call(0, 'open', url, 0, 0, 1)
   else
-    system("/etc/alternatives/x-www-browser #{url} &") || system("firefox #{url} &") end end
+    if command_exist?('xdg-open')
+      command = 'xdg-open'
+    else
+      command = '/etc/alternatives/x-www-browser' end
+    system("#{command} #{url} &") || system("firefox #{url} &") end end

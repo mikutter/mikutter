@@ -46,7 +46,7 @@ Module.new do
                   :message => m.message,
                   :icon => MUI::Skin.get("list.png")) } } }
 
-  plugin.add_event(:boot){ |service, messages|
+  plugin.add_event(:appear){ |messages|
     tabclass.tabs.each{ |tab|
       rel = messages.select{ |message| message.receive_message and
         tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i) }

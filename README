@@ -25,7 +25,7 @@ mikutter - powerful, moeful and useful twitter client
 
 ** Debian/Ubuntuでのインストール方法
 1. aptでインストール
-   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8
+   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
 2. 推奨パッケージたち（オプション）
    - sudo aptitude install libnotify-bin
    -> 共通の設定へ

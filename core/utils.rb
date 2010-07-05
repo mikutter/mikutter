@@ -30,7 +30,7 @@ def miquire(kind, file=nil)
   when :user_plugin
     path = '../plugin/'
   else
-    path = '' + kind.to_s + '/'
+    path = kind.to_s + '/'
   end
   if file then
     if kind == :lib
@@ -39,7 +39,7 @@ def miquire(kind, file=nil)
     else
       require path + file.to_s end
   else
-    Dir.glob(path + "*.rb"){ |rb|
+    Dir.glob(path + "*.rb").sort.each{ |rb|
       require rb } end end
 
 Dir::chdir(File::dirname(__FILE__))

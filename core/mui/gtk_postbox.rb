@@ -110,9 +110,12 @@ module Gtk
               Delayer.new{ destroy } end } end } end
 
     def post_is_empty?
-      return true if (@post.buffer.text == "")
-      return true if (defined? @watch[:user]) and (@post.buffer.text == '@'+@watch[:user][:idname] + ' ')
-      false end
+      @post.buffer.text == "" or
+        (defined?(@watch[:user]) and
+         @post.buffer.text == "@#{@watch[:user][:idname]} ") end
+#       return true if (@post.buffer.text == "")
+#       return true if (defined? @watch[:user]) and (@post.buffer.text == '@'+@watch[:user][:idname] + ' ')
+#       false end
 
     def brothers
       if(@options[:postboxstorage])

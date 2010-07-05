@@ -8,7 +8,7 @@ module MIKU
 
     def []=(key, val)
       if not(key.is_a?(Symbol)) then
-        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
       super(key, val) end
 
     def bind(key, val, setfunc)
@@ -20,12 +20,12 @@ module MIKU
 
     def set(key, val)
       if not(key.is_a?(Symbol)) then
-        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
       bind(key.to_sym, val, :setcar) end
 
     def defun(key, val)
       if not(key.is_a?(Symbol)) then
-        raise TypeError.new("#{key.class}(#{key.inspect})に値を代入しようとしました") end
+        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
       bind(key.to_sym, val, :setcdr) end
 
     def miracle_binding(keys, values)

@@ -73,9 +73,9 @@ Module.new do
     goaisatsu = Gtk::VBox.new(false, 0)
     box = Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
-    #Delayer.new(Delayer::NORMAL, goaisatsu, request_token.authorize_url){ |w, url|
-      goaisatsu.add(Gtk::Mumble.new(Message.new(:message => hello(request_token.authorize_url), :system => true)))
-    # }
+    Delayer.new(Delayer::NORMAL, goaisatsu, request_token.authorize_url){ |w, url|
+      w.add(Gtk::Mumble.new(Message.new(:message => hello(url, :system => true)))).show_all
+    }
     user, key_input = gen_input('暗証番号', true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token

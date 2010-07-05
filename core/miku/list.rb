@@ -11,12 +11,16 @@ module MIKU
     end
 
     def nth(n)
-      nthcdr(n).car
+      result = nthcdr(n)
+      if not result.respond_to?(:car)
+        raise ExceptionDelegator.new("nthがリストではないもの(#{MIKU.unparse self}の#{n}番目)に対して使われました", TypeError)
+      end
+      result.car
     end
 
     def nthcdr(n)
       return self if(n <= 0)
-      self.cdr[n-1]
+      self.cdr.nthcdr(n-1)
     end
 
     def list_check(symtable, list)
@@ -25,15 +29,19 @@ module MIKU
     end
 
     def miku_eval(symtable=SymbolTable.new)
-      operator = get_function(symtable)
-      if operator.is_a? Primitive
-        operator.call(symtable, *cdr.to_a)
-      elsif defined? operator.call
-        operator.call(*evaluate_args(symtable))
-      elsif operator.is_a? Symbol
-        call_rubyfunc(operator, *evaluate_args(symtable))
-      else
-        raise NoMithodError.new(operator, self)
+      begin
+        operator = get_function(symtable)
+        if operator.is_a? Primitive
+          operator.call(symtable, *cdr.to_a)
+        elsif defined? operator.call
+          operator.call(*evaluate_args(symtable))
+        elsif operator.is_a? Symbol
+          call_rubyfunc(operator, *evaluate_args(symtable))
+        else
+          raise NoMithodError.new(operator, self)
+        end
+      rescue ExceptionDelegator => e
+        e.fire(self)
       end
     end
 

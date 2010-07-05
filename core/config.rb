@@ -25,6 +25,9 @@ module Config
   # ログディレクトリ
   LOGDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}log#{File::SEPARATOR}"
 
+  # キャッシュディレクトリ
+  CACHE = "#{CONFROOT}cache#{File::SEPARATOR}"
+
   # AutoTag有効？
   AutoTag = false
 
