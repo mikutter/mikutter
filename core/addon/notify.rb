@@ -33,8 +33,9 @@ Module.new do
     box.pack_start(Mtk.adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end
 
-  def self.onupdate(post, messages)
-    if(not first?(:update)) then
+  def self.onupdate(post, raw_messages)
+    messages = raw_messages.select{ |m| not(m.from_me? or m.to_me?) }
+    if not(first?(:update) or messages.empty?) then
       if(UserConfig[:notify_friend_timeline]) then
         messages.each{ |message|
           self.notify(message[:user], message) if not message.from_me?
@@ -60,8 +61,8 @@ Module.new do
     end
   end
 
-  def self.onfollowed(post, messages)
-    if(not first?(:followed)) then
+  def self.onfollowed(post, raw_messages)
+    if not(first?(:followed) or messages.empty?) then
       if(UserConfig[:notify_follower]) then
         messages.each{ |message|
           self.notify(user, 'にフォローされました。')

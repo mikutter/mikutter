@@ -12,25 +12,31 @@ module Gtk
       Lock.synchronize do
         self.border_width = 0
         self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
-        @evbox, @tl = gen_timeline
-        shell = Gtk::VBox.new(false, 0)
-        shell.pack_start(@evbox, false)
-        shell.pack_start(Gtk::VBox.new)
-        self.add_with_viewport(shell)
       end
       @mumbles = []
     end
 
+    def timeline
+      if defined? @tl
+        yield
+      else
+        @evbox, @tl = gen_timeline
+        yield
+        shell = Gtk::VBox.new(false, 0)
+        shell.pack_start(@evbox, false)
+        shell.pack_start(Gtk::VBox.new)
+        self.add_with_viewport(shell).show_all end end
+
     def each(&iter)
-      @tl.children.each(&iter) end
+      timeline{
+        @tl.children.each(&iter) } end
 
     def add(message)
-      if message.is_a?(Array) then
-        self.block_add_all(message)
-      else
-        self.block_add(message)
-      end
-    end
+      timeline{
+        if message.is_a?(Array) then
+          self.block_add_all(message)
+        else
+          self.block_add(message) end } end
 
     def block_add(message)
       Lock.synchronize do
@@ -61,40 +67,34 @@ module Gtk
     end
 
     def remove_if_exists_all(msgs)
-      msgs.each{ |m|
-        w = @tl.children.find{ |x| x[:id] == m[:id] }
-        @tl.remove(w) if w }
+      if defined? @tl
+        msgs.each{ |m|
+          w = @tl.children.find{ |x| x[:id] == m[:id] }
+          @tl.remove(w) if w } end
       self end
 
     def all_id
-      @tl.children.map{ |x| x[:id].to_i }
-    end
+      if defined? @tl
+        @tl.children.map{ |x| x[:id].to_i }
+      else
+        [] end end
 
     def clear
-      Lock.synchronize do
-        @tl.children.each{ |elm|
-          @tl.remove(elm)
-        }
-      end
-    end
+      if defined? @tl
+        Lock.synchronize do
+          @tl.children.each{ |elm|
+            @tl.remove(elm) } end end
+      self end
 
     def should_return_top?
       Gtk::PostBox.list.each{ |w|
-        if w.get_ancestor(Gtk::TimeLine) == self then
-          if w.return_to_top then
-            return w.posting?
-          end
-        end
-      }
-      false
-    end
+        return w.posting? if w.get_ancestor(Gtk::TimeLine) == self and w.return_to_top }
+      false end
 
     def has_mumbleinput?
       Gtk::PostBox.list.each{ |w|
-        return true if w.get_ancestor(Gtk::TimeLine) == self
-      }
-      false
-    end
+        return true if w.get_ancestor(Gtk::TimeLine) == self }
+      false end
 
     def gen_timeline
       Lock.synchronize do

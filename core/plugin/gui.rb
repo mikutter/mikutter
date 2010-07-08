@@ -286,15 +286,21 @@ plugin.add_event(:boot, &gui.method(:onboot))
 plugin.add_event(:mui_tab_regist, &gui.method(:regist_tab))
 
 plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
+
 plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
+
 plugin.add_event(:apilimit){ |time|
   Plugin.call(:update, nil, Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
                                         :system => true))
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") }
+
 plugin.add_event(:apifail){ |errmes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{errmes})") }
-plugin.add_event(:apiremain){ |remain, time|
+
+last_transaction = ''
+plugin.add_event(:apiremain){ |remain, time, transaction|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "API あと#{remain}回くらい (#{time.strftime('%H:%M')}まで)") }
+
 plugin.add_event(:rewindstatus){ |mes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), mes) }
 

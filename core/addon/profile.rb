@@ -36,15 +36,41 @@ Module.new do
       style end
 
     def profile
+      relationbox = Gtk::HBox.new(false, 0)
+      relation = relationbox #Gtk::EventBox.new.add(relationbox)
       eventbox = Gtk::EventBox.new
       eventbox.signal_connect('visibility-notify-event'){
         eventbox.style = background_color
         false }
+      @service.call_api(:friendship,
+                        :target_screen_name => user[:idname],
+                        :source_screen_name => @service.user){ |res|
+        res = res.first
+        relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
+                                    if res[:followed_by] then 'す' else 'せん' end)).
+        closeup(followbutton(res[:user], res[:following]))
+        relation.show_all }
       eventbox.add(Gtk::VBox.new(false, 0).
                    closeup(toolbar).
                    add(Gtk::HBox.new(false, 16).
                        closeup(Gtk::WebIcon.new(user[:profile_image_url]).top).
-                       add(Gtk::VBox.new(false, 0).add(main(eventbox))))) end
+                       add(Gtk::VBox.new(false, 0).add(main(eventbox)).add(relation)))) end
+
+    def followbutton(user, following)
+      def face(flag)
+        if flag then 'リムーブする' else 'フォローする' end end
+      btn = nil
+      changer = lambda{ |new, widget|
+        if new === nil
+          following
+        else
+          widget.sensitive = false
+          @service.method(new ? :follow : :unfollow).call(user){ |event, msg|
+            case event
+            when :exit
+              Delayer.new{
+                widget.sensitive = true } end } end }
+      btn = Mtk::boolean(changer, 'フォロー') end
 
     def toolbar
       container = Gtk::HBox.new(false, 0)

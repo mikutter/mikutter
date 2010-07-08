@@ -44,8 +44,8 @@ module Mtk
           UserConfig[key] = new end } end
     input = Gtk::CheckButton.new(label)
     input.signal_connect('toggled'){ |widget|
-      proc.call(widget.active?) }
-    input.active = proc.call(nil)
+      proc.call(*[widget.active?, widget][0, proc.arity]) }
+    input.active = proc.call(*[nil, input][0, proc.arity])
     return input
   end
 

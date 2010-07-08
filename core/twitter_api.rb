@@ -360,6 +360,12 @@ class TwitterAPI < Mutex
     get_with_auth(path, head)
   end
 
+  def friendship(args = {})
+    path = '/friendships/show.' + FORMAT + get_args(args)
+    head = {'Host' => HOST}
+    get(path, head)
+  end
+
   def friends(args = {})
     path = '/statuses/friends.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
@@ -483,6 +489,12 @@ class TwitterAPI < Mutex
     data = ''
     head = {'Host' => HOST}
     post_with_auth("/friendships/create/#{user[:id]}.#{FORMAT}", data, head)
+  end
+
+  def unfollow(user)
+    data = ''
+    head = {'Host' => HOST}
+    post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}", data, head)
   end
 
   def get_args(args)

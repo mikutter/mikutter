@@ -215,6 +215,16 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
+    friendship = {
+      :hasmany => false,
+      :class => shell_class,
+      :method => :new_ifnecessary,
+      :proc => lambda{ |msg|
+        msg = msg['relationship']
+        Hash[:following, msg['source']['following'],     # 自分がフォローしているか
+             :followed_by, msg['source']['followed_by'], # 相手にフォローされているか
+             :user, User.new_ifnecessary(:idname => msg['target']['screen_name'], # 相手
+                                         :id => msg['target']['id'])] } }
     { :friends_timeline => timeline_parser,
       :user_timeline => timeline_parser,
       :replies => timeline_parser,
@@ -237,7 +247,8 @@ class Post
       :list_subscriptions => lists_parser,
       :list_members => users_list_parser,
       :list_statuses => timeline_parser,
-      :streaming_status => streaming_status
+      :streaming_status => streaming_status,
+      :friendship => friendship,
     }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)
@@ -265,16 +276,16 @@ class Post
       result end end
 
   # ポストキューにポストを格納する
-  define_postal :update, :retweet, :destroy, :search_create
+  define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow
   alias post update
 
-  def follow(user)
-    if $quiet then
-      notice "follow:#{user.inspect}"
-      notice 'Actually, this post does not send.'
-    else
-      self._post(user, :user_show) {|event, user|
-        twitter.follow(user) if(event == :try) } end end
+#   def follow(user)
+#     if $quiet then
+#       notice "follow:#{user.inspect}"
+#       notice 'Actually, this post does not send.'
+#     else
+#       self._post(user, :user_show) {|event, user|
+#         twitter.follow(user) if(event == :try) } end end
 
   def favorite(message, fav)
     if $quiet then

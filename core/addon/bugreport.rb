@@ -77,11 +77,11 @@ Module.new do
                                       'version' => Environment::VERSION })
           http.post('/', param) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
-        Plugin::Ring::fire(:update, [nil, Message.new(:message => "エラー報告を送信しました。ありがとう♡",
-                                                      :system => true)])
+        Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
+                                               :system => true)])
       rescue => e
-        Plugin::Ring::fire(:update, [nil, Message.new(:message => "ごめんなさい。エラー通知通知すらバグってるみたいだわ\n\n#{e.to_s}",
-                                                      :system => true)])
+        Plugin.call(:update, nil, [Message.new(:message => "ごめんなさい。エラー通知通知すらバグってるみたいだわ\n\n#{e.to_s}",
+                                               :system => true)])
       end } end
 
   def self.revision
