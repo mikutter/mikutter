@@ -49,6 +49,9 @@ class UserConfig
     # 通知を表示しておく秒数
     :notify_expire_time => 10,
 
+    # タブの並び順
+    :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
+
     # 常にURLを短縮
     :shrinkurl_always => true,
 

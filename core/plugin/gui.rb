@@ -15,9 +15,9 @@ module Plugin
   class GUI
     include ConfigLoader
 
-    class TabButton < Gtk::Button
+    module TabButton
       include Comparable
-      attr_accessor :pane, :label
+      attr_accessor :label
 
       def ==(other)
         @label == other.to_s end
@@ -43,29 +43,24 @@ module Plugin
     end
 
     def onboot(watch)
-      self._onboot(watch)
-    end
-
-    def _onboot(watch)
       Gtk::Lock.synchronize do
         self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user_by_cache}? みっくみくにしてやんよ")
         @window = self.gen_window()
         container = Gtk::VBox.new(false, 0)
         main = Gtk::HBox.new(false, 0)
+        @paneshell = Gtk::HBox.new(false, 0)
         @pane = Gtk::HBox.new(true, 0)
         sidebar = Gtk::VBox.new(false, 0)
         mumbles = Gtk::VBox.new(false, 0)
         postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
         mumbles.pack_start(postbox)
         @window.set_focus(postbox.post)
-        @pane.pack_end(self.book)
-        main.pack_start(@pane)
-        sidebar.pack_start(self.tab, false)
-        main.pack_start(sidebar, false)
-        container.pack_start(mumbles, false)
-        container.pack_start(main)
-        container.pack_start(self.statusbar, false)
-        @window.add(container)
+        UserConfig[:tab_order] = UserConfig[:tab_order].select{ |n| not n.empty? }
+        UserConfig[:tab_order].size.times{ |cnt|
+          @pane.pack_end(self.books(cnt)) }
+        main.pack_start(@paneshell.pack_end(@pane)).closeup(sidebar)
+        newpane
+        @window.add(container.closeup(mumbles).pack_start(main).closeup(self.statusbar))
         set_icon
         @window.show_all
       end
@@ -76,8 +71,8 @@ module Plugin
     end
 
     def on_mui_tab_active(tab)
-      index = get_tabindex(tab)
-      self.book.set_page(index) if index
+      book_id, index = get_tabindex(tab)
+      self.books(book_id).set_page(index) if index
     end
 
     def statusbar
@@ -88,99 +83,87 @@ module Plugin
       @statusbar
     end
 
-    def get_tabindex(label)
-      pane = get_tabpane(label)
-      self.book.n_pages.times{ |index|
-        return index if self.book.get_nth_page(index) == pane }
-    end
-
-    def get_tabpane(label)
-      result = self.tab.children.find{ |w| w.label == label }
-      result.pane if result
-    end
-
-    def gen_tabbutton(container, label, image=nil)
-      widget =TabButton.new
-      Gtk::Tooltips.new.set_tip(widget, label, nil)
-      widget.pane = container
-      widget.label = label
-      if image
-        widget.add(Gtk::WebIcon.new(image, 24, 24))
-      else
-        widget.add(gen_label(label)) end
-      widget.signal_connect('clicked'){ |w|
-        @tab_log.delete(w.label)
-        @tab_log.unshift(w.label)
-        index = get_tabindex(w.label)
-        self.book.page = index if index
+    def gen_book
+      book = Gtk::Notebook.new.set_tab_pos(Gtk::POS_RIGHT).set_tab_border(0).set_group_id(0).set_scrollable(true)
+      book.signal_connect('page-reordered'){
+        UserConfig[:tab_order] = books_labels
         false }
-      widget.signal_connect('key_press_event'){ |w, event|
-        Gtk::Lock.synchronize{
-          case event.keyval
-          when 65361:
-              index = get_tabindex(w.label)
-              if index then
-                self.book.remove_page(index)
-                @book_children.delete(w.label)
-                @pane.pack_end(w.pane) end
-          when 65363:
-              if not @book_children.include?(w.label) then
-                @pane.remove(w.pane)
-                self.book.append_page(w.pane)
-                @book_children << w.label end end }
-        true }
-      widget end
+      book.signal_connect('page-removed'){
+        book.parent.remove(book) if book.children.empty?
+        false }
+      book end
+
+    def newpane
+      book = gen_book.set_width_request(16)
+      page_added = book.signal_connect('page-added'){
+        book.signal_handler_disconnect(page_added)
+        book.reparent(@pane)
+        @books << book
+        UserConfig[:tab_order] = books_labels
+        newpane
+        false }
+      @paneshell.pack_end(book, false).show_all
+    end
+
+    def books(page = nil)
+      Gtk::Lock.synchronize do
+        @books = [] if not(@books)
+        if page === nil
+          return @books
+        elsif not @books[page]
+          @books[page] = gen_book end end
+      @books[page] end
+
+    def get_tabindex(label)
+      books.each_with_index{ |book, book_id|
+        book.children.each_with_index{ |child, index|
+          return book_id, index if book.get_menu_label(child).text == label } } end
+
+    def books_labels
+      books.map{ |book|
+        book.children.map{ |child|
+          book.get_menu_label(child).text } } end
+
+    def book_labels(book_id)
+      books(book_id).children.map{ |child|
+        books(book_id).get_menu_label(child).text } end
+
+    def belong_book(label)
+      UserConfig[:tab_order].each_with_index{ |labels, index|
+        return index if labels.include?(label) }
+      nil end
+
+    def order_in_book(book_id)
+      UserConfig[:tab_order][book_id] end
 
     def regist_tab(container, label, image=nil)
       default_active = 'Home Timeline'
-      order = ['Home Timeline', 'Replies', 'Search', 'Settings']
-      @@mutex.synchronize{
-        @book_children = [] if not(@book_children)
-        Gtk::Lock.synchronize{
-          idx = where_should_insert_it(label, @book_children, order)
-          self.book.insert_page(idx, container, gen_label(label))
-          @book_children.insert(idx, label)
-          @tab_log.push(label)
-          self.tab.pack(gen_tabbutton(container, label, image).show_all, false)
-          container.show_all } } end
+      Gtk::Lock.synchronize{
+        book_id = (belong_book(label) or 0)
+        puts "#{label}: book#{book_id}"
+        idx = where_should_insert_it(label, book_labels(book_id), order_in_book(book_id))
+        tab_label = Gtk::EventBox.new.tooltip(label)
+        if image.is_a?(String)
+          tab_label.add(Gtk::WebIcon.new(image, 24, 24))
+        else
+          tab_label.add(Gtk::Label.new(label)) end
+        tab_label.extend(TabButton).label = label
+        books(book_id).insert_page_menu(idx, container, tab_label.show_all, Gtk::Label.new(label))
+        books(book_id).set_tab_reorderable(container, true).set_tab_detachable(container, true)
+        @tab_log.push(label)
+        container.show_all } end
 
     def focus_before_tab(label)
       @tab_log.delete(label)
-      idx = get_tabindex(@tab_log.first)
-      # self.book.get_nth_page(idx)
-      self.book.set_page(idx)
+      book_id, idx = get_tabindex(@tab_log.first)
+      self.books(book_id).set_page(idx)
     end
 
     def remove_tab(label)
-      index = get_tabindex(label)
+      book_id, index = get_tabindex(label)
       if index
         focus_before_tab(label)
-        w = self.tab.children.find{ |node| node.label == label }
-        self.book.remove_page(index)
-        @pane.remove(w.pane)
-        self.tab.remove(w) end end
-
-    def tab
-      Gtk::Lock.synchronize do
-        if not(defined? @tabbar) then
-          order = ['Home Timeline', 'Replies', 'Search', 'Settings']
-          @tabbar = Gtk::PriorityVBox.new(false, 0){ |w, tabbar|
-           0 - (@book_children.index(w.label) or 0)
-          } end end
-      @tabbar end
-
-    def book()
-      @@mutex.synchronize{
-        Gtk::Lock.synchronize do
-          if not(@book) then
-            @book = Gtk::Notebook.new
-            @book.set_tab_pos(Gtk::POS_RIGHT)
-            @book.set_show_tabs(false)
-          end
-        end
-      }
-      return @book
-    end
+        self.books(book_id).remove_page(index) end end
 
     def gen_toolbar(posts, watch)
       Gtk::Lock.synchronize do
@@ -237,9 +220,6 @@ module Plugin
         position = at(:position, [Gdk.screen_width - size[0], Gdk.screen_height/2 - size[1]/2])
         window.set_default_size(*size)
         window.move(*position)
-        #window.set_app_paintable(true)
-        #window.realize
-        #self.background(window)
         this = self
         window.signal_connect("destroy"){
           Gtk::Lock.synchronize do
