@@ -13,7 +13,7 @@ if not $loaded_miku
 
   def miku(node, scope=MIKU::SymbolTable.new)
     if(node.is_a? MIKU::Node) then
-      node.miku_eval(scope)
+      MIKU::Primitive.macro_expand(scope, node).miku_eval(scope)
     else
       node
     end

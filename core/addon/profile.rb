@@ -35,21 +35,25 @@ Module.new do
       style.set_bg(Gtk::STATE_NORMAL, 0xFF ** 2, 0xFF ** 2, 0xFF ** 2)
       style end
 
-    def profile
+    def relation
       relationbox = Gtk::HBox.new(false, 0)
-      relation = relationbox #Gtk::EventBox.new.add(relationbox)
+      if user[:idname] == @service.user
+        relationbox.add(Gtk::Label.new('それはあなたです！'))
+      else
+        @service.call_api(:friendship,
+                          :target_screen_name => user[:idname],
+                          :source_screen_name => @service.user){ |res|
+          res = res.first
+          relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
+                                             if res[:followed_by] then 'す' else 'せん' end)).
+          closeup(followbutton(res[:user], res[:following])).show_all } end
+      relationbox end
+
+    def profile
       eventbox = Gtk::EventBox.new
       eventbox.signal_connect('visibility-notify-event'){
         eventbox.style = background_color
         false }
-      @service.call_api(:friendship,
-                        :target_screen_name => user[:idname],
-                        :source_screen_name => @service.user){ |res|
-        res = res.first
-        relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
-                                    if res[:followed_by] then 'す' else 'せん' end)).
-        closeup(followbutton(res[:user], res[:following]))
-        relation.show_all }
       eventbox.add(Gtk::VBox.new(false, 0).
                    closeup(toolbar).
                    add(Gtk::HBox.new(false, 16).

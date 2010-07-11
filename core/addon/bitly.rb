@@ -34,7 +34,6 @@ class Bitly < MessageConverters
                rescue JSON::ParserError
                  nil
                end
-      p result
       return Hash[ *result['results'].map{|pair| [pair[0], pair[1]['shortUrl']] }.flatten ] if result
       sleep(1) }
     nil end end

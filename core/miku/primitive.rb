@@ -1,5 +1,6 @@
 require 'atom'
 require 'error'
+require 'macro'
 
 module MIKU
   class Primitive
@@ -22,10 +23,10 @@ module MIKU
           result << eval(symtable, n[1])
         elsif n.car == :comma_at then
           list = eval(symtable, n[1])
-          raise ArgumentError.new(',@がリスト以外に対して適用されました') if not list.is_a?(List)
-          result.concat(list)
+          raise ExceptionDelegator.new(',@がリスト以外に対して適用されました', ArgumentError) if not list.is_a?(List)
+          result.concat(list) if list
         else
-          result << n
+          result << backquote(symtable, n)
         end
       }
       result
@@ -64,7 +65,7 @@ module MIKU
     end
 
     def set(symtable, key, val, *args)
-      raise ArgumentError('setに与える引数は偶数個にして下さい') if args.size == 1
+      raise ExceptionDelegator.new('setに与える引数は偶数個にして下さい', ArgumentError) if args.size == 1
       key = eval(symtable, key)
       val = eval(symtable, val)
       symtable.set(key, val)
@@ -73,7 +74,7 @@ module MIKU
     end
 
     def defun(symtable, key, val, *args)
-      raise ArgumentError('defunに与える引数は偶数個にして下さい') if args.size == 1
+      raise ExceptionDelegator.new('defunに与える引数は偶数個にして下さい', ArgumentError) if args.size == 1
       key = eval(symtable, key)
       val = eval(symtable, val)
       symtable.defun(key, val)
@@ -87,10 +88,25 @@ module MIKU
       else
         symbol end end
 
-    def macro(*args)
-      negi(*args).extend(Miku::Macro) end
+    def macro_expand(symtable, body)
+      self.class.macro_expand(symtable, body) end
+
+    def self.macro_expand(symtable, body)
+      if body.is_a? List
+        macro = body.get_function(symtable)
+        return do_macro_expand(symtable.ancestor, body) if macro.is_a? MIKU::Macro
+      end
+      body end
+
+    def self.do_macro_expand(symtable, body)
+      body.get_function(symtable).call(*body.cdr.to_a) end
+
+
+    def macro(parenttable, alist, *body)
+      negi(parenttable, alist, *body).extend(MIKU::Macro) end
 
     def negi(parenttable, alist, *body)
+      body = body.map{ |node| macro_expand(parenttable, node) }
       lambda{ |*args|
         symtable = parenttable.miracle_binding(alist, args)
         body.inject(nil){ |last, operator|

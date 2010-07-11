@@ -188,8 +188,8 @@ module Retriever
           if detection
             result = detection
             throw :found end } }
-        self.retrievers_reorder
-        self.new_ifnecessary(result) if result end
+      self.retrievers_reorder
+      self.new_ifnecessary(result) if result end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym

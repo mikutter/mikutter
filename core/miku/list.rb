@@ -29,25 +29,34 @@ module MIKU
     end
 
     def miku_eval(symtable=SymbolTable.new)
+      result = nil
       begin
         operator = get_function(symtable)
         if operator.is_a? Primitive
-          operator.call(symtable, *cdr.to_a)
+          result = operator.call(symtable, *cdr.to_a)
         elsif defined? operator.call
-          operator.call(*evaluate_args(symtable))
+          result = operator.call(*evaluate_args(symtable))
         elsif operator.is_a? Symbol
-          call_rubyfunc(operator, *evaluate_args(symtable))
+          result = call_rubyfunc(operator, *evaluate_args(symtable))
         else
           raise NoMithodError.new(operator, self)
         end
       rescue ExceptionDelegator => e
         e.fire(self)
       end
-    end
+      if result.is_a? List
+        result.extend(StaticCode).staticcode_copy_info(self)
+      else
+        result end end
 
     def call_rubyfunc(fn, receiver, *args)
       if receiver.respond_to?(fn)
-        receiver.__send__(fn, *args)
+        begin
+          receiver.__send__(fn, *args)
+        rescue => e
+          p [fn, receiver, *args]
+          raise e
+        end
       else
         raise NoMithodError.new(fn, self) end end
 

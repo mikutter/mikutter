@@ -109,11 +109,10 @@ module Plugin
       else
         widget.add(gen_label(label)) end
       widget.signal_connect('clicked'){ |w|
-        Gtk::Lock.synchronize{
-          @tab_log.delete(w.label)
-          @tab_log.unshift(w.label)
-          index = get_tabindex(w.label)
-          self.book.page = index if index }
+        @tab_log.delete(w.label)
+        @tab_log.unshift(w.label)
+        index = get_tabindex(w.label)
+        self.book.page = index if index
         false }
       widget.signal_connect('key_press_event'){ |w, event|
         Gtk::Lock.synchronize{
@@ -297,9 +296,16 @@ plugin.add_event(:apilimit){ |time|
 plugin.add_event(:apifail){ |errmes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{errmes})") }
 
-last_transaction = ''
+api_limit = {:ip_remain => '-', :ip_time => '-', :auth_remain => '-', :auth_time => '-'}
 plugin.add_event(:apiremain){ |remain, time, transaction|
-  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API あと#{remain}回くらい (#{time.strftime('%H:%M')}まで)") }
+  api_limit[:auth_remain] = remain
+  api_limit[:auth_time] = time.strftime('%H:%M')
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") }
+
+plugin.add_event(:ipapiremain){ |remain, time, transaction|
+  api_limit[:ip_remain] = remain
+  api_limit[:ip_time] = time.strftime('%H:%M')
+  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") }
 
 plugin.add_event(:rewindstatus){ |mes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), mes) }

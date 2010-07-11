@@ -66,6 +66,15 @@ class TwitterAPI < Mutex
     return *@api_remain
   end
 
+  def ip_api_remain(response = nil)
+    if response and response['X-RateLimit-Reset'] then
+      @ip_api_remain = [ response['X-RateLimit-Limit'].to_i,
+                      response['X-RateLimit-Remaining'].to_i,
+                      Time.at(response['X-RateLimit-Reset'].to_i) ]
+    end
+    return *@ip_api_remain
+  end
+
   def user
     nil
   end
@@ -219,22 +228,23 @@ class TwitterAPI < Mutex
       http = self.connection()
       http.start
       res = http.get(path, options[:head])
-      cacheing(path, res.body) if res.code == '200' and options.has_key?(:cache)
+      if res.is_a?(Net::HTTPResponse) and res.code == '200' and options.has_key?(:cache)
+        cacheing(path, res.body) end
     rescue Exception => evar
       res = evar
     ensure
       begin
         http.finish if http.active?
       rescue Exception => evar
-        Log.warn('TwitterAPI.get:finish') do "#{evar.inspect}" end
-      end
-    end
+        Log.warn('TwitterAPI.get:finish') do "#{evar.inspect}" end end end
     notice "#{path} => #{res}"
-    if defined?(res.code) and res.code == '400'
-      @@ip_limit_reset = Time.at(res['X-RateLimit-Reset'].to_i)
-      return get_with_auth(path, raw_options) end
-    res
-  end
+    if res.is_a? Net::HTTPResponse
+      limit, remain, reset = ip_api_remain(res)
+      Plugin.call(:ipapiremain, remain, reset)
+      if res.code == '400'
+        @@ip_limit_reset = reset # Time.at(res['X-RateLimit-Reset'].to_i)
+        return get_with_auth(path, raw_options) end
+      res end end
 
   def get_with_auth(path, raw_options)
     options = getopts(raw_options)

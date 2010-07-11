@@ -27,9 +27,7 @@ module MIKU
     elsif c == ',' then
       c = s.getc.chr
       if c == '@' then
-        list = _parse(s)
-        raise SyntaxError.new(',@がリスト以外に対して適用されました',s) if not list.is_a?(List)
-        [:comma_at, list]
+        [:comma_at, _parse(s)]
       else
         s.ungetc(c[0])
         [:comma, _parse(s)]

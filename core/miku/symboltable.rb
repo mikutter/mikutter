@@ -2,9 +2,18 @@ require 'error'
 
 module MIKU
   class SymbolTable < Hash
-    def initialize(parent = SymbolTable.defaults)
-      @parent = parent
-      super(){ |this, key| parent[key.to_sym] } end
+
+    def initialize(parent = nil)
+      if parent
+        @parent = parent
+      else
+        @parent = SymbolTable.defaults
+        def self.ancestor
+          self end end
+      super(){ |this, key| @parent[key.to_sym] } end
+
+    def ancestor
+      @parent.ancestor end
 
     def []=(key, val)
       if not(key.is_a?(Symbol)) then
@@ -32,9 +41,13 @@ module MIKU
       result = SymbolTable.new(self)
       count = 0
       values.each{ |val|
-        result[keys[count]] = Cons.new(val)
-        count += 1 }
-      p result
+        if keys[count].is_a? List
+          if keys[count][0] == :optional
+            result[keys[count][1]] = Cons.new(values[count, values.size])
+            return result end
+        else
+          result[keys[count]] = Cons.new(val) end
+        keys[count] }
       result
     end
 
@@ -51,7 +64,7 @@ module MIKU
 
     def self.defaults
       Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
-                      :if, :backquote) +
+                      :if, :backquote, :macro) +
              [:lambda , Cons.new(nil, Primitive.new(:negi))] +
              [:def , Cons.new(nil, Primitive.new(:defun))] + consts)] end
   end
