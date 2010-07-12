@@ -89,7 +89,8 @@ module Plugin
         UserConfig[:tab_order] = books_labels
         false }
       book.signal_connect('page-removed'){
-        book.parent.remove(book) if book.children.empty?
+        book.parent.remove(book) if book.children.empty? and book.parent
+        Delayer.new{ UserConfig[:tab_order] = books_labels }
         false }
       book end
 

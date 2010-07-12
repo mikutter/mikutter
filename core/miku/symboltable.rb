@@ -3,13 +3,17 @@ require 'error'
 module MIKU
   class SymbolTable < Hash
 
-    def initialize(parent = nil)
+    # :caller-file "呼び出し元ファイル名"
+    # :caller-line 行
+    # :caller-function :関数名
+    def initialize(parent = nil, default = {})
       if parent
         @parent = parent
       else
         @parent = SymbolTable.defaults
         def self.ancestor
           self end end
+      merge(default)
       super(){ |this, key| @parent[key.to_sym] } end
 
     def ancestor
@@ -17,7 +21,7 @@ module MIKU
 
     def []=(key, val)
       if not(key.is_a?(Symbol)) then
-        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
+        raise ExceptionDelegator.new("#{key.inspect} に値を代入しようとしました", TypeError) end
       super(key, val) end
 
     def bind(key, val, setfunc)
@@ -29,12 +33,12 @@ module MIKU
 
     def set(key, val)
       if not(key.is_a?(Symbol)) then
-        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
+        raise ExceptionDelegator.new("#{key.inspect} に値を代入しようとしました", TypeError) end
       bind(key.to_sym, val, :setcar) end
 
     def defun(key, val)
       if not(key.is_a?(Symbol)) then
-        raise ExceptionDelegator.new("#{key.class}(#{key.inspect})に値を代入しようとしました", TypeError) end
+        raise ExceptionDelegator.new("#{key.inspect} に値を代入しようとしました", TypeError) end
       bind(key.to_sym, val, :setcdr) end
 
     def miracle_binding(keys, values)
@@ -48,8 +52,7 @@ module MIKU
         else
           result[keys[count]] = Cons.new(val) end
         keys[count] }
-      result
-    end
+      result end
 
     def self.defsform(fn=nil, *other)
       return [] if fn == nil
