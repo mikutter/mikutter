@@ -83,13 +83,18 @@ module Plugin
       @statusbar
     end
 
+    TABPOS = [Gtk::POS_TOP, Gtk::POS_BOTTOM, Gtk::POS_LEFT, Gtk::POS_RIGHT]
     def gen_book
-      book = Gtk::Notebook.new.set_tab_pos(Gtk::POS_RIGHT).set_tab_border(0).set_group_id(0).set_scrollable(true)
+      book = Gtk::Notebook.new.set_tab_pos(TABPOS[UserConfig[:tab_position]]).set_tab_border(0).set_group_id(0).set_scrollable(true)
+      tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
+        book.set_tab_pos(TABPOS[val]) }
       book.signal_connect('page-reordered'){
         UserConfig[:tab_order] = books_labels
         false }
       book.signal_connect('page-removed'){
-        book.parent.remove(book) if book.children.empty? and book.parent
+        if book.children.empty? and book.parent
+          UserConfig.disconnect(tab_position_hook_id)
+          book.parent.remove(book) end
         Delayer.new{ UserConfig[:tab_order] = books_labels }
         false }
       book end

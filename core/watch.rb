@@ -7,6 +7,7 @@ miquire :core, 'userconfig'
 
 require 'singleton'
 require 'set'
+require 'pp'
 
 class Watch
   include Singleton
@@ -55,9 +56,12 @@ class Watch
       },
       :followed => {
         :interval => UserConfig[:retrieve_interval_followed],
-        :options => {:count => UserConfig[:retrieve_count_followed]},
-        :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, users|
-          event_booking[:followers].concat(users)
+        :options => {
+          :count => UserConfig[:retrieve_count_followed],
+          :no_auto_since_id => true,
+        },
+        :proc => Watch.scan_and_yield(:followers){ |name, post, users|
+          event_booking[:followed].concat(users.reverse)
         }
       } }, lambda{ event_booking } end
 

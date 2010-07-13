@@ -16,7 +16,7 @@ module Mtk
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
   end
 
-  def self.chooseone(label, config_key, values)
+  def self.chooseone(config_key, label, values)
     container = Gtk::HBox.new(false, 0)
     input = Gtk::ComboBox.new(true)
     values.keys.sort.each{ |key|

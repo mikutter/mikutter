@@ -13,6 +13,7 @@ Module.new do
                       Mtk.colorselect(:mumble_reply_bg, '自分宛'),
                       Mtk.colorselect(:mumble_self_bg, '自分のつぶやき'))).
     closeup(Mtk.boolean(:show_cumbersome_buttons, 'つぶやきの右側にボタンを表示する')).
+    closeup(Mtk.chooseone(:tab_position, 'タブの位置', 0 => '上', 1 => '下', 2 => '左', 3 => '右')).
     closeup(Mtk.default_or_custom(:url_open_command, 'URLを開く方法', 'デフォルトブラウザを使う', '次のコマンドを使う'))
 
   plugin = Plugin::create(:set_view)

@@ -42,7 +42,7 @@ Module.new do
   retrieve_count.add(rcbox)
   rcbox.pack_start(Mtk.adjustment('タイムラインとリプライ', :retrieve_count_friendtl, 1, 3200), false)
   rcbox.pack_start(Mtk.adjustment('フォローしていない人からのリプライ', :retrieve_count_mention, 1, 3200), false)
-  rcbox.pack_start(Mtk.adjustment('フォロワー', :retrieve_interval_followed, 1, 3200), false)
+  rcbox.pack_start(Mtk.adjustment('フォロワー', :retrieve_count_followed, 1, 3200), false)
   box.pack_start(retrieve_interval, false)
   box.pack_start(retrieve_count, false)
   box.pack_start(Mtk.boolean(:retrieve_force_mumbleparent, 'リプライ元をサーバに問い合わせて取得する'), false)

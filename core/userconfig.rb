@@ -52,6 +52,9 @@ class UserConfig
     # タブの並び順
     :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
 
+    # タブの位置 [上,下,左,右]
+    :tab_position => 3,
+
     # 常にURLを短縮
     :shrinkurl_always => true,
 
@@ -107,7 +110,7 @@ class UserConfig
     atomic{
       id = @@watcher_id_count
       @@watcher_id_count += 1
-      @@watcher[key] << id
+      @@watcher[key] = @@watcher[key].push(id)
       @@watcher_id[id] = watcher
       id
     }
