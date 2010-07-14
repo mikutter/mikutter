@@ -61,10 +61,10 @@ Module.new do
     end
   end
 
-  def self.onfollowed(post, raw_messages)
-    if not(first?(:followed) or messages.empty?) then
+  def self.onfollowed(post, users)
+    if not(first?(:followed) or users.empty?) then
       if(UserConfig[:notify_follower]) then
-        messages.each{ |message|
+        users.each{ |user|
           self.notify(user, 'にフォローされました。')
         }
       end

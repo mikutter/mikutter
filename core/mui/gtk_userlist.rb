@@ -48,7 +48,7 @@ module Gtk
           remove_if_exists_all([user])
         elsif not all_id.include?(user[:id])
           user = Gtk::User.new(user).show_all
-          @ul.pack_start(user, false)
+          @ul.pack_end(user, false)
           if(@ul.children.size > 200) then
             @ul.remove(@ul.children.last) end end end end
 

@@ -61,7 +61,7 @@ class Watch
           :no_auto_since_id => true,
         },
         :proc => Watch.scan_and_yield(:followers){ |name, post, users|
-          event_booking[:followed].concat(users.reverse)
+          event_booking[:followed].concat(users)
         }
       } }, lambda{ event_booking } end
 
