@@ -120,18 +120,34 @@ class Post
     elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
       args[:since_id] = at(kind.to_s + "_lastid")
     end
+    raw_text = args[:get_raw_text]
     args.delete(:no_auto_since_id)
-    result = parse_json(scan_data(kind, args), kind)
-    if(result) then
+    args.delete(:get_raw_text)
+    data = scan_data(kind, args)
+    if raw_text
+      result, json = parse_json(data, kind, true)
+    else
+      result = parse_json(data, kind) end
+    if(result)
       @scaned_events << kind.to_sym if(event_canceling)
-      return result.reverse
-    end
-  end
+      if raw_text
+        return result.reverse, json
+      else
+        result.reverse end
+    elsif raw_text
+      return nil, json end end
 
   def call_api(api, args = {})
     Thread.new{
-      Delayer.new(Delayer::NORMAL, self.scan(api.to_sym, args)){ |res|
-        yield res } } end
+      if args[:get_raw_text]
+        res, data = self.scan(api.to_sym, args)
+      else
+        res = self.scan(api.to_sym, args) end
+      Delayer.new{
+        if args[:get_raw_text]
+          yield res, data
+        else
+          yield res end } } end
 
   def search(q, args)
     args[:q] = q
@@ -159,7 +175,7 @@ class Post
     shell_class = Class.new do def self.new_ifnecessary(arg) arg end end
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
     users_parser = {
-      :hasmany => true,
+      :hasmany => 'users',
       :class => User,
       :method => :rewind,
       :proc => lambda{ |msg|
@@ -257,23 +273,28 @@ class Post
                                                                                  :post => self,
                                                                                  :exact => true }) end
 
-  def parse_json(json, cache='friends_timeline')
+  def parse_json(json, cache='friends_timeline', get_raw_data=false)
     if json then
       result = nil
-      tl = json
-      begin
-        tl = JSON.parse(json) if json.is_a?(String)
+      json = begin
+        JSON.parse(json) if json.is_a?(String)
       rescue JSON::ParserError
         warn "json parse error"
         return nil end
+      json.freeze
       if self.rule(cache, :hasmany).is_a?(String)
-        tl = tl[self.rule(cache, :hasmany)]
+        tl = json[self.rule(cache, :hasmany)]
       elsif not self.rule(cache, :hasmany)
-        tl = [tl] end
-      result = tl.map{ |msg| self.scan_rule(cache, msg) }.freeze
+        tl = [json]
+      else
+        tl = json end
+      result = tl.map{ |msg| scan_rule(cache, msg) }.freeze
       store(cache.to_s + "_lastid", result.first['id']) if result.first
       Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
-      result end end
+      if get_raw_data
+        return result, json
+      else
+        result end end end
 
   # ポストキューにポストを格納する
   define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow

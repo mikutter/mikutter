@@ -54,16 +54,25 @@ class Watch
           event_booking[:mypost].concat(messages.select{ |m| m.from_me? })
         }
       },
-      :followed => {
-        :interval => UserConfig[:retrieve_interval_followed],
-        :options => {
-          :count => UserConfig[:retrieve_count_followed],
-          :no_auto_since_id => true,
-        },
-        :proc => Watch.scan_and_yield(:followers){ |name, post, users|
-          event_booking[:followed].concat(users)
-        }
-      } }, lambda{ event_booking } end
+#       :followed => {
+#         :interval => UserConfig[:retrieve_interval_followed],
+#         :options => {
+#           :count => UserConfig[:retrieve_count_followed],
+#           :no_auto_since_id => true,
+#         },
+#         :proc => lambda{ |name, service, options|
+#           next_cursor = -1
+#           users = []
+#           while(next_cursor and next_cursor != 0)
+#             res, raw = service.scan(:followers,
+#                                     :id => service.user,
+#                                     :get_raw_text => true,
+#                                     :cursor => next_cursor)
+#             break if not res
+#             users.concat(res.reverse)
+#             next_cursor = raw['next_cursor'] end
+#           Plugin.call(:followed, service, users.reverse) if not users.empty? } }
+    }, lambda{ event_booking } end
 
   def initialize()
     @counter = 0

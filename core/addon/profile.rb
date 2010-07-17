@@ -44,6 +44,7 @@ Module.new do
                           :target_screen_name => user[:idname],
                           :source_screen_name => @service.user){ |res|
           res = res.first
+          p res
           relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
                                              if res[:followed_by] then 'す' else 'せん' end)).
           closeup(followbutton(res[:user], res[:following])).show_all } end

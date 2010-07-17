@@ -385,7 +385,7 @@ class TwitterAPI < Mutex
   def followers(args = {})
     path = '/statuses/followers.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
-    get_with_auth(path, head)
+    get(path, head)
   end
 
   def direct_messages(since = nil)
