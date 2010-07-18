@@ -44,14 +44,13 @@ class Post
   end
 
   def self.define_postal(api, *other)
-    define_method(api.to_sym){ |msg|
+    define_method(api.to_sym){ |msg, &proc|
       if $quiet then
-        Thread.new{
-          notice "#{api}:#{msg.inspect}"
-          notice 'Actually, this post does not send.' }
+        notice "#{api}:#{msg.inspect}"
+        notice 'Actually, this post does not send.'
       else
         self._post(msg, api.to_sym) {|event, msg|
-          Proc.new.call(event, msg) if(block_given?)
+          proc.call(event, msg) if(proc)
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg)
