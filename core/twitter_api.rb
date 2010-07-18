@@ -378,14 +378,20 @@ class TwitterAPI < Mutex
 
   def friends(args = {})
     path = '/statuses/friends.' + FORMAT + get_args(args)
-    head = {'Host' => HOST}
-    get_with_auth(path, head)
+    get(path, head(args))
   end
 
   def followers(args = {})
     path = '/statuses/followers.' + FORMAT + get_args(args)
-    head = {'Host' => HOST}
-    get(path, head)
+    get(path, head(args))
+  end
+
+  def friends_id(args = {})
+    get('/friends/ids.' + FORMAT + get_args(args), head(args))
+  end
+
+  def followers_id(args = {})
+    get('/followers/ids.' + FORMAT + get_args(args), head(args))
   end
 
   def direct_messages(since = nil)

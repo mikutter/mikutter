@@ -44,14 +44,14 @@ class Post
   end
 
   def self.define_postal(api, *other)
-    define_method(api.to_sym){ |msg, &proc|
+    define_method(api.to_sym){ |msg|
       if $quiet then
         Thread.new{
           notice "#{api}:#{msg.inspect}"
           notice 'Actually, this post does not send.' }
       else
         self._post(msg, api.to_sym) {|event, msg|
-          proc.call(event, msg) if(proc)
+          Proc.new.call(event, msg) if(block_given?)
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg)
@@ -149,6 +149,29 @@ class Post
         else
           yield res end } } end
 
+  def following_method(api, limit=-1, next_cursor=-1)
+    if(next_cursor and next_cursor != 0 and limit != 0)
+      res, raw = service.scan(api.to_sym,
+                              :id => service.user,
+                              :get_raw_text => true,
+                              :cursor => next_cursor)
+      return [] if not res
+      res.reverse.concat(following_method(api, limit-1, raw['next_cursor']))
+    else
+      [] end end
+
+  def followers(limit=-1, next_cursor=-1)
+    following_method(:followers, limit, next_cursor) end
+
+  def followers_id(limit=-1, next_cursor=-1)
+    following_method(:followers_id, limit, next_cursor) end
+
+  def friends(limit=-1, next_cursor=-1)
+    following_method(:friends, limit, next_cursor) end
+
+  def friends_id(limit=-1, next_cursor=-1)
+    following_method(:friends_id, limit, next_cursor) end
+
   def search(q, args)
     args[:q] = q
     Thread.new(){
@@ -241,11 +264,18 @@ class Post
              :followed_by, msg['source']['followed_by'], # 相手にフォローされているか
              :user, User.new_ifnecessary(:idname => msg['target']['screen_name'], # 相手
                                          :id => msg['target']['id'])] } }
+    ids = {
+      :hasmany => "ids",
+      :class => shell_class,
+      :method => :new_ifnecessary,
+      :proc => lambda{|x| {:id => x} } }
     { :friends_timeline => timeline_parser,
       :user_timeline => timeline_parser,
       :replies => timeline_parser,
-      :followers => users_parser,
       :friends => users_parser,
+      :followers => users_parser,
+      :friends_id => ids,
+      :followers_id => ids,
       :favorite => unimessage_parser,
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
