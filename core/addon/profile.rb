@@ -73,6 +73,7 @@ Module.new do
           @service.method(new ? :follow : :unfollow).call(user){ |event, msg|
             case event
             when :exit
+              Plugin::call(new ? :followings_created : :followings_destroy, @service, [user])
               Delayer.new{
                 widget.sensitive = true } end } end }
       btn = Mtk::boolean(changer, 'フォロー') end

@@ -28,7 +28,7 @@ module Gtk
       if defined? @ul
         yield
       else
-        @evbox, @ul = gen_userlist
+        @evbox, @ul, @treeview = gen_userlist
         yield
         self.add_with_viewport(Gtk::VBox.new(false, 0).
                                pack_start(@evbox, false).
@@ -52,7 +52,7 @@ module Gtk
           remove_if_exists_all([user])
         elsif not all_id.include?(user[:id])
           img = Gtk::WebIcon.new(user[:profile_image_url], 24, 24)
-          iter = @ul.append
+          iter = @ul.prepend
           iter[0] = img.pixbuf
           iter[1] = user[:idname]
           iter[2] = user[:name]
@@ -60,29 +60,28 @@ module Gtk
             define_method(:update){
               Delayer.new{
                 iter[0] = img.pixbuf } } }.new
-          @users.push(user)
+          @users.unshift(user)
         end end end
 
-    #changed
     def block_add_all(users)
       Lock.synchronize do
         removes, appends = *users.partition{ |m| m[:rule] == :destroy }
         remove_if_exists_all(removes)
         appends.each(&method(:block_add))
-        #         if self.vadjustment.value != 0 then # changed
-        #           if self.should_return_top? then
-        #             self.vadjustment.value = 0
-        #           else
-        #             self.vadjustment.value += appends.size * 32
-        #           end
-        #         end
-        #         if(@ul.children.size > 200) then
-        #           (@ul.children.size - 200).times{ @ul.remove(@ul.children.last) }
-        #         end
       end
     end
 
     def remove_if_exists_all(users)
+      if defined? @ul
+        Lock.synchronize do
+          users_idname = users.map{ |user| user[:idname] }.freeze
+          @ul.each{ |model, path, iter|
+            remove_user_name = iter[1].to_s
+            if users_idname.include?(remove_user_name)
+              @ul.remove(iter)
+              @users.delete_if{ |user| user[:idname] == remove_user_name }
+            end }
+          end end
       self end
 
     def all_id
@@ -92,23 +91,12 @@ module Gtk
         [] end end
 
     def clear
-      if defined? @ul
+      if defined? @treeview
         Lock.synchronize do
-          @ul.children.each{ |elm|
-            @ul.remove(elm) } end end
+          @treeview.clear
+          @users = [] end end
       self end
 
-    #     def should_return_top?
-    #       Gtk::PostBox.list.each{ |w|
-    #         return w.posting? if w.get_ancestor(Gtk::Userlist) == self and w.return_to_top }
-    #       false end
-
-    #     def has_mumbleinput?
-    #       Gtk::PostBox.list.each{ |w|
-    #         return true if w.get_ancestor(Gtk::Userlist) == self }
-    #       false end
-
-    #changed
     def gen_userlist
       Lock.synchronize do
         container = Gtk::EventBox.new
@@ -140,7 +128,7 @@ module Gtk
         style = Gtk::Style.new()
         style.set_bg(Gtk::STATE_NORMAL, *[255,255,255].map{|a| a*255})
         container.style = style
-        return container, box
+        return container, box, treeview
       end
     end
 

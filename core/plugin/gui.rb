@@ -275,8 +275,8 @@ plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
 plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
 
 plugin.add_event(:apilimit){ |time|
-  Plugin.call(:update, nil, Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                        :system => true))
+  Plugin.call(:update, nil, [Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                        :system => true)])
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") }
 
 plugin.add_event(:apifail){ |errmes|
