@@ -13,6 +13,22 @@ Module.new do
   end
 
   def self.popup(watch)
+    if(Thread.main == Thread.current)
+      _popup(watch)
+    else
+      input = false
+      result = nil
+      Delayer.new{
+        result = _popup(watch)
+        input = true
+      }
+      while(!input)
+        sleep(1) end
+      return result
+    end
+  end
+
+  def self._popup(watch)
     result = [nil]
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")

@@ -178,11 +178,14 @@ class Message < Retriever::Model
       result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"}
     end
     if self.receiver then
+      receiver_idname = atomic{
+        /@([a-zA-Z0-9_]+)/ === self[:message]
+        $1 }
       if self[:retweet] then
-        result << 'RT' << "@#{self.receiver[:idname]}" << self.receive_message[:message]
+        result << 'RT' << "@#{receiver_idname}" << self.receive_message(true)[:message]
       else
-        if not(self[:message].include?("@#{self.receiver[:idname]}")) then
-          result = ["@#{self.receiver[:idname]}", result]
+        if not(self[:message].include?("@#{receiver_idname}")) then
+          result = ["@#{receiver_idname}", result]
         end
       end
     end

@@ -251,9 +251,14 @@ class TwitterAPI < Mutex
     if options[:cache]
       cache = get_cache(path)
       return cache if cache end
+    consumer = OAuth::Consumer.new(CONSUMER_KEY,
+                                   CONSUMER_SECRET,
+                                   :site => 'http://twitter.com')
+    access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
     res = nil
     begin
-      res = request('GET', BASE_PATH+path, nil, options[:head])
+      res = access_token.get(BASE_PATH+path)
+      # res = request('GET', BASE_PATH+path, nil, options[:head])
     rescue Exception => evar
       res = evar
     end
@@ -279,6 +284,40 @@ class TwitterAPI < Mutex
     end
     res
   end
+
+#   def get_with_auth(path, raw_options)
+#     options = getopts(raw_options)
+#     if options[:cache]
+#       cache = get_cache(path)
+#       return cache if cache end
+#     res = nil
+#     begin
+#       res = request('GET', BASE_PATH+path, nil, options[:head])
+#     rescue Exception => evar
+#       res = evar
+#     end
+#     notice "#{path} => #{res}"
+#     if res.is_a?(Net::HTTPResponse) then
+#       limit, remain, reset = self.api_remain(res)
+#       if(res.code == '200') then
+#         cacheing(path, res.body) if options.has_key?(:cache)
+#         Plugin.call(:apiremain, remain, reset)
+#       elsif(res.code == '401') then
+#         if @fail_trap then
+#           last_success = @@last_success
+#           @@failed_lock.synchronize{
+#             if(@@last_success == last_success) then
+#               @@last_success = @fail_trap.call()
+#             end
+#             @a_token, @a_secret, callback = *@@last_success
+#             callback.call if callback
+#             res = self.get_with_auth(path, raw_options)
+#           }
+#         end
+#       end
+#     end
+#     res
+#   end
 
   def get_file(path)
     cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
@@ -402,9 +441,11 @@ class TwitterAPI < Mutex
   end
 
   def user_show(args)
-    path = "/users/show." + FORMAT + get_args(args)
-    head = {'Host' => HOST}
-    get(path, head)
+    get("/users/show." + FORMAT + get_args(args), head(args))
+  end
+
+  def user_lookup(args)
+    get_with_auth("/users/lookup." + FORMAT + '?user_id=' + args[:id], 'Host' => HOST)
   end
 
   def status_show(args)

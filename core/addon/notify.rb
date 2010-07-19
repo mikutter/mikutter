@@ -15,7 +15,8 @@ Module.new do
       Plugin.call(:setting_tab_regist, main, '通知') }
     plugin.add_event(:update, &method(:onupdate))
     plugin.add_event(:mention, &method(:onmention))
-    plugin.add_event(:followed, &method(:onfollowed))
+    plugin.add_event(:followers_created, &method(:onfollowed))
+    plugin.add_event(:followers_destroy, &method(:onremoved))
   end
 
   def self.main
@@ -29,7 +30,10 @@ Module.new do
     fd = Mtk.group('フォローされたとき',
                    Mtk.boolean(:notify_followed, 'ポップアップ'),
                    Mtk.fileselect(:notify_sound_followed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
-    box.pack_start(ft, false).pack_start(me, false).pack_start(fd, false)
+    rd = Mtk.group('フォロー解除されたとき',
+                   Mtk.boolean(:notify_removed, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_removed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    box.closeup(ft).closeup(me).closeup(fd).closeup(rd)
     box.pack_start(Mtk.adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end
 
@@ -62,14 +66,27 @@ Module.new do
   end
 
   def self.onfollowed(post, users)
-    if not(first?(:followed) or users.empty?) then
-      if(UserConfig[:notify_follower]) then
+    if not(users.empty?) then
+      if(UserConfig[:notify_followed]) then
         users.each{ |user|
           self.notify(user, 'にフォローされました。')
         }
       end
       if(UserConfig[:notify_sound_followed]) then
         self.notify_sound(UserConfig[:notify_sound_followed])
+      end
+    end
+  end
+
+  def self.onremoved(post, users)
+    if not(users.empty?) then
+      if(UserConfig[:notify_removed]) then
+        users.each{ |user|
+          self.notify(user, 'にリムーブされました。')
+        }
+      end
+      if(UserConfig[:notify_sound_removed]) then
+        self.notify_sound(UserConfig[:notify_sound_removedd])
       end
     end
   end

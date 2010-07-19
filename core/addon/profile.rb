@@ -130,6 +130,8 @@ Module.new do
 
   def self.boot
     plugin = Plugin::create(:profile)
+    plugin.add_event(:show_profile){ |service, user|
+      makescreen(user, service) }
     plugin.add_event(:boot){ |service|
       Gtk::Mumble.contextmenu.registmenu(lambda{ |m, w|
                                            u = if(m.message[:retweet])

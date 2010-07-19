@@ -67,8 +67,16 @@ end
 
 # num番目の引数をそのまま返す関数を返す
 def ret_nth(num=0)
-  lambda { |*arg| arg[num] }
-end
+  lambda { |*arg| arg[num] } end
+
+# カウンタを返す
+def gen_counter(count=0, increment=1)
+  mutex = Mutex.new
+  lambda{
+    mutex.synchronize{
+      result = count
+      count += increment
+      result } } end
 
 # ファイルの内容を文字列に読み込む
 def file_get_contents(fn)
@@ -241,6 +249,16 @@ def bg_system(*args)
 end
 
 #
+# integer
+#
+
+class Integer
+  # ページあたりone_page_contain個の要素が入る場合に、self番目の要素は何ページ目に来るかを返す
+  def page_of(one_page_contain)
+    (self.to_f / one_page_contain).ceil end
+end
+
+#
 # Float
 #
 
@@ -382,6 +400,13 @@ class Array
   def bubbledown(index, length=1)
     self.clone.bubbledown!(index, length)
   end
+
+  # 1.9のrindexと同じ挙動
+  def reverse_index(val=nil, &proc)
+    if proc
+      val = Class.new{
+        define_method(:==, &proc) }.new end
+    rindex(val) end
 
 end
 

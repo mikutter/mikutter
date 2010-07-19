@@ -25,8 +25,9 @@ class Watch
 #     }
 #   end
 
-  def get_events
+  def get_events(&event_add)
     event_booking = Hash.new{ |h, k| h[k] = [] }
+    event_add = lambda{ |event, values| event_booking[event].concat(values) } if not event_add
     return {
       :period => {
         :interval => 1,
@@ -40,38 +41,20 @@ class Watch
         :interval => UserConfig[:retrieve_interval_friendtl],
         :options => {:count => UserConfig[:retrieve_count_friendtl]},
         :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, messages|
-          event_booking[:update].concat(messages)
-          event_booking[:mention].concat(messages.select{ |m| m.to_me? })
-          event_booking[:mypost].concat(messages.select{ |m| m.from_me? })
+          event_add.call(:update, messages)
+          event_add.call(:mention, messages.select{ |m| m.to_me? })
+          event_add.call(:mypost, messages.select{ |m| m.from_me? })
         }
       },
       :mention => {
         :interval => UserConfig[:retrieve_interval_mention],
         :options => {:count => UserConfig[:retrieve_count_mention]},
         :proc => Watch.scan_and_yield(:replies){ |name, post, messages|
-          event_booking[:update].concat(messages)
-          event_booking[:mention].concat(messages)
-          event_booking[:mypost].concat(messages.select{ |m| m.from_me? })
+          event_add.call(:update, messages)
+          event_add.call(:mention, messages)
+          event_add.call(:mypost, messages.select{ |m| m.from_me? })
         }
       },
-#       :followed => {
-#         :interval => UserConfig[:retrieve_interval_followed],
-#         :options => {
-#           :count => UserConfig[:retrieve_count_followed],
-#           :no_auto_since_id => true,
-#         },
-#         :proc => lambda{ |name, service, options|
-#           next_cursor = -1
-#           users = []
-#           while(next_cursor and next_cursor != 0)
-#             res, raw = service.scan(:followers,
-#                                     :id => service.user,
-#                                     :get_raw_text => true,
-#                                     :cursor => next_cursor)
-#             break if not res
-#             users.concat(res.reverse)
-#             next_cursor = raw['next_cursor'] end
-#           Plugin.call(:followed, service, users.reverse) if not users.empty? } }
     }, lambda{ event_booking } end
 
   def initialize()
@@ -88,10 +71,7 @@ class Watch
       events.each_pair{ |name, event|
         if((counter % event[:interval]) == 0)
           threads.add Thread.new(name, event){ |name, event|
-            event[:proc].call(name, @post, event[:options])
-          }
-        end
-      }
+            event[:proc].call(name, @post, event[:options]) } end }
       threads.list.each{ |t| t.join }
       booking.call.each_pair{ |k, v|
         messages = v.uniq.select{ |n| not @received[k].include?(n) }

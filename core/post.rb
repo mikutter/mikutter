@@ -7,16 +7,16 @@
 require 'utils'
 
 miquire :core, 'twitter'
-miquire :core, 'environment'
+miquire :core, 'environment' # !> method redefined; discarding old sum
 miquire :core, 'message'
-miquire :core, 'configloader'
+miquire :core, 'configloader' # !> `*' interpreted as argument prefix
 miquire :core, 'userconfig'
 miquire :core, "json"
-miquire :core, 'delayer'
+miquire :core, 'delayer' # !> ambiguous first argument; put parentheses or even spaces
 
 class Post
   include ConfigLoader
-
+ # !> ambiguous first argument; put parentheses or even spaces
   # タイムラインのキャッシュファイルのプレフィックス。
   TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
 
@@ -39,41 +39,43 @@ class Post
       store('idname', nil)
       [token, secret] }
     notice caller(1).first
-    Message.add_data_retriever(ServiceRetriever.new(self, :status_show))
-    User.add_data_retriever(ServiceRetriever.new(self, :user_show))
+    Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
+    User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
   end
 
   def self.define_postal(api, *other)
-    define_method(api.to_sym){ |msg, &proc|
-      if $quiet then
+    if $quiet # !> global variable `$quiet' not initialized
+      define_method(api.to_sym){ |msg|
         notice "#{api}:#{msg.inspect}"
-        notice 'Actually, this post does not send.'
-      else
+        notice 'Actually, this post does not send.' }
+    else
+      define_method(api.to_sym){ |msg, &proc|
         self._post(msg, api.to_sym) {|event, msg|
           proc.call(event, msg) if(proc)
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg)
-            Plugin.call(:update, self, [msg]) end } end }
+            Plugin.call(:update, self, [msg]) end } }
+    end
     define_postal(*other) if not other.empty? end
 
   def request_oauth_token
     @twitter.request_oauth_token
   end
 
-  def user
+  def user # !> `*' interpreted as argument prefix
     if at('idname')
-      at('idname')
+      at('idname') # !> `*' interpreted as argument prefix
     else
       scaned = scan(:verify_credentials, :no_auto_since_id => false)
       store('idname', scaned[0][:idname]) if scaned
     end
   end
-  alias :idname :user
+  alias :idname :user # !> `*' interpreted as argument prefix
 
   def user_by_cache
     at('idname')
-  end
+  end # !> `*' interpreted as argument prefix
 
   def service
     self
@@ -94,7 +96,7 @@ class Post
   # twitterのタイムラインを見に行く
   def scan_data(kind, args)
     result = nil
-    tl = twitter.__send__(kind, args)
+    tl = twitter.__send__(kind, args) # !> method redefined; discarding old categories_for
     if defined?(tl.code) and defined?(tl.body) then
       case(tl.code)
       when '200'
@@ -105,17 +107,17 @@ class Post
       else
         Plugin.call(:apifail, tl.code) if(@code != tl.code)
       end
-      @code = tl.code
+      @code = tl.code # !> discarding old /
     else
       Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code))
     end
-    return result
+    return result # !> discarding old /
   end
 
   def scan(kind=:friends_timeline, args={})
     event_canceling = false
     if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble) then
-      event_canceling = true
+      event_canceling = true # !> method redefined; discarding old inspect
     elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
       args[:since_id] = at(kind.to_s + "_lastid")
     end
@@ -148,28 +150,35 @@ class Post
         else
           yield res end } } end
 
-  def following_method(api, limit=-1, next_cursor=-1)
+  def query_following_method(api, limit=-1, next_cursor=-1)
     if(next_cursor and next_cursor != 0 and limit != 0)
       res, raw = service.scan(api.to_sym,
                               :id => service.user,
                               :get_raw_text => true,
                               :cursor => next_cursor)
       return [] if not res
-      res.reverse.concat(following_method(api, limit-1, raw['next_cursor']))
+      res.reverse.concat(query_following_method(api, limit-1, raw['next_cursor']))
     else
       [] end end
 
-  def followers(limit=-1, next_cursor=-1)
-    following_method(:followers, limit, next_cursor) end
+  def following_method(api, limit=-1, next_cursor=-1, &proc)
+    if proc
+      Thread.new{
+        proc.call(query_following_method(api, limit, next_cursor)) }
+    else
+      query_following_method(api, limit, next_cursor) end end
 
-  def followers_id(limit=-1, next_cursor=-1)
-    following_method(:followers_id, limit, next_cursor) end
+  def followers(limit=-1, next_cursor=-1, &proc)
+    following_method(:followers, limit, next_cursor, &proc) end
 
-  def friends(limit=-1, next_cursor=-1)
-    following_method(:friends, limit, next_cursor) end
+  def followers_id(limit=-1, next_cursor=-1, &proc)
+    following_method(:followers_id, limit, next_cursor, &proc) end
 
-  def friends_id(limit=-1, next_cursor=-1)
-    following_method(:friends_id, limit, next_cursor) end
+  def followings(limit=-1, next_cursor=-1, &proc)
+    following_method(:friends, limit, next_cursor, &proc) end
+
+  def followings_id(limit=-1, next_cursor=-1, &proc)
+    following_method(:friends_id, limit, next_cursor, &proc) end
 
   def search(q, args)
     args[:q] = q
@@ -183,7 +192,7 @@ class Post
       cnv = msg.convert_key('text' => :message,
                             'in_reply_to_user_id' => :reciver,
                             'in_reply_to_status_id' => :replyto)
-      cnv[:favorited] = !!msg['favorited']
+      cnv[:favorited] = !!msg['favorited'] # !> global variable `$daemon' not initialized
       cnv[:created] = Time.parse(msg['created_at'])
       if user_retrieve
         cnv[:user] = User.findbyid(msg['user']['id']) or self.scan_rule(:user_show, msg['user'])
@@ -202,17 +211,19 @@ class Post
       :method => :rewind,
       :proc => lambda{ |msg|
         cnv = msg.convert_key('screen_name' =>:idname,
-                              'url' => :url)
+                              'url' => :url) # !> `*' interpreted as argument prefix
         cnv[:created] = Time.parse(msg['created_at'])
         cnv[:detail] = msg['description']
         cnv[:protected] = !!msg['protected']
         cnv[:followers_count] = msg['followers_count'].to_i
-        cnv[:friends_count] = msg['friends_count'].to_i
+        cnv[:friends_count] = msg['friends_count'].to_i # !> global variable `$logfile' not initialized
         cnv[:statuses_count] = msg['statuses_count'].to_i
         cnv[:notifications] = msg['notifications']
         cnv[:verified] = msg['verified']
         cnv[:following] = msg['following']
         cnv } }
+    users_lookup_parser = users_parser.clone
+    users_lookup_parser[:hasmany] = true
     user_parser = users_parser.clone
     user_parser[:hasmany] = false
     users_list_parser = users_parser.clone
@@ -221,7 +232,7 @@ class Post
       :hasmany => true,
       :class => Message,
       :method => :new_ifnecessary,
-      :proc => message_parser(false) }
+      :proc => message_parser(false) } # !> method redefined; discarding old sqrt
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
     streaming_status = unimessage_parser.clone
@@ -279,6 +290,7 @@ class Post
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,
       :user_show => user_parser,
+      :user_lookup => users_lookup_parser,
       :retweeted_to_me => timeline_parser,
       :retweets_of_me => timeline_parser,
       :saved_searches => saved_searches_parser,
@@ -328,14 +340,6 @@ class Post
   # ポストキューにポストを格納する
   define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow
   alias post update
-
-#   def follow(user)
-#     if $quiet then
-#       notice "follow:#{user.inspect}"
-#       notice 'Actually, this post does not send.'
-#     else
-#       self._post(user, :user_show) {|event, user|
-#         twitter.follow(user) if(event == :try) } end end
 
   def favorite(message, fav)
     if $quiet then
@@ -404,9 +408,11 @@ class Post
     end
 
     def findbyid(id)
-      message = @post.scan(@api, :no_auto_since_id => true, :id => id)
-      return message.first if message
-    end
+      if id.is_a? Array
+        id.map(&method(:findbyid))
+      else
+        message = @post.scan(@api, :no_auto_since_id => true, :id => id)
+        message.first if message end end
 
 #     def selectby(key, value)
 #       if key.to_sym == :idname
@@ -418,5 +424,28 @@ class Post
     def store_datum(datum)
       false
     end
+
+    def time
+      1.0/0 end
   end
+
+  class MessageServiceRetriever < ServiceRetriever
+  end
+
+  class UserServiceRetriever < ServiceRetriever
+    include Retriever::DataSource
+
+    def findbyid(id)
+      if id.is_a? Array
+        # id.map{ |i| findbyid(i) }
+        front = id.slice(0, 100)
+        remain = id.slice(100,id.size)
+        messages = @post.scan(:user_lookup, :no_auto_since_id => true, :id => front.join(','))
+        messages = [] if not messages.is_a? Array
+        messages.concat(findbyid(remain)) if remain and not remain.empty?
+        messages
+      else
+        message = @post.scan(@api, :no_auto_since_id => true, :id => id)
+        message.first if message end end end
+
 end

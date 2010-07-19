@@ -25,11 +25,13 @@ class UserConfig
     :retrieve_interval_friendtl => 1,   # TLを更新する間隔(int)
     :retrieve_interval_mention => 20,   # Replyを更新する間隔(int)
     :retrieve_interval_search => 60,    # 検索を更新する間隔(int)
-    :retrieve_interval_followed => 60,  # followerを更新する間隔(int)
+    :retrieve_interval_followings => 60,  # followを更新する間隔(int)
+    :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
 
     :retrieve_count_friendtl => MIKU,   # TLを取得する数(int)
     :retrieve_count_mention => MIKU,    # Replyを取得する数(int)
-    :retrieve_count_followed => MIKU,   # followerを取得する数(int)
+    :retrieve_count_followings => MIKU,   # followを取得する数(int)
+    :retrieve_count_followers => MIKU,   # followerを取得する数(int)
 
     # デフォルトのフッダ
     :footer => "",
