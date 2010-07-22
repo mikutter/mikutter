@@ -338,7 +338,7 @@ class Post
         result end end end
 
   # ポストキューにポストを格納する
-  define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow
+  define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow, :delete_list
   alias post update
 
   def favorite(message, fav)

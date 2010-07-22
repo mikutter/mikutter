@@ -18,7 +18,10 @@ Module.new do
                         :id => @options[:id],
                         :user => @service.user,
                         :cache => true){ |users|
-        @users.merge(users.map{ |u| u[:id].to_i }) } end
+        if users
+          @users.merge(users.map{ |u| u[:id].to_i })
+        else
+          remove end } end
 
     def update(messages)
       messages.each{ |m|
@@ -60,7 +63,7 @@ Module.new do
         tab.update(messages.select{ |m| tab.users.include?(m[:user][:id].to_i) }) } } end
 
   def self.update(get_cache = false)
-    param = {:cache => get_cache, :user => @service.user}
+    param = {:cache => false, :user => @service.user}
     @service.call_api(:lists, param){ |lists|
       if lists
         @service.call_api(:list_subscriptions, param){ |subscriptions|
@@ -128,21 +131,54 @@ Module.new do
       set_displayable_lists(displayable_lists - [id])
       remove_tab(list_detail(id)) end end
 
+  def self.delete_list(list_id, view)
+    @service.delete_list(list_detail(list_id)){ |event, list|
+      if event == :success
+        p :delete
+        view.each{ |model, path, iter|
+          view.remove(iter) if iter[2].to_i == list_id.to_i } end } end
+
   def self.settings
     if defined? @setting_container
       @setting_container.remove(@setting_container.child)
     else
       @setting_container = Gtk::EventBox.new end
-    container = Gtk::VBox.new(false, 0)
+    container, store, toggled = gen_listview
+    toggled.signal_connect('toggled'){ |toggled, path|
+      iter = store.get_iter(path)
+      set_display(iter[2], iter[0] = !iter[0]) }
+    container.signal_connect('button_release_event'){ |widget, event|
+      if (event.button == 3)
+        menu_pop(container)
+        true end }
     available_lists.each{ |list_id|
-      container.
-      closeup(Mtk.boolean(lambda{ |new|
-                        if new === nil
-                          list_display?(list_id)
-                        else
-                          set_display(list_id, new) end}, list_detail(list_id)['full_name']))
-    }
+      iter = store.append
+      iter[0] = list_display?(list_id)
+      iter[1] = list_detail(list_id)['full_name']
+      iter[2] = list_id }
     @setting_container.add(container).show_all end
+
+  def self.gen_listview
+    box = Gtk::ListStore.new(TrueClass, String, Integer)
+    treeview = Gtk::TreeView.new(box)
+
+    toggled = Gtk::CellRendererToggle.new
+    col = Gtk::TreeViewColumn.new('表示', toggled, :active => 0)
+    col.resizable = false
+    treeview.append_column col
+
+    col = Gtk::TreeViewColumn.new('ユーザID', Gtk::CellRendererText.new, :text => 1)
+    col.resizable = true
+    treeview.append_column col
+    return treeview, box, toggled end
+
+    def self.menu_pop(widget)
+      contextmenu = Gtk::ContextMenu.new
+      contextmenu.registmenu("リストを削除"){ |optional, w|
+        w.selection.selected_each {|model, path, iter|
+          delete_list(iter[2], widget) } }
+      contextmenu.popup(widget, widget)
+    end
 
   boot
 end

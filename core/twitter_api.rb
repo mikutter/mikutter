@@ -86,104 +86,6 @@ class TwitterAPI < Mutex
     return http
   end
 
-  def request(method, url, body = nil, headers = {})
-    method = method.to_s
-    url = URI.parse(url)
-    request = create_http_request(method, url, body, headers)
-    request['Authorization'] = auth_header(method, url, request.body)
-    Net::HTTP.new(url.host, url.port).request(request)
-  end
-
-  def create_http_request(method, path, body, headers)
-    method = method.capitalize.to_sym
-    request = Net::HTTP.const_get(method).new(path.to_s)
-    headers.each{ |pair|
-      request[pair[0]] = pair[1] }
-    request['User-Agent'] = Config::NAME + '/' + Config::VERSION.join('.')
-    if method == :Post || method == :Put
-      request.body = body.is_a?(Hash) ? encode_parameters(body) : body.to_s
-      request.content_type = 'application/x-www-form-urlencoded'
-      request.content_length = (request.body || '').length
-    end
-    request
-  end
-
-  def request_oauth_token
-    OAuth::Consumer.new(CONSUMER_KEY,
-                        CONSUMER_SECRET,
-                        :site => 'http://twitter.com').get_request_token end
-
-  def auth_header(method, url, body)
-    parameters = oauth_parameters
-    parameters[:oauth_signature] = signature(method, url, body, parameters)
-    'OAuth ' + encode_parameters(parameters, ', ', '"')
-  end
-
-  def signature(*args)
-    [digest_hmac_sha1(signature_base_string(*args))].pack('m').gsub(/\n/, '')
-  end
-
-  def digest_hmac_sha1(value)
-    OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, value)
-  end
-
-  def secret
-    escape(CONSUMER_SECRET) + '&' + escape(@a_secret)
-  end
-
-  def signature_base_string(method, url, body, parameters)
-    method = method.upcase
-    base_url = signature_base_url(url)
-    parameters = normalize_parameters(parameters, body, url.query)
-    encode_parameters([ method, base_url, parameters ])
-  end
-
-  def signature_base_url(url)
-    URI::HTTP.new(url.scheme, url.userinfo, url.host, nil, nil, url.path, nil, nil, nil)
-  end
-
-  def normalize_parameters(parameters, body, query)
-    parameters = encode_parameters(parameters, nil)
-    parameters += body.split('&') if body
-    parameters += query.split('&') if query
-    parameters.sort.join('&')
-  end
-
-  def encode_parameters(params, delimiter = '&', quote = nil)
-    if params.is_a?(Hash)
-      params = params.map do |key, value|
-        "#{escape(key)}=#{quote}#{escape(value)}#{quote}"
-      end
-    else
-      params = params.map { |value| escape(value) }
-    end
-    delimiter ? params.join(delimiter) : params
-  end
-
-  def escape(value)
-    URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
-  end
-
-
-  def oauth_parameters
-    {
-      :oauth_consumer_key => CONSUMER_KEY,
-      :oauth_token => @a_token,
-      :oauth_signature_method => 'HMAC-SHA1',
-      :oauth_timestamp => timestamp,
-      :oauth_nonce => nonce,
-      :oauth_version => OAUTH_VERSION
-    }
-  end
-
-  def timestamp
-    Time.now.to_i.to_s
-  end
-
-  def nonce
-    OpenSSL::Digest::Digest.hexdigest('MD5', "#{Time.now.to_f}#{rand}")
-  end
-
   def ip_limit
     if @@ip_limit_reset
       Time.now <= @@ip_limit_reset
@@ -247,6 +149,9 @@ class TwitterAPI < Mutex
       res end end
 
   def get_with_auth(path, raw_options)
+    query_with_auth(:get, path, raw_options) end
+
+  def query_with_auth(method, path, raw_options)
     options = getopts(raw_options)
     if options[:cache]
       cache = get_cache(path)
@@ -257,93 +162,24 @@ class TwitterAPI < Mutex
     access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
     res = nil
     begin
-      res = access_token.get(BASE_PATH+path)
-      # res = request('GET', BASE_PATH+path, nil, options[:head])
+      res = access_token.method(method).call(BASE_PATH+path, options[:head])
     rescue Exception => evar
-      res = evar
-    end
+      res = evar end
     notice "#{path} => #{res}"
-    if res.is_a?(Net::HTTPResponse) then
+    if res.is_a?(Net::HTTPResponse)
       limit, remain, reset = self.api_remain(res)
-      if(res.code == '200') then
+      if(res.code == '200')
         cacheing(path, res.body) if options.has_key?(:cache)
         Plugin.call(:apiremain, remain, reset)
-      elsif(res.code == '401') then
-        if @fail_trap then
+      elsif(res.code == '401')
+        if @fail_trap
           last_success = @@last_success
           @@failed_lock.synchronize{
-            if(@@last_success == last_success) then
-              @@last_success = @fail_trap.call()
-            end
+            @@last_success = @fail_trap.call() if(@@last_success == last_success)
             @a_token, @a_secret, callback = *@@last_success
             callback.call if callback
-            res = self.get_with_auth(path, raw_options)
-          }
-        end
-      end
-    end
-    res
-  end
-
-#   def get_with_auth(path, raw_options)
-#     options = getopts(raw_options)
-#     if options[:cache]
-#       cache = get_cache(path)
-#       return cache if cache end
-#     res = nil
-#     begin
-#       res = request('GET', BASE_PATH+path, nil, options[:head])
-#     rescue Exception => evar
-#       res = evar
-#     end
-#     notice "#{path} => #{res}"
-#     if res.is_a?(Net::HTTPResponse) then
-#       limit, remain, reset = self.api_remain(res)
-#       if(res.code == '200') then
-#         cacheing(path, res.body) if options.has_key?(:cache)
-#         Plugin.call(:apiremain, remain, reset)
-#       elsif(res.code == '401') then
-#         if @fail_trap then
-#           last_success = @@last_success
-#           @@failed_lock.synchronize{
-#             if(@@last_success == last_success) then
-#               @@last_success = @fail_trap.call()
-#             end
-#             @a_token, @a_secret, callback = *@@last_success
-#             callback.call if callback
-#             res = self.get_with_auth(path, raw_options)
-#           }
-#         end
-#       end
-#     end
-#     res
-#   end
-
-  def get_file(path)
-    cachefn = File::expand_path('~/.mikutter/queries/' + path + '/200')
-    if(FileTest::exist?(cachefn))
-      return Class.new{
-        attr_reader :code
-
-        def initialize(cachefn, res)
-          @cachefn = cachefn
-          @code = res
-        end
-
-        def body
-          file_get_contents(@cachefn)
-        end
-      }.new(cachefn, @@ntr)
-    end
-  end
-
-  def get_save(res, path)
-    if defined? res.code
-      cachefn = File::expand_path('~/.mikutter/queries/' + path + '/' + res.code)
-      FileUtils.mkdir_p(File::dirname(cachefn))
-      file_put_contents(cachefn, res.body)
-    end
-  end
+            res = self.query_with_auth(method, path, raw_options) } end end end
+    res end
 
   def post(path, data, head)
     res = nil
@@ -359,8 +195,7 @@ class TwitterAPI < Mutex
   end
 
   def post_with_auth(path, data, head)
-    post(path, data, head)
-  end
+    query_with_auth(:post, path, data) end
 
   def option_since(since)
     since.httpdate =~ /^(.*?), (\S+) (\S+) (\S+) (\S+) (\S+)/
@@ -552,6 +387,12 @@ class TwitterAPI < Mutex
     data = ''
     head = {'Host' => HOST}
     post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}", data, head)
+  end
+
+  def delete_list(list)
+    data = ''
+    head = {'Host' => HOST}
+    query_with_auth(:delete, "/#{list['user']['id']}/lists/#{list['id']}.#{FORMAT}", head)
   end
 
   def get_args(args)
