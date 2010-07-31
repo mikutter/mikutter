@@ -57,6 +57,11 @@ class TwitterAPI < Mutex
     @@ntr = ntr
   end
 
+  def request_oauth_token
+    OAuth::Consumer.new(CONSUMER_KEY,
+                        CONSUMER_SECRET,
+                        :site => 'http://twitter.com').get_request_token end
+
   def api_remain(response = nil)
     if response and response['X-RateLimit-Reset'] then
       @api_remain = [ response['X-RateLimit-Limit'].to_i,
@@ -148,10 +153,16 @@ class TwitterAPI < Mutex
         return get_with_auth(path, raw_options) end
       res end end
 
-  def get_with_auth(path, raw_options)
+  def get_with_auth(path, raw_options={})
     query_with_auth(:get, path, raw_options) end
 
-  def query_with_auth(method, path, raw_options)
+  def post_with_auth(path, data={})
+    query_with_auth(:post, path, data) end
+
+  def delete_with_auth(path, raw_options={})
+    query_with_auth(:delete,  path, raw_options) end
+
+  def query_with_auth(method, path, raw_options={})
     options = getopts(raw_options)
     if options[:cache]
       cache = get_cache(path)
@@ -165,7 +176,7 @@ class TwitterAPI < Mutex
       res = access_token.method(method).call(BASE_PATH+path, options[:head])
     rescue Exception => evar
       res = evar end
-    notice "#{path} => #{res}"
+    notice "#{method} #{path} => #{res}"
     if res.is_a?(Net::HTTPResponse)
       limit, remain, reset = self.api_remain(res)
       if(res.code == '200')
@@ -193,9 +204,6 @@ class TwitterAPI < Mutex
     notice "#{path} => #{res}(#{(defined?(res.body) and res.body)})"
     res
   end
-
-  def post_with_auth(path, data, head)
-    query_with_auth(:post, path, data) end
 
   def option_since(since)
     since.httpdate =~ /^(.*?), (\S+) (\S+) (\S+) (\S+) (\S+)/
@@ -305,11 +313,28 @@ class TwitterAPI < Mutex
     get_with_auth("/#{args[:user]}/#{args[:id]}/members." + FORMAT, head(args))
   end
 
+  def list_user_followers(args=nil)
+    get_with_auth("/#{args[:user]}/lists/memberships." + FORMAT, head(args))
+  end
+
   def list_statuses(args=nil)
     if args[:mode] == :public
       get("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args))
     else
       get_with_auth("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args)) end end
+
+  def add_list_member(args=nil)
+    post_with_auth("/#{args[:idname]}/#{args[:list_id]}/members." + FORMAT,
+                   :id => args[:id],
+                   :list_id => args[:list_id])
+  end
+
+  def delete_list_member(args=nil)
+    post_with_auth("/#{args[:idname]}/#{args[:list_id]}/members." + FORMAT,
+                   :_method => 'DELETE',
+                   :id => args[:id],
+                   :list_id => args[:list_id])
+  end
 
   def rate_limit_status(args=nil)
     path = "/account/rate_limit_status.#{FORMAT}"
@@ -340,15 +365,16 @@ class TwitterAPI < Mutex
   end
 
   def retweet(msg)
-    post_with_auth("/statuses/retweet/#{msg[:id]}.#{FORMAT}", '', 'Host' => HOST)
+    post_with_auth("/statuses/retweet/#{msg[:id]}.#{FORMAT}")
   end
 
   def destroy(msg)
-    post_with_auth("/statuses/destroy/#{msg[:id]}.#{FORMAT}", '', 'Host' => HOST)
+    post_with_auth("/statuses/destroy/#{msg[:id]}.#{FORMAT}")
   end
 
   def search_create(query)
-    post_with_auth("/saved_searches/create.#{FORMAT}", "query=#{URI.encode(query)}", 'Host' => HOST)
+    post_with_auth("/saved_searches/create.#{FORMAT}",
+                   :query => URI.encode(query))
   end
 
   def send(user, text)
@@ -357,42 +383,31 @@ class TwitterAPI < Mutex
     data += "&text=" + URI.encode(text)
     data += '&source=' + PROG_NAME
     head = {'Host' => HOST}
-    res = post_with_auth(path, data, head)
+    res = post_with_auth(path, data)
     res
   end
 
   def favorite(id)
     path = "/favorites/create/#{id}." + FORMAT
-    data = ''
-    head = {'Host' => HOST}
-    res = post_with_auth(path, data, head)
-    res
+    post_with_auth(path)
   end
 
   def unfavorite(id)
     path = "/favorites/destroy/#{id}." + FORMAT
-    data = ''
-    head = {'Host' => HOST}
-    res = post_with_auth(path, data, head)
+    res = post_with_auth(path)
     res
   end
 
   def follow(user)
-    data = ''
-    head = {'Host' => HOST}
-    post_with_auth("/friendships/create/#{user[:id]}.#{FORMAT}", data, head)
+    post_with_auth("/friendships/create/#{user[:id]}.#{FORMAT}")
   end
 
   def unfollow(user)
-    data = ''
-    head = {'Host' => HOST}
-    post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}", data, head)
+    post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}")
   end
 
   def delete_list(list)
-    data = ''
-    head = {'Host' => HOST}
-    query_with_auth(:delete, "/#{list['user']['id']}/lists/#{list['id']}.#{FORMAT}", head)
+    query_with_auth(:delete, "/#{list['user']['id']}/lists/#{list['id']}.#{FORMAT}")
   end
 
   def get_args(args)

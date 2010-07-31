@@ -19,16 +19,40 @@ Module.new do
       @options[:user] end
 
     def on_create
-      Thread.new(@service){ |service|
-        tl = service.scan(:user_timeline, :user_id => user[:id],
-                          :no_auto_since_id => true,
-                          :count => 20)
+      Plugin::create(:profile).add_event(:appear){ |res|
+        msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
+        timeline.add(msgs) if not msgs.empty? }
+      @service.call_api(:user_timeline, :user_id => user[:id],
+                       :no_auto_since_id => true,
+                       :count => 20){ |tl|
         Delayer.new{ timeline.add(tl) } if tl }
+#       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
+#         followed_list_ids = res.map{|list| list['id'].to_i}
+#         @list = Gtk::ListList.new{ |iter|
+#           flag = iter[0] = !iter[0]
+#           @service.__send__(flag ? :add_list_member : :delete_list_member,
+#                             :list_id => iter[2]['id'],
+#                             :idname => @service.user,
+#                             :id => user[:id]){ |e, m|
+#             iter[0] = !flag if e == :fail
+#             p m } }
+#         @list.set_auto_get{ |list|
+#           followed_list_ids.include?(list['id'].to_i) }
+#         @notebook.append_page(@list.show_all,
+#                               Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) }
       header.closeup(profile).show_all
       super
       focus end
 
     private
+
+    def gen_main
+      @timeline = Gtk::TimeLine.new
+      @notebook = Gtk::Notebook.new.set_tab_pos(Gtk::POS_TOP).set_tab_border(0)
+      @notebook.append_page(@timeline,
+                            Gtk::WebIcon.new(MUI::Skin.get("timeline.png"), 16, 16).show_all)
+      @header = (@options[:header] or Gtk::HBox.new)
+      Gtk::VBox.new(false, 0).closeup(@header).add(@notebook) end
 
     def background_color
       style = Gtk::Style.new()
@@ -44,7 +68,6 @@ Module.new do
                           :target_screen_name => user[:idname],
                           :source_screen_name => @service.user){ |res|
           res = res.first
-          p res
           relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
                                              if res[:followed_by] then 'す' else 'せん' end)).
           closeup(followbutton(res[:user], res[:following])).show_all } end
@@ -62,13 +85,11 @@ Module.new do
                        add(Gtk::VBox.new(false, 0).add(main(eventbox)).add(relation)))) end
 
     def followbutton(user, following)
-      def face(flag)
-        if flag then 'リムーブする' else 'フォローする' end end
       btn = nil
       changer = lambda{ |new, widget|
         if new === nil
           following
-        else
+        elsif new != following
           widget.sensitive = false
           @service.method(new ? :follow : :unfollow).call(user){ |event, msg|
             case event

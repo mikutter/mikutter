@@ -20,7 +20,7 @@ class Twitter < TwitterAPI
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
-    post_with_auth('/statuses/update.'+FORMAT, data, 'Host' => HOST)
+    post_with_auth('/statuses/update.'+FORMAT, data)
   end
 
   def imageuploadable?

@@ -55,8 +55,8 @@ class Gtk::IntelligentTextview < Gtk::TextView
     color = @get_background.call
     if color.is_a? Gtk::Style
       self.style = color
-    else
-      self.get_window(Gtk::TextView::WINDOW_TEXT).background = color end
+    elsif get_window(Gtk::TextView::WINDOW_TEXT).respond_to?(:background=)
+      get_window(Gtk::TextView::WINDOW_TEXT).background = color end
     false end
 
   def gen_body(msg, fonts={})

@@ -54,7 +54,7 @@ class Post
           proc.call(event, msg) if(proc)
           if(event == :try)
             twitter.__send__(api, msg)
-          elsif(event == :success and msg)
+          elsif(event == :success and msg.is_a?(Message))
             Plugin.call(:update, self, [msg]) end } }
     end
     define_postal(*other) if not other.empty? end
@@ -264,6 +264,8 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
+    list_parser = lists_parser.clone
+    list_parser[:hasmany] = false
     friendship = {
       :hasmany => false,
       :class => shell_class,
@@ -301,8 +303,11 @@ class Post
       :search_create => nil,
       :search => search_parser,
       :lists => lists_parser,
+      :add_list_member => list_parser,
+      :delete_list_member => list_parser,
       :list_subscriptions => lists_parser,
       :list_members => users_list_parser,
+      :list_user_followers => lists_parser,
       :list_statuses => timeline_parser,
       :streaming_status => streaming_status,
       :friendship => friendship,
@@ -339,6 +344,7 @@ class Post
 
   # ポストキューにポストを格納する
   define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow, :delete_list
+  define_postal :add_list_member, :delete_list_member
   alias post update
 
   def favorite(message, fav)
@@ -367,17 +373,20 @@ class Post
         elsif result.code[0] == '4'[0]
           begin
             errmes = JSON.parse(result.body)["error"]
-            Plugin::Ring::call(nil, :rewindstatus, self,
-                               "twitter 投稿エラー: #{result.code} #{errmes}")
+            Plugin.call(:rewindstatus, "twitter 投稿エラー: #{result.code} #{errmes}")
             if errmes == "Status is a duplicate."
               yield(:success, nil)
               return true end
           rescue JSON::ParserError
           end
+          if result.code == '404'
+            yield(:fail, nil)
+            return nil end
         elsif not(result.code[0] == '5'[0])
           yield(:fail, err)
           return nil end end
       notice "post:fail:#{count}:#{message.inspect}"
+      puts result.backtrace.join("\n") if result.is_a? Exception
       yield(:retry, result)
       sleep(1) }
     yield(:fail, nil)
