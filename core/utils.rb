@@ -481,11 +481,53 @@ class String
     end
   end
 
+  def shrink(count, uni_char=nil)
+    o_match = uni_char && match(uni_char)
+    pure_matched = lazy{ o_match.pre_match + o_match[0] }
+    sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.strsize, uni_char) }
+    sh_head = lazy{ o_match.pre_match.slice(0, count - o_match[0].strsize) }
+    if o_match
+      if pure_matched.strsize <= count
+        pure_matched + sh_post
+      elsif not sh_head.nil?
+        sh_head + o_match[0] + sh_post
+      else
+        o_match[0].shrink(count)
+      end
+    elsif empty?
+      ""
+    else
+      split(//u)[0,count].join end end
+
   def inspect
     '"'+to_s+'"'
   end
 
 end
+
+# 遅延評価
+class Lazy
+  def initialize
+    @proc = Proc.new
+    @obj = nil end
+
+  def self.define_bridge(method, *remain)
+    define_method(method){ |*args, &proc|
+      method_missing(method, *args, &proc)
+    }
+    define_bridge(*remain) if not remain.empty?
+  end
+
+  define_bridge(*Object.methods)
+
+  def method_missing(method, *args, &block)
+    if @proc
+      @obj = @proc.call
+      @proc = nil end
+    @obj.__send__(method, *args, &block) end end
+
+def lazy(&proc)
+  Lazy.new(&proc) end
 
 module GC
   @@lock_count = 0

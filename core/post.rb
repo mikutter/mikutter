@@ -323,10 +323,10 @@ class Post
     if json then
       result = nil
       json = begin
-        JSON.parse(json) if json.is_a?(String)
-      rescue JSON::ParserError
-        warn "json parse error"
-        return nil end
+               JSON.parse(json) if json.is_a?(String)
+             rescue JSON::ParserError
+               warn "json parse error"
+               return nil end
       json.freeze
       if self.rule(cache, :hasmany).is_a?(String)
         tl = json[self.rule(cache, :hasmany)]
@@ -334,6 +334,7 @@ class Post
         tl = [json]
       else
         tl = json end
+      return nil if not tl.respond_to?(:map)
       result = tl.map{ |msg| scan_rule(cache, msg) }.freeze
       store(cache.to_s + "_lastid", result.first['id']) if result.first
       Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message

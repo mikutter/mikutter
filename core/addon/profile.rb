@@ -67,10 +67,11 @@ Module.new do
         @service.call_api(:friendship,
                           :target_screen_name => user[:idname],
                           :source_screen_name => @service.user){ |res|
-          res = res.first
-          relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
-                                             if res[:followed_by] then 'す' else 'せん' end)).
-          closeup(followbutton(res[:user], res[:following])).show_all } end
+          if(res)
+            res = res.first
+            relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
+                                               if res[:followed_by] then 'す' else 'せん' end)).
+              closeup(followbutton(res[:user], res[:following])).show_all end } end
       relationbox end
 
     def profile

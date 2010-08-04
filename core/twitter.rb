@@ -76,11 +76,9 @@ class Twitter < TwitterAPI
       end
     end
     text = result.join(' ')
-    if(UserConfig[:shrinkurl_always] or text.split(//u).size > 140)
-      text = MessageConverters.shrink_url_all(text)
-    end
-    return text.split(//u)[0,140].join if text
-  end
+    if(UserConfig[:shrinkurl_always] or text.strsize > 140)
+      text = MessageConverters.shrink_url_all(text) end
+    text.shrink(140, URI.regexp(['http','https'])) if text end
 
   def get_receiver(message)
     if message[:receiver] then
