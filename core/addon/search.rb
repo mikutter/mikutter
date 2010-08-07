@@ -28,8 +28,9 @@ Module.new do
     Gtk::Lock.synchronize{
       query = querybox.text
       service.search_create(query){ |stat, message|
-        if(stat = :success)
-          Plugin.call(:saved_search_regist, query) end
+        if(stat == :success)
+          p message
+          Plugin.call(:saved_search_regist, message['id'], query) end
       } } }
 
   querycont.closeup(Gtk::HBox.new(false, 0).pack_start(querybox).closeup(searchbtn))
@@ -49,6 +50,17 @@ end
 Module.new do
 
   @tab = Class.new(Addon.gen_tabclass){
+    def on_create(*args)
+      super
+      del = Gtk::Button.new('×')
+      del.signal_connect('clicked'){ |e|
+        @service.search_destroy(@options[:id]){ |event, dummy|
+          p event
+          p dummy
+          remove if event == :success } }
+      @header.closeup(del)
+    end
+
     def suffix
       '(Saved Search)' end
 
@@ -71,15 +83,15 @@ Module.new do
         update
         @count = 0 end }
 
-    plugin.add_event(:saved_search_regist){ |query|
-      add_tab(query, query) } end
+    plugin.add_event(:saved_search_regist){ |id, query|
+      add_tab(id, query, query) } end
 
   def self.update(use_cache=false)
     Thread.new{
       Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
         remove_unmarked{
           found.each{ |record|
-            add_tab(record['query'], record['name']) } } } } end
+            add_tab(record['id'], record['query'], record['name']) } } } } end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{
@@ -94,15 +106,16 @@ Module.new do
     return found if(found)
     [] end
 
-  def self.add_tab(query, name)
+  def self.add_tab(id, query, name)
     tab = @tab.tabs.find{ |tab| tab.name == name }
     if tab
       tab.search.mark = true
     else
       Gtk::Lock.synchronize{
         @tab.new(name, @service,
-                  :query => query,
-                  :icon => MUI::Skin.get("savedsearch.png")).search(true) } end end
+                 :id => id,
+                 :query => query,
+                 :icon => MUI::Skin.get("savedsearch.png")).search(true) } end end
   boot
 end
 

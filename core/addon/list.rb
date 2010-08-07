@@ -150,7 +150,6 @@ Module.new do
   def self.delete_list(list_id, view)
     @service.delete_list(list_detail(list_id)){ |event, list|
       if event == :success
-        p :delete
         view.each{ |model, path, iter|
           view.remove(iter) if iter[2].to_i == list_id.to_i } end } end
 

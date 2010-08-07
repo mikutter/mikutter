@@ -121,7 +121,7 @@ Module.new do
       append.call "bio", "#{user[:detail]}\n\n" if user[:detail]
       append.call "フォロー", "#{user[:friends_count]} / "
       append.call "フォロワー", "#{user[:followers_count]} / #{user[:statuses_count]}Tweets " +
-        "(#{(user[:statuses_count].to_f / ago).round_at(2) }/day)\n"
+        "(#{if ago == 0 then user[:statuses_count] else (user[:statuses_count].to_f / ago).round_at(2) end}/day)\n"
       append.call "since", "#{user[:created].strftime('%Y/%m/%d %H:%M:%S')}" if user[:created]
       body = Gtk::IntelligentTextview.new(text)
       body.buffer.create_tag('_caption_style',

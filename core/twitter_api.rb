@@ -114,6 +114,10 @@ class TwitterAPI < Mutex
     FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
     file_put_contents(cachefn, body) end
 
+  def cache_clear(path)
+    FileUtils.rm_rf(File::expand_path(Config::CACHE + path))
+  end
+
   def get_cache(path)
     cache_path = File::expand_path(Config::CACHE + path)
     if FileTest.file?(cache_path)
@@ -301,6 +305,19 @@ class TwitterAPI < Mutex
     get_with_auth('/saved_searches.' + FORMAT, head(args))
   end
 
+  def search_create(query)
+    r = post_with_auth("/saved_searches/create.#{FORMAT}",
+                       :query => URI.encode(query))
+    cache_clear('/saved_searches.' + FORMAT)
+    r
+  end
+
+  def search_destroy(id)
+    r = post_with_auth("/saved_searches/destroy/#{id}.#{FORMAT}")
+    cache_clear('/saved_searches.' + FORMAT)
+    r
+  end
+
   def lists(args=nil)
     get_with_auth("/#{args[:user]}/lists." + FORMAT, head(args))
   end
@@ -370,11 +387,6 @@ class TwitterAPI < Mutex
 
   def destroy(msg)
     post_with_auth("/statuses/destroy/#{msg[:id]}.#{FORMAT}")
-  end
-
-  def search_create(query)
-    post_with_auth("/saved_searches/create.#{FORMAT}",
-                   :query => URI.encode(query))
   end
 
   def send(user, text)

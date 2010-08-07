@@ -259,6 +259,8 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => lambda{ |msg| msg } }
+    saved_search_parser = saved_searches_parser.clone
+    saved_search_parser[:hasmany] = false
     lists_parser = {
       :hasmany => 'lists',
       :class => shell_class,
@@ -300,7 +302,8 @@ class Post
       :update => unimessage_parser,
       :retweet => unimessage_parser,
       :destroy => unimessage_parser,
-      :search_create => nil,
+      :search_create => saved_search_parser,
+      :search_destroy => saved_search_parser,
       :search => search_parser,
       :lists => lists_parser,
       :add_list_member => list_parser,
@@ -344,8 +347,8 @@ class Post
         result end end end
 
   # ポストキューにポストを格納する
-  define_postal :update, :retweet, :destroy, :search_create, :follow, :unfollow, :delete_list
-  define_postal :add_list_member, :delete_list_member
+  define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow
+  define_postal :add_list_member, :delete_list_member, :delete_list
   alias post update
 
   def favorite(message, fav)
