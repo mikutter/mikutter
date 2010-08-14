@@ -11,23 +11,21 @@ Module.new do
   @lists = []
   @plugin = Plugin::create(:lists)
   @tabclass = Class.new(Addon.gen_tabclass){
-    attr_reader :users
     def initialize(*args)
       super(*args)
-      @users = Set.new
-      @service.call_api(:list_members,
-                        :id => @options[:id],
-                        :user => @service.user,
-                        :cache => true){ |users|
-        if users
-          @users.merge(users.map{ |u| u[:id].to_i })
-        else
-          remove end } end
+      if list.member.empty?
+        @service.call_api(:list_members,
+                          :id => list[:id],
+                          :user => @service.user,
+                          :cache => true){ |users|
+          list.add_member(users) if users } end end
+
+    def list
+      @options[:list] end
 
     def update(messages)
       messages.each{ |m|
-        id = m[:user][:id]
-        @users << m[:user][:id].to_i if not @users.any?{ |uid| uid == id } }
+        list.add_member(m[:user]) if not list.member?(m[:user]) }
       super(messages) end
 
     def suffix
@@ -35,8 +33,8 @@ Module.new do
 
     def rewind(use_cache=false)
       @service.call_api(:list_statuses,
-                        :id => @options[:id],
-                        :mode => @options[:mode],
+                        :id => list[:id],
+                        :mode => list[:mode] ? 'public' : 'private',
                         :cache => use_cache,
                         :user => @service.user){ |res|
         Gtk::Lock.synchronize{
@@ -61,7 +59,7 @@ Module.new do
 
     @plugin.add_event(:appear){ |messages|
       @tabclass.tabs.each{ |tab|
-        tab.update(messages.select{ |m| tab.users.include?(m[:user][:id].to_i) }) } }
+        tab.update(messages.select{ |m| tab.list.member?(m[:user]) }) } }
 
     @plugin.add_event_hook(:list_data){ |event|
       event.call(@service, @lists) }
@@ -105,8 +103,7 @@ Module.new do
       if list_display?(record['id'])
         Gtk::Lock.synchronize{
           @tabclass.new(record['full_name'], @service,
-                        :id => record['id'],
-                        :mode => record['mode.to_sym'],
+                        :list => record,
                         :icon => MUI::Skin.get("list.png")).rewind(true) } end end end
 
   def self.remove_tab(record)

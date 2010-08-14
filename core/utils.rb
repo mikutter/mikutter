@@ -423,6 +423,14 @@ class Hash
     }
     result
   end
+
+  # キーを全てto_symしたhashを新たにつくる
+  def symbolize
+    result = {}
+    each_pair { |key, val|
+      result[key.to_sym] = val }
+    result
+  end
 end
 
 #

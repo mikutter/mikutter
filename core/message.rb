@@ -45,7 +45,6 @@ class Message < Retriever::Model
       value[:image] = Message::Image.new(value[:image])
     end
     super(value)
-    raise 'type mismatch' if not self[:created].is_a?(Time)
   end
 
   def system

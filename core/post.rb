@@ -7,16 +7,18 @@
 require 'utils'
 
 miquire :core, 'twitter'
-miquire :core, 'environment' # !> method redefined; discarding old sum
+miquire :core, 'environment'
+miquire :core, 'user'
 miquire :core, 'message'
-miquire :core, 'configloader' # !> `*' interpreted as argument prefix
+miquire :core, 'userlist'
+miquire :core, 'configloader'
 miquire :core, 'userconfig'
 miquire :core, "json"
-miquire :core, 'delayer' # !> ambiguous first argument; put parentheses or even spaces
+miquire :core, 'delayer'
 
 class Post
   include ConfigLoader
- # !> ambiguous first argument; put parentheses or even spaces
+
   # タイムラインのキャッシュファイルのプレフィックス。
   TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
 
@@ -44,7 +46,7 @@ class Post
   end
 
   def self.define_postal(api, *other)
-    if $quiet # !> global variable `$quiet' not initialized
+    if $quiet
       define_method(api.to_sym){ |msg|
         notice "#{api}:#{msg.inspect}"
         notice 'Actually, this post does not send.' }
@@ -63,19 +65,19 @@ class Post
     @twitter.request_oauth_token
   end
 
-  def user # !> `*' interpreted as argument prefix
+  def user
     if at('idname')
-      at('idname') # !> `*' interpreted as argument prefix
+      at('idname')
     else
       scaned = scan(:verify_credentials, :no_auto_since_id => false)
       store('idname', scaned[0][:idname]) if scaned
     end
   end
-  alias :idname :user # !> `*' interpreted as argument prefix
+  alias :idname :user
 
   def user_by_cache
     at('idname')
-  end # !> `*' interpreted as argument prefix
+  end
 
   def service
     self
@@ -190,9 +192,9 @@ class Post
   def message_parser(user_retrieve)
     lambda{ |msg|
       cnv = msg.convert_key('text' => :message,
-                            'in_reply_to_user_id' => :reciver,
+                            'in_reply_to_user_id' => :receiver,
                             'in_reply_to_status_id' => :replyto)
-      cnv[:favorited] = !!msg['favorited'] # !> global variable `$daemon' not initialized
+      cnv[:favorited] = !!msg['favorited']
       cnv[:created] = Time.parse(msg['created_at'])
       if user_retrieve
         cnv[:user] = User.findbyid(msg['user']['id']) or self.scan_rule(:user_show, msg['user'])
@@ -210,13 +212,12 @@ class Post
       :class => User,
       :method => :rewind,
       :proc => lambda{ |msg|
-        cnv = msg.convert_key('screen_name' =>:idname,
-                              'url' => :url) # !> `*' interpreted as argument prefix
+        cnv = msg.convert_key('screen_name' =>:idname, 'url' => :url)
         cnv[:created] = Time.parse(msg['created_at'])
         cnv[:detail] = msg['description']
         cnv[:protected] = !!msg['protected']
         cnv[:followers_count] = msg['followers_count'].to_i
-        cnv[:friends_count] = msg['friends_count'].to_i # !> global variable `$logfile' not initialized
+        cnv[:friends_count] = msg['friends_count'].to_i
         cnv[:statuses_count] = msg['statuses_count'].to_i
         cnv[:notifications] = msg['notifications']
         cnv[:verified] = msg['verified']
@@ -232,7 +233,7 @@ class Post
       :hasmany => true,
       :class => Message,
       :method => :new_ifnecessary,
-      :proc => message_parser(false) } # !> method redefined; discarding old sqrt
+      :proc => message_parser(false) }
     unimessage_parser = timeline_parser.clone
     unimessage_parser[:hasmany] = false
     streaming_status = unimessage_parser.clone
@@ -243,7 +244,7 @@ class Post
       :method => :new_ifnecessary,
       :proc => lambda{ |msg|
         cnv = msg.convert_key('text' => :message,
-                              'in_reply_to_user_id' => :reciver,
+                              'in_reply_to_user_id' => :receiver,
                               'in_reply_to_status_id' => :replyto)
         cnv[:created] = Time.parse(msg['created_at'])
         user = User.selectby(:idname, msg['from_user'], -2)
@@ -263,9 +264,13 @@ class Post
     saved_search_parser[:hasmany] = false
     lists_parser = {
       :hasmany => 'lists',
-      :class => shell_class,
+      :class => UserList,
       :method => :new_ifnecessary,
-      :proc => lambda{ |msg| msg } }
+      :proc => lambda{ |msg|
+        cnv = msg.symbolize
+        cnv[:mode] = cnv[:mode] == 'public'
+        cnv[:user] = self.scan_rule(:user_show, cnv[:user])
+        cnv } }
     list_parser = lists_parser.clone
     list_parser[:hasmany] = false
     friendship = {
@@ -449,7 +454,7 @@ class Post
     include Retriever::DataSource
 
     def findbyid(id)
-      if id.is_a? Array
+      if id.is_a? Enumerable
         # id.map{ |i| findbyid(i) }
         front = id.slice(0, 100)
         remain = id.slice(100,id.size)

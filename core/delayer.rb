@@ -22,6 +22,7 @@ class Delayer
     begin
       @routine.call(*@args)
     rescue Exception => e
+      p e
       $@ = e.backtrace[0, now] + @backtrace
       raise e
     end

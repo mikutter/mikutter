@@ -42,7 +42,7 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      raise if not(hash[:id]) or hash[:id] == 0
+      raise ArgumentError.new("incorrect type #{hash.inspect}") if not(hash[:id]) or hash[:id] == 0
       result = @@storage[hash[:id]]
       return result if result
       self.new(hash)
@@ -245,9 +245,10 @@ module Retriever
     # 値を、そのカラムの型にキャストします。
     # キャスト出来ない場合はInvalidTypeError例外を投げます
     def self.cast(value, type, required=false)
-      if not value
-        raise InvalidTypeError, 'it is required value' if required
-      elsif type.is_a?(Symbol) then
+      if value.nil?
+        raise InvalidTypeError, 'it is required value'+[value, type, required].inspect if required
+        nil
+      elsif type.is_a?(Symbol)
         begin
           result = (value and Retriever::cast_func(type).call(value))
           if required and not result
@@ -255,6 +256,13 @@ module Retriever
           result
         rescue InvalidTypeError=>e
           raise InvalidTypeError, "#{value.inspect} is not #{type}" end
+      elsif type.is_a?(Array)
+        if value.respond_to?(:map)
+          value.map{|v| cast(v, type.first, required)}
+        elsif not value
+          nil
+        else
+          raise InvalidTypeError, 'invalid type' end
       elsif value.is_a?(type)
         raise InvalidTypeError, 'invalid type' if required and not value.id
         value.id
