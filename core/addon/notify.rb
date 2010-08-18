@@ -86,7 +86,7 @@ Module.new do
         }
       end
       if(UserConfig[:notify_sound_removed]) then
-        self.notify_sound(UserConfig[:notify_sound_removedd])
+        self.notify_sound(UserConfig[:notify_sound_removed])
       end
     end
   end
@@ -115,7 +115,7 @@ Module.new do
 
   def self.notify_sound(sndfile)
     # hack! linux only
-    bg_system("aplay","-q", sndfile) if FileTest.exist?(sndfile) end
+    bg_system("aplay","-q", sndfile) if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s) end
 
   boot
 end

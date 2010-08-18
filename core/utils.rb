@@ -185,17 +185,13 @@ def assert_hasmethods(obj, *methods)
 end
 
 def log(prefix, msg)
-  msg = "#{prefix}: #{caller(2).first}: #{msg}"
-  if logfile() then
+  msg = "#{prefix}: #{caller(2).first}: #{msg.to_s}"
+  if logfile
     FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
     File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
-      wp.write("#{Time.now.to_s}: #{msg}\n")
-    }
-  end
-  if not $daemon then
-    $stderr.write(msg+"\n")
-  end
-end
+      wp.write("#{Time.now.to_s}: #{msg}\n") } end
+  if not $daemon
+    $stderr.write(msg+"\n") end end
 
 # エラーレベルを設定
 def seterrorlevel(lv = :error)

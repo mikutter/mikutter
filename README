@@ -13,7 +13,9 @@ mikutter - powerful, moeful and useful twitter client
 
 ***プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
-  - notify-sendコマンド(ubuntuでは、sudo aptitude install libnotify-bin)
+  - notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
+- sqliteプラグイン
+  - ruby用のsqliteのライブラリ(ubuntuでは、sudo apt-get install libsqlite3-ruby)
 
 ***gemで入れるもの(なくてもOKです):
 - httpclient
@@ -25,9 +27,9 @@ mikutter - powerful, moeful and useful twitter client
 
 ** Debian/Ubuntuでのインストール方法
 1. aptでインストール
-   - sudo aptitude install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
+   - sudo apt-get install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
 2. 推奨パッケージたち（オプション）
-   - sudo aptitude install libnotify-bin
+   - sudo apt-get install libnotify-bin libsqlite3-ruby
    -> 共通の設定へ
 
 ** Macでのインストール方法

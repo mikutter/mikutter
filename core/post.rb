@@ -98,8 +98,8 @@ class Post
   # twitterのタイムラインを見に行く
   def scan_data(kind, args)
     result = nil
-    tl = twitter.__send__(kind, args) # !> method redefined; discarding old categories_for
-    if defined?(tl.code) and defined?(tl.body) then
+    tl = twitter.__send__(kind, args)
+    if defined?(tl.code) and defined?(tl.body)
       case(tl.code)
       when '200'
         result = tl.body
@@ -107,19 +107,16 @@ class Post
         limit, remain, reset = twitter.api_remain
         Plugin.call(:apilimit, reset) if(@code != tl.code)
       else
-        Plugin.call(:apifail, tl.code) if(@code != tl.code)
-      end
-      @code = tl.code # !> discarding old /
+        Plugin.call(:apifail, tl.code) if(@code != tl.code) end
+      @code = tl.code
     else
-      Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code))
-    end
-    return result # !> discarding old /
-  end
+      Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end
+    result end
 
   def scan(kind=:friends_timeline, args={})
     event_canceling = false
-    if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble) then
-      event_canceling = true # !> method redefined; discarding old inspect
+    if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
+      event_canceling = true
     elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
       args[:since_id] = at(kind.to_s + "_lastid")
     end
@@ -127,18 +124,19 @@ class Post
     args.delete(:no_auto_since_id)
     args.delete(:get_raw_text)
     data = scan_data(kind, args)
-    if raw_text
-      result, json = parse_json(data, kind, true)
-    else
-      result = parse_json(data, kind) end
-    if(result)
-      @scaned_events << kind.to_sym if(event_canceling)
+    if data
       if raw_text
-        return result.reverse, json
+        result, json = parse_json(data, kind, true)
       else
-        result.reverse end
-    elsif raw_text
-      return nil, json end end
+        result = parse_json(data, kind) end
+      if(result)
+        @scaned_events << kind.to_sym if(event_canceling)
+        if raw_text
+          return result.reverse, json
+        else
+          result.reverse end
+      elsif raw_text
+        return nil, json end end end
 
   def call_api(api, args = {})
     Thread.new{

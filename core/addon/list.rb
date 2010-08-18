@@ -46,7 +46,7 @@ Module.new do
       Plugin.call(:setting_tab_regist, settings, 'リスト')
       @service = service
       @count = 0
-      update(true) }
+      update(UserConfig[:use_cache_first_query]) }
 
     @plugin.add_event(:period){ |service|
       @count += 1

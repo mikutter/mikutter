@@ -109,23 +109,35 @@ class TwitterAPI < Mutex
     result end
 
   def cacheing(path, body)
-    cachefn = File::expand_path(Config::CACHE + path)
-    FileUtils.mkdir_p(File::dirname(cachefn))
-    FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
-    file_put_contents(cachefn, body) end
+    begin
+      cachefn = File::expand_path(Config::CACHE + path)
+      FileUtils.mkdir_p(File::dirname(cachefn))
+      FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
+      file_put_contents(cachefn, body)
+    rescue => e
+      warn "cache write failed"
+      warn e end end
 
   def cache_clear(path)
-    FileUtils.rm_rf(File::expand_path(Config::CACHE + path))
-  end
+    begin
+      FileUtils.rm_rf(File::expand_path(Config::CACHE + path))
+    rescue => e
+      warn "cache clear failed"
+      warn e end end
 
   def get_cache(path)
-    cache_path = File::expand_path(Config::CACHE + path)
-    if FileTest.file?(cache_path)
-      return Class.new{
-        define_method(:body){
-          file_get_contents(cache_path) }
-        define_method(:code){
-          '200' } }.new end end
+    begin
+      cache_path = File::expand_path(Config::CACHE + path)
+      if FileTest.file?(cache_path)
+        return Class.new{
+          define_method(:body){
+            file_get_contents(cache_path) }
+          define_method(:code){
+            '200' } }.new end
+    rescue => e
+      warn "cache read failed"
+      warn e
+      nil end end
 
   def get(path, raw_options)
     options = getopts(raw_options)
@@ -241,7 +253,7 @@ class TwitterAPI < Mutex
   def search(args = {})
     path = '/search.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
-    get(path, head)
+    get_with_auth(path, head)
   end
 
   def retweeted_to_me(args = {})
