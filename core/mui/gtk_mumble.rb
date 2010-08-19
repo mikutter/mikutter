@@ -138,6 +138,7 @@ module Gtk
       iw.reply.retweet if(msg.repliable?)
       iw.etc
       iw.favorite if msg.favoriable?
+      iw.bg_color = Gdk::Color.new(*get_backgroundcolor)
       iw
     end
 

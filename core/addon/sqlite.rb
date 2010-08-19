@@ -25,7 +25,7 @@ if defined? SQLite3
     def initialize
       @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
       atomic{ table_setting }
-      @insert = "insert into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"
+      @insert = "insert or ignore into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"
       @update = "update #{table_name} set " + columns.slice(0, columns.size-1).map{|x| "#{x}=?"}.join(',') + " where id=?"
       @findbyid = "select * from #{table_name} where id=?"
       modelclass.add_data_retriever(self) end
@@ -102,8 +102,7 @@ if defined? SQLite3
         atomic{ @db.execute(query, *convert(modifier)) }
       rescue SQLite3::SQLException => e
         warn e.inspect
-        warn e.backtrace.inspect
-        exit end end end
+        warn e.backtrace.inspect end end end
 
   class SQLiteMessageDataSource < SQLiteDataSource
     @@columns = [:user_id, :message, :receiver_id, :replyto_id, :retweet_id, :source, :geo, :exact,

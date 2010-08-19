@@ -157,14 +157,11 @@ class Gtk::IconOverButton < Gtk::EventBox
       return false if not(self.realized?)
       gc = Gdk::GC.new(self.window)
       pb = background.pixbuf
-      aspect_x = pb.width / pb.height
-      aspect_y = pb.height / pb.width
       gc.set_foreground(@bgcolor)
       window.draw_rectangle(gc, true, 0, 0, width_request, height_request)
-      window.draw_pixbuf(gc, self.background.pixbuf,
-                         0, 0,
-                         (pb.width / 2 - (aspect_x * pb.width / 2))/2,
-                         (pb.height / 2 - (aspect_y * pb.height / 2))/2,
+      window.draw_pixbuf(gc, pb, 0, 0,
+                         (pb.width / 2 - (pb.width / pb.height * pb.width / 2))/2,
+                         (pb.height / 2 - (pb.height / pb.width * pb.height / 2))/2,
                          pb.width, pb.height,
                          Gdk::RGB::DITHER_NONE, 0, 0)
       draw_buttons(gc, options[:focus])

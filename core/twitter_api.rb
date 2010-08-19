@@ -84,8 +84,8 @@ class TwitterAPI < Mutex
     nil
   end
 
-  def connection
-    http = Net::HTTP.new(HOST)
+  def connection(host = HOST)
+    http = Net::HTTP.new(host)
     http.open_timeout = OPEN_TIMEOUT
     http.read_timeout = READ_TIMEOUT
     return http
@@ -104,6 +104,8 @@ class TwitterAPI < Mutex
       case(k)
       when 'Cache'
         result[:cache] = v
+      when 'Host'
+        result[:host] = v
       else
         result[:head][k] = v end }
     result end
@@ -148,7 +150,7 @@ class TwitterAPI < Mutex
     res = nil
     http = nil
     begin
-      http = self.connection()
+      http = self.connection(options[:host] || HOST)
       http.start
       res = http.get(path, options[:head])
       if res.is_a?(Net::HTTPResponse) and res.code == '200' and options.has_key?(:cache)
@@ -252,8 +254,8 @@ class TwitterAPI < Mutex
 
   def search(args = {})
     path = '/search.' + FORMAT + get_args(args)
-    head = {'Host' => HOST}
-    get_with_auth(path, head)
+    head = {'Host' => 'search.twitter.com'}
+    get(path, head)
   end
 
   def retweeted_to_me(args = {})
