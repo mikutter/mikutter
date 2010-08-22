@@ -39,7 +39,7 @@ module Environment
 
     attr_reader :mejor, :minor, :debug, :devel
 
-    def initialize(mejor, minor=1.0/0, debug=1.0/0, devel=1.0/0)
+    def initialize(mejor, minor, debug, devel)
       @mejor = mejor
       @minor = minor
       @debug = debug
@@ -79,6 +79,6 @@ module Environment
   end
 
   # このソフトのバージョン。
-  VERSION = Version.new(Config::VERSION)
+  VERSION = Version.new(*Config::VERSION)
 
 end

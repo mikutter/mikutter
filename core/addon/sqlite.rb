@@ -36,6 +36,8 @@ if defined? SQLite3
         key, val, = atomic{ @db.execute2(@findbyid ,id) }
         return nil if not val
         return record_convert(key.zip(val))
+      rescue Retriever::InvalidTypeError
+        return nil
       rescue SQLite3::SQLException => e
         warn e.inspect
         warn e.backtrace.inspect

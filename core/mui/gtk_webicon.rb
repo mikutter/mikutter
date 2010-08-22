@@ -19,7 +19,8 @@ module Gtk
     @@image_download_lock = Mutex.new
     @@m_iconlock = Mutex.new
     @@l_iconring = Hash.new{ Mutex.new }
-    @@pixbuf = Hash.new{ Hash.new{ Hash.new } }
+    @@pixbuf = @@oldpixbuf = Hash.new{ Hash.new{ Hash.new } }
+    @@pixbufcache_lastcleartime = Time.now
 
     def initialize(img, width=48, height=48)
       if(img.index('http://') == 0) then
@@ -43,22 +44,31 @@ module Gtk
       }
     end
 
+    def self.pixbuf_cache_get(filename, width, height)
+      if @@pixbuf[filename][width][height]
+        @@pixbuf[filename][width][height]
+      elsif @@oldpixbuf[filename][width][height]
+        @@pixbuf[filename][width][height] = @@oldpixbuf[filename][width][height] end end
+
+    def self.pixbuf_cache_set(filename, pixbuf)
+      if @@pixbufcache_lastcleartime < Time.now
+        notice 'pixbuf cache refreshed'
+        @@pixbufcache_lastcleartime = Time.now + 60 * 30
+        @@oldpixbuf = @@pixbuf
+        @@pixbuf = Hash.new{ Hash.new{ Hash.new } } end
+      @@pixbuf[filename][pixbuf.width][pixbuf.height] = pixbuf end
+
     def self.genpixbuf(filename, width=48, height=48)
       result = nil
       begin
         @@m_iconlock.synchronize{
-          if(@@pixbuf[filename][width][height].is_a?(Gdk::Pixbuf)) then
-            result = @@pixbuf[filename][width][height]
-          else
-            result = Gdk::Pixbuf.new(File.expand_path(filename), width, height)
-            @@pixbuf[filename][width][height] = result
-          end
-        }
+          result = pixbuf_cache_get(filename, width, height)
+          if not(result.is_a?(Gdk::Pixbuf))
+            result = pixbuf_cache_set(filename,
+                                      Gdk::Pixbuf.new(File.expand_path(filename), width, height)) end }
       rescue Gdk::PixbufError
-        result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height)
-      end
-      return result
-    end
+        result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height) end
+      result end
 
     def self.background_icon_loader(this, img, dim=[48,48])
       filename = WebIcon.local_path(img)
