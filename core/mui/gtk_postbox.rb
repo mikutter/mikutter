@@ -146,6 +146,7 @@ module Gtk
           if not(frozen?) and parent
             parent.remove(self)
             @@postboxes.delete(self)
+            super
             self.freeze end } } end
 
     def reply?

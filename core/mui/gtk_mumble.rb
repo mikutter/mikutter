@@ -95,15 +95,16 @@ module Gtk
       end
     end
 
+    def event_button_canceling
+      lambda{ |widget, event| event.button == 3 } end
+
+    def event_style_bg
+      lambda{ style.bg(Gtk::STATE_NORMAL) } end
+
     def gen_body(message, fonts={})
       body = Gtk::IntelligentTextview.new(message.to_show, fonts)
-      body.signal_connect('button_press_event'){ |widget, event|
-        event.button == 3 }
-      body.get_background = lambda{ style.bg(Gtk::STATE_NORMAL) }
-#       body.signal_connect('button_release_event'){ |widget, event|
-#        Gtk::Lock.synchronize{
-#          menu_pop(widget) if (event.button == 3) }
-#       false }
+      body.signal_connect('button_press_event', &event_button_canceling)
+      body.get_background = event_style_bg
       return body
     end
 
@@ -185,7 +186,7 @@ module Gtk
     def append_contents
       msg = if @message[:retweet] then @message[:retweet] else @message end
       Lock.synchronize{
-        children.each{ |w| remove(w) }
+        children.each{ |w| remove(w); w.destroy }
         shell = Gtk::VBox.new(false, 0)
         container = Gtk::HBox.new(false, 0)
         @replies = Gtk::VBox.new(false, 0)

@@ -28,10 +28,10 @@ class UserConfig
     :retrieve_interval_followings => 60,  # followを更新する間隔(int)
     :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
 
-    :retrieve_count_friendtl => HYDE,   # TLを取得する数(int)
-    :retrieve_count_mention => HYDE,    # Replyを取得する数(int)
-    :retrieve_count_followings => HYDE,   # followを取得する数(int)
-    :retrieve_count_followers => HYDE,   # followerを取得する数(int)
+    :retrieve_count_friendtl => 20,   # TLを取得する数(int)
+    :retrieve_count_mention => 20,    # Replyを取得する数(int)
+    :retrieve_count_followings => 20,   # followを取得する数(int)
+    :retrieve_count_followers => 20,   # followerを取得する数(int)
 
     # デフォルトのフッダ
     :footer => "",

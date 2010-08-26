@@ -45,8 +45,10 @@ module Gtk
         else
           mumble = Gtk::Mumble.new(message).show_all
           @tl.pack(mumble, false)
-          if(@tl.children.size > 200) then
-            @tl.remove(@tl.children.last) end end end end
+          if(@tl.children.size > 200)
+            w = @tl.children.last
+            @tl.remove(w)
+            w.destroy end end end end
 
     def block_add_all(messages)
       Lock.synchronize do
@@ -61,7 +63,10 @@ module Gtk
           end
         end
         if(@tl.children.size > 200) then
-          (@tl.children.size - 200).times{ @tl.remove(@tl.children.last) }
+          (@tl.children.size - 200).times{
+            w = @tl.children.last
+            @tl.remove(w)
+            w.destroy }
         end
       end
     end
@@ -70,7 +75,9 @@ module Gtk
       if defined? @tl
         msgs.each{ |m|
           w = @tl.children.find{ |x| x[:id] == m[:id] }
-          @tl.remove(w) if w } end
+          if w
+            @tl.remove(w)
+            w.destroy end } end
       self end
 
     def all_id
@@ -83,7 +90,8 @@ module Gtk
       if defined? @tl
         Lock.synchronize do
           @tl.children.each{ |elm|
-            @tl.remove(elm) } end end
+            @tl.remove(elm)
+            elm.destroy } end end
       self end
 
     def should_return_top?

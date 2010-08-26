@@ -194,7 +194,7 @@ def type_check(args, &proc)
     proc.call if proc end end
 
 # type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
-def type_checked_lambda(*args, &proc)
+def tclambda(*args, &proc)
   lambda{ |*a|
     if proc.arity >= 0
       if proc.arity != a.size
@@ -287,7 +287,7 @@ end
 
 class Object
   def self.defun(method_name, *args, &proc)
-    define_method(method_name, &type_checked_lambda(*args, &proc)) end end
+    define_method(method_name, &tclambda(*args, &proc)) end end
 
 #
 # integer

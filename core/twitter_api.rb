@@ -27,8 +27,8 @@ class TwitterAPI < Mutex
   API_MAX = 150
   API_RESET_INTERVAL = 3600
   OAUTH_VERSION = '1.0'
-  CONSUMER_KEY = "WprYqxrnDTD09MAilPuTgA"
-  CONSUMER_SECRET = "JKJfLnrriMWpeCZC6vlBJWiPJXsr2aVGLMUxjxrCU"
+  CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
+  CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
 
   include ConfigLoader
 
