@@ -27,8 +27,8 @@ class TwitterAPI < Mutex
   API_MAX = 150
   API_RESET_INTERVAL = 3600
   OAUTH_VERSION = '1.0'
-  CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
-  CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
+  CONSUMER_KEY = "WprYqxrnDTD09MAilPuTgA"
+  CONSUMER_SECRET = "JKJfLnrriMWpeCZC6vlBJWiPJXsr2aVGLMUxjxrCU"
 
   include ConfigLoader
 
@@ -57,10 +57,16 @@ class TwitterAPI < Mutex
     @@ntr = ntr
   end
 
-  def request_oauth_token
+  def consumer
     OAuth::Consumer.new(CONSUMER_KEY,
                         CONSUMER_SECRET,
-                        :site => 'http://twitter.com').get_request_token end
+                        :site => 'http://twitter.com') end
+
+  def access_token
+    OAuth::AccessToken.new(consumer, @a_token, @a_secret) end
+
+  def request_oauth_token
+    consumer.get_request_token end
 
   def api_remain(response = nil)
     if response and response['X-RateLimit-Reset'] then
@@ -185,9 +191,6 @@ class TwitterAPI < Mutex
     if options[:cache]
       cache = get_cache(path)
       return cache if cache end
-    consumer = OAuth::Consumer.new(CONSUMER_KEY,
-                                   CONSUMER_SECRET,
-                                   :site => 'http://twitter.com')
     access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
     res = nil
     begin
@@ -306,8 +309,12 @@ class TwitterAPI < Mutex
   end
 
   def user_lookup(args)
-    get_with_auth("/users/lookup." + FORMAT + '?user_id=' + args[:id], 'Host' => HOST)
-  end
+    if args[:id].empty?
+      nil
+    elsif args[:id].include?(',')
+      get_with_auth("/users/lookup." + FORMAT + '?user_id=' + args[:id], 'Host' => HOST)
+    else
+      user_show(args) end end
 
   def status_show(args)
     path = "/statuses/show/#{args[:id]}.#{FORMAT}"

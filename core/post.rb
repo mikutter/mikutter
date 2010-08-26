@@ -27,7 +27,19 @@ class Post
 
   @@threads = []
   @@xml_lock = Mutex.new
-  @@auth_confirm_func = lambda{ raise }
+  @@auth_confirm_func = lambda{ |service|
+    begin
+      request_token = service.request_oauth_token
+      puts "go to #{request_token.authorize_url}"
+      print "Authorized number is:"
+      $stdout.flush
+      access_token = request_token.get_access_token(:oauth_token => request_token.token,
+                                                    :oauth_verifier => STDIN.gets.chomp)
+      [access_token.token, access_token.secret]
+    rescue => e
+      error('invalid number')
+    end
+  }
 
   def initialize
     @scaned_events = []
@@ -53,7 +65,8 @@ class Post
     else
       define_method(api.to_sym){ |msg, &proc|
         self._post(msg, api.to_sym) {|event, msg|
-          proc.call(event, msg) if(proc)
+          if proc
+            type_check(event => Symbol){ proc.call(event, msg) } end
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg.is_a?(Message))
@@ -98,33 +111,35 @@ class Post
   # twitterのタイムラインを見に行く
   def scan_data(kind, args)
     result = nil
-    tl = twitter.__send__(kind, args)
-    if defined?(tl.code) and defined?(tl.body)
-      case(tl.code)
-      when '200'
-        result = tl.body
-      when '400'
-        limit, remain, reset = twitter.api_remain
-        Plugin.call(:apilimit, reset) if(@code != tl.code)
+    type_check(kind => [:respond_to?, :to_sym], args => Hash){
+      tl = twitter.__send__(kind, args)
+      if defined?(tl.code) and defined?(tl.body) then
+        case(tl.code)
+        when '200'
+          result = tl.body
+        when '400'
+          limit, remain, reset = twitter.api_remain
+          Plugin.call(:apilimit, reset) if(@code != tl.code)
+        else
+          Plugin.call(:apifail, tl.code) if(@code != tl.code) end
+        @code = tl.code
       else
-        Plugin.call(:apifail, tl.code) if(@code != tl.code) end
-      @code = tl.code
-    else
-      Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end
-    result end
+        Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end }
+    return result  end
 
   def scan(kind=:friends_timeline, args={})
-    event_canceling = false
-    if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
-      event_canceling = true
-    elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
-      args[:since_id] = at(kind.to_s + "_lastid")
-    end
-    raw_text = args[:get_raw_text]
-    args.delete(:no_auto_since_id)
-    args.delete(:get_raw_text)
-    data = scan_data(kind, args)
-    if data
+    type_check(kind => [:respond_to?, :to_sym], args => Hash){
+      event_canceling = false
+      if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
+        event_canceling = true
+      elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
+        since_id = at(kind.to_s + "_lastid")
+        args[:since_id] = since_id if since_id
+      end
+      raw_text = args[:get_raw_text]
+      args.delete(:no_auto_since_id)
+      args.delete(:get_raw_text)
+      data = scan_data(kind, args)
       if raw_text
         result, json = parse_json(data, kind, true)
       else
@@ -136,7 +151,7 @@ class Post
         else
           result.reverse end
       elsif raw_text
-        return nil, json end end end
+        return nil, json end } end
 
   def call_api(api, args = {})
     Thread.new{
@@ -326,28 +341,32 @@ class Post
                                                                                  :exact => true }) end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
-    if json then
-      result = nil
-      json = begin
-               JSON.parse(json) if json.is_a?(String)
-             rescue JSON::ParserError
-               warn "json parse error"
-               return nil end
-      json.freeze
-      if self.rule(cache, :hasmany).is_a?(String)
-        tl = json[self.rule(cache, :hasmany)]
-      elsif not self.rule(cache, :hasmany)
-        tl = [json]
-      else
-        tl = json end
-      return nil if not tl.respond_to?(:map)
-      result = tl.map{ |msg| scan_rule(cache, msg) }.freeze
-      store(cache.to_s + "_lastid", result.first['id']) if result.first
-      Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
-      if get_raw_data
-        return result, json
-      else
-        result end end end
+    if json
+      begin
+        result = nil
+        json = begin
+                 JSON.parse(json) if json.is_a?(String)
+               rescue JSON::ParserError
+                 warn "json parse error"
+                 return nil end
+        json.freeze
+        if self.rule(cache, :hasmany).is_a?(String)
+          tl = json[self.rule(cache, :hasmany)]
+        elsif not self.rule(cache, :hasmany)
+          tl = [json]
+        else
+          tl = json end
+        return nil if not tl.respond_to?(:map)
+        result = tl.map{ |msg| scan_rule(cache, msg) }.freeze
+        store(cache.to_s + "_lastid", result.first['id']) if result.first
+        Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
+        if get_raw_data
+          return result, json
+        else
+          result end
+      rescue => e
+        warn e
+        nil end end end
 
   # ポストキューにポストを格納する
   define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow

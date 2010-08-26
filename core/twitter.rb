@@ -80,6 +80,9 @@ class Twitter < TwitterAPI
         result << image
       else
         return nil end end
+    if message[:retweet]
+      result << "RT" << "@#{message[:retweet][:user][:idname]}:" << message[:retweet].to_s
+    end
     text = result.join(' ')
     if(UserConfig[:shrinkurl_always] or text.strsize > 140)
       text = MessageConverters.shrink_url_all(text) end
@@ -90,6 +93,8 @@ class Twitter < TwitterAPI
       User.generate(message[:receiver])
     elsif(/@([a-zA-Z0-9_]+)/ === message[:message]) then
       User.findByIdname($1)
+    elsif message[:replyto]
+      message[:replyto][:user] rescue nil
     end
   end
 end

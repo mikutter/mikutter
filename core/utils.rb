@@ -14,7 +14,6 @@ require 'monitor'
 $atomic = Monitor.new
 $debug_avail_level = 2
 HYDE = 156
-MIKU = 39
 
 #
 # 制御構文
@@ -168,6 +167,44 @@ def error(msg)
   log "error", msg if $debug_avail_level >= 1
 end
 
+# 引数のチェックをすべてパスした場合のみブロックを実行する
+# チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。
+# チェックはassocできる配列か、Hashで定義する。
+# type_check(value => nil,              # チェックしない(常にパス)
+#            value => Symbol,           # その型とis_a?関係ならパス
+#            value => [:method, *args], # value.method(*args)が真を返せばパス
+#            value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
+# チェックをすべてパスすればブロックの実行結果の戻り値、チェックに引っかかれば
+# nilを返す
+def type_check(args, &proc)
+  check_function = lambda{ |val, check|
+    if check.nil?
+      nil
+    elsif check.respond_to?(:call)
+      check.call(val)
+    elsif check.is_a? Array
+      val.__send__(*check)
+    elsif check.is_a? Class
+      val.is_a?(check) end }
+  error = args.find{ |a| not(check_function.call(*a)) }
+  if(error)
+    warn "argument error: #{error[0].inspect} is not passed #{error[1].inspect}"
+    nil
+  else
+    proc.call if proc end end
+
+# type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
+def type_checked_lambda(*args, &proc)
+  lambda{ |*a|
+    if proc.arity >= 0
+      if proc.arity != a.size
+        raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end
+    else
+      if -(proc.arity+1) > a.size
+        raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end end
+    type_check(a.slice(0, args.size).zip(args)){
+      proc.call(*a) } } end
+
 def assert_type(type, obj)
   if $debug and not obj.is_a?(type) then
     raise RuntimeError, "#{obj} should be type #{type}"
@@ -185,13 +222,17 @@ def assert_hasmethods(obj, *methods)
 end
 
 def log(prefix, msg)
-  msg = "#{prefix}: #{caller(2).first}: #{msg.to_s}"
-  if logfile
+  msg = "#{prefix}: #{caller(2).first}: #{msg}"
+  if logfile() then
     FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
     File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
-      wp.write("#{Time.now.to_s}: #{msg}\n") } end
-  if not $daemon
-    $stderr.write(msg+"\n") end end
+      wp.write("#{Time.now.to_s}: #{msg}\n")
+    }
+  end
+  if not $daemon then
+    $stderr.write(msg+"\n")
+  end
+end
 
 # エラーレベルを設定
 def seterrorlevel(lv = :error)
@@ -243,6 +284,10 @@ def bg_system(*args)
   cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
   system('sh', '-c', cmd)
 end
+
+class Object
+  def self.defun(method_name, *args, &proc)
+    define_method(method_name, &type_checked_lambda(*args, &proc)) end end
 
 #
 # integer
