@@ -110,12 +110,9 @@ module Gtk
               Delayer.new{ destroy } end } end } end
 
     def post_is_empty?
-      @post.buffer.text == "" or
+      frozen? and @post.buffer.text == "" or
         (defined?(@watch[:user]) and
          @post.buffer.text == "@#{@watch[:user][:idname]} ") end
-#       return true if (@post.buffer.text == "")
-#       return true if (defined? @watch[:user]) and (@post.buffer.text == '@'+@watch[:user][:idname] + ' ')
-#       false end
 
     def brothers
       if(@options[:postboxstorage])
@@ -136,7 +133,8 @@ module Gtk
 
     def destroy_if_necessary(*related_widgets)
       Gtk::Lock::synchronize{
-        if not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?
+        if(not(frozen?) and not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and
+           destructible?)
           destroy
           true end } end
 
@@ -173,10 +171,9 @@ module Gtk
 
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|
-        if(not(options.has_key?(:postboxstorage)) and post_is_empty?)
+        if(not(frozen?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
           destroy_if_necessary(send, tool) end }
       false end
-
 
     # Initialize Methods
 
