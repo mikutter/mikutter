@@ -530,18 +530,18 @@ class String
     end
   end
 
-  def shrink(count, uni_char=nil)
+  def shrink(count, uni_char=nil, separator=' ')
     o_match = uni_char && match(uni_char)
     pure_matched = lazy{ o_match.pre_match + o_match[0] }
-    sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.strsize, uni_char) }
-    sh_head = lazy{ o_match.pre_match.slice(0, count - o_match[0].strsize) }
+    sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.strsize, uni_char, separator) }
+    sh_head = lazy{ o_match.pre_match.split(//u)[0, count-separator.strsize-o_match[0].strsize].join }
     if o_match
       if pure_matched.strsize <= count
         pure_matched + sh_post
       elsif not sh_head.nil?
-        sh_head + o_match[0] + sh_post
+        sh_head + separator + o_match[0] + sh_post
       else
-        o_match[0].shrink(count)
+        o_match[0].shrink(count, uni_char, separator)
       end
     elsif empty?
       ""

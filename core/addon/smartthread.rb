@@ -11,7 +11,7 @@ Module.new do
       super
       raise if not @options[:message]
       @still_added = Set.new
-      close = Gtk::Button.new('×')
+      close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       close.signal_connect('clicked'){ self.remove }
       header.closeup(close).show_all
       set_ancestor(@options[:message])

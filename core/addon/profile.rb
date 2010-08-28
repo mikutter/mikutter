@@ -26,20 +26,20 @@ Module.new do
                        :no_auto_since_id => true,
                        :count => 20){ |tl|
         Delayer.new{ timeline.add(tl) } if tl }
-#       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
-#         followed_list_ids = res.map{|list| list['id'].to_i}
-#         @list = Gtk::ListList.new{ |iter|
-#           flag = iter[0] = !iter[0]
-#           @service.__send__(flag ? :add_list_member : :delete_list_member,
-#                             :list_id => iter[2]['id'],
-#                             :idname => @service.user,
-#                             :id => user[:id]){ |e, m|
-#             iter[0] = !flag if e == :fail
-#             p m } }
-#         @list.set_auto_get{ |list|
-#           followed_list_ids.include?(list['id'].to_i) }
-#         @notebook.append_page(@list.show_all,
-#                               Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) }
+      @service.call_api(:list_user_followers, :user => user[:id]){ |res|
+        followed_list_ids = res.map{|list| list['id'].to_i}
+        @list = Gtk::ListList.new{ |iter|
+          flag = iter[0] = !iter[0]
+          @service.__send__(flag ? :add_list_member : :delete_list_member,
+                            :list_id => iter[2]['id'],
+                            :idname => @service.user,
+                            :id => user[:id]){ |e, m|
+            iter[0] = !flag if e == :fail
+            p m } }
+        @list.set_auto_get{ |list|
+          followed_list_ids.include?(list['id'].to_i) }
+        @notebook.append_page(@list.show_all,
+                              Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) }
       header.closeup(profile).show_all
       super
       focus end
@@ -102,7 +102,7 @@ Module.new do
 
     def toolbar
       container = Gtk::HBox.new(false, 0)
-      close = Gtk::Button.new('×')
+      close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       close.signal_connect('clicked'){ self.remove }
 #       nextpage = Gtk::Button.new('+')
 #       nextpage.signal_connect('clicked'){ self.next_page }

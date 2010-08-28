@@ -205,7 +205,7 @@ module Gtk
       return post, w_remain end
 
     def generate_send
-      send = Gtk::Button.new('!')
+      send = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('post.png'), 16, 16))
       send.sensitive = postable?
       send.signal_connect('clicked'){|button|
         post_it
@@ -213,7 +213,7 @@ module Gtk
       send end
 
     def generate_tool
-      tool = Gtk::Button.new('-')
+      tool = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       tool.signal_connect_after('focus_out_event', &method(:focus_out_event))
       tool.signal_connect('event'){
         tool.sensitive = destructible?

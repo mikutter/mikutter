@@ -17,8 +17,7 @@ Module.new do
         @service.call_api(:list_members,
                           :id => list[:id],
                           :user => @service.user,
-                          :cache => true){ |users|
-          list.add_member(users) if users } end end
+                          :cache => false){ |users| list.add_member(users) if users } end end
 
     def list
       @options[:list] end
@@ -124,6 +123,7 @@ Module.new do
     @lists.map{ |list| list['id'] } end
 
   def self.set_available_lists(list)
+    notice list.map{ |l| l[:slug] }.inspect
     @lists = list.freeze
     Plugin::call(:list_data, @service, @lists)
     Delayer.new{ settings }
@@ -146,9 +146,17 @@ Module.new do
 
   def self.delete_list(list_id, view)
     @service.delete_list(list_detail(list_id)){ |event, list|
+      notice [event, list].inspect
       if event == :success
-        view.each{ |model, path, iter|
-          view.remove(iter) if iter[2].to_i == list_id.to_i } end } end
+        notice :success
+        begin
+          view.model.each{ |model, path, iter|
+            notice [iter[1], iter[2].to_i, list_id.to_i].inspect
+            view.model.remove(iter) if iter[2].to_i == list_id.to_i }
+        rescue => e
+          p e
+        end
+      end } end
 
   def self.settings
     if defined? @setting_container
@@ -167,13 +175,94 @@ Module.new do
       iter[2] = list_id }
     @setting_container.add(container).show_all end
 
+  def self.popupwindow_create_list(list_name = "", list_desc = "", public = true)
+    container = Gtk::VBox.new.
+      closeup(Mtk.input(lambda{ |new| if new then list_name = new else list_name end },
+                        'リストの名前')){ |c, w| w.max_length = 25 }.
+      closeup(Mtk.input(lambda{ |new| if new then list_desc = new else list_desc end },
+                        '説明')){ |c, w| w.max_length = 100 }.
+      closeup(Mtk.boolean(lambda{ |new| if new === nil then public else public = new end }, '公開'))
+    lambda{ {
+        :container => container,
+        :mode => public,
+        :description => list_desc,
+        :name => list_name } }
+  end
+
+  def self.create_dialog(title, container)
+    dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
+    dialog.set_size_request(400, 300)
+    dialog.window_position = Gtk::Window::POS_CENTER
+    dialog.vbox.pack_start(container, true, true, 30)
+    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
+    dialog end
+
   def self.menu_pop(widget)
     contextmenu = Gtk::ContextMenu.new
+    contextmenu.registmenu("リストを作成"){ |optional, w|
+      popup = popupwindow_create_list
+      dialog = create_dialog('リストを作成', popup.call[:container])
+      dialog.signal_connect('response'){ |widget, response|
+        if response == Gtk::Dialog::RESPONSE_OK
+          param = popup.call
+          param[:user] = {:idname => @service.user}
+          @service.add_list(param){ |event, list|
+            if event == :success and list
+              lists = @lists.dup
+              lists.push(list)
+              set_available_lists(lists) end }
+        end
+        Gtk::Window.toplevels.first.sensitive = true
+        dialog.hide_all.destroy
+        Gtk::main_quit
+      }
+      Gtk::Window.toplevels.first.sensitive = false
+      dialog.show_all
+      Gtk::main
+    }
+
+    contextmenu.registmenu("リストを編集"){ |optional, w|
+      catch(:end){
+        w.view.selection.selected_each {|model, path, iter|
+          list = list_detail(iter[2])
+          p list
+          popup = popupwindow_create_list(list[:name], list[:description], list[:mode])
+          dialog = create_dialog('リストを編集', popup.call[:container])
+          dialog.signal_connect('response'){ |widget, response|
+            if response == Gtk::Dialog::RESPONSE_OK
+              param = popup.call
+              list[:name] = param[:name]
+              list[:description] = param[:description]
+              list[:mode] = param[:mode]
+              @service.update_list(list){ |event, list|
+                notice [event, list].inspect
+                if event == :success and list
+                  iter[1] = list[:full_name] end }
+            end
+            Gtk::Window.toplevels.first.sensitive = true
+            dialog.hide_all.destroy
+            Gtk::main_quit
+          }
+          Gtk::Window.toplevels.first.sensitive = false
+          dialog.show_all
+          Gtk::main
+          throw :end
+        }
+      }
+    }
+
     contextmenu.registmenu("リストを削除"){ |optional, w|
-      w.selection.selected_each {|model, path, iter|
-        delete_list(iter[2], widget) } }
+      w.view.selection.selected_each {|model, path, iter|
+        if Gtk::Dialog.confirm("リスト\"#{iter[1]}\"を本当に削除しますか？\n" +
+                               "一度削除するともうもどってこないよ。")
+          delete_list(iter[2].to_i, widget.view) end } }
     contextmenu.popup(widget, widget)
   end
 
   boot
 end
+# ~> -:158: syntax error, unexpected '}', expecting kEND
+# ~>         end } end
+# ~>              ^
+# ~> -:232: syntax error, unexpected $end, expecting '}'

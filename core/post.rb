@@ -50,7 +50,7 @@ class Post
         UserConfig[:twitter_token] = token
         UserConfig[:twitter_secret] = secret
       end
-      store('idname', nil)
+      @user_idname = nil
       [token, secret] }
     notice caller(1).first
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
@@ -79,11 +79,11 @@ class Post
   end
 
   def user
-    if at('idname')
-      at('idname')
+    if defined?(@user_idname)
+      @user_idname
     else
       scaned = scan(:verify_credentials, :no_auto_since_id => false)
-      store('idname', scaned[0][:idname]) if scaned
+      @user_idname = scaned[0][:idname] if scaned
     end
   end
   alias :idname :user
@@ -324,6 +324,9 @@ class Post
       :search_destroy => saved_search_parser,
       :search => search_parser,
       :lists => lists_parser,
+      :add_list => list_parser,
+      :delete_list => list_parser,
+      :update_list => list_parser,
       :add_list_member => list_parser,
       :delete_list_member => list_parser,
       :list_subscriptions => lists_parser,
@@ -370,7 +373,7 @@ class Post
 
   # ポストキューにポストを格納する
   define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow
-  define_postal :add_list_member, :delete_list_member, :delete_list
+  define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
   alias post update
 
   def favorite(message, fav)
@@ -391,11 +394,15 @@ class Post
       result = yield(:try, message)
       if defined?(result.code)
         if result.code == '200'
-          notice "post:success:#{count}:#{message.inspect}"
+          notice "post:success:#{api}:#{count}:#{message.inspect}"
           receive = parse_json(result.body, api)
+          p receive
           if receive.is_a?(Array) then
             yield(:success, receive.first)
-            return receive.first end
+            return receive.first
+          else
+            yield(:success, receive)
+            return receive end
         elsif result.code[0] == '4'[0]
           begin
             errmes = JSON.parse(result.body)["error"]
@@ -411,7 +418,7 @@ class Post
         elsif not(result.code[0] == '5'[0])
           yield(:fail, err)
           return nil end end
-      notice "post:fail:#{count}:#{message.inspect}"
+      notice "post:fail:#{api}:#{count}:#{message.inspect}"
       puts result.backtrace.join("\n") if result.is_a? Exception
       yield(:retry, result)
       sleep(1) }

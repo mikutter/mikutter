@@ -439,8 +439,30 @@ class TwitterAPI < Mutex
     post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}")
   end
 
+  # list = {
+  #   :user => User(自分)
+  #   :name => String
+  #   :description => String
+  #   :public => boolean
+  # }
+  def add_list(list)
+    type_check(list[:name] => [:respond_to?, :to_s],
+               list[:description] => [:respond_to?, :to_s],
+               list[:user] => [:respond_to?, :[]]){
+      post_with_auth("/#{list[:user][:idname]}/lists.#{FORMAT}",
+                     :name => list[:name].to_s.shrink(25),
+                     :description => list[:description].to_s.shrink(100),
+                     :mode => (if list[:mode] then 'public' else 'private' end)) } end
+
+  def update_list(list)
+    type_check(list => UserList) do
+      self.post_with_auth("/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}",
+                          :name => list[:name].to_s.shrink(25),
+                          :description => list[:description].to_s.shrink(100),
+                          :mode => (if list[:mode] then 'public' else 'private' end)) end end
+
   def delete_list(list)
-    query_with_auth(:delete, "/#{list['user']['id']}/lists/#{list['id']}.#{FORMAT}")
+    query_with_auth(:delete, "/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}")
   end
 
   def get_args(args)
