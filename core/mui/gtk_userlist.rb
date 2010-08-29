@@ -4,6 +4,8 @@ miquire :mui, 'extension'
 miquire :core, 'user'
 miquire :mui, 'icon_over_button'
 
+require 'set'
+
 #
 # TODO: timelineからコピペで作ったからリファクタリングしてモジュールを作る
 #
@@ -15,7 +17,7 @@ module Gtk
     attr_accessor :double_clicked
 
     def initialize()
-      @users = []
+      @users = Set.new
       @double_clicked = ret_nth
       super()
       Lock.synchronize do
@@ -50,18 +52,18 @@ module Gtk
       Lock.synchronize do
         if user[:rule] == :destroy
           remove_if_exists_all([user])
-        elsif not all_id.include?(user[:id])
+        elsif not @users.include?(user)
           img = Gtk::WebIcon.new(user[:profile_image_url], 24, 24)
           iter = @ul.prepend
           iter[0] = img.pixbuf
           iter[1] = user[:idname]
           iter[2] = user[:name]
+          iter[3] = user
           img.add_observer Class.new{
             define_method(:update){
               Delayer.new{
                 iter[0] = img.pixbuf } } }.new
-          @users.unshift(user)
-        end end end
+          @users << user end end end
 
     def block_add_all(users)
       Lock.synchronize do
@@ -94,13 +96,13 @@ module Gtk
       if defined? @treeview
         Lock.synchronize do
           @treeview.clear
-          @users = [] end end
+          @users.clear end end
       self end
 
     def gen_userlist
       Lock.synchronize do
         container = Gtk::EventBox.new
-        box = Gtk::ListStore.new(Gdk::Pixbuf, String, String)
+        box = Gtk::ListStore.new(Gdk::Pixbuf, String, String, User)
         treeview = Gtk::TreeView.new(box)
         crText = Gtk::CellRendererText.new
         col = Gtk::TreeViewColumn.new 'icon', Gtk::CellRendererPixbuf.new, :pixbuf => 0
@@ -119,8 +121,7 @@ module Gtk
           puts "Row #{path.to_str} was clicked!"
           if iter = view.model.get_iter(path)
             puts "Double-clicked row contains name #{iter[1]}!"
-            idx = path.to_str.to_i
-            double_clicked.call(@users[idx])
+            double_clicked.call(iter[3])
           end
         end
 

@@ -70,6 +70,8 @@ module Plugin
       @window.icon = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('icon.png')), 256, 256)
     end
 
+    # _tab_ タブのラベル(String)
+    # ラベル _tab_ のついたタブをアクティブにします。
     def on_mui_tab_active(tab)
       book_id, index = get_tabindex(tab)
       self.books(book_id).set_page(index) if index
@@ -274,24 +276,26 @@ plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
 
 plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
 
-plugin.add_event(:apilimit){ |time|
-  Plugin.call(:update, nil, [Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                        :system => true)])
-  gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") }
+plugin.add_event(:apilimit, &tclambda(Time){ |time|
+                   Plugin.call(:update, nil, [Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
+                                                          :system => true)])
+                   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") })
 
 plugin.add_event(:apifail){ |errmes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter サーバが応答しません(#{errmes})") }
 
 api_limit = {:ip_remain => '-', :ip_time => '-', :auth_remain => '-', :auth_time => '-'}
-plugin.add_event(:apiremain){ |remain, time, transaction|
-  api_limit[:auth_remain] = remain
-  api_limit[:auth_time] = time.strftime('%H:%M')
-  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") }
+plugin.add_event(:apiremain,
+                 &tclambda(Integer, Time){ |remain, time|
+                   api_limit[:auth_remain] = remain
+                   api_limit[:auth_time] = time.strftime('%H:%M')
+                   gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") })
 
-plugin.add_event(:ipapiremain){ |remain, time, transaction|
-  api_limit[:ip_remain] = remain
-  api_limit[:ip_time] = time.strftime('%H:%M')
-  gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") }
+plugin.add_event(:ipapiremain,
+                 &tclambda(Integer, Time){ |remain, time|
+                   api_limit[:ip_remain] = remain
+                   api_limit[:ip_time] = time.strftime('%H:%M')
+                   gui.statusbar.push(gui.statusbar.get_context_id('system'), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)") })
 
 plugin.add_event(:rewindstatus){ |mes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), mes) }

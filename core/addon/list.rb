@@ -35,7 +35,7 @@ Module.new do
                         :id => list[:id],
                         :mode => list[:mode] ? 'public' : 'private',
                         :cache => use_cache,
-                        :user => @service.user){ |res|
+                        :user => list[:user][:idname]){ |res|
         Gtk::Lock.synchronize{
           update(res) if res.is_a? Array } }
       self end }

@@ -69,7 +69,7 @@ Module.new do
     if not(users.empty?) then
       if(UserConfig[:notify_followed]) then
         users.each{ |user|
-          self.notify(user, 'にフォローされました。')
+          self.notify(users.first, users.map{|u| "@#{u[:idname]}" }.join(' ')+' にフォローされました。')
         }
       end
       if(UserConfig[:notify_sound_followed]) then
@@ -81,9 +81,7 @@ Module.new do
   def self.onremoved(post, users)
     if not(users.empty?) then
       if(UserConfig[:notify_removed]) then
-        users.each{ |user|
-          self.notify(user, 'にリムーブされました。')
-        }
+        self.notify(users.first, users.map{|u| "@#{u[:idname]}" }.join(' ')+' にリムーブされました。')
       end
       if(UserConfig[:notify_sound_removed]) then
         self.notify_sound(UserConfig[:notify_sound_removed])
@@ -109,8 +107,10 @@ Module.new do
         text = text.to_s
       end
       command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
-      command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
-      command << "@#{user[:idname]} (#{user[:name]})" <<  text
+      if user
+        command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
+        command << "@#{user[:idname]} (#{user[:name]})" end
+      command << text
       bg_system(*command) } end
 
   def self.notify_sound(sndfile)

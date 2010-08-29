@@ -12,12 +12,13 @@ module Retriever
   # モデルクラス。
   # と同時に、このクラスのインスタンスはレコードを表す
   class Model
+    include Comparable
+
     @@storage = WeakStorage.new # id => <Model>
 
     #
     # ジェネレータ
     #
-
     def initialize(args)
       @lock = Monitor.new
       @value = args
@@ -65,6 +66,22 @@ module Retriever
     def id
       @value[:id]
     end
+
+    def <=>(other)
+      if other.respond_to?(:id)
+        id - other.id
+      elsif other.respond_to?(:[]) and other[:id]
+        id - other[:id]
+      else
+        id - other end end
+
+    def ==(other)
+      if other.respond_to?(:id)
+        id == other.id
+      elsif other.respond_to?(:[]) and other[:id]
+        id == other[:id]
+      else
+        id == other end end
 
     def to_hash
       @value

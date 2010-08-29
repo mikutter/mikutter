@@ -52,7 +52,26 @@ Module.new do
   box.pack_start(Mtk.boolean(:retrieve_force_mumbleparent, 'リプライ元をサーバに問い合わせて取得する'), false)
   box.pack_start(Mtk.boolean(:anti_retrieve_fail, 'つぶやきの取得漏れを防止する（遅延対策）'), false)
   box.pack_start(Gtk::Label.new('遅延に強くなりますが、ちょっと遅くなります。'), false)
+  about = Gtk::Button.new("#{Environment::NAME} について")
+  about.signal_connect("clicked"){
+    dialog = Gtk::AboutDialog.new.show
+    dialog.name = dialog.program_name = 'mikutter'
+    dialog.version = Environment::VERSION.to_s
+    dialog.copyright = '2009-2010 Toshiaki Asai'
+    dialog.comments = "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
+略して至高のTwitter Client。
+圧倒的なかわいさではないか我がミクは\n
+For all mikker and ill of twitter users best twitter client.
+Miku is so moe, so cute, so beautiful, fantastic, excellent, magnificent, brilliant and my wife. moe"+
+    'e' * 39
+    dialog.license = file_get_contents('../LICENSE') rescue nil
+    dialog.website = 'http://mikutter.d.hachune.net/'
+    dialog.logo = Gtk::WebIcon.new(MUI::Skin.get('icon.png')).pixbuf rescue nil
+    dialog.signal_connect('response') { dialog.destroy } }
+  box.closeup(about.right)
 
   plugin.add_event(:boot){ |service|
     Plugin.call(:setting_tab_regist, box, '基本設定') }
+
+
 end

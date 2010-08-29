@@ -230,7 +230,12 @@ def log(prefix, msg)
     }
   end
   if not $daemon then
-    $stderr.write(msg+"\n")
+    if msg.is_a? Exception
+      $stderr.write(msg.to_s+"\n")
+      $stderr.write(msg.backtrace.join("\n")+"\n")
+    else
+      $stderr.write(msg+"\n")
+    end
   end
 end
 
@@ -577,42 +582,6 @@ class Lazy
 
 def lazy(&proc)
   Lazy.new(&proc) end
-
-module GC
-  @@lock_count = 0
-  @@lock_mutex = Mutex.new
-
-  def self.synchronize
-    lock
-    result = yield
-    unlock
-    result
-  end
-
-  def self.lock
-    return
-    @@lock_mutex.synchronize{
-      if(@@lock_count == 0) then
-        disable
-      end
-      @@lock_count += 1
-    }
-  end
-
-  def self.unlock
-    return
-    @@lock_mutex.synchronize{
-      @@lock_count -= 1
-      if(@@lock_count == 0) then
-        enable
-      elsif(@@lock_count < 0) then
-        error 'GC too many unlocked'
-        abort
-      end
-    }
-  end
-
-end
 
 class HatsuneStore < PStore
   def transaction(ro = false, &block)

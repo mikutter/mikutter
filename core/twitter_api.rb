@@ -6,6 +6,9 @@
 # GNU General Public License version 2 is applied to this program.
 #
 # $Id: twitter_api.rb 164 2009-01-23 09:40:37Z ichi $
+#
+# customized by Toshiaki Asai
+#
 require 'net/http'
 require 'thread'
 require 'base64'

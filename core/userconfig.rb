@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-# UserConfig
-#
-
-# プログラムから動的に変更される設定
-# プラグインの設定ではないので注意
 
 miquire :core, 'utils'
 miquire :core, 'configloader'
@@ -13,9 +7,14 @@ require 'singleton'
 require 'fileutils'
 require 'gtk2'
 
+#
+#= UserConfig 動的な設定
+#
+#プログラムから動的に変更される設定。
+#プラグインの設定ではないので注意。
 class UserConfig
-  include ConfigLoader
   include Singleton
+  include ConfigLoader
 
   #
   # 予約された設定一覧
@@ -79,15 +78,13 @@ class UserConfig
   @@watcher_id = Hash.new
   @@watcher_id_count = 0
 
-  # self::[key]
-  # 設定名keyにたいする値を取り出す
+  # 設定名 _key_ にたいする値を取り出す
   # 値が設定されていない場合、nilを返す。
   def self.[](key)
-    return UserConfig.instance.at(key, @@defaults[key.to_sym])
+    UserConfig.instance.at(key, @@defaults[key.to_sym])
   end
 
-  # self::[key] = value
-  # 設定名keyに値valueを関連付ける
+  # 設定名 _key_ に値 _value_ を関連付ける
   def self.[]=(key, val)
     atomic{
       if not(@@watcher[key].empty?) then
@@ -108,6 +105,8 @@ class UserConfig
     UserConfig.instance.store(key, val)
   end
 
+  # 設定名 _key_ の値が変更されたときに、ブロック _watcher_ を呼び出す。
+  # watcher_idを返す。
   def self.connect(key, &watcher)
     atomic{
       id = @@watcher_id_count
@@ -118,6 +117,7 @@ class UserConfig
     }
   end
 
+  # watcher idが _id_ のwatcherを削除する。
   def self.disconnect(id)
     atomic{
       @@watcher_id.delete(id)
@@ -125,4 +125,3 @@ class UserConfig
   end
 
 end
-# ~> -:9: undefined method `miquire' for main:Object (NoMethodError)

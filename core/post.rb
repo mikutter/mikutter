@@ -1,9 +1,3 @@
-#
-# post.rb
-#
-
-# タイムラインやポストを管理する
-
 require 'utils'
 
 miquire :core, 'twitter'
@@ -16,14 +10,21 @@ miquire :core, 'userconfig'
 miquire :core, "json"
 miquire :core, 'delayer'
 
+Thread.abort_on_exception = true
+
+=begin rdoc
+= Post APIレスポンスの内部表現への変換をするクラス
+サーバとの通信に使うインターフェイスクラス。たいていのイベントでは、プラグインにはコアから
+このインスタンスが渡されるようになっている。
+=end
 class Post
   include ConfigLoader
 
   # タイムラインのキャッシュファイルのプレフィックス。
-  TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
+  # TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
 
   # リクエストをリトライする回数。
-  TRY_LIMIT = 5
+  # TRY_LIMIT = 5
 
   @@threads = []
   @@xml_lock = Mutex.new
@@ -41,11 +42,13 @@ class Post
     end
   }
 
+  # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
+  # 新たに作る必要はない
   def initialize
     @scaned_events = []
     @code = nil
     @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]){
-      token, secret = self.auth_confirm_func.call(self)
+      token, secret = auth_confirm_func.call(self)
       if token
         UserConfig[:twitter_token] = token
         UserConfig[:twitter_secret] = secret
@@ -57,6 +60,7 @@ class Post
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
   end
 
+  # Post系APIメソッドを定義するためのメソッド。
   def self.define_postal(api, *other)
     if $quiet
       define_method(api.to_sym){ |msg|
@@ -64,7 +68,7 @@ class Post
         notice 'Actually, this post does not send.' }
     else
       define_method(api.to_sym){ |msg, &proc|
-        self._post(msg, api.to_sym) {|event, msg|
+        _post(msg, api.to_sym) {|event, msg|
           if proc
             type_check(event => Symbol){ proc.call(event, msg) } end
           if(event == :try)
@@ -74,10 +78,13 @@ class Post
     end
     define_postal(*other) if not other.empty? end
 
+  # OAuth トークンを返す
   def request_oauth_token
     @twitter.request_oauth_token
   end
 
+  # 自分のユーザ名を返す。もしユーザ名が分らなければ、サービスに問い合せてそれを返す。
+  # 問い合わせが発生する場合、サーバからレスポンスがあるまでブロックされるので注意
   def user
     if defined?(@user_idname)
       @user_idname
@@ -88,45 +95,30 @@ class Post
   end
   alias :idname :user
 
+  # userと同じだが、サービスに問い合わせずにnilを返すのでブロッキングが発生しない
   def user_by_cache
-    at('idname')
+    @user_idname
   end
 
+  # selfを返す
   def service
     self
   end
 
-  def twitter
-    @twitter
-  end
-
+  # 認証がはじかれた場合に呼び出される関数を返す
   def auth_confirm_func
     return @@auth_confirm_func
   end
 
+  # 認証がはじかれた場合に呼び出される関数を設定する。
+  # ユーザに新たに認証を要求するような関数を設定する。
   def auth_confirm_func=(val)
     return @@auth_confirm_func = val
   end
 
-  # twitterのタイムラインを見に行く
-  def scan_data(kind, args)
-    result = nil
-    type_check(kind => [:respond_to?, :to_sym], args => Hash){
-      tl = twitter.__send__(kind, args)
-      if defined?(tl.code) and defined?(tl.body) then
-        case(tl.code)
-        when '200'
-          result = tl.body
-        when '400'
-          limit, remain, reset = twitter.api_remain
-          Plugin.call(:apilimit, reset) if(@code != tl.code)
-        else
-          Plugin.call(:apifail, tl.code) if(@code != tl.code) end
-        @code = tl.code
-      else
-        Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end }
-    return result  end
-
+  # サービスにクエリ _kind_ を投げる。
+  # レスポンスを受け取るまでブロッキングする。
+  # レスポンスを返す。失敗した場合は、apifailイベントを発生させてnilを返す。
   def scan(kind=:friends_timeline, args={})
     type_check(kind => [:respond_to?, :to_sym], args => Hash){
       event_canceling = false
@@ -153,17 +145,145 @@ class Post
       elsif raw_text
         return nil, json end } end
 
+  # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。
+  # レスポンスが帰ってきたら、渡されたブロックが呼ばれる。
+  # ブロックは、必ずメインスレッドで実行されることが保証されている。
+  # 問い合わせを行っているThreadを返す。
   def call_api(api, args = {})
     Thread.new{
       if args[:get_raw_text]
-        res, data = self.scan(api.to_sym, args)
+        res, data = scan(api.to_sym, args)
       else
-        res = self.scan(api.to_sym, args) end
+        res = scan(api.to_sym, args) end
       Delayer.new{
         if args[:get_raw_text]
           yield res, data
         else
           yield res end } } end
+
+  # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
+  # Threadを返す。
+  def followers(limit=-1, next_cursor=-1, &proc)
+    following_method(:followers, limit, next_cursor, &proc) end
+
+  # フォローしている人のID一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
+  # Threadを返す。
+  def followers_id(limit=-1, next_cursor=-1, &proc)
+    following_method(:followers_id, limit, next_cursor, &proc) end
+
+  # フォローされている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
+  # Threadを返す。
+  def followings(limit=-1, next_cursor=-1, &proc)
+    following_method(:friends, limit, next_cursor, &proc) end
+
+  # フォローされている人のID一覧を取得する。
+  # 取得したリストは、ブロックの引数として呼び出されることに注意。
+  # Threadを返す。
+  def followings_id(limit=-1, next_cursor=-1, &proc)
+    following_method(:friends_id, limit, next_cursor, &proc) end
+
+  # 検索文字列 _q_ で、サーバ上から全てのアカウントの投稿を対象に検索する。
+  # 別スレッドで実行され、結果はブロックの引数として与えられる。
+  # Threadを返す。
+  def search(q, args)
+    args[:q] = q
+    Thread.new(){
+      Delayer.new(Delayer::NORMAL, scan(:search, args)){ |res|
+        yield res } }
+  end
+
+  define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow
+  define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
+  alias post update
+
+  # メッセージ _message_ のお気に入りフラグを _fav_ に設定する。
+  def favorite(message, fav)
+    if $quiet then
+      notice "fav:#{message.inspect}"
+      notice 'Actually, this post does not send.'
+    else
+      _post(message, :status_show) {|event, msg|
+        if(event == :try)
+          if(fav) then
+            twitter.favorite(msg[:id])
+          else
+            twitter.unfavorite(msg[:id]) end end } end end
+
+  private
+
+  def try_post(message, api)
+    UserConfig[:message_retry_limit].times{ |count|
+      notice "post:try:#{count}:#{message.inspect}"
+      result = yield(:try, message)
+      if defined?(result.code)
+        if result.code == '200'
+          notice "post:success:#{api}:#{count}:#{message.inspect}"
+          receive = parse_json(result.body, api)
+          if receive.is_a?(Array) then
+            yield(:success, receive.first)
+            return receive.first
+          else
+            yield(:success, receive)
+            return receive end
+        elsif result.code[0] == '4'[0]
+          begin
+            errmes = JSON.parse(result.body)["error"]
+            Plugin.call(:rewindstatus, "twitter 投稿エラー: #{result.code} #{errmes}")
+            if errmes == "Status is a duplicate."
+              yield(:success, nil)
+              return true end
+          rescue JSON::ParserError
+          end
+          if result.code == '404'
+            yield(:fail, nil)
+            return nil end
+        elsif not(result.code[0] == '5'[0])
+          yield(:fail, err)
+          return nil end end
+      notice "post:fail:#{api}:#{count}:#{message.inspect}"
+      puts result.backtrace.join("\n") if result.is_a? Exception
+      yield(:retry, result)
+      sleep(1) }
+    yield(:fail, nil)
+    return false
+  end
+
+  def _post(message, api)
+    Thread.new(message){ |message|
+      yield(:start, nil)
+      begin
+        try_post(message, api, &Proc.new)
+      rescue => err
+        yield(:err, err)
+        yield(:fail, err)
+      ensure
+        yield(:exit, nil) end } end
+
+  def marshal_dump
+    raise RuntimeError, 'Post cannot marshalize'
+  end
+
+  def twitter
+    @twitter
+  end
+
+  def scan_data(kind, args)
+    result = nil
+    type_check(kind => [:respond_to?, :to_sym], args => Hash){
+      tl = twitter.__send__(kind, args)
+      if defined?(tl.code) and defined?(tl.body) then
+        case(tl.code)
+        when '200'
+          result = tl.body
+        when '400'
+          limit, remain, reset = twitter.api_remain
+          Plugin.call(:apilimit, reset) if(@code != tl.code)
+        else
+          Plugin.call(:apifail, tl.code) if(@code != tl.code) end
+        @code = tl.code
+      else
+        Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end }
+    return result  end
 
   def query_following_method(api, limit=-1, next_cursor=-1)
     if(next_cursor and next_cursor != 0 and limit != 0)
@@ -183,25 +303,6 @@ class Post
     else
       query_following_method(api, limit, next_cursor) end end
 
-  def followers(limit=-1, next_cursor=-1, &proc)
-    following_method(:followers, limit, next_cursor, &proc) end
-
-  def followers_id(limit=-1, next_cursor=-1, &proc)
-    following_method(:followers_id, limit, next_cursor, &proc) end
-
-  def followings(limit=-1, next_cursor=-1, &proc)
-    following_method(:friends, limit, next_cursor, &proc) end
-
-  def followings_id(limit=-1, next_cursor=-1, &proc)
-    following_method(:friends_id, limit, next_cursor, &proc) end
-
-  def search(q, args)
-    args[:q] = q
-    Thread.new(){
-      Delayer.new(Delayer::NORMAL, self.scan(:search, args)){ |res|
-        yield res } }
-  end
-
   def message_parser(user_retrieve)
     lambda{ |msg|
       cnv = msg.convert_key('text' => :message,
@@ -210,15 +311,17 @@ class Post
       cnv[:favorited] = !!msg['favorited']
       cnv[:created] = Time.parse(msg['created_at'])
       if user_retrieve
-        cnv[:user] = User.findbyid(msg['user']['id']) or self.scan_rule(:user_show, msg['user'])
+        cnv[:user] = User.findbyid(msg['user']['id']) or scan_rule(:user_show, msg['user'])
       else
-        cnv[:user] = self.scan_rule(:user_show, msg['user']) end
-      cnv[:retweet] = self.scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
+        cnv[:user] = scan_rule(:user_show, msg['user']) end
+      cnv[:retweet] = scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
       cnv }
   end
 
   def rule(kind, prop)
-    shell_class = Class.new do def self.new_ifnecessary(arg) arg end end
+    shell_class = Class.new do
+      def self.new_ifnecessary(arg)
+        arg end end
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
     users_parser = {
       :hasmany => 'users',
@@ -282,7 +385,7 @@ class Post
       :proc => lambda{ |msg|
         cnv = msg.symbolize
         cnv[:mode] = cnv[:mode] == 'public'
-        cnv[:user] = self.scan_rule(:user_show, cnv[:user])
+        cnv[:user] = scan_rule(:user_show, cnv[:user])
         cnv } }
     list_parser = lists_parser.clone
     list_parser[:hasmany] = false
@@ -338,10 +441,10 @@ class Post
     }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)
-    param = self.rule(rule, :proc).call(msg)
-    self.rule(rule, :class).method(self.rule(rule, :method)).call(param).merge({ :rule => rule,
-                                                                                 :post => self,
-                                                                                 :exact => true }) end
+    param = rule(rule, :proc).call(msg)
+    rule(rule, :class).method(rule(rule, :method)).call(param).merge({ :rule => rule,
+                                                                       :post => self,
+                                                                       :exact => true }) end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
     if json
@@ -353,9 +456,9 @@ class Post
                  warn "json parse error"
                  return nil end
         json.freeze
-        if self.rule(cache, :hasmany).is_a?(String)
-          tl = json[self.rule(cache, :hasmany)]
-        elsif not self.rule(cache, :hasmany)
+        if rule(cache, :hasmany).is_a?(String)
+          tl = json[rule(cache, :hasmany)]
+        elsif not rule(cache, :hasmany)
           tl = [json]
         else
           tl = json end
@@ -371,75 +474,7 @@ class Post
         warn e
         nil end end end
 
-  # ポストキューにポストを格納する
-  define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow
-  define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
-  alias post update
-
-  def favorite(message, fav)
-    if $quiet then
-      notice "fav:#{message.inspect}"
-      notice 'Actually, this post does not send.'
-    else
-      self._post(message, :status_show) {|event, msg|
-        if(event == :try)
-          if(fav) then
-            twitter.favorite(msg[:id])
-          else
-            twitter.unfavorite(msg[:id]) end end } end end
-
-  def try_post(message, api)
-    UserConfig[:message_retry_limit].times{ |count|
-      notice "post:try:#{count}:#{message.inspect}"
-      result = yield(:try, message)
-      if defined?(result.code)
-        if result.code == '200'
-          notice "post:success:#{api}:#{count}:#{message.inspect}"
-          receive = parse_json(result.body, api)
-          p receive
-          if receive.is_a?(Array) then
-            yield(:success, receive.first)
-            return receive.first
-          else
-            yield(:success, receive)
-            return receive end
-        elsif result.code[0] == '4'[0]
-          begin
-            errmes = JSON.parse(result.body)["error"]
-            Plugin.call(:rewindstatus, "twitter 投稿エラー: #{result.code} #{errmes}")
-            if errmes == "Status is a duplicate."
-              yield(:success, nil)
-              return true end
-          rescue JSON::ParserError
-          end
-          if result.code == '404'
-            yield(:fail, nil)
-            return nil end
-        elsif not(result.code[0] == '5'[0])
-          yield(:fail, err)
-          return nil end end
-      notice "post:fail:#{api}:#{count}:#{message.inspect}"
-      puts result.backtrace.join("\n") if result.is_a? Exception
-      yield(:retry, result)
-      sleep(1) }
-    yield(:fail, nil)
-    return false
-  end
-
-  def _post(message, api)
-    Thread.new(message){ |message|
-      yield(:start, nil)
-      begin
-        try_post(message, api, &Proc.new)
-      rescue => err
-        yield(:err, err)
-        yield(:fail, err)
-      ensure
-        yield(:exit, nil) end } end
-
-  def marshal_dump
-    raise RuntimeError, 'Post cannot marshalize'
-  end
+  # :enddoc:
 
   class ServiceRetriever
     include Retriever::DataSource
@@ -450,7 +485,7 @@ class Post
     end
 
     def findbyid(id)
-      if id.is_a? Array
+      if id.is_a? Enumerable
         id.map(&method(:findbyid))
       else
         message = @post.scan(@api, :no_auto_since_id => true, :id => id)
@@ -480,8 +515,8 @@ class Post
     def findbyid(id)
       if id.is_a? Enumerable
         # id.map{ |i| findbyid(i) }
-        front = id.slice(0, 100)
-        remain = id.slice(100,id.size)
+        front = id.to_a.slice(0, 100)
+        remain = id.to_a.slice(100,id.size)
         messages = @post.scan(:user_lookup, :no_auto_since_id => true, :id => front.join(','))
         messages = [] if not messages.is_a? Array
         messages.concat(findbyid(remain)) if remain and not remain.empty?

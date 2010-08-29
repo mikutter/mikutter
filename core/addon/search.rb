@@ -29,7 +29,6 @@ Module.new do
       query = querybox.text
       service.search_create(query){ |stat, message|
         if(stat == :success)
-          p message
           Plugin.call(:saved_search_regist, message['id'], query) end
       } } }
 
