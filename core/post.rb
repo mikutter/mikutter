@@ -304,7 +304,7 @@ class Post
       query_following_method(api, limit, next_cursor) end end
 
   def message_parser(user_retrieve)
-    lambda{ |msg|
+    tclambda(Hash){ |msg|
       cnv = msg.convert_key('text' => :message,
                             'in_reply_to_user_id' => :receiver,
                             'in_reply_to_status_id' => :replyto)
@@ -327,7 +327,7 @@ class Post
       :hasmany => 'users',
       :class => User,
       :method => :rewind,
-      :proc => lambda{ |msg|
+      :proc => tclambda(Hash){ |msg|
         cnv = msg.convert_key('screen_name' =>:idname, 'url' => :url)
         cnv[:created] = Time.parse(msg['created_at'])
         cnv[:detail] = msg['description']
@@ -358,31 +358,32 @@ class Post
       :hasmany => 'results',
       :class => Message,
       :method => :new_ifnecessary,
-      :proc => lambda{ |msg|
+      :proc => tclambda(Hash){ |msg|
         cnv = msg.convert_key('text' => :message,
                               'in_reply_to_user_id' => :receiver,
                               'in_reply_to_status_id' => :replyto)
         cnv[:created] = Time.parse(msg['created_at'])
-        user = User.selectby(:idname, msg['from_user'], -2)
-        if user.empty?
+        user = User.findbyidname(msg['from_user'])
+        if user
+          cnv[:user] = user
+        else
           cnv[:user] = User.new_ifnecessary(:idname => msg['from_user'],
                                             :id => '+' + msg['from_user'],
                                             :profile_image_url => msg['profile_image_url'])
-        else
-          cnv[:user] = user.first end
+        end
         cnv } }
     saved_searches_parser = {
       :hasmany => true,
       :class => shell_class,
       :method => :new_ifnecessary,
-      :proc => lambda{ |msg| msg } }
+      :proc => tclambda(Hash){ |msg| msg } }
     saved_search_parser = saved_searches_parser.clone
     saved_search_parser[:hasmany] = false
     lists_parser = {
       :hasmany => 'lists',
       :class => UserList,
       :method => :new_ifnecessary,
-      :proc => lambda{ |msg|
+      :proc => tclambda(Hash){ |msg|
         cnv = msg.symbolize
         cnv[:mode] = cnv[:mode] == 'public'
         cnv[:user] = scan_rule(:user_show, cnv[:user])
@@ -393,7 +394,7 @@ class Post
       :hasmany => false,
       :class => shell_class,
       :method => :new_ifnecessary,
-      :proc => lambda{ |msg|
+      :proc => tclambda(Hash){ |msg|
         msg = msg['relationship']
         Hash[:following, msg['source']['following'],     # 自分がフォローしているか
              :followed_by, msg['source']['followed_by'], # 相手にフォローされているか
@@ -441,10 +442,13 @@ class Post
     }[kind.to_sym][prop.to_sym] end
 
   def scan_rule(rule, msg)
+    raise ArgumentError, "should give hash but altually gave #{msg.inspect}" if not msg.is_a? Hash
     param = rule(rule, :proc).call(msg)
-    rule(rule, :class).method(rule(rule, :method)).call(param).merge({ :rule => rule,
-                                                                       :post => self,
-                                                                       :exact => true }) end
+    result = rule(rule, :class).method(rule(rule, :method)).call(param)
+    type_check(result => [:respond_to?, :merge]){
+      result.merge({ :rule => rule,
+                     :post => self,
+                     :exact => true }) } end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
     if json
@@ -458,7 +462,7 @@ class Post
         json.freeze
         if rule(cache, :hasmany).is_a?(String)
           tl = json[rule(cache, :hasmany)]
-        elsif not rule(cache, :hasmany)
+        elsif json.is_a?(Hash) or not rule(cache, :hasmany)
           tl = [json]
         else
           tl = json end
@@ -471,6 +475,7 @@ class Post
         else
           result end
       rescue => e
+        raise e if($debug)
         warn e
         nil end end end
 

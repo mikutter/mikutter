@@ -42,7 +42,7 @@ class UserConfig
     :anti_retrieve_fail => false,
 
     # つぶやきを投稿するキー
-    :mumble_post_key => defined?(Gdk) ? [65293, Gdk::Window::CONTROL_MASK] : nil,
+    :mumble_post_key => "Control + Return",
 
     # つぶやき送信をリトライする回数
     :message_retry_limit => 10,

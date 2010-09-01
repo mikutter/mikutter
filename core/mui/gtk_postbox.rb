@@ -35,19 +35,10 @@ module Gtk
     def posting?
       @posting end
 
-    private
+    def active
+      get_ancestor(Gtk::Window).set_focus(@post) if(get_ancestor(Gtk::Window)) end
 
-    def keyname(key)
-      if key.empty?
-        return '(割り当てなし)'
-      else
-        r = ""
-        r << 'Control + ' if (key[1] & Gdk::Window::CONTROL_MASK) != 0
-        r << 'Shift + ' if (key[1] & Gdk::Window::SHIFT_MASK) != 0
-        r << 'Alt + ' if (key[1] & Gdk::Window::META_MASK) != 0
-        r << 'Super + ' if (key[1] & Gdk::Window::SUPER_MASK) != 0
-        r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
-        return r + Gdk::Keyval.to_name(key[0]) end end
+    private
 
 #     def menu_pop(widget, event)
 #       menu = Gtk::Menu.new
@@ -148,7 +139,7 @@ module Gtk
             self.freeze end } } end
 
     def reply?
-      ! @watch.is_a?(Post) end
+      @watch.is_a?(Retriever::Model) end
 
     def retweet?
       @options[:retweet] end
@@ -193,7 +184,7 @@ module Gtk
       post.border_width = 2
       post.signal_connect('key_press_event'){ |widget, event|
           if(widget.editable? and
-             keyname([event.keyval ,event.state]) == keyname(UserConfig[:mumble_post_key]))
+             Gtk::keyname([event.keyval ,event.state]) == UserConfig[:mumble_post_key])
             post_it
             true end }
       post.signal_connect('key_release_event'){ |textview, event|

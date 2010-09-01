@@ -51,6 +51,7 @@ module Plugin
         @paneshell = Gtk::HBox.new(false, 0)
         @pane = Gtk::HBox.new(true, 0)
         sidebar = Gtk::VBox.new(false, 0)
+        @prompt = Gtk::VBox.new(false, 0)
         mumbles = Gtk::VBox.new(false, 0)
         postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
         mumbles.pack_start(postbox)
@@ -60,8 +61,16 @@ module Plugin
           @pane.pack_end(self.books(cnt)) }
         main.pack_start(@paneshell.pack_end(@pane)).closeup(sidebar)
         newpane
-        @window.add(container.closeup(mumbles).pack_start(main).closeup(self.statusbar))
+        @window.add(container.closeup(mumbles).pack_start(main).closeup(@prompt).closeup(statusbar))
         set_icon
+        @window.signal_connect('key_press_event'){ |widget, event|
+          if Gtk.keyname([event.keyval ,event.state]) == 'Alt + x'
+            input = Gtk::PostBox.new(Executer.new(watch), :delegate_other => false)
+            @prompt.add(input).show_all
+            input.active
+            true
+          end
+        }
         @window.show_all
       end
     end
@@ -260,6 +269,27 @@ module Plugin
       @memo_color.call(r, g, b)
     end
   end
+
+  class Executer
+    def initialize(service)
+      @service = service end
+
+    def service
+      self end
+
+    def post(args)
+      yield(:start, nil)
+      result = nil
+      begin
+        result = instance_eval(args[:message], 'prompt')
+        yield(:success, result)
+      rescue => e
+        result = e
+        yield(:fail, e) end
+      Plugin.call(:update, nil, [Message.new(:message => result.inspect,
+                                             :replyto => Message.new(:message => args[:message],
+                                                                     :system => true),
+                                             :system => true)]) end end
 
 end
 

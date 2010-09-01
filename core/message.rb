@@ -138,7 +138,7 @@ class Message < Retriever::Model
     if self[:receiver] then
       self[:receiver]
     elsif(/@([a-zA-Z0-9_]+)/ === self[:message]) then
-      result = User.findByIdname($1)
+      result = User.findbyidname($1)
       if(result) then
         self[:receiver] = result
       end

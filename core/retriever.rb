@@ -43,7 +43,8 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      raise ArgumentError.new("incorrect type #{hash.inspect}") if not(hash[:id]) or hash[:id] == 0
+      if not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
+        raise ArgumentError.new("incorrect type #{hash.inspect}") end
       result = @@storage[hash[:id]]
       return result if result
       self.new(hash)
@@ -206,7 +207,7 @@ module Retriever
             result = detection
             throw :found end } }
       self.retrievers_reorder
-      self.new_ifnecessary(result) if result end
+      self.new_ifnecessary(result) if result.is_a? Hash end
 
     def self.findbyid_ary(ids, count=-1)
       result = []

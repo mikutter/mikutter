@@ -67,7 +67,10 @@ class Watch
       booking.call.each_pair{ |k, v|
         messages = v.uniq.select{ |n| not @received[k].include?(n) }
         @received[k].merge(messages)
-        Plugin.call(k, @post, messages) } }
+        Plugin.call(k, @post, messages)
+      }
+    }#.join
+    #exit
     @counter += 1
   end
 

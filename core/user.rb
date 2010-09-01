@@ -3,7 +3,7 @@ miquire :core, 'retriever'
 
 class User < Retriever::Model
 
-  @@users = Hash.new
+  @@users_id = WeakStorage.new # {idname => User}
 
   # args format
   # key     | value
@@ -38,9 +38,9 @@ class User < Retriever::Model
     @@system
   end
 
-  def initialize(*trash)
+  def initialize(*args)
     super
-  end
+    @@users_id[idname] = self end
 
   def idname
     self[:idname]
@@ -56,13 +56,20 @@ class User < Retriever::Model
     "User(@#{@value[:idname]})"
   end
 
-  def self.findById(id)
-    result = assert_type(User, @@users[id])
-    return result if result
-  end
+  @@superof_new_ifnecessary = method(:new_ifnecessary)
+  def self.new_ifnecessary(args)
+    type_check(args => Hash){
+      if args[:idname]
+        result = self.findbyidname(args[:idname])
+        return result if result end
+      @@superof_new_ifnecessary.call(args) } end
 
-  def self.findByIdname(idname, count=-1)
-    selectby(:idname, idname, count).first
+  def self.findbyidname(idname, count=-1)
+    if(@@users_id.has_key?(idname))
+      @@users_id[idname]
+    else
+      selectby(:idname, idname, count).first
+    end
   end
 
   def self.store_datum(datum)

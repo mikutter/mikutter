@@ -3,6 +3,19 @@ miquire :core, 'utils'
 require 'gtk2'
 require 'monitor'
 
+module Gtk
+  def self.keyname(key)
+    if key.empty?
+      return '(割り当てなし)'
+    else
+      r = ""
+      r << 'Control + ' if (key[1] & Gdk::Window::CONTROL_MASK) != 0
+      r << 'Shift + ' if (key[1] & Gdk::Window::SHIFT_MASK) != 0
+      r << 'Alt + ' if (key[1] & Gdk::Window::MOD1_MASK) != 0
+      r << 'Super + ' if (key[1] & Gdk::Window::SUPER_MASK) != 0
+      r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
+      return r + Gdk::Keyval.to_name(key[0]) end end end
+
 =begin rdoc
 = Gtk::Lock Ruby::Gnome2の排他制御
 メインスレッド以外でロックしようとするとエラーを発生させる。

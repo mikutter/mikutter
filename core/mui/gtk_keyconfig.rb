@@ -7,12 +7,15 @@ class Gtk::KeyConfig < Gtk::Button
   attr_accessor :keycode
   attr_accessor :change_hook
 
-  def initialize(title, default_key=[], *args)
+  def initialize(title, default_key="", *args)
     Gtk::Lock.synchronize do
-      @keycode = default_key
+      if(default_key.respond_to?(:to_s))
+        @keycode = default_key.to_s
+      else
+        @keycode = '' end
       @change_hook = nil
       super(*args)
-      buttonlabel = Gtk::Label.new(keyname(self.keycode))
+      buttonlabel = Gtk::Label.new(self.keycode)
       self.add(buttonlabel)
       self.signal_connect('clicked'){
         Gtk::Lock.synchronize do
@@ -21,7 +24,7 @@ class Gtk::KeyConfig < Gtk::Button
           button = Gtk::Button.new
           dialog = Gtk::Dialog.new(title, self.get_ancestor(Gtk::Window), Gtk::Dialog::MODAL,
                                    [ Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK])
-          label.text = keyname(self.keycode)
+          label.text = Gtk::keyname(self.keycode)
           box.border_width = 20
           button.add(label)
           box.pack_start(Gtk::Label.new('下のボタンをクリックして、割り当てたいキーを押してください。'))
@@ -29,9 +32,9 @@ class Gtk::KeyConfig < Gtk::Button
           button.signal_connect('key_press_event'){ |widget, event|
             Gtk::Lock.synchronize do
               self.keycode = [event.keyval, event.state]
-              buttonlabel.text = label.text = keyname(self.keycode)
+              buttonlabel.text = label.text = Gtk::keyname(self.keycode)
             end
-            self.change_hook.call(self.keycode) if self.change_hook
+            self.change_hook.call(Gtk::keyname(self.keycode)) if self.change_hook
             true
           }
           dialog.vbox.add(box)
@@ -40,22 +43,6 @@ class Gtk::KeyConfig < Gtk::Button
           dialog.destroy
         end
       }
-    end
-  end
-
-  def keyname(key)
-    if key.empty? then
-      return '(割り当てなし)'
-    else
-      Gtk::Lock.synchronize do
-        r = ""
-        r << 'Control + ' if (key[1] & Gdk::Window::CONTROL_MASK) != 0
-        r << 'Shift + ' if (key[1] & Gdk::Window::SHIFT_MASK) != 0
-        r << 'Alt + ' if (key[1] & Gdk::Window::META_MASK) != 0
-        r << 'Super + ' if (key[1] & Gdk::Window::SUPER_MASK) != 0
-        r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
-        return r + Gdk::Keyval.to_name(key[0])
-      end
     end
   end
 end

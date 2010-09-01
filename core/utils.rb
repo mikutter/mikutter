@@ -189,6 +189,7 @@ def type_check(args, &proc)
   error = args.find{ |a| not(check_function.call(*a)) }
   if(error)
     warn "argument error: #{error[0].inspect} is not passed #{error[1].inspect}"
+    warn "in #{caller(1).first}"
     nil
   else
     proc.call if proc end end
@@ -221,8 +222,15 @@ def assert_hasmethods(obj, *methods)
   obj
 end
 
-def log(prefix, msg)
-  msg = "#{prefix}: #{caller(2).first}: #{msg}"
+def p(obj)
+  log('notice', obj.inspect) if $debug_avail_level >= 3
+end
+
+def log(prefix, object)
+  msg = "#{prefix}: #{caller(2).first}: #{object}"
+  if object.is_a? Exception
+    msg += "\nfrom " + object.backtrace.join("\nfrom ")
+  end
   if logfile() then
     FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
     File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
@@ -453,7 +461,6 @@ class Array
       val = Class.new{
         define_method(:==, &proc) }.new end
     rindex(val) end
-
 end
 
 class Hash
