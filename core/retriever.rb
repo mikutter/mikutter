@@ -195,38 +195,40 @@ module Retriever
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
       return findbyid_ary(id, count) if id.is_a? Array
-      result = nil
-      catch(:found){
-        rs = self.retrievers
-        count = rs.length + count + 1 if(count <= -1)
-        rs = rs.slice(0, [count, 1].max)
-        rs.each{ |retriever|
-          detection = retriever.findbyid_timer(id)
-          notice retriever.class.to_s + ": " + detection.class.to_s
-          if detection
-            result = detection
-            throw :found end } }
-      self.retrievers_reorder
-      self.new_ifnecessary(result) if result.is_a? Hash end
+      lazy{
+        result = nil
+        catch(:found){
+          rs = self.retrievers
+          count = rs.length + count + 1 if(count <= -1)
+          rs = rs.slice(0, [count, 1].max)
+          rs.each{ |retriever|
+            detection = retriever.findbyid_timer(id)
+            notice retriever.class.to_s + ": " + detection.class.to_s
+            if detection
+              result = detection
+              throw :found end } }
+        self.retrievers_reorder
+        self.new_ifnecessary(result) if result.is_a? Hash } end
 
     def self.findbyid_ary(ids, count=-1)
-      result = []
-      remain = ids.clone
-      ids.freeze
-      catch(:found){
-        rs = self.retrievers
-        count = rs.length + count + 1 if(count <= -1)
-        rs = rs.slice(0, [count, 1].max)
-        rs.each{ |retriever|
-          detection = retriever.findbyid_timer(remain)
-          notice retriever.class.to_s + ": " + detection.class.to_s
-          if detection
-            detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
-            result.concat(detection)
-            remain -= detection.map{ |x| x[:id].to_i }
-            throw :found if ids.empty? end } }
-      self.retrievers_reorder
-      result.sort_by{ |user| ids.index(user[:id].to_i) } end
+      lazy{
+        result = []
+        remain = ids.clone
+        ids.freeze
+        catch(:found){
+          rs = self.retrievers
+          count = rs.length + count + 1 if(count <= -1)
+          rs = rs.slice(0, [count, 1].max)
+          rs.each{ |retriever|
+            detection = retriever.findbyid_timer(remain)
+            notice retriever.class.to_s + ": " + detection.class.to_s
+            if detection
+              detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
+              result.concat(detection)
+              remain -= detection.map{ |x| x[:id].to_i }
+              throw :found if ids.empty? end } }
+        self.retrievers_reorder
+        result.sort_by{ |user| ids.index(user[:id].to_i) } } end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym

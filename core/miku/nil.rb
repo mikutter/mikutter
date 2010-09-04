@@ -4,7 +4,7 @@ require 'list'
 class NilClass
 
   include MIKU::Atom
-  include MIKU::List
+  # include MIKU::List
 
   def car
     self end
@@ -18,7 +18,10 @@ class NilClass
   def setcdr(val)
     MIKU::Cons.new(nil, val) end
 
-  def each(&proc)
+  # def each(&proc)
+  #   nil end
+
+  def mapcarcdr(converter)
     nil end
 
   def unparse
@@ -28,4 +31,8 @@ class NilClass
     'nil' end
 
   def miku_eval(symtable=MIKU::SymbolTable.new)
-    self end end
+    self end
+
+  def method_missing(name, *args)
+    warn 'undefined method #{name} for nil.'
+    nil end end

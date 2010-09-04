@@ -18,25 +18,33 @@ module MIKU
 
   def self._parse(s)
     c = skipspace(s)
-    if c == '(' then
+    case c
+    when ';' then
+      _comment(s)
+      _parse(s)
+    when '(' then
       _list(s)
-    elsif c == '"' then
+    when '"' then
       _string(s)
-    elsif c == '`' then
-      [:backquote, _parse(s)]
-    elsif c == ',' then
+    when '`' then
+      Cons.list(:backquote, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
+    when ',' then
       c = s.getc.chr
       if c == '@' then
-        [:comma_at, _parse(s)]
+        Cons.list(:comma_at, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
       else
         s.ungetc(c[0])
-        [:comma, _parse(s)]
+        Cons.list(:comma, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
       end
-    elsif c == '\'' then
-      [:quote, _parse(s)]
+    when '\'' then
+      Cons.list(:quote, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
     else
       _symbol(c, s)
     end
+  end
+
+  def self._comment(s)
+    read_to(s){ |c| c == "\n" }
   end
 
   def self._list(s)

@@ -92,7 +92,7 @@ class Twitter < TwitterAPI
     if message[:receiver] then
       User.generate(message[:receiver])
     elsif(/@([a-zA-Z0-9_]+)/ === message[:message]) then
-      User.findByIdname($1)
+      User.findbyidname($1)
     elsif message[:replyto]
       message[:replyto][:user] rescue nil
     end

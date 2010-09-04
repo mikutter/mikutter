@@ -30,6 +30,13 @@ if defined? SQLite3
       @findbyid = "select * from #{table_name} where id=?"
       modelclass.add_data_retriever(self) end
 
+    def atomic
+      @@mutex ||= Mutex.new
+      @@mutex.synchronize{
+        yield
+      }
+    end
+
     def findbyid(id)
       begin
         return findbyid_multi(id) if id.is_a? Array

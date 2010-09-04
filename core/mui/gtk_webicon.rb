@@ -94,7 +94,7 @@ module Gtk
             else
               filename = MUI::Skin.get("notfound.png")
             end
-          rescue
+          rescue Timeout::Error, StandardError => e
             filename = MUI::Skin.get("notfound.png")
           end
         end

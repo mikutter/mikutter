@@ -8,8 +8,13 @@ class Array
   end
 
   def cdr
-    self[1..self.size]
-  end
+    result = self[1..self.size]
+    if is_a?(MIKU::StaticCode)
+      result.extend(MIKU::StaticCode).staticcode_copy_info(staticcode_dump) end
+    result unless result.empty? end
+
+  def terminator
+    nil end
 
   def setcar(val)
     result = val.clone
@@ -18,7 +23,7 @@ class Array
   end
 
   def setcdr(val)
-    Cons.new(self.car, val)
+    MIKU::Cons.new(self.car, val)
   end
 
   def unparse(start=true)

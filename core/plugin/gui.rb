@@ -6,6 +6,7 @@ miquire :core, 'utils'
 miquire :plugin, 'plugin'
 miquire :mui
 miquire :core, 'configloader'
+miquire :miku, 'miku'
 
 require 'gtk2'
 require 'singleton'
@@ -271,6 +272,8 @@ module Plugin
   end
 
   class Executer
+    @@toplevel = MIKU::SymbolTable.new
+
     def initialize(service)
       @service = service end
 
@@ -281,9 +284,9 @@ module Plugin
       yield(:start, nil)
       result = nil
       begin
-        result = instance_eval(args[:message], 'prompt')
+        result = miku(MIKU.parse(args[:message]), @@toplevel)
         yield(:success, result)
-      rescue => e
+      rescue Exception, RuntimeError=> e
         result = e
         yield(:fail, e) end
       Plugin.call(:update, nil, [Message.new(:message => result.inspect,

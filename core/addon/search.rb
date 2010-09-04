@@ -38,8 +38,8 @@ Module.new do
   plugin.add_event(:boot){ |s|
     service = s
     container = Gtk::VBox.new(false, 0).pack_start(querycont, false).pack_start(main, true)
-    Gtk::TimeLine.addlinkrule(/(#|＃)([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
     Plugin.call(:mui_tab_regist, container, 'Search', MUI::Skin.get("search.png"))
+    Gtk::TimeLine.addlinkrule(/(#|＃)([a-zA-Z0-9_]+)/){ |text, clicked, mumble|
       querybox.text = text
       searchbtn.clicked
       Addon.focus('Search') } }

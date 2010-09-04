@@ -79,7 +79,7 @@ module MIKU
       val = eval(symtable, val)
       symtable.defun(key, val)
       return val if args.empty?
-      setf(symtable, *args)
+      defun(symtable, *args)
     end
 
     def function(symtable, symbol)
@@ -88,30 +88,21 @@ module MIKU
       else
         symbol end end
 
-    def macro_expand(symtable, body)
-      self.class.macro_expand(symtable, body) end
-
-    def self.macro_expand(symtable, body)
-      if body.is_a? List
-        macro = body.get_function(symtable)
-        return do_macro_expand(symtable.ancestor, body) if macro.is_a? MIKU::Macro
-      end
-      body end
-
-    def self.do_macro_expand(symtable, body)
-      body.get_function(symtable).call(*body.cdr.to_a) end
-
-
-    def macro(parenttable, alist, *body)
-      negi(parenttable, alist, *body).extend(MIKU::Macro) end
+    def macro(symtable, alist, *body)
+      Macro.new(alist, body)
+    end
 
     def negi(parenttable, alist, *body)
-      body = body.map{ |node| macro_expand(parenttable, node) }
+      # body = body.map{ |node| macro_expand(parenttable, node) }
       lambda{ |*args|
         symtable = parenttable.miracle_binding(alist, args)
         body.inject(nil){ |last, operator|
           symtable[:last] = last
           eval(symtable, operator) } } end
+
+    def require_runtime_library(symtable, filename)
+      require filename
+    end
 
   end
 end

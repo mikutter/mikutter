@@ -166,7 +166,7 @@ Module.new do
         user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
         makescreen(user, service) }
       Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
-        user = User.findByIdname(match[1, match.length])
+        user = User.findbyidname(match[1, match.length])
         if user
           makescreen(user, service)
         else

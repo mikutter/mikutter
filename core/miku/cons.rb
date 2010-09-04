@@ -7,6 +7,13 @@ module MIKU
 
     attr_reader(:car, :cdr)
 
+    def self.list(*nodes)
+      unless nodes.empty?
+        carnode, *cdrnode = *nodes
+        Cons.new(carnode, list(*cdrnode))
+      end
+    end
+
     def initialize(car, cdr=nil)
       @car = car
       @cdr = cdr
@@ -25,6 +32,10 @@ module MIKU
     def each(&proc)
       proc.call @car
       @cdr.each(&proc) if(@cdr.is_a? Enumerable)
+    end
+
+    def to_cons
+      self
     end
 
     def inspect

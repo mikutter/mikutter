@@ -1,5 +1,6 @@
 module MIKU
 
+
   class MikuException < Exception
   end
 
@@ -10,6 +11,7 @@ module MIKU
     end
 
     def fire(scan)
+      puts self.backtrace.join("\n")
       raise @exceptionclass.new(to_s, scan)
     end
   end
@@ -43,7 +45,7 @@ module MIKU
 
   class NoMithodError < MikuException
     def initialize(name, scan)
-      super("undefined function '#{name.inspect}' #{scan.staticcode_file} in line #{scan.staticcode_line}\n  #{MIKU.unparse(scan)}")
+      super("undefined function '#{name.inspect}' #{scan.staticcode_file rescue '?'} in line #{scan.staticcode_line rescue '?'}\n  #{MIKU.unparse(scan)}")
     end
   end
 

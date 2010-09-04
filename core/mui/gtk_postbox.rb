@@ -92,6 +92,7 @@ module Gtk
           text = post.buffer.text
           text += UserConfig[:footer] if add_footer?
           @post_thread = service.post(:message => text){ |event, msg|
+            p [event, msg]
             case event
             when :start
               Delayer.new{ start_post }
