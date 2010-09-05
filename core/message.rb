@@ -2,7 +2,7 @@
 # message.rb
 #
 
-require 'utils'
+require File.dirname(__FILE__) + '/utils'
 miquire :core, 'autotag'
 miquire :core, 'user'
 miquire :core, 'retriever'
