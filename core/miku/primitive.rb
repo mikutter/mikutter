@@ -53,7 +53,7 @@ module MIKU
     end
 
     def list(symtable, *args)
-      args.map{|n| eval(symtable, n) }
+      args.map{|n| eval(symtable, n) }.to_cons
     end
 
     def listp(symtable, val)
@@ -97,7 +97,6 @@ module MIKU
       lambda{ |*args|
         symtable = parenttable.miracle_binding(alist, args)
         body.inject(nil){ |last, operator|
-          symtable[:last] = last
           eval(symtable, operator) } } end
 
     def require_runtime_library(symtable, filename)

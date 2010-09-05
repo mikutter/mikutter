@@ -80,6 +80,8 @@ module MIKU
         setcdr(value) end
       self end
 
+    alias append set_terminator
+
     def to_cons
       if cdr.is_a? List
         MIKU::Cons.new(car, cdr.to_cons)
@@ -129,19 +131,20 @@ module MIKU
         result end end
 
     def call_rubyfunc(fn, receiver, *args)
-      if receiver.respond_to?(fn)
+      func = if receiver.respond_to?(fn) then receiver.method(fn)
+             elsif Kernel.respond_to?(fn) then
+               args.unshift(receiver)
+               Kernel.method(fn) end
+      if func
         begin
-          func = receiver.method(fn)
           block = nil
-          count = if func.arity < 0 then -(func.arity +1) else func.arity end
+          count = if func.arity < 0 then -(func.arity)+1 else func.arity end
           if args.size > count
             args = args.dup
             block = args.pop end
           func.call(*args, &block)
         rescue => e
-          p [fn, receiver, *args]
-          raise e
-        end
+          raise e end
       else
         raise NoMithodError.new(fn, self) end end
 
@@ -154,7 +157,7 @@ module MIKU
     end
 
     def evaluate_args(scope)
-      cdr.map{|node| miku(node, scope)}
+      cdr.map{|node| miku(node, scope)} if cdr.is_a?(Enumerable)
     end
 
     def unparse

@@ -17,51 +17,92 @@ module MIKU
   end
 
   def self._parse(s)
-    c = skipspace(s)
-    case c
-    when ';' then
-      _comment(s)
-      _parse(s)
-    when '(' then
-      _list(s)
-    when '"' then
-      _string(s)
-    when '`' then
-      Cons.list(:backquote, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
-    when ',' then
-      c = s.getc.chr
-      if c == '@' then
-        Cons.list(:comma_at, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
+    while(true) do
+      c = skipspace(s)
+      if c == ';'
+        _comment(s)
       else
-        s.ungetc(c[0])
-        Cons.list(:comma, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
-      end
-    when '\'' then
-      Cons.list(:quote, _parse(s)).extend(StaticCode).staticcode_copy_info(s.staticcode_dump)
+        break end end
+    pos = s.staticcode_dump
+    r = case c
+        when '(' then
+          _list(s)
+        when '#' then
+          _structure(s)
+        when '"' then
+          _string(s)
+        when '`' then
+          Cons.list(:backquote, _parse(s)).extend(StaticCode).staticcode_copy_info(pos)
+        when ',' then
+          c = s.getc.chr
+          if c == '@' then
+            Cons.list(:comma_at, _parse(s)).extend(StaticCode).staticcode_copy_info(pos)
+          else
+            s.ungetc(c[0])
+            Cons.list(:comma, _parse(s)).extend(StaticCode).staticcode_copy_info(pos)
+          end
+        when '\'' then
+          Cons.list(:quote, _parse(s)).extend(StaticCode).staticcode_copy_info(pos)
+        else
+          _symbol(c, s)
+        end
+    _after(s, r)
+  end
+
+  def self._after(s, r)
+    read_to(s){ |c| not(c =~ /[\t ]/) }
+    skipped = s.getc
+    if skipped.respond_to?(:chr) and skipped.chr == "["
+      pos = s.staticcode_dump
+      return _after(s, Cons.new(r, _list(s, ']').extend(StaticCode).staticcode_copy_info(pos)
+                                ).extend(StaticCode).staticcode_copy_info(pos))
     else
-      _symbol(c, s)
+      s.ungetc(skipped) if skipped
     end
+    r
   end
 
   def self._comment(s)
     read_to(s){ |c| c == "\n" }
   end
 
-  def self._list(s)
+  def self._structure(s)
+    c = skipspace(s)
+    pos = s.staticcode_dump
+    if(c == '(')
+      Cons.new(:lambda, _list(s)).extend(StaticCode).staticcode_copy_info(pos)
+    else
+      type = _symbol(c, s)
+      c = skipspace(s)
+      if c != '('
+        raise SyntaxError.new("#なんとかの後に文字#{c}があります。必ず中括弧をおいてください",s)
+      end
+      pos = s.staticcode_dump
+      lst = _list(s).extend(StaticCode).staticcode_copy_info(pos)
+      case
+      when [:array, :a].include?(type)
+        lst.to_a.extend(StaticCode).staticcode_copy_info(pos)
+      when [:hash, :h].include?(type)
+        genlist = Cons.new(:list, lst).extend(StaticCode).staticcode_copy_info(pos)
+        Cons.list(:to_hash, genlist).extend(StaticCode).staticcode_copy_info(pos)
+      when [:lambda, :function, :func, :f].include?(type)
+        Cons.new(:lambda, lst).extend(StaticCode).staticcode_copy_info(pos) end end end
+
+  def self._list(s, pend=')')
     scd = s.staticcode_dump
     c = s.getc.chr
-    return nil if c == ')'
+    return nil if c == pend
     s.ungetc(c[0])
     car = _parse(s)
     c = skipspace(s)
     if(c == '.') then
       cdr = _parse(s)
       s.ungetc(skipspace(s)[0])
-      raise SyntaxError.new('ドット対がちゃんと終わってないよ',s) if(s.getch != ')')
+      raise SyntaxError.new('ドット対がちゃんと終わってないよ',s) if(s.getc.chr != pend)
       return Cons.new(car, cdr).extend(StaticCode).staticcode_copy_info(scd)
     else
       s.ungetc(c[0])
-      return Cons.new(car, _list(s)).extend(StaticCode).staticcode_copy_info(scd)
+      return Cons.new(car, _list(s, pend)).extend(StaticCode).staticcode_copy_info(scd)
     end
   end
 
@@ -72,7 +113,7 @@ module MIKU
   end
 
   def self._symbol(c, s)
-    sym = c + read_to(s){ |c| not(c =~ /[^\(\)\.',#\s]/) }
+    sym = c + read_to(s){ |c| not(c =~ /[^\(\)\{}\[\].',#\s]/) }
     raise SyntaxError.new('### 深刻なエラーが発生しました ###',s) if not(sym)
     if(sym =~ /^-?[0-9]+$/) then
       sym.to_i
@@ -112,9 +153,11 @@ module MIKU
       'nil'
     elsif(val.is_a?(List))
       val.unparse
+    elsif(val.is_a?(String))
+      val
+    elsif(val.respond_to?(:unparse))
+      val.unparse
     else
-      val.to_s
-    end
-  end
+      val.inspect end end
 
 end

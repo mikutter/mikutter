@@ -28,8 +28,8 @@ class Array
 
   def unparse(start=true)
     result = ''
-    result = '(' if start
-    result + self.map{ |n| MIKU.unparse(n) }.join(' ') + ')'
+    result = '#array{' if start
+    result + self.map{ |n| MIKU.unparse(n) }.join(' ') + '}'
   end
 
 end

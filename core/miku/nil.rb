@@ -33,6 +33,7 @@ class NilClass
   def miku_eval(symtable=MIKU::SymbolTable.new)
     self end
 
-  def method_missing(name, *args)
-    warn 'undefined method #{name} for nil.'
-    nil end end
+  # def method_missing(name, *args)
+  #   warn "undefined method #{name} for nil."
+  #   nil end
+end

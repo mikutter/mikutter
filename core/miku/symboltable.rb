@@ -3,6 +3,8 @@ require 'error'
 module MIKU
   class SymbolTable < Hash
 
+    INITIALIZE_FILE = File.expand_path(File.join(File.dirname(__FILE__), 'init.miku'))
+
     # :caller-file "呼び出し元ファイル名"
     # :caller-line 行
     # :caller-function :関数名
@@ -14,7 +16,12 @@ module MIKU
         def self.ancestor
           self end end
       merge(default)
-      super(){ |this, key| @parent[key.to_sym] } end
+      super(){ |this, key| @parent[key.to_sym] }
+    end
+
+    def run_init_script
+      miku_stream(File.open(INITIALIZE_FILE), self)
+      self end
 
     def ancestor
       @parent.ancestor end

@@ -1,0 +1,27 @@
+;; this is miku primitive operators.
+;; don't change this file.
+;; normally, you should make another library files.
+
+(require_runtime_library "enumerator")
+
+(def 'defmacro
+     (macro (name alist (rest body))
+            `(def ,(list 'quote name) (macro ,alist ,@body))))
+
+;; (defmacro setq (var val)
+;;   `(set ,(list 'quote var) ,val))
+(defmacro setq ((rest args))
+  (set 'result '(set))
+  (each_slice args 2 #((pair)
+                       (append result (list (list 'quote (car pair)) (nth pair 1)))))
+  result)
+
+(defmacro defun (name alist (rest body))
+  `(def ,(list 'quote name) #(,alist ,@body)))
+
+(defun to_hash (ary)
+  (setq result (new Hash))
+  (each ary #((pair) (store result (car pair) (cdr pair))))
+  result)
+
+
