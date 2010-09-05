@@ -57,4 +57,9 @@ module ConfigLoader
     return @@configloader_pstore
   end
 
+   def self.create(prefix)
+     Class.new{
+       include ConfigLoader
+       define_method(:configloader_key){ |key|
+         "#{prefix}::#{key}" } }.new end
 end

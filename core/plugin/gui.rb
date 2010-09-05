@@ -272,9 +272,10 @@ module Plugin
   end
 
   class Executer
-    @@toplevel = MIKU::SymbolTable.new
+    @@toplevel = MIKU::SymbolTable.new.run_init_script
 
     def initialize(service)
+      @@toplevel.bind(:service, service, :setcar)
       @service = service end
 
     def service
