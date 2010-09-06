@@ -74,7 +74,8 @@ class Post
           if(event == :try)
             twitter.__send__(api, msg)
           elsif(event == :success and msg.is_a?(Message))
-            Plugin.call(:update, self, [msg]) end } }
+            Plugin.call(:update, self, [msg])
+            Plugin.call(:posted, self, [msg])end } }
     end
     define_postal(*other) if not other.empty? end
 

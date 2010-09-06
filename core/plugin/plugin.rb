@@ -94,6 +94,8 @@ _messages_ には同時に複数の Message のインスタンスが渡される
 立てて同じつぶやきが流れる)。
 === mention(Post service, Array messages)
 updateと同じ。ただし、自分宛のリプライが来たときに呼ばれる点が異なる。
+=== posted(Post service, Array messages)
+自分が投稿したメッセージ。
 === appear(Array messages)
 updateと同じ。ただし、タイムライン、検索結果、リスト等、受信したすべてのつぶやきを対象にしている。
 === list_data(Post service, Array ulist)

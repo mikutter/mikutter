@@ -7,6 +7,7 @@ miquire :mui, 'contextmenu'
 miquire :mui, 'intelligent_textview'
 miquire :core, 'message'
 miquire :core, 'userconfig'
+miquire :lib, 'weakstorage'
 
 require 'gtk2'
 require 'time'
@@ -19,6 +20,7 @@ module Gtk
     DEFAULT_HEIGHT = 64
 
     @@contextmenu = Gtk::ContextMenu.new
+    @@mumbles = Hash.new{ |h, k| h[k] = [] }
 
     attr_accessor :replies
     attr_reader :message
@@ -51,11 +53,13 @@ module Gtk
       super()
       gen_mumble
       border_width = 0
-    end
+      @@mumbles[message[:id]] << self
+      signal_connect('destroy'){
+        raise 'mumble not found in mumbles chain' unless @@mumbles[@message[:id]].delete(self)
+        @@mumbles.delete(@message[:id]) if(@@mumbles[@message[:id]].empty?) } end
 
     def [](key)
-      @message[key]
-    end
+      @message[key] end
 
     def <=>(other)
       if defined?(other.to_a)
@@ -140,7 +144,7 @@ module Gtk
       iw.etc
       iw.favorite if msg.favoriable?
       iw.bg_color = Gdk::Color.new(*get_backgroundcolor)
-      iw
+      @icon_over_button = iw
     end
 
     def gen_control(msg)
@@ -233,6 +237,10 @@ module Gtk
         @@contextmenu.popup(widget, self) }
     end
 
+    def replied_by(message)
+      @icon_over_button.options[0][:always_show] = true
+    end
+
     class IOB < Gtk::IconOverButton
       @@buttons = {
         :reply => Gtk::WebIcon.new(MUI::Skin::get("reply.png"), 24, 24),
@@ -252,7 +260,8 @@ module Gtk
                        MUI::Skin.get("overbutton_mouseover.png")) end
 
       def reply
-        add(@@buttons[:reply]){ @mumble.gen_postbox(@mumble.replies, @msg) }
+        has_child = @mumble.message.children.any?{ |m| m[:user][:idname] == @mumble.message.service.user }
+        add(@@buttons[:reply], :always_show => has_child){ @mumble.gen_postbox(@mumble.replies, @msg) }
       end
 
       def retweet
@@ -267,4 +276,17 @@ module Gtk
         add(@@buttons[:fav][@msg.favorite?], :always_show => @msg.favorite?){ |this, options|
           @msg.favorite(!@msg.favorite?)
           options[:always_show] = @msg[:favorited] = !@msg.favorite?
-          [@@buttons[:fav][@msg.favorite?], options] } end end end end
+          [@@buttons[:fav][@msg.favorite?], options] } end end
+
+    Plugin.create(:gtk_mumble).add_event(:posted){ |service, messages|
+      messages.each{ |message|
+        parent = message.receive_message
+        if @@mumbles.include?(parent[:id])
+          @@mumbles[parent[:id]].each{ |mumble|
+            mumble.replied_by(message)
+          }
+        end
+      }
+    }
+
+  end end

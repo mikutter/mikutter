@@ -22,6 +22,7 @@ if not defined? $loaded_miku
     begin
       while(not stream.eof?) do
         miku(MIKU.parse(stream), scope) end
+    rescue MIKU::EndofFile
     rescue MIKU::MikuException => e
       warn e end end
 

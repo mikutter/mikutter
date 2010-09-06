@@ -36,7 +36,7 @@ class Gtk::IconOverButton < Gtk::EventBox
 
   end
 
-  attr_accessor :visible_button
+  attr_accessor :visible_button, :options
 
   def initialize(background_image, *args)
     raise ArgumentError unless background_image
