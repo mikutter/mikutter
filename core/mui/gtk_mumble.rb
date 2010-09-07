@@ -238,8 +238,8 @@ module Gtk
     end
 
     def replied_by(message)
-      @icon_over_button.options[0][:always_show] = true
-    end
+      if UserConfig[:show_replied_icon]
+        @icon_over_button.options[0][:always_show] = true end end
 
     class IOB < Gtk::IconOverButton
       @@buttons = {
@@ -260,7 +260,9 @@ module Gtk
                        MUI::Skin.get("overbutton_mouseover.png")) end
 
       def reply
-        has_child = @mumble.message.children.any?{ |m| m[:user][:idname] == @mumble.message.service.user }
+        has_child = if UserConfig[:show_replied_icon]
+                      idname = @mumble.message.service.user
+                      @mumble.message.children.any?{ |m| m[:user][:idname] == idname } end
         add(@@buttons[:reply], :always_show => has_child){ @mumble.gen_postbox(@mumble.replies, @msg) }
       end
 
@@ -281,7 +283,7 @@ module Gtk
     Plugin.create(:gtk_mumble).add_event(:posted){ |service, messages|
       messages.each{ |message|
         parent = message.receive_message
-        if @@mumbles.include?(parent[:id])
+        if parent.is_a?(Message) and @@mumbles.include?(parent[:id])
           @@mumbles[parent[:id]].each{ |mumble|
             mumble.replied_by(message)
           }

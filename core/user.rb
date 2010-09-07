@@ -67,7 +67,7 @@ class User < Retriever::Model
   def self.findbyidname(idname, count=-1)
     if(@@users_id.has_key?(idname))
       @@users_id[idname]
-    else
+    elsif caller(1).include?(caller[0].first)
       selectby(:idname, idname, count).first
     end
   end

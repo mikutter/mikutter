@@ -53,6 +53,19 @@ if defined? SQLite3
     def findbyid_multi(ids)
       ids.map{|id| findbyid(id) }.select(&ret_nth(0)) end
 
+    # def selectby(key, value)
+    #   return [] if caller(1).include?(caller[0].first)
+    #   begin
+    #     keys, *rows = atomic{ @db.execute2("select * from #{table_name} where #{key} = ?" ,value) }
+    #     return [] unless rows.is_a?(Array) and not(rows.empty?)
+    #     return rows.map{ |row| record_convert(keys.zip(row)) }
+    #   rescue Retriever::InvalidTypeError, Exception, RuntimeError => e
+    #     return []
+    #   rescue SQLite3::SQLException => e
+    #     warn e.inspect
+    #     warn e.backtrace.inspect
+    #     return [] end end
+
     def record_convert(pairs)
       result = {}
       pairs.each{ |pair|
