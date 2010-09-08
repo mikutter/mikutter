@@ -93,25 +93,23 @@ module Retriever
       @value[key.to_sym]
     end
 
-    # 速い順にcount個のRetrieverだけに問い合わせて返します
+    # 速い順にcount個のRetrieverだけに問い合わせて返す
     def get(key, count=1)
       result = @value[key.to_sym]
       column = self.class.keys.assoc(key.to_sym)
-      if column and result then
+      if column and result
         type = column[1]
-        if type.is_a? Symbol then
+        if type.is_a? Symbol
           Retriever::cast_func(type).call(result)
-        elsif not result.is_a?(Model) then
+        elsif not result.is_a?(Model)
           result = type.findbyid(result, count)
           if result
             return @lock.synchronize{ @value[key.to_sym] = result } end end end
       result end
 
     # カラムの内容を取得する
-    # カラムに入っているデータが外部キーであった場合、それを一段階だけ求めて返す
     def [](key)
-      fetch(key)
-    end
+      fetch(key) end
 
     # カラムに別の値を格納する。
     # 格納後、データはDataSourceに保存される
@@ -119,8 +117,7 @@ module Retriever
       @lock.synchronize{
         @value[key.to_sym] = value }
       self.class.store_datum(self)
-      value
-    end
+      value end
 
     # カラムと型が違うものがある場合、例外を発生させる。
     def validate
@@ -132,11 +129,7 @@ module Retriever
         rescue InvalidTypeError=>e
           warn e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
           warn @value.inspect
-          raise InvalidTypeError, e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
-        end
-      }
-    end
-
+          raise InvalidTypeError, e.to_s + "\nin #{self.fetch(key).inspect} of #{key}" end } end
 
     # キーとして定義されていない値を全て除外した配列を生成して返す。
     # また、Modelを子に含んでいる場合、それを外部キーに変換する。
@@ -148,11 +141,8 @@ module Retriever
         begin
           result[key] = Model.cast(datum[key], type)
         rescue InvalidTypeError=>e
-          raise InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}"
-        end
-      }
-      result
-    end
+          raise InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}" end }
+      result end
 
     #
     # クラスメソッド
@@ -195,40 +185,36 @@ module Retriever
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
       return findbyid_ary(id, count) if id.is_a? Array
-      lazy{
-        result = nil
-        catch(:found){
-          rs = self.retrievers
-          count = rs.length + count + 1 if(count <= -1)
-          rs = rs.slice(0, [count, 1].max)
-          rs.each{ |retriever|
-            detection = retriever.findbyid_timer(id)
-            notice retriever.class.to_s + ": " + detection.class.to_s
-            if detection
-              result = detection
-              throw :found end } }
-        self.retrievers_reorder
-        self.new_ifnecessary(result) if result.is_a? Hash } end
+      result = nil
+      catch(:found){
+        rs = self.retrievers
+        count = rs.length + count + 1 if(count <= -1)
+        rs = rs.slice(0, [count, 1].max)
+        rs.each{ |retriever|
+          detection = retriever.findbyid_timer(id)
+          if detection
+            result = detection
+            throw :found end } }
+      self.retrievers_reorder
+      self.new_ifnecessary(result) if result.is_a? Hash end
 
     def self.findbyid_ary(ids, count=-1)
-      lazy{
-        result = []
-        remain = ids.clone
-        ids.freeze
-        catch(:found){
-          rs = self.retrievers
-          count = rs.length + count + 1 if(count <= -1)
-          rs = rs.slice(0, [count, 1].max)
-          rs.each{ |retriever|
-            detection = retriever.findbyid_timer(remain)
-            notice retriever.class.to_s + ": " + detection.class.to_s
-            if detection
-              detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
-              result.concat(detection)
-              remain -= detection.map{ |x| x[:id].to_i }
-              throw :found if ids.empty? end } }
-        self.retrievers_reorder
-        result.sort_by{ |user| ids.index(user[:id].to_i) } } end
+      result = []
+      remain = ids.clone
+      ids.freeze
+      catch(:found){
+        rs = self.retrievers
+        count = rs.length + count + 1 if(count <= -1)
+        rs = rs.slice(0, [count, 1].max)
+        rs.each{ |retriever|
+          detection = retriever.findbyid_timer(remain)
+          if detection
+            detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
+            result.concat(detection)
+            remain -= detection.map{ |x| x[:id].to_i }
+            throw :found if ids.empty? end } }
+      self.retrievers_reorder
+      result.sort_by{ |user| ids.index(user[:id].to_i) } end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
@@ -383,7 +369,7 @@ module Retriever
 
     def initialize
       @storage = Hash.new
-      @children = Hash.new{ [] }
+      @children = Hash.new{ |h, k| h[k] = Array.new }
     end
 
     def findbyid(id)
@@ -401,7 +387,7 @@ module Retriever
     # データの保存
     def store_datum(datum)
       @storage[datum[:id]] = datum
-      @children[datum[:replyto]] = @children[datum[:replyto]].push(datum[:id])  if datum[:replyto]
+      @children[datum[:replyto].to_i].push(datum[:id].to_i) if datum[:replyto]
       true
     end
   end

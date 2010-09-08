@@ -15,15 +15,20 @@ require 'uri'
 require_if_exist 'Win32API'
 
 module Gtk
+=begin rdoc
+= Gtk::Mumble つぶやきを表示するためのクラス
+つぶやきのアイコンや本文などの表示と、ボタンクリックの制御を担当。
+普通 Gtk::TimeLine から使用されるため、このクラスを直接叩くことはない
+=end
   class Mumble < Gtk::EventBox
 
     DEFAULT_HEIGHT = 64
 
-    @@contextmenu = Gtk::ContextMenu.new
-    @@mumbles = Hash.new{ |h, k| h[k] = [] }
-
     attr_accessor :replies
     attr_reader :message
+
+    @@contextmenu = Gtk::ContextMenu.new
+    @@mumbles = Hash.new{ |h, k| h[k] = [] }
 
     @@contextmenu.registmenu("コピー", lambda{ |m,w|
                  w.is_a?(Gtk::TextView) and w.buffer.selection_bounds[2] }){ |this, w|
@@ -47,6 +52,12 @@ module Gtk
 
     def self.contextmenu
       @@contextmenu end
+
+    def self.addlinkrule(reg, leftclick, rightclick=nil)
+      Gtk::IntelligentTextview.addlinkrule(reg, leftclick, rightclick) end
+
+    def self.addwidgetrule(reg, proc)
+      Gtk::IntelligentTextview.addwidgetrule(reg, proc) end
 
     def initialize(message)
       @message = assert_type(Message, message)
@@ -81,11 +92,27 @@ module Gtk
       end
     end
 
-    def self.addlinkrule(reg, leftclick, rightclick=nil)
-      Gtk::IntelligentTextview.addlinkrule(reg, leftclick, rightclick) end
+    def gen_postbox(replies, message, options={})
+      Lock.synchronize{
+        if(message.from_me? and message.receive_message)
+          gen_postbox(replies, message.receive_message, options)
+        else
+          postbox = Gtk::PostBox.new(message, options)
+          replies.add(postbox).show_all
+          get_ancestor(Gtk::Window).set_focus(postbox.post)
+        end } end
 
-    def self.addwidgetrule(reg, proc)
-      Gtk::IntelligentTextview.addwidgetrule(reg, proc) end
+    def menu_pop(widget)
+      Lock.synchronize{
+        @@contextmenu.popup(widget, self) }
+    end
+
+    def replied_by(message)
+      if UserConfig[:show_replied_icon]
+        if @icon_over_button
+          show_replied_icon
+        else
+          Delayer.new{ show_replied_icon } end end end
 
     private
 
@@ -206,12 +233,10 @@ module Gtk
       reply = Gtk::VBox.new(false, 0)
       Thread.new(reply, msg){ |reply, msg|
         parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
-        if(parent.is_a?(Message) and parent[:message]) then
+        if(parent.is_a?(Message) and parent[:message])
           Delayer.new(Delayer::NORMAL, reply, parent){ |reply, parent|
-            Lock.synchronize{ reply.add(gen_minimumble(parent).show_all) } }
-        end }
-      reply
-    end
+            reply.add(gen_minimumble(parent).show_all) } end }
+      reply end
 
     def gen_retweet(msg)
       Gtk::HBox.new(false, 4).closeup(Gtk::Label.new('ReTweeted by ' + msg.user[:idname])).
@@ -222,24 +247,11 @@ module Gtk
       [UserConfig[:show_cumbersome_buttons], UserConfig[:retrieve_force_mumbleparent]]
     end
 
-    public
-
-    def gen_postbox(replies, message, options={})
-      Lock.synchronize{
-        postbox = Gtk::PostBox.new(message, options)
-        replies.add(postbox).show_all
-        get_ancestor(Gtk::Window).set_focus(postbox.post)
-      }
-    end
-
-    def menu_pop(widget)
-      Lock.synchronize{
-        @@contextmenu.popup(widget, self) }
-    end
-
-    def replied_by(message)
-      if UserConfig[:show_replied_icon]
-        @icon_over_button.options[0][:always_show] = true end end
+    def show_replied_icon
+      begin
+        @icon_over_button.options[0][:always_show] = true
+      rescue => e
+        error e end end
 
     class IOB < Gtk::IconOverButton
       @@buttons = {
@@ -260,10 +272,10 @@ module Gtk
                        MUI::Skin.get("overbutton_mouseover.png")) end
 
       def reply
-        has_child = if UserConfig[:show_replied_icon]
-                      idname = @mumble.message.service.user
-                      @mumble.message.children.any?{ |m| m[:user][:idname] == idname } end
-        add(@@buttons[:reply], :always_show => has_child){ @mumble.gen_postbox(@mumble.replies, @msg) }
+        puts @mumble.message.children.inspect
+        add(@@buttons[:reply], :always_show => lambda{
+              UserConfig[:show_replied_icon] && @mumble.message.children.any?{ |m| m.from_me? }
+            }){ @mumble.gen_postbox(@mumble.replies, @msg) }
       end
 
       def retweet
@@ -275,7 +287,7 @@ module Gtk
       end
 
       def favorite
-        add(@@buttons[:fav][@msg.favorite?], :always_show => @msg.favorite?){ |this, options|
+        add(@@buttons[:fav][@msg.favorite?], :always_show => lambda{ @msg.favorite? }){ |this, options|
           @msg.favorite(!@msg.favorite?)
           options[:always_show] = @msg[:favorited] = !@msg.favorite?
           [@@buttons[:fav][@msg.favorite?], options] } end end

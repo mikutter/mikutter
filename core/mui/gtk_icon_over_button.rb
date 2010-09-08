@@ -173,25 +173,24 @@ class Gtk::IconOverButton < Gtk::EventBox
       self.grid_x.times{ |x|
         index = x + y*grid_x
         widget = @children[index]
-        if(widget) then
+        if(widget)
           Gtk::Lock.synchronize do
             gw, gh = *self.grid_geometry
             args = [0, 0, gw*x, gh*y, gw, gh, Gdk::RGB::DITHER_NONE, 0, 0]
-            if(self.visible_button) then
-              if(focus == index) then
+            if(self.visible_button)
+              if(focus == index)
                 self.window.draw_pixbuf(gc, @button_back_over.pixbuf, *args) if @button_back_over
               else
-                self.window.draw_pixbuf(gc, @button_back.pixbuf, *args) if @button_back
-              end
+                self.window.draw_pixbuf(gc, @button_back.pixbuf, *args) if @button_back end
               self.window.draw_pixbuf(gc, widget.pixbuf, *args)
-            elsif(@options[index][:always_show])
-              self.window.draw_pixbuf(gc, widget.pixbuf, *args)
-            end
-          end
-        end
-      }
-    }
-  end
+            elsif(always_show?(index))
+              self.window.draw_pixbuf(gc, widget.pixbuf, *args) end end end } } end
+
+  def always_show?(index)
+    if @options[index][:always_show].respond_to?(:call)
+      @options[index][:always_show].call
+    else
+      @options[index][:always_show] end end
 
   def geometry
     self.size_request
