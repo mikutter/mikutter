@@ -163,6 +163,8 @@ module Plugin
         tab_label = Gtk::EventBox.new.tooltip(label)
         if image.is_a?(String)
           tab_label.add(Gtk::WebIcon.new(image, 24, 24))
+        elsif image.is_a?(Gtk::Image)
+          tab_label.add(image)
         else
           tab_label.add(Gtk::Label.new(label)) end
         tab_label.extend(TabButton).label = label

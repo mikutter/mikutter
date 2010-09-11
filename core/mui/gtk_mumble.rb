@@ -272,11 +272,9 @@ module Gtk
                        MUI::Skin.get("overbutton_mouseover.png")) end
 
       def reply
-        puts @mumble.message.children.inspect
         add(@@buttons[:reply], :always_show => lambda{
               UserConfig[:show_replied_icon] && @mumble.message.children.any?{ |m| m.from_me? }
-            }){ @mumble.gen_postbox(@mumble.replies, @msg) }
-      end
+            }){ @mumble.gen_postbox(@mumble.replies, @msg) } end
 
       def retweet
         add(@@buttons[:retweet]){ @mumble.gen_postbox(@mumble.replies, @msg, :retweet => true) }

@@ -16,10 +16,9 @@ Module.new do
   def self.popup
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new("bug report")
-    container = main
     dialog.set_size_request(600, 400)
     dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(container, true, true, 30)
+    dialog.vbox.pack_start(main, true, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
     dialog.default_response = Gtk::Dialog::RESPONSE_OK
@@ -41,7 +40,6 @@ Module.new do
     dialog.signal_connect("destroy") {
       false
     }
-    container.show
     dialog.show_all
     Gtk::Window.toplevels.first.hide
     if(alert_thread)
@@ -80,7 +78,7 @@ Module.new do
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
       rescue => e
-        Plugin.call(:update, nil, [Message.new(:message => "ごめんなさい。エラー通知通知すらバグってるみたいだわ\n\n#{e.to_s}",
+        Plugin.call(:update, nil, [Message.new(:message => "エラー通知「#{e.to_s}」フォロワー監視「エラー通知がやられたようだな」スレッド「しかしやつは我々プラグインのバグ情報をフィードバックするための機能・・・」プロフィール「そのプラグインにバグがあるとはmikutterプラグインの面汚しよ」",
                                                :system => true)])
       end } end
 

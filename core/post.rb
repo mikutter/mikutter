@@ -210,6 +210,9 @@ class Post
           else
             twitter.unfavorite(msg[:id]) end end } end end
 
+  def inspect
+    "#<Post #{idname}>" end
+
   private
 
   def try_post(message, api)

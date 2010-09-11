@@ -322,7 +322,6 @@ class TwitterAPI < Mutex
   def status_show(args)
     path = "/statuses/show/#{args[:id]}.#{FORMAT}"
     head = {'Host' => HOST}
-    puts caller(0).join("\n")
     get(path, head)
   end
 
