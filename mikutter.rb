@@ -171,6 +171,9 @@ begin
   $stderr = File.open(errfile, 'w') if not $debug
   boot()
   File.delete(errfile) if File.exist?(errfile)
+rescue Interrupt, SystemExit => e
+  File.delete(errfile) if File.exist?(errfile)
+  raise e
 ensure
   # $stderr.close if errlog.closed?
 end

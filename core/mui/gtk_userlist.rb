@@ -62,7 +62,9 @@ module Gtk
           img.add_observer Class.new{
             define_method(:update){
               Delayer.new{
-                iter[0] = img.pixbuf } } }.new
+                iter[0] = img.pixbuf
+                img.destroy } } }.new
+          img.destroy unless img.loading_thread
           @users << user end end end
 
     def block_add_all(users)

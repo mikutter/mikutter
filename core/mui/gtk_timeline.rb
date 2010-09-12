@@ -8,13 +8,12 @@ module Gtk
     include Enumerable
 
     def initialize()
-      super()
       Lock.synchronize do
+        super()
         self.border_width = 0
         self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
-      end
-      @mumbles = []
-    end
+        @mumbles = []
+        signal_connect('destroy'){ clear } end end
 
     def timeline
       if defined? @tl

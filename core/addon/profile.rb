@@ -19,30 +19,36 @@ Module.new do
       @options[:user] end
 
     def on_create
-      Plugin::create(:profile).add_event(:appear){ |res|
-        msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
-        timeline.add(msgs) if not msgs.empty? }
+      @appear_event = Plugin::create(:profile).add_event(:appear){ |res|
+        unless timeline.destroyed?
+          msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
+          timeline.add(msgs) if not msgs.empty? end }
       @service.call_api(:user_timeline, :user_id => user[:id],
                        :no_auto_since_id => true,
                        :count => 20){ |tl|
-        Delayer.new{ timeline.add(tl) } if tl }
+        Delayer.new{
+          timeline.add(tl) unless timeline.destroyed? } if tl }
       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
-        followed_list_ids = res.map{|list| list['id'].to_i}
-        @list = Gtk::ListList.new{ |iter|
-          flag = iter[0] = !iter[0]
-          @service.__send__(flag ? :add_list_member : :delete_list_member,
-                            :list_id => iter[2]['id'],
-                            :idname => @service.user,
-                            :id => user[:id]){ |e, m|
-            iter[0] = !flag if e == :fail
-            p m } }
-        @list.set_auto_get{ |list|
-          followed_list_ids.include?(list['id'].to_i) }
-        @notebook.append_page(@list.show_all,
-                              Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) }
+        unless @notebook.destroyed?
+          followed_list_ids = res.map{|list| list['id'].to_i}
+          @list = Gtk::ListList.new{ |iter|
+            flag = iter[0] = !iter[0]
+            @service.__send__(flag ? :add_list_member : :delete_list_member,
+                              :list_id => iter[2]['id'],
+                              :idname => @service.user,
+                              :id => user[:id]){ |e, m|
+              iter[0] = !flag unless @list.destroyed? and e == :fail } }
+          @list.set_auto_get{ |list|
+            followed_list_ids.include?(list['id'].to_i) }
+          @notebook.append_page(@list.show_all,
+                                Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) end }
       header.closeup(profile).show_all
       super
       focus end
+
+    def on_remove
+      super
+      Plugin::create(:profile).detach(:appear, @appear_event) end
 
     private
 
@@ -103,11 +109,9 @@ Module.new do
     def toolbar
       container = Gtk::HBox.new(false, 0)
       close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
-      close.signal_connect('clicked'){ self.remove }
-#       nextpage = Gtk::Button.new('+')
-#       nextpage.signal_connect('clicked'){ self.next_page }
-      container.closeup(close) # .closeup(nextpage)
-    end
+      close.signal_connect('clicked'){
+        remove }
+      container.closeup(close) end
 
     def main(window_parent)
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)

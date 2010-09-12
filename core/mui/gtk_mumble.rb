@@ -166,7 +166,8 @@ module Gtk
     end
 
     def gen_iob(msg)
-      iw = IOB.new(self, msg, icon(msg, 48))
+      iw = IOB.new(self, msg, Gtk::WebIcon.get_icon_pixbuf(msg.user[:profile_image_url], 48){ |pb|
+                     iw.background = pb })
       iw.reply.retweet if(msg.repliable?)
       iw.etc
       iw.favorite if msg.favoriable?
@@ -255,12 +256,12 @@ module Gtk
 
     class IOB < Gtk::IconOverButton
       @@buttons = {
-        :reply => Gtk::WebIcon.new(MUI::Skin::get("reply.png"), 24, 24),
-        :retweet => Gtk::WebIcon.new(MUI::Skin::get("retweet.png"), 24, 24),
+        :reply => Gdk::Pixbuf.new(MUI::Skin::get("reply.png"), 24, 24),
+        :retweet => Gdk::Pixbuf.new(MUI::Skin::get("retweet.png"), 24, 24),
         :fav => {
-          false => Gtk::WebIcon.new(MUI::Skin::get("fav.png"), 24, 24),
-          true => Gtk::WebIcon.new(MUI::Skin::get("unfav.png"), 24, 24) },
-        :etc => Gtk::WebIcon.new(MUI::Skin::get("etc.png"), 24, 24) }
+          false => Gdk::Pixbuf.new(MUI::Skin::get("fav.png"), 24, 24),
+          true => Gdk::Pixbuf.new(MUI::Skin::get("unfav.png"), 24, 24) },
+        :etc => Gdk::Pixbuf.new(MUI::Skin::get("etc.png"), 24, 24) }
 
       def initialize(mumble, msg, icon)
         @mumble = mumble

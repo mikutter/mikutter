@@ -163,7 +163,7 @@ class Plugin::PluginTag
   end
 
   # イベントの監視をやめる。引数 _event_ には、add_event の戻り値を与える。
-  def self.detach(event)
+  def detach(event_name, event)
     Plugin.detach(event_name, event)
   end
 

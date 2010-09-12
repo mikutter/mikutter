@@ -41,11 +41,9 @@ class Message < Retriever::Model
   def initialize(value)
     assert_type(Hash, value)
     value.update(self.system) if value[:system]
-    if not(value[:image].is_a?(Message::Image)) then
-      value[:image] = Message::Image.new(value[:image])
-    end
-    super(value)
-  end
+    if not(value[:image].is_a?(Message::Image)) and value[:image]
+      value[:image] = Message::Image.new(value[:image]) end
+    super(value) end
 
   def system
     { :id => @@system_id += 1,

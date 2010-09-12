@@ -124,12 +124,16 @@ class Gtk::IconOverButton < Gtk::EventBox
   end
 
   def background=(val)
-    @background.remove if @background
-    @background = Updater.new(val, self)
+    # @background.remove if @background
+    # @background = Updater.new(val, self)
+    @background = val
+    redraw
+    val
   end
 
   def background
-    @background.observable if @background
+    # @background.observable if @background
+    @background
   end
 
   def bg_color=(color)
@@ -156,7 +160,7 @@ class Gtk::IconOverButton < Gtk::EventBox
     Gtk::Lock.synchronize do
       return false if not(self.realized?)
       gc = Gdk::GC.new(self.window)
-      pb = background.pixbuf
+      pb = background
       gc.set_foreground(@bgcolor)
       window.draw_rectangle(gc, true, 0, 0, width_request, height_request)
       window.draw_pixbuf(gc, pb, 0, 0,
@@ -172,19 +176,19 @@ class Gtk::IconOverButton < Gtk::EventBox
     self.grid_y.times{ |y|
       self.grid_x.times{ |x|
         index = x + y*grid_x
-        widget = @children[index]
-        if(widget)
+        pixbuf = @children[index]
+        if(pixbuf)
           Gtk::Lock.synchronize do
             gw, gh = *self.grid_geometry
             args = [0, 0, gw*x, gh*y, gw, gh, Gdk::RGB::DITHER_NONE, 0, 0]
             if(self.visible_button)
               if(focus == index)
-                self.window.draw_pixbuf(gc, @button_back_over.pixbuf, *args) if @button_back_over
+                self.window.draw_pixbuf(gc, @button_back_over, *args) if @button_back_over
               else
-                self.window.draw_pixbuf(gc, @button_back.pixbuf, *args) if @button_back end
-              self.window.draw_pixbuf(gc, widget.pixbuf, *args)
+                self.window.draw_pixbuf(gc, @button_back, *args) if @button_back end
+              self.window.draw_pixbuf(gc, pixbuf, *args)
             elsif(always_show?(index))
-              self.window.draw_pixbuf(gc, widget.pixbuf, *args) end end end } } end
+              self.window.draw_pixbuf(gc, pixbuf, *args) end end end } } end
 
   def always_show?(index)
     if @options[index][:always_show].respond_to?(:call)
@@ -209,7 +213,7 @@ class Gtk::IconOverButton < Gtk::EventBox
     Gtk::Lock.synchronize do
       w, h = *self.grid_geometry
       if(widget.is_a?(String)) then
-        @children << Gtk::WebIcon.new(widget, w, h)
+        @children << Gdk::Pixbuf.new(widget, w, h)
       else
         @children << widget
       end
@@ -223,11 +227,11 @@ class Gtk::IconOverButton < Gtk::EventBox
     Gtk::Lock.synchronize do
       if(usual.is_a?(String)) then
         w, h = *self.grid_geometry
-        @button_back = Gtk::WebIcon.new(usual, w, h)
+        @button_back = Gdk::Pixbuf.new(usual, w, h)
       end
       if(over.is_a?(String)) then
         w, h = *self.grid_geometry
-        @button_back_over = Gtk::WebIcon.new(over, w, h)
+        @button_back_over = Gdk::Pixbuf.new(over, w, h)
       end
     end
     self

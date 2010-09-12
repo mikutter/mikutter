@@ -14,6 +14,8 @@ module Gtk
 
     include Observable
 
+    attr_reader :loading_thread
+
     ICONDIR = "#{Environment::CONFROOT}icons#{File::SEPARATOR}"
 
     @@image_download_lock = Mutex.new
@@ -23,10 +25,14 @@ module Gtk
     @@pixbufcache_lastcleartime = Time.now
 
     def initialize(img, width=48, height=48)
-      if(img.index('http://') == 0) then
+      @loading_thread = nil
+      if(img.index('http://') == 0)
         filename = WebIcon.get_filename(img)
         if not(File.exist?(filename)) then
-          WebIcon.iconring(self, img, [width, height])
+          @loading_thread = WebIcon.iconring(img, [width, height]){ |pic|
+            self.pixbuf = pic
+            self.changed
+            self.notify_observers }
           filename = File.expand_path(MUI::Skin.get("loading.png"))
         end
         img = filename
@@ -34,14 +40,21 @@ module Gtk
       super(WebIcon.genpixbuf(img, width, height))
     end
 
+    def self.get_icon_pixbuf(img, width=48, height=width, &onload)
+      if(img.index('http://') == 0)
+        filename = WebIcon.get_filename(img)
+        if not(File.exist?(filename)) then
+          iconring(img, [width, height], &onload)
+          filename = File.expand_path(MUI::Skin.get("loading.png")) end
+        img = filename end
+      WebIcon.genpixbuf(img, width, height) end
+
+    def self.iconring(img, dim=[48,48], &onload)
+      Thread.new{
+        WebIcon.background_icon_loader(img, dim, &onload) } end
+
     def self.get_filename(url)
       File.expand_path(self.icondir + Digest::MD5.hexdigest(url) + File.extname(url))
-    end
-
-    def self.iconring(this, img, dim=[48,48])
-      Thread.new{
-        WebIcon.background_icon_loader(this, img, dim)
-      }
     end
 
     def self.pixbuf_cache_get(filename, width, height)
@@ -70,16 +83,11 @@ module Gtk
         result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height) end
       result end
 
-    def self.background_icon_loader(this, img, dim=[48,48])
+    def self.background_icon_loader(img, dim=[48,48], &onload)
       filename = WebIcon.local_path(img)
       Delayer.new(Delayer::LATER){
         Lock.synchronize{
-          this.pixbuf = self.genpixbuf(filename, *dim)
-          this.changed
-          this.notify_observers
-        }
-      }
-    end
+          onload.call(self.genpixbuf(filename, *dim)) } } end
 
     def self.local_path(url)
       @@l_iconring[url].synchronize{

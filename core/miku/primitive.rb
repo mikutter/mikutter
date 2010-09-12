@@ -14,6 +14,35 @@ module MIKU
       send(@func, *args)
     end
 
+    def self.injecting_method(name, method = nil)
+      method = name unless method
+      define_method(name){ |symtable, *objects|
+        unless objects.empty?
+          first, *rest = *objects
+          rest.inject(eval(symtable, first)){|a, b|
+            a.__send__(method, eval(symtable, b)) } end } end
+
+    def self.consing_method(name, method = nil)
+      method = name unless method
+      define_method(name){ |symtable, *objects|
+        unless objects.empty?
+          objects.map{ |x| eval(symtable, x) }.enum_cons(2).all?{ |a|
+            p a
+            a[0].__send__(method, a[1]) } end } end
+
+    injecting_method(:+)
+    injecting_method(:-)
+    injecting_method(:*)
+    injecting_method(:/)
+
+    consing_method(:<)
+    consing_method(:>)
+    consing_method(:<=)
+    consing_method(:>=)
+    consing_method(:eq, :equal?)
+    consing_method(:eql, :==)
+    consing_method(:equal, :===)
+
     def backquote(symtable, val)
       result = []
       val.each{|n|
@@ -38,10 +67,6 @@ module MIKU
 
     def eval(symtable, node)
       miku_eval_another(symtable, node)
-    end
-
-    def eq(symtable, a, b)
-      eval(symtable, a) == eval(symtable, b)
     end
 
     def if(symtable, condition, true_case, false_case)

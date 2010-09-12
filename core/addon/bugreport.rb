@@ -77,7 +77,7 @@ Module.new do
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
-      rescue => e
+      rescue TimeoutError, StandardError => e
         Plugin.call(:update, nil, [Message.new(:message => "エラー通知「#{e.to_s}」フォロワー監視「エラー通知がやられたようだな」スレッド「しかしやつは我々プラグインのバグ情報をフィードバックするための機能・・・」プロフィール「そのプラグインにバグがあるとはmikutterプラグインの面汚しよ」",
                                                :system => true)])
       end } end

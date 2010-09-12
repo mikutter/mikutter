@@ -104,10 +104,11 @@ module Plugin
         UserConfig[:tab_order] = books_labels
         false }
       book.signal_connect('page-removed'){
-        if book.children.empty? and book.parent
-          UserConfig.disconnect(tab_position_hook_id)
-          book.parent.remove(book) end
-        Delayer.new{ UserConfig[:tab_order] = books_labels }
+        Delayer.new{
+          if book.children.empty? and book.parent
+            UserConfig.disconnect(tab_position_hook_id)
+            book.parent.remove(book) end
+          UserConfig[:tab_order] = books_labels }
         false }
       book end
 
@@ -158,7 +159,6 @@ module Plugin
       default_active = 'Home Timeline'
       Gtk::Lock.synchronize{
         book_id = (belong_book(label) or 0)
-        puts "#{label}: book#{book_id}"
         idx = where_should_insert_it(label, book_labels(book_id), order_in_book(book_id))
         tab_label = Gtk::EventBox.new.tooltip(label)
         if image.is_a?(String)
@@ -183,7 +183,9 @@ module Plugin
       book_id, index = get_tabindex(label)
       if index
         focus_before_tab(label)
-        self.books(book_id).remove_page(index) end end
+        child = self.books(book_id).get_nth_page(index)
+        self.books(book_id).remove_page(index)
+        child.destroy end end
 
     def gen_toolbar(posts, watch)
       Gtk::Lock.synchronize do
@@ -243,7 +245,8 @@ module Plugin
         this = self
         window.signal_connect("destroy"){
           Gtk::Lock.synchronize do
-            Gtk.main_quit
+            Gtk::Object.main_quit
+            # Gtk.main_quit
           end
           false
         }

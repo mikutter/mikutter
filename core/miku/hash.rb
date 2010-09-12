@@ -23,7 +23,7 @@ class Hash
   end
 
   def unparse(start=true)
-    "#hash{'" + self.map{ |n| MIKU::Cons.new(*n).unparse }.join(" '") + '}'
+    "#hash(" + map{ |n| "#{n[0]} #{n[1]}" }.join(" ") + ')'
   end
 
 end

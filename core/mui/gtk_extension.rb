@@ -3,6 +3,35 @@ miquire :core, 'utils'
 require 'gtk2'
 require 'monitor'
 
+class Gtk::Object #GLib::Instantiatable
+  if $debug
+    @@instance_list = {}
+    @@new = method(:new)
+
+    def self.new(*args)
+      this = super
+      @@instance_list[this]= caller(1) if this.respond_to?(:parent)
+      this.signal_connect('destroy'){
+        @@instance_list.delete(this) }
+      this end
+
+    def self.main_quit
+      leaks = Hash.new(0)
+      @@instance_list.each{ |obj, stack|
+        if obj.respond_to?(:parent) and not obj.parent
+          leak = "leak Gtk Object: #{obj.class}\n" + stack.map{ |x| "    from #{x}" }.join("\n")
+          leaks[leak] += 1 end }
+      File.open("/tmp/mikutter_gtk_memoryleak.#{Time.now.to_i}", 'w'){ |os|
+        leaks.each{ |leak, times|
+          os.puts "#{times} times " if times > 1
+          os.puts leak
+          os.puts }
+      }
+      Gtk.main_quit end
+  else
+    def self.main_quit
+      Gtk.main_quit end end end
+
 module Gtk
   def self.keyname(key)
     if key.empty?
@@ -173,3 +202,4 @@ def Gtk::openurl(url)
     else
       command = '/etc/alternatives/x-www-browser' end
     system("#{command} #{url} &") || system("firefox #{url} &") end end
+# ~> -:1: undefined method `miquire' for main:Object (NoMethodError)

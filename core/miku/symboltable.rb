@@ -77,8 +77,11 @@ module MIKU
 
     def self.defaults
       Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
-                      :if, :backquote, :macro, :require_runtime_library) +
-             [:lambda , Cons.new(nil, Primitive.new(:negi))] +
-             [:def , Cons.new(nil, Primitive.new(:defun))] + consts)] end
+                      :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
+                      :<, :>, :<=, :>=, :eq, :eql, :equal) +
+             [:lambda , Cons.new(nil, Primitive.new(:negi)),
+              :def , Cons.new(nil, Primitive.new(:defun)),
+              :"=", Cons.new(nil, Primitive.new(:eq))
+             ] + consts)] end
   end
 end
