@@ -24,8 +24,8 @@ Module.new do
           msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
           timeline.add(msgs) if not msgs.empty? end }
       @service.call_api(:user_timeline, :user_id => user[:id],
-                       :no_auto_since_id => true,
-                       :count => 20){ |tl|
+                        :no_auto_since_id => true,
+                        :count => 20){ |tl|
         Delayer.new{
           timeline.add(tl) unless timeline.destroyed? } if tl }
       @service.call_api(:list_user_followers, :user => user[:id]){ |res|

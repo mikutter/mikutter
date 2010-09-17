@@ -114,7 +114,7 @@ class Gtk::IconOverButton < Gtk::EventBox
           @options[index] = result[1]
           result = result[0]
         end
-        if(result.is_a?(Gtk::Image)) then
+        if(result.is_a?(Gdk::Pixbuf)) then
           @children[index] = result
           self.redraw
         end

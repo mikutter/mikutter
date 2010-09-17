@@ -4,6 +4,7 @@ miquire :core, 'messageconverters'
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'userconfig'
+require 'json'
 
 class Bitly < MessageConverters
   USER = 'mikutter'
@@ -32,11 +33,25 @@ class Bitly < MessageConverters
       result = begin
                  JSON.parse(Net::HTTP.get("api.bit.ly", "/shorten?#{query}"))
                rescue JSON::ParserError
-                 nil
-               end
+                 nil end
       return Hash[ *result['results'].map{|pair| [pair[0], pair[1]['shortUrl']] }.flatten ] if result
       sleep(1) }
-    nil end end
+    nil end
+
+  def expand_url(urls)
+    query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
+      "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
+    3.times{
+      result = begin
+                 JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/expand?#{query}"))
+               rescue JSON::ParserError
+                 nil end
+      return Hash[ *result['data']['expand'].map{|token|
+                     [token['short_url'], token['long_url']] }.flatten ] if result
+      sleep(1) }
+    nil end
+
+end
 
 Module.new do
   USER = 'mikutter'
@@ -50,7 +65,8 @@ EOM
   def self.boot
     plugin = Plugin::create(:bitly)
     plugin.add_event(:boot){ |service|
-      Plugin.call(:regist_url_shrinker_setting, 'bit.ly', main(service)) } end
+      Plugin.call(:regist_url_shrinker_setting, 'bit.ly', main(service)) }
+  end
 
   def self.main(watch)
     ft = Mtk.accountdialog_button('bit.ly アカウント設定',

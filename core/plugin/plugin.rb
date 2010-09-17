@@ -16,13 +16,23 @@ require 'monitor'
 # イベントリスナーの登録とイベントの発行については、Plugin::PluginTagを参照してください。
 #
 module Plugin
-  @@event          = Hash.new{ |hash, key| hash[key] = [] } # { event_name => [[plugintag, proc]] }
-  @@add_event_hook = Hash.new{ |hash, key| hash[key] = [] }
+
+  def self.gen_event_ring
+    Hash.new{ |hash, key| hash[key] = [] }
+  end
+  @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
+  @@add_event_hook = gen_event_ring
+  @@event_filter   = gen_event_ring
 
   # イベントリスナーを追加する。
   def self.add_event(event_name, tag, &callback)
     @@event[event_name.to_sym] << [tag, callback]
     call_add_event_hook(callback, event_name)
+    callback end
+
+  # イベントフィルタを追加する。
+  def self.add_event_filter(event_name, tag, &callback)
+    @@event_filter[event_name.to_sym] << [tag, callback]
     callback end
 
   def self.fetch_event(event_name, tag, &callback)
@@ -34,14 +44,23 @@ module Plugin
     callback end
 
   def self.detach(event_name, event)
-    @@event[event_name.to_sym].delete_if{ |e| e[1] == event } end
+    deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
+    deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
+
+  # フィルタ関数を用いて引数をフィルタリングする
+  def self.filtering(event_name, *args)
+    length = args.size
+    @@event_filter[event_name.to_sym].inject(args){ |result, plugin|
+      result = plugin[1].call(*result)
+      raise "filter returned invalid value" if result.size != length
+      result } end
 
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
   def self.call(event_name, *args)
     @@event[event_name.to_sym].each{ |plugin|
       Delayer.new{
-        plugin[1].call(*args) } } end
+        plugin[1].call(*filtering(event_name, *args)) } } end
 
   def self.call_add_event_hook(event, event_name)
     @@add_event_hook[event_name.to_sym].each{ |plugin|
@@ -153,6 +172,14 @@ class Plugin::PluginTag
     Plugin.add_event(event_name, self, &callback)
   end
 
+  # イベントフィルタを設定する。
+  # フィルタが存在した場合、イベントが呼ばれる前にイベントフィルタに引数が渡され、戻り値の
+  # 配列がそのまま引数としてイベントに渡される。
+  # フィルタは渡された引数と同じ長さの配列を返さなければいけない。
+  def add_event_filter(event_name, &callback)
+    Plugin.add_event_filter(event_name, self, &callback)
+  end
+
   def fetch_event(event_name, &callback)
     Plugin.fetch_event(event_name, self, &callback)
   end
@@ -162,7 +189,8 @@ class Plugin::PluginTag
     Plugin.add_event_hook(event_name, self, &callback)
   end
 
-  # イベントの監視をやめる。引数 _event_ には、add_event の戻り値を与える。
+  # イベントの監視をやめる。引数 _event_ には、add_event, add_event_filter, add_event_hook の
+  # いずれかの戻り値を与える。
   def detach(event_name, event)
     Plugin.detach(event_name, event)
   end

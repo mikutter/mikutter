@@ -56,8 +56,11 @@ class UserConfig
     # タブの位置 [上,下,左,右]
     :tab_position => 3,
 
-    # 常にURLを短縮
+    # 常にURLを短縮して投稿
     :shrinkurl_always => true,
+
+    # 常にURLを展開して表示
+    :shrinkurl_expand => true,
 
     :biyly_user => '',
     :bitly_apikey => '',

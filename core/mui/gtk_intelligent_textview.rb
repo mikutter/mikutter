@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 miquire :mui, 'extension'
 miquire :mui, 'contextmenu'
+miquire :miku, 'miku'
 
 require 'gtk2'
 require 'uri'
@@ -8,22 +9,22 @@ require 'uri'
 class Gtk::IntelligentTextview < Gtk::TextView
   attr_accessor :fonts, :get_background
 
-  @@linkrule = [ [ URI.regexp(['http','https']),
-                   lambda{ |u, clicked| Gtk::openurl u},
-                   lambda{ |u, clicked|
-                     Gtk::ContextMenu.new(['ブラウザで開く', ret_nth(),
-                                           lambda{ |opt, w|
-                                             Gtk::openurl(u) }],
-                                          ['リンクのURLをコピー', ret_nth(),
-                                           lambda{ |opt, w|
-                                             Gtk::Clipboard.copy(u) }]).popup(clicked, true)}]]
+  @@linkrule = MIKU::Cons.list([URI.regexp(['http','https']),
+                                lambda{ |u, clicked| Gtk::openurl u},
+                                lambda{ |u, clicked|
+                                  Gtk::ContextMenu.new(['ブラウザで開く', ret_nth(),
+                                                        lambda{ |opt, w|
+                                                          Gtk::openurl(u) }],
+                                                       ['リンクのURLをコピー', ret_nth(),
+                                                        lambda{ |opt, w|
+                                                          Gtk::Clipboard.copy(u) }]).popup(clicked, true)}])
   @@widgetrule = []
 
   def self.addlinkrule(reg, leftclick, rightclick=nil)
-    @@linkrule = @@linkrule.push([reg, leftclick, rightclick]) end
+    @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick], @@linkrule) end
 
   def self.addwidgetrule(reg, widget = nil)
-    @@widgetrule = @@widgetrule.push([reg, (widget or Proc.new)]) end
+    @@widgetrule = @@widgetrule.unshift([reg, (widget or Proc.new)]) end
 
   def initialize(msg, default_fonts = {}, *args)
     assert_type(String, msg)

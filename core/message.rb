@@ -43,7 +43,9 @@ class Message < Retriever::Model
     value.update(self.system) if value[:system]
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
-    super(value) end
+    super(value)
+    if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
+      self[:message] = MessageConverters.expand_url_all(value[:message]) end end
 
   def system
     { :id => @@system_id += 1,

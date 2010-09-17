@@ -4,13 +4,13 @@ require 'gtk2'
 require 'monitor'
 
 class Gtk::Object #GLib::Instantiatable
-  if $debug
+  if false
     @@instance_list = {}
     @@new = method(:new)
 
     def self.new(*args)
       this = super
-      @@instance_list[this]= caller(1) if this.respond_to?(:parent)
+      @@instance_list[this]= caller(1)
       this.signal_connect('destroy'){
         @@instance_list.delete(this) }
       this end
@@ -18,11 +18,12 @@ class Gtk::Object #GLib::Instantiatable
     def self.main_quit
       leaks = Hash.new(0)
       @@instance_list.each{ |obj, stack|
-        if obj.respond_to?(:parent) and not obj.parent
+        if not( if obj.respond_to?(:parent) then obj.parent else obj.destroyed? end )
           leak = "leak Gtk Object: #{obj.class}\n" + stack.map{ |x| "    from #{x}" }.join("\n")
           leaks[leak] += 1 end }
       File.open("/tmp/mikutter_gtk_memoryleak.#{Time.now.to_i}", 'w'){ |os|
-        leaks.each{ |leak, times|
+        leaks.to_a.sort{ |a, b| b[1] <=> a[1] }.each{ |pair|
+          leak, times = *pair
           os.puts "#{times} times " if times > 1
           os.puts leak
           os.puts }
@@ -150,45 +151,6 @@ class Gtk::Dialog
   end
 end
 
-# module GLib::SignalAdditional
-
-#   def additional_signals
-#     if not(@additional_signals) then
-#       @additional_signals = Hash.new
-#     end
-#     @additional_signals
-#   end
-
-#   def signal_add(signal_name)
-#     if additional_signals.has_key?(signal_name.to_sym) then
-#       raise ArgumentError.new('already exist signal '+signal_name)
-#     end
-#     additional_signals[signal_name.to_sym] = Array.new
-#     self
-#   end
-
-#   def signal_connect(detailed_signal, *other_args)
-#     if not(additional_signals.has_key?(detailed_signal.to_sym)) then
-#       return super(detailed_signal, *other_args)
-#     end
-#     additional_signals[detailed_signal.to_sym] << lambda{ |*args| yield(*args.concat(other_args)) }
-#     true # handler not support
-#   end
-
-#   def signal_emit(detailed_signal, *args)
-#     if not(additional_signals.has_key?(detailed_signal.to_sym)) then
-#       Lock.synchronize{ super(detailed_signal, *args) }
-#     else
-#       additional_signals[detailed_signal.to_sym].each{ |signal|
-#         if signal.call(*args) then
-#           break
-#         end
-#       }
-#     end
-#   end
-
-# end
-
 # _url_ を設定されているブラウザで開く
 def Gtk::openurl(url)
   if UserConfig[:url_open_command]
@@ -202,4 +164,3 @@ def Gtk::openurl(url)
     else
       command = '/etc/alternatives/x-www-browser' end
     system("#{command} #{url} &") || system("firefox #{url} &") end end
-# ~> -:1: undefined method `miquire' for main:Object (NoMethodError)

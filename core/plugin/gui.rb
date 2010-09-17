@@ -245,6 +245,7 @@ module Plugin
         this = self
         window.signal_connect("destroy"){
           Gtk::Lock.synchronize do
+            window.destroy
             Gtk::Object.main_quit
             # Gtk.main_quit
           end

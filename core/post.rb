@@ -458,11 +458,11 @@ class Post
     if json
       begin
         result = nil
-        json = begin
-                 JSON.parse(json) if json.is_a?(String)
-               rescue JSON::ParserError
-                 warn "json parse error"
-                 return nil end
+        begin
+          json = JSON.parse(json) if json.is_a?(String)
+        rescue JSON::ParserError
+          warn "json parse error"
+          return nil end
         json.freeze
         if rule(cache, :hasmany).is_a?(String)
           tl = json[rule(cache, :hasmany)]
