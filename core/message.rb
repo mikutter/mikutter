@@ -44,6 +44,8 @@ class Message < Retriever::Model
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
     super(value)
+    if self[:replyto].is_a? Message
+      self[:replyto].add_child(self) end
     if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
       self[:message] = MessageConverters.expand_url_all(value[:message]) end end
 
@@ -148,8 +150,10 @@ class Message < Retriever::Model
 
   def receive_message(force_retrieve=false)
     count = if(force_retrieve) then -1 else 1 end
-    self.get(:replyto, count) or self.get(:retweet, count)
-  end
+    reply = get(:replyto, count) or get(:retweet, count)
+    if reply.is_a?(Message) and not reply.children.include?(self)
+      reply.add_child(self) end
+    reply end
 
   def each_ancestors(force_retrieve=false, &proc)
     proc.call(self)
@@ -167,9 +171,11 @@ class Message < Retriever::Model
     ancestors(force_retrieve).last
   end
 
+  def add_child(child)
+    children << child end
+
   def children
-    Message.selectby(:replyto, self[:id])
-  end
+    @children ||= Set.new(Message.selectby(:replyto, self[:id])) end
 
   def body
     result = [self[:message]]

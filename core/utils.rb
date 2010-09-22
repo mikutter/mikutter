@@ -190,9 +190,12 @@ def type_check(args, &proc)
   if(error)
     warn "argument error: #{error[0].inspect} is not passed #{error[1].inspect}"
     warn "in #{caller(1).first}"
-    nil
+    false
   else
-    proc.call if proc end end
+    if proc
+      proc.call
+    else
+      true end end end
 
 # type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
 def tclambda(*args, &proc)
@@ -222,9 +225,9 @@ def assert_hasmethods(obj, *methods)
   obj
 end
 
-def p(obj)
-  log('notice', obj.inspect) if $debug_avail_level >= 3
-end
+# def p(obj)
+#   log('notice', obj.inspect) if $debug_avail_level >= 3
+# end
 
 def log(prefix, object)
   msg = "#{prefix}: #{caller(2).first}: #{object}"
@@ -334,6 +337,18 @@ class Float
   end
 
 end
+
+module Enumerable
+
+  # 複数のeachの代わりになるメソッドを同時に使って繰り返す。
+  # 引数には、メソッド名をシンボルで渡すか、[メソッド名, 引数...]という配列を渡せる。
+  # 例 :
+  #   ary = [1, 2, 3]
+  #   ary.iterate(:each_with_index, [:inject, [:foo]]){ |a, x| a + x } # => [:foo, 1, 0, 2, 1, 3, 2]
+  def iterate(*methods)
+    methods.inject(self){ |itr, method|
+      method = [method] unless method.is_a? Array
+      Enumerable::Enumerator.new(itr, *method) }.each(&Proc.new) end end
 
 #
 # Array

@@ -20,7 +20,6 @@ module Retriever
     # ジェネレータ
     #
     def initialize(args)
-      @lock = Monitor.new
       @value = args
       validate
       self.class.store_datum(self)
@@ -60,8 +59,7 @@ module Retriever
     # selfにあってotherにもあるカラムはotherの内容で上書きされる。
     # 上書き後、データはDataSourceに保存される
     def merge(other)
-      @lock.synchronize{
-        @value.update(other.to_hash) }
+      @value.update(other.to_hash)
       validate
       self.class.store_datum(self)
     end
@@ -92,8 +90,8 @@ module Retriever
 
     # カラムの生の内容を返す
     def fetch(key)
-      @value[key.to_sym]
-    end
+      @value[key.to_sym] end
+    alias [] fetch
 
     # 速い順にcount個のRetrieverだけに問い合わせて返す
     def get(key, count=1)
@@ -106,18 +104,14 @@ module Retriever
         elsif not result.is_a?(Model)
           result = type.findbyid(result, count)
           if result
-            return @lock.synchronize{ @value[key.to_sym] = result } end end end
+            return @value[key.to_sym] = result end end end
       result end
 
-    # カラムの内容を取得する
-    def [](key)
-      fetch(key) end
 
     # カラムに別の値を格納する。
     # 格納後、データはDataSourceに保存される
     def []=(key, value)
-      @lock.synchronize{
-        @value[key.to_sym] = value }
+      @value[key.to_sym] = value
       self.class.store_datum(self)
       value end
 
@@ -153,12 +147,10 @@ module Retriever
     # モデルのキーを定義します。
     # これを継承した実際のモデルから呼び出されることを想定しています
     def self.keys=(keys)
-      @keys = keys
-    end
+      @keys = keys end
 
     def self.keys
-      @keys
-    end
+      @keys end
 
     # srcが正常にModel化できるかどうかを返します。
     def self.valid?(src)
@@ -172,16 +164,14 @@ module Retriever
         begin
           Model.cast(src[key], type, required)
         rescue InvalidTypeError=>e
-          return e.to_s + "\nin key '#{key}' value '#{src[key]}'"
-        end }
+          return e.to_s + "\nin key '#{key}' value '#{src[key]}'" end }
       false end
 
-    # DataSourceを登録します
+    # DataSourceのチェーンに、 _retriever_ を登録します
     def self.add_data_retriever(retriever)
       retriever.keys = self.keys
       retrievers_add(retriever)
-      retriever
-    end
+      retriever end
 
     # 特定のIDを持つオブジェクトを各データソースに問い合わせて返します。
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
@@ -223,7 +213,6 @@ module Retriever
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
-      # return @@storage[hash[key]] if @@storage.has_key?(hash[key])
       result = []
       rs = self.retrievers
       count = rs.length + count + 1 if(count <= -1)
@@ -283,15 +272,12 @@ module Retriever
     # DataSourceの配列を返します。
     def self.retrievers
       atomic{
-        @retrievers = [Memory.new] if not defined? @retrievers }
+        @retrievers = [Memory.new(@@storage)] if not defined? @retrievers }
       @retrievers
     end
 
     def self.retrievers_add(retriever)
-      atomic{
-        self.retrievers << retriever }
-      raise RuntimeError if not self.retrievers.include?(retriever)
-    end
+      self.retrievers << retriever end
 
     #DataSourceの配列を、最後の取得が早かった順番に並び替えます
     def self.retrievers_reorder
@@ -372,10 +358,11 @@ module Retriever
   class Model::Memory
     include Retriever::DataSource
 
-    def initialize
-      @storage = Hash.new
-      @children = Hash.new{ |h, k| h[k] = Array.new }
-    end
+    def initialize(storage)
+      @storage = storage end
+
+    def children
+      @children ||= Hash.new{ |h, k| h[k] = Set.new } end
 
     def findbyid(id)
       if id.is_a? Array
@@ -385,16 +372,16 @@ module Retriever
 
     def selectby(key, value)
       if key == :replyto
-        @children[value.to_i]
+        children[value.to_i].to_a
       else
         [] end end
 
     # データの保存
-    def store_datum(datum)
-      @storage[datum[:id]] = datum
-      @children[datum[:replyto].to_i].push(datum[:id].to_i) if datum[:replyto]
-      true
-    end
+    # def store_datum(datum)
+    #   @storage[datum[:id]] = datum
+    #   @children[datum[:replyto].to_i].push(datum[:id].to_i) if datum[:replyto]
+    #   true
+    # end
   end
 
 end

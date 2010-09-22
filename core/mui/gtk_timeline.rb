@@ -32,7 +32,7 @@ module Gtk
 
     def add(message)
       timeline{
-        if message.is_a?(Array) then
+        if message.is_a?(Enumerable) then
           self.block_add_all(message)
         else
           self.block_add(message) end } end

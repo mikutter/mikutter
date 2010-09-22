@@ -18,7 +18,7 @@ Module.new do
       focus end
 
     def set_children(message)
-      if message.children.is_a? Array
+      if message.children.is_a? Enumerable
         Delayer.new{ timeline.add(message.children) }
         message.children.each{ |m|
           if not @still_added.include? m[:id]
