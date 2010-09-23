@@ -147,6 +147,7 @@ module Gtk
       Lock.synchronize{
         w = Gtk::HBox.new(false, 8)
         Thread.new{
+          notice msg
           msg.user[:profile_image_url]
           Delayer.new{
             w.closeup(icon(msg, 24).top)

@@ -65,9 +65,9 @@ end # !> method redefined; discarding old biif
 # ~> notice: ./post.rb:58:in `initialize': -:13:in `new'
 # >> Loaded suite -
 # >> Started
-# >> .#<Message:0x7fde6355f7f0 @value={:geo=>nil, :exact=>nil, :source=>"<a href="http://mikutter.d.hachune.net/" rel="nofollow">mikutter</a>", :message=>"@t_min 設定ファイル書き換えロジックは、ちょっとばっかりそれらしい書き方してるからなー。初学者向けではない。", :user=>"98686215", :receiver=>"33031948", :replyto=>"24005765187", :created=>木  9月 09 21:54:54 +0900 2010, :retweet=>nil, :id=>24006538707}>
-# >> 急に理解した。けど設定ファイルの書き換えがわけわかめ。つかこれ、全部自分で書けって言われたらキツイな。追加とか書き換えとか置き換えはできそうだけど。
+# >> .#<Message:0x7f6d0a41a9f0 @value={:source=>"<a href="http://mikutter.d.hachune.net/" rel="nofollow">mikutter</a>", :retweet=>nil, :message=>"@t_min 設定ファイル書き換えロジックは、ちょっとばっかりそれらしい書き方してるからなー。初学者向けではない。", :geo=>nil, :user=>"98686215", :exact=>nil, :receiver=>"33031948", :replyto=>"24005765187", :created=>木  9月 09 21:54:54 +0900 2010, :id=>24006538707}>
+# >> nil
 # >> .
-# >> Finished in 0.013805 seconds.
+# >> Finished in 0.013017 seconds.
 # >> 
 # >> 2 tests, 12 assertions, 0 failures, 0 errors

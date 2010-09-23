@@ -26,8 +26,6 @@ class Post
   # リクエストをリトライする回数。
   # TRY_LIMIT = 5
 
-  @@threads = []
-  @@xml_lock = Mutex.new
   @@auth_confirm_func = lambda{ |service|
     begin
       request_token = service.request_oauth_token
@@ -323,6 +321,9 @@ class Post
   end
 
   def rule(kind, prop)
+    (@rule ||= _gen_rule.freeze)[kind.to_sym][prop.to_sym] end
+
+  def _gen_rule()
     shell_class = Class.new do
       def self.new_ifnecessary(arg)
         arg end end
@@ -443,7 +444,7 @@ class Post
       :list_statuses => timeline_parser,
       :streaming_status => streaming_status,
       :friendship => friendship,
-    }[kind.to_sym][prop.to_sym] end
+    } end
 
   def scan_rule(rule, msg)
     raise ArgumentError, "should give hash but altually gave #{msg.inspect}" if not msg.is_a? Hash
@@ -499,17 +500,6 @@ class Post
       else
         message = @post.scan(@api, :no_auto_since_id => true, :id => id)
         message.first if message end end
-
-#     def selectby(key, value)
-#       if key.to_sym == :idname
-#         @post.scan(@api, :no_auto_since_id => true, :screen_name => value)
-#       else
-#         [] end end
-
-    # データの保存
-    def store_datum(datum)
-      false
-    end
 
     def time
       1.0/0 end

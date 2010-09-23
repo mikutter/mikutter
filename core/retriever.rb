@@ -186,7 +186,9 @@ module Retriever
           detection = retriever.findbyid_timer(id)
           if detection
             result = detection
+            notice [retriever, result].inspect
             throw :found end } }
+      notice result.inspect
       self.retrievers_reorder
       if result.is_a? Retriever::Model
         result
@@ -361,20 +363,20 @@ module Retriever
     def initialize(storage)
       @storage = storage end
 
-    def children
-      @children ||= Hash.new{ |h, k| h[k] = Set.new } end
+    # def children
+    #   @children ||= Hash.new{ |h, k| h[k] = Set.new } end
 
     def findbyid(id)
-      if id.is_a? Array
+      if id.is_a? Array or id.is_a? Set
         id.map{ |i| @storage[i] }
       else
         @storage[id] end end
 
-    def selectby(key, value)
-      if key == :replyto
-        children[value.to_i].to_a
-      else
-        [] end end
+    # def selectby(key, value)
+    #   if key == :replyto
+    #     children[value.to_i].to_a
+    #   else
+    #     [] end end
 
     # データの保存
     # def store_datum(datum)
