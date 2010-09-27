@@ -3,6 +3,8 @@ miquire :core, 'config'
 miquire :addon, 'settings'
 
 #require 'gst'
+require_if_exist 'rubygems'
+require_if_exist 'win32/sound'
 
 Module.new do
 
@@ -114,10 +116,14 @@ Module.new do
       bg_system(*command) } end
 
   def self.notify_sound(sndfile)
-    # hack! linux only
-    bg_system("aplay","-q", sndfile) if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s) end
+     if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s)
+       if defined?(Win32::Sound)
+         Win32::Sound.play(sndfile, Win32::Sound::ASYNC)
+       else
+         bg_system("aplay","-q", sndfile)
+       end
+     end
+   end
 
   boot
 end
-
-#Plugin::Ring.push Addon::Notify.new,[:boot, :update, :mention, :followed]

@@ -163,7 +163,7 @@ module Gtk
       created = Gtk::Label.new(msg[:created].strftime('%H:%M:%S'))
       idname.style = Gtk::Style.new.set_font_desc(Pango::FontDescription.new('Sans 10').set_weight(700))
       created.style = Gtk::Style.new.set_fg(Gtk::STATE_NORMAL, *[0x66,0x66,0x66].map{|n| n*255 })
-      Gtk::HBox.new(false, 16).closeup(idname).closeup(Gtk::Label.new(user[:name])).add(created.right)
+      Gtk::HBox.new(false, 16).closeup(idname).closeup(Gtk::Label.new((user[:name] or '').tr("\n", ' '))).add(created.right)
     end
 
     def gen_iob(msg)

@@ -61,12 +61,15 @@ Module.new do
     dialog.comments = "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 圧倒的なかわいさではないか我がミクは\n
-For all mikker and ill of twitter users best twitter client.
+For all mikker and heavy twitter users best twitter client.
 Miku is so moe, so cute, so beautiful, fantastic, excellent, magnificent, brilliant and my wife. moe"+
     'e' * 39
     dialog.license = file_get_contents('../LICENSE') rescue nil
     dialog.website = 'http://mikutter.d.hachune.net/'
     dialog.logo = Gtk::WebIcon.new(MUI::Skin.get('icon.png')).pixbuf rescue nil
+    dialog.authors = ['toshi_a', 'Phenomer']
+    dialog.artists = ['toshi_a', 'soramame_bscl']
+    dialog.documenters = ['toshi_a']
     dialog.signal_connect('response') { dialog.destroy } }
   box.closeup(about.right)
 

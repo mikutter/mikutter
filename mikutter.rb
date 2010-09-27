@@ -158,6 +158,17 @@ def gen_xml(msg)
   return xml
 end
 
+def check_config_permission
+  Dir.glob([Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR].
+           map{ |path| File.join(File.expand_path(path), '**', '*') }.join("\0")){ |file|
+    unless FileTest.writable_real?(file)
+      chi_fatal_alert("#{file} に書き込み権限を与えてください") end
+    unless FileTest.readable_real?(file)
+      chi_fatal_alert("#{file} に読み込み権限を与えてください") end
+  }
+end
+check_config_permission
+
 FileUtils.mkdir_p(File.expand_path(Environment::TMPDIR))
 
 errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')

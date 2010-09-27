@@ -1,6 +1,7 @@
-#########################
-#       Utilities       #
-#########################
+# -*- coding: utf-8 -*-
+=begin rdoc
+CHI内部で共通で使われるユーティリティ。
+=end
 
 require 'yaml'
 require 'thread'
@@ -8,17 +9,17 @@ require 'resolv-replace'
 require 'pstore'
 require 'monitor'
 
-#
-# グローバル変数
-
 $atomic = Monitor.new
 $debug_avail_level = 2
+
+# 基本的な単位であり、数学的にも重要なマジックナンバーで、至るところで使われる。
+# これが言語仕様に含まれていないRubyは正直気が狂っていると思う。
+# http://ja.uncyclopedia.info/wiki/Hyde
 HYDE = 156
 
-#
-# 制御構文
-#
-
+# CHIのコアソースコードファイルを読み込む。
+# _kind_ はファイルの種類、 _file_ はファイル名（拡張子を除く）。
+# _file_ を省略すると、その種類のファイルを全て読み込む。
 def miquire(kind, file=nil)
   path = ''
   case(kind)
@@ -64,11 +65,13 @@ def biif(a, b, *procs, &last_proc)
   end
 end
 
-# num番目の引数をそのまま返す関数を返す
+# _num_ 番目の引数をそのまま返す関数を返す
 def ret_nth(num=0)
   lambda { |*arg| arg[num] } end
 
-# カウンタを返す
+# スレッドセーフなカウンタを返す。
+# カウンタの初期値は _count_ で、呼び出すたびに値が _increment_ づつ増える。
+# なお、カウンタが返す値はインクリメント前の値。
 def gen_counter(count=0, increment=1)
   mutex = Mutex.new
   lambda{
@@ -88,33 +91,39 @@ end
 def file_put_contents(fn, body)
   File.open(fn, 'w'){ |put|
     put.write body
-    return body
+    body
   }
 end
 
-# ファイルの内容からオブジェクトを読み込む
+# ファイル _fn_ の内容からオブジェクトを読み込む。
+# _fn_ は、object_put_contents() で保存されたファイルでなければならない。
 def object_get_contents(fn)
   File.open(fn, 'r'){ |input|
     Marshal.load input
   }
 end
 
-# オブジェクトをファイルに書き込む
+# オブジェクト _body_ をファイル _fn_ に書き込む。
+# _body_ は、Marshalizeできるものでなければならない。
 def object_put_contents(fn, body)
   File.open(fn, 'w'){ |put|
     Marshal.dump body, put
   }
 end
 
+# YAMLファイルを読み込む。存在しない場合はからのハッシュを返す。
+# _file_ は、IOオブジェクトかファイル名。
 def confload(file)
-  if(!file.is_a?(IO) && FileTest.exist?(File.expand_path(file))) then
-    file = File.open(File.expand_path(file))
+  if(file.is_a?(IO))
+    YAML.load(file.read)
+  elsif(FileTest.exist?(File.expand_path(file))) then
+    YAML.load(file_get_contents(file))
   else
-    return Hash.new
+    Hash.new
   end
-  YAML.load(file.read)
 end
 
+# プロセスID _pid_ が存在するか否かを返す。
 def pid_exist?(pid)
   if FileTest.exist? '/proc' then
     FileTest.exist? "/proc/#{pid}"
@@ -122,47 +131,46 @@ def pid_exist?(pid)
     begin
       Process.kill(0, pid.to_i)
     rescue Errno::ESRCH
-      return false
+      false
     else
-      return true
-    end
-  end
-end
+      true end end end
 
+# UNIXコマンド _cmd_ が存在するか否かを返す。
 def command_exist?(cmd)
   system("which #{cmd} > /dev/null")
 end
 
+# 存在するかわからないrubyファイル _file_ を読み込む。
+# ただし、_file_ が存在しない場合は例外を投げずにfalseを返す。
 def require_if_exist(file)
   begin
     require file
   rescue LoadError
     notice "require-if-exist: file not found: #{file}"
-    nil
-  end
-end
+    nil end end
 
+# _insertion_ を、 _src_ の挿入するべき場所のインデックスを返す。
+# _order_ は順番を表す配列で、 _src_ 内のオブジェクトの前後関係を表す。
+# _order_ 内に _insertion_ が存在しない場合は一番最後のインデックスを返す。。
 def where_should_insert_it(insertion, src, order)
   if(order.include?(insertion)) then
-    return src.dup.push(insertion).sort_by{|a|
+    src.dup.push(insertion).sort_by{|a|
       order.index(a) or 65536
     }.index(insertion)
   else
-    return src.size
-  end
-end
+    src.size end end
 
-# 一般メッセージを表示する
+# 一般メッセージを表示する。
 def notice(msg)
   log "notice", msg if $debug_avail_level >= 3
 end
 
-# 警告メッセージを表示する
+# 警告メッセージを表示する。
 def warn(msg)
   log "warning", msg if $debug_avail_level >= 2
 end
 
-# エラーメッセージを表示する
+# エラーメッセージを表示する。
 def error(msg)
   log "error", msg if $debug_avail_level >= 1
 end
@@ -170,10 +178,10 @@ end
 # 引数のチェックをすべてパスした場合のみブロックを実行する
 # チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。
 # チェックはassocできる配列か、Hashで定義する。
-# type_check(value => nil,              # チェックしない(常にパス)
-#            value => Symbol,           # その型とis_a?関係ならパス
-#            value => [:method, *args], # value.method(*args)が真を返せばパス
-#            value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
+#  type_check(value => nil,              # チェックしない(常にパス)
+#             value => Symbol,           # その型とis_a?関係ならパス
+#             value => [:method, *args], # value.method(*args)が真を返せばパス
+#             value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
 # チェックをすべてパスすればブロックの実行結果の戻り値、チェックに引っかかれば
 # nilを返す
 def type_check(args, &proc)
@@ -189,7 +197,7 @@ def type_check(args, &proc)
   error = args.find{ |a| not(check_function.call(*a)) }
   if(error)
     warn "argument error: #{error[0].inspect} is not passed #{error[1].inspect}"
-    warn "in #{caller(1).first}"
+    warn "in #{caller_util}"
     false
   else
     if proc
@@ -209,6 +217,13 @@ def tclambda(*args, &proc)
     type_check(a.slice(0, args.size).zip(args)){
       proc.call(*a) } } end
 
+# utils.rbのメソッドを呼び出した最初のバックトレースを返す
+def caller_util
+  caller.each{ |result|
+    return result unless /utils\.rb/ === result } end
+
+# デバッグモードの場合、_obj_ が _type_ とis_a?関係にない場合、RuntimeErrorを発生させる。
+# _obj_ を返す。
 def assert_type(type, obj)
   if $debug and not obj.is_a?(type) then
     raise RuntimeError, "#{obj} should be type #{type}"
@@ -216,6 +231,9 @@ def assert_type(type, obj)
   obj
 end
 
+# デバッグモードの場合、_obj_ _methods_ に指定されたメソッドをひとつでも持っていない場合、
+# RuntimeErrorを発生させる。
+# _obj_ を返す。
 def assert_hasmethods(obj, *methods)
   if $debug then
     methods.all?{ |m|
@@ -225,30 +243,42 @@ def assert_hasmethods(obj, *methods)
   obj
 end
 
-# def p(obj)
-#   log('notice', obj.inspect) if $debug_avail_level >= 3
-# end
-
+# エラーログに記録する。
+# 内部処理用。外部からは呼び出さないこと。
 def log(prefix, object)
-  msg = "#{prefix}: #{caller(2).first}: #{object}"
-  if object.is_a? Exception
-    msg += "\nfrom " + object.backtrace.join("\nfrom ")
-  end
-  if logfile() then
-    FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
-    File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
-      wp.write("#{Time.now.to_s}: #{msg}\n")
-    }
-  end
-  if not $daemon then
-    if msg.is_a? Exception
-      $stderr.write(msg.to_s+"\n")
-      $stderr.write(msg.backtrace.join("\n")+"\n")
-    else
-      $stderr.write(msg+"\n")
-    end
+  begin
+    msg = "#{prefix}: #{caller_util}: #{object}"
+    msg += "\nfrom " + object.backtrace.join("\nfrom ") if object.is_a? Exception
+    unless $daemon
+      if msg.is_a? Exception
+        $stderr.write(msg.to_s+"\n")
+        $stderr.write(msg.backtrace.join("\n")+"\n")
+      else
+        $stderr.write(msg+"\n") end
+    if logfile
+      FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
+      File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
+        wp.write("#{Time.now.to_s}: #{msg}\n") } end end
+  rescue Exception => e
+    $stderr.write("critical!: #{caller(0)}: #{e.to_s}\n")
   end
 end
+
+# 環境や設定の不備で終了する。msgには、何が原因かを文字列で渡す。このメソッドは
+# 処理を返さずにアボートする。
+def chi_fatal_alert(msg)
+  require_if_exist 'gtk2'
+  if defined?(Gtk::MessageDialog)
+    dialog = Gtk::MessageDialog.new(nil,
+                                    Gtk::Dialog::DESTROY_WITH_PARENT,
+                                    Gtk::MessageDialog::ERROR,
+                                    Gtk::MessageDialog::BUTTONS_CLOSE,
+                                    "#{Environment::NAME} エラー")
+    dialog.secondary_text = msg.to_s
+    dialog.run
+    dialog.destroy end
+  puts msg.to_s
+  abort end
 
 # エラーレベルを設定
 def seterrorlevel(lv = :error)
@@ -272,14 +302,17 @@ def logfile(fn = nil)
   $logfile or nil
 end
 
+# 共通のMutexで処理を保護して実行する。
+# atomicブロックで囲まれたコードは、別々のスレッドで同時に実行されない。
 def atomic
   start = Time.now
   result = $atomic.synchronize(&Proc.new)
-  notice caller(1).first + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
+  notice caller_util + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
   result
 end
 
-#Memoize
+# ブロックにメモ化機能をつける。複数の引数に対応する。
+# 引数の同一判定は _==_ を使う。
 def memoize
   memo = Hash.new
   lambda{ |*args|
@@ -291,11 +324,12 @@ def memoize
   }
 end
 
-#Entity encode
+# 文字列をエンティティデコードする
 def entity_unescape(str)
   str.gsub(/&(.{2,3});/){|s| {'gt'=>'>', 'lt'=>'<', 'amp'=>'&'}[$1] }
 end
 
+# コマンドをバックグラウンドで起動することを覗いては system() と同じ
 def bg_system(*args)
   cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
   system('sh', '-c', cmd)
@@ -581,36 +615,12 @@ class String
 
 end
 
-# 遅延評価
-class Lazy
-  def initialize
-    @proc = Proc.new
-    @obj = nil end
-
-  def self.define_bridge(method, *remain)
-    define_method(method){ |*args, &proc|
-      method_missing(method, *args, &proc)
-    }
-    define_bridge(*remain) if not remain.empty?
-  end
-
-  define_bridge(*Object.methods)
-
-  def method_missing(method, *args, &block)
-    if @proc
-      @obj = @proc.call
-      @proc = nil end
-    @obj.__send__(method, *args, &block) end end
-
-def lazy(&proc)
-  Lazy.new(&proc) end
-
 class HatsuneStore < PStore
   def transaction(ro = false, &block)
     start = Time.now
     result = atomic{
       super(ro){ |db| block.call(db) } }
-    notice caller(1).first + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
+    notice caller_util + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
     result
   end
 end
