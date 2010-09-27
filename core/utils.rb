@@ -44,6 +44,7 @@ def miquire(kind, file=nil)
 
 Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'
+miquire :lib, 'lazy'
 
 # 複数条件if
 # 条件を二つ持ち、a&b,a&!b,!a&b,!a&!bの４パターンに分岐する
