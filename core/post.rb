@@ -208,6 +208,10 @@ class Post
           else
             twitter.unfavorite(msg[:id]) end end } end end
 
+  def streaming(&proc)
+    twitter.userstream(&proc)
+  end
+
   def inspect
     "#<Post #{idname}>" end
 

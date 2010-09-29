@@ -137,14 +137,16 @@ class Message < Retriever::Model
 
   # return receive user
   def receiver
-    if self[:receiver] then
+    if self[:receiver].is_a? User
       self[:receiver]
-    elsif(/@([a-zA-Z0-9_]+)/ === self[:message]) then
-      result = User.findbyidname($1)
-      if(result) then
-        self[:receiver] = result
+    elsif self[:receiver]
+      self[:receiver] = User.findbyid(self[:receiver])
+    else
+      match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
+      if match
+        result = User.findbyidname(match[1])
+        self[:receiver] = result if result
       end
-      result
     end
   end
 
@@ -180,22 +182,13 @@ class Message < Retriever::Model
   def body
     result = [self[:message]]
     if self[:tags].is_a?(Array)
-      result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"}
-    end
-    if self.receiver then
-      receiver_idname = atomic{
-        /@([a-zA-Z0-9_]+)/ === self[:message]
-        $1 }
-      if self[:retweet] then
-        result << 'RT' << "@#{receiver_idname}" << self.receive_message(true)[:message]
-      else
-        if not(self[:message].include?("@#{receiver_idname}")) then
-          result = ["@#{receiver_idname}", result]
-        end
-      end
-    end
-    result.join(' ')
-  end
+      result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"} end
+    if self.receiver
+      if self[:retweet] and self.receive_message(true)
+        result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
+      elsif not(self[:message].include?("@#{receiver[:idname]}"))
+        result = ["@#{receiver[:idname]}", result] end end
+    result.join(' ') end
 
   def to_s
     body.split(//u)[0,140].join

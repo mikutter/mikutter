@@ -189,6 +189,16 @@ class TwitterAPI < Mutex
   def delete_with_auth(path, raw_options={})
     query_with_auth(:delete,  path, raw_options) end
 
+  def userstream
+    begin
+      access_token.method(:get).call('https://userstream.twitter.com/2/user.json',
+                                     'Host' => 'userstream.twitter.com',
+                                     &Proc.new)
+    rescue Exception => evar
+      evar
+    end
+  end
+
   def query_with_auth(method, path, raw_options={})
     options = getopts(raw_options)
     if options[:cache]

@@ -51,7 +51,7 @@ module Plugin
   def self.filtering(event_name, *args)
     length = args.size
     @@event_filter[event_name.to_sym].inject(args){ |result, plugin|
-      result = plugin[1].call(*result)
+      result = plugin[1].call(*result) if(plugin[0].active?)
       raise "filter returned invalid value" if result.size != length
       result } end
 
@@ -59,13 +59,15 @@ module Plugin
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
   def self.call(event_name, *args)
     @@event[event_name.to_sym].each{ |plugin|
-      Delayer.new{
-        plugin[1].call(*filtering(event_name, *args)) } } end
+      if(plugin[0].active?)
+        Delayer.new{
+          plugin[1].call(*filtering(event_name, *args)) } end } end
 
   def self.call_add_event_hook(event, event_name)
     @@add_event_hook[event_name.to_sym].each{ |plugin|
-      Delayer.new{
-        plugin[1].call(event) } } end
+      if(plugin[0].active?)
+        Delayer.new{
+          plugin[1].call(event) } end } end
 
   # プラグインタグをなければ作成して返す。
   def self.create(name)
@@ -90,6 +92,9 @@ module Plugin
     result
   end
 
+  # 登録済みプラグイン名を一次元配列で返す
+  def self.plugin_list
+    Plugin::PluginTag.plugins end
 end
 
 =begin rdoc
@@ -157,6 +162,7 @@ class Plugin::PluginTag
 
   def initialize(name = :anonymous)
     @name = name
+    active!
     regist end
 
   # 新しくプラグインを作成する。もしすでに同じ名前で作成されていれば、新しく作成せずにそれを返す。
@@ -166,6 +172,10 @@ class Plugin::PluginTag
       plugin
     else
       Plugin::PluginTag.new(name) end end
+
+  def self.plugins
+    @@plugins
+  end
 
   # イベント _event_name_ を監視するイベントリスナーを追加する。
   def add_event(event_name, &callback)
@@ -200,6 +210,18 @@ class Plugin::PluginTag
 
   def store(key, val)
     super("#{@name}_#{key}".to_sym, val) end
+
+  def stop!
+    @status = :stop end
+
+  def stop?
+    @status == :stop end
+
+  def active!
+    @status = :active end
+
+  def active?
+    @status == :active end
 
   private
 
