@@ -139,14 +139,18 @@ module OAuth
     #   @consumer.request(:get,  '/people', @token, { :scheme => :query_string })
     #   @consumer.request(:post, '/people', @token, {}, @person.to_xml, { 'Content-Type' => 'application/xml' })
     #
-    def request(http_method, path, token = nil, request_options = {}, *arguments)
+    def request(http_method, path, token = nil, request_options = {}, *arguments, &block)
       if path !~ /^\//
         @http = create_http(path)
         _uri = URI.parse(path)
         path = "#{_uri.path}#{_uri.query ? "?#{_uri.query}" : ""}"
       end
 
-      rsp = http.request(create_signed_request(http_method, path, token, request_options, *arguments))
+      req = create_signed_request(http_method, path, token, request_options, *arguments)
+      rsp = if block_given?
+              http.request(req, &block)
+            else
+              http.request(req) end
 
       # check for an error reported by the Problem Reporting extension
       # (http://wiki.oauth.net/ProblemReporting)

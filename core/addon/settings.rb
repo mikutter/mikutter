@@ -52,6 +52,7 @@ Module.new do
   box.pack_start(Mtk.boolean(:retrieve_force_mumbleparent, 'リプライ元をサーバに問い合わせて取得する'), false)
   box.pack_start(Mtk.boolean(:anti_retrieve_fail, 'つぶやきの取得漏れを防止する（遅延対策）'), false)
   box.pack_start(Gtk::Label.new('遅延に強くなりますが、ちょっと遅くなります。'), false)
+  box.pack_start(Mtk.boolean(:realtime_rewind, 'リアルタイム更新'), false)
   about = Gtk::Button.new("#{Environment::NAME} について")
   about.signal_connect("clicked"){
     dialog = Gtk::AboutDialog.new.show

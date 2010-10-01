@@ -193,7 +193,8 @@ class TwitterAPI < Mutex
     begin
       access_token.method(:get).call('https://userstream.twitter.com/2/user.json',
                                      'Host' => 'userstream.twitter.com',
-                                     &Proc.new)
+                                     'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
+        res.read_body(&Proc.new) }
     rescue Exception => evar
       evar
     end

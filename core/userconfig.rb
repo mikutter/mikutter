@@ -32,6 +32,9 @@ class UserConfig
     :retrieve_count_followings => 20,   # followを取得する数(int)
     :retrieve_count_followers => 20,   # followerを取得する数(int)
 
+    # User Stream
+    :realtime_rewind => true,
+
     # デフォルトのフッダ
     :footer => "",
 

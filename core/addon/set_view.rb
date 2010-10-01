@@ -14,6 +14,7 @@ Module.new do
                       Mtk.colorselect(:mumble_self_bg, '自分のつぶやき'))).
     closeup(Mtk.boolean(:show_cumbersome_buttons, 'つぶやきの右側にボタンを表示する')).
     closeup(Mtk.boolean(:show_replied_icon, 'リプライを返したつぶやきにはアイコンを表示')).
+    closeup(Mtk.boolean(:favorited_by_anyone_act_as_reply, 'ふぁぼられをリプライの受信として処理する')).
     closeup(Mtk.group('短縮URL', Mtk.boolean(:shrinkurl_expand, '短縮URLを展開して表示'))).
     closeup(Mtk.chooseone(:tab_position, 'タブの位置', 0 => '上', 1 => '下', 2 => '左', 3 => '右')).
     closeup(Mtk.default_or_custom(:url_open_command, 'URLを開く方法', 'デフォルトブラウザを使う', '次のコマンドを使う'))

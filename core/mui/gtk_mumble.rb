@@ -114,7 +114,33 @@ module Gtk
         else
           Delayer.new{ show_replied_icon } end end end
 
+    def favorited_by
+      @favorited_by ||= [] end
+
+    def favorite(user)
+      unless(favorited_by.include?(user))
+        fav_box.closeup(icon(user, 24).show_all)
+        favorited_by << user
+        rewind_fav_count!
+      end
+    end
+
+    def unfavorite(user)
+      idx = favorited_by.index(user)
+      if idx
+        favorited_by.delete_at(idx)
+        fav_box.remove(fav_box.children[idx])
+        rewind_fav_count! end end
+
     private
+
+    def rewind_fav_count!
+      if(fav_box.children.size == 0)
+        fav_label.hide_all.set_no_show_all(true)
+      else
+        fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
+      end
+    end
 
     def get_backgroundcolor
       if(@message.from_me?) then
@@ -140,7 +166,8 @@ module Gtk
     end
 
     def icon(msg, x, y=x)
-      Gtk::WebIcon.new(april_fool(msg.user[:profile_image_url]), x, y)
+      user = msg.is_a?(User) ? msg : msg.user
+      Gtk::WebIcon.new(april_fool(user[:profile_image_url]), x, y)
     end
 
     def gen_minimumble(msg)
@@ -227,6 +254,7 @@ module Gtk
         mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
         mumble.add(gen_reply(msg))
         mumble.add(gen_retweet(@message)) if @message[:retweet]
+        mumble.add(gen_favorite)
         mumble.add(@replies)
         add(shell.add(container.add(mumble))).set_height_request(-1).show_all }
     end
@@ -244,6 +272,16 @@ module Gtk
       Gtk::HBox.new(false, 4).closeup(Gtk::Label.new('ReTweeted by ' + msg.user[:idname])).
         closeup(icon(msg, 24)).right
     end
+
+    def gen_favorite
+      Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
+    end
+
+    def fav_label
+      @fav_label ||= Gtk::Label.new('').set_no_show_all(true) end
+
+    def fav_box
+      @fav_box ||= Gtk::HBox.new(false, 4)end
 
     def relation_configure
       [UserConfig[:show_cumbersome_buttons], UserConfig[:retrieve_force_mumbleparent]]

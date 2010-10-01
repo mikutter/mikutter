@@ -83,9 +83,9 @@ module MIKU
       when [:array, :a].include?(type)
         lst.to_a.extend(StaticCode).staticcode_copy_info(pos)
       when [:hash, :h].include?(type)
-        # genlist = Cons.new(:list, lst).extend(StaticCode).staticcode_copy_info(pos)
-        # Cons.list(:to_hash, genlist).extend(StaticCode).staticcode_copy_info(pos)
-        Hash[*lst.to_a].extend(StaticCode).staticcode_copy_info(pos)
+        genlist = Cons.new(:list, lst).extend(StaticCode).staticcode_copy_info(pos)
+        Cons.list(:to_hash, genlist).extend(StaticCode).staticcode_copy_info(pos)
+        # Hash[*lst.to_a].extend(StaticCode).staticcode_copy_info(pos)
       when [:lambda, :function, :func, :f].include?(type)
         Cons.new(:lambda, lst).extend(StaticCode).staticcode_copy_info(pos) end end end
 

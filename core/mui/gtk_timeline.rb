@@ -7,13 +7,19 @@ module Gtk
   class TimeLine < Gtk::ScrolledWindow
     include Enumerable
 
+    @@timelines = WeakSet.new
+
     def initialize()
       Lock.synchronize do
         super()
         self.border_width = 0
         self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
         @mumbles = []
+        @@timelines << self
         signal_connect('destroy'){ clear } end end
+
+    def self.timelines
+      @@timelines end
 
     def timeline
       if defined? @tl
@@ -29,6 +35,18 @@ module Gtk
     def each(&iter)
       timeline{
         @tl.children.each(&iter) } end
+
+    def favorite(user, message)
+      mumble = find{ |m| m[:id].to_i == message[:id].to_i }
+      mumble.favorite(user) if mumble
+      self
+    end
+
+    def unfavorite(user, message)
+      mumble = find{ |m| m[:id].to_i == message[:id].to_i }
+      mumble.unfavorite(user) if mumble
+      self
+    end
 
     def add(message)
       timeline{
@@ -78,6 +96,9 @@ module Gtk
             @tl.remove(w)
             w.destroy end } end
       self end
+
+    def include?(msg)
+      all_id.include?(msg[:id].to_i) end
 
     def all_id
       if defined? @tl
