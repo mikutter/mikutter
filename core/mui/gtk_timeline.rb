@@ -16,10 +16,11 @@ module Gtk
         self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
         @mumbles = []
         @@timelines << self
-        signal_connect('destroy'){ clear } end end
+        signal_connect('destroy'){
+          clear } end end
 
     def self.timelines
-      @@timelines end
+      @@timelines = @@timelines.select{ |tl| not tl.destroyed? } end
 
     def timeline
       if defined? @tl
