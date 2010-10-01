@@ -25,6 +25,15 @@ class Lazy
       @proc = nil end
     @obj.__send__(method, *args, &block) end end
 
+# 毎回評価
+# Lazyの、呼び出しごとにブロックを評価するバージョン。
+class EveryTime < Lazy
+  def method_missing(method, *args, &block)
+    @proc.call.__send__(method, *args, &block) end end
+
 # 遅延評価オブジェクトを作成する
 def lazy(&proc)
   Lazy.new(&proc) end
+
+def everytime(&proc)
+  EveryTime.new(&proc) end

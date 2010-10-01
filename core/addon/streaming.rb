@@ -24,16 +24,13 @@ Module.new do
 
   def self.start
     unless @thread and @thread.alive?
-      p "start streaming"
       @thread = Thread.new{
         while(UserConfig[:realtime_rewind])
-          puts 'start streaming'
           sleep(3)
           catch(:streaming_break){
             start_streaming{ |q|
               throw(:streaming_break) unless(UserConfig[:realtime_rewind])
-              Delayer.new(Delayer::NORMAL, q.strip, &method(:trigger_event)) } } end
-        puts 'stop streaming' } end end
+              Delayer.new(Delayer::NORMAL, q.strip, &method(:trigger_event)) } } end } end end
 
   def self.trigger_event(query)
     begin

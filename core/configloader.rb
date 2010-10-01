@@ -4,7 +4,7 @@
 
 # オブジェクトにデータ保存機能を付与する
 
-miquire :core, 'utils'
+require File.expand_path('utils')
 miquire :core, 'environment'
 
 require 'fileutils'

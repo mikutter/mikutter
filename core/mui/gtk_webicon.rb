@@ -1,4 +1,4 @@
-miquire :core, 'utils'
+require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :mui, 'skin'
 

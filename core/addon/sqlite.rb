@@ -7,14 +7,13 @@
 # sudo aptitude install libsqlite3-dev ruby-dev
 # gem install sqlite3-ruby
 
-miquire :addon, 'addon'
+require File.expand_path('utils')
 miquire :addon, 'settings'
 miquire :core, 'config'
 miquire :core, 'user'
 miquire :core, 'message'
 miquire :core, 'userlist'
 miquire :core, 'retriever'
-miquire :core, 'utils'
 
 require_if_exist 'sqlite3'
 

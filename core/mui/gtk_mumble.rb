@@ -194,14 +194,16 @@ module Gtk
     end
 
     def gen_iob(msg)
-      iw = IOB.new(self, msg, Gtk::WebIcon.get_icon_pixbuf(msg.user[:profile_image_url], 48){ |pb|
-                     iw.background = pb })
-      iw.reply.retweet if(msg.repliable?)
-      iw.etc
-      iw.favorite if msg.favoriable?
-      iw.bg_color = Gdk::Color.new(*get_backgroundcolor)
-      @icon_over_button = iw
-    end
+      if defined?(@icon_over_button) and @icon_over_button
+        @icon_over_button
+      else
+        iw = IOB.new(self, msg, Gtk::WebIcon.get_icon_pixbuf(msg.user[:profile_image_url], 48){ |pb|
+                       iw.background = pb })
+        iw.reply.retweet if(msg.repliable?)
+        iw.etc
+        iw.favorite if msg.favoriable?
+        iw.bg_color = Gdk::Color.new(*get_backgroundcolor)
+        @icon_over_button = iw end end
 
     def gen_control(msg)
       @body = gen_body(msg, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
@@ -288,10 +290,7 @@ module Gtk
     end
 
     def show_replied_icon
-      begin
-        @icon_over_button.options[0][:always_show] = true
-      rescue => e
-        error e end end
+      @icon_over_button.options[0][:always_show] = true if defined?(@icon_over_button.options) end
 
     class IOB < Gtk::IconOverButton
       @@buttons = {

@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 Dir.chdir(File.join(File.dirname($0), 'core'))
 
-require 'utils'
+require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'watch'
 miquire :core, 'post'

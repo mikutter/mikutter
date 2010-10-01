@@ -1,4 +1,4 @@
-require 'utils'
+require File.expand_path('utils')
 miquire :core, 'retriever'
 
 class User < Retriever::Model

@@ -1,4 +1,5 @@
-require 'utils'
+
+require File.expand_path('utils')
 
 miquire :core, 'twitter'
 miquire :core, 'environment'

@@ -50,9 +50,18 @@ module Plugin
   # フィルタ関数を用いて引数をフィルタリングする
   def self.filtering(event_name, *args)
     length = args.size
-    @@event_filter[event_name.to_sym].inject(args){ |result, plugin|
-      result = plugin[1].call(*result) if(plugin[0].active?)
-      raise "filter returned invalid value" if result.size != length
+    @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
+      result = store
+      plugintag, proc = *plugin
+      if(plugintag.active?)
+        begin
+          result = proc.call(*store)
+        rescue Exception => e
+          error e
+          Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} をフィルタリング中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
+                                                 :system => true)])
+          plugintag.stop!
+        end end
       result } end
 
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
@@ -61,13 +70,23 @@ module Plugin
     @@event[event_name.to_sym].each{ |plugin|
       if(plugin[0].active?)
         Delayer.new{
-          plugin[1].call(*filtering(event_name, *args)) } end } end
+          begin
+            plugin[1].call(*filtering(event_name, *args))
+          rescue Exception => e
+            Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} を処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
+                                                   :system => true)])
+            plugintag.stop! end } end } end
 
   def self.call_add_event_hook(event, event_name)
     @@add_event_hook[event_name.to_sym].each{ |plugin|
       if(plugin[0].active?)
         Delayer.new{
-          plugin[1].call(event) } end } end
+          begin
+            plugin[1].call(event)
+          rescue Exception => e
+            Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} をhook中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
+                                                   :system => true)])
+            plugintag.stop! end  } end } end
 
   # プラグインタグをなければ作成して返す。
   def self.create(name)
@@ -159,6 +178,7 @@ class Plugin::PluginTag
   @@plugins = [] # plugin
 
   attr_reader :name
+  alias to_s name
 
   def initialize(name = :anonymous)
     @name = name

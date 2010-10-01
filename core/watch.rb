@@ -1,7 +1,7 @@
 
+require File.expand_path('utils')
 miquire :plugin, 'plugin'
 miquire :core, 'post'
-miquire :core, 'utils'
 miquire :core, 'environment'
 miquire :core, 'userconfig'
 
@@ -21,32 +21,36 @@ class Watch
         warn e
         nil end } end
 
-  def get_events(&event_add)
+  def get_events
+    @get_events ||= event_factory
+    return *@get_events end
+
+  def event_factory
     event_booking = Hash.new{ |h, k| h[k] = [] }
-    event_add = lambda{ |event, values|
-      event_booking[event].concat(values) if values.is_a? Array } if not event_add
+        event_add = lambda{ |event, values|
+          event_booking[event].concat(values) if values.is_a? Array }
     return {
       :period => {
         :interval => 1,
         :proc => lambda {|name, post, messages|
-            Plugin.call(name, post) if not messages } },
+          Plugin.call(name, post) if not messages } },
       :update => {
-        :interval => UserConfig[:retrieve_interval_friendtl],
-        :options => {:count => UserConfig[:retrieve_count_friendtl]},
+        :interval => everytime{ UserConfig[:retrieve_interval_friendtl] },
+        :options => {:count => everytime{ UserConfig[:retrieve_count_friendtl] } },
         :proc => Watch.scan_and_yield(:friends_timeline){ |name, post, messages|
           if messages.is_a? Array
             event_add.call(:update, messages)
             event_add.call(:mention, messages.select{ |m| m.to_me? })
             event_add.call(:mypost, messages.select{ |m| m.from_me? }) end } },
       :mention => {
-        :interval => UserConfig[:retrieve_interval_mention],
-        :options => {:count => UserConfig[:retrieve_count_mention]},
+        :interval => everytime{ UserConfig[:retrieve_interval_mention] },
+        :options => {:count => everytime{ UserConfig[:retrieve_count_mention] } },
         :proc => Watch.scan_and_yield(:replies){ |name, post, messages|
           if messages.is_a? Array
             event_add.call(:update, messages)
             event_add.call(:mention, messages)
             event_add.call(:mypost, messages.select{ |m| m.from_me? }) end } },
-    }, lambda{ event_booking } end
+    }.freeze, lambda{ event_booking } end
 
   def initialize()
     @counter = 0

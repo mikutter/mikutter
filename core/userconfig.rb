@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'utils'
+require File.expand_path('utils')
 miquire :core, 'configloader'
 
 require 'singleton'

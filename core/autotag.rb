@@ -1,7 +1,7 @@
 #! /usr/bin/ruby
 
+require File.expand_path('utils')
 miquire :core,'environment'
-miquire :core,'utils'
 miquire :core,'configloader'
 
 require_if_exist 'rubygems'
