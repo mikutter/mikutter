@@ -7,6 +7,7 @@ miquire :core, 'environment'
 miquire :core, 'delayer'
 
 require 'monitor'
+require 'set'
 
 #
 #= Plugin プラグイン管理/イベント管理モジュール
@@ -27,7 +28,7 @@ module Plugin
   # イベントリスナーを追加する。
   def self.add_event(event_name, tag, &callback)
     @@event[event_name.to_sym] << [tag, callback]
-    call_add_event_hook(callback, event_name)
+    call_add_event_hook(event_name, callback)
     callback end
 
   # イベントフィルタを追加する。
@@ -36,7 +37,7 @@ module Plugin
     callback end
 
   def self.fetch_event(event_name, tag, &callback)
-    call_add_event_hook(callback, event_name)
+    call_add_event_hook(event_name, callback)
     callback end
 
   def self.add_event_hook(event_name, tag, &callback)
@@ -53,40 +54,47 @@ module Plugin
     @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
       result = store
       plugintag, proc = *plugin
-      if(plugintag.active?)
-        begin
-          result = proc.call(*store)
-        rescue Exception => e
-          error e
-          Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} をフィルタリング中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
-                                                 :system => true)])
-          plugintag.stop!
-        end end
-      result } end
+      boot_plugin(plugintag, event_name, :filter, false){
+        result = proc.call(*store)
+        if length != result.size
+          raise "filter changes arguments length (#{length} to #{result.size})" end
+        result } } end
 
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
   def self.call(event_name, *args)
-    @@event[event_name.to_sym].each{ |plugin|
-      if(plugin[0].active?)
-        Delayer.new{
-          begin
-            plugin[1].call(*filtering(event_name, *args))
-          rescue Exception => e
-            Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} を処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
-                                                   :system => true)])
-            plugintag.stop! end } end } end
+    plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) end
 
-  def self.call_add_event_hook(event, event_name)
-    @@add_event_hook[event_name.to_sym].each{ |plugin|
-      if(plugin[0].active?)
-        Delayer.new{
-          begin
-            plugin[1].call(event)
-          rescue Exception => e
-            Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} がイベント #{event_name} をhook中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
-                                                   :system => true)])
-            plugintag.stop! end  } end } end
+  # イベントが追加されたときに呼ばれるフックを呼ぶ。
+  # _callback_ には、登録されたイベントのProcオブジェクトを渡す
+  def self.call_add_event_hook(event_name, callback)
+    plugin_callback_loop(@@add_event_hook, event_name, :hook, callback) end
+
+  # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
+  def self.plugin_callback_loop(ary, event_name, kind, *args)
+    plugin_loop(ary, event_name, kind){ |tag, proc|
+      proc.call(*args) } end
+
+  # _ary_ [ _event\_name_ ] に登録されているプラグイン一つひとつを引数に _proc_ を繰り返し呼ぶ。
+  # _proc_ のシグニチャは以下の通り。
+  #   _proc_ ( プラグイン名, コールバック )
+  def self.plugin_loop(ary, event_name, kind, &proc)
+    ary[event_name.to_sym].each{ |plugin|
+      boot_plugin(plugin.first, event_name, kind){
+         proc.call(*plugin) } } end
+
+  # プラグインを起動できるならyieldする。コールバックに引数は渡されない。
+  def self.boot_plugin(plugintag, event_name, kind, delay = true)
+    if(plugintag.active?)
+      routine = lambda{
+        begin
+          yield
+        rescue Exception => e
+          plugin_fault(plugintag, event_name, kind, e) end  }
+      if(delay)
+        Delayer.new(&routine)
+      else
+        routine.call end end end
 
   # プラグインタグをなければ作成して返す。
   def self.create(name)
@@ -106,14 +114,27 @@ module Plugin
       hash[key] = Hash.new{ |hash, key|
         hash[key] = [] } }
     @@event.each_pair{ |event, pair|
-      result[pair[0]][event] << proc
-    }
+      result[pair[0]][event] << proc }
     result
   end
 
   # 登録済みプラグイン名を一次元配列で返す
   def self.plugin_list
     Plugin::PluginTag.plugins end
+
+  # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
+  # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
+  def self.abort_on_exception?
+    true end
+
+  def self.plugin_fault(plugintag, event_name, event_kind, e)
+    error e
+    if abort_on_exception?
+      abort
+    else
+      Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
+                                             :system => true)])
+      plugintag.stop! end end
 end
 
 =begin rdoc
@@ -250,4 +271,25 @@ class Plugin::PluginTag
       @@plugins.push(self) } end
 end
 
-miquire :plugin
+Module.new do
+  def self.gen_never_message_filter
+    appeared = Set.new
+    lambda{ |service, messages|
+      [service,
+       messages.select{ |m|
+         unless appeared.include?(m[:id].to_i)
+           appeared.add(m[:id].to_i)
+         else
+           notice "rejected: #{m.to_s}"
+           false
+         end }] } end
+
+  def self.never_message_filter(event_name, *other)
+    Plugin.create(:core).add_event_filter(event_name, &gen_never_message_filter)
+    never_message_filter(*other) unless other.empty?
+  end
+
+  never_message_filter(:update, :mention)
+end
+
+miquire :plugin # if defined? Test::Unit

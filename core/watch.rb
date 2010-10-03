@@ -23,12 +23,12 @@ class Watch
 
   def get_events
     @get_events ||= event_factory
-    return *@get_events end
+    return @get_events end
 
   def event_factory
     event_booking = Hash.new{ |h, k| h[k] = [] }
-        event_add = lambda{ |event, values|
-          event_booking[event].concat(values) if values.is_a? Array }
+    event_add = lambda{ |event, values|
+      Plugin.call(event, @post, values) }
     return {
       :period => {
         :interval => 1,
@@ -50,7 +50,7 @@ class Watch
             event_add.call(:update, messages)
             event_add.call(:mention, messages)
             event_add.call(:mypost, messages.select{ |m| m.from_me? }) end } },
-    }.freeze, lambda{ event_booking } end
+    }.freeze end
 
   def initialize()
     @counter = 0
@@ -60,18 +60,11 @@ class Watch
   end
 
   def action
-    events, booking = get_events
     Thread.new(@counter){ |counter|
-      threads = ThreadGroup.new
-      events.each_pair{ |name, event|
+      get_events.each_pair{ |name, event|
         if((counter % event[:interval]) == 0)
-          threads.add Thread.new(name, event){ |name, event|
-            event[:proc].call(name, @post, event[:options]) } end }
-      threads.list.each{ |t| t.join rescue nil }
-      booking.call.each_pair{ |k, v|
-        messages = v.uniq.select{ |n| not @received[k].include?(n) }
-        @received[k].merge(messages)
-        Plugin.call(k, @post, messages) } }
+          Thread.new{
+            event[:proc].call(name, @post, event[:options]) } end } }
     @counter += 1
   end
 

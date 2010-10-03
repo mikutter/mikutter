@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'test/unit'
-require File.dirname(__FILE__) + '/../utils'
+require File.expand_path(File.dirname(__FILE__) + '/../utils')
 require 'uri'
 
 $debug = true

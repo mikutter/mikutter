@@ -17,7 +17,7 @@ class Delayer
   end
 
   def run
-    notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
+    #notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
     now = caller.size
     begin
       @routine.call(*@args)
@@ -26,7 +26,7 @@ class Delayer
       $@ = e.backtrace[0, now] + @backtrace
       raise e
     end
-    notice "end. #{@routine.inspect}"
+    #notice "end. #{@routine.inspect}"
     @routine = nil
   end
 
