@@ -147,3 +147,21 @@ module Gtk
   end
 
 end
+
+Module.new do
+  plugin = Plugin::create(:core)
+  plugin.add_event(:favorite){ |service, fav_by, message|
+    Gtk::TimeLine.timelines.each{ |tl|
+      tl.favorite(fav_by, message) if tl.include?(message) }
+  }
+  plugin.add_event(:unfavorite){ |service, fav_by, message|
+    Gtk::TimeLine.timelines.each{ |tl|
+      tl.unfavorite(fav_by, message) if tl.include?(message) }
+  }
+  plugin.add_event(:destroyed){ |messages|
+    Gtk::TimeLine.timelines.each{ |tl|
+      tl.remove_if_exists_all(messages) }
+  }
+end
+
+

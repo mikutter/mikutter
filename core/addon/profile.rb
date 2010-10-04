@@ -29,7 +29,7 @@ Module.new do
         Delayer.new{
           timeline.add(tl) unless timeline.destroyed? } if tl }
       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
-        unless @notebook.destroyed?
+        unless @notebook.destroyed? or res
           followed_list_ids = res.map{|list| list['id'].to_i}
           @list = Gtk::ListList.new{ |iter|
             flag = iter[0] = !iter[0]

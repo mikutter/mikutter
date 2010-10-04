@@ -84,6 +84,7 @@ def argument_parser()
   $interactive = false
   $quiet = false
   $single_thread = false
+  $skip_version_check = false
 
   ARGV.each{ |arg|
     case arg
@@ -100,6 +101,8 @@ def argument_parser()
       $quiet = true
     when '-s' # シングルスレッドモード。他のスレッドがGTKのレンダリングを妨げる環境用
       $single_thread = true
+    when '--skip-version-check' # あらゆるパッケージのバージョンチェックをしない
+      $skip_version_check = true
     end
   }
 end
@@ -159,17 +162,18 @@ def gen_xml(msg)
 end
 
 def check_config_permission
-  Dir.glob([Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR].
-           map{ |path| File.join(File.expand_path(path), '**', '*') }.join("\0")){ |file|
+  directories = [Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR]
+  directories.each{ |dir|
+    FileUtils.mkdir_p(File.expand_path(dir)) }
+  Dir.glob(directories.map{ |path| File.join(File.expand_path(path), '**', '*') }.join("\0")){ |file|
     unless FileTest.writable_real?(file)
       chi_fatal_alert("#{file} に書き込み権限を与えてください") end
     unless FileTest.readable_real?(file)
       chi_fatal_alert("#{file} に読み込み権限を与えてください") end
   }
 end
-check_config_permission
 
-FileUtils.mkdir_p(File.expand_path(Environment::TMPDIR))
+check_config_permission
 
 errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
 if File.exist?(errfile)

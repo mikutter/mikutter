@@ -21,6 +21,8 @@ Thread.abort_on_exception = true
 class Post
   include ConfigLoader
 
+  attr_reader :twitter
+
   # タイムラインのキャッシュファイルのプレフィックス。
   # TIMELINE = Environment::TMPDIR + Environment::ACRO + '_timeline_cache'
 
@@ -61,6 +63,17 @@ class Post
 
   # Post系APIメソッドを定義するためのメソッド。
   def self.define_postal(api, *other)
+    define_postal_detail(api){|service, event, msg|
+      if(event == :try)
+        service.twitter.__send__(api, msg)
+      elsif(event == :success and msg.is_a?(Message))
+        Plugin.call(:update, service, [msg])
+        Plugin.call(:posted, service, [msg]) end
+    }
+    define_postal(*other) if not other.empty? end
+
+  # Post系APIの挙動を詳細に定義する
+  def self.define_postal_detail(api, &main)
     if $quiet
       define_method(api.to_sym){ |msg|
         notice "#{api}:#{msg.inspect}"
@@ -70,13 +83,7 @@ class Post
         _post(msg, api.to_sym) {|event, msg|
           if proc
             type_check(event => Symbol){ proc.call(event, msg) } end
-          if(event == :try)
-            twitter.__send__(api, msg)
-          elsif(event == :success and msg.is_a?(Message))
-            Plugin.call(:update, self, [msg])
-            Plugin.call(:posted, self, [msg])end } }
-    end
-    define_postal(*other) if not other.empty? end
+          main.call(self, event, msg) } } end end
 
   # OAuth トークンを返す
   def request_oauth_token
@@ -192,9 +199,15 @@ class Post
         yield res } }
   end
 
-  define_postal :update, :retweet, :destroy, :search_create, :search_destroy, :follow, :unfollow
+  define_postal :update, :retweet, :search_create, :search_destroy, :follow, :unfollow
   define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
   alias post update
+
+  define_postal_detail(:destroy){|service, event, msg|
+    if(event == :try)
+      service.twitter.destroy(msg)
+    elsif(event == :success and msg.is_a?(Message))
+      Plugin.call(:destroyed, [msg]) end }
 
   # メッセージ _message_ のお気に入りフラグを _fav_ に設定する。
   def favorite(message, fav)
@@ -268,10 +281,6 @@ class Post
 
   def marshal_dump
     raise RuntimeError, 'Post cannot marshalize'
-  end
-
-  def twitter
-    @twitter
   end
 
   def scan_data(kind, args)

@@ -61,9 +61,9 @@ Module.new do
     dialog.copyright = '2009-2010 Toshiaki Asai'
     dialog.comments = "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
-圧倒的なかわいさではないか我がミクは\n
-For all mikker and heavy twitter users best twitter client.
-Miku is so moe, so cute, so beautiful, fantastic, excellent, magnificent, brilliant and my wife. moe"+
+圧倒的なかわいさではないか我がミクは
+
+このソフトウェアは GPL3 によって浄化されています。"+
     'e' * 39
     dialog.license = file_get_contents('../LICENSE') rescue nil
     dialog.website = 'http://mikutter.d.hachune.net/'

@@ -44,6 +44,15 @@ module Plugin
     end
 
     def onboot(watch)
+      if((Gtk::BINDING_VERSION <=> [0, 19, 3]) < 0)
+        if $skip_version_check
+          Plugin.call(:update, nil, [Message.new(:message => "Ruby Gnome2のバージョンが古すぎます(0.19.3以降が必要、現在#{Gtk::BINDING_VERSION.join('.')})。\n問題が起こるかもしれません。更新してください。", :system => true)])
+        else
+          chi_fatal_alert("Ruby Gnome2のバージョンが古すぎます"+
+                          "(0.19.3以降が必要、現在#{Gtk::BINDING_VERSION.join('.')})。\n"+
+                          "どうしても起動したい人は、--skip-version-checkをつけて起動してください。")
+        end
+      end
       Gtk::Lock.synchronize do
         self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user_by_cache}? みっくみくにしてやんよ")
         @window = self.gen_window()

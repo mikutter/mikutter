@@ -13,9 +13,6 @@ require 'thread'
 module ConfigLoader
   SAVE_FILE = "#{Environment::CONFROOT}p_class_values.db"
 
-  unless FileTest.writable_real?(File.expand_path(SAVE_FILE))
-    chi_fatal_alert "#{SAVE_FILE} に読み取り/書き込み権限を与えてください" end
-
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
 
