@@ -49,7 +49,8 @@ class Post
     @scaned_events = []
     @code = nil
     @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]){
-      token, secret = auth_confirm_func.call(self)
+      p @@auth_confirm_func
+      token, secret = self.class.auth_confirm_func.call(self)
       if token
         UserConfig[:twitter_token] = token
         UserConfig[:twitter_secret] = secret
@@ -91,13 +92,13 @@ class Post
   end
 
   # 自分のユーザ名を返す。もしユーザ名が分らなければ、サービスに問い合せてそれを返す。
-  # 問い合わせが発生する場合、サーバからレスポンスがあるまでブロックされるので注意
   def user
-    if defined?(@user_idname)
+    if defined?(@user_idname) and @user_idname
       @user_idname
     else
-      scaned = scan(:verify_credentials, :no_auto_since_id => false)
-      @user_idname = scaned[0][:idname] if scaned
+      @user_idname = parallel{
+        scaned = scan(:verify_credentials, :no_auto_since_id => false)
+        scaned[0][:idname] if scaned }
     end
   end
   alias :idname :user
@@ -113,13 +114,13 @@ class Post
   end
 
   # 認証がはじかれた場合に呼び出される関数を返す
-  def auth_confirm_func
+  def self.auth_confirm_func
     return @@auth_confirm_func
   end
 
   # 認証がはじかれた場合に呼び出される関数を設定する。
   # ユーザに新たに認証を要求するような関数を設定する。
-  def auth_confirm_func=(val)
+  def self.auth_confirm_func=(val)
     return @@auth_confirm_func = val
   end
 
@@ -486,7 +487,7 @@ class Post
         else
           tl = json end
         return nil if not tl.respond_to?(:map)
-        result = tl.map{ |msg| scan_rule(cache, msg) }.select{ |msg| msg.is_a? rule(cache, :class) }.freeze
+        result = tl.map{ |msg| scan_rule(cache, msg) }.select(&ret_nth).freeze
         store(cache.to_s + "_lastid", result.first['id']) if result.first
         Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
         if get_raw_data

@@ -2,13 +2,14 @@
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'config'
+miquire :core, 'post'
 
 Module.new do
 
   def self.boot
     plugin = Plugin::create(:friend_timeline)
     plugin.add_event(:boot){ |service|
-      service.auth_confirm_func = method(:popup)
+      Post.auth_confirm_func = method(:popup)
       Plugin.call(:setting_tab_regist, main_for_tab(service), 'アカウント情報') }
   end
 
@@ -16,6 +17,7 @@ Module.new do
     if(Thread.main == Thread.current)
       _popup(watch)
     else
+      p Thread.main
       input = false
       result = nil
       Delayer.new{
