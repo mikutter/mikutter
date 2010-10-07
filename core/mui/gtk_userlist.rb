@@ -19,6 +19,7 @@ module Gtk
     def initialize()
       @users = Set.new
       @double_clicked = ret_nth
+      @block_add = method(:block_add)
       super()
       Lock.synchronize do
         self.border_width = 0
@@ -71,7 +72,7 @@ module Gtk
       Lock.synchronize do
         removes, appends = *users.partition{ |m| m[:rule] == :destroy }
         remove_if_exists_all(removes)
-        appends.each(&method(:block_add))
+        appends.each(&@block_add)
       end
     end
 

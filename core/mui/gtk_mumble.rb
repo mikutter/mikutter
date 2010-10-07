@@ -246,20 +246,20 @@ module Gtk
               true end } } } end
 
     def append_contents
-      msg = if @message[:retweet] then @message[:retweet] else @message end
-      Lock.synchronize{
-        children.each{ |w| remove(w); w.destroy }
-        shell = Gtk::VBox.new(false, 0)
-        container = Gtk::HBox.new(false, 0)
-        @replies = Gtk::VBox.new(false, 0)
-        shell.border_width = 4
-        mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
-        mumble.add(gen_reply(msg))
-        mumble.add(gen_retweet(@message)) if @message[:retweet]
-        mumble.add(gen_favorite)
-        mumble.add(@replies)
-        add(shell.add(container.add(mumble))).set_height_request(-1).show_all }
-    end
+      msg = @message[:retweet] || @message
+      if msg
+        Lock.synchronize{
+          children.each{ |w| remove(w); w.destroy }
+          shell = Gtk::VBox.new(false, 0)
+          container = Gtk::HBox.new(false, 0)
+          @replies = Gtk::VBox.new(false, 0)
+          shell.border_width = 4
+          mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
+          mumble.add(gen_reply(msg))
+          mumble.add(gen_retweet(@message)) if @message[:retweet]
+          mumble.add(gen_favorite)
+          mumble.add(@replies)
+          add(shell.add(container.add(mumble))).set_height_request(-1).show_all } end end
 
     def gen_reply(msg)
       reply = Gtk::VBox.new(false, 0)

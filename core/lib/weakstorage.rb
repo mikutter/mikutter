@@ -5,8 +5,11 @@
 require 'set'
 
 class WeakStorage
+  attr_reader :on_delete
+
   def initialize
-    @storage = Hash.new end
+    @storage = Hash.new
+    @on_delete = @storage.method(:delete).to_proc end
 
   def [](key)
     begin
@@ -17,8 +20,7 @@ class WeakStorage
       nil end end
 
   def []=(key, val)
-    ObjectSpace.define_finalizer(val){ |id|
-      @storage.delete(id) }
+    ObjectSpace.define_finalizer(val, &on_delete)
     @storage[key] = val.object_id end
 
   def has_key?(key)
@@ -26,9 +28,11 @@ class WeakStorage
 
 class WeakSet
   include Enumerable
+  attr_reader :on_delete
 
   def initialize
-    @storage = Set.new end
+    @storage = Set.new
+    @on_delete = @storage.method(:delete).to_proc end
 
   def each
     begin
@@ -38,7 +42,7 @@ class WeakSet
       nil end end
 
   def add(val)
-    ObjectSpace.define_finalizer(val, &@storage.method(:delete))
+    ObjectSpace.define_finalizer(val, &on_delete)
     @storage.add(val.object_id) end
   alias << add
 

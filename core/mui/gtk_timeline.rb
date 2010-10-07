@@ -19,6 +19,10 @@ module Gtk
         signal_connect('destroy'){
           clear } end end
 
+    def timeline_max
+      200
+    end
+
     def self.timelines
       @@timelines = @@timelines.select{ |tl| not tl.destroyed? } end
 
@@ -63,7 +67,7 @@ module Gtk
         else
           mumble = Gtk::Mumble.new(message).show_all
           @tl.pack(mumble, false)
-          if(@tl.children.size > 200)
+          if(@tl.children.size > timeline_max)
             w = @tl.children.last
             @tl.remove(w)
             w.destroy end end end end
@@ -80,8 +84,8 @@ module Gtk
             self.vadjustment.value += appends.size * Gtk::Mumble::DEFAULT_HEIGHT
           end
         end
-        if(@tl.children.size > 200) then
-          (@tl.children.size - 200).times{
+        if(@tl.children.size > timeline_max) then
+          (@tl.children.size - timeline_max).times{
             w = @tl.children.last
             @tl.remove(w)
             w.destroy }

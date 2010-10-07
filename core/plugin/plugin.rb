@@ -277,12 +277,12 @@ Module.new do
     lambda{ |service, messages|
       [service,
        messages.select{ |m|
-         unless appeared.include?(m[:id].to_i)
-           appeared.add(m[:id].to_i)
-         else
-           notice "rejected: #{m.to_s}"
-           false
-         end }] } end
+         if m
+           unless appeared.include?(m[:id].to_i)
+             appeared.add(m[:id].to_i)
+           else
+             notice "rejected: #{m.to_s}"
+             false end end }] } end
 
   def self.never_message_filter(event_name, *other)
     Plugin.create(:core).add_event_filter(event_name, &gen_never_message_filter)

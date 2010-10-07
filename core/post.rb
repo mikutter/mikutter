@@ -486,7 +486,7 @@ class Post
         else
           tl = json end
         return nil if not tl.respond_to?(:map)
-        result = tl.map{ |msg| scan_rule(cache, msg) }.freeze
+        result = tl.map{ |msg| scan_rule(cache, msg) }.select{ |msg| msg.is_a? rule(cache, :class) }.freeze
         store(cache.to_s + "_lastid", result.first['id']) if result.first
         Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
         if get_raw_data
