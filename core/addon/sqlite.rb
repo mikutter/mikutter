@@ -31,7 +31,7 @@ if defined? SQLite3
           @findbyid = "select * from #{table_name} where id=?"
           modelclass.add_data_retriever(self)
         else
-          error "sqlite database file #{Config::CONFROOT}sqlite-datasource.db is not writable."
+          warn "sqlite database file #{Config::CONFROOT}sqlite-datasource.db is not writable."
         end
       rescue => e
         error "sqlite initialize failed. #{e}"

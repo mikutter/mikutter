@@ -93,13 +93,9 @@ class Post
 
   # 自分のユーザ名を返す。もしユーザ名が分らなければ、サービスに問い合せてそれを返す。
   def user
-    if defined?(@user_idname) and @user_idname
-      @user_idname
-    else
-      @user_idname = parallel{
-        scaned = scan(:verify_credentials, :no_auto_since_id => false)
-        scaned[0][:idname] if scaned }
-    end
+    @user_idname ||= parallel{
+      scaned = scan(:verify_credentials, :no_auto_since_id => false)
+      @user_idname = scaned[0][:idname] if scaned }
   end
   alias :idname :user
 
@@ -463,12 +459,16 @@ class Post
 
   def scan_rule(rule, msg)
     raise ArgumentError, "should give hash but altually gave #{msg.inspect}" if not msg.is_a? Hash
-    param = rule(rule, :proc).call(msg)
-    result = rule(rule, :class).method(rule(rule, :method)).call(param)
-    type_check(result => [:respond_to?, :merge]){
-      result.merge({ :rule => rule,
-                     :post => self,
-                     :exact => true }) } end
+    begin
+      param = rule(rule, :proc).call(msg)
+      result = rule(rule, :class).method(rule(rule, :method)).call(param)
+      type_check(result => [:respond_to?, :merge]){
+        result.merge({ :rule => rule,
+                       :post => self,
+                       :exact => true }) }
+    rescue Exception => e
+      warn e
+      nil end end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
     if json

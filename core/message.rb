@@ -183,7 +183,7 @@ class Message < Retriever::Model
     result = [self[:message]]
     if self[:tags].is_a?(Array)
       result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"} end
-    if self.receiver
+    if not self.receiver.nil?
       if self[:retweet] and self.receive_message(true)
         result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
       elsif not(self[:message].include?("@#{receiver[:idname]}"))
