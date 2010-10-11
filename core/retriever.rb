@@ -20,7 +20,8 @@ module Retriever
     # ジェネレータ
     #
     def initialize(args)
-      @value = args
+      type_strict args => Hash
+      @value = if args.frozen? then args.dup else args end
       validate
       self.class.store_datum(self)
     end
@@ -42,10 +43,10 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      if hash.is_a?(Model)
+      if hash.is_a?(self.class)
         hash
       elsif not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
-        raise ArgumentError.new("incorrect type #{hash.inspect}")
+        raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}")
       else
         result = @@storage[hash[:id]]
         return result if result

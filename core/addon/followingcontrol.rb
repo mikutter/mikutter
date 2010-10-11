@@ -5,56 +5,51 @@ miquire :mui, 'userlist'
 require 'enumerator'
 
 Module.new do
-  followers_list = Gtk::UserList.new()
-  followings_list = Gtk::UserList.new()
 
-  relationship = lambda{ |api|
-    count = gen_counter()
+  def self.open_user(service)
+    lambda{ |user|
+      Plugin.call(:show_profile, service, user) } end
+
+  def self.gen_relationship(api)
+    count = gen_counter
     relations = []
+    retrieve_interval = "retrieve_interval_#{api}".to_sym
+    retrieve_count = "retrieve_count_#{api}".to_sym
+    api_created = "#{api}_created".to_sym
+    api_destroy = "#{api}_destroy".to_sym
     lambda{ |service|
-      if (count.call % UserConfig["retrieve_interval_#{api}".to_sym]) == 0
-        service.method(api).call(UserConfig["retrieve_count_#{api}".to_sym]){ |users|
+      if (count.call % UserConfig[retrieve_interval]) == 0
+        service.__send__(api, UserConfig[retrieve_count]){ |users|
           index = users.rindex(nil)
-          users = service.method(api).call(index.page_of(100)) if index and index < (users.size - users.nitems)
-          if not relations.empty?
+          if index and index < (users.size - users.nitems)
+            users = service.__send__(api, index.page_of(100)) end
+          unless relations.empty?
             created = users - relations
             destroy = relations - users
-            if not created.empty?
-              Plugin.call("#{api}_created".to_sym, service, created) end
-            if not destroy.empty?
-              Plugin.call("#{api}_destroy".to_sym, service, destroy) end end
-          relations = users.select(&ret_nth) } end } }
+            unless created.empty?
+              Plugin.call(api_created, service, created) end
+            unless destroy.empty?
+              Plugin.call(api_destroy, service, destroy) end end
+          relations = users.select(&ret_nth) } end } end
 
-  plugin = Plugin::create(:followers)
-  plugin.add_event(:boot){ |service|
-    Plugin.call(:mui_tab_regist, followings_list, 'Following', MUI::Skin.get("followings.png"))
-    Plugin.call(:mui_tab_regist, followers_list, 'Follower', MUI::Skin.get("followers.png"))
-    followers_list.double_clicked = followings_list.double_clicked = lambda{ |user|
-      Plugin.call(:show_profile, service, user) }
-  }
-  plugin.add_event(:period, &(lambda{ |proc|
-                                lambda{ |service|
-                                  Thread.new{
-                                    res = proc.call(service)
-                                    if res
-                                      users = res.value.reverse
-                                      Delayer.new{ followings_list.add(users).show_all } end } } }).
-                   call(relationship.call(:followings)))
-  plugin.add_event(:period, &(lambda{ |proc|
-                                lambda{ |service|
-                                  Thread.new{
-                                    res = proc.call(service)
-                                    if res
-                                      users = res.value.reverse
-                                      Delayer.new{ followers_list.add(users).show_all } end } } }).
-                   call(relationship.call(:followers)))
-  plugin.add_event(:followings_created){ |service, users|
-    followings_list.add(users).show_all }
-  plugin.add_event(:followings_destroy){ |service, users|
-    followings_list.remove_if_exists_all(users) }
-  plugin.add_event(:followers_created){ |service, users|
-    followers_list.add(users).show_all }
-  plugin.add_event(:followers_destroy){ |service, users|
-    followers_list.remove_if_exists_all(users) }
+  def self.set_event(api, title)
+    userlist = Gtk::UserList.new()
+    proc = gen_relationship(api)
+    Plugin.call(:mui_tab_regist, userlist, title, MUI::Skin.get("#{api}.png"))
+    Plugin.create(:following_control).add_event(:period){ |service|
+      Thread.new{
+        res = proc.call(service)
+         if res
+           users = res.reverse
+           Delayer.new{ userlist.add(users).show_all } end } }
+    Plugin.create(:following_control).add_event("#{api}_created".to_sym){ |service, users|
+      userlist.add(users).show_all }
+    Plugin.create(:following_control).add_event("#{api}_destroy".to_sym){ |service, users|
+      userlist.remove_if_exists_all(users) }
+    Plugin.create(:following_control).add_event(:boot){ |service|
+      userlist.double_clicked = open_user(service) } end
+
+  set_event(:followings, 'Followings')
+  set_event(:followers, 'Followers')
 
 end

@@ -137,18 +137,15 @@ class Message < Retriever::Model
 
   # return receive user
   def receiver
-    if self[:receiver].is_a? User
-      self[:receiver]
-    elsif self[:receiver]
-      self[:receiver] = User.findbyid(self[:receiver])
-    else
-      match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
-      if match
-        result = User.findbyidname(match[1])
-        self[:receiver] = result if result
-      end
-    end
-  end
+    @receiver ||= if self[:receiver].is_a? User
+                    self[:receiver]
+                  elsif self[:receiver]
+                    self[:receiver] = User.findbyid(self[:receiver])
+                  else
+                    match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
+                    if match
+                      result = User.findbyidname(match[1])
+                      self[:receiver] = result if result end end end
 
   def receive_message(force_retrieve=false)
     count = if(force_retrieve) then -1 else 1 end
@@ -181,13 +178,18 @@ class Message < Retriever::Model
 
   def body
     result = [self[:message]]
-    if self[:tags].is_a?(Array)
-      result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"} end
-    if not self.receiver.nil?
-      if self[:retweet] and self.receive_message(true)
-        result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
-      elsif not(self[:message].include?("@#{receiver[:idname]}"))
-        result = ["@#{receiver[:idname]}", result] end end
+    begin
+      if self[:tags].is_a?(Array)
+        result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"} end
+      if not receiver.nil?
+        if self[:retweet] and self.receive_message(true)
+          result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
+        elsif not(self[:message].include?("@#{receiver[:idname]}"))
+          result = ["@#{receiver[:idname]}", result] end end
+    rescue Exception => e
+      pp result
+      error e
+      abort end
     result.join(' ') end
 
   def to_s

@@ -310,11 +310,11 @@ class Post
       [] end end
 
   def following_method(api, limit=-1, next_cursor=-1, &proc)
-    if proc
-      Thread.new{
-        proc.call(query_following_method(api, limit, next_cursor)) }
-    else
-      query_following_method(api, limit, next_cursor) end end
+    parallel{
+      if proc
+        proc.call(query_following_method(api, limit, next_cursor))
+      else
+        query_following_method(api, limit, next_cursor) end } end
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|
@@ -457,17 +457,20 @@ class Post
       :friendship => friendship,
     } end
 
-  def scan_rule(rule, msg)
+  def scan_rule(rule_name, msg)
     raise ArgumentError, "should give hash but altually gave #{msg.inspect}" if not msg.is_a? Hash
     begin
-      param = rule(rule, :proc).call(msg)
-      result = rule(rule, :class).method(rule(rule, :method)).call(param)
+      # notice msg.inspect
+      param = rule(rule_name, :proc).call(msg).freeze
+      # notice param.inspect
+      result = rule(rule_name, :class).method(rule(rule_name, :method)).call(param)
+      # notice result.inspect
       type_check(result => [:respond_to?, :merge]){
-        result.merge({ :rule => rule,
+        result.merge({ :rule => rule_name,
                        :post => self,
                        :exact => true }) }
-    rescue Exception => e
-      warn e
+    rescue => e
+      error e
       nil end end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
@@ -495,8 +498,7 @@ class Post
         else
           result end
       rescue => e
-        raise e if($debug)
-        warn e
+        error e
         nil end end end
 
   # :enddoc:

@@ -19,7 +19,7 @@ module Gtk
     def initialize()
       @users = Set.new
       @double_clicked = ret_nth
-      @block_add = method(:block_add)
+      @block_add = method(:block_add).to_proc
       super()
       Lock.synchronize do
         self.border_width = 0
@@ -280,3 +280,4 @@ module Gtk
 #   end
 
 end
+# ~> -:3: undefined method `miquire' for main:Object (NoMethodError)

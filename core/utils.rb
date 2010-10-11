@@ -180,6 +180,7 @@ end
 # エラーメッセージを表示する。
 def error(msg)
   log "error", msg if $debug_avail_level >= 1
+  abort if $debug_avail_level >= 4
 end
 
 # 引数のチェックをすべてパスした場合のみブロックを実行する
@@ -189,8 +190,8 @@ end
 #             value => Symbol,           # その型とis_a?関係ならパス
 #             value => [:method, *args], # value.method(*args)が真を返せばパス
 #             value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
-# チェックをすべてパスすればブロックの実行結果の戻り値、チェックに引っかかれば
-# nilを返す
+# チェックをすべてパスしたかどうかを真偽値で返す。
+# ブロックが指定されていれば、それを実行してブロックの実行結果を返す
 def type_check(args, &proc)
   check_function = lambda{ |val, check|
     if check.nil?
@@ -212,17 +213,22 @@ def type_check(args, &proc)
     else
       true end end end
 
+# type_checkと同じだが、チェックをパスしなかった場合にabortする
+# type_checkの戻り値を返す
+def type_strict(args, &proc)
+  result = type_check(args, &proc)
+  abort if not result
+  result end
+
 # type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
 def tclambda(*args, &proc)
   lambda{ |*a|
     if proc.arity >= 0
       if proc.arity != a.size
         raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end
-    else
-      if -(proc.arity+1) > a.size
-        raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end end
-    type_check(a.slice(0, args.size).zip(args)){
-      proc.call(*a) } } end
+    elsif -(proc.arity+1) > a.size
+      raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end
+    proc.call(*a) if type_check(a.slice(0, args.size).zip(args)) } end
 
 # utils.rbのメソッドを呼び出した最初のバックトレースを返す
 def caller_util
