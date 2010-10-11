@@ -213,6 +213,10 @@ def type_check(args, &proc)
     else
       true end end end
 
+# _types_ のうちいずれかとis_a?関係ならtrueを返すProcオブジェクトを返す
+def tcor(*types)
+  lambda{ |v| types.any?{ |c| v.is_a?(c) } } end
+
 # type_checkと同じだが、チェックをパスしなかった場合にabortする
 # type_checkの戻り値を返す
 def type_strict(args, &proc)

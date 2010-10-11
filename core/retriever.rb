@@ -43,14 +43,25 @@ module Retriever
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      if hash.is_a?(self.class)
+      type_strict hash => tcor(self.class, Hash)
+      result = if hash.is_a?(self.class)
         hash
-      elsif not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
-        raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}")
-      else
+      elsif hash[:id] and hash[:id] != 0
         result = @@storage[hash[:id]]
-        return result if result
-        self.new(hash) end end
+        if result
+          result
+        else
+          self.new(hash) end
+      else
+        raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end
+      # if hash.is_a?(self.class)
+      #   hash
+      # elsif not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
+      #   raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}")
+      # else
+      #   result = @@storage[hash[:id]]
+      #   return result if result
+      #   self.new(hash) end end
 
     #
     # インスタンスメソッド
@@ -124,9 +135,10 @@ module Retriever
         begin
           Model.cast(self.fetch(key), type, required)
         rescue InvalidTypeError=>e
-          warn e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
+          estr = e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
+          warn estr
           warn @value.inspect
-          raise InvalidTypeError, e.to_s + "\nin #{self.fetch(key).inspect} of #{key}" end } end
+          raise InvalidTypeError, estr end } end
 
     # キーとして定義されていない値を全て除外した配列を生成して返す。
     # また、Modelを子に含んでいる場合、それを外部キーに変換する。
