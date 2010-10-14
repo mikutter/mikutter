@@ -245,11 +245,16 @@ module Gtk
               menu_pop(@body)
               true end } } } end
 
+    def breakout!
+      Lock.synchronize{
+        children.each{ |w| remove(w); w.destroy }
+        @fav_label = @fav_box = @replies = @icon_over_button = nil } end
+
     def append_contents
       msg = @message[:retweet] || @message
       if msg
         Lock.synchronize{
-          children.each{ |w| remove(w); w.destroy }
+          breakout!
           shell = Gtk::VBox.new(false, 0)
           container = Gtk::HBox.new(false, 0)
           @replies = Gtk::VBox.new(false, 0)

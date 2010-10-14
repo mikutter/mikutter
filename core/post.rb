@@ -124,17 +124,19 @@ class Post
   # レスポンスを受け取るまでブロッキングする。
   # レスポンスを返す。失敗した場合は、apifailイベントを発生させてnilを返す。
   def scan(kind=:friends_timeline, args={})
-    type_check(kind => [:respond_to?, :to_sym], args => Hash){
-      event_canceling = false
-      if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
-        event_canceling = true
-      elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
-        since_id = at(kind.to_s + "_lastid")
-        args[:since_id] = since_id if since_id
-      end
-      raw_text = args[:get_raw_text]
-      args.delete(:no_auto_since_id)
-      args.delete(:get_raw_text)
+    type_strict kind.freeze => [:respond_to?, :to_sym], args => Hash
+    args = args.melt
+    event_canceling = false
+    if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
+      event_canceling = true
+    elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
+      since_id = at(kind.to_s + "_lastid")
+      args[:since_id] = since_id if since_id
+    end
+    raw_text = args[:get_raw_text]
+    args.delete(:no_auto_since_id)
+    args.delete(:get_raw_text)
+    UserConfig[:message_retry_limit].times{
       data = scan_data(kind, args)
       if raw_text
         result, json = parse_json(data, kind, true)
@@ -145,9 +147,8 @@ class Post
         if raw_text
           return result.reverse, json
         else
-          result.reverse end
-      elsif raw_text
-        return nil, json end } end
+          return result.reverse end end }
+    return nil, json if raw_text end
 
   # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。
   # レスポンスが帰ってきたら、渡されたブロックが呼ばれる。
@@ -455,6 +456,8 @@ class Post
       :list_statuses => timeline_parser,
       :streaming_status => streaming_status,
       :friendship => friendship,
+      :follow => user_parser,
+      :unfollow => user_parser,
     } end
 
   def scan_rule(rule_name, msg)
@@ -470,11 +473,12 @@ class Post
                        :post => self,
                        :exact => true }) }
     rescue => e
+      notice msg.inspect
       error e
       nil end end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
-    if json
+    if not json.nil?
       begin
         result = nil
         begin

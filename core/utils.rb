@@ -354,7 +354,12 @@ end
 
 class Object
   def self.defun(method_name, *args, &proc)
-    define_method(method_name, &tclambda(*args, &proc)) end end
+    define_method(method_name, &tclambda(*args, &proc)) end
+
+  # freezeされていない同じ内容のオブジェクトを作って返す。
+  # メルト　溶けてしまいそう　dupだなんて　絶対に　言えない
+  def melt
+    dup end end
 
 #
 # integer

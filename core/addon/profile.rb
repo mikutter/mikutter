@@ -102,6 +102,7 @@ Module.new do
             case event
             when :exit
               Plugin::call(new ? :followings_created : :followings_destroy, @service, [user])
+              following = new
               Delayer.new{
                 widget.sensitive = true } end } end }
       btn = Mtk::boolean(changer, 'フォロー') end

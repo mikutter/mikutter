@@ -47,7 +47,7 @@ class UserConfig
     # つぶやきを投稿するキー
     :mumble_post_key => "Control + Return",
 
-    # つぶやき送信をリトライする回数
+    # リクエストをリトライする回数
     :message_retry_limit => 10,
 
     # 通知を表示しておく秒数
