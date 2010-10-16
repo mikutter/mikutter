@@ -190,7 +190,8 @@ _text_ に渡される。エラーメッセージが得られなかった場合�
 === rewindstatus(String mes)
 ユーザに情報 _mes_ を「さりげなく」提示する。 GUI プラグインがハンドルしていて、ステータスバーを
 更新する。
-
+=== after_event(Post service)
+periodなど、毎分実行されるイベントのクロールが終わった後に呼び出される。
 =end
 class Plugin::PluginTag
 

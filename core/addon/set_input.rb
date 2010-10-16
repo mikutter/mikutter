@@ -12,8 +12,10 @@ Module.new do
     closeup(shrink_url).
     closeup(Mtk.group('フッタ',
                       Mtk.input(:footer, 'デフォルトで挿入するフッタ'),
-                      Mtk.boolean(:footer_exclude_reply, 'リプライの場合はフッタを付与しない'),
-                      Mtk.boolean(:footer_exclude_retweet, '引用(非公式ReTweet)の場合はフッタを付与しない')))
+                      Mtk.boolean(:footer_exclude_reply, 'リプライの場合はフッタを付与しない').
+                      tooltip("リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"),
+                      Mtk.boolean(:footer_exclude_retweet, '引用(非公式ReTweet)の場合はフッタを付与しない').
+                      tooltip("関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えないし邪魔ですよねぇ")))
 
   plugin = Plugin::create(:set_input)
 

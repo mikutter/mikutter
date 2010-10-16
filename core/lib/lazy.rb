@@ -13,6 +13,9 @@ class IrregularEval
     define_method(method){ |*args, &proc|
       method_missing(method, *args, &proc) } }
 
+  def irregulareval?
+    true end
+
   def method_missing(method, *args, &block)
     irregular_eval_object.__send__(method, *args, &block) end end
 
@@ -54,9 +57,38 @@ class Parallel < IrregularEval
       @proc = nil end
     @obj end end
 
-# 遅延評価オブジェクトを作成する
+# メソッド呼び出しを遅延する。
+# 呼び出すメソッドのオブジェクト部分をこのオブジェクトに置き換えると、そのメソッド呼び出しが
+# 記録され、MethodCallDelayer#call が呼ばれたときに、callの引数をオブジェクトとして評価が開始される。
+#   f = function.map{ |x| x + 1 }.join(', ')
+#   f.call([1, 2, 3]) # => "2, 3, 4"
+class MethodCallDelayer < IrregularEval
+
+  def initialize
+    @callstack = lambda{ |x| x } end
+
+  def method_missing(*args, &block)
+    callstack = @callstack
+    @callstack = lambda{ |x|
+      callstack.call(x).__send__(*args, &block) }
+    self end
+
+  # _obj_ をselfとして評価を開始する。
+  def call(obj)
+    to_proc.call(obj) end
+
+  # Procオブジェクトにして返す。
+  # ブロック引数としてこのオブジェクトを渡した場合に内部で呼ばれる。
+  def to_proc
+    @callstack end end
+
+# 遅延評価オブジェクトを作成する。ブロックを取って呼ばれた場合は Lazy のインスタンスを、
+# 何も取らずに読んだ場合は MethodCallDelayer のインスタンスを返す。
 def lazy(&proc)
-  Lazy.new(&proc) end
+  if proc
+    Lazy.new(&proc)
+  else
+    MethodCallDelayer.new end end
 
 # 毎回評価オブジェクトを作成する
 def everytime(&proc)

@@ -19,6 +19,7 @@ Module.new do
     plugin.add_event(:mention, &method(:onmention))
     plugin.add_event(:followers_created, &method(:onfollowed))
     plugin.add_event(:followers_destroy, &method(:onremoved))
+    plugin.add_event(:after_event){ first?(:after_event) }
   end
 
   def self.main
@@ -93,10 +94,10 @@ Module.new do
 
   def self.first?(func)
     @called = [] if not defined? @called
-    if @called.include?(func) then
+    if @called.include?(func.to_sym) and @called.include?(:after_event) then
       false
     else
-      @called << func
+      @called << func.to_sym
       true
     end
   end

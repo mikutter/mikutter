@@ -61,10 +61,13 @@ class Watch
 
   def action
     Thread.new(@counter){ |counter|
+      event_threads = []
       get_events.each_pair{ |name, event|
         if((counter % event[:interval]) == 0)
-          Thread.new{
-            event[:proc].call(name, @post, event[:options]) } end } }
+          event_threads << Thread.new{
+            event[:proc].call(name, @post, event[:options]) } end }
+      event_threads.each &lazy.join
+      Plugin.call(:after_event, @post) }
     @counter += 1
   end
 

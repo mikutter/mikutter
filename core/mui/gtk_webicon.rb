@@ -49,6 +49,9 @@ module Gtk
         img = filename end
       WebIcon.genpixbuf(img, width, height) end
 
+    # URL _img_ の画像を読み込む。読み込みが終わったら、ブロックにGdk::Pixbufを取って呼び出す
+    # Gdk::Pixbufは _dim_ で指定された寸法(px)に収まるようにリサイズされて渡される
+    # ロードをしているThreadを返す
     def self.iconring(img, dim=[48,48], &onload)
       Thread.new{
         WebIcon.background_icon_loader(img, dim, &onload) } end

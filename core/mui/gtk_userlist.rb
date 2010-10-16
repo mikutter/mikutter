@@ -54,18 +54,12 @@ module Gtk
         if user[:rule] == :destroy
           remove_if_exists_all([user])
         elsif not @users.include?(user)
-          img = Gtk::WebIcon.new(user[:profile_image_url], 24, 24)
           iter = @ul.prepend
-          iter[0] = img.pixbuf
+          iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
+            iter[0] = pixbuf }
           iter[1] = user[:idname]
           iter[2] = user[:name]
           iter[3] = user
-          img.add_observer Class.new{
-            define_method(:update){
-              Delayer.new{
-                iter[0] = img.pixbuf
-                img.destroy } } }.new
-          img.destroy unless img.loading_thread
           @users << user end end end
 
     def block_add_all(users)

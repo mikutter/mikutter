@@ -66,7 +66,7 @@ Module.new do
       style end
 
     def relation
-      relationbox = Gtk::HBox.new(false, 0)
+      relationbox = Gtk::VBox.new(false, 0)
       if user[:idname] == @service.user
         relationbox.add(Gtk::Label.new('それはあなたです！'))
       else
