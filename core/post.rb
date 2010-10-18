@@ -49,7 +49,6 @@ class Post
     @scaned_events = []
     @code = nil
     @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]){
-      p @@auth_confirm_func
       token, secret = self.class.auth_confirm_func.call(self)
       if token
         UserConfig[:twitter_token] = token

@@ -154,7 +154,7 @@ Module.new do
             notice [iter[1], iter[2].to_i, list_id.to_i].inspect
             view.model.remove(iter) if iter[2].to_i == list_id.to_i }
         rescue => e
-          p e
+          warn e
         end
       end } end
 
@@ -226,7 +226,6 @@ Module.new do
       catch(:end){
         w.view.selection.selected_each {|model, path, iter|
           list = list_detail(iter[2])
-          p list
           popup = popupwindow_create_list(list[:name], list[:description], list[:mode])
           dialog = create_dialog('リストを編集', popup.call[:container])
           dialog.signal_connect('response'){ |widget, response|

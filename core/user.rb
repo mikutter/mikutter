@@ -92,7 +92,6 @@ class User < Retriever::Model
   class Memory
     @@idnames = Hash.new
     def selectby(key, value)
-      p value
       if key == :idname and @@idnames[value]
         [findbyid(@@idnames[value])]
       else

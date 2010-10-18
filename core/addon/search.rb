@@ -54,8 +54,6 @@ Module.new do
       del = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       del.signal_connect('clicked'){ |e|
         @service.search_destroy(@options[:id]){ |event, dummy|
-          p event
-          p dummy
           remove if event == :success } }
       @header.closeup(del)
     end

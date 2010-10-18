@@ -198,7 +198,6 @@ class Message < Retriever::Model
         elsif not(self[:message].include?("@#{receiver[:idname]}"))
           result = ["@#{receiver[:idname]}", result] end end
     rescue Exception => e
-      pp result
       error e
       abort end
     result.join(' ') end

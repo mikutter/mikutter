@@ -179,6 +179,7 @@ module Plugin
         tab_label.extend(TabButton).label = label
         books(book_id).insert_page_menu(idx, container, tab_label.show_all, Gtk::Label.new(label))
         books(book_id).set_tab_reorderable(container, true).set_tab_detachable(container, true)
+        Delayer.new{ books(book_id).set_page(idx) } if idx == 0
         @tab_log.push(label)
         container.show_all } end
 

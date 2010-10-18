@@ -7,7 +7,6 @@ module Addon
     Plugin.call(:mui_tab_regist, container, label, image) end
 
   def self.remove_tab(label)
-    p label
     Plugin.call(:mui_tab_remove, label) end
 
   def self.focus(label)

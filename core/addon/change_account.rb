@@ -17,7 +17,6 @@ Module.new do
     if(Thread.main == Thread.current)
       _popup(watch)
     else
-      p Thread.main
       input = false
       result = nil
       Delayer.new{

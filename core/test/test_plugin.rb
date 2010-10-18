@@ -18,7 +18,6 @@ class TC_Plugin < Test::Unit::TestCase
     plg.add_event(:update){ |x, ary|
       assert_kind_of(Array, ary)
       # assert_equal(1, ary.size)
-      p ary.size
     }
     Plugin.call(:update, nil, [Message.new(:system => true, :message => 'moe'),
                                Message.new(:system => true, :message => 'moe'),
