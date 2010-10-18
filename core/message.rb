@@ -176,6 +176,17 @@ class Message < Retriever::Model
   def children
     @children ||= Set.new(Message.selectby(:replyto, self[:id])) end
 
+  def favorited_by
+    @favorited ||= Set.new() end
+
+  def add_favorited_by(user)
+    favorited_by.add(user)
+    Plugin.call(:favorite, service, user, self) end
+
+  def remove_favorited_by(user)
+    favorited_by.delete(user)
+    Plugin.call(:unfavorite, service, user, self) end
+
   def body
     result = [self[:message]]
     begin

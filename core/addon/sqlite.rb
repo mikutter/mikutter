@@ -23,7 +23,8 @@ if defined? SQLite3
 
     def initialize
       begin
-        if FileTest.writable_real?(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
+        if not(FileTest.exist?(confroot("sqlite-datasource.db"))) or
+            FileTest.writable_real?(confroot("sqlite-datasource.db"))
           @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
           atomic{ table_setting }
           @insert = "insert or ignore into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"

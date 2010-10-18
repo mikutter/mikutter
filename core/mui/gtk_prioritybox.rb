@@ -31,7 +31,7 @@ class Gtk::PriorityVBox < Gtk::VBox
   end
 
   def pack(child, expand = true, fill = true, padding = 0)
-    Gtk::Lock.synchronize do
+    Delayer.new do
       priority = @priority.call(child)
       if not((self.children.empty?) or ((@priority.call(self.children.first) <=> priority) < 0)) then
         catch(:exit) do

@@ -115,7 +115,7 @@ module Gtk
           Delayer.new{ show_replied_icon } end end end
 
     def favorited_by
-      @favorited_by ||= [] end
+      @favorited_by ||= message.favorited_by.to_a end
 
     def favorite(user)
       unless(favorited_by.include?(user))
@@ -281,7 +281,11 @@ module Gtk
     end
 
     def gen_favorite
-      Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
+      result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
+      favorited_by.each{ |user|
+        fav_box.closeup(icon(user, 24).show_all) }
+      rewind_fav_count!
+      result
     end
 
     def fav_label

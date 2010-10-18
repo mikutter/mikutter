@@ -52,6 +52,15 @@ Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'
 miquire :lib, 'lazy'
 
+# Config::CONFROOT内のファイル名を得る。
+#   confroot(*path)
+# は
+#   File::expand_path(File.join(Config::CONFROOT, *path))
+# と等価。
+def confroot(*path)
+  File::expand_path(File.join(Config::CONFROOT, *path))
+end
+
 # 複数条件if
 # 条件を二つ持ち、a&b,a&!b,!a&b,!a&!bの４パターンに分岐する
 # procs配列は前から順番に、上記の条件の順番に対応している。
@@ -359,7 +368,10 @@ class Object
   # freezeされていない同じ内容のオブジェクトを作って返す。
   # メルト　溶けてしまいそう　dupだなんて　絶対に　言えない
   def melt
-    dup end end
+    if frozen?
+      dup
+    else
+      self end end end
 
 #
 # integer
@@ -536,17 +548,26 @@ end
 
 class Hash
   # キーの名前を変換する。
-  def convert_key(rule)
+  def convert_key(rule = nil)
+    if block_given?
+      convert_key_proc(&Proc.new)
+    else
+      convert_key_hash(rule) end end
+
+  def convert_key_proc(&rule)
+    result = {}
+    self.each_pair { |key, val|
+      result[rule.call(key)] = val }
+    result end
+
+  def convert_key_hash(rule)
     result = {}
     self.each_pair { |key, val|
       if rule[key]
         result[rule[key]] = val
       else
-        result[key.to_sym] = val
-      end
-    }
-    result
-  end
+        result[key.to_sym] = val end }
+    result end
 
   # キーを全てto_symしたhashを新たにつくる
   def symbolize
