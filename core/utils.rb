@@ -14,6 +14,7 @@ require 'thread'
 require 'resolv-replace'
 require 'pstore'
 require 'monitor'
+require "open-uri"
 
 $atomic = Monitor.new
 $debug_avail_level = 2
@@ -98,7 +99,7 @@ def gen_counter(count=0, increment=1)
 
 # ファイルの内容を文字列に読み込む
 def file_get_contents(fn)
-  File.open(fn, 'r'){ |input|
+  open(fn, 'r'){ |input|
     input.read
   }
 end
@@ -209,6 +210,8 @@ def type_check(args, &proc)
       check.call(val)
     elsif check.is_a? Array
       val.__send__(*check)
+    elsif check.is_a? Symbol
+      val.respond_to?(check)
     elsif check.is_a? Class
       val.is_a?(check) end }
   error = args.find{ |a| not(check_function.call(*a)) }

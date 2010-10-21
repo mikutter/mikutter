@@ -7,24 +7,41 @@ require 'gtk2'
 require 'uri'
 
 class Gtk::IntelligentTextview < Gtk::TextView
+
   attr_accessor :fonts, :get_background
 
+  @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url|
+                                       Gtk.openurl(url) }].freeze).freeze
+
   @@linkrule = MIKU::Cons.list([URI.regexp(['http','https']),
-                                lambda{ |u, clicked| Gtk::openurl u},
+                                lambda{ |u, clicked| self.openurl(u) },
                                 lambda{ |u, clicked|
-                                  Gtk::ContextMenu.new(['ブラウザで開く', ret_nth(),
-                                                        lambda{ |opt, w|
-                                                          Gtk::openurl(u) }],
-                                                       ['リンクのURLをコピー', ret_nth(),
-                                                        lambda{ |opt, w|
-                                                          Gtk::Clipboard.copy(u) }]).popup(clicked, true)}])
+                                  Gtk::ContextMenu.new(['リンクのURLをコピー', ret_nth, lambda{ |opt, w| Gtk::Clipboard.copy(u) }],
+                                                       ['開く', ret_nth, lambda{ |opt, w| self.openurl(u) }]).
+                                  popup(clicked, true)}])
   @@widgetrule = []
 
+  # URLを開く方法を追加する。
+  # 追加に成功したらtrueを返す。
+  def self.addopenway(condition, &open)
+    if(type_check(condition => :===, open => :call))
+      @@wayofopenlink = MIKU::Cons.new([condition, open].freeze, @@wayofopenlink).freeze
+      true end end
+
   def self.addlinkrule(reg, leftclick, rightclick=nil)
-    @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick], @@linkrule) end
+    @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick].freeze, @@linkrule).freeze end
 
   def self.addwidgetrule(reg, widget = nil)
     @@widgetrule = @@widgetrule.unshift([reg, (widget or Proc.new)]) end
+
+  # URLを開く
+  def self.openurl(url)
+    @@wayofopenlink.each{ |way|
+      condition, open = *way
+      if(condition === url)
+        open.call(url)
+        return true end }
+    false end
 
   def initialize(msg, default_fonts = {}, *args)
     assert_type(String, msg)

@@ -30,9 +30,13 @@ module Gtk
         filename = WebIcon.get_filename(img)
         if not(File.exist?(filename)) then
           @loading_thread = WebIcon.iconring(img, [width, height]){ |pic|
-            self.pixbuf = pic
-            self.changed
-            self.notify_observers }
+            if destroyed?
+              p :destroyed
+            else
+              p :rewind
+              self.pixbuf = pic
+              self.changed
+              self.notify_observers end }
           filename = File.expand_path(MUI::Skin.get("loading.png"))
         end
         img = filename
@@ -57,7 +61,8 @@ module Gtk
         WebIcon.background_icon_loader(img, dim, &onload) } end
 
     def self.get_filename(url)
-      File.expand_path(self.icondir + Digest::MD5.hexdigest(url) + File.extname(url))
+      ext = (File.extname(url).split("?", 2)[0] or File.extname(url))
+      File.expand_path(self.icondir + Digest::MD5.hexdigest(url) + ext)
     end
 
     def self.pixbuf_cache_get(filename, width, height)

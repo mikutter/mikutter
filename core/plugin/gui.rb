@@ -114,10 +114,11 @@ module Plugin
         false }
       book.signal_connect('page-removed'){
         Delayer.new{
-          if book.children.empty? and book.parent
-            UserConfig.disconnect(tab_position_hook_id)
-            book.parent.remove(book) end
-          UserConfig[:tab_order] = books_labels }
+          unless book.destroyed?
+            if book.children.empty? and book.parent
+              UserConfig.disconnect(tab_position_hook_id)
+              book.parent.remove(book) end
+            UserConfig[:tab_order] = books_labels end }
         false }
       book end
 

@@ -20,7 +20,7 @@ mikutter - the moest twitter client
 - httpclient
 
 ** Windowsでのインストール方法
-   準備中です
+   mikutterのサイトより、Windows版をダウンロードして展開し、mikutter.exeを起動してください。
 
 ** Debian/Ubuntuでのインストール方法
 1. aptでインストール
@@ -59,7 +59,7 @@ mikutter - the moest twitter client
 | icon/             | アイコンなど、画像のキャッシュ。                         |
 | p_store_values.db | 設定やアカウント情報などが保存されるデータベースファイル |
 | logs/             | エラーログなど                                           |
-| tmp/              | 一時ファイル                                                   |
+| tmp/              | 一時ファイル                                             |
 
 各ファイルは、ない場合はすべて自動生成されます。ディスク容量が圧迫されているなど、削除したくなったら適宜削除してもらって構いません
 (ただし、p_store_values.dbは削除するとmikutterのデータが飛びます)。
@@ -77,7 +77,7 @@ mikutter - the moest twitter client
    仮タイトルのまま定着してしまった至高のウェブページ
 ** mikutter
    [[http://mikutter.d.hachune.net/]]
-   最初半分ネタだったがだらだらと拡張されていっている究極のクライアント
+   ネタで改良されていっている究極のクライアント
 ** hachune.net
    [[http://hachune.net/]]
    奇跡のドメイン
