@@ -81,14 +81,15 @@ module Gtk
 
     def self.genpixbuf(filename, width=48, height=48)
       result = nil
-      begin
-        @@m_iconlock.synchronize{
-          result = pixbuf_cache_get(filename, width, height)
-          if not(result.is_a?(Gdk::Pixbuf))
-            result = pixbuf_cache_set(filename,
-                                      Gdk::Pixbuf.new(File.expand_path(filename), width, height)) end }
-      rescue Gdk::PixbufError
-        result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height) end
+      if FileTest.exist?(File.expand_path(filename))
+        begin
+          @@m_iconlock.synchronize{
+            result = pixbuf_cache_get(filename, width, height)
+            if not(result.is_a?(Gdk::Pixbuf))
+              result = pixbuf_cache_set(filename,
+                                        Gdk::Pixbuf.new(File.expand_path(filename), width, height)) end }
+        rescue Gdk::PixbufError
+          result = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('notfound.png')), width, height) end end
       result end
 
     def self.background_icon_loader(img, dim=[48,48], &onload)

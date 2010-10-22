@@ -10,7 +10,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   attr_accessor :fonts, :get_background
 
-  @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url|
+  @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|
                                        Gtk.openurl(url) }].freeze).freeze
 
   @@linkrule = MIKU::Cons.list([URI.regexp(['http','https']),
@@ -39,8 +39,9 @@ class Gtk::IntelligentTextview < Gtk::TextView
     @@wayofopenlink.each{ |way|
       condition, open = *way
       if(condition === url)
-        open.call(url)
-        return true end }
+        if callcc{ |cont|
+            open.call(url, lambda{ cont.call(false) }); true }
+          return true end end }
     false end
 
   def initialize(msg, default_fonts = {}, *args)

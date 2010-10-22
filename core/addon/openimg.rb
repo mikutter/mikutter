@@ -43,38 +43,45 @@ Module.new do
           w.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) } end }
     w.show_all end
 
-  def self.resolvtwitpic(url)
+  def self.get_imgsrc(dom, id)
+    if dom
+      m = eval('/<img[^>]+id="' + Regexp.escape(id) + '".*?>/').match(dom)
+      if m
+        m = /src=(["'])([^\1]+?)\1/.match(m[0])
+        return m[2] if m end end
+    warn 'img not found'
+  end
+
+  def self.imgurlresolver(url, dom_id)
     res = dom = nil
     begin
       res = Net::HTTP.get_response(URI.parse(url))
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-        dom = res.body
+        get_imgsrc(res.body, dom_id)
       else
-        warn "#{res.code} failed"
-      end
+        warn "#{res.code} failed" end
     rescue Timeout::Error, StandardError => e
-      warn e
-    end
-    if dom
-      m = /<img[^>]+id="photo\-display".*?>/.match(dom)
-      if m
-        m = /src=(["'])([^\1]+?)\1/.match(m[0])
-        m[2] if m end end end
+      warn e end end
 
-  Gtk::IntelligentTextview.addopenway(/\.(png|jpg|gif)$/ ){ |url|
+  def self.addsupport(cond, dom_id)
+    Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
+      Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, 'main_image') }){ |url| display(url) }
+    }
+  end
+
+  addsupport(/^http:\/\/twitpic.com\/[a-zA-Z0-9]+/, 'photo-display')
+  addsupport(/^http:\/\/yfrog.com\/[a-zA-Z0-9]+/, 'main_image')
+
+  Gtk::IntelligentTextview.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
     Delayer.new{ display(url) }
-  }
-
-  Gtk::IntelligentTextview.addopenway(/^http:\/\/twitpic.com\/[a-zA-Z0-9]+/ ){ |url|
-    Delayer.new(Delayer::NORMAL, Thread.new{ resolvtwitpic(url) }){ |url| display(url) }
   }
 
   if $0 == __FILE__
     w = Gtk::Window.new
     w.signal_connect(:destroy){ Gtk::main_quit }
     w.show_all
-    url = 'http://twitpic.com/2ziqpd'
-    Delayer.new{ display( Thread.new{ resolvtwitpic(url) } ) }
+    url = 'http://yfrog.com/ndinsbj'
+    Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, 'main_image') }){ |url| display(url) }
     Gtk.timeout_add(1000){
       Delayer.run
       true
