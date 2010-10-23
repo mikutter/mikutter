@@ -623,7 +623,7 @@ class String
   def matches(regexp)
     result = []
     each_matches(regexp){ |m, pos|
-      result << m }
+      result << m.to_s }
     result
   end
 
@@ -631,7 +631,7 @@ class String
     pos = 0
     str = self
     while(match = regexp.match(str))
-      yield(match.to_s, pos + match.begin(0))
+      yield(match, pos + match.begin(0))
       str = match.post_match
       pos += match.end(0)
     end

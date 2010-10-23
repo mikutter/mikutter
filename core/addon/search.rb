@@ -84,11 +84,17 @@ Module.new do
       add_tab(id, query, query) } end
 
   def self.update(use_cache=false)
-    Thread.new{
-      Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
+    @service.call_api(:saved_searches, :cache => use_cache){ |res|
+      if res
         remove_unmarked{
-          found.each{ |record|
-            add_tab(record['id'], record['query'], record['name']) } } } } end
+          res.each{ |record|
+            add_tab(record['id'], record['query'], record['name']) } } end }
+    # Thread.new{
+    #   Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
+    #     remove_unmarked{
+    #       found.each{ |record|
+    #         add_tab(record['id'], record['query'], record['name']) } } } }
+  end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{

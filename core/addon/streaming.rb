@@ -42,12 +42,10 @@ Module.new do
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)
         to.first.add_favorited_by(by.first)
-        #Plugin.call(:favorite, @service, by.first, to.first)
       when json['event'] == 'unfavorite'
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)
         to.first.remove_favorited_by(by.first)
-        #Plugin.call(:unfavorite, @service, by.first, to.first)
       when json['delete']
       else
         messages = @service.__send__(:parse_json, json, :streaming_status)

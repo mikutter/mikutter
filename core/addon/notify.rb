@@ -19,6 +19,7 @@ Module.new do
     plugin.add_event(:mention, &method(:onmention))
     plugin.add_event(:followers_created, &method(:onfollowed))
     plugin.add_event(:followers_destroy, &method(:onremoved))
+    plugin.add_event(:favorite, &method(:onfavorited))
     plugin.add_event(:after_event){ first?(:after_event) }
   end
 
@@ -36,7 +37,10 @@ Module.new do
     rd = Mtk.group('フォロー解除されたとき',
                    Mtk.boolean(:notify_removed, 'ポップアップ'),
                    Mtk.fileselect(:notify_sound_removed, 'サウンド', DEFAULT_SOUND_DIRECTORY))
-    box.closeup(ft).closeup(me).closeup(fd).closeup(rd)
+    fv = Mtk.group('ふぁぼられたとき',
+                   Mtk.boolean(:notify_favorited, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_favorited, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    box.closeup(ft).closeup(me).closeup(fd).closeup(rd).closeup(fv)
     box.pack_start(Mtk.adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end
 
@@ -92,6 +96,17 @@ Module.new do
     end
   end
 
+  def self.onfavorited(service, by, to)
+    if to.from_me?
+      if(UserConfig[:notify_favorited]) then
+        self.notify(by, "fav by #{by[:idname]} \"#{to.to_s}\"")
+      end
+      if(UserConfig[:notify_sound_favorited]) then
+        self.notify_sound(UserConfig[:notify_sound_favorited])
+      end
+    end
+  end
+
   def self.first?(func)
     @called = [] if not defined? @called
     if @called.include?(func.to_sym) and @called.include?(:after_event) then
@@ -114,6 +129,7 @@ Module.new do
         command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
         command << "@#{user[:idname]} (#{user[:name]})" end
       command << text
+      p command
       bg_system(*command) } end
 
   def self.notify_sound(sndfile)

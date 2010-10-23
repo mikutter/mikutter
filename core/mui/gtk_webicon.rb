@@ -31,9 +31,8 @@ module Gtk
         if not(File.exist?(filename)) then
           @loading_thread = WebIcon.iconring(img, [width, height]){ |pic|
             if destroyed?
-              p :destroyed
+              notice "object destroyed"
             else
-              p :rewind
               self.pixbuf = pic
               self.changed
               self.notify_observers end }

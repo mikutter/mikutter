@@ -130,6 +130,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
     @@linkrule.each{ |param|
       reg, left, right = param
       buffer.text.each_matches(reg) { |match, index|
+        match = match.to_s
         index = buffer.text[0, index].strsize
         create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
         range = buffer.get_range(index, match.strsize)
@@ -141,6 +142,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
     @@widgetrule.each{ |param|
       reg, widget_generator = param
       buffer.text.each_matches(reg) { |match, index|
+        match = match.to_s
         index = buffer.text[0, index].strsize
         range = buffer.get_range(index, match.strsize + offset)
         widget = widget_generator.call(match)
