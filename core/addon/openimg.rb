@@ -16,16 +16,18 @@ Module.new do
   def self.move(window)
     @position = window.position.freeze end
 
-  def self.changesize(w, url)
-    w.remove(w.children.first)
+  def self.changesize(eb, w, url)
+    eb.remove(w.children.first)
     @size = w.window.geometry[2,2].freeze
-    w.add(Gtk::WebIcon.new(url, *@size).show_all)
+    eb.add(Gtk::WebIcon.new(url, *@size).show_all)
     @size end
 
   def self.display(url, cancel = nil)
     w = Gtk::Window.new.set_title("（読み込み中）")
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
+    eventbox = Gtk::EventBox.new
+    w.add(eventbox)
     size = DEFAULT_SIZE
     Thread.new{ # !> method redefined; discarding old inspect
       url = url.value if url.is_a? Thread
@@ -39,13 +41,19 @@ Module.new do
       else
         Delayer.new{
           w.set_title(url.to_s)
-          w.signal_connect("expose_event"){ |w, event|
+          eventbox.signal_connect("event"){ |ev, event|
+            if event.is_a?(Gdk::EventButton) and (event.state.button1_mask?) and event.button == 1
+              w.destroy
+              cancel.call if cancel
+            end
+            false }
+          eventbox.signal_connect("expose_event"){ |ev, event|
             move(w)
             false }
-          w.signal_connect(:"size-allocate"){
+          eventbox.signal_connect(:"size-allocate"){
             if w.window and size != w.window.geometry[2,2]
-              size = changesize(w, url.to_s) end }
-          w.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) } end }
+              size = changesize(eventbox, w, url.to_s) end }
+          eventbox.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) } end }
     w.show_all end
 
   def self.get_tag_by_attributes(tag)

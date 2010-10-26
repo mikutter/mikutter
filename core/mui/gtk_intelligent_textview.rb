@@ -36,13 +36,17 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   # URLを開く
   def self.openurl(url)
-    @@wayofopenlink.each{ |way|
+    gen_openurl_proc(url).call
+    false end
+
+  def self.gen_openurl_proc(url, way_of_open_link = @@wayofopenlink)
+    way_of_open_link.freeze
+    lambda{
+      way_of_open_link.each_with_index{ |way, index|
       condition, open = *way
       if(condition === url)
-        if callcc{ |cont|
-            open.call(url, lambda{ cont.call(false) }); true }
-          return true end end }
-    false end
+        open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
+        break end } } end
 
   def initialize(msg, default_fonts = {}, *args)
     assert_type(String, msg)
