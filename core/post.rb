@@ -472,7 +472,6 @@ class Post
                        :post => self,
                        :exact => true }) }
     rescue => e
-      notice msg.inspect
       error e
       nil end end
 

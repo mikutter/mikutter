@@ -76,7 +76,7 @@ class UserConfig
     :mumble_basic_bg => [65535, 65535, 65535],
     :mumble_reply_bg => [65535, 255*222, 255*222],
     :mumble_self_bg => [65535, 65535, 255*222],
-    :mumble_selected_bg => [65535, 255*222, 65535],
+    :mumble_selected_bg => [255*222, 255*222, 65535],
 
   }
 

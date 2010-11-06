@@ -16,6 +16,11 @@ require 'set'
 # Plugin.create でPluginTagのインスタンスを作り、コアにプラグインを登録します。
 # イベントリスナーの登録とイベントの発行については、Plugin::PluginTagを参照してください。
 #
+#== プラグインの実行順序
+# まず、Plugin.call()が呼ばれると、予めadd_event_filter()で登録されたフィルタ関数に
+# 引数が順次通され、最終的な戻り値がadd_event()に渡される。イメージとしては、
+# イベントリスナ(*フィルタ(*引数))というかんじ。
+# リスナもフィルタも、実行される順序は特に規定されていない。
 module Plugin
 
   def self.gen_event_ring
@@ -32,6 +37,8 @@ module Plugin
     callback end
 
   # イベントフィルタを追加する。
+  # フィルタは、イベントリスナーと同じ引数で呼ばれるし、引数の数と同じ数の値を
+  # 返さなければいけない。
   def self.add_event_filter(event_name, tag, &callback)
     @@event_filter[event_name.to_sym] << [tag, callback]
     callback end

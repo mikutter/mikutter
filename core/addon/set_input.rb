@@ -7,7 +7,6 @@ Module.new do
 
   shrink_url = Mtk.group('短縮URL', Mtk.boolean(:shrinkurl_always, '常にURLを短縮する'))
   container = Gtk::VBox.new(false, 8).
-    closeup(Mtk.keyconfig('つぶやきを投稿するキー', :mumble_post_key)).
     closeup(Mtk.adjustment('投稿をリトライする回数', :message_retry_limit, 1, 99)).
     closeup(shrink_url).
     closeup(Mtk.group('フッタ',

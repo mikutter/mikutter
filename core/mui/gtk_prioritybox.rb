@@ -31,6 +31,7 @@ class Gtk::PriorityVBox < Gtk::VBox
   end
 
   def pack(child, expand = true, fill = true, padding = 0)
+    return if self.destroyed?
     Gtk::Lock.synchronize do
       priority = @priority.call(child)
       if not((self.children.empty?) or ((@priority.call(self.children.first) <=> priority) < 0)) then
@@ -53,6 +54,7 @@ class Gtk::PriorityVBox < Gtk::VBox
   end
 
   def pack_all(children, expand = true, fill = true, padding = 0)
+    return if self.destroyed?
     children.sort_by{ |c| @priority.call(c) }.reverse_each{ |c|
       self.pack(c, expand, fill, padding)
     }

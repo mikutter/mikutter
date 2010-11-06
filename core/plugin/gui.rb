@@ -73,7 +73,8 @@ module Plugin
         newpane
         @window.add(container.closeup(mumbles).pack_start(main).closeup(@prompt).closeup(statusbar))
         set_icon
-        @window.signal_connect('key_press_event'){ |widget, event|
+        @window.signal_connect(:key_press_event){ |widget, event|
+          Plugin.call(:keypress, Gtk.keyname([event.keyval ,event.state]))
           if Gtk.keyname([event.keyval ,event.state]) == 'Alt + x'
             input = Gtk::PostBox.new(Executer.new(watch), :delegate_other => false)
             @prompt.add(input).show_all
@@ -255,33 +256,27 @@ module Plugin
         window.move(*position)
         this = self
         window.signal_connect("destroy"){
-          Gtk::Lock.synchronize do
-            window.destroy
-            Gtk::Object.main_quit
-            # Gtk.main_quit
-          end
-          false
-        }
+          Delayer.freeze
+          window.destroy
+          Gtk::Object.main_quit
+          # Gtk.main_quit
+          false }
         window.signal_connect("expose_event"){ |window, event|
-          Gtk::Lock.synchronize do
-            if(window.realized?) then
-              new_size = window.window.geometry[2,2]
-              if(size != new_size) then
-                this.store(:size, new_size)
-                size = new_size
-              end
-              new_position = window.position
-              if(position != new_position) then
-                this.store(:position, new_position)
-                position = new_position
-              end
-            end
-          end
-          false
-        }
-        window
-      end
-    end
+          if(window.realized?)
+            new_size = window.window.geometry[2,2]
+            if(size != new_size)
+              this.store(:size, new_size)
+              size = new_size end
+            new_position = window.position
+            if(position != new_position)
+              this.store(:position, new_position)
+              position = new_position end end
+          false }
+        Plugin.create(:gui).add_event_filter(:get_windows){ |windows|
+          windows = Set.new unless windows
+          windows << window
+          windows }
+        window end end
 
     def color(r, g, b)
       @memo_color.call(r, g, b)

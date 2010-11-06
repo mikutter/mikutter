@@ -29,6 +29,7 @@ module Gtk
 
     @@contextmenu = Gtk::ContextMenu.new
     @@mumbles = Hash.new{ |h, k| h[k] = [] }
+    @@active_mumbles = []
 
     @@contextmenu.registmenu("コピー", lambda{ |m,w|
                  w.is_a?(Gtk::TextView) and w.buffer.selection_bounds[2] }){ |this, w|
@@ -39,9 +40,9 @@ module Gtk
       w.copy_clipboard
       w.select_all(false) }
     @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.replies, this.message) }
+      this.gen_postbox(this.message) }
     @@contextmenu.registmenu("引用", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.replies, this.message, :retweet => true) }
+      this.gen_postbox(this.message, :retweet => true) }
     @@contextmenu.registmenu("公式リツイート", lambda{ |m,w|
                                m.message.repliable? and not m.message.from_me? }){ |this, w|
       this.message.retweet }
@@ -59,6 +60,14 @@ module Gtk
     def self.addwidgetrule(reg, proc)
       Gtk::IntelligentTextview.addwidgetrule(reg, proc) end
 
+    def self.active_mumbles
+      @@active_mumbles end
+
+    def self.inactive
+      inactive = @@active_mumbles
+      @@active_mumbles = []
+      inactive.each{ |x| x.inactivate } end
+
     def initialize(message)
       @message = assert_type(Message, message)
       super()
@@ -67,7 +76,8 @@ module Gtk
       @@mumbles[message[:id]] << self
       signal_connect('destroy'){
         raise 'mumble not found in mumbles chain' unless @@mumbles[@message[:id]].delete(self)
-        @@mumbles.delete(@message[:id]) if(@@mumbles[@message[:id]].empty?) } end
+        @@mumbles.delete(@message[:id]) if(@@mumbles[@message[:id]].empty?)
+        false } end
 
     def [](key)
       @message[key] end
@@ -92,13 +102,13 @@ module Gtk
       end
     end
 
-    def gen_postbox(replies, message, options={})
+    def gen_postbox(message=@message, options={})
       Lock.synchronize{
         if(message.from_me? and message.receive_message)
-          gen_postbox(replies, message.receive_message, options)
+          gen_postbox(message.receive_message, options)
         else
           postbox = Gtk::PostBox.new(message, options)
-          replies.add(postbox).show_all
+          @replies.add(postbox).show_all
           get_ancestor(Gtk::Window).set_focus(postbox.post)
         end } end
 
@@ -132,6 +142,42 @@ module Gtk
         fav_box.remove(fav_box.children[idx])
         rewind_fav_count! end end
 
+    # このメッセージを選択状態にする。
+    # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
+    # 最終的にアクティブになったかどうかを返す
+    def active(append = false)
+      if append
+        if active?
+          inactive
+          false
+        else
+          @@active_mumbles << self
+          activate
+          true end
+      else
+        if not active?
+          inactives = @@active_mumbles
+          @@active_mumbles = [self]
+          inactives.each{ |x| x.inactivate }
+          activate end
+        true end end
+
+    # このメッセージが選択状態ならtrueを返す
+    def active?
+      @@active_mumbles.include?(self) end
+
+    # 選択状態を解除する
+    def inactive
+      @@active_mumbles.delete(self)
+      inactivate
+      false end
+
+    # 選択されたときに呼ばれるメソッド
+    def activate
+      modifybg
+    end
+    alias inactivate activate
+
     private
 
     def rewind_fav_count!
@@ -143,9 +189,11 @@ module Gtk
     end
 
     def get_backgroundcolor
-      if(@message.from_me?) then
+      if(active?)
+        UserConfig[:mumble_selected_bg]
+      elsif(@message.from_me?)
         UserConfig[:mumble_self_bg]
-      elsif(@message.to_me?) then
+      elsif(@message.to_me?)
         UserConfig[:mumble_reply_bg]
       else
         UserConfig[:mumble_basic_bg]
@@ -162,6 +210,7 @@ module Gtk
       body = Gtk::IntelligentTextview.new(message.to_show, fonts)
       body.signal_connect('button_press_event', &event_button_canceling)
       body.get_background = event_style_bg
+      body.signal_connect('button_release_event', &method(:button_release_event))
       return body
     end
 
@@ -178,9 +227,9 @@ module Gtk
           msg.user[:profile_image_url]
           Delayer.new{
             w.closeup(icon(msg, 24).top)
-            w.add(gen_body(msg,
-                           'foreground' => :mumble_reply_color,
-                           'font' => :mumble_reply_font)).show_all } }
+            w.add(@in_reply_to = gen_body(msg,
+                                          'foreground' => :mumble_reply_color,
+                                          'font' => :mumble_reply_font)).show_all } }
         w }
     end
 
@@ -216,8 +265,8 @@ module Gtk
     def cumbersome_buttons(message)
       reply = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get("reply.png"), 16, 16))
       retweet = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get("retweet.png"), 16, 16))
-      reply.signal_connect('clicked'){ gen_postbox(@replies, message); false }
-      retweet.signal_connect('clicked'){ gen_postbox(@replies, message, :retweet => true); false }
+      reply.signal_connect('clicked'){ gen_postbox(message); false }
+      retweet.signal_connect('clicked'){ gen_postbox(message, :retweet => true); false }
       Gtk::VBox.new(false, 0).closeup(Gtk::HBox.new(false, 4).closeup(reply).closeup(retweet))
     end
 
@@ -231,24 +280,36 @@ module Gtk
             last_set_config = relation_configure
           end
           false }
-        last_bg = []
         signal_connect('visibility-notify-event'){
-          if(last_bg != get_backgroundcolor)
-            last_bg = get_backgroundcolor
-            style = Gtk::Style.new()
-            style.set_bg(Gtk::STATE_NORMAL, *get_backgroundcolor)
-            self.style = style end
+          modifybg
           false }
         signal_connect('button_release_event'){ |widget, event|
-          Gtk::Lock.synchronize{
-            if (event.button == 3)
-              menu_pop(@body)
-              true end } } } end
+          if (event.button == 3)
+            menu_pop(@body)
+            true end }
+        signal_connect('button_release_event', &method(:button_release_event))
+      } end
+
+    def button_release_event(widget, event)
+      active
+      false end
+
+    @last_bg = []
+    def modifybg
+      if(@last_bg != get_backgroundcolor and not destroyed?)
+        @last_bg = get_backgroundcolor
+        style = Gtk::Style.new()
+        [Gtk::STATE_ACTIVE, Gtk::STATE_NORMAL, Gtk::STATE_SELECTED, Gtk::STATE_PRELIGHT, Gtk::STATE_INSENSITIVE].each{ |state|
+          style.set_bg(state, *get_backgroundcolor)
+        }
+        self.style = style
+        @body.bg_modifier if @body
+        @in_reply_to.bg_modifier if @in_reply_to end end
 
     def breakout!
       Lock.synchronize{
         children.each{ |w| remove(w); w.destroy }
-        @fav_label = @fav_box = @replies = @icon_over_button = nil } end
+        @in_reply_to = @fav_label = @fav_box = @replies = @icon_over_button = nil } end
 
     def append_contents
       msg = @message[:retweet] || @message
@@ -292,7 +353,7 @@ module Gtk
       @fav_label ||= Gtk::Label.new('').set_no_show_all(true) end
 
     def fav_box
-      @fav_box ||= Gtk::HBox.new(false, 4)end
+      @fav_box ||= Gtk::HBox.new(false, 4) end
 
     def relation_configure
       [UserConfig[:show_cumbersome_buttons], UserConfig[:retrieve_force_mumbleparent]]
@@ -322,10 +383,10 @@ module Gtk
       def reply
         add(@@buttons[:reply], :always_show => lambda{
               UserConfig[:show_replied_icon] && @mumble.message.children.any?{ |m| m.from_me? }
-            }){ @mumble.gen_postbox(@mumble.replies, @msg) } end
+            }){ @mumble.gen_postbox(@msg) } end
 
       def retweet
-        add(@@buttons[:retweet]){ @mumble.gen_postbox(@mumble.replies, @msg, :retweet => true) }
+        add(@@buttons[:retweet]){ @mumble.gen_postbox(@msg, :retweet => true) }
       end
 
       def etc

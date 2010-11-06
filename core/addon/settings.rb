@@ -7,8 +7,7 @@ miquire :mui, 'mtk'
 
 Module.new do
   plugin = Plugin::create(:settings)
-  book = Gtk::Notebook.new.set_tab_pos(Gtk::POS_TOP)
-
+  book = Gtk::Notebook.new.set_tab_pos(Gtk::POS_TOP).set_scrollable(true)
   plugin.add_event(:boot){ |service|
     Plugin.call(:mui_tab_regist, book, 'Settings', MUI::Skin.get("settings.png")) }
 

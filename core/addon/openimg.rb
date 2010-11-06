@@ -107,6 +107,7 @@ Module.new do
 
   # 携帯百景
   addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
+  addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
 
   # plixi (うごかん)
   # addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo')

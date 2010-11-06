@@ -64,6 +64,14 @@ class Gtk::IntelligentTextview < Gtk::TextView
     textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
   end
 
+  def bg_modifier(color = @get_background.call)
+    if color.is_a? Gtk::Style
+      self.style = color
+    elsif get_window(Gtk::TextView::WINDOW_TEXT).respond_to?(:background=)
+      get_window(Gtk::TextView::WINDOW_TEXT).background = color end
+    queue_draw
+    false end
+
   private
 
   def fonts2tags(fonts)
@@ -73,14 +81,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
       tags['foreground_gdk'] = Gdk::Color.new(*UserConfig[fonts['foreground']]) end
     tags
   end
-
-  def bg_modifier
-    color = @get_background.call
-    if color.is_a? Gtk::Style
-      self.style = color
-    elsif get_window(Gtk::TextView::WINDOW_TEXT).respond_to?(:background=)
-      get_window(Gtk::TextView::WINDOW_TEXT).background = color end
-    false end
 
   def gen_body(msg, fonts={})
     tags = fonts2tags(fonts)
@@ -107,10 +107,11 @@ class Gtk::IntelligentTextview < Gtk::TextView
     self.signal_connect('event'){
       set_cursor(self, Gdk::Cursor::XTERM)
       false }
-    self.signal_connect('button_release_event'){ |widget, event|
+#    self.signal_connect('button_release_event'){ |widget, event|
 #       Gtk::Lock.synchronize{
 #         menu_pop(widget) if (event.button == 3) }
-      false } end
+#     false }
+  end
 
   def create_tag_ifnecessary(tagname, buffer, leftclick, rightclick)
     tag = buffer.create_tag(tagname, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)

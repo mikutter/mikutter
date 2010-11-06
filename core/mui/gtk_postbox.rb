@@ -193,6 +193,12 @@ module Gtk
         tool.sensitive = destructible? if tool
         false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
+      post.signal_connect_after('focus_in_event'){
+        mumble = get_ancestor(Gtk::Mumble)
+        if mumble
+          mumble.active
+        else
+          Gtk::Mumble.inactive end }
       return post, w_remain end
 
     def generate_send

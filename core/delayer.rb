@@ -1,5 +1,7 @@
 require File.expand_path('utils')
 
+# ブロックを、後で時間があいたときに順次実行する。
+# 名前deferのほうがよかったんじゃね
 class Delayer
   CRITICAL = 0
   FASTER = 1
@@ -8,7 +10,9 @@ class Delayer
   LAST = 4
 
   @@routines = [[],[],[],[],[]]
+  @frozen = false
 
+  # あとで実行するブロックを登録する。
   def initialize(prio = NORMAL, *args, &block)
     @routine = block
     @args = args
@@ -16,6 +20,7 @@ class Delayer
     regist(prio)
   end
 
+  # このブロックを実行する。内部で呼ぶためにあるので、明示的に呼ばないこと
   def run
     #notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
     now = caller.size
@@ -29,7 +34,10 @@ class Delayer
     @routine = nil
   end
 
+  # 登録されたDelayerオブジェクトをいくつか実行する。
+  # 0.1秒以内に実行が終わらなければ、残りは保留してとりあえず処理を戻す。
   def self.run
+    return if @frozen
     st = Process.times.utime
     5.times{ |cnt|
       procs = []
@@ -39,6 +47,17 @@ class Delayer
           @@routines[cnt].delete(routine)
           routine.run
           return if (Process.times.utime - st) > 0.1 } end } end
+
+  # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
+  # を実行せずにすぐにreturnするようになる。
+  def self.freeze
+    @frozen = true
+  end
+
+  # freezeのはんたい
+  def self.melt
+    @frozen = false
+  end
 
   private
   def regist(prio)
