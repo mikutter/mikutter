@@ -93,7 +93,7 @@ module Mtk
     keyconfig = Gtk::KeyConfig.new(title, UserConfig[key])
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(title), false, true, 0)
-    container.pack_start(keyconfig, true, true, 0)
+    container.closeup(keyconfig.right)
     keyconfig.change_hook = lambda{ |keycode|
       UserConfig[key] = keycode
     }

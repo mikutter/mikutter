@@ -84,10 +84,10 @@ class Gtk::IconOverButton < Gtk::EventBox
         end
         result
       }
+      @children = Array.new
       @background = nil
       self.background = background_image
       @visible_button = false
-      @children = Array.new
       @grid_size = [1, 1]
       @button_back = nil
       @button_back_over = nil
@@ -109,15 +109,15 @@ class Gtk::IconOverButton < Gtk::EventBox
     proc = @options[index][:proc]
     if(proc) then
       Gtk::Lock.synchronize do
-        result = proc.call(@children[index], @options[index])
+        result = proc.call(children[index], @options[index])
         if(result.is_a?(Array)) then
           @options[index] = result[1]
           result = result[0]
         end
-        if(result.is_a?(Gdk::Pixbuf)) then
-          @children[index] = result
-          self.redraw
-        end
+        #if(result.is_a?(Gdk::Pixbuf)) then
+        #  children[index] = result
+        #  self.redraw
+        #end
       end
       true
     end
@@ -176,7 +176,7 @@ class Gtk::IconOverButton < Gtk::EventBox
     self.grid_y.times{ |y|
       self.grid_x.times{ |x|
         index = x + y*grid_x
-        pixbuf = @children[index]
+        pixbuf = children[index]
         if(pixbuf)
           Gtk::Lock.synchronize do
             gw, gh = *self.grid_geometry
@@ -215,13 +215,10 @@ class Gtk::IconOverButton < Gtk::EventBox
       if(widget.is_a?(String)) then
         @children << Gdk::Pixbuf.new(widget, w, h)
       else
-        @children << widget
-      end
+        @children << widget end
       options[:proc] = lambda{ |*args| yield *args } if defined? yield
-      @options << options
-    end
-    self
-  end
+      @options << options end
+    self end
 
   def set_buttonback(usual, over = nil)
     Gtk::Lock.synchronize do
@@ -236,5 +233,16 @@ class Gtk::IconOverButton < Gtk::EventBox
     end
     self
   end
+
+  private
+
+  def children(nth = nil)
+    if(nth)
+      if @children[nth].respond_to? :call
+        @children[nth].call
+      else
+        @children[nth] end
+    else
+      method(:children) end end
 
 end

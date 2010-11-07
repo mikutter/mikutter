@@ -206,6 +206,10 @@ class Message < Retriever::Model
     body.split(//u)[0,140].join
   end
 
+  def to_message
+    self
+  end
+
   def to_show
     body.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }
   end

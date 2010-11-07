@@ -194,11 +194,13 @@ module Gtk
         false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
       post.signal_connect_after('focus_in_event'){
-        mumble = get_ancestor(Gtk::Mumble)
-        if mumble
-          mumble.active
-        else
-          Gtk::Mumble.inactive end }
+        Delayer.new{ Gtk::Mumble.inactive }
+        # mumble = get_ancestor(Gtk::Mumble.superclass)
+        # if mumble.is_a? Gtk::Mumble
+        #   mumble.active
+        # else
+        #   Gtk::Mumble.inactive end
+      }
       return post, w_remain end
 
     def generate_send
@@ -232,8 +234,15 @@ module Gtk
         post.buffer.text = " RT @" + @watch.idname + ": " + @watch[:message]
         post.buffer.place_cursor(post.buffer.start_iter)
       elsif reply?
-        post.buffer.text = '@' + @watch.idname + ' ' + post.buffer.text end
+        post.buffer.text = reply_users + ' ' + post.buffer.text end
       post.accepts_tab = false end
+
+    def reply_users
+      replies = [@watch.idname]
+      if(@options[:subreplies].is_a? Enumerable)
+        replies += @options[:subreplies].map{ |m| m.to_message[:user][:idname] } end
+      replies.uniq.map{ |x| "@#{x}" }.join(' ')
+    end
 
   end
 end

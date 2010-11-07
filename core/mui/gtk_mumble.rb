@@ -26,30 +26,38 @@ module Gtk
 
     attr_accessor :replies
     attr_reader :message
+    alias to_message message
 
     @@contextmenu = Gtk::ContextMenu.new
     @@mumbles = Hash.new{ |h, k| h[k] = [] }
     @@active_mumbles = []
 
     @@contextmenu.registmenu("コピー", lambda{ |m,w|
-                 w.is_a?(Gtk::TextView) and w.buffer.selection_bounds[2] }){ |this, w|
+                               w.is_a?(Gtk::TextView) and
+                               w.buffer.selection_bounds[2] }){ |this, w|
       w.copy_clipboard }
     @@contextmenu.registmenu('本文をコピー', lambda{ |m,w|
-                 w.is_a?(Gtk::TextView) and not w.buffer.selection_bounds[2] }){ |this, w|
+                               Gtk::Mumble.active_mumbles.size == 1 and
+                               w.is_a?(Gtk::TextView) and
+                               not w.buffer.selection_bounds[2] }){ |this, w|
       w.select_all(true)
       w.copy_clipboard
       w.select_all(false) }
     @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.message) }
-    @@contextmenu.registmenu("引用", lambda{ |m,w| m.message.repliable? }){ |this, w|
+      this.gen_postbox(this.message, :subreplies => Gtk::Mumble.active_mumbles) }
+    @@contextmenu.registmenu("引用", lambda{ |m,w|
+                               Gtk::Mumble.active_mumbles.size == 1 and
+                               m.message.repliable? }){ |this, w|
       this.gen_postbox(this.message, :retweet => true) }
     @@contextmenu.registmenu("公式リツイート", lambda{ |m,w|
                                m.message.repliable? and not m.message.from_me? }){ |this, w|
-      this.message.retweet }
+      Gtk::Mumble.active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
     @@contextmenu.registline
-    @@contextmenu.registmenu('削除', lambda{ |m,w| m.message.from_me? }){ |this, w|
-      this.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{this.message.to_show}") }
-    @@contextmenu.registline{ |m, w| m.message.from_me? }
+    delete_condition = lambda{ |m,w| Gtk::Mumble.active_mumbles.all?{ |e| e.message.from_me? } }
+    @@contextmenu.registmenu('削除', delete_condition){ |this, w|
+      Gtk::Mumble.active_mumbles.each { |e|
+        e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } }
+    @@contextmenu.registline(&delete_condition)
 
     def self.contextmenu
       @@contextmenu end
@@ -103,6 +111,7 @@ module Gtk
     end
 
     def gen_postbox(message=@message, options={})
+      options = options.melt
       Lock.synchronize{
         if(message.from_me? and message.receive_message)
           gen_postbox(message.receive_message, options)
@@ -151,7 +160,7 @@ module Gtk
           inactive
           false
         else
-          @@active_mumbles << self
+          @@active_mumbles.unshift(self)
           activate
           true end
       else
@@ -285,13 +294,15 @@ module Gtk
           false }
         signal_connect('button_release_event'){ |widget, event|
           if (event.button == 3)
+            active unless active?
             menu_pop(@body)
             true end }
         signal_connect('button_release_event', &method(:button_release_event))
       } end
 
     def button_release_event(widget, event)
-      active
+      if(event.button == 1)
+        active((event.state & Gdk::Window::CONTROL_MASK) != 0) end
       false end
 
     @last_bg = []
@@ -394,7 +405,7 @@ module Gtk
       end
 
       def favorite
-        add(@@buttons[:fav][@msg.favorite?], :always_show => lambda{ @msg.favorite? }){ |this, options|
+        add(lambda{ @@buttons[:fav][@msg.favorite?] }, :always_show => lambda{ @msg.favorite? }){ |this, options|
           @msg.favorite(!@msg.favorite?)
           options[:always_show] = @msg[:favorited] = !@msg.favorite?
           [@@buttons[:fav][@msg.favorite?], options] } end end

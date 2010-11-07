@@ -442,8 +442,7 @@ class TwitterAPI < Mutex
 
   def unfavorite(id)
     path = "/favorites/destroy/#{id}." + FORMAT
-    res = post_with_auth(path)
-    res
+    post_with_auth(path)
   end
 
   def follow(user)

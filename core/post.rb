@@ -90,12 +90,15 @@ class Post
     @twitter.request_oauth_token
   end
 
-  # 自分のユーザ名を返す。もしユーザ名が分らなければ、サービスに問い合せてそれを返す。
-  def user
+  # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
+  def user_obj
     @user_idname ||= parallel{
       scaned = scan(:verify_credentials, :no_auto_since_id => false)
-      @user_idname = scaned[0][:idname] if scaned }
-  end
+      @user_idname = scaned[0] if scaned } end
+
+  # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
+  def user
+    user_obj[:idname] end
   alias :idname :user
 
   # userと同じだが、サービスに問い合わせずにnilを返すのでブロッキングが発生しない
@@ -213,11 +216,17 @@ class Post
       notice 'Actually, this post does not send.'
     else
       _post(message, :status_show) {|event, msg|
-        if(event == :try)
-          if(fav) then
+        case(event)
+        when :try then
+          if(fav)
             twitter.favorite(msg[:id])
           else
-            twitter.unfavorite(msg[:id]) end end } end end
+            twitter.unfavorite(msg[:id])
+          end
+        when :success then
+          message[:favorited] = fav
+          message.__send__(fav ? :add_favorited_by : :remove_favorited_by, user_obj)
+        end } end end
 
   def streaming(&proc)
     twitter.userstream(&proc)
