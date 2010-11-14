@@ -31,13 +31,21 @@ Module.new do
       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
         if not(@notebook.destroyed?) and res
           followed_list_ids = res.map{|list| list['id'].to_i}
+          locked = {}
           @list = Gtk::ListList.new{ |iter|
-            flag = iter[0] = !iter[0]
-            @service.__send__(flag ? :add_list_member : :delete_list_member,
-                              :list_id => iter[2]['id'],
-                              :idname => @service.user,
-                              :id => user[:id]){ |e, m|
-              iter[0] = !flag unless @list.destroyed? and e == :fail } }
+            if not locked[iter[1]]
+              locked[iter[1]] = true
+              flag = iter[0] # = !iter[0]
+              @service.__send__(flag ? :delete_list_member : :add_list_member,
+                                :list_id => iter[2]['id'],
+                                :idname => @service.user,
+                                :id => user[:id]){ |e, m|
+                case(e)
+                when :success
+                  iter[0] = !flag if not(@list.destroyed?)
+                when :exit
+                  locked[iter[1]] = false
+                end } end }
           @list.set_auto_get{ |list|
             followed_list_ids.include?(list['id'].to_i) }
           @notebook.append_page(@list.show_all,

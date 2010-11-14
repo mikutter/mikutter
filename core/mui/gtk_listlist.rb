@@ -2,7 +2,6 @@
 # ユーザグループリスト用リストビュー
 #
 
-require 'gtk2'
 miquire :mui, 'extension'
 
 class Gtk::ListList < Gtk::ScrolledWindow
@@ -23,9 +22,11 @@ class Gtk::ListList < Gtk::ScrolledWindow
     col.resizable = false
     @view.append_column(col)
 
-    col = Gtk::TreeViewColumn.new('ユーザID', Gtk::CellRendererText.new, :text => 1)
+    col = Gtk::TreeViewColumn.new('リスト名', Gtk::CellRendererText.new, :text => 1)
     col.resizable = true
     @view.append_column(col)
+    @view.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, columnm, key, iter|
+      not iter[columnm].include?(key) }
   end
 
   def set_auto_get(&proc)

@@ -34,14 +34,16 @@ module Plugin
 
     def initialize
       @tab_log = ['Home Timeline']
-      @memo_color = memoize{ |r,g,b|
-        Gtk::Lock.synchronize do
-          c = Gdk::Color.new(r*255,g*255,b*255)
-          Gdk::Colormap.system.alloc_color(c, false, true)
-          c
-        end
-      }
     end
+
+    def color(r, g, b)
+      Gtk::Lock.synchronize do
+        c = Gdk::Color.new(r*255,g*255,b*255)
+        Gdk::Colormap.system.alloc_color(c, false, true)
+        c
+      end
+    end
+    memoize :color
 
     def onboot(watch)
       if((Gtk::BINDING_VERSION <=> [0, 19, 3]) < 0)
@@ -278,9 +280,6 @@ module Plugin
           windows }
         window end end
 
-    def color(r, g, b)
-      @memo_color.call(r, g, b)
-    end
   end
 
   class Executer

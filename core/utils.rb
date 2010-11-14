@@ -342,16 +342,16 @@ end
 
 # ブロックにメモ化機能をつける。複数の引数に対応する。
 # 引数の同一判定は _==_ を使う。
-def memoize
-  memo = Hash.new
-  lambda{ |*args|
-    if(memo.include?(args)) then
-      memo[args]
-    else
-      memo[args] = yield(*args)
-    end
-  }
-end
+# def memoize
+#   memo = Hash.new
+#   lambda{ |*args|
+#     if(memo.include?(args)) then
+#       memo[args]
+#     else
+#       memo[args] = yield(*args)
+#     end
+#   }
+# end
 
 # 文字列をエンティティデコードする
 def entity_unescape(str)
@@ -365,16 +365,17 @@ def bg_system(*args)
 end
 
 class Object
+  # すべてのクラスにメモ化機能を
+  miquire :lib, 'memoize'
+  include Memoize
+
   def self.defun(method_name, *args, &proc)
     define_method(method_name, &tclambda(*args, &proc)) end
 
   # freezeされていない同じ内容のオブジェクトを作って返す。
-  # メルト　溶けてしまいそう　dupだなんて　絶対に　言えない
+  # メルト　溶けてしまいそう　（実装が）dupだなんて　絶対に　言えない
   def melt
-    if frozen?
-      dup
-    else
-      self end end end
+    if frozen? then dup else self end end end
 
 #
 # integer

@@ -114,6 +114,9 @@ module Gtk
         col.resizable = true
         treeview.append_column col
 
+        treeview.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, columnm, key, iter|
+          not iter[columnm].include?(key) }
+
         treeview.signal_connect("row-activated") do |view, path, column|
           puts "Row #{path.to_str} was clicked!"
           if iter = view.model.get_iter(path)
