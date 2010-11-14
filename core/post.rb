@@ -333,7 +333,13 @@ class Post
       cnv[:favorited] = !!msg['favorited']
       cnv[:created] = Time.parse(msg['created_at'])
       if user_retrieve
-        cnv[:user] = User.findbyid(msg['user']['id']) or scan_rule(:user_show, msg['user'])
+        begin
+          cnv[:user] = User.findbyid(msg['user']['id']) or scan_rule(:user_show, msg['user'])
+        rescue => e
+          pp msg
+          error e
+          eixt
+        end
       else
         cnv[:user] = scan_rule(:user_show, msg['user']) end
       cnv[:retweet] = scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']

@@ -37,17 +37,17 @@ Module.new do
       return nil if not /^\{.*\}$/ === query
       json = JSON.parse(query)
       case
-      when json['friends']
-      when json['event'] == 'favorite'
+      when json['friends'] then
+      when json['event'] == 'favorite' then
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)
         to.first.add_favorited_by(by.first)
-      when json['event'] == 'unfavorite'
+      when json['event'] == 'unfavorite' then
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)
         to.first.remove_favorited_by(by.first)
-      when json['delete']
-      else
+      when json['delete'] then
+      when !json.has_key?('event') then
         messages = @service.__send__(:parse_json, json, :streaming_status)
         if messages
           messages.each{ |msg|

@@ -74,7 +74,7 @@ Module.new do
             throw :imgtag_match end } }
       unless attribute.empty?
         return attribute['src'] end end
-    warn "<img> not found '/<img[^>]+id=\"#{Regexp.escape(id)}\".*?>/'"
+    warn "<img> not found '/<img[^>]+id=\"#{Regexp.escape(id.to_s)}\".*?>/'"
     nil end
 
   def self.imgurlresolver(url, element_rule)
