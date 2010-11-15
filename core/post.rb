@@ -92,13 +92,15 @@ class Post
 
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
-    @user_idname ||= parallel{
+    @user_obj ||= parallel{
       scaned = scan(:verify_credentials, :no_auto_since_id => false)
-      @user_idname = scaned[0] if scaned } end
+      @user_obj = scaned[0] if scaned } end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
-    user_obj[:idname] end
+    @user_idname ||= parallel{
+      scaned = user_obj
+      @user_idname = scaned[:idname] if scaned and scaned[:idname] } end
   alias :idname :user
 
   # userと同じだが、サービスに問い合わせずにnilを返すのでブロッキングが発生しない

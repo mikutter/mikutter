@@ -53,6 +53,10 @@ Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'
 miquire :lib, 'lazy'
 
+# すべてのクラスにメモ化機能を
+miquire :lib, 'memoize'
+include Memoize
+
 # Config::CONFROOT内のファイル名を得る。
 #   confroot(*path)
 # は
@@ -340,19 +344,6 @@ def atomic
   result
 end
 
-# ブロックにメモ化機能をつける。複数の引数に対応する。
-# 引数の同一判定は _==_ を使う。
-# def memoize
-#   memo = Hash.new
-#   lambda{ |*args|
-#     if(memo.include?(args)) then
-#       memo[args]
-#     else
-#       memo[args] = yield(*args)
-#     end
-#   }
-# end
-
 # 文字列をエンティティデコードする
 def entity_unescape(str)
   str.gsub(/&(.{2,3});/){|s| {'gt'=>'>', 'lt'=>'<', 'amp'=>'&'}[$1] }
@@ -364,10 +355,14 @@ def bg_system(*args)
   system('sh', '-c', cmd)
 end
 
+def wakachigaki(str)
+  IO.popen('mecab -Owakati', 'r+'){ |io|
+    io.write(str);
+    io.close_write
+    io.read } end
+memoize :wakachigaki
+
 class Object
-  # すべてのクラスにメモ化機能を
-  miquire :lib, 'memoize'
-  include Memoize
 
   def self.defun(method_name, *args, &proc)
     define_method(method_name, &tclambda(*args, &proc)) end
@@ -587,6 +582,7 @@ end
 #
 
 class String
+  # 文字数を数える。1.9の String#size と同じ
   def strsize
     self.split(//u).size
   end
@@ -614,12 +610,9 @@ class String
 
   # 日本語の分かち書きをする
   def to_wakati()
-    IO.popen('mecab -Owakati', 'r+'){ |io|
-      io.write(self);
-      io.close_write
-      io.read
-    }
+    wakachigaki(self)
   end
+  alias to_wakachi to_wakati
 
   def matches(regexp)
     result = []

@@ -45,6 +45,10 @@ module Gtk
       w.select_all(false) }
     @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
       this.gen_postbox(this.message, :subreplies => Gtk::Mumble.active_mumbles) }
+    @@contextmenu.registmenu("全員に返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
+      this.gen_postbox(this.message,
+                       :subreplies => this.message.ancestors,
+                       :exclude_myself => true) }
     @@contextmenu.registmenu("引用", lambda{ |m,w|
                                Gtk::Mumble.active_mumbles.size == 1 and
                                m.message.repliable? }){ |this, w|

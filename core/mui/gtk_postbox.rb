@@ -1,4 +1,9 @@
 # -*- coding:utf-8 -*-
+=begin
+= Gtk::PostBox
+つぶやき入力ボックス。
+=end
+
 require 'gtk2'
 require 'thread'
 
@@ -10,6 +15,7 @@ module Gtk
     @@ringlock = Mutex.new
     @@postboxes = []
 
+    # 既存のGtk::PostBoxのインスタンスを返す
     def self.list
       return @@postboxes
     end
@@ -75,7 +81,8 @@ module Gtk
           true end } end
 
     def service
-      (retweet? ? @watch.service : @watch) end
+      # (retweet? ? @watch.service : @watch)
+      @watch end
 
     def post_it
       Gtk::Lock.synchronize{
@@ -240,7 +247,10 @@ module Gtk
     def reply_users
       replies = [@watch.idname]
       if(@options[:subreplies].is_a? Enumerable)
-        replies += @options[:subreplies].map{ |m| m.to_message[:user][:idname] } end
+        replies += @options[:subreplies].map{ |m| m.to_message.idname } end
+      if @options[:exclude_myself]
+        replies = replies.select{|x| x != @watch.service.idname }
+      end
       replies.uniq.map{ |x| "@#{x}" }.join(' ')
     end
 

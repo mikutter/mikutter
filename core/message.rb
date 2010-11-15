@@ -1,6 +1,4 @@
-#
-# message.rb
-#
+# -*- coding:utf-8 -*-
 
 require File.expand_path('utils')
 miquire :core, 'autotag'
@@ -9,6 +7,10 @@ miquire :core, 'retriever'
 
 require 'net/http'
 
+=begin
+= Message
+投稿１つを表すクラス。
+=end
 class Message < Retriever::Model
   @@system_id = 0
 
@@ -38,9 +40,11 @@ class Message < Retriever::Model
                [:created, :time],         # posted time
              ]
 
+  # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
+  # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
     assert_type(Hash, value)
-    value.update(self.system) if value[:system]
+    value.update(system) if value[:system]
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
     super(value)
@@ -49,17 +53,12 @@ class Message < Retriever::Model
     if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
       self[:message] = MessageConverters.expand_url_all(value[:message]) end end
 
-  def system
-    { :id => @@system_id += 1,
-      :user => User.system,
-      :created => Time.now }
-  end
-
+  # 投稿主のidnameを返す
   def idname
     self[:user][:idname]
   end
 
-  # このつぶやきへのリプライをつぶやく
+  # この投稿へのリプライをつぶやく
   def post(other, &proc)
     other[:replyto] = self
     other[:receiver] = self[:user]
@@ -75,15 +74,17 @@ class Message < Retriever::Model
     self.service.retweet(self){|*a| yield *a if block_given? } if self.service
   end
 
+  # この投稿を削除する
   def destroy
     self.service.destroy(self){|*a| yield *a if block_given? } if self.service
   end
 
-  # ふぁぼる／ふぁぼ解除
+  # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
   def favorite(fav)
     self.service.favorite(self, fav)
   end
 
+  # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
     if self[:favorited].is_a?(String) then
       self[:favorited] = self[:favorited] == 'true'
@@ -92,31 +93,37 @@ class Message < Retriever::Model
     end
   end
 
+  # この投稿をお気に入りに追加する権限があればtrueを返す。
   def favoriable?
     not system?
   end
 
-  def <<(msg)
-    if (msg.instance_of Symbol)
-      self[:tags] << msg
-    else
-      self[:message] << msg
-    end
-  end
+  # obsolete
+  # def <<(msg)
+  #   if (msg.instance_of Symbol)
+  #     self[:tags] << msg
+  #   else
+  #     self[:message] << msg
+  #   end
+  # end
 
+  # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
     self[:system]
   end
 
+  # この投稿にリプライする権限があればtrueを返す
   def repliable?
     self.service != nil
   end
 
+  # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?
     return false if self.system?
     self[:user] == self.service.user if self.service
   end
 
+  # この投稿が自分宛ならばtrueを返す
   def to_me?
     return true if self.system?
     if self.service
@@ -126,27 +133,34 @@ class Message < Retriever::Model
     false
   end
 
+  # この投稿の投稿主を返す
   def user
     self.get(:user, -1) end
 
+  # この投稿のServiceオブジェクトを返す
   def service
     if self[:post] then
       self[:post]
     elsif self.receive_message then
       self[:post] = self.receive_message.service end end
 
-  # return receive user
+  # この投稿を宛てられたユーザを返す
   def receiver
-    @receiver ||= if self[:receiver].is_a? User
-                    self[:receiver]
-                  elsif self[:receiver]
-                    self[:receiver] = User.findbyid(self[:receiver])
-                  else
-                    match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
-                    if match
-                      result = User.findbyidname(match[1])
-                      self[:receiver] = result if result end end end
+    if self[:receiver].is_a? User
+      self[:receiver]
+    elsif self[:receiver]
+      self[:receiver] = User.findbyid(self[:receiver])
+    else
+      match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
+      if match
+        result = User.findbyidname(match[1])
+        self[:receiver] = result if result end end end
+  memoize :receiver
 
+  # この投稿が別の投稿に宛てられたものならそれを返す。
+  # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
+  # 親投稿を受信していなくてもこの時受信できるが、スレッドがブロッキングされる。
+  # falseならサーバに問い合わせずに結果を返す。
   def receive_message(force_retrieve=false)
     count = if(force_retrieve) then -1 else 1 end
     reply = get(:replyto, count) or get(:retweet, count)
@@ -154,39 +168,40 @@ class Message < Retriever::Model
       reply.add_child(self) end
     reply end
 
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
+  # ブロックが呼ばれる。
+  # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
   def each_ancestors(force_retrieve=false, &proc)
     proc.call(self)
     parent = receive_message(force_retrieve)
     parent.each_ancestors(force_retrieve, &proc) if parent
   end
 
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それらを配列にして返す。
+  # 配列インデックスが大きいものほど、早く投稿された投稿になる。
+  # （[0]は[1]へのリプライ）
   def ancestors(force_retrieve=false)
     parent = receive_message(force_retrieve)
     return [self, *parent.ancestors(force_retrieve)] if parent
-    [self]
-  end
+    [self] end
+  memoize :ancestors
 
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、何にも宛てられていない投稿を返す。
+  # つまり、一番祖先を返す。
   def ancestor(force_retrieve=false)
-    ancestors(force_retrieve).last
-  end
+    ancestors(force_retrieve).last end
 
-  def add_child(child)
-    children << child end
-
+  # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    @children ||= Set.new(Message.selectby(:replyto, self[:id])) end
+    Set.new(Message.selectby(:replyto, self[:id])) end
+  memoize :children
 
+  # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
-    @favorited ||= Set.new() end
+    Set.new() end
+  memoize :favorited_by
 
-  def add_favorited_by(user)
-    favorited_by.add(user)
-    Plugin.call(:favorite, service, user, self) end
-
-  def remove_favorited_by(user)
-    favorited_by.delete(user)
-    Plugin.call(:unfavorite, service, user, self) end
-
+  # 本文を返す
   def body
     result = [self[:message]]
     begin
@@ -200,22 +215,48 @@ class Message < Retriever::Model
     rescue Exception => e
       error e
       abort end
-    result.join(' ') end
+    result.join(' ').freeze end
+  memoize :body
 
+  # 本文を返す。投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
-    body.split(//u)[0,140].join
-  end
+    body.split(//u)[0,140].join.freeze end
+  memoize :to_s
 
+  # selfを返す
   def to_message
-    self
-  end
+    self end
 
+  # 本文を人間に読みやすい文字列に変換する
   def to_show
-    body.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }
-  end
+    body.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }.freeze end
+  memoize :to_show
 
+  # :nodoc:
   def marshal_dump
     raise RuntimeError, 'Message cannot marshalize'
+  end
+
+  # :nodoc:
+  def add_favorited_by(user)
+    favorited_by.add(user)
+    Plugin.call(:favorite, service, user, self) end
+
+  # :nodoc:
+  def remove_favorited_by(user)
+    favorited_by.delete(user)
+    Plugin.call(:unfavorite, service, user, self) end
+
+  # :nodoc:
+  def add_child(child)
+    children << child end
+
+  private
+
+  def system
+    { :id => @@system_id += 1,
+      :user => User.system,
+      :created => Time.now }
   end
 
   #
