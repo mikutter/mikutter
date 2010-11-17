@@ -77,7 +77,10 @@ Module.new do
     warn "<img> not found '/<img[^>]+id=\"#{Regexp.escape(id.to_s)}\".*?>/'"
     nil end
 
-  def self.imgurlresolver(url, element_rule)
+  def self.imgurlresolver(url, element_rule, block = nil)
+    if block != nil
+      return block.call(url)
+    end
     res = dom = nil
     begin
       res = Net::HTTP.get_response(URI.parse(url))
@@ -90,11 +93,24 @@ Module.new do
       warn e
       nil end end
 
-  def self.addsupport(cond, element_rule)
+  def self.addsupport(cond, element_rule, &block)
     element_rule.freeze
-    Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
-      Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
-        display(url, cancel) } } end
+    if block == nil
+      Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
+        Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
+          display(url, cancel)
+        }
+      }
+    else
+      Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
+        Delayer.new(Delayer::NORMAL, Thread.new{
+          imgurlresolver(url, element_rule, block)
+        }) {|url|
+          display(url, cancel)
+        }
+      }
+    end
+  end
 
   # Twitpic
   addsupport(/^http:\/\/twitpic\.com\/[a-zA-Z0-9]+/, 'id' => 'photo-display')
@@ -109,8 +125,17 @@ Module.new do
   addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
   addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
 
-  # plixi (うごかん)
-  # addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo')
+  # plixi 参考: http://groups.google.com/group/plixi/web/fetch-photos-from-url
+  addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url|
+    addr = "http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=" + url
+    response = Net::HTTP.get_response(URI.parse(addr))
+    if response.is_a?(Net::HTTPRedirection)
+      response['location']
+    else
+      warn "plixi url failed"
+      nil
+    end
+  }
 
   Gtk::IntelligentTextview.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
     Delayer.new{ display(url, cancel) }

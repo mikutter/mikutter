@@ -238,7 +238,7 @@ module Gtk
         post.buffer.text = @options[:delegated_by].post.buffer.text
         @options[:delegated_by].post.buffer.text = ''
       elsif retweet?
-        post.buffer.text = " RT @" + @watch.idname + ": " + @watch[:message]
+        post.buffer.text = " RT @" + @watch.idname + ": " + @watch.to_show
         post.buffer.place_cursor(post.buffer.start_iter)
       elsif reply?
         post.buffer.text = reply_users + ' ' + post.buffer.text end
