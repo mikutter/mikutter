@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 miquire :mui, 'skin'
 miquire :addon, 'addon'
@@ -52,5 +53,3 @@ Module.new do
         tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i) }
       tab.timeline.add(rel) if not rel.empty? } }
 end
-
-# Plugin::Ring.push Addon::SmartThread.new,[:boot, :update]

@@ -7,6 +7,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
 miquire :mui, 'webicon'
 miquire :mui, 'intelligent_textview'
 miquire :core, 'delayer'
+miquire :core, 'userconfig'
+miquire :lib, 'piapro'
 
 Module.new do
   DEFAULT_SIZE = [640, 480].freeze # !> `*' interpreted as argument prefix
@@ -31,7 +33,8 @@ Module.new do
     size = DEFAULT_SIZE
     Thread.new{ # !> method redefined; discarding old inspect
       url = url.value if url.is_a? Thread
-      if not(url.respond_to?(:to_s))
+      p url
+      if not(url) or not(url.respond_to?(:to_s))
         Delayer.new{
           if cancel
             w.destroy
@@ -63,21 +66,25 @@ Module.new do
       attribute[key] = val }
     attribute.freeze end
 
-  def self.get_imgsrc(dom, element_rule)
+  def self.get_tagattr(dom, element_rule)
+    element_rule = element_rule.melt
+    tag_name = element_rule['tag'] or 'img'
+    attr_name = element_rule.has_key?('attribute') ? element_rule['attribute'] : 'src'
+    element_rule.delete('tag')
+    element_rule.delete('attribute')
     if dom
       attribute = {}
       catch(:imgtag_match){
-        dom.each_matches(/<img.*?>/){ |str, pos|
+        dom.each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
           attr = get_tag_by_attributes(str.to_s)
           if element_rule.all?{ |k, v| v === attr[k] }
             attribute = attr.freeze
             throw :imgtag_match end } }
       unless attribute.empty?
-        return attribute['src'] end end
-    warn "<img> not found '/<img[^>]+id=\"#{Regexp.escape(id.to_s)}\".*?>/'"
+        return attr_name ? attribute[attr_name.to_s] : attribute end end
     nil end
 
-  def self.imgurlresolver(url, element_rule, block = nil)
+  def self.imgurlresolver(url, element_rule, &block)
     if block != nil
       return block.call(url)
     end
@@ -85,7 +92,7 @@ Module.new do
     begin
       res = Net::HTTP.get_response(URI.parse(url))
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-        get_imgsrc(res.body, element_rule)
+        get_tagattr(res.body, element_rule)
       else
         warn "#{res.code} failed"
         nil end
@@ -93,7 +100,7 @@ Module.new do
       warn e
       nil end end
 
-  def self.addsupport(cond, element_rule, &block)
+  def self.addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
     if block == nil
       Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
@@ -104,8 +111,8 @@ Module.new do
     else
       Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
         Delayer.new(Delayer::NORMAL, Thread.new{
-          imgurlresolver(url, element_rule, block)
-        }) {|url|
+                      imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
+                    }) {|url|
           display(url, cancel)
         }
       }
@@ -126,7 +133,7 @@ Module.new do
   addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
 
   # plixi 参考: http://groups.google.com/group/plixi/web/fetch-photos-from-url
-  addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url|
+  addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url, cancel|
     addr = "http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=" + url
     response = Net::HTTP.get_response(URI.parse(addr))
     if response.is_a?(Net::HTTPRedirection)
@@ -137,17 +144,38 @@ Module.new do
     end
   }
 
+  # piapro
+  piaproaccount = piaprocookie = nil
+  addsupport(/^http:\/\/piapro.jp\/content\/[a-zA-Z0-9]+/){ |url, cancel|
+    if piaproaccount != [UserConfig[:piapro_username], UserConfig[:piapro_password]]
+      piaproaccount = [UserConfig[:piapro_username], UserConfig[:piapro_password]]
+      piaprocookie = lazy{ PIAPRO::Auth.auth(UserConfig[:piapro_username], UserConfig[:piapro_password], 1) } end
+    url = imgurlresolver(url, 'tag' => 'a', 'attribute' => 'href',
+                         'href' => Regexp.new("^" + Regexp.escape("http://piapro.jp/download/?view=content_image&id=") + "[a-zA-Z0-9]+"))
+    if url
+      PIAPRO::Download.new(:cookie => piaprocookie).download_url(url, Gtk::WebIcon.get_filename(url))
+    end }
+
   Gtk::IntelligentTextview.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
     Delayer.new{ display(url, cancel) }
   }
 
+  Plugin::create(:openimg).add_event(:boot){ |service|
+    container = Gtk::VBox.new(false, 8).
+    closeup(Mtk.accountdialog_button('piapro アカウント設定',
+                                  :piapro_username, 'ユーザ名',
+                                  :piapro_password, 'パスワード'){ |user, pass|
+              true })
+    Plugin.call(:setting_tab_regist, container, '画像プレビュー') }
+
   if $0 == __FILE__
+    $debug = true
+    seterrorlevel(:notice)
     w = Gtk::Window.new
     w.signal_connect(:destroy){ Gtk::main_quit }
     w.show_all
-    url = 'http://movapic.com/oriori/pic/1714939'
-    Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\// ) }){ |url|
-      display(url) }
+    url = 'http://piapro.jp/content/h7e1cgpq3nujg93g'
+    Gtk::IntelligentTextview.openurl(url)
     Gtk.timeout_add(1000){
       Delayer.run
       true

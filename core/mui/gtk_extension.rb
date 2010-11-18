@@ -1,4 +1,5 @@
 require File.expand_path('utils')
+miquire :core, 'userconfig'
 
 require 'gtk2'
 require 'monitor'
