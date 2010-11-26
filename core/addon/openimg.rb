@@ -90,9 +90,12 @@ Module.new do
     end
     res = dom = nil
     begin
-      res = Net::HTTP.get_response(URI.parse(url))
+      uri = URI.parse(url)
+      res = Net::HTTP.new(uri.host).get(uri.path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-        get_tagattr(res.body, element_rule)
+        result = get_tagattr(res.body, element_rule)
+        notice result
+        result
       else
         warn "#{res.code} failed"
         nil end
@@ -127,6 +130,9 @@ Module.new do
 
   # Twipple Photo
   addsupport(/^http:\/\/p\.twipple\.jp\/[a-zA-Z0-9]+/, 'id' => 'post_image')
+
+  # Moby picture
+  addsupport(Regexp.new("^http://moby.to/[a-zA-Z0-9]+"), 'id' => 'main_picture')
 
   # 携帯百景
   addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)

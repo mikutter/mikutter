@@ -55,19 +55,18 @@ Module.new do
   about = Gtk::Button.new("#{Environment::NAME} について")
   about.signal_connect("clicked"){
     dialog = Gtk::AboutDialog.new.show
-    dialog.name = dialog.program_name = 'mikutter'
+    dialog.name = dialog.program_name = Environment::NAME
     dialog.version = Environment::VERSION.to_s
     dialog.copyright = '2009-2010 Toshiaki Asai'
     dialog.comments = "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 圧倒的なかわいさではないか我がミクは
 
-このソフトウェアは GPL3 によって浄化されています。"+
-    'e' * 39
+このソフトウェアは GPL3 によって浄化されています。"
     dialog.license = file_get_contents('../LICENSE') rescue nil
     dialog.website = 'http://mikutter.d.hachune.net/'
     dialog.logo = Gtk::WebIcon.new(MUI::Skin.get('icon.png')).pixbuf rescue nil
-    dialog.authors = ['toshi_a', 'Phenomer']
+    dialog.authors = ['toshi_a', 'Phenomer', 'tana_ash']
     dialog.artists = ['toshi_a', 'soramame_bscl']
     dialog.documenters = ['toshi_a']
     dialog.signal_connect('response') { dialog.destroy } }
