@@ -51,7 +51,7 @@ class Message < Retriever::Model
     if self[:replyto].is_a? Message
       self[:replyto].add_child(self) end
     if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
-      self[:message] = parallel{ self[:message] = MessageConverters.expand_url_all(value[:message]) } end end
+      self[:message] = MessageConverters.expand_url_all(value[:message]) end end
 
   # 投稿主のidnameを返す
   def idname

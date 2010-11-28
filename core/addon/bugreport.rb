@@ -66,7 +66,7 @@ Module.new do
   def self.send
     Thread.new{
       begin
-        Net::HTTP.start('mikutter.d.hachune.net'){ |http|
+        Net::HTTP.start('mikutter.hachune.net'){ |http|
           param = encode_parameters({ 'backtrace' => backtrace,
                                       'svn' => revision,
                                       'ruby_version' => RUBY_VERSION,
