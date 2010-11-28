@@ -296,13 +296,13 @@ module Plugin
       yield(:start, nil)
       result = nil
       begin
-        result = miku(MIKU.parse(args[:message]), @@toplevel)
+        result = miku(MIKU.parse(args[:message].to_s), @@toplevel)
         yield(:success, result)
       rescue Exception, RuntimeError=> e
         result = e
         yield(:fail, e) end
       Plugin.call(:update, nil, [Message.new(:message => result.inspect,
-                                             :replyto => Message.new(:message => args[:message],
+                                             :replyto => Message.new(:message => args[:message].to_s,
                                                                      :system => true),
                                              :system => true)]) end end
 

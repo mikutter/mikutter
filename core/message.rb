@@ -128,7 +128,7 @@ class Message < Retriever::Model
     return true if self.system?
     if self.service
       return true if self.receiver == self.service.user
-      return true if self[:message].include?(self.service.user)
+      return true if self[:message].to_s.include?(self.service.user)
     end
     false
   end
@@ -151,7 +151,7 @@ class Message < Retriever::Model
     elsif self[:receiver]
       self[:receiver] = User.findbyid(self[:receiver])
     else
-      match = (/@([a-zA-Z0-9_]+)/).match(self[:message])
+      match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -203,14 +203,15 @@ class Message < Retriever::Model
 
   # 本文を返す
   def body
-    result = [self[:message]]
+    text = self[:message].to_s.freeze
+    result = [text]
     begin
       if self[:tags].is_a?(Array)
-        result << self[:tags].select{|i| not self[:message].include?(i) }.map{|i| "##{i.to_s}"} end
+        result << self[:tags].select{|i| not text.include?(i) }.map{|i| "##{i.to_s}"} end
       if not receiver.nil?
         if self[:retweet] and self.receive_message(true)
           result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
-        elsif not(self[:message].include?("@#{receiver[:idname]}"))
+        elsif not(text.include?("@#{receiver[:idname]}"))
           result = ["@#{receiver[:idname]}", result] end end
     rescue Exception => e
       error e
