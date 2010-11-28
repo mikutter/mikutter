@@ -5,10 +5,11 @@ mikutter - the moest twitter client
 
 * 用件
 ** 必須アプリケーション:
-***ruby (1.8以上)
+***ruby (1.8.7)
 - libgnome2-ruby
 - libopenssl-ruby
 - libhmac-ruby
+rubyは1.8.7(1.8系統最新)でしか動きません。1.8.6以前では動かないことが確認されています
 
 ***プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
@@ -38,7 +39,7 @@ mikutter - the moest twitter client
   2. ruby mikutter.rb --debug とすると、人柱気分が味わえます。
 
 ** 起動
-   単純に、いかのようなコマンドで実行できます。
+   単純に、以下のようなコマンドで実行できます。
    :ruby mikutter.rb
    - Mac OS X
          portでrubyを入れて、以下のコマンドで起動して下さい。
@@ -56,7 +57,8 @@ mikutter - the moest twitter client
 
 | ファイル名        | 説明                                                     |
 |-------------------+----------------------------------------------------------|
-| icon/             | アイコンなど、画像のキャッシュ。                         |
+| cache/            | Twitter APIのレスポンスのキャッシュ                      |
+| icon/             | アイコンなど、画像のキャッシュ                           |
 | p_store_values.db | 設定やアカウント情報などが保存されるデータベースファイル |
 | logs/             | エラーログなど                                           |
 | tmp/              | 一時ファイル                                             |
@@ -76,7 +78,7 @@ mikutter - the moest twitter client
    [[http://toshia.dip.jp/]]
    仮タイトルのまま定着してしまった至高のウェブページ
 ** mikutter
-   [[http://mikutter.d.hachune.net/]]
+   [[http://mikutter.hachune.net/]]
    ネタで改良されていっている究極のクライアント
 ** hachune.net
    [[http://hachune.net/]]
