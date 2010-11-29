@@ -340,7 +340,7 @@ class Post
         rescue => e
           pp msg
           error e
-          eixt
+          abort
         end
       else
         cnv[:user] = scan_rule(:user_show, msg['user']) end

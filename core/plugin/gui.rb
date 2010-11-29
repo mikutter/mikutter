@@ -296,7 +296,8 @@ module Plugin
       yield(:start, nil)
       result = nil
       begin
-        result = miku(MIKU.parse(args[:message].to_s), @@toplevel)
+        # result = miku(MIKU.parse(args[:message].to_s), @@toplevel)
+        result = eval(args[:message].to_s)
         yield(:success, result)
       rescue Exception, RuntimeError=> e
         result = e

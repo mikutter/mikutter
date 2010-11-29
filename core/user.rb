@@ -85,6 +85,9 @@ class User < Retriever::Model
     end
   end
 
+  def is_me?(service = @value[:post])
+    service and service.user_obj == self end
+
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'
   end
