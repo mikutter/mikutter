@@ -42,16 +42,24 @@ module Gtk
         @tl.children.each(&iter) } end
 
     def favorite(user, message)
-      mumble = find{ |m| m[:id].to_i == message[:id].to_i }
+      mumble = get_mumble_by(message)
       mumble.favorite(user) if mumble
       self
     end
 
     def unfavorite(user, message)
-      mumble = find{ |m| m[:id].to_i == message[:id].to_i }
+      mumble = get_mumble_by(message)
       mumble.unfavorite(user) if mumble
       self
     end
+
+    # messageの場所を見直す
+    def modified(message)
+      mumble = get_mumble_by(message)
+      if mumble
+        @tl.remove(mumble)
+        mumble.destroy
+        block_add(message) end end
 
     def add(message)
       timeline{
@@ -76,6 +84,8 @@ module Gtk
       Lock.synchronize do
         removes, appends = *messages.partition{ |m| m[:rule] == :destroy }
         remove_if_exists_all(removes)
+        retweets, appends = *messages.partition{ |m| m[:retweet] }
+        add_retweets(retweets)
         @tl.pack_all(appends.map{ |m| Gtk::Mumble.new(m).show_all }, false)
         if self.vadjustment.value != 0 or self.has_mumbleinput? then
           if self.should_return_top? then
@@ -129,10 +139,20 @@ module Gtk
         return true if w.get_ancestor(Gtk::TimeLine) == self }
       false end
 
+    private
+
+    def add_retweets(messages)
+      messages.each{ |message|
+        parent = get_mumble_by(message[:retweet])
+        if parent
+          parent.retweeted(message[:user])
+        elsif message[:retweet]
+          block_add(message[:retweet]) end } end
+
     def gen_timeline
       Lock.synchronize do
         container = Gtk::EventBox.new
-        box = Gtk::PriorityVBox.new(false, 0){ |widget| [widget[:created], widget[:id].to_i] }
+        box = Gtk::PriorityVBox.new(false, 0){ |widget| [widget.modified, widget[:id].to_i] }
         container.add(box)
         #box.spacing = 16
         style = Gtk::Style.new()
@@ -140,6 +160,10 @@ module Gtk
         container.style = style
         return container, box
       end
+    end
+
+    def get_mumble_by(message)
+      find{ |m| m[:id].to_i == message[:id].to_i }
     end
 
     def self.addlinkrule(reg, &proc)
@@ -161,6 +185,10 @@ Module.new do
   plugin.add_event(:unfavorite){ |service, fav_by, message|
     Gtk::TimeLine.timelines.each{ |tl|
       tl.unfavorite(fav_by, message) if tl.include?(message) }
+  }
+  plugin.add_event(:message_modified){ |message|
+    Gtk::TimeLine.timelines.each{ |tl|
+      tl.modified(message) if tl.include?(message) }
   }
   plugin.add_event(:destroyed){ |messages|
     Gtk::TimeLine.timelines.each{ |tl|

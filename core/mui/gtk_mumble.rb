@@ -94,6 +94,9 @@ module Gtk
     def [](key)
       @message[key] end
 
+    def modified
+      @message.modified end
+
     def <=>(other)
       if defined?(other.to_a)
         to_a <=> other.to_a
@@ -140,6 +143,9 @@ module Gtk
     def favorited_by
       @favorited_by ||= message.favorited_by.to_a end
 
+    def retweeted_by
+      @retweeted_by ||= message.retweeted_by.to_a end
+
     def favorite(user)
       unless(favorited_by.include?(user))
         fav_box.closeup(icon(user, 24).show_all)
@@ -154,6 +160,14 @@ module Gtk
         favorited_by.delete_at(idx)
         fav_box.remove(fav_box.children[idx])
         rewind_fav_count! end end
+
+    def retweeted(user)
+      unless(retweeted_by.include?(user))
+        retweeted_box.closeup(icon(user, 24).show_all)
+        retweeted_by << user
+        rewind_retweeted_count!
+      end
+    end
 
     # このメッセージを選択状態にする。
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
@@ -198,6 +212,14 @@ module Gtk
         fav_label.hide_all.set_no_show_all(true)
       else
         fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
+      end
+    end
+
+    def rewind_retweeted_count!
+      if(retweeted_box.children.size == 0)
+        retweeted_label.hide_all.set_no_show_all(true)
+      else
+        retweeted_label.set_text("#{retweeted_box.children.size} RT ").set_no_show_all(false).show_all
       end
     end
 
@@ -327,7 +349,7 @@ module Gtk
         @in_reply_to = @fav_label = @fav_box = @replies = @icon_over_button = nil } end
 
     def append_contents
-      msg = @message[:retweet] || @message
+      msg = @message
       if msg
         Lock.synchronize{
           breakout!
@@ -337,7 +359,7 @@ module Gtk
           shell.border_width = 4
           mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
           mumble.add(gen_reply(msg))
-          mumble.add(gen_retweet(@message)) if @message[:retweet]
+          mumble.add(gen_retweeted)
           mumble.add(gen_favorite)
           mumble.add(@replies)
           add(shell.add(container.add(mumble))).set_height_request(-1).show_all } end end
@@ -351,10 +373,19 @@ module Gtk
             reply.add(gen_minimumble(parent).show_all) } end }
       reply end
 
-    def gen_retweet(msg)
-      Gtk::HBox.new(false, 4).closeup(Gtk::Label.new('ReTweeted by ' + msg.user[:idname])).
-        closeup(icon(msg, 24)).right
+    def gen_retweeted
+      result = Gtk::HBox.new(false, 4).closeup(retweeted_label).closeup(retweeted_box).right
+      retweeted_by.each{ |user|
+        retweeted_box.closeup(icon(user, 24).show_all) }
+      Delayer.new{ rewind_retweeted_count! }
+      result
     end
+
+    def retweeted_label
+      @retweeted_label ||= Gtk::Label.new('').set_no_show_all(true) end
+
+    def retweeted_box
+      @retweeted_box ||= Gtk::HBox.new(false, 4) end
 
     def gen_favorite
       result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right

@@ -41,7 +41,7 @@ Module.new do
       when json['event'] == 'favorite' then
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)
-        to.first.add_favorited_by(by.first)
+        to.first.add_favorited_by(by.first, Time.parse(json['created_at']))
       when json['event'] == 'unfavorite' then
         by = @service.__send__(:parse_json, json['source'], :user_show)
         to = @service.__send__(:parse_json, json['target_object'], :status_show)

@@ -38,6 +38,7 @@ class Message < Retriever::Model
                [:geo, :string],           # geotag
                [:exact, :bool],           # true if complete data
                [:created, :time],         # posted time
+               [:modified, :time],        # updated time
              ]
 
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
@@ -50,6 +51,8 @@ class Message < Retriever::Model
     super(value)
     if self[:replyto].is_a? Message
       self[:replyto].add_child(self) end
+    if self[:retweet].is_a? Message
+      self[:retweet].add_child(self) end
     if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
       self[:message] = MessageConverters.expand_url_all(value[:message]) end end
 
@@ -193,13 +196,21 @@ class Message < Retriever::Model
 
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    Set.new(Message.selectby(:replyto, self[:id])) end
-  memoize :children
+    @children ||= Set.new(Message.selectby(:replyto, self[:id])) end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
-    Set.new() end
-  memoize :favorited_by
+    @favorited ||= Set.new() end
+
+  # この投稿をリツイートしたユーザを返す
+  def retweeted_by
+    retweeted_statuses.map{ |x| x.user}.uniq
+  end
+
+  # この投稿に対するリツイートを返す
+  def retweeted_statuses
+    children.select{ |x| x[:retweet] }
+  end
 
   # 本文を返す
   def body
@@ -239,7 +250,8 @@ class Message < Retriever::Model
   end
 
   # :nodoc:
-  def add_favorited_by(user)
+  def add_favorited_by(user, time=Time.now)
+    set_modified(time)
     favorited_by.add(user)
     Plugin.call(:favorite, service, user, self) end
 
@@ -250,9 +262,25 @@ class Message < Retriever::Model
 
   # :nodoc:
   def add_child(child)
-    children << child end
+    if child[:retweet]
+      set_modified(child[:created])
+    end
+    @children << child end
+
+  # 最終更新日時を取得する
+  def modified
+    self[:modified] ||= [self[:created], *retweeted_statuses.map{ |x| x.modified }].select(&ret_nth).max end
 
   private
+
+  def set_modified(time)
+    if modified < time
+      self[:modified] = time
+      Plugin::call(:message_modified, self)
+    end
+    p [modified, time]
+    self
+  end
 
   def system
     { :id => @@system_id += 1,
