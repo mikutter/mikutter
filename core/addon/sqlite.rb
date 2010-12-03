@@ -18,6 +18,39 @@ miquire :core, 'retriever'
 require_if_exist 'sqlite3'
 
 if defined? SQLite3
+
+  Module.new do
+    plugin = Plugin.create(:sqlite)
+    db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
+    db.execute(<<SQL)
+CREATE TABLE IF NOT EXISTS `favorite` (
+  `user_id` integer NOT NULL,
+  `message_id` integer NOT NULL,
+  PRIMARY KEY  (`user_id`, `message_id`)
+);
+SQL
+    plugin.add_event_filter(:favorited_by){ |message, users|
+      begin
+        key, val, = atomic{ db.execute2("select user_id from favorite where message_id=?" ,message[:id]) }
+        if val and val.is_a? Enumerable
+          val.each{ |user_id|
+            users << User.findbyid(user_id.to_i)
+          }
+        end
+      rescue Retriever::InvalidTypeError
+      rescue SQLite3::SQLException => e
+        warn e.inspect
+        warn e.backtrace.inspect end
+      [message, users] }
+    plugin.add_event(:favorite){ |service, user, message|
+      atomic{
+        db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) } }
+    plugin.add_event(:unfavorite){ |service, user, message|
+      atomic{
+        db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) } }
+
+  end
+
   class SQLiteDataSource
     include Retriever::DataSource
 
@@ -260,8 +293,39 @@ CREATE TABLE IF NOT EXISTS `userlist` (
 SQL
       @db.execute(sql) end end
 
+  class SQLiteFavoriteDataSource < SQLiteDataSource
+    @@columns = [:user_id, :message_id, :created, :id].freeze
+
+    def modelclass
+      Message end
+
+    def columns
+      @@columns end
+
+    def table_name
+      'messages' end
+
+    def table_setting
+      sql = <<SQL
+CREATE TABLE IF NOT EXISTS `messages` (
+  `id` integer NOT NULL,
+  `user_id` integer default NULL,
+  `message` text NOT NULL,
+  `receiver_id` integer default NULL,
+  `replyto_id` integer default NULL,
+  `retweet_id` integer default NULL,
+  `source` text,
+  `geo` text,
+  `exact` integer default 0,
+  `created` text NOT NULL,
+  PRIMARY KEY  (`id`)
+);
+SQL
+      @db.execute(sql) end end
+
   SQLiteMessageDataSource.new
   SQLiteUserDataSource.new
   SQLiteUserListDataSource.new
+
 end
 # ~> -:153: syntax error, unexpected $end, expecting kEND

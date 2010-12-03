@@ -200,7 +200,7 @@ class Message < Retriever::Model
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
-    @favorited ||= Set.new() end
+    @favorited ||= Plugin.filtering(:favorited_by, self, Set.new())[1] end
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
@@ -241,7 +241,7 @@ class Message < Retriever::Model
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show
-    body.gsub(/&([gl])t;/){|m| {'g' => '>', 'l' => '<'}[$1] }.freeze end
+    body.gsub(/&(gt|lt|quot);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"'}[$1] }.freeze end
   memoize :to_show
 
   # :nodoc:
