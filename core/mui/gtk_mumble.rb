@@ -162,12 +162,11 @@ module Gtk
         rewind_fav_count! end end
 
     def retweeted(user)
-      unless(retweeted_by.include?(user))
-        retweeted_box.closeup(icon(user, 24).show_all)
-        retweeted_by << user
-        rewind_retweeted_count!
-      end
-    end
+      Delayer.new{
+        unless(retweeted_by.include?(user))
+          retweeted_box.closeup(icon(user, 24).show_all)
+          retweeted_by << user
+          rewind_retweeted_count! end } end
 
     # このメッセージを選択状態にする。
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
@@ -378,9 +377,7 @@ module Gtk
       Thread.new{
         Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
           users.each{ |user|
-            retweeted(user)
-            # retweeted_box.closeup(icon(user, 24).show_all)
-          }
+            retweeted(user) }
           rewind_retweeted_count! } }
       result
     end
