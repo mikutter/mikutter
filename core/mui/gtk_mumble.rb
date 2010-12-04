@@ -144,7 +144,7 @@ module Gtk
       @favorited_by ||= message.favorited_by.to_a end
 
     def retweeted_by
-      @retweeted_by ||= message.retweeted_by.to_a end
+      @retweeted_by = [] end # ||= message.retweeted_by.to_a end
 
     def favorite(user)
       unless(favorited_by.include?(user))
@@ -366,18 +366,32 @@ module Gtk
 
     def gen_reply(msg)
       reply = Gtk::VBox.new(false, 0)
-      Thread.new(reply, msg){ |reply, msg|
+      Thread.new{
         parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
         if(parent.is_a?(Message) and parent[:message])
-          Delayer.new(Delayer::NORMAL, reply, parent){ |reply, parent|
+          Delayer.new{
             reply.add(gen_minimumble(parent).show_all) } end }
       reply end
 
     def gen_retweeted
       result = Gtk::HBox.new(false, 4).closeup(retweeted_label).closeup(retweeted_box).right
-      retweeted_by.each{ |user|
-        retweeted_box.closeup(icon(user, 24).show_all) }
-      Delayer.new{ rewind_retweeted_count! }
+      Thread.new{
+        Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
+          users.each{ |user|
+            retweeted(user)
+            # retweeted_box.closeup(icon(user, 24).show_all)
+          }
+          rewind_retweeted_count! } }
+      result
+    end
+
+    def gen_favorite
+      result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
+      Thread.new{
+        Delayer.new(Delayer::NORMAL, favorited_by){ |users|
+          users.each{ |user|
+            fav_box.closeup(icon(user, 24).show_all) }
+          rewind_fav_count! } }
       result
     end
 
@@ -386,14 +400,6 @@ module Gtk
 
     def retweeted_box
       @retweeted_box ||= Gtk::HBox.new(false, 4) end
-
-    def gen_favorite
-      result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
-      favorited_by.each{ |user|
-        fav_box.closeup(icon(user, 24).show_all) }
-      rewind_fav_count!
-      result
-    end
 
     def fav_label
       @fav_label ||= Gtk::Label.new('').set_no_show_all(true) end

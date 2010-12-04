@@ -218,8 +218,23 @@ _text_ に渡される。エラーメッセージが得られなかった場合�
 ユーザに情報 _mes_ を「さりげなく」提示する。 GUI プラグインがハンドルしていて、ステータスバーを
 更新する。
 
+=== favorite(Post service, User user, Message message)
+_user_ が _message_ をお気に入りに追加した時に呼ばれる。
+
+=== unfavorite(Post service, User user, Message message)
+_user_ が _message_ をお気に入りから外した時に呼ばれる。
+
 === after_event(Post service)
 periodなど、毎分実行されるイベントのクロールが終わった後に呼び出される。
+
+== フィルタ
+
+以下に、フックできる主なフィルタを示す。
+
+=== favorited_by(Message message, Set users)
+_message_ をお気に入りに入れているユーザを取得するためのフック。
+_users_ は、お気に入りに入れているユーザの集合。
+
 =end
 class Plugin::PluginTag
 

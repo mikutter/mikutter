@@ -187,8 +187,10 @@ class Gtk::IconOverButton < Gtk::EventBox
               else
                 self.window.draw_pixbuf(gc, @button_back, *args) if @button_back end
               self.window.draw_pixbuf(gc, pixbuf, *args)
-            elsif(always_show?(index))
-              self.window.draw_pixbuf(gc, pixbuf, *args) end end end } } end
+            else
+              Thread.new{
+                if(always_show?(index))
+                  Delayer.new{ self.window.draw_pixbuf(gc, pixbuf, *args) } end } end end end } } end
 
   def always_show?(index)
     if @options[index][:always_show].respond_to?(:call)

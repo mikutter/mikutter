@@ -21,38 +21,52 @@ if defined? SQLite3
 
   Module.new do
     plugin = Plugin.create(:sqlite)
-    db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
-    db.execute(<<SQL)
+    @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
+    @db.execute(<<SQL)
 CREATE TABLE IF NOT EXISTS `favorite` (
   `user_id` integer NOT NULL,
   `message_id` integer NOT NULL,
   PRIMARY KEY  (`user_id`, `message_id`)
 );
 SQL
-    plugin.add_event_filter(:favorited_by){ |message, users|
-      begin
-        key, val, = atomic{ db.execute2("select user_id from favorite where message_id=?" ,message[:id]) }
-        if val and val.is_a? Enumerable
-          val.each{ |user_id|
-            users << User.findbyid(user_id.to_i)
-          }
-        end
-      rescue Retriever::InvalidTypeError
-      rescue SQLite3::SQLException => e
-        warn e.inspect
-        warn e.backtrace.inspect end
-      [message, users] }
+
+    def self.data_retrieve_hook(filter_name, table_name, key, extract_key)
+      sql = "select #{extract_key} from #{table_name} where #{key}=?"
+      Plugin.create(:sqlite).add_event_filter(filter_name){ |message, children|
+        begin
+          key, *vals = SQLiteDataSource.atomic{ @db.execute2(sql ,message[:id]) }
+          if vals and vals.is_a? Enumerable
+            vals.each{ |the_id|
+              children << yield(the_id.first.to_i) } end
+        rescue Retriever::InvalidTypeError, SQLite3::SQLException => e
+          error e end
+        [message, children] } end
+    data_retrieve_hook(:favorited_by, 'favorite', 'message_id', 'user_id', &User.method(:findbyid))
+    data_retrieve_hook(:replied_by, 'messages', 'replyto_id', 'id', &Message.method(:findbyid))
+    data_retrieve_hook(:retweeted_by, 'messages', 'retweet_id', 'id', &Message.method(:findbyid))
     plugin.add_event(:favorite){ |service, user, message|
-      atomic{
-        db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) } }
+      Delayer.new(Delayer::LAST){
+        SQLiteDataSource.atomic{
+          @db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) } } }
     plugin.add_event(:unfavorite){ |service, user, message|
-      atomic{
-        db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) } }
+      Delayer.new(Delayer::LAST){
+        SQLiteDataSource.atomic{
+          @db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) } } }
 
   end
 
   class SQLiteDataSource
     include Retriever::DataSource
+
+    @@atomic = Monitor.new
+
+    def self.atomic
+      @@atomic.synchronize(&Proc.new)
+    end
+
+    def atomic
+      @@atomic.synchronize(&Proc.new)
+    end
 
     def initialize
       begin
@@ -96,17 +110,18 @@ SQL
       ids.map{|id| findbyid(id) }.select(&ret_nth(0)) end
 
     # def selectby(key, value)
-    #   return [] if caller(1).include?(caller[0].first)
     #   begin
     #     keys, *rows = atomic{ @db.execute2("select * from #{table_name} where #{key} = ?" ,value) }
-    #     return [] unless rows.is_a?(Array) and not(rows.empty?)
-    #     return rows.map{ |row| record_convert(keys.zip(row)) }
-    #   rescue Retriever::InvalidTypeError, Exception, RuntimeError => e
-    #     return []
+    #     if rows.is_a?(Array) and not(rows.empty?)
+    #       rows.map{ |row| record_convert(keys.zip(row)) }
+    #     else
+    #       [] end
     #   rescue SQLite3::SQLException => e
     #     warn e.inspect
     #     warn e.backtrace.inspect
-    #     return [] end end
+    #     []
+    #   rescue Retriever::InvalidTypeError, Exception, RuntimeError => e
+    #     [] end end
 
     def record_convert(pairs)
       result = {}
@@ -155,18 +170,20 @@ SQL
 
     def store_datum(datum)
       assert_type(Hash, datum)
-      begin
-        prim = findbyid(datum[:id])
-        if prim
-          modifier, query = merge(prim, convert2id_all(datum)), @update
-          return nil if (modifier.keys + prim.keys).uniq.all?{ |k| modifier[k] == prim[k] }
-        else
-          modifier, query = datum, @insert
-        end
-        atomic{ @db.execute(query, *convert(modifier)) }
-      rescue SQLite3::SQLException => e
-        warn e.inspect
-        warn e.backtrace.inspect end end end
+      Delayer.new(Delayer::LAST){
+        begin
+          prim = findbyid(datum[:id])
+          catch(:store_datum_exit){
+            if prim
+              modifier, query = merge(prim, convert2id_all(datum)), @update
+              throw(:store_datum_exit) if (modifier.keys + prim.keys).uniq.all?{ |k| modifier[k] == prim[k] }
+            else
+              modifier, query = datum, @insert
+            end
+            atomic{ @db.execute(query, *convert(modifier)) }
+          }
+        rescue SQLite3::SQLException => e
+          warn e end } end end
 
   class SQLiteMessageDataSource < SQLiteDataSource
     @@columns = [:user_id, :message, :receiver_id, :replyto_id, :retweet_id, :source, :geo, :exact,

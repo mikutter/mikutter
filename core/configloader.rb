@@ -17,17 +17,15 @@ module ConfigLoader
   @@configloader_cache = Hash.new
 
   def at(key, ifnone=nil)
-    return @@configloader_cache[configloader_key(key)] if @@configloader_cache.has_key?(key)
+    ckey = configloader_key(key)
+    return @@configloader_cache[ckey] if @@configloader_cache.has_key?(ckey)
     ConfigLoader.transaction(true){
-      if ConfigLoader.pstore.root?(configloader_key(key)) then
-        ConfigLoader.pstore[configloader_key(key)]
+      if ConfigLoader.pstore.root?(ckey) then
+        ConfigLoader.pstore[ckey]
       elsif defined? yield then
-        @@configloader_cache[configloader_key(key)] = yield(key, ifnone)
+        @@configloader_cache[ckey] = yield(key, ifnone)
       else
-        ifnone
-      end
-    }
-  end
+        ifnone end } end
 
   def store(key, val)
     Thread.new{
@@ -42,8 +40,8 @@ module ConfigLoader
   end
 
   def configloader_key(key)
-    "#{self.class.to_s}::#{key}"
-  end
+    "#{self.class.to_s}::#{key}".freeze end
+  memoize :configloader_key
 
   def self.transaction(ro = false)
     self.pstore.transaction(ro){ |pstore|

@@ -4,12 +4,12 @@ require File.expand_path('utils')
 # 名前deferのほうがよかったんじゃね
 class Delayer
   CRITICAL = 0
-  FASTER = 1
-  NORMAL = 2
-  LATER = 3
-  LAST = 4
+  FASTER = 0
+  NORMAL = 1
+  LATER = 2
+  LAST = 2
 
-  @@routines = [[],[],[],[],[]]
+  @@routines = [[],[],[]]
   @frozen = false
 
   # あとで実行するブロックを登録する。
@@ -39,14 +39,14 @@ class Delayer
   def self.run
     return if @frozen
     st = Process.times.utime
-    5.times{ |cnt|
+    3.times{ |cnt|
       procs = []
       if not @@routines[cnt].empty? then
         procs = @@routines[cnt].clone
         procs.each{ |routine|
           @@routines[cnt].delete(routine)
           routine.run
-          return if (Process.times.utime - st) > 0.1 } end } end
+          return if ((Process.times.utime - st) > 0.1) } end } end
 
   # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
   # を実行せずにすぐにreturnするようになる。

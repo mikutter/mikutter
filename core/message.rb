@@ -196,7 +196,7 @@ class Message < Retriever::Model
 
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    @children ||= Set.new(Message.selectby(:replyto, self[:id])) end
+    @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_by end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -204,7 +204,7 @@ class Message < Retriever::Model
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
-    retweeted_statuses.map{ |x| x.user}.uniq
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1]
   end
 
   # この投稿に対するリツイートを返す
@@ -262,14 +262,19 @@ class Message < Retriever::Model
 
   # :nodoc:
   def add_child(child)
-    if child[:retweet]
-      set_modified(child[:created])
-    end
-    @children << child end
+    Thread.new{
+      if child[:retweet]
+        retweeted_by unless defined? @retweets
+        @retweets << child
+        set_modified(child[:created])
+      else
+        children unless defined? @children
+        @children << child
+      end } end
 
   # 最終更新日時を取得する
   def modified
-    self[:modified] ||= [self[:created], *retweeted_statuses.map{ |x| x.modified }].select(&ret_nth).max end
+    self[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max end
 
   private
 
