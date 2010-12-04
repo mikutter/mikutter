@@ -45,10 +45,8 @@ class UserList < Retriever::Model
   def member?(user)
     if user.is_a? User
       member.include?(user)
-    elsif user.is_a? Integer
-      member.any?{ |m| m.id == user }
     else
-      raise ArgumentError.new('UserList member must be User') end end
+      member.any?{ |m| m.id == user.to_i } end end
 
   def add_member(user)
     if user.is_a? User

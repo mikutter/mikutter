@@ -81,9 +81,7 @@ class User < Retriever::Model
     if other.is_a?(String) then
       @value[:idname] == other
     elsif other.is_a?(User) then
-      other[:id] == self[:id]
-    end
-  end
+      other[:id] == self[:id] end end
 
   def is_me?(service = @value[:post])
     service and service.user_obj == self end

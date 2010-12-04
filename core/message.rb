@@ -196,7 +196,7 @@ class Message < Retriever::Model
 
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_by end
+    @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_statuses end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -204,12 +204,14 @@ class Message < Retriever::Model
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1]
+    retweeted_statuses.map{ |x| x.user }.uniq
   end
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    children.select{ |x| x[:retweet] }
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1]
+    abort if @retweets.any?{ |x| not x.is_a? Message }
+    @retweets
   end
 
   # 本文を返す
@@ -262,6 +264,7 @@ class Message < Retriever::Model
 
   # :nodoc:
   def add_child(child)
+    type_strict child => Message
     Thread.new{
       if child[:retweet]
         retweeted_by unless defined? @retweets

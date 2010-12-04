@@ -81,7 +81,8 @@ module Gtk
       inactive.each{ |x| x.inactivate } end
 
     def initialize(message)
-      @message = assert_type(Message, message)
+      type_strict message => Message
+      @message = message
       super()
       gen_mumble
       border_width = 0
@@ -144,7 +145,7 @@ module Gtk
       @favorited_by ||= message.favorited_by.to_a end
 
     def retweeted_by
-      @retweeted_by = [] end # ||= message.retweeted_by.to_a end
+      @retweeted_by ||= [] end # ||= message.retweeted_by.to_a end
 
     def favorite(user)
       unless(favorited_by.include?(user))
@@ -162,10 +163,16 @@ module Gtk
         rewind_fav_count! end end
 
     def retweeted(user)
+      type_strict user => User
       Delayer.new{
         unless(retweeted_by.include?(user))
           retweeted_box.closeup(icon(user, 24).show_all)
           retweeted_by << user
+          if retweeted_box.children.size != retweeted_by.size
+            p retweeted_box.children.size
+            p retweeted_by
+            abort
+          end
           rewind_retweeted_count! end } end
 
     # このメッセージを選択状態にする。
@@ -423,6 +430,7 @@ module Gtk
       def initialize(mumble, msg, icon)
         @mumble = mumble
         @msg = msg
+        type_strict mumble => Gtk::Mumble, msg => Message
         super(icon)
         set_size_request(48, 48).set_grid_size(2, 2)
         sub_button{ @mumble.menu_pop(self) }
