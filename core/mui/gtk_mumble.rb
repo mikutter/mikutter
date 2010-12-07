@@ -139,7 +139,9 @@ module Gtk
         if @icon_over_button
           show_replied_icon
         else
-          Delayer.new{ show_replied_icon } end end end
+          Delayer.new{
+            if not @icon_over_button.destroyed?
+              show_replied_icon end } end end end
 
     def favorited_by
       @favorited_by ||= message.favorited_by.to_a end
@@ -165,15 +167,16 @@ module Gtk
     def retweeted(user)
       type_strict user => User
       Delayer.new{
-        unless(retweeted_by.include?(user))
-          retweeted_box.closeup(icon(user, 24).show_all)
-          retweeted_by << user
-          if retweeted_box.children.size != retweeted_by.size
-            p retweeted_box.children.size
-            p retweeted_by
-            abort
-          end
-          rewind_retweeted_count! end } end
+        if(not retweeted_box.destroyed?)
+          unless(retweeted_by.include?(user))
+            retweeted_box.closeup(icon(user, 24).show_all)
+            retweeted_by << user
+            if retweeted_box.children.size != retweeted_by.size
+              p retweeted_box.children.size
+              p retweeted_by
+              abort
+            end
+            rewind_retweeted_count! end end } end
 
     # このメッセージを選択状態にする。
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
@@ -214,18 +217,24 @@ module Gtk
     private
 
     def rewind_fav_count!
-      if(fav_box.children.size == 0)
-        fav_label.hide_all.set_no_show_all(true)
-      else
-        fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
+      Lock.synchronize do
+        return if(fav_box.destroyed?)
+        if(fav_box.children.size == 0)
+          fav_label.hide_all.set_no_show_all(true)
+        else
+          fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
+        end
       end
     end
 
     def rewind_retweeted_count!
-      if(retweeted_box.children.size == 0)
-        retweeted_label.hide_all.set_no_show_all(true)
-      else
-        retweeted_label.set_text("#{retweeted_box.children.size} RT ").set_no_show_all(false).show_all
+      Lock.synchronize do
+        return if(retweeted_box.destroyed?)
+        if(retweeted_box.children.size == 0)
+          retweeted_label.hide_all.set_no_show_all(true)
+        else
+          retweeted_label.set_text("#{retweeted_box.children.size} RT ").set_no_show_all(false).show_all
+        end
       end
     end
 
@@ -267,10 +276,11 @@ module Gtk
           notice msg
           msg.user[:profile_image_url]
           Delayer.new{
-            w.closeup(icon(msg, 24).top)
-            w.add(@in_reply_to = gen_body(msg,
-                                          'foreground' => :mumble_reply_color,
-                                          'font' => :mumble_reply_font)).show_all } }
+            if(not w.destroyed?)
+              w.closeup(icon(msg, 24).top)
+              w.add(@in_reply_to = gen_body(msg,
+                                            'foreground' => :mumble_reply_color,
+                                            'font' => :mumble_reply_font)).show_all end } }
         w }
     end
 
@@ -376,16 +386,18 @@ module Gtk
         parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
         if(parent.is_a?(Message) and parent[:message])
           Delayer.new{
-            reply.add(gen_minimumble(parent).show_all) } end }
+            if(not reply.destroyed?)
+              reply.add(gen_minimumble(parent).show_all) end } end }
       reply end
 
     def gen_retweeted
       result = Gtk::HBox.new(false, 4).closeup(retweeted_label).closeup(retweeted_box).right
       Thread.new{
         Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
-          users.each{ |user|
-            retweeted(user) }
-          rewind_retweeted_count! } }
+          if(not destroyed?)
+            users.each{ |user|
+              retweeted(user) }
+            rewind_retweeted_count! end } }
       result
     end
 
@@ -393,9 +405,10 @@ module Gtk
       result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
       Thread.new{
         Delayer.new(Delayer::NORMAL, favorited_by){ |users|
-          users.each{ |user|
-            fav_box.closeup(icon(user, 24).show_all) }
-          rewind_fav_count! } }
+          if(not destroyed?)
+            users.each{ |user|
+              fav_box.closeup(icon(user, 24).show_all) }
+            rewind_fav_count! end } }
       result
     end
 
@@ -468,3 +481,4 @@ module Gtk
     }
 
   end end
+
