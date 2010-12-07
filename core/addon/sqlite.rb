@@ -22,19 +22,22 @@ if defined? SQLite3
   Module.new do
     plugin = Plugin.create(:sqlite)
     @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
-    @db.execute(<<SQL)
+    begin
+      @db.execute(<<SQL)
 CREATE TABLE IF NOT EXISTS `favorite` (
   `user_id` integer NOT NULL,
   `message_id` integer NOT NULL,
   PRIMARY KEY  (`user_id`, `message_id`)
 );
 SQL
+    rescue SQLite3::SQLException => e
+      warn e end
 
     def self.data_retrieve_hook(filter_name, table_name, key, extract_key)
       sql = "select #{extract_key} from #{table_name} where #{key}=?"
       Plugin.create(:sqlite).add_event_filter(filter_name){ |message, children|
         begin
-          key, *vals = SQLiteDataSource.atomic{ @db.execute2(sql ,message[:id]) }
+          key, *vals = SQLiteDataSource.transaction{ @db.execute2(sql ,message[:id]) }
           if vals and vals.is_a? Enumerable
             vals.each{ |the_id|
               children << yield(the_id.first.to_i) } end
@@ -46,26 +49,32 @@ SQL
     data_retrieve_hook(:retweeted_by, 'messages', 'retweet_id', 'id', &Message.method(:findbyid))
     plugin.add_event(:favorite){ |service, user, message|
       Delayer.new(Delayer::LAST){
-        SQLiteDataSource.atomic{
-          @db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) } } }
+        begin
+          SQLiteDataSource.transaction{
+            @db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) }
+        rescue SQLite3::SQLException => e
+          warn e end } }
     plugin.add_event(:unfavorite){ |service, user, message|
       Delayer.new(Delayer::LAST){
-        SQLiteDataSource.atomic{
-          @db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) } } }
+        begin
+          SQLiteDataSource.transaction{
+            @db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) }
+        rescue SQLite3::SQLException => e
+          warn e end } }
 
   end
 
   class SQLiteDataSource
     include Retriever::DataSource
 
-    @@atomic = Monitor.new
+    @@transaction = Monitor.new
 
-    def self.atomic
-      @@atomic.synchronize(&Proc.new)
+    def self.transaction
+      @@transaction.synchronize(&Proc.new)
     end
 
-    def atomic
-      @@atomic.synchronize(&Proc.new)
+    def transaction
+      @@transaction.synchronize(&Proc.new)
     end
 
     def initialize
@@ -73,7 +82,7 @@ SQL
         if not(FileTest.exist?(confroot("sqlite-datasource.db"))) or
             FileTest.writable_real?(confroot("sqlite-datasource.db"))
           @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
-          atomic{ table_setting }
+          transaction{ table_setting }
           @insert = "insert or ignore into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"
           @update = "update #{table_name} set " + columns.slice(0, columns.size-1).map{|x| "#{x}=?"}.join(',') + " where id=?"
           @findbyid = "select * from #{table_name} where id=?"
@@ -86,24 +95,16 @@ SQL
       end
     end
 
-    def atomic
-      @@mutex ||= Mutex.new
-      @@mutex.synchronize{
-        yield
-      }
-    end
-
     def findbyid(id)
       begin
         return findbyid_multi(id) if id.is_a? Array
-        key, val, = atomic{ @db.execute2(@findbyid ,id) }
+        key, val, = transaction{ @db.execute2(@findbyid ,id) }
         return nil if not val
         return record_convert(key.zip(val))
       rescue Retriever::InvalidTypeError
         return nil
       rescue SQLite3::SQLException => e
-        warn e.inspect
-        warn e.backtrace.inspect
+        warn e
         return nil end end
 
     def findbyid_multi(ids)
@@ -111,7 +112,7 @@ SQL
 
     # def selectby(key, value)
     #   begin
-    #     keys, *rows = atomic{ @db.execute2("select * from #{table_name} where #{key} = ?" ,value) }
+    #     keys, *rows = transaction{ @db.execute2("select * from #{table_name} where #{key} = ?" ,value) }
     #     if rows.is_a?(Array) and not(rows.empty?)
     #       rows.map{ |row| record_convert(keys.zip(row)) }
     #     else
@@ -180,7 +181,7 @@ SQL
             else
               modifier, query = datum, @insert
             end
-            atomic{ @db.execute(query, *convert(modifier)) }
+            transaction{ @db.execute(query, *convert(modifier)) }
           }
         rescue SQLite3::SQLException => e
           warn e end } end end
@@ -214,7 +215,8 @@ CREATE TABLE IF NOT EXISTS `messages` (
   PRIMARY KEY  (`id`)
 );
 SQL
-      @db.execute(sql) end end
+      transaction{
+        @db.execute(sql) } end end
 
   class SQLiteUserDataSource < SQLiteDataSource
     @@columns = [:idname, :name, :location, :detail, :profile_image_url, :url, :protected,
@@ -245,7 +247,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `statuses_count` integer default NULL,
   PRIMARY KEY  (`id`));
 SQL
-      @db.execute(sql) end end
+      transaction{
+        @db.execute(sql) } end end
 
   class SQLiteUserListDataSource < SQLiteDataSource
     @@columns = [:name, :mode, :description, :user_id, :slug, :id].freeze
@@ -260,21 +263,29 @@ SQL
       'userlist' end
 
     def belong_users_id(userlist_id)
-      r = atomic{ @db.execute("select user_id
-                               from userlist_member
-                               where userlist_id = ? ", userlist_id) }
-      r.map{|row| row.first} if r end
+      begin
+        r = transaction{ @db.execute("select user_id
+                                      from userlist_member
+                                      where userlist_id = ? ", userlist_id) }
+        r.map{|row| row.first} if r
+      rescue SQLite3::SQLException => e
+        warn e
+        nil end end
 
     def belong_users(userlist_id)
       belong_users_id(userlist_id).map(&User.method(:findbyid)) end
 
     def belong?(userlist_id, user_id)
-      atomic{
-        @db.execute("select user_id
-                     from userlist_member
-                     where user_id = ? AND userlist_id = ? ", user_id, userlist_id){ |row|
-          return row.first } }
-      false end
+      begin
+        transaction{
+          @db.execute("select user_id
+                       from userlist_member
+                       where user_id = ? AND userlist_id = ? ", user_id, userlist_id){ |row|
+            return row.first } }
+        false
+      rescue SQLite3::SQLException => e
+        warn e
+        nil end end
 
     def record_convert(pairs)
       result = super(pairs)
@@ -284,21 +295,24 @@ SQL
     def store_datum(datum)
       if datum[:member].respond_to?(:map)
         datum[:member].each{ |u|
-          atomic{
-            @db.execute("insert or ignore into userlist_member (user_id, userlist_id)
-                                values (?, ?)", u, datum[:id]) } } end
-      super(datum)
-    end
+          begin
+            transaction{
+              @db.execute("insert or ignore into userlist_member (user_id, userlist_id)
+                                            values (?, ?)", u, datum[:id]) }
+          rescue SQLite3::SQLException => e
+            warn e end } end
+      super(datum) end
 
     def table_setting
-      sql = <<SQL
+      transaction{
+        sql = <<SQL
 CREATE TABLE IF NOT EXISTS `userlist_member` (
   `user_id` integer NOT NULL,
   `userlist_id` integer NOT NULL,
   PRIMARY KEY  (`user_id`, `userlist_id`));
 SQL
-      @db.execute(sql)
-      sql = <<SQL
+        @db.execute(sql)
+        sql = <<SQL
 CREATE TABLE IF NOT EXISTS `userlist` (
   `id` integer NOT NULL,
   `name` text NOT NULL,
@@ -308,7 +322,7 @@ CREATE TABLE IF NOT EXISTS `userlist` (
   `slug` text NOT NULL,
   PRIMARY KEY  (`id`));
 SQL
-      @db.execute(sql) end end
+        @db.execute(sql) } end end
 
   class SQLiteFavoriteDataSource < SQLiteDataSource
     @@columns = [:user_id, :message_id, :created, :id].freeze
@@ -338,7 +352,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   PRIMARY KEY  (`id`)
 );
 SQL
-      @db.execute(sql) end end
+      transaction{ @db.execute(sql) } end end
 
   SQLiteMessageDataSource.new
   SQLiteUserDataSource.new
