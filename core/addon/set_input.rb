@@ -8,6 +8,7 @@ Module.new do
   shrink_url = Mtk.group('短縮URL', Mtk.boolean(:shrinkurl_always, '常にURLを短縮する'))
   container = Gtk::VBox.new(false, 8).
     closeup(Mtk.adjustment('投稿をリトライする回数', :message_retry_limit, 1, 99)).
+    closeup(Mtk.boolean(:legacy_retweet_act_as_reply, '非公式Retweetにin_reply_to_statusを付与する')).
     closeup(shrink_url).
     closeup(Mtk.group('フッタ',
                       Mtk.input(:footer, 'デフォルトで挿入するフッタ'),

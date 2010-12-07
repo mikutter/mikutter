@@ -81,8 +81,10 @@ module Gtk
           true end } end
 
     def service
-      # (retweet? ? @watch.service : @watch)
-      @watch end
+      if UserConfig[:legacy_retweet_act_as_reply]
+        @watch
+      else
+        (retweet? ? @watch.service : @watch) end end
 
     def post_it
       Gtk::Lock.synchronize{
