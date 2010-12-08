@@ -201,7 +201,11 @@ class TwitterAPI < Mutex
   end
 
   def query_with_auth(method, path, raw_options={})
-    warn "called by main thread: #{method} #{path}" if Thread.main == Thread.current
+    if Thread.current == Thread.main
+      if $debug
+        raise "called by main thread: #{method} #{path}"
+      else
+        warn "called by main thread: #{method} #{path}" end end
     options = getopts(raw_options)
     if options[:cache]
       cache = get_cache(path)

@@ -15,7 +15,7 @@ require 'gtk2'
 class UserConfig
   include Singleton
   include ConfigLoader
-
+  extend MonitorMixin
   #
   # 予約された設定一覧
   #
@@ -95,29 +95,25 @@ class UserConfig
 
   # 設定名 _key_ に値 _value_ を関連付ける
   def self.[]=(key, val)
-    atomic{
-      if not(@@watcher[key].empty?) then
+    watchers = synchronize{
+      if not(@@watcher[key].empty?)
         before_val = UserConfig.instance.at(key, @@defaults[key.to_sym])
-        @@watcher[key].each{ |id|
-          proc = nil
-          atomic{
-            if @@watcher_id.has_key?(id) then
-              proc = @@watcher_id[id]
-            else
-              @@watcher[key].delete(id)
-            end
-          }
-          proc.call(key, val, before_val, id) if proc
-        }
-      end
-    }
+        @@watcher[key].map{ |id|
+          proc = if @@watcher_id.has_key?(id)
+                   @@watcher_id[id]
+                 else
+                   @@watcher[key].delete(id)
+                   nil end
+          lambda{ proc.call(key, val, before_val, id) } if proc } end }
+    if watchers.is_a? Enumerable
+      watchers.each{ |w| w.call } end
     UserConfig.instance.store(key, val)
   end
 
   # 設定名 _key_ の値が変更されたときに、ブロック _watcher_ を呼び出す。
   # watcher_idを返す。
   def self.connect(key, &watcher)
-    atomic{
+    synchronize{
       id = @@watcher_id_count
       @@watcher_id_count += 1
       @@watcher[key] = @@watcher[key].push(id)
@@ -128,7 +124,7 @@ class UserConfig
 
   # watcher idが _id_ のwatcherを削除する。
   def self.disconnect(id)
-    atomic{
+    synchronize{
       @@watcher_id.delete(id)
     }
   end

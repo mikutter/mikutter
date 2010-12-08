@@ -8,7 +8,7 @@ class Delayer
   NORMAL = 1
   LATER = 2
   LAST = 2
-
+  extend MonitorMixin
   @@routines = [[],[],[]]
   @frozen = false
 
@@ -61,7 +61,7 @@ class Delayer
 
   private
   def regist(prio)
-    atomic{
+    self.class.synchronize{
       @@routines[prio] << self
     }
   end

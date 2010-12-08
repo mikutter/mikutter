@@ -54,7 +54,10 @@ Module.new do
         elsif(source.is_me?)
           Plugin.call(:followings_created, @service, [target])
         end
-      # when json['delete'] then
+      when json['delete'] then
+        if $debug
+          Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
+                                                 :system => true)]) end
       when !json.has_key?('event') then
         messages = @service.__send__(:parse_json, json, :streaming_status)
         if messages

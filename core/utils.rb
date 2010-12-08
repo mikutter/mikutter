@@ -338,10 +338,10 @@ end
 # 共通のMutexで処理を保護して実行する。
 # atomicブロックで囲まれたコードは、別々のスレッドで同時に実行されない。
 def atomic
-  start = Time.now
-  result = $atomic.synchronize(&Proc.new)
-  notice caller_util + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
-  result
+  if Thread.current == Thread.main
+    # raise 'Atomic Mutex dont have to block main thread'
+  end
+  $atomic.synchronize{ yield }
 end
 
 # 文字列をエンティティデコードする
@@ -656,9 +656,15 @@ class String
 end
 
 class HatsuneStore < PStore
+
+  def initialize(*args)
+    extend MonitorMixin
+    super
+  end
+
   def transaction(ro = false, &block)
     start = Time.now
-    result = atomic{
+    result = synchronize{
       super(ro){ |db| block.call(db) } }
     notice caller_util + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
     result

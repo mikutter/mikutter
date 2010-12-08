@@ -140,7 +140,7 @@ module Gtk
           show_replied_icon
         else
           Delayer.new{
-            if not @icon_over_button.destroyed?
+            if defined?(@icon_over_button) and not @icon_over_button.destroyed?
               show_replied_icon end } end end end
 
     def favorited_by

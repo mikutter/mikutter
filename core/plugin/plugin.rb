@@ -91,21 +91,41 @@ module Plugin
          proc.call(*plugin) } } end
 
   # プラグインを起動できるならyieldする。コールバックに引数は渡されない。
-  def self.boot_plugin(plugintag, event_name, kind, delay = true)
+  def self.boot_plugin(plugintag, event_name, kind, delay = true, &routine)
     if(plugintag.active?)
-      routine = lambda{
-        begin
-          yield
-        rescue Exception => e
-          plugin_fault(plugintag, event_name, kind, e) end  }
       if(delay)
-        Delayer.new(&routine)
+        Delayer.new{ call_routine(plugintag, event_name, kind, &routine) }
       else
-        routine.call end end end
+        call_routine(plugintag, event_name, kind, &routine) end end end
 
   # プラグインタグをなければ作成して返す。
   def self.create(name)
     PluginTag.create(name) end
+
+  # ブロックの実行時間を記録しながら実行
+  def self.call_routine(plugintag, event_name, kind)
+    begin
+      if $debug
+        pos = begin
+                eval "raise", Proc.new
+              rescue RuntimeError => e
+                e.backtrace[0] end
+        start = Time.now
+        r = yield
+        between = Time.now - start
+        @@time << [between, plugintag, event_name, kind, pos]
+        @@time = @@time.sort_by{ |a| -(a.first) }[0..10]
+        r
+      else
+        yield end
+    rescue Exception => e
+      plugin_fault(plugintag, event_name, kind, e) end end
+  @@time = []
+  END{
+    if $debug
+      pp @@time.sort_by{ |a| -(a.first) }[0..10]
+    end
+  }
 
   # 登録済みプラグインの一覧を返す。
   # 返すHashは以下のような構造。
@@ -311,8 +331,7 @@ class Plugin::PluginTag
   private
 
   def regist
-    atomic{
-      @@plugins.push(self) } end
+    @@plugins.push(self) end
 end
 
 Module.new do
