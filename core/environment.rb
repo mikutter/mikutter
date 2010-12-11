@@ -16,6 +16,10 @@ module Environment
   # 名前の略称
   ACRO = Config::ACRO
 
+  # 下の２行は馬鹿にしか見えない
+  TWITTER_CONSUMER_KEY = Config::TWITTER_CONSUMER_KEY
+  TWITTER_CONSUMER_SECRET = Config::TWITTER_CONSUMER_SECRET
+
   # pidファイル
   PIDFILE = Config::PIDFILE
 

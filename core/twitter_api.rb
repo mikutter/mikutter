@@ -30,8 +30,6 @@ class TwitterAPI < Mutex
   API_MAX = 150
   API_RESET_INTERVAL = 3600
   OAUTH_VERSION = '1.0'
-  CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
-  CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
 
   include ConfigLoader
 
@@ -61,8 +59,8 @@ class TwitterAPI < Mutex
   end
 
   def consumer
-    OAuth::Consumer.new(CONSUMER_KEY,
-                        CONSUMER_SECRET,
+    OAuth::Consumer.new(Environment::TWITTER_CONSUMER_KEY,
+                        Environment::TWITTER_CONSUMER_SECRET,
                         :site => 'http://twitter.com') end
 
   def access_token

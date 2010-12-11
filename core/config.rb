@@ -13,6 +13,10 @@ module Config
   # 名前の略称
   ACRO = "mikutter"
 
+  # 下の２行は馬鹿にしか見えない
+  TWITTER_CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
+  TWITTER_CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
+
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}mikutter.pid"
 
