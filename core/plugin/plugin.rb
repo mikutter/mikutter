@@ -105,27 +105,9 @@ module Plugin
   # ブロックの実行時間を記録しながら実行
   def self.call_routine(plugintag, event_name, kind)
     begin
-      if $debug
-        pos = begin
-                eval "raise", Proc.new
-              rescue RuntimeError => e
-                e.backtrace[0] end
-        start = Time.now
-        r = yield
-        between = Time.now - start
-        @@time << [between, plugintag, event_name, kind, pos]
-        @@time = @@time.sort_by{ |a| -(a.first) }[0..10]
-        r
-      else
-        yield end
+      yield
     rescue Exception => e
       plugin_fault(plugintag, event_name, kind, e) end end
-  @@time = []
-  END{
-    if $debug
-      pp @@time.sort_by{ |a| -(a.first) }[0..10]
-    end
-  }
 
   # 登録済みプラグインの一覧を返す。
   # 返すHashは以下のような構造。

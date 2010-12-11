@@ -129,7 +129,6 @@ Module.new do
         command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
         command << "@#{user[:idname]} (#{user[:name]})" end
       command << text
-      p command
       bg_system(*command) } end
 
   def self.notify_sound(sndfile)
