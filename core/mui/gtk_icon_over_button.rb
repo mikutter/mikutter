@@ -158,7 +158,7 @@ class Gtk::IconOverButton < Gtk::EventBox
 
   def redraw(event = nil, options = {})
     Gtk::Lock.synchronize do
-      return false if not(self.realized?)
+      return false if(self.destroyed? or not(self.realized?))
       gc = Gdk::GC.new(self.window)
       pb = background
       gc.set_foreground(@bgcolor)

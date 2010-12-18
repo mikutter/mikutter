@@ -57,11 +57,22 @@ module Gtk
                                m.message.repliable? and not m.message.from_me? }){ |this, w|
       Gtk::Mumble.active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
     @@contextmenu.registline
+
     delete_condition = lambda{ |m,w| Gtk::Mumble.active_mumbles.all?{ |e| e.message.from_me? } }
     @@contextmenu.registmenu('削除', delete_condition){ |this, w|
       Gtk::Mumble.active_mumbles.each { |e|
         e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } }
     @@contextmenu.registline(&delete_condition)
+
+    retweet_cancel_condition = lambda{ |m,w| Gtk::Mumble.active_mumbles.all?{ |e|
+        e.message.service and e.message.retweeted_by.include?(e.message.service.user) } }
+    @@contextmenu.registmenu('リツイートをキャンセル', retweet_cancel_condition){ |this, w|
+      Gtk::Mumble.active_mumbles.each { |e|
+        retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
+        p e.message.retweeted_by
+        p retweet
+        retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } }
+    @@contextmenu.registline(&retweet_cancel_condition)
 
     def self.contextmenu
       @@contextmenu end
