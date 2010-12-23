@@ -24,4 +24,15 @@
   (each ary #((pair) (store result (car pair) (cdr pair))))
   result)
 
+(defmacro and (body (rest other))
+  `(if ,body
+       ,(if other
+            `(and ,@other)
+          true)))
+
+(defmacro or (body (rest other))
+  `(if ,body
+       true
+     ,(if other
+          `(or ,@other))))
 

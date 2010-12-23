@@ -108,6 +108,7 @@ module MIKU
                   if r.nil? then n else r[1] end }) end
 
     def miku_eval(symtable=SymbolTable.new)
+      return nil if(empty?)
       result = nil
       begin
         operator = get_function(symtable)

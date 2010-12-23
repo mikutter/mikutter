@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
+miquire :mui, 'extension'
+
 require 'gtk2'
 
 module Mtk
@@ -16,21 +19,29 @@ module Mtk
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
   end
 
-  def self.chooseone(config_key, label, values)
+  def self.chooseone(key, label, values)
+    values.freeze
+    if key.respond_to?(:call)
+      proc = key
+    else
+      proc = lambda{ |new|
+        if new === nil
+          UserConfig[key]
+        else
+          UserConfig[key] = new end } end
     container = Gtk::HBox.new(false, 0)
     input = Gtk::ComboBox.new(true)
-    values.keys.sort.each{ |key|
-      input.append_text(values[key])
+    values.keys.sort.each{ |x|
+      input.append_text(values[x])
     }
     input.signal_connect('changed'){ |widget|
       Gtk::Lock.synchronize do
-        UserConfig[config_key] = values.keys.sort[widget.active]
+        proc.call(*[values.keys.sort[widget.active], widget][0, proc.arity])
       end
     }
-    input.active = values.keys.sort.index((UserConfig[config_key] or 0))
-    container.pack_start(Gtk::Label.new(label), false, true, 0)
+    input.active = (values.keys.sort.index((proc.call(*[nil, input][0, proc.arity]) or 0)) or 0)
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-    return container
   end
 
   def self.boolean(key, label)
@@ -46,6 +57,23 @@ module Mtk
     input.signal_connect('toggled'){ |widget|
       proc.call(*[widget.active?, widget][0, proc.arity]) }
     input.active = proc.call(*[nil, input][0, proc.arity])
+    return input
+  end
+
+  def self.message_picker(key)
+    if key.respond_to?(:call)
+      proc = key
+    else
+      proc = lambda{ |new|
+        if new === nil
+          if(UserConfig[key])
+            UserConfig[key]
+          else
+            [] end
+        else
+          UserConfig[key] = new end } end
+    input = Gtk::MessagePicker.new(proc.call(*[nil, input][0, proc.arity])){
+      proc.call(*[ input.to_a, input][0, proc.arity]) }
     return input
   end
 
@@ -81,7 +109,7 @@ module Mtk
     input = Gtk::Entry.new
     input.text = proc.call(nil)
     input.visibility = visibility
-    container.pack_start(Gtk::Label.new(label), false, true, 0)
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     input.signal_connect('changed'){ |widget|
       proc.call(widget.text) }
@@ -101,7 +129,11 @@ module Mtk
   end
 
   def self.group(title, *children)
-    group = Gtk::Frame.new(title).set_border_width(8)
+    group = Gtk::Frame.new.set_border_width(8)
+    if(title.is_a?(Gtk::Widget))
+      group.set_label_widget(title)
+    else
+      group.set_label(title) end
     box = Gtk::VBox.new(false, 0).set_border_width(4)
     group.add(box)
     children.each{ |w|

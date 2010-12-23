@@ -15,13 +15,9 @@ module MIKU
         @parent = SymbolTable.defaults
         def self.ancestor
           self end end
-      merge(default)
       super(){ |this, key| @parent[key.to_sym] }
+      merge!(default) unless default.empty?
     end
-
-    def run_init_script
-      miku_stream(File.open(INITIALIZE_FILE), self)
-      self end
 
     def ancestor
       @parent.ancestor end
@@ -81,7 +77,15 @@ module MIKU
                       :<, :>, :<=, :>=, :eq, :eql, :equal) +
              [:lambda , Cons.new(nil, Primitive.new(:negi)),
               :def , Cons.new(nil, Primitive.new(:defun)),
-              :"=", Cons.new(nil, Primitive.new(:eq))
+              :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
+              :"=", Cons.new(nil, Primitive.new(:eq)),
+              :true, Cons.new(true, nil),
+              :false, Cons.new(false, nil)
              ] + consts)] end
+
+    def run_init_script
+      miku_stream(File.open(INITIALIZE_FILE), self)
+      self end
+
   end
 end

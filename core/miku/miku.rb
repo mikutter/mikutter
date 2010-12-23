@@ -14,7 +14,14 @@ if not defined? $loaded_miku
 
   def miku(node, scope=MIKU::SymbolTable.new)
     if(node.is_a? MIKU::Node) then
-      node.miku_eval(scope)
+      begin
+        node.miku_eval(scope)
+      rescue MIKU::MikuException => e
+        warn e
+      rescue Exception => e
+        warn "[MIKU Bug] fatal error on code #{node.inspect}"
+        raise e
+      end
     else
       node end end
 

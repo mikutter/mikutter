@@ -68,7 +68,7 @@ module MIKU
       miku_eval_another(symtable, node)
     end
 
-    def if(symtable, condition, true_case, false_case)
+    def if(symtable, condition, true_case, false_case = nil)
       if(eval(symtable, condition)) then
         eval(symtable, true_case)
       else
@@ -115,6 +115,11 @@ module MIKU
     def macro(symtable, alist, *body)
       Macro.new(alist, body)
     end
+
+    def macro_expand(symtable, symbol, *args)
+      macro = symtable[symbol].cdr
+      if macro.is_a?(Macro)
+        macro.macro_expand(*args) end end
 
     def negi(parenttable, alist, *body)
       # body = body.map{ |node| macro_expand(parenttable, node) }

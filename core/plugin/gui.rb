@@ -111,6 +111,7 @@ module Plugin
     def gen_book
       book = Gtk::Notebook.new.set_tab_pos(TABPOS[UserConfig[:tab_position]]).set_tab_border(0).set_group_id(0).set_scrollable(true)
       tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
+        notice "change tab pos to #{TABPOS[val]}"
         book.set_tab_pos(TABPOS[val]) }
       book.signal_connect('page-reordered'){
         UserConfig[:tab_order] = books_labels

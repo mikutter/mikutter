@@ -21,6 +21,10 @@ class NilClass
   # def each(&proc)
   #   nil end
 
+  def empty?
+    true
+  end
+
   def mapcarcdr(converter)
     nil end
 

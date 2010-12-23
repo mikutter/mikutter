@@ -629,6 +629,13 @@ class String
   end
   alias to_wakachi to_wakati
 
+  # 引数にStringを渡したら、正規表現にコンパイルするmatch
+  def match_regexp(str)
+    if(str.is_a? String)
+      match(Regexp.new(str))
+    else
+      match(str) end end
+
   def matches(regexp)
     result = []
     each_matches(regexp){ |m, pos|

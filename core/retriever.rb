@@ -97,7 +97,7 @@ module Retriever
         id == other end end
 
     def to_hash
-      @value
+      @value.dup
     end
 
     # カラムの生の内容を返す

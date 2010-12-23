@@ -38,6 +38,10 @@ module MIKU
       self
     end
 
+    def empty?
+      false
+    end
+
     def inspect
       "(#{car.inspect}"+(if @cdr.is_a?(Cons) then " #{@cdr.inspect[1..-1]}"
                           elsif @cdr === nil then ')'
