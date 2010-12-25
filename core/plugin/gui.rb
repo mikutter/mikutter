@@ -150,7 +150,8 @@ module Plugin
     def get_tabindex(label)
       books.each_with_index{ |book, book_id|
         book.children.each_with_index{ |child, index|
-          return book_id, index if book.get_menu_label(child).text == label } } end
+          return book_id, index if book.get_menu_label(child).text == label } }
+      nil end
 
     def books_labels
       books.map{ |book|

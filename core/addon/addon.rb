@@ -35,12 +35,12 @@ module Addon
 
   def self.gen_tab_base_class
     Class.new do
-      attr_reader :name, :tab, :timeline, :header
+      attr_reader :name, :tab, :timeline, :header, :options
       attr_accessor :mark
 
       def initialize(name, service, options = {})
         @name, @service, @options = name, service, options
-        @tab, @mark = gen_main, true
+        @tab, @mark, @destroyed = gen_main, true, false
         Addon.regist_tab(@tab, actual_name, icon)
         on_create end
 
@@ -49,10 +49,14 @@ module Addon
 
       def remove
         on_remove
+        @destroyed = true
         Addon.remove_tab(actual_name) end
 
       def focus
         Addon.focus(actual_name) end
+
+      def destroyed?
+        @destroyed end
 
       private
 

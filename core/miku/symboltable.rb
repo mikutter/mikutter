@@ -12,7 +12,8 @@ module MIKU
       if parent
         @parent = parent
       else
-        @parent = SymbolTable.defaults
+        @parent = MIKU::SymbolTable.initialized_table end
+      if(SymbolTable.defaults.equal?(parent))
         def self.ancestor
           self end end
       super(){ |this, key| @parent[key.to_sym] }
@@ -60,6 +61,9 @@ module MIKU
         _miracle_binding(symtable, keys.cdr, values.cdr) end
       symtable end
 
+    def self.initialized_table
+      @@initialized_table ||= (@@initialized_table = MIKU::SymbolTable.new(SymbolTable.defaults)).run_init_script end
+
     def self.defsform(fn=nil, *other)
       return [] if fn == nil
       [fn , Cons.new(nil, Primitive.new(fn))] + defsform(*other) end
@@ -72,7 +76,7 @@ module MIKU
       Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
-      Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
+      @@defaults ||= Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
                       :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
                       :<, :>, :<=, :>=, :eq, :eql, :equal) +
              [:lambda , Cons.new(nil, Primitive.new(:negi)),
@@ -81,7 +85,7 @@ module MIKU
               :"=", Cons.new(nil, Primitive.new(:eq)),
               :true, Cons.new(true, nil),
               :false, Cons.new(false, nil)
-             ] + consts)] end
+             ] + consts)].freeze end
 
     def run_init_script
       miku_stream(File.open(INITIALIZE_FILE), self)

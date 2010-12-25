@@ -211,8 +211,7 @@ Module.new do
             if event == :success and list
               lists = @lists.dup
               lists.push(list)
-              set_available_lists(lists) end }
-        end
+              set_available_lists(lists) end } end
         Gtk::Window.toplevels.first.sensitive = true
         dialog.hide_all.destroy
         Gtk::main_quit

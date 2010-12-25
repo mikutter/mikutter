@@ -50,13 +50,13 @@ class Gtk::MessagePicker < Gtk::EventBox
 
   def add_condition(expr = [:==, :user, ''])
     pack = Gtk::HBox.new
-    close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
+    close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16)).set_relief(Gtk::RELIEF_NONE)
     close.signal_connect(:clicked){
       @container.remove(pack)
       pack.destroy
       call
       false }
-    pack.closeup(close)
+    pack.closeup(close.top)
     if(expr.first == :and or expr.first == :or)
       pack.add(Gtk::MessagePicker.new(expr, &@changed_hook))
     else

@@ -558,6 +558,17 @@ class Array
       val = Class.new{
         define_method(:==, &proc) }.new end
     rindex(val) end
+
+  # 1.9のindexと同じようにブロックを渡すことができる
+  def index(val = nil) # !> method redefined; discarding old index
+    compare = if(block_given?)
+                Proc.new
+              else
+                lambda{ |x| x == val } end
+    each_with_index{ |x, i|
+      return i if compare[x] }
+    nil end
+
 end
 
 class Hash
