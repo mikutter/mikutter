@@ -194,7 +194,7 @@ class TwitterAPI < Mutex
                                      'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
         res.read_body(&Proc.new) }
     rescue Exception => evar
-      evar
+      warn evar
     end
   end
 

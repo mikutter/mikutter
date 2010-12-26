@@ -18,7 +18,12 @@ Module.new do
     if new_val
       Delayer.new{ self.start }
     else
-      @thread.kill if @thread
+      if @thread
+        Plugin.call(:rewindstatus, 'UserStream: disconnected')
+        @thread.kill
+      else
+        Plugin.call(:rewindstatus, 'UserStream: already disconnected. nothing to do.')
+      end
     end
   }
 
@@ -30,7 +35,9 @@ Module.new do
           catch(:streaming_break){
             start_streaming{ |q|
               throw(:streaming_break) unless(UserConfig[:realtime_rewind])
-              Delayer.new(Delayer::NORMAL, q.strip, &method(:trigger_event)) } } end } end end
+              Delayer.new(Delayer::NORMAL, q.strip, &method(:trigger_event)) } }
+          Plugin.call(:rewindstatus, 'UserStream: disconnected')
+        end } end end
 
   def self.trigger_event(query)
     begin
@@ -78,8 +85,10 @@ Module.new do
 
   def self.start_streaming(&proc)
     begin
+      Plugin.call(:rewindstatus, 'UserStream: start')
       @service.streaming(&proc)
     rescue Exception => e
+      Plugin.call(:rewindstatus, "UserStream: fault (#{e.class.to_s})")
       error e
     end
   end
