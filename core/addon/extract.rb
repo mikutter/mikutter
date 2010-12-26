@@ -9,13 +9,11 @@ Module.new do
   end
 
   class ExtractTab < Gtk::CRUD
-    ITER_SHOW = 0
-    ITER_NAME = 1
-    ITER_SEXP = 2
-    ITER_ID   = 3
+    ITER_NAME = 0
+    ITER_SEXP = 1
+    ITER_ID   = 2
     def column_schemer
-      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => 'タブを表示'},
-       {:kind => :text, :widget => :input, :type => String, :label => '名前'},
+      [{:kind => :text, :widget => :input, :type => String, :label => '名前'},
        {:type => Object, :widget => :message_picker},
        {:type => Integer},
       ].freeze
@@ -30,11 +28,10 @@ Module.new do
           tabs[index][:id] = record[:id] = gen_uniq_id end
         tabclass.new(record[:name], service, record)
         iter = model.append
-        iter[ITER_SHOW] = record[:show]
         iter[ITER_NAME] = record[:name]
         iter[ITER_SEXP] = record[:sexp]
         iter[ITER_ID] = record[:id] }
-      UserConfig[:extract_tabs] = tabs
+      commit(tabs)
     end
 
     def gen_uniq_id(uniq_id = Time.now.to_i)
@@ -49,38 +46,37 @@ Module.new do
     def on_created(iter)
       tabs = extract_tabs.melt
       record = {
-        :show => iter[ITER_SHOW],
         :name => iter[ITER_NAME],
         :sexp => iter[ITER_SEXP],
-        :id => iter[ITER_ID] = gen_uniq_id }
+        :id => iter[ITER_ID] = gen_uniq_id }.freeze
       tabs.push(record)
-      tabclass.new(record[:name], @service, record) if record[:show]
-      p UserConfig[:extract_tabs] = tabs end
+      tabclass.new(record[:name], @service, record)
+      commit tabs end
 
     def on_updated(iter)
-      tabs = extract_tabs
+      tabs = extract_tabs.melt
       record = tabs[tabs.index{|x| x[:id] == iter[ITER_ID] }] = {
-        :show => iter[ITER_SHOW],
         :name => iter[ITER_NAME],
         :sexp => iter[ITER_SEXP],
         :id => iter[ITER_ID] }
       tab = tabclass.tabs.find{|x| x.options[:id] == iter[ITER_ID]}
       if tab
-        tab.change_options(record)
-      elsif record[:show]
-        tabclass.new(record[:name], @service, record) end
-      p UserConfig[:extract_tabs] = tabs end
+        tab.change_options(record) end
+      commit tabs end
 
     def on_deleted(iter)
-      tabs = extract_tabs
+      tabs = extract_tabs.melt
       tabs.delete_if{|x| x[:id] == iter[ITER_ID]}
       tab = tabclass.tabs.find{|x| x.options[:id] == iter[ITER_ID]}
       if tab
         tab.remove end
-      p UserConfig[:extract_tabs] = tabs
-    end
+      commit tabs end
 
     private
+
+    def commit(tabs)
+      UserConfig[:extract_tabs] = tabs.freeze
+    end
 
     def tabclass
       @tabclass ||= Class.new(Addon.gen_tabclass){
@@ -101,11 +97,9 @@ Module.new do
         end
 
         def change_options(option)
-          if option[:show]
-            @options[:sexp] = option[:sexp]
-            # TODO: 名前変更を実装する
-          else
-            remove end end
+          @options[:sexp] = option[:sexp]
+          # TODO: 名前変更を実装する
+        end
 
       }
     end

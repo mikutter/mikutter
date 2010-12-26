@@ -8,6 +8,8 @@ miquire :mui, 'webicon'
 miquire :miku, 'miku'
 
 class Gtk::MessagePicker < Gtk::EventBox
+  attr_reader :to_a
+
   def initialize(conditions, &block)
     super()
     @changed_hook = block
@@ -18,24 +20,17 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.add(@container)
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
-    shell.signal_connect(:destroy){
-      @to_a = to_a
-      class << self
-        attr_reader :to_a end
-      false }
     add(Gtk::Frame.new.set_border_width(8).set_label_widget(Mtk::boolean(lambda{ |new|
                                                                            unless new === nil
                                                                              @function = function(new)
                                                                              call end
                                                                            @function == :or },
                                                                          'いずれかにマッチする')).add(shell))
+    recalc_to_a
   end
 
   def function(new = @function)
     (new ? :or : :and) end
-
-  def to_a
-    [@function, *@container.children.map{|x| x.children.last.to_a}] end
 
   def add_button
     container = Gtk::HBox.new
@@ -58,16 +53,20 @@ class Gtk::MessagePicker < Gtk::EventBox
       false }
     pack.closeup(close.top)
     if(expr.first == :and or expr.first == :or)
-      pack.add(Gtk::MessagePicker.new(expr, &@changed_hook))
+      pack.add(Gtk::MessagePicker.new(expr, &method(:call)))
     else
-      pack.add(Gtk::MessagePicker::PickCondition.new(expr, &@changed_hook)) end
+      pack.add(Gtk::MessagePicker::PickCondition.new(expr, &method(:call))) end
     @container.closeup(pack) end
 
   private
 
   def call
+    recalc_to_a
     if @changed_hook
       @changed_hook.call end end
+
+  def recalc_to_a
+    @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze end
 
   class Gtk::MessagePicker::PickCondition < Gtk::HBox
     def initialize(conditions = [:==, :user, ''], *args, &block)
@@ -75,11 +74,6 @@ class Gtk::MessagePicker < Gtk::EventBox
       @changed_hook = block
       @condition, @subject, @expr = *conditions.to_a
       build
-      signal_connect(:destroy){
-        @to_a = to_a
-        class << self
-          attr_reader :to_a end
-        false }
     end
 
     def to_a

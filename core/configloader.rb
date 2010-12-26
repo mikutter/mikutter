@@ -21,9 +21,9 @@ module ConfigLoader
     return @@configloader_cache[ckey] if @@configloader_cache.has_key?(ckey)
     ConfigLoader.transaction(true){
       if ConfigLoader.pstore.root?(ckey) then
-        ConfigLoader.pstore[ckey]
+        ConfigLoader.pstore[ckey].freeze
       elsif defined? yield then
-        @@configloader_cache[ckey] = yield(key, ifnone)
+        @@configloader_cache[ckey] = yield(key, ifnone).freeze
       else
         ifnone end } end
 
@@ -31,7 +31,10 @@ module ConfigLoader
     Thread.new{
       ConfigLoader.transaction{
         ConfigLoader.pstore[configloader_key(key)] = val } }
-    @@configloader_cache[configloader_key(key)] = val end
+    if(val.frozen?)
+      @@configloader_cache[configloader_key(key)] = val
+    else
+      @@configloader_cache[configloader_key(key)] = (val.clone.freeze rescue val) end end
 
   def store_before_at(key, val)
     result = self.at(key)
