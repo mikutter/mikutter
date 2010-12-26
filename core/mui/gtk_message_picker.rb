@@ -12,6 +12,9 @@ class Gtk::MessagePicker < Gtk::EventBox
 
   def initialize(conditions, &block)
     super()
+    @not = (conditions.car == :not)
+    if(@not)
+      conditions = conditions[1] end
     @changed_hook = block
     shell = Gtk::VBox.new
     @container = Gtk::VBox.new
@@ -20,17 +23,28 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.add(@container)
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
-    add(Gtk::Frame.new.set_border_width(8).set_label_widget(Mtk::boolean(lambda{ |new|
-                                                                           unless new === nil
-                                                                             @function = function(new)
-                                                                             call end
-                                                                           @function == :or },
-                                                                         'いずれかにマッチする')).add(shell))
+    add(Gtk::Frame.new.set_border_width(8).set_label_widget(option_widgets).add(shell))
     recalc_to_a
   end
 
   def function(new = @function)
     (new ? :or : :and) end
+
+  def option_widgets
+    Gtk::HBox.new.
+      closeup(Mtk::boolean(lambda{ |new|
+                             unless new === nil
+                               @function = function(new)
+                               call end
+                             @function == :or },
+                           'いずれかにマッチする')).
+      closeup(Mtk::boolean(lambda{ |new|
+                             unless new === nil
+                               @not = new
+                               call end
+                             @not },
+                           '否定')) end
+  memoize :option_widgets
 
   def add_button
     container = Gtk::HBox.new
@@ -52,7 +66,7 @@ class Gtk::MessagePicker < Gtk::EventBox
       call
       false }
     pack.closeup(close.top)
-    if(expr.first == :and or expr.first == :or)
+    if(expr.first == :and or expr.first == :or or expr.first == :not)
       pack.add(Gtk::MessagePicker.new(expr, &method(:call)))
     else
       pack.add(Gtk::MessagePicker::PickCondition.new(expr, &method(:call))) end
@@ -66,7 +80,10 @@ class Gtk::MessagePicker < Gtk::EventBox
       @changed_hook.call end end
 
   def recalc_to_a
-    @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze end
+    @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
+    if(@not)
+      @to_a = [:not, @to_a].freeze end
+    @to_a end
 
   class Gtk::MessagePicker::PickCondition < Gtk::HBox
     def initialize(conditions = [:==, :user, ''], *args, &block)

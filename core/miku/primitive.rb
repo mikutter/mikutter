@@ -68,6 +68,9 @@ module MIKU
       miku_eval_another(symtable, node)
     end
 
+    def _not(symtable, sexp)
+      not eval(symtable, sexp) end
+
     def if(symtable, condition, true_case, false_case = nil)
       if(eval(symtable, condition)) then
         eval(symtable, true_case)

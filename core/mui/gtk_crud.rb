@@ -146,9 +146,12 @@ class Gtk::CRUD < Gtk::TreeView
 
   def create_dialog(title, container)
     dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
-    dialog.set_size_request(400, 300)
+    dialog.set_size_request(640, 480)
     dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(container, true, true, 30)
+    dialog.vbox.pack_start(Gtk::ScrolledWindow.new.
+                           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
+                           add_with_viewport(container),
+                           true, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
     dialog end

@@ -83,6 +83,7 @@ module MIKU
               :def , Cons.new(nil, Primitive.new(:defun)),
               :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
               :"=", Cons.new(nil, Primitive.new(:eq)),
+              :not, Cons.new(nil, Primitive.new(:_not)),
               :true, Cons.new(true, nil),
               :false, Cons.new(false, nil)
              ] + consts)].freeze end
