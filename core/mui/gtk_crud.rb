@@ -18,7 +18,10 @@ class Gtk::CRUD < Gtk::TreeView
       if (event.button == 3)
         menu_pop(self)
         true end }
-  end
+    self.signal_connect("row-activated"){|view, path, column|
+      if iter = view.model.get_iter(path)
+        if record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
+          force_record_update(iter, record) end end } end
 
   protected
 
