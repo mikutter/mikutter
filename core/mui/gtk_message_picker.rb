@@ -12,7 +12,7 @@ class Gtk::MessagePicker < Gtk::EventBox
 
   def initialize(conditions, &block)
     super()
-    @not = (conditions.car == :not)
+    @not = (conditions.respond_to?(:car) and (conditions.car == :not))
     if(@not)
       conditions = conditions[1] end
     @changed_hook = block
