@@ -119,10 +119,41 @@ module MIKU
       Macro.new(alist, body)
     end
 
-    def macro_expand(symtable, symbol, *args)
-      macro = symtable[symbol].cdr
-      if macro.is_a?(Macro)
-        macro.macro_expand(*args) end end
+    def macro_expand_all(symtable, sexp)
+      if sexp.is_a? List
+        expanded = macro_expand(symtable, sexp)
+        if expanded.is_a? List
+          expanded.map{|node|
+            macro_expand_all_ne(symtable, node) }
+        else
+          expanded end
+      else
+        sexp end end
+
+    def macro_expand_all_ne(symtable, sexp)
+      if sexp.is_a? List
+        expanded = macro_expand_ne(symtable, sexp)
+        if expanded.is_a? List
+          expanded.map{|node|
+            macro_expand_all_ne(symtable, node) }
+        else
+          expanded end
+      else
+        sexp end end
+
+    def macro_expand_ne(symtable, sexp)
+      if sexp.is_a? List
+        macro = if(sexp.car.is_a? Symbol)
+                  symtable[sexp.car].cdr
+                else
+                  eval(symtable, sexp.car) end
+        if macro.is_a?(Macro)
+          macro.macro_expand(*sexp.cdr.to_a) end
+      else
+        sexp end end
+
+    def macro_expand(symtable, sexp)
+      macro_expand_ne(symtable, eval(symtable, sexp)) end
 
     def negi(parenttable, alist, *body)
       # body = body.map{ |node| macro_expand(parenttable, node) }

@@ -9,8 +9,11 @@ miquire :mui, 'contextmenu'
 # CRUDなリストビューを簡単に実現するためのクラス
 class Gtk::CRUD < Gtk::TreeView
 
+  attr_accessor :creatable, :updatable, :deletable
+
   def initialize
     super(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
+    @creatable = @updatable = @deletable = true
     set_columns
     self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
       not iter[column].include?(key) }
@@ -19,7 +22,7 @@ class Gtk::CRUD < Gtk::TreeView
         menu_pop(self)
         true end }
     self.signal_connect("row-activated"){|view, path, column|
-      if iter = view.model.get_iter(path)
+      if @editable and iter = view.model.get_iter(path)
         if record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
           force_record_update(iter, record) end end } end
 
@@ -85,28 +88,32 @@ class Gtk::CRUD < Gtk::TreeView
   end
 
   def record_create(optional, widget)
-    record = popup_input_window()
-    if record
-      force_record_create(record) end end
+    if @creatable
+      record = popup_input_window()
+      if record
+        force_record_create(record) end end end
 
   def record_update(optional, widget)
-    self.selection.selected_each {|model, path, iter|
-      record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
-      if record
-        force_record_update(iter, record) end } end
+    if @updatable
+      self.selection.selected_each {|model, path, iter|
+        record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
+        if record
+          force_record_update(iter, record) end } end end
 
   def record_delete(optional, widget)
-    self.selection.selected_each {|model, path, iter|
-      if Gtk::Dialog.confirm("本当に削除しますか？\n" +
-                             "一度削除するともうもどってこないよ。")
-        force_record_delete(iter) end } end
+    if @deletable
+      self.selection.selected_each {|model, path, iter|
+        if Gtk::Dialog.confirm("本当に削除しますか？\n" +
+                               "一度削除するともうもどってこないよ。")
+          force_record_delete(iter) end } end end
 
   def menu_pop(widget)
-    contextmenu = Gtk::ContextMenu.new
-    contextmenu.registmenu("新規作成", &method(:record_create))
-    contextmenu.registmenu("編集", &method(:record_update))
-    contextmenu.registmenu("削除", &method(:record_delete))
-    contextmenu.popup(widget, widget) end
+    if(@creatable or @updatable or @deletable)
+      contextmenu = Gtk::ContextMenu.new
+      contextmenu.registmenu("新規作成", &method(:record_create)) if @creatable
+      contextmenu.registmenu("編集", &method(:record_update)) if @updatable
+      contextmenu.registmenu("削除", &method(:record_delete)) if @deletable
+      contextmenu.popup(widget, widget) end end
 
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])

@@ -17,7 +17,7 @@ class Twitter < TwitterAPI
     text = self.convert_message(message)
     return nil if not text
     replyto = message[:replyto]
-    receiver = get_receiver(message)
+    receiver = message[:receiver] or get_receiver(message)
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
