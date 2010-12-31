@@ -63,6 +63,7 @@ class Gtk::IconOverButton < Gtk::EventBox
         end
         false
       }
+      self.events = Gdk::Event::POINTER_MOTION_MASK | Gdk::Event::BUTTON_PRESS_MASK
       self.signal_connect('motion_notify_event'){ |widget, event|
         Gtk::Lock.synchronize do
           self.redraw(event, :focus => self.get_focused_button(event.x, event.y))

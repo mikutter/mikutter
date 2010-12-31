@@ -53,6 +53,14 @@ class UserConfig
     # 通知を表示しておく秒数
     :notify_expire_time => 10,
 
+    :retweeted_by_anyone_show_timeline => true,
+
+    :retweeted_by_anyone_age => true,
+
+    :favorited_by_anyone_show_timeline => true,
+
+    :favorited_by_anyone_age => true,
+
     # タブの並び順
     :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
 

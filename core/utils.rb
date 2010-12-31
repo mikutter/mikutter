@@ -703,3 +703,18 @@ class HatsuneStore < PStore
     result
   end
 end
+
+def is_fib?(n)
+  x = 1
+  loop{
+    if(fib(x) == n)
+      return true
+    elsif(fib(x) > n)
+      return false end
+    x += 1 } end
+
+def fib(n)
+  return n if n < 2
+  fib(n-1) + fib(n-2)
+end
+memoize(:fib)

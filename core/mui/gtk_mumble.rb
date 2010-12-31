@@ -161,33 +161,34 @@ module Gtk
       @retweeted_by ||= [] end # ||= message.retweeted_by.to_a end
 
     def favorite(user)
-      unless(favorited_by.include?(user))
-        fav_box.closeup(icon(user, 24).show_all)
-        favorited_by << user
-        rewind_fav_count!
-      end
-    end
+      if(UserConfig[:favorited_by_anyone_show_timeline])
+        unless(favorited_by.include?(user))
+          fav_box.closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
+          favorited_by << user
+          rewind_fav_count! end end end
 
     def unfavorite(user)
-      idx = favorited_by.index(user)
-      if idx
-        favorited_by.delete_at(idx)
-        fav_box.remove(fav_box.children[idx])
-        rewind_fav_count! end end
+      if(UserConfig[:favorited_by_anyone_show_timeline])
+        idx = favorited_by.index(user)
+        if idx
+          favorited_by.delete_at(idx)
+          fav_box.remove(fav_box.children[idx])
+          rewind_fav_count! end end end
 
     def retweeted(user)
-      type_strict user => User
-      Delayer.new{
-        if(not retweeted_box.destroyed?)
-          unless(retweeted_by.include?(user))
-            retweeted_box.closeup(icon(user, 24).show_all)
-            retweeted_by << user
-            if retweeted_box.children.size != retweeted_by.size
-              p retweeted_box.children.size
-              p retweeted_by
-              abort
-            end
-            rewind_retweeted_count! end end } end
+      if(UserConfig[:retweeted_by_anyone_show_timeline])
+        type_strict user => User
+        Delayer.new{
+          if(not retweeted_box.destroyed?)
+            unless(retweeted_by.include?(user))
+              retweeted_box.closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
+              retweeted_by << user
+              if retweeted_box.children.size != retweeted_by.size
+                p retweeted_box.children.size
+                p retweeted_by
+                abort
+              end
+              rewind_retweeted_count! end end } end end
 
     # このメッセージを選択状態にする。
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
@@ -427,13 +428,13 @@ module Gtk
       @retweeted_label ||= Gtk::Label.new('').set_no_show_all(true) end
 
     def retweeted_box
-      @retweeted_box ||= Gtk::HBox.new(false, 4) end
+      @retweeted_box ||= Gtk::HBox.new(false, 0) end
 
     def fav_label
       @fav_label ||= Gtk::Label.new('').set_no_show_all(true) end
 
     def fav_box
-      @fav_box ||= Gtk::HBox.new(false, 4) end
+      @fav_box ||= Gtk::HBox.new(false, 0) end
 
     def relation_configure
       [UserConfig[:show_cumbersome_buttons], UserConfig[:retrieve_force_mumbleparent]]

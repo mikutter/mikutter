@@ -253,7 +253,7 @@ class Message < Retriever::Model
 
   # :nodoc:
   def add_favorited_by(user, time=Time.now)
-    set_modified(time)
+    set_modified(time) if UserConfig[:favorited_by_anyone_age]
     favorited_by.add(user)
     Plugin.call(:favorite, service, user, self) end
 
@@ -277,7 +277,10 @@ class Message < Retriever::Model
 
   # 最終更新日時を取得する
   def modified
-    self[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max end
+    if UserConfig[:retweeted_by_anyone_age]
+      self[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
+    else
+      self[:created] end end
 
   private
 
