@@ -484,16 +484,18 @@ module Gtk
           options[:always_show] = @msg[:favorited] = !@msg.favorite?
           [@@buttons[:fav][@msg.favorite?], options] } end end
 
-    Plugin.create(:gtk_mumble).add_event(:posted){ |service, messages|
-      messages.each{ |message|
-        parent = message.receive_message
-        if parent.is_a?(Message) and @@mumbles.include?(parent[:id])
-          @@mumbles[parent[:id]].each{ |mumble|
-            mumble.replied_by(message)
-          }
-        end
+    if defined? Plugin
+      Plugin.create(:gtk_mumble).add_event(:posted){ |service, messages|
+        messages.each{ |message|
+          parent = message.receive_message
+          if parent.is_a?(Message) and @@mumbles.include?(parent[:id])
+            @@mumbles[parent[:id]].each{ |mumble|
+              mumble.replied_by(message)
+            }
+          end
+        }
       }
-    }
+    end
 
   end end
 

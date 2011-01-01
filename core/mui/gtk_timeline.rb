@@ -176,6 +176,8 @@ module Gtk
 
 end
 
+miquire :plugin, 'plugin'
+
 Module.new do
   plugin = Plugin::create(:core)
   plugin.add_event(:favorite){ |service, fav_by, message|
