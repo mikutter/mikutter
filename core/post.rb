@@ -43,6 +43,8 @@ class Post
     end
   }
 
+  @@services = []
+
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
   def initialize
@@ -59,7 +61,15 @@ class Post
     notice caller(1).first
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
+    @@services << self
   end
+
+  # サービスオブジェクト一覧
+  def self.services
+    @@services.dup end
+
+  def self.primary_service
+    @@services.first end
 
   # Post系APIメソッドを定義するためのメソッド。
   def self.define_postal(api, *other)

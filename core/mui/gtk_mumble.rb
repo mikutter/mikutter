@@ -181,13 +181,8 @@ module Gtk
         Delayer.new{
           if(not retweeted_box.destroyed?)
             unless(retweeted_by.include?(user))
-              retweeted_box.closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
+              retweeted_box.closeup(gen_vote_button(user).show_all)
               retweeted_by << user
-              if retweeted_box.children.size != retweeted_by.size
-                p retweeted_box.children.size
-                p retweeted_by
-                abort
-              end
               rewind_retweeted_count! end end } end end
 
     # このメッセージを選択状態にする。
@@ -227,6 +222,14 @@ module Gtk
     alias inactivate activate
 
     private
+
+    def gen_vote_button(user)
+      result = Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname])
+      result.events = Gdk::Event::POINTER_MOTION_MASK | Gdk::Event::BUTTON_PRESS_MASK
+      result.signal_connect(:'button-release-event'){
+        Plugin.call(:show_profile, (@message.service or Post.primary_service), user) }
+      result
+    end
 
     def rewind_fav_count!
       Lock.synchronize do
