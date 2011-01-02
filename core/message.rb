@@ -168,7 +168,7 @@ class Message < Retriever::Model
     if self[:receiver].is_a? User
       self[:receiver] == other
     elsif self[:receiver]
-      orher[:id] == self[:receiver]
+      other[:id] == self[:receiver]
     else
       match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
       if match
@@ -223,10 +223,7 @@ class Message < Retriever::Model
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1]
-    abort if @retweets.any?{ |x| not x.is_a? Message }
-    @retweets
-  end
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1] end
 
   # 本文を返す
   def body

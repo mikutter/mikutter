@@ -57,7 +57,7 @@ Module.new do
     dialog = Gtk::AboutDialog.new.show
     dialog.name = dialog.program_name = Environment::NAME
     dialog.version = Environment::VERSION.to_s
-    dialog.copyright = '2009-2010 Toshiaki Asai'
+    dialog.copyright = '2009-2011 Toshiaki Asai'
     dialog.comments = "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 圧倒的なかわいさではないか我がミクは

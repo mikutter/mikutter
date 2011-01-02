@@ -48,6 +48,10 @@ class Delayer
           routine.run
           return if ((Process.times.utime - st) > 0.1) } end } end
 
+  # 仕事がなければtrue
+  def self.empty?
+    @@routines.all?{|r| r.empty? } end
+
   # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
   # を実行せずにすぐにreturnするようになる。
   def self.freeze

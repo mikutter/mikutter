@@ -7,6 +7,8 @@ miquire :mui, 'contextmenu'
 miquire :mui, 'intelligent_textview'
 miquire :core, 'message'
 miquire :core, 'userconfig'
+miquire :core, 'serialthread'
+miquire :core, 'delayer'
 miquire :lib, 'weakstorage'
 
 require 'gtk2'
@@ -155,17 +157,19 @@ module Gtk
               show_replied_icon end } end end end
 
     def favorited_by
-      @favorited_by ||= message.favorited_by.to_a end
+      @favorited_by ||= [] end # message.favorited_by.to_a end
 
     def retweeted_by
       @retweeted_by ||= [] end # ||= message.retweeted_by.to_a end
 
     def favorite(user)
       if(UserConfig[:favorited_by_anyone_show_timeline])
-        unless(favorited_by.include?(user))
-          fav_box.closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
-          favorited_by << user
-          rewind_fav_count! end end end
+        type_strict user => User
+        Delayer.new{
+          if(not fav_box.destroyed?) and (not favorited_by.include?(user))
+            fav_box.closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
+            favorited_by << user
+            rewind_fav_count! end } end end
 
     def unfavorite(user)
       if(UserConfig[:favorited_by_anyone_show_timeline])
@@ -179,11 +183,10 @@ module Gtk
       if(UserConfig[:retweeted_by_anyone_show_timeline])
         type_strict user => User
         Delayer.new{
-          if(not retweeted_box.destroyed?)
-            unless(retweeted_by.include?(user))
-              retweeted_box.closeup(gen_vote_button(user).show_all)
-              retweeted_by << user
-              rewind_retweeted_count! end end } end end
+          if(not retweeted_box.destroyed?) and (not retweeted_by.include?(user))
+            retweeted_box.closeup(gen_vote_button(user).show_all)
+            retweeted_by << user
+            rewind_retweeted_count! end } end end
 
     # このメッセージを選択状態にする。
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
@@ -285,18 +288,16 @@ module Gtk
     end
 
     def gen_minimumble(msg)
-      Lock.synchronize{
-        w = Gtk::HBox.new(false, 8)
-        Thread.new{
-          notice msg
-          msg.user[:profile_image_url]
-          Delayer.new{
-            if(not w.destroyed?)
-              w.closeup(icon(msg, 24).top)
-              w.add(@in_reply_to = gen_body(msg,
-                                            'foreground' => :mumble_reply_color,
-                                            'font' => :mumble_reply_font)).show_all end } }
-        w }
+      w = Gtk::HBox.new(false, 8)
+      SerialThread.new{
+        msg.user[:profile_image_url]
+        Delayer.new{
+          if(not w.destroyed?)
+            w.closeup(icon(msg, 24).top)
+            w.add(@in_reply_to = gen_body(msg,
+                                          'foreground' => :mumble_reply_color,
+                                          'font' => :mumble_reply_font)).show_all end } }
+      w
     end
 
     def gen_header(msg)
@@ -384,48 +385,50 @@ module Gtk
       if msg
         Lock.synchronize{
           breakout!
+          Delayer.new{ gen_additional_widgets }
           shell = Gtk::VBox.new(false, 0)
           container = Gtk::HBox.new(false, 0)
           @replies = Gtk::VBox.new(false, 0)
           shell.border_width = 4
           mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
-          mumble.add(gen_reply(msg))
+          mumble.add(gen_reply)
           mumble.add(gen_retweeted)
           mumble.add(gen_favorite)
           mumble.add(@replies)
           add(shell.add(container.add(mumble))).set_height_request(-1).show_all } end end
 
-    def gen_reply(msg)
-      reply = Gtk::VBox.new(false, 0)
-      Thread.new{
-        parent = msg.receive_message(UserConfig[:retrieve_force_mumbleparent])
-        if(parent.is_a?(Message) and parent[:message])
-          Delayer.new{
-            if(not reply.destroyed?)
-              reply.add(gen_minimumble(parent).show_all) end } end }
-      reply end
+    def gen_reply
+      @gen_reply ||= Gtk::VBox.new(false, 0) end
 
     def gen_retweeted
-      result = Gtk::HBox.new(false, 4).closeup(retweeted_label).closeup(retweeted_box).right
-      Thread.new{
-        Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
-          if(not destroyed?)
-            users.each{ |user|
-              retweeted(user) }
-            rewind_retweeted_count! end } }
-      result
-    end
+      @gen_retweeted ||= Gtk::HBox.new(false, 4).closeup(retweeted_label).closeup(retweeted_box).right end
 
     def gen_favorite
-      result = Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right
-      Thread.new{
-        Delayer.new(Delayer::NORMAL, favorited_by){ |users|
-          if(not destroyed?)
-            users.each{ |user|
-              fav_box.closeup(icon(user, 24).show_all) }
-            rewind_fav_count! end } }
-      result
-    end
+      @gen_favorite ||= Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right end
+
+    def gen_additional_widgets
+      SerialThread.new{
+        reply_packer
+        retweeted_packer
+        favorited_packer } end
+
+    def reply_packer
+      parent = message.receive_message(UserConfig[:retrieve_force_mumbleparent])
+      if(parent.is_a?(Message) and parent[:message])
+        Delayer.new{
+          if(not gen_reply.destroyed?)
+            gen_reply.add(gen_minimumble(parent).show_all) end } end end
+
+    def retweeted_packer
+      Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
+        if(not destroyed?)
+          users.each{ |user| retweeted(user) } end } end
+
+    def favorited_packer
+      Delayer.new(Delayer::NORMAL, message.favorited_by){ |users|
+        if(not destroyed?)
+          users.each{ |user| favorite(user) }
+          gen_favorite.show_all end } end
 
     def retweeted_label
       @retweeted_label ||= Gtk::Label.new('').set_no_show_all(true) end

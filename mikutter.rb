@@ -93,6 +93,8 @@ def argument_parser()
     when '--debug' # デバッグモード(default:off)
       $debug = true
       seterrorlevel(:notice)
+    when '--cairo' # cairoを使用(default:off)
+      $cairo = true
     when '-d' # デーモンモード(default:off)
       $daemon = true
     when '-l' # タグを学習しない(default:する)

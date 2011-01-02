@@ -44,6 +44,7 @@ SQL
         rescue Retriever::InvalidTypeError, SQLite3::SQLException => e
           error e end
         [message, children] } end
+
     data_retrieve_hook(:favorited_by, 'favorite', 'message_id', 'user_id', &User.method(:findbyid))
     data_retrieve_hook(:replied_by, 'messages', 'replyto_id', 'id', &Message.method(:findbyid))
     data_retrieve_hook(:retweeted_by, 'messages', 'retweet_id', 'id', &Message.method(:findbyid))
