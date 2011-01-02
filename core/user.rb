@@ -38,6 +38,11 @@ class User < Retriever::Model
     @@system
   end
 
+  def self.memory_class
+    Class.new do
+      def self.new(storage)
+        UserMemory.new(storage, @@users_id) end end end
+
   def initialize(*args)
     super
     @@users_id[idname] = self end
@@ -90,16 +95,20 @@ class User < Retriever::Model
     raise RuntimeError, 'User cannot marshalize'
   end
 
-  class Memory
-    @@idnames = Hash.new
+  class UserMemory < Retriever::Model::Memory
+    def initialize(storage, idnames)
+      super(storage)
+      @idnames = idnames
+    end
+
     def selectby(key, value)
-      if key == :idname and @@idnames[value]
-        [findbyid(@@idnames[value])]
+      if key == :idname and @idnames[value].is_a?(User)
+        [@idnames[value]]
       else
         [] end end
-
-    def store_datum(datum)
-      @@idnames[datum[:idname]] = datum[:id]
-      super end end
+  end
 
 end
+# ~> -:44: syntax error, unexpected kEND, expecting '}'
+# ~> -:98: class definition in method body
+# ~> -:115: syntax error, unexpected kEND, expecting '}'

@@ -71,7 +71,7 @@ module ConfigLoader
     if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
       FileUtils.copy(BACKUP_FILE, SAVE_FILE)
       @@configloader_pstore = nil
-      warn "database is broken. restore by backup"
+      warn "database was broken. restore by backup"
     else
       FileUtils.install(SAVE_FILE, BACKUP_FILE)
     end

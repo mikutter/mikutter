@@ -190,6 +190,7 @@ module Retriever
     # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
     def self.findbyid(id, count=-1)
       return findbyid_ary(id, count) if id.is_a? Array
+      raise if(id.is_a? Model)
       result = nil
       catch(:found){
         rs = self.retrievers
@@ -239,6 +240,8 @@ module Retriever
       result.uniq.map{ |node|
         if node.is_a? Hash
           self.new_ifnecessary(node)
+        elsif node.is_a? Model
+          node
         else
           self.findbyid(node) end } end
 
@@ -284,10 +287,18 @@ module Retriever
       elsif self.cast(value, type.keys.assoc(:id)[1], true)
         value end end
 
+    # メモリキャッシュオブジェクトを返す
+    def self.memory_class
+      Memory end
+
+    # メモリキャッシュオブジェクトのインスタンス
+    def self.memory
+      @memory ||= memory_class.new(@@storage) end
+
     # DataSourceの配列を返します。
     def self.retrievers
       atomic{
-        @retrievers = [Memory.new(@@storage)] if not defined? @retrievers }
+        @retrievers = [memory] if not defined? @retrievers }
       @retrievers
     end
 

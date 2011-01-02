@@ -322,6 +322,7 @@ class TwitterAPI < Mutex
   end
 
   def user_show(args)
+    raise if args[:id].is_a?(User)
     get("/users/show." + FORMAT + get_args(args), head(args))
   end
 

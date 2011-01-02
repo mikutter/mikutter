@@ -130,7 +130,7 @@ class Message < Retriever::Model
   def to_me?
     return true if self.system?
     if self.service
-      return true if self.receiver == self.service.user
+      return true if self.receive_to?(self.service.user_obj)
       return true if self[:message].to_s.include?(self.service.user)
     end
     false
@@ -152,13 +152,27 @@ class Message < Retriever::Model
     if self[:receiver].is_a? User
       self[:receiver]
     elsif self[:receiver]
-      self[:receiver] = User.findbyid(self[:receiver])
+      receiver_id = self[:receiver]
+      self[:receiver] = parallel{
+        self[:receiver] = User.findbyid(receiver_id) }
     else
       match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
   memoize :receiver
+
+  # ユーザOtherに宛てられたメッセージならtrueを返す
+  def receive_to?(other)
+    type_strict other => User
+    if self[:receiver].is_a? User
+      self[:receiver] == other
+    elsif self[:receiver]
+      orher[:id] == self[:receiver]
+    else
+      match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
+      if match
+        match[1] == other[:idname] end end end
 
   # この投稿が別の投稿に宛てられたものならそれを返す。
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
