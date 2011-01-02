@@ -7,16 +7,19 @@ require 'thread'
 class SerialThread
   @@q = Queue.new
 
-  Thread.new do
-    while proc = @@q.pop
-      proc.call
-      Thread.pass
-      notice "waiting: #{@@q.size}"
-      while not(Delayer.empty?)
-        notice "blocking: delayer exists"
-        sleep(0.1)
-        Thread.pass end
-    end end
+  def self.new_thread
+    Thread.new do
+      while proc = @@q.pop
+        proc.call
+        notice "waiting: #{@@q.size}"
+        while not(Delayer.empty?)
+          notice "blocking: delayer exists"
+          sleep(0.1) end end end end
+
+  Thread.new{
+    sleep(10)
+    new_thread
+    new_thread }
 
   def self.new
     @@q.push(Proc.new)

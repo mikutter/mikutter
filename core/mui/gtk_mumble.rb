@@ -289,7 +289,7 @@ module Gtk
 
     def gen_minimumble(msg)
       w = Gtk::HBox.new(false, 8)
-      SerialThread.new{
+      Thread.new{
         msg.user[:profile_image_url]
         Delayer.new{
           if(not w.destroyed?)
@@ -408,7 +408,7 @@ module Gtk
 
     def gen_additional_widgets
       SerialThread.new{
-        reply_packer
+        reply_packer if message.has_receive_message?
         retweeted_packer
         favorited_packer } end
 
@@ -420,15 +420,19 @@ module Gtk
             gen_reply.add(gen_minimumble(parent).show_all) end } end end
 
     def retweeted_packer
-      Delayer.new(Delayer::NORMAL, message.retweeted_by){ |users|
-        if(not destroyed?)
-          users.each{ |user| retweeted(user) } end } end
+      users = message.retweeted_by
+      unless users.empty?
+        Delayer.new(Delayer::NORMAL){
+          if(not destroyed?)
+            users.each{ |user| retweeted(user) } end } end end
 
     def favorited_packer
-      Delayer.new(Delayer::NORMAL, message.favorited_by){ |users|
-        if(not destroyed?)
-          users.each{ |user| favorite(user) }
-          gen_favorite.show_all end } end
+      users = message.favorited_by
+      unless users.empty?
+        Delayer.new(Delayer::NORMAL){
+          if(not destroyed?)
+            users.each{ |user| favorite(user) }
+            gen_favorite.show_all end } end end
 
     def retweeted_label
       @retweeted_label ||= Gtk::Label.new('').set_no_show_all(true) end

@@ -174,6 +174,10 @@ class Message < Retriever::Model
       if match
         match[1] == other[:idname] end end end
 
+  # このメッセージが何かしらの別のメッセージに宛てられたものなら真
+  def has_receive_message?
+    self[:replyto] end
+
   # この投稿が別の投稿に宛てられたものならそれを返す。
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
   # 親投稿を受信していなくてもこの時受信できるが、スレッドがブロッキングされる。
