@@ -166,9 +166,10 @@ end
 def require_if_exist(file)
   begin
     require file
+    true
   rescue LoadError
     notice "require-if-exist: file not found: #{file}"
-    nil end end
+    false end end
 
 # _insertion_ を、 _src_ の挿入するべき場所のインデックスを返す。
 # _order_ は順番を表す配列で、 _src_ 内のオブジェクトの前後関係を表す。

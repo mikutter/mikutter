@@ -11,7 +11,8 @@ require 'fileutils'
 require 'thread'
 
 module ConfigLoader
-  SAVE_FILE = "#{Environment::CONFROOT}p_class_values.db"
+  SAVE_FILE = File.expand_path("#{Environment::CONFROOT}p_class_values.db")
+  BACKUP_FILE = "#{SAVE_FILE}.bak"
 
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
@@ -58,9 +59,25 @@ module ConfigLoader
     return @@configloader_pstore
   end
 
-   def self.create(prefix)
-     Class.new{
-       include ConfigLoader
-       define_method(:configloader_key){ |key|
-         "#{prefix}::#{key}" } }.new end
+  def self.create(prefix)
+    Class.new{
+      include ConfigLoader
+      define_method(:configloader_key){ |key|
+        "#{prefix}::#{key}" } }.new end
+
+  # データが壊れていないかを調べる
+  def self.boot
+    c = create("valid")
+    if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
+      FileUtils.copy(BACKUP_FILE, SAVE_FILE)
+      @@configloader_pstore = nil
+      warn "database is broken. restore by backup"
+    else
+      FileUtils.install(SAVE_FILE, BACKUP_FILE)
+    end
+    c.store(:validate, true)
+  end
+
+  boot
+
 end
