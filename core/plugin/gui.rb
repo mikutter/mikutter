@@ -130,7 +130,9 @@ module Plugin
       book = gen_book.set_width_request(16)
       page_added = book.signal_connect('page-added'){
         book.signal_handler_disconnect(page_added)
-        book.reparent(@pane)
+        # book.reparent(@pane)
+        book.parent.remove(book)
+        @pane.pack_end(book)
         @books << book
         UserConfig[:tab_order] = books_labels
         newpane
