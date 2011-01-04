@@ -10,12 +10,23 @@ Module.new do
 
   class ExtractTab < Gtk::CRUD
     ITER_NAME = 0
-    ITER_SEXP = 1
-    ITER_ID   = 2
+    ITER_SOURCE = 1
+    ITER_SEXP = 2
+    ITER_ID   = 3
     def column_schemer
-      [{:kind => :text, :widget => :input, :type => String, :label => '名前'},
-       {:type => Object, :widget => :message_picker},
-       {:type => Integer},
+      [{ :kind => :text,
+         :widget => :input,
+         :type => String,
+         :label => '名前' },
+       { :type => Object,
+         :widget => :choosemany,
+         :args => [[['appear', '受信したすべての投稿'],
+                    ['update', 'フレンドタイムライン'],
+                    ['mention', '自分宛のリプライ'],
+                    ['posted', '自分が投稿したメッセージ']]]},
+       { :type => Object,
+         :widget => :message_picker },
+       { :type => Integer },
       ].freeze
     end
 
@@ -30,8 +41,10 @@ Module.new do
         iter = model.append
         iter[ITER_NAME] = record[:name]
         iter[ITER_SEXP] = record[:sexp]
+        iter[ITER_SOURCE] = record[:sources]
         iter[ITER_ID] = record[:id] }
       commit(tabs)
+      boot_plugin
     end
 
     def gen_uniq_id(uniq_id = Time.now.to_i)
@@ -48,6 +61,7 @@ Module.new do
       record = {
         :name => iter[ITER_NAME],
         :sexp => iter[ITER_SEXP],
+        :sources => iter[ITER_SOURCE],
         :id => iter[ITER_ID] = gen_uniq_id }.freeze
       tabs.push(record)
       tabclass.new(record[:name], @service, record)
@@ -58,6 +72,7 @@ Module.new do
       record = tabs[tabs.index{|x| x[:id] == iter[ITER_ID] }] = {
         :name => iter[ITER_NAME],
         :sexp => iter[ITER_SEXP],
+        :sources => iter[ITER_SOURCE],
         :id => iter[ITER_ID] }
       tab = tabclass.tabs.find{|x| x.options[:id] == iter[ITER_ID]}
       if tab
@@ -78,23 +93,34 @@ Module.new do
       UserConfig[:extract_tabs] = tabs.freeze
     end
 
+    def hook_plugin(event)
+      Plugin.create(:extract).add_event(event){ |service, messages|
+        tabclass.tabs.each{ |tab| tab.__send__("event_#{event}", messages) } }
+    end
+
+    def boot_plugin
+      [:update,:mention,:posted].each{ |event| hook_plugin(event) }
+      Plugin.create(:extract).add_event(:appear){ |messages|
+        tabclass.tabs.each{ |tab| tab.__send__("event_appear", messages) } }
+    end
+
     def tabclass
       @tabclass ||= Class.new(Addon.gen_tabclass){
         def on_create
           super
-          @update_event_id = Plugin.create(:extract).add_event(:update){ |service, messages|
-            unless(destroyed?)
+          focus end
+
+        def self.define_event_hook(event)
+          define_method("event_#{event}"){ |messages|
+            if options[:sources].include?(event.to_s) and (not destroyed?)
               update(messages.select{ |message|
                        st = MIKU::SymbolTable.new(nil,
                                                   :user => MIKU::Cons.new(message.user.idname, nil),
                                                   :body => MIKU::Cons.new(message.to_show, nil),
                                                   :message => MIKU::Cons.new(message, nil))
-                       miku(options[:sexp], st) }) end }
-          focus end
+                       miku(options[:sexp], st) }) end } end
 
-        def on_remove
-          Plugin.create(:extract).detach(:update, @update_event_id)
-        end
+        [:appear,:update,:mention,:posted].each{ |event| define_event_hook(event) }
 
         def change_options(option)
           @options[:sexp] = option[:sexp]

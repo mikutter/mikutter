@@ -11,7 +11,7 @@ class Gtk::MessagePicker < Gtk::EventBox
   attr_reader :to_a
 
   def initialize(conditions, &block)
-    @to_a = conditions.dup.freeze
+    @to_a = conditions.freeze
     super()
     @not = (conditions.respond_to?(:car) and (conditions.car == :not))
     if(@not)
@@ -95,7 +95,7 @@ class Gtk::MessagePicker < Gtk::EventBox
     end
 
     def to_a
-      [@condition, @subject, @expr] end
+      [@condition, @subject, @expr].freeze end
 
     private
 
@@ -124,7 +124,7 @@ class Gtk::MessagePicker < Gtk::EventBox
                              'match_regexp' => '〜'))
       add(Mtk::input(lambda{ |new|
                        unless new === nil
-                         @expr = new
+                         @expr = new.freeze
                          call end
                        @expr },
                              nil))

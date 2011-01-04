@@ -1,4 +1,3 @@
-#! /usr/bin/ruby
 # -*- coding: utf-8 -*-
 require 'gtk2'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
@@ -150,7 +149,7 @@ class Gtk::CRUD < Gtk::TreeView
                                      results[index]
                                    else
                                      results[index] = new end },
-                                 scheme[:label])) end }
+                                 scheme[:label], *(scheme[:args] or []))) end }
     { :widget => widget,
       :result => lambda{ results } } end
 

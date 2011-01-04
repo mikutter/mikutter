@@ -3,6 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
 miquire :mui, 'extension'
 miquire :mui, 'message_picker'
+miquire :mui, 'crud'
 
 require 'gtk2'
 
@@ -39,6 +40,24 @@ module Mtk
     input.signal_connect('changed'){ |widget|
       proc.call(*[values.keys.sort[widget.active], widget][0, proc.arity])
       nil
+    }
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+  end
+
+  def self.choosemany(key, label, values)
+    values.freeze
+    if key.respond_to?(:call)
+      proc = key
+    else
+      proc = lambda{ |new|
+        if new === nil
+          UserConfig[key] or []
+        else
+          UserConfig[key] = new end } end
+    container = Gtk::HBox.new(false, 0)
+    input = Gtk::SelectBox.new(values, proc.call(*[nil, input][0, proc.arity])){ |selected|
+      proc.call(*[selected, input][0, proc.arity])
     }
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
@@ -292,7 +311,8 @@ module Mtk
   def self.dialog_button(label, callback = Proc.new)
     btn = Gtk::Button.new(label)
     btn.signal_connect('clicked'){
-      self.dialog(label, callback[:container], &callback[:success]) }
+      params = callback.call
+      self.dialog(label, params[:container], &params[:success]) }
     btn
   end
 

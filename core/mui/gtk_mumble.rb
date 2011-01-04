@@ -24,7 +24,8 @@ module Gtk
 =end
   class Mumble < Gtk::EventBox
 
-    DEFAULT_HEIGHT = 64
+    # ロード前のウィジェットの高さ
+    DEFAULT_HEIGHT = 64 + 24
 
     attr_accessor :replies
     attr_reader :message
