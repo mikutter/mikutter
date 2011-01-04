@@ -407,10 +407,14 @@ module Gtk
       @gen_favorite ||= Gtk::HBox.new(false, 4).closeup(fav_label).closeup(fav_box).right end
 
     def gen_additional_widgets
-      SerialThread.new{
-        reply_packer if message.has_receive_message?
-        retweeted_packer
-        favorited_packer } end
+      if message[:created] <= (Time.now - 3)
+        SerialThread.new{
+          reply_packer if message.has_receive_message?
+          retweeted_packer
+          favorited_packer }
+      elsif message.has_receive_message?
+        SerialThread.new{ reply_packer }
+      end end
 
     def reply_packer
       parent = message.receive_message(UserConfig[:retrieve_force_mumbleparent])

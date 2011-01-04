@@ -35,12 +35,11 @@ module Mtk
     values.keys.sort.each{ |x|
       input.append_text(values[x])
     }
-    input.signal_connect('changed'){ |widget|
-      Gtk::Lock.synchronize do
-        proc.call(*[values.keys.sort[widget.active], widget][0, proc.arity])
-      end
-    }
     input.active = (values.keys.sort.index((proc.call(*[nil, input][0, proc.arity]) or 0)) or 0)
+    input.signal_connect('changed'){ |widget|
+      proc.call(*[values.keys.sort[widget.active], widget][0, proc.arity])
+      nil
+    }
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
   end
@@ -66,14 +65,16 @@ module Mtk
       proc = key
     else
       proc = lambda{ |new|
-        if new === nil
+        if new.nil?
           if(UserConfig[key])
-            UserConfig[key]
+            UserConfig[key].freeze
           else
-            [] end
+            [].freeze end
         else
-          UserConfig[key] = new end } end
+          UserConfig[key] = new.freeze end } end
     input = Gtk::MessagePicker.new(proc.call(*[nil, input][0, proc.arity])){
+        proc.call(*[ input.to_a, input][0, proc.arity]) }
+    input.signal_connect(:destroy){
       proc.call(*[ input.to_a, input][0, proc.arity]) }
     return input
   end
@@ -287,5 +288,36 @@ module Mtk
     dialog.run
     dialog.destroy
   end
+
+  def self.dialog_button(label, callback = Proc.new)
+    btn = Gtk::Button.new(label)
+    btn.signal_connect('clicked'){
+      self.dialog(label, callback[:container], &callback[:success]) }
+    btn
+  end
+
+  def self.dialog(title, container)
+    result = nil
+    dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
+    dialog.set_size_request(640, 480)
+    dialog.window_position = Gtk::Window::POS_CENTER
+    dialog.vbox.pack_start(Gtk::ScrolledWindow.new.
+                           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
+                           add_with_viewport(container),
+                           true, true, 30)
+    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
+    dialog.signal_connect('response'){ |widget, response|
+      if block_given? and response == Gtk::Dialog::RESPONSE_OK
+        result = yield(*[dialog][0..Proc.new.arity]) end
+      Gtk::Window.toplevels.first.sensitive = true
+      dialog.hide_all.destroy
+      Gtk::main_quit
+    }
+    Gtk::Window.toplevels.first.sensitive = false
+    dialog.show_all
+    Gtk::main
+    result end
+
 
 end

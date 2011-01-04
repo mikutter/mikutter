@@ -11,6 +11,7 @@ class Gtk::MessagePicker < Gtk::EventBox
   attr_reader :to_a
 
   def initialize(conditions, &block)
+    @to_a = conditions.dup.freeze
     super()
     @not = (conditions.respond_to?(:car) and (conditions.car == :not))
     if(@not)
@@ -24,38 +25,28 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
     add(Gtk::Frame.new.set_border_width(8).set_label_widget(option_widgets).add(shell))
-    recalc_to_a
   end
 
   def function(new = @function)
     (new ? :or : :and) end
 
   def option_widgets
-    Gtk::HBox.new.
+    @option_widgets ||= Gtk::HBox.new.
       closeup(Mtk::boolean(lambda{ |new|
-                             unless new === nil
+                             unless new.nil?
                                @function = function(new)
                                call end
                              @function == :or },
                            'いずれかにマッチする')).
       closeup(Mtk::boolean(lambda{ |new|
-                             unless new === nil
+                             unless new.nil?
                                @not = new
                                call end
                              @not },
                            '否定')) end
-  memoize :option_widgets
 
   def add_button
-    container = Gtk::HBox.new
-    btn = Gtk::Button.new('条件を追加')
-    btn.signal_connect(:clicked){
-      add_condition.show_all }
-    btn2 = Gtk::Button.new('サブフィルタを追加')
-    btn2.signal_connect(:clicked){
-      add_condition([:and, [:==, :user, '']]).show_all }
-    container.closeup(btn).closeup(btn2) end
-  memoize :add_button
+    @add_button ||= gen_add_button end
 
   def add_condition(expr = [:==, :user, ''])
     pack = Gtk::HBox.new
@@ -84,6 +75,16 @@ class Gtk::MessagePicker < Gtk::EventBox
     if(@not)
       @to_a = [:not, @to_a].freeze end
     @to_a end
+
+  def gen_add_button
+    container = Gtk::HBox.new
+    btn = Gtk::Button.new('条件を追加')
+    btn.signal_connect(:clicked){
+      add_condition.show_all }
+    btn2 = Gtk::Button.new('サブフィルタを追加')
+    btn2.signal_connect(:clicked){
+      add_condition([:and, [:==, :user, '']]).show_all }
+    container.closeup(btn).closeup(btn2) end
 
   class Gtk::MessagePicker::PickCondition < Gtk::HBox
     def initialize(conditions = [:==, :user, ''], *args, &block)

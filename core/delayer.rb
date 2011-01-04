@@ -52,6 +52,10 @@ class Delayer
   def self.empty?
     @@routines.all?{|r| r.empty? } end
 
+  # 残っているDelayerの数を返す
+  def self.size
+    @@routines.map{|r| r.size }.sum end
+
   # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
   # を実行せずにすぐにreturnするようになる。
   def self.freeze
