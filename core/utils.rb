@@ -368,19 +368,37 @@ class Object
   def self.defun(method_name, *args, &proc)
     define_method(method_name, &tclambda(*args, &proc)) end
 
+  # freezeできるならtrueを返す
+  def freezable?
+    true end
+
+  # freezeできる場合はfreezeする。selfを返す
+  def freeze_ifn
+    freeze if freezable?
+    self end
+
   # freezeされていない同じ内容のオブジェクトを作って返す。
   # メルト　溶けてしまいそう　（実装が）dupだなんて　絶対に　言えない
   def melt
     if frozen? then dup else self end end end
 
 #
-# integer
+# Numeric
+#
+
+class Numeric
+  def freezable?
+    false end end
+
+#
+# Integer
 #
 
 class Integer
   # ページあたりone_page_contain個の要素が入る場合に、self番目の要素は何ページ目に来るかを返す
   def page_of(one_page_contain)
     (self.to_f / one_page_contain).ceil end
+
 end
 
 #
@@ -688,6 +706,22 @@ class String
   end
 
 end
+
+def Symbol
+  def freezable?
+    false end end
+
+def TrueClass
+  def freezable?
+    false end end
+
+def FalseClass
+  def freezable?
+    false end end
+
+def NilClass
+  def freezable?
+    false end end
 
 class HatsuneStore < PStore
 

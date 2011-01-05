@@ -126,7 +126,6 @@ Module.new do
           @options[:sexp] = option[:sexp]
           # TODO: 名前変更を実装する
         end
-
       }
     end
   end

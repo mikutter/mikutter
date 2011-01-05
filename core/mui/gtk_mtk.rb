@@ -73,9 +73,9 @@ module Mtk
         else
           UserConfig[key] = new end } end
     input = Gtk::CheckButton.new(label)
+    input.active = proc.call(*[nil, input][0, proc.arity])
     input.signal_connect('toggled'){ |widget|
       proc.call(*[widget.active?, widget][0, proc.arity]) }
-    input.active = proc.call(*[nil, input][0, proc.arity])
     return input
   end
 
@@ -85,10 +85,7 @@ module Mtk
     else
       proc = lambda{ |new|
         if new.nil?
-          if(UserConfig[key])
-            UserConfig[key].freeze
-          else
-            [].freeze end
+          UserConfig[key]
         else
           UserConfig[key] = new.freeze end } end
     input = Gtk::MessagePicker.new(proc.call(*[nil, input][0, proc.arity])){
@@ -326,10 +323,10 @@ module Mtk
                            add_with_viewport(container),
                            true, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if block_given?
     dialog.signal_connect('response'){ |widget, response|
       if block_given? and response == Gtk::Dialog::RESPONSE_OK
-        result = yield(*[dialog][0..Proc.new.arity]) end
+        result = yield(*[response, dialog][0..Proc.new.arity]) end
       Gtk::Window.toplevels.first.sensitive = true
       dialog.hide_all.destroy
       Gtk::main_quit

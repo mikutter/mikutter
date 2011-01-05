@@ -11,11 +11,12 @@ class Gtk::MessagePicker < Gtk::EventBox
   attr_reader :to_a
 
   def initialize(conditions, &block)
+    conditions = [] unless conditions.is_a? MIKU::List
     @to_a = conditions.freeze
     super()
     @not = (conditions.respond_to?(:car) and (conditions.car == :not))
     if(@not)
-      conditions = conditions[1] end
+      conditions = (conditions[1] or []).freeze end
     @changed_hook = block
     shell = Gtk::VBox.new
     @container = Gtk::VBox.new

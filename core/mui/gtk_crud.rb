@@ -116,20 +116,8 @@ class Gtk::CRUD < Gtk::TreeView
 
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
-    result = nil
     input = gen_popup_window_widget(defaults)
-    dialog = create_dialog('リストを作成', input[:widget])
-    dialog.signal_connect('response'){ |widget, response|
-      if response == Gtk::Dialog::RESPONSE_OK
-        result = input[:result].call end
-      Gtk::Window.toplevels.first.sensitive = true
-      dialog.hide_all.destroy
-      Gtk::main_quit
-    }
-    Gtk::Window.toplevels.first.sensitive = false
-    dialog.show_all
-    Gtk::main
-    result end
+    Mtk.dialog('リストを作成', input[:widget], &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new
@@ -137,32 +125,21 @@ class Gtk::CRUD < Gtk::TreeView
       case scheme[:widget]
       when :message_picker
         widget.closeup(Mtk.message_picker(lambda{ |new|
-                                            if(new === nil)
-                                              results[index]
+                                            if(new.nil?)
+                                              results[index].freeze_ifn
                                             else
-                                              results[index] = new end }))
+                                              results[index] = new.freeze_ifn end }))
       when nil
         ;
       else
         widget.closeup(Mtk.__send__((scheme[:widget] or :input), lambda{ |new|
-                                   if(new === nil)
-                                     results[index]
+                                   if(new.nil?)
+                                     results[index].freeze_ifn
                                    else
-                                     results[index] = new end },
+                                     results[index] = new.freeze_ifn end },
                                  scheme[:label], *(scheme[:args] or []))) end }
     { :widget => widget,
-      :result => lambda{ results } } end
-
-  def create_dialog(title, container)
-    dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
-    dialog.set_size_request(640, 480)
-    dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(Gtk::ScrolledWindow.new.
-                           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
-                           add_with_viewport(container),
-                           true, true, 30)
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
-    dialog end
+      :result => lambda{
+        results } } end
 
 end
