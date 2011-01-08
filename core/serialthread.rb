@@ -14,11 +14,10 @@ class SerialThread
         notice "waiting: #{@@q.size}"
         while not(Delayer.empty?)
           notice "blocking: delayer exists"
-          sleep(0.1 * Delayer.size) end end end end
+          sleep(0.1) end end end end
 
   Thread.new{
     sleep(10)
-    new_thread
     new_thread }
 
   def self.new

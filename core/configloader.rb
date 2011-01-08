@@ -69,17 +69,19 @@ module ConfigLoader
 
   # データが壊れていないかを調べる
   def self.boot
+    if(FileTest.exist?(SAVE_FILE))
     Delayer.new{
       c = create("valid")
       if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
         FileUtils.copy(BACKUP_FILE, SAVE_FILE)
         @@configloader_pstore = nil
         warn "database was broken. restore by backup"
-      elsif FileTest.exist?(SAVE_FILE)
+      else
         FileUtils.install(SAVE_FILE, BACKUP_FILE)
       end
       c.store(:validate, true)
     }
+    end
   end
 
   boot

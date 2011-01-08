@@ -185,7 +185,8 @@ module Gtk
         type_strict user => User
         Delayer.new{
           if(not retweeted_box.destroyed?) and (not retweeted_by.include?(user))
-            retweeted_box.closeup(gen_vote_button(user).show_all)
+            puts "retweeted add #{user[:idname]} to #{message.to_show}"
+            retweeted_box.closeup(gen_vote_button(user)).show_all
             retweeted_by << user
             rewind_retweeted_count! end } end end
 
@@ -414,8 +415,7 @@ module Gtk
           retweeted_packer
           favorited_packer }
       elsif message.has_receive_message?
-        SerialThread.new{ reply_packer }
-      end end
+        SerialThread.new{ reply_packer } end end
 
     def reply_packer
       parent = message.receive_message(UserConfig[:retrieve_force_mumbleparent])
@@ -429,7 +429,8 @@ module Gtk
       unless users.empty?
         Delayer.new(Delayer::NORMAL){
           if(not destroyed?)
-            users.each{ |user| retweeted(user) } end } end end
+            users.each{ |user| retweeted(user) }
+            gen_retweeted.show_all end } end end
 
     def favorited_packer
       users = message.favorited_by
