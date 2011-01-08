@@ -8,8 +8,16 @@ module OAuth
     # Escape +value+ by URL encoding all non-reserved character. 
     #
     # See Also: {OAuth core spec version 1.0, section 5.1}[http://oauth.net/core/1.0#rfc.section.5.1]
+    # def escape(value)
+    #   URI::escape(value.to_s, OAuth::RESERVED_CHARACTERS)
+    # end
     def escape(value)
-      URI::escape(value.to_s, OAuth::RESERVED_CHARACTERS)
+      begin
+        URI::escape(value.to_s, OAuth::RESERVED_CHARACTERS)
+      rescue ArgumentError
+        URI::escape(value.to_s.force_encoding(Encoding::UTF_8),
+                    OAuth::RESERVED_CHARACTERS)
+      end
     end
 
     # Generate a random key of up to +size+ bytes. The value returned is Base64 encoded with non-word

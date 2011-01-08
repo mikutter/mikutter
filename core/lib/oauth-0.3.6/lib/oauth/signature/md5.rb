@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/signature/base'
 require 'digest/md5'
 

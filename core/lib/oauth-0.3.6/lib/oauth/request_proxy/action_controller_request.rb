@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'active_support'
 require 'action_controller'
 require 'action_controller/request'

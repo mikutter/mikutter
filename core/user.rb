@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.expand_path('utils')
 miquire :core, 'retriever'
 
@@ -39,9 +40,14 @@ class User < Retriever::Model
   end
 
   def self.memory_class
-    Class.new do
+    result = Class.new do
+      def self.set_users_id(users)
+        @@users_id = users end
+
       def self.new(storage)
-        UserMemory.new(storage, @@users_id) end end end
+        UserMemory.new(storage, @@users_id) end end
+    result.set_users_id(@@users_id)
+    result end
 
   def initialize(*args)
     super
@@ -72,7 +78,7 @@ class User < Retriever::Model
   def self.findbyidname(idname, count=-1)
     if(@@users_id.has_key?(idname))
       @@users_id[idname]
-    elsif caller(1).include?(caller[0].first)
+    elsif caller(1).include?(caller[0])
       selectby(:idname, idname, count).first
     end
   end

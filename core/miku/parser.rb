@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # hatsune lisp is moest language
 
 require 'miku'

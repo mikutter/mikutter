@@ -9,6 +9,9 @@ if defined? HYDE
   require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
 end
 
+module Config
+end
+
 require 'yaml'
 require 'thread'
 require 'resolv-replace'
@@ -352,8 +355,8 @@ end
 
 # コマンドをバックグラウンドで起動することを覗いては system() と同じ
 def bg_system(*args)
-  cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
-  system('sh', '-c', cmd)
+  # cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
+  system('sh', '-c', Escape.shell_command(args).to_s)
 end
 
 def wakachigaki(str)
@@ -627,6 +630,7 @@ end
 #
 
 class String
+
   # 文字数を数える。1.9の String#size と同じ
   def strsize
     self.split(//u).size

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   module Signature
     # Returns a list of available signature methods

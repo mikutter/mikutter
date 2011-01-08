@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'test/unit'
 require 'oauth/signature'
 require 'oauth/request_proxy/mock_request'

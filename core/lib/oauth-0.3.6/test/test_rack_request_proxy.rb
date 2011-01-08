@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.dirname(__FILE__) + '/test_helper.rb'
 require 'oauth/request_proxy/rack_request'
 require 'rack/request'

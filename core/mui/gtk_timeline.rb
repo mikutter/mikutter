@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'gtk2'
 require 'time'
 miquire :mui, 'prioritybox'

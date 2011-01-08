@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # To use the GUI JSON editor, start the edit_json.rb executable script. It
 # requires ruby-gtk to be installed.
 

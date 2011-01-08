@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   # The Access Token is used for the actual "real" web service calls that you perform against the server
   class AccessToken < ConsumerToken

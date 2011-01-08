@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This file contains implementations of ruby core's custom objects for
 # serialisation/deserialisation.
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Weak Storage
 #
@@ -10,7 +11,7 @@ class WeakStorage
   def initialize
     @storage = Hash.new # { key => objid }
     @on_delete = lambda{ |objid|
-      @storage.delete(@storage.index(objid)) if @storage.has_value?(objid) } end
+      @storage.delete(@storage.key(objid)) if @storage.has_value?(objid) } end
 
   def [](key)
      at(key) end

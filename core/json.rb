@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 miquire :core, 'json/common'
 module JSON
   miquire :core, 'json/version'

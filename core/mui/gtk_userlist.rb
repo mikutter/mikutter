@@ -1,4 +1,4 @@
-# ruby
+# -*- coding: utf-8 -*-
 require 'gtk2'
 miquire :mui, 'extension'
 miquire :core, 'user'

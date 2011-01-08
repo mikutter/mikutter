@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/helper'
 require 'oauth/consumer'
 

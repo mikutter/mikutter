@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #! /usr/bin/ruby
 
 require File.expand_path('utils')

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'test/unit'
 
 $LOAD_PATH << File.dirname(__FILE__) + '/../lib/'

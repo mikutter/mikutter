@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # mentions.rb
 #
 # Reply display/post support

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module Memoize
    # The version of the memoize library
    MEMOIZE_VERSION = '1.3.1'

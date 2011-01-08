@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # this exists for backwards-compatibility
 
 require 'oauth/tokens/token'

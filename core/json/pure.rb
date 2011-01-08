@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 miquire :core, 'json/common'
 miquire :core, 'json/pure/parser'
 miquire :core, 'json/pure/generator'

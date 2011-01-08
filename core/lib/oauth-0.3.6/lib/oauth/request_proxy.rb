@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   module RequestProxy
     def self.available_proxies #:nodoc:

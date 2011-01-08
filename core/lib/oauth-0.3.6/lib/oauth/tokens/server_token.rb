@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   # Used on the server for generating tokens
   class ServerToken < Token

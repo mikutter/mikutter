@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # escape.rb - escape/unescape library for several formats
 #
 # Copyright (C) 2006,2007 Tanaka Akira  <akr@fsij.org>

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   class Unauthorized < OAuth::Error
     attr_reader :request

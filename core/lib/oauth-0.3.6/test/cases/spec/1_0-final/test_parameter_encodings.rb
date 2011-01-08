@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.dirname(__FILE__) + '/../../oauth_case'
 
 # See http://oauth.net/core/1.0/#encoding_parameters

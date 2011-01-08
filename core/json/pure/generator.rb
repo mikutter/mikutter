@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module JSON
   MAP = {
     "\x0" => '\u0000',

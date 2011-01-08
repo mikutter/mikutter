@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   # request tokens are passed between the consumer and the provider out of
   # band (i.e. callbacks cannot be used), per section 6.1.1

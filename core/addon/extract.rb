@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 miquire :addon, 'addon'
-
 Module.new do
 
   def self.boot
@@ -112,7 +112,7 @@ Module.new do
 
         def self.define_event_hook(event)
           define_method("event_#{event}"){ |messages|
-            if options[:sources].include?(event.to_s) and (not destroyed?)
+            if options[:sources] and options[:sources].include?(event.to_s) and (not destroyed?)
               update(messages.select{ |message|
                        st = MIKU::SymbolTable.new(nil,
                                                   :user => MIKU::Cons.new(message.user.idname, nil),

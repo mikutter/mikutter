@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 miquire :plugin, 'plugin'
 
@@ -24,7 +25,7 @@ module Addon
         @options[:icon] end
 
       def actual_name
-        @name + suffix end
+        (@name or '') + suffix end
 
       def suffix
         '' end

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #! /usr/bin/ruby
 
 if not defined? $loaded_miku

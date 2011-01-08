@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/signature/hmac/base'
 require 'hmac-sha1'
 

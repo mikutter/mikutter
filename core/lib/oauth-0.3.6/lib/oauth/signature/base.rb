@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/signature'
 require 'oauth/helper'
 require 'oauth/request_proxy/base'

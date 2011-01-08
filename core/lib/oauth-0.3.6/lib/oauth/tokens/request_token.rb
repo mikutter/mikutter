@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   # The RequestToken is used for the initial Request.
   # This is normally created by the Consumer object.

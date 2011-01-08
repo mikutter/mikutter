@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 gem 'actionpack','2.2.2'
 require File.dirname(__FILE__) + '/test_helper.rb'
 

@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 require File.expand_path('utils')
 
 miquire :core, 'twitter'
@@ -280,6 +280,7 @@ class Post
           return nil end end
       notice "post:fail:#{api}:#{count}:#{message.inspect}"
       puts result.backtrace.join("\n") if result.is_a? Exception
+      warn result
       yield(:retry, result)
       sleep(1) }
     yield(:fail, nil)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   # Superclass for the various tokens used by OAuth
   class Token

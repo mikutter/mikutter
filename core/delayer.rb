@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.expand_path('utils')
 
 # ブロックを、後で時間があいたときに順次実行する。

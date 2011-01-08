@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/oauth'
 require 'oauth/client/helper'
 require 'oauth/signature/hmac/sha1'

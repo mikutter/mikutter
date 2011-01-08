@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'test/unit'
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :addon, 'bitly'

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'oauth/request_proxy/base'
 require 'net/http'
 require 'uri'

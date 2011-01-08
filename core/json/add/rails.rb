@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This file contains implementations of rails custom objects for
 # serialisation/deserialisation.
 

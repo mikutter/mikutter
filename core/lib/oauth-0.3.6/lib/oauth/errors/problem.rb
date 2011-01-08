@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 module OAuth
   class Problem < OAuth::Unauthorized
     attr_reader :problem, :params
