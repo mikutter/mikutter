@@ -15,14 +15,12 @@ class Gtk::SelectBox < Gtk::CRUD
   ITER_STRING = 1
   ITER_ID = 2
 
-  attr_reader :selected
-
   # _values_ は、{結果に含む値 => 表示される文字列}のHashか、
   # [[結果に含む値, 表示される文字列]]のような配列。
   # _selected_ は、選択されている項目のリスト。<<とdeleteとinclude?を実装している必要がある
   def initialize(values, selected, &changed_hook)
     type_strict values => :each
-    @selected = (selected or [])
+    @selected = (selected.dup or [])
     @changed_hook = changed_hook
     super()
     creatable = updatable = deletable = false
@@ -33,6 +31,12 @@ class Gtk::SelectBox < Gtk::CRUD
       iter[ITER_STRING] = string
       iter[ITER_CHECK] = (selected and @selected.include?(id)) } end
 
+  def selected
+    @selected.freeze
+  end
+
+  private
+
   def column_schemer
     [ { :kind => :active, :widget => :boolean, :type => TrueClass, :label => '選択' },
       { :kind => :text, :widget => :input, :type => String, :label => '項目' },
@@ -40,10 +44,20 @@ class Gtk::SelectBox < Gtk::CRUD
     ].freeze
   end
 
+  def add_selected(id)
+    @selected = @selected.melt
+    @selected << id
+  end
+
+  def delete_selected(id)
+    @selected = @selected.melt
+    @selected.delete(id)
+  end
+
   def on_updated(iter)
     if(iter[ITER_CHECK])
-      @selected << iter[ITER_ID]
+      add_selected(iter[ITER_ID])
     else
-      @selected.delete(iter[ITER_ID]) end
+      delete_selected(iter[ITER_ID]) end
     if @changed_hook
-      @changed_hook.call(*[@selected][0, @changed_hook.arity]) end end end
+      @changed_hook.call(*[selected][0, @changed_hook.arity]) end end end

@@ -55,13 +55,15 @@ module Mtk
           UserConfig[key] or []
         else
           UserConfig[key] = new end } end
-    container = Gtk::HBox.new(false, 0)
     input = Gtk::SelectBox.new(values, proc.call(*[nil, input][0, proc.arity])){ |selected|
       proc.call(*[selected, input][0, proc.arity])
     }
-    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-  end
+    if label
+      Gtk::HBox.new(false, 0).
+        pack_start(Gtk::Label.new(label), false, true, 0).
+        pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    else
+      input end end
 
   def self.boolean(key, label)
     if key.respond_to?(:call)

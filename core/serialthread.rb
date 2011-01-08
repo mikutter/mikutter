@@ -11,7 +11,6 @@ class SerialThread
     Thread.new do
       while proc = @@q.pop
         proc.call
-        notice "waiting: #{@@q.size}"
         while not(Delayer.empty?)
           notice "blocking: delayer exists"
           sleep(0.1) end end end end
