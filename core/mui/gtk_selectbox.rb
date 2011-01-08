@@ -20,7 +20,7 @@ class Gtk::SelectBox < Gtk::CRUD
   # _selected_ は、選択されている項目のリスト。<<とdeleteとinclude?を実装している必要がある
   def initialize(values, selected, &changed_hook)
     type_strict values => :each
-    @selected = (selected.dup or [])
+    @selected = ((selected.dup or []) rescue [])
     @changed_hook = changed_hook
     super()
     creatable = updatable = deletable = false

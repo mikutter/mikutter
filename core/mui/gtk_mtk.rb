@@ -315,7 +315,7 @@ module Mtk
     btn
   end
 
-  def self.dialog(title, container)
+  def self.dialog(title, container, &block)
     result = nil
     dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
     dialog.set_size_request(640, 480)
@@ -327,8 +327,8 @@ module Mtk
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if block_given?
     dialog.signal_connect('response'){ |widget, response|
-      if block_given? and response == Gtk::Dialog::RESPONSE_OK
-        result = yield(*[response, dialog][0..Proc.new.arity]) end
+      if block and response == Gtk::Dialog::RESPONSE_OK
+        result = block.call(*[response, dialog][0,block.arity]) end
       Gtk::Window.toplevels.first.sensitive = true
       dialog.hide_all.destroy
       Gtk::main_quit

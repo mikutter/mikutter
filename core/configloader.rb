@@ -23,12 +23,15 @@ module ConfigLoader
   if(''.respond_to? :force_encoding)
     def to_utf8(a)
       unless(a.frozen?)
-        if(a.is_a? Array) or(a.is_a? Hash)
+        if(a.is_a? Array)
           a.freeze
-          r = a.class.new
-          a.each_with_index{ |item, index|
-            r[to_utf8(index)] = to_utf8(item) }
-          return r
+          return a.map &method(:to_utf8).freeze
+        elsif(a.is_a? Hash)
+          r = Hash.new
+          a.freeze
+          a.each{ |key, val|
+            r[to_utf8(key)]= to_utf8(val) }
+          return r.freeze
         elsif(a.respond_to? :force_encoding)
           return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a
         end

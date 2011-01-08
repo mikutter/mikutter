@@ -74,7 +74,8 @@ module MIKU
       [fn , Cons.new(nil, fn)] + defun(*other) end
 
     def self.consts
-      Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
+      Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c.to_s))] }.inject([]){ |a, b| a + b } end
+    # Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
       @@defaults ||= Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,

@@ -123,6 +123,7 @@ Module.new do
         [:appear,:update,:mention,:posted].each{ |event| define_event_hook(event) }
 
         def change_options(option)
+          @options = @options.melt
           @options[:sexp] = option[:sexp]
           # TODO: 名前変更を実装する
         end

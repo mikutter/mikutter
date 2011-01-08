@@ -27,7 +27,7 @@ module MIKU
       method = name unless method
       define_method(name){ |symtable, *objects|
         unless objects.empty?
-          objects.map{ |x| eval(symtable, x) }.enum_cons(2).all?{ |a|
+          objects.map{ |x| eval(symtable, x) }.enum_for(:each_cons, 2).all?{ |a|
             a[0].__send__(method, a[1]) } end } end
 
     injecting_method(:+)
