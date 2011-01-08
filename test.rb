@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #! /usr/bin/ruby
 
 Dir.glob(File.dirname(__FILE__) + '/core/test/test_*').each{ |f|

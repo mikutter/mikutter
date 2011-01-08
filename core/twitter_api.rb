@@ -213,9 +213,6 @@ class TwitterAPI < Mutex
     begin
       res = access_token.method(method).call(BASE_PATH+path, options[:head])
     rescue Exception => evar
-      h = options[:head].map{|k, v|v.encoding}
-      puts "options[:head] => #{h.inspect}"
-      puts "BASE_PATH+path => #{BASE_PATH+path.encoding.inspect}"
       res = evar end
     notice "#{method} #{path} => #{res}"
     if res.is_a?(Net::HTTPResponse)

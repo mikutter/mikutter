@@ -12,7 +12,7 @@ class SerialThread
       while proc = @@q.pop
         proc.call
         while not(Delayer.empty?)
-          notice "blocking: delayer exists"
+          notice "blocking: delayer exists #{Delayer.executing}"
           sleep(0.1) end end end end
 
   Thread.new{

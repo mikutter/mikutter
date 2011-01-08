@@ -20,24 +20,25 @@ module ConfigLoader
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
 
-  def to_utf8(a)
-    unless(a.frozen?)
-      if(a.is_a? Array) or(a.is_a? Hash)
-        a.freeze
-        r = a.class.new
-        a.each_with_index{ |item, index|
-          r[to_utf8(index)] = to_utf8(item) }
-        return r
-      # elsif(a.respond_to? :encoding)
-      #   unless((a.encoding == Encoding::UTF_8) or (a.encoding == Encoding::ASCII_8BIT))
-      #     p a
-      #     p a.encoding
-      #   end
-      elsif(a.respond_to? :force_encoding)
-        return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a
+  if(''.respond_to? :force_encoding)
+    def to_utf8(a)
+      unless(a.frozen?)
+        if(a.is_a? Array) or(a.is_a? Hash)
+          a.freeze
+          r = a.class.new
+          a.each_with_index{ |item, index|
+            r[to_utf8(index)] = to_utf8(item) }
+          return r
+        elsif(a.respond_to? :force_encoding)
+          return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a
+        end
       end
+      a
     end
-    a
+  else
+    def to_utf8(a)
+      a
+    end
   end
 
   def at(key, ifnone=nil)
