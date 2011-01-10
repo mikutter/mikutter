@@ -9,9 +9,6 @@ if defined? HYDE
   require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
 end
 
-module Config
-end
-
 require 'yaml'
 require 'thread'
 require 'resolv-replace'
@@ -60,14 +57,15 @@ miquire :lib, 'lazy'
 miquire :lib, 'memoize'
 include Memoize
 
-# Config::CONFROOT内のファイル名を得る。
+# Environment::CONFROOT内のファイル名を得る。
 #   confroot(*path)
 # は
-#   File::expand_path(File.join(Config::CONFROOT, *path))
+#   File::expand_path(File.join(Environment::CONFROOT, *path))
 # と等価。
 def confroot(*path)
-  File::expand_path(File.join(Config::CONFROOT, *path))
+  File::expand_path(File.join(Environment::CONFROOT, *path))
 end
+miquire :core, 'environment'
 
 # 複数条件if
 # 条件を二つ持ち、a&b,a&!b,!a&b,!a&!bの４パターンに分岐する
@@ -243,6 +241,13 @@ def type_strict(args, &proc)
   result = type_check(args, &proc)
   abort if not result
   result end
+
+# blockの評価結果がチェックをパスしなかった場合にabortする
+def result_strict(must, &block)
+  result = block.call
+  type_strict(result => must)
+  result
+end
 
 # type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
 def tclambda(*args, &proc)

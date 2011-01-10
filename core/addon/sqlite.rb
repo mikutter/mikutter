@@ -9,7 +9,7 @@
 
 require File.expand_path('utils')
 miquire :addon, 'settings'
-miquire :core, 'config'
+miquire :core, 'environment'
 miquire :core, 'user'
 miquire :core, 'message'
 miquire :core, 'userlist'
@@ -21,7 +21,7 @@ if defined? SQLite3
 
   Module.new do
     plugin = Plugin.create(:sqlite)
-    @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
+    @db = SQLite3::Database.new(File::expand_path(Environment::CONFROOT + "sqlite-datasource.db"))
     begin
       @db.execute(<<SQL)
 CREATE TABLE IF NOT EXISTS `favorite` (
@@ -82,14 +82,14 @@ SQL
       begin
         if not(FileTest.exist?(confroot("sqlite-datasource.db"))) or
             FileTest.writable_real?(confroot("sqlite-datasource.db"))
-          @db = SQLite3::Database.new(File::expand_path(Config::CONFROOT + "sqlite-datasource.db"))
+          @db = SQLite3::Database.new(File::expand_path(Environment::CONFROOT + "sqlite-datasource.db"))
           transaction{ table_setting }
           @insert = "insert or ignore into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"
           @update = "update #{table_name} set " + columns.slice(0, columns.size-1).map{|x| "#{x}=?"}.join(',') + " where id=?"
           @findbyid = "select * from #{table_name} where id=?"
           modelclass.add_data_retriever(self)
         else
-          warn "sqlite database file #{Config::CONFROOT}sqlite-datasource.db is not writable."
+          warn "sqlite database file #{Environment::CONFROOT}sqlite-datasource.db is not writable."
         end
       rescue => e
         error "sqlite initialize failed. #{e}"

@@ -115,7 +115,7 @@ Module.new do
             if options[:sources] and options[:sources].include?(event.to_s) and (not destroyed?)
               update(messages.select{ |message|
                        st = MIKU::SymbolTable.new(nil,
-                                                  :user => MIKU::Cons.new(message.user.idname, nil),
+                                                  :user => MIKU::Cons.new(message.idname, nil),
                                                   :body => MIKU::Cons.new(message.to_show, nil),
                                                   :message => MIKU::Cons.new(message, nil))
                        miku(options[:sexp], st) }) end } end

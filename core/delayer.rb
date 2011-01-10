@@ -47,10 +47,8 @@ class Delayer
       if not @@routines[cnt].empty? then
         procs = @@routines[cnt].clone
         procs.each{ |routine|
-          @@executing = routine.backtrace.first
           @@routines[cnt].delete(routine)
           routine.run
-          @@executing = nil
           return if ((Process.times.utime - st) > 0.1) } end } end
 
 
@@ -62,9 +60,6 @@ class Delayer
   def self.size
     @@routines.map{|r| r.size }.sum end
 
-  # 実行中のdelayer
-  def self.executing
-    @@executing ||= nil end
 
   # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
   # を実行せずにすぐにreturnするようになる。

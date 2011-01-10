@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :addon, 'addon'
-miquire :core, 'config'
+miquire :core, 'environment'
 miquire :addon, 'settings'
 
 require 'net/http'
@@ -51,7 +51,7 @@ Module.new do
   end
 
   def self.imsorry
-    "#{Config::NAME} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
+    "#{Environment::NAME} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
       'OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても'+
       '役に立つんですよ。よかったら送ってくれません？'
   end

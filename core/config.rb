@@ -6,7 +6,7 @@
 # アプリケーションごとの設定たち
 # mikutterの設定
 
-module Config
+module CHIConfig
   # このアプリケーションの名前。
   NAME = "mikutter"
 

@@ -11,32 +11,32 @@ miquire :core, 'config'
 
 module Environment
   # このアプリケーションの名前。
-  NAME = Config::NAME
+  NAME = CHIConfig::NAME
 
   # 名前の略称
-  ACRO = Config::ACRO
+  ACRO = CHIConfig::ACRO
 
   # 下の２行は馬鹿にしか見えない
-  TWITTER_CONSUMER_KEY = Config::TWITTER_CONSUMER_KEY
-  TWITTER_CONSUMER_SECRET = Config::TWITTER_CONSUMER_SECRET
+  TWITTER_CONSUMER_KEY = CHIConfig::TWITTER_CONSUMER_KEY
+  TWITTER_CONSUMER_SECRET = CHIConfig::TWITTER_CONSUMER_SECRET
 
   # pidファイル
-  PIDFILE = Config::PIDFILE
+  PIDFILE = CHIConfig::PIDFILE
 
   # コンフィグファイルのディレクトリ
-  CONFROOT = Config::CONFROOT
+  CONFROOT = CHIConfig::CONFROOT
 
   # 一時ディレクトリ
-  TMPDIR = Config::TMPDIR
+  TMPDIR = CHIConfig::TMPDIR
 
   # ログディレクトリ
-  LOGDIR = Config::LOGDIR
+  LOGDIR = CHIConfig::LOGDIR
 
   # AutoTag有効？
-  AutoTag = Config::AutoTag
+  AutoTag = CHIConfig::AutoTag
 
   # 再起動後に、前回取得したポストを取得しない
-  NeverRetrieveOverlappedMumble = Config::NeverRetrieveOverlappedMumble
+  NeverRetrieveOverlappedMumble = CHIConfig::NeverRetrieveOverlappedMumble
 
   class Version
     include Comparable
@@ -83,6 +83,6 @@ module Environment
   end
 
   # このソフトのバージョン。
-  VERSION = Version.new(*Config::VERSION)
+  VERSION = Version.new(*CHIConfig::VERSION)
 
 end

@@ -16,6 +16,7 @@ require 'io/wait'
 miquire :lib, 'escape'
 miquire :lib, 'oauth'
 miquire :plugin, 'plugin'
+miquire :core, 'environment'
 
 Net::HTTP.version_1_2
 =begin
@@ -119,7 +120,7 @@ class TwitterAPI < Mutex
 
   def cacheing(path, body)
     begin
-      cachefn = File::expand_path(Config::CACHE + path)
+      cachefn = File::expand_path(Environment::CACHE + path)
       FileUtils.mkdir_p(File::dirname(cachefn))
       FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
       file_put_contents(cachefn, body)
@@ -129,14 +130,14 @@ class TwitterAPI < Mutex
 
   def cache_clear(path)
     begin
-      FileUtils.rm_rf(File::expand_path(Config::CACHE + path))
+      FileUtils.rm_rf(File::expand_path(Environment::CACHE + path))
     rescue => e
       warn "cache clear failed"
       warn e end end
 
   def get_cache(path)
     begin
-      cache_path = File::expand_path(Config::CACHE + path)
+      cache_path = File::expand_path(Environment::CACHE + path)
       if FileTest.file?(cache_path)
         return Class.new{
           define_method(:body){

@@ -22,7 +22,7 @@ module Retriever
     #
     def initialize(args)
       type_strict args => Hash
-      @value = if args.frozen? then args.dup else args end
+      @value = args.dup
       validate
       self.class.store_datum(self)
     end
@@ -39,22 +39,20 @@ module Retriever
     end
 
     def self.rewind(args)
-      new_ifnecessary(args).merge(args)
+      type_strict args => Hash
+      result_strict(:merge){ new_ifnecessary(args) }.merge(args)
     end
 
     # まだそのレコードのインスタンスがない場合、それを生成して返します。
     def self.new_ifnecessary(hash)
-      type_strict hash => tcor(self.class, Hash)
-      result = if hash.is_a?(self.class)
-        hash
-      elsif hash[:id] and hash[:id] != 0
-        result = @@storage[hash[:id]]
-        if result
-          result
+      type_strict hash => tcor(self, Hash)
+      result_strict(self) do
+        if hash.is_a?(self)
+          hash
+        elsif hash[:id] and hash[:id] != 0
+          @@storage[hash[:id]] or self.new(hash)
         else
-          self.new(hash) end
-      else
-        raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end
+          raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
       # if hash.is_a?(self.class)
       #   hash
       # elsif not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
@@ -257,7 +255,7 @@ module Retriever
       converted = datum.filtering
       self.retrievers.each{ |retriever|
         retriever.store_datum(converted) }
-      @@storage[datum[:id]] = datum
+      @@storage[datum[:id]] = result_strict(self){ datum }
       datum
     end
 

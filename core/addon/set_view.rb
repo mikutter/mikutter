@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :addon, 'addon'
-miquire :core, 'config'
+miquire :core, 'environment'
 miquire :addon, 'settings'
 
 Module.new do
