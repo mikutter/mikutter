@@ -628,6 +628,12 @@ class Hash
       result[key.to_sym] = val }
     result
   end
+
+  # 1.8でもHash#keyが正常に動作するようにする
+  unless(Hash.new.respond_to?(:key))
+    alias key index
+  end
+
 end
 
 #

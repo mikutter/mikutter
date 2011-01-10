@@ -32,6 +32,9 @@ module Environment
   # ログディレクトリ
   LOGDIR = CHIConfig::LOGDIR
 
+  # キャッシュディレクトリ
+  CACHE = CHIConfig::CACHE
+
   # AutoTag有効？
   AutoTag = CHIConfig::AutoTag
 
