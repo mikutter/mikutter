@@ -674,6 +674,13 @@ class String
   end
   alias to_wakachi to_wakati
 
+  # 日本語の分かち書きをする。mecabをスタートさせたら直ちにIOオブジェクトを返す。
+  # 実際の結果文字列はIO#readで読む。
+  def to_wakatio()
+    wakachigaki(self, true)
+  end
+  alias to_wakachio to_wakatio
+
   # 引数にStringを渡したら、正規表現にコンパイルするmatch
   def match_regexp(str)
     if(str.is_a? String)

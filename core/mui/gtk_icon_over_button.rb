@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 miquire :mui, 'webicon'
-
+miquire :core, 'serialthread'
 require 'gtk2'
 
 class Gtk::IconOverButton < Gtk::EventBox
@@ -190,7 +190,7 @@ class Gtk::IconOverButton < Gtk::EventBox
                 self.window.draw_pixbuf(gc, @button_back, *args) if @button_back end
               self.window.draw_pixbuf(gc, pixbuf, *args)
             else
-              Thread.new{
+              SerialThread.new{
                 if(always_show?(index))
                   Delayer.new{
                     unless destroyed?

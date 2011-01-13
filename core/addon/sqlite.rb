@@ -14,6 +14,7 @@ miquire :core, 'user'
 miquire :core, 'message'
 miquire :core, 'userlist'
 miquire :core, 'retriever'
+miquire :core, 'serialthread'
 
 require_if_exist 'sqlite3'
 
@@ -49,14 +50,14 @@ SQL
     data_retrieve_hook(:replied_by, 'messages', 'replyto_id', 'id', &Message.method(:findbyid))
     data_retrieve_hook(:retweeted_by, 'messages', 'retweet_id', 'id', &Message.method(:findbyid))
     plugin.add_event(:favorite){ |service, user, message|
-      Delayer.new(Delayer::LAST){
+      SerialThread.new{
         begin
           SQLiteDataSource.transaction{
             @db.execute("insert or ignore into favorite (user_id, message_id) values (?, ?)", user[:id], message[:id]) }
         rescue SQLite3::SQLException => e
           warn e end } }
     plugin.add_event(:unfavorite){ |service, user, message|
-      Delayer.new(Delayer::LAST){
+      SerialThread.new{
         begin
           SQLiteDataSource.transaction{
             @db.execute("delete from favorite where user_id = ? and message_id = ?", user[:id], message[:id]) }
@@ -172,7 +173,7 @@ SQL
 
     def store_datum(datum)
       assert_type(Hash, datum)
-      Delayer.new(Delayer::LAST){
+      SerialThread.new{
         begin
           prim = findbyid(datum[:id])
           catch(:store_datum_exit){

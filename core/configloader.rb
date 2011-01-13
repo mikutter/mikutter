@@ -8,7 +8,6 @@
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'serialthread'
-miquire :core, 'delayer'
 
 require 'fileutils'
 require 'thread'
@@ -95,7 +94,7 @@ module ConfigLoader
   # データが壊れていないかを調べる
   def self.boot
     if(FileTest.exist?(SAVE_FILE))
-    Delayer.new{
+    SerialThread.new{
       c = create("valid")
       if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
         FileUtils.copy(BACKUP_FILE, SAVE_FILE)

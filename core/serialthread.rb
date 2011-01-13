@@ -5,19 +5,32 @@ require 'thread'
 # コンストラクタにブロックを与えると別スレッドでそれを実行するが、
 # 別々のSerialThread同士は同じスレッドで実行される
 class SerialThread
-  @@q = Queue.new
+  @@wait_queue = Queue.new
+  @@rapid_queue = Queue.new
 
-  def self.new_thread
+  def self.new_thread(queue, wait_finish_delayer)
     Thread.new do
-      while proc = @@q.pop
+      while proc = queue.pop
         proc.call
-        while not(Delayer.empty?)
-          sleep(0.1) end end end end
+        if(wait_finish_delayer)
+          while not(Delayer.empty?)
+            sleep(0.1) end end end end end
 
   Thread.new{
-    sleep(10)
-    new_thread }
+    new_thread(@@wait_queue, true) }
 
-  def self.new
-    @@q.push(Proc.new)
+  Thread.new{
+    new_thread(@@rapid_queue, false) }
+
+  # SerialThread.new(false) と同じ
+  def self.rapid
+    self.new(false, &Proc.new) end
+
+  # SerialThread.new(true) と同じ
+  def self.lator
+    self.new(true, &Proc.new) end
+
+  # SerialThreadの
+  def self.new(wait_finish_delayer = true)
+    (wait_finish_delayer ? @@wait_queue : @@rapid_queue).push(Proc.new)
     nil end end

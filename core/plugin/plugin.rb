@@ -8,6 +8,7 @@ miquire :core, 'delayer'
 
 require 'monitor'
 require 'set'
+require 'thread'
 
 #
 #= Plugin プラグイン管理/イベント管理モジュール
@@ -22,6 +23,13 @@ require 'set'
 # イベントリスナ(*フィルタ(*引数))というかんじ。
 # リスナもフィルタも、実行される順序は特に規定されていない。
 module Plugin
+
+  @@eventqueue = Queue.new
+
+  Thread.new{
+    while proc = @@eventqueue.pop
+      proc.call end
+  }
 
   def self.gen_event_ring
     Hash.new{ |hash, key| hash[key] = [] }
@@ -70,7 +78,8 @@ module Plugin
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
   def self.call(event_name, *args)
-    plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) end
+    SerialThread.rapid{
+      plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
 
   # イベントが追加されたときに呼ばれるフックを呼ぶ。
   # _callback_ には、登録されたイベントのProcオブジェクトを渡す
