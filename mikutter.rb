@@ -185,7 +185,13 @@ end
 argument_parser()
 
 begin
-  $stderr = File.open(errfile, 'w') if not $debug
+  if not $debug
+    $stderr = File.open(errfile, 'w')
+    def $stderr.write(string)
+      super(string)
+      self.fsync rescue nil
+    end
+  end
   boot()
   File.delete(errfile) if File.exist?(errfile)
 rescue Interrupt, SystemExit => e

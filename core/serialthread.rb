@@ -10,17 +10,18 @@ class SerialThread
 
   def self.new_thread(queue, wait_finish_delayer)
     Thread.new do
-      while proc = queue.pop
-        proc.call
-        if(wait_finish_delayer)
-          while not(Delayer.empty?)
-            sleep(0.1) end end end end end
+      begin
+        while proc = queue.pop
+          proc.call
+          if(wait_finish_delayer)
+            while not(Delayer.empty?)
+              sleep(0.1) end end end
+      rescue Object => e
+        error e
+        abort end end end
 
-  Thread.new{
-    new_thread(@@wait_queue, true) }
-
-  Thread.new{
-    new_thread(@@rapid_queue, false) }
+  new_thread(@@wait_queue, true)
+  new_thread(@@rapid_queue, false)
 
   # SerialThread.new(false) と同じ
   def self.rapid

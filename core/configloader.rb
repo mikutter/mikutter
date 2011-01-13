@@ -3,8 +3,6 @@
 # ruby config loader
 #
 
-# オブジェクトにデータ保存機能を付与する
-
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'serialthread'
@@ -12,13 +10,66 @@ miquire :core, 'serialthread'
 require 'fileutils'
 require 'thread'
 
+=begin rdoc
+  オブジェクトにデータ保存機能をつけるmix-in
+  includeすると、key-value形で恒久的にデータを保存するためのメソッドが提供される。
+  mikutter, CHIのプラグインでは通常はUserConfigをつかうこと。
+=end
 module ConfigLoader
   SAVE_FILE = File.expand_path("#{Environment::CONFROOT}p_class_values.db")
   BACKUP_FILE = "#{SAVE_FILE}.bak"
+  AVAILABLE_TYPES = [Hash, Array, Numeric, String, Symbol, NilClass, TrueClass, FalseClass].freeze
 
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
 
+  # _key_ に対応するオブジェクトを取り出す。
+  # _key_ が存在しない場合は nil か _ifnone_ を返す
+  def at(key, ifnone=nil)
+    ckey = configloader_key(key)
+    return @@configloader_cache[ckey] if @@configloader_cache.has_key?(ckey)
+    ConfigLoader.transaction(true){
+      if ConfigLoader.pstore.root?(ckey) then
+        to_utf8(ConfigLoader.pstore[ckey]).freeze
+      elsif defined? yield then
+        @@configloader_cache[ckey] = yield(key, ifnone).freeze
+      else
+        ifnone end } end
+
+  # _key_ にたいして _val_ を関連付ける。
+  def store(key, val)
+    ConfigLoader.validate(key)
+    ConfigLoader.validate(val)
+    SerialThread.new{
+      ConfigLoader.transaction{
+        ConfigLoader.pstore[configloader_key(key)] = val } }
+    if(val.frozen?)
+      @@configloader_cache[configloader_key(key)] = val
+    else
+      @@configloader_cache[configloader_key(key)] = (val.clone.freeze rescue val) end end
+
+  # ConfigLoader#store と同じ。ただし、値を変更する前に _key_ に関連付けられていた値を返す。
+  # もともと関連付けられていた値がない場合は _val_ を返す。
+  def store_before_at(key, val)
+    result = self.at(key)
+    self.store(key, val)
+    result or val end
+
+  private
+
+  # _obj_ が保存可能な値なら _obj_ を返す。そうでなければ _ArgumentError_ 例外を投げる。
+  def self.validate(obj)
+    if AVAILABLE_TYPES.any?{|x| obj.is_a?(x)}
+      obj
+    else
+      emes = "ConfigLoader recordable class of #{AVAILABLE_TYPES.join(',')} only. but #{obj.class} gaven."
+      error(emes)
+      raise ArgumentError.new(emes)
+    end
+  end
+
+  # Ruby1.9の文字列のM17N対策
+  # 1.8では直ちにselfを返す
   if(''.respond_to? :force_encoding)
     def to_utf8(a)
       unless(a.frozen?)
@@ -32,42 +83,11 @@ module ConfigLoader
             r[to_utf8(key)]= to_utf8(val) }
           return r.freeze
         elsif(a.respond_to? :force_encoding)
-          return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a
-        end
-      end
-      a
-    end
+          return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a end end
+      a end
   else
     def to_utf8(a)
-      a
-    end
-  end
-
-  def at(key, ifnone=nil)
-    ckey = configloader_key(key)
-    return @@configloader_cache[ckey] if @@configloader_cache.has_key?(ckey)
-    ConfigLoader.transaction(true){
-      if ConfigLoader.pstore.root?(ckey) then
-        to_utf8(ConfigLoader.pstore[ckey]).freeze
-      elsif defined? yield then
-        @@configloader_cache[ckey] = yield(key, ifnone).freeze
-      else
-        ifnone end } end
-
-  def store(key, val)
-    SerialThread.new{
-      ConfigLoader.transaction{
-        ConfigLoader.pstore[configloader_key(key)] = val } }
-    if(val.frozen?)
-      @@configloader_cache[configloader_key(key)] = val
-    else
-      @@configloader_cache[configloader_key(key)] = (val.clone.freeze rescue val) end end
-
-  def store_before_at(key, val)
-    result = self.at(key)
-    self.store(key, val)
-    return result || val
-  end
+      a end end
 
   def configloader_key(key)
     "#{self.class.to_s}::#{key}".freeze end
