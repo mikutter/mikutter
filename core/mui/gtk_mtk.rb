@@ -315,7 +315,8 @@ module Mtk
     btn
   end
 
-  def self.dialog(title, container, &block)
+  def self.dialog(title, container, parent=nil, &block)
+    parent_window = parent and parent.toplevel.toplevel? and parent.toplevel
     result = nil
     dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
     dialog.set_size_request(640, 480)
@@ -329,11 +330,11 @@ module Mtk
     dialog.signal_connect('response'){ |widget, response|
       if block and response == Gtk::Dialog::RESPONSE_OK
         result = block.call(*[response, dialog][0,block.arity]) end
-      Gtk::Window.toplevels.first.sensitive = true
+      parent_window.sensitive = true if parent_window
       dialog.hide_all.destroy
       Gtk::main_quit
     }
-    Gtk::Window.toplevels.first.sensitive = false
+    parent_window.sensitive = false if parent_window
     dialog.show_all
     Gtk::main
     result end

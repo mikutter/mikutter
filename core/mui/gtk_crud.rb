@@ -117,7 +117,7 @@ class Gtk::CRUD < Gtk::TreeView
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
     input = gen_popup_window_widget(defaults)
-    Mtk.dialog('リストを作成', input[:widget], &input[:result]) end
+    Mtk.dialog('リストを作成', input[:widget], self, &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new
