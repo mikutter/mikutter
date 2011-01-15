@@ -194,7 +194,7 @@ begin
   end
   boot()
   File.delete(errfile) if File.exist?(errfile)
-rescue Interrupt, SystemExit => e
+rescue Interrupt => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
 ensure

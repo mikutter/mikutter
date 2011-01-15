@@ -276,11 +276,10 @@ class Post
             yield(:fail, nil)
             return nil end
         elsif not(result.code[0] == '5'[0])
-          yield(:fail, err)
+          yield(:fail, nil)
           return nil end end
       notice "post:fail:#{api}:#{count}:#{message.inspect}"
-      puts result.backtrace.join("\n") if result.is_a? Exception
-      warn result
+      notice result
       yield(:retry, result)
       sleep(1) }
     yield(:fail, nil)
