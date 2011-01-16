@@ -6,6 +6,7 @@
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'serialthread'
+miquire :miku, 'miku'
 
 require 'fileutils'
 require 'thread'

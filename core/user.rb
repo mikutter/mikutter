@@ -97,6 +97,29 @@ class User < Retriever::Model
   def is_me?(service = @value[:post])
     service and service.user_obj == self end
 
+  # ユーザのメッセージが今までお気に入りにされた回数を返す
+  def count_favorite_by
+    return @value[:favouritesby_count] if @value.has_key?(:favouritesby_count)
+    begin
+    open("http://favotter.net/user.php?user=#{idname}"){ |io|
+      m = /のふぁぼられ\((\d+)\)/.match(io.read)
+      return @value[:favouritesby_count] = m[1].to_i
+    }
+    rescue => e
+      nil end end
+
+  # ユーザが今までにお気に入りにしたメッセージ数の概算を返す
+  def count_favorite_given
+    return @value[:favourites_count] if @value.has_key?(:favourites_count)
+    begin
+      open("http://favotter.net/user/#{idname}&mode=fav"){ |io|
+        m = /のふぁぼり\((\d+)\)/.match(io.read)
+      return @value[:favourites_count] = m[1].to_i
+    }
+    rescue => e
+      nil end end
+
+
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'
   end
