@@ -174,7 +174,7 @@ def require_if_exist(file)
 
 # _insertion_ を、 _src_ の挿入するべき場所のインデックスを返す。
 # _order_ は順番を表す配列で、 _src_ 内のオブジェクトの前後関係を表す。
-# _order_ 内に _insertion_ が存在しない場合は一番最後のインデックスを返す。。
+# _order_ 内に _insertion_ が存在しない場合は一番最後のインデックスを返す
 def where_should_insert_it(insertion, src, order)
   if(order.include?(insertion)) then
     src.dup.push(insertion).sort_by{|a|
@@ -248,6 +248,15 @@ def result_strict(must, &block)
   type_strict(result => must)
   result
 end
+
+# カレントスレッドがメインスレッドかどうかを返す
+def mainthread?
+  Thread.main == Thread.current end
+
+# メインスレッド以外で呼び出されたらThreadErrorを投げる
+def mainthread_only
+  unless mainthread?
+    raise ThreadError.new('The method calls can only main thread. but called by another thread.') end end
 
 # type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
 def tclambda(*args, &proc)

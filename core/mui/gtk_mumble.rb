@@ -95,6 +95,7 @@ module Gtk
       inactive.each{ |x| x.inactivate } end
 
     def initialize(message)
+      mainthread_only
       type_strict message => Message
       @message = message
       super()
@@ -133,22 +134,23 @@ module Gtk
     end
 
     def gen_postbox(message=@message, options={})
+      mainthread_only
       options = options.melt
-      Lock.synchronize{
-        if(message.from_me? and message.receive_message)
-          gen_postbox(message.receive_message, options)
-        else
-          postbox = Gtk::PostBox.new(message, options)
-          @replies.add(postbox).show_all
-          get_ancestor(Gtk::Window).set_focus(postbox.post)
-        end } end
+      if(message.from_me? and message.receive_message)
+        gen_postbox(message.receive_message, options)
+      else
+        postbox = Gtk::PostBox.new(message, options)
+        @replies.add(postbox).show_all
+        get_ancestor(Gtk::Window).set_focus(postbox.post)
+      end end
 
     def menu_pop(widget)
-      Lock.synchronize{
-        @@contextmenu.popup(widget, self) }
+      mainthread_only
+      @@contextmenu.popup(widget, self)
     end
 
     def replied_by(message)
+      mainthread_only
       if UserConfig[:show_replied_icon]
         if @icon_over_button
           show_replied_icon
@@ -164,6 +166,7 @@ module Gtk
       @retweeted_by ||= [] end # ||= message.retweeted_by.to_a end
 
     def favorite(user)
+      mainthread_only
       if(UserConfig[:favorited_by_anyone_show_timeline])
         type_strict user => User
         Delayer.new{
@@ -173,6 +176,7 @@ module Gtk
             rewind_fav_count! end } end end
 
     def unfavorite(user)
+      mainthread_only
       if(UserConfig[:favorited_by_anyone_show_timeline])
         idx = favorited_by.index(user)
         if idx
@@ -181,6 +185,7 @@ module Gtk
           rewind_fav_count! end end end
 
     def retweeted(user)
+      mainthread_only
       if(UserConfig[:retweeted_by_anyone_show_timeline])
         type_strict user => User
         Delayer.new{
@@ -194,6 +199,7 @@ module Gtk
     # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
     # 最終的にアクティブになったかどうかを返す
     def active(append = false)
+      mainthread_only
       if append
         if active?
           inactive
@@ -229,6 +235,7 @@ module Gtk
     private
 
     def gen_vote_button(user)
+      mainthread_only
       result = Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname])
       result.events = Gdk::Event::POINTER_MOTION_MASK | Gdk::Event::BUTTON_PRESS_MASK
       result.signal_connect(:'button-release-event'){
@@ -237,24 +244,22 @@ module Gtk
     end
 
     def rewind_fav_count!
-      Lock.synchronize do
-        return if(fav_box.destroyed?)
-        if(fav_box.children.size == 0)
-          fav_label.hide_all.set_no_show_all(true)
-        else
-          fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
-        end
+      mainthread_only
+      return if(fav_box.destroyed?)
+      if(fav_box.children.size == 0)
+        fav_label.hide_all.set_no_show_all(true)
+      else
+        fav_label.set_text("#{fav_box.children.size} Fav ").set_no_show_all(false).show_all
       end
     end
 
     def rewind_retweeted_count!
-      Lock.synchronize do
-        return if(retweeted_box.destroyed?)
-        if(retweeted_box.children.size == 0)
-          retweeted_label.hide_all.set_no_show_all(true)
-        else
-          retweeted_label.set_text("#{retweeted_box.children.size} RT ").set_no_show_all(false).show_all
-        end
+      mainthread_only
+      return if(retweeted_box.destroyed?)
+      if(retweeted_box.children.size == 0)
+        retweeted_label.hide_all.set_no_show_all(true)
+      else
+        retweeted_label.set_text("#{retweeted_box.children.size} RT ").set_no_show_all(false).show_all
       end
     end
 
@@ -277,19 +282,22 @@ module Gtk
       lambda{ style.bg(Gtk::STATE_NORMAL) } end
 
     def gen_body(message, fonts={})
+      mainthread_only
       body = Gtk::IntelligentTextview.new(message.to_show, fonts)
       body.signal_connect('button_press_event', &event_button_canceling)
       body.get_background = event_style_bg
       body.signal_connect('button_release_event', &method(:button_release_event))
-      return body
+      body
     end
 
     def icon(msg, x, y=x)
+      mainthread_only
       user = msg.is_a?(User) ? msg : msg.user
       Gtk::WebIcon.new(april_fool(user[:profile_image_url]), x, y)
     end
 
     def gen_minimumble(msg)
+      mainthread_only
       w = Gtk::HBox.new(false, 8)
       Thread.new{
         msg.user[:profile_image_url]
@@ -303,6 +311,7 @@ module Gtk
     end
 
     def gen_header(msg)
+      mainthread_only
       user = msg.user
       idname = Gtk::Label.new(user[:idname])
       created = Gtk::Label.new(msg[:created].strftime('%H:%M:%S'))
@@ -312,6 +321,7 @@ module Gtk
     end
 
     def gen_iob(msg)
+      mainthread_only
       if defined?(@icon_over_button) and @icon_over_button
         @icon_over_button
       else
@@ -324,6 +334,7 @@ module Gtk
         @icon_over_button = iw end end
 
     def gen_control(msg)
+      mainthread_only
       @body = gen_body(msg, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
       control = Gtk::HBox.new(false, 8).closeup(gen_iob(msg).top)
       control.add(@body)
@@ -332,6 +343,7 @@ module Gtk
     end
 
     def cumbersome_buttons(message)
+      mainthread_only
       reply = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get("reply.png"), 16, 16))
       retweet = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get("retweet.png"), 16, 16))
       reply.signal_connect('clicked'){ gen_postbox(message); false }
@@ -340,25 +352,25 @@ module Gtk
     end
 
     def gen_mumble
-      Lock.synchronize{
-        set_size_request(1, DEFAULT_HEIGHT)
-        last_set_config = nil
-        signal_connect('expose_event'){
-          if (relation_configure != last_set_config) then
-            append_contents
-            last_set_config = relation_configure
-          end
-          false }
-        signal_connect('visibility-notify-event'){
-          modifybg
-          false }
-        signal_connect('button_release_event'){ |widget, event|
-          if (event.button == 3)
-            active unless active?
-            menu_pop(@body)
-            true end }
-        signal_connect('button_release_event', &method(:button_release_event))
-      } end
+      mainthread_only
+      set_size_request(1, DEFAULT_HEIGHT)
+      last_set_config = nil
+      signal_connect('expose_event'){
+        if (relation_configure != last_set_config) then
+          append_contents
+          last_set_config = relation_configure
+        end
+        false }
+      signal_connect('visibility-notify-event'){
+        modifybg
+        false }
+      signal_connect('button_release_event'){ |widget, event|
+        if (event.button == 3)
+          active unless active?
+          menu_pop(@body)
+          true end }
+      signal_connect('button_release_event', &method(:button_release_event))
+    end
 
     def button_release_event(widget, event)
       if(event.button == 1)
@@ -367,6 +379,7 @@ module Gtk
 
     @last_bg = []
     def modifybg
+      mainthread_only
       if(@last_bg != get_backgroundcolor and not destroyed?)
         @last_bg = get_backgroundcolor
         style = Gtk::Style.new()
@@ -378,26 +391,25 @@ module Gtk
         @in_reply_to.bg_modifier if @in_reply_to end end
 
     def breakout!
-      Lock.synchronize{
-        children.each{ |w| remove(w); w.destroy }
-        @in_reply_to = @fav_label = @fav_box = @replies = @icon_over_button = nil } end
+      mainthread_only
+      children.each{ |w| remove(w); w.destroy }
+      @in_reply_to = @fav_label = @fav_box = @replies = @icon_over_button = nil end
 
     def append_contents
-      msg = @message
-      if msg
-        Lock.synchronize{
-          breakout!
-          Delayer.new{ gen_additional_widgets }
-          shell = Gtk::VBox.new(false, 0)
-          container = Gtk::HBox.new(false, 0)
-          @replies = Gtk::VBox.new(false, 0)
-          shell.border_width = 4
-          mumble = Gtk::VBox.new(false, 0).add(gen_header(msg)).add(gen_control(msg))
-          mumble.add(gen_reply)
-          mumble.add(gen_retweeted)
-          mumble.add(gen_favorite)
-          mumble.add(@replies)
-          add(shell.add(container.add(mumble))).set_height_request(-1).show_all } end end
+      mainthread_only
+      if @message
+        breakout!
+        Delayer.new{ gen_additional_widgets }
+        shell = Gtk::VBox.new(false, 0)
+        container = Gtk::HBox.new(false, 0)
+        @replies = Gtk::VBox.new(false, 0)
+        shell.border_width = 4
+        mumble = Gtk::VBox.new(false, 0).add(gen_header(@message)).add(gen_control(@message))
+        mumble.add(gen_reply)
+        mumble.add(gen_retweeted)
+        mumble.add(gen_favorite)
+        mumble.add(@replies)
+        add(shell.add(container.add(mumble))).set_height_request(-1).show_all end end
 
     def gen_reply
       @gen_reply ||= Gtk::VBox.new(false, 0) end
@@ -469,6 +481,7 @@ module Gtk
         :etc => Gdk::Pixbuf.new(MUI::Skin::get("etc.png"), 24, 24) }
 
       def initialize(mumble, msg, icon)
+      mainthread_only
         @mumble = mumble
         @msg = msg
         type_strict mumble => Gtk::Mumble, msg => Message

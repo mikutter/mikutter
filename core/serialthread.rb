@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
+miquire :core, 'delayer'
+
 require 'thread'
 
 # コンストラクタにブロックを与えると別スレッドでそれを実行するが、
