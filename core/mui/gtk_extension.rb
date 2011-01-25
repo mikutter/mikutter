@@ -37,7 +37,7 @@ class Gtk::Object #GLib::Instantiatable
 
 module Gtk
   def self.keyname(key)
-    if key.empty?
+    if key.empty? and key[0] and key[1]
       return '(割り当てなし)'
     else
       r = ""
