@@ -246,6 +246,9 @@ periodなど、毎分実行されるイベントのクロールが終わった�
 _message_ をお気に入りに入れているユーザを取得するためのフック。
 _users_ は、お気に入りに入れているユーザの集合。
 
+=== show_filter(Enumerable messages)
+_messages_ から、表示してはいけないものを取り除く
+
 =end
 class Plugin::PluginTag
 

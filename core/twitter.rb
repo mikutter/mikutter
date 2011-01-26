@@ -25,6 +25,12 @@ class Twitter < TwitterAPI
     post_with_auth('/statuses/update.'+FORMAT, data)
   end
 
+  def send_direct_message(message)
+    text = self.convert_message(message)
+    post_with_auth('/direct_messages/new.' + FORMAT,
+                   :text => text,
+                   :user => User.generate(message[:user])[:id].to_s ) end
+
   def imageuploadable?
     defined?(HTTPClient)
   end

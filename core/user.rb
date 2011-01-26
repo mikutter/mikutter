@@ -54,8 +54,8 @@ class User < Retriever::Model
     @@users_id[idname] = self end
 
   def idname
-    self[:idname]
-  end
+    self[:idname] end
+  alias to_s idname
 
   def follow
     if(@value[:post]) then

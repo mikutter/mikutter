@@ -213,6 +213,7 @@ class Post
 
   define_postal :update, :retweet, :search_create, :search_destroy, :follow, :unfollow
   define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
+  define_postal :send_direct_message
   alias post update
 
   define_postal_detail(:destroy){|service, event, msg|

@@ -87,7 +87,8 @@ Module.new do
               unless(relationbox.destroyed?)
                 relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
                                                    if res[:followed_by] then 'す' else 'せん' end)).
-                  closeup(followbutton(res[:user], res[:following])).show_all end } end } end
+                  closeup(followbutton(res[:user], res[:following])).
+                  closeup(mutebutton(res[:user])).show_all end } end } end
       relationbox end
 
     def profile
@@ -116,6 +117,33 @@ Module.new do
               Delayer.new{
                 widget.sensitive = true } end } end }
       btn = Mtk::boolean(changer, 'フォロー') end
+
+    def mutebutton(user)
+      changer = lambda{ |new, widget|
+        if new === nil
+          UserConfig[:muted_users] and UserConfig[:muted_users].include?(user.idname)
+        elsif new
+          add_muted_user(user)
+        else
+          remove_muted_user(user)
+        end
+      }
+      btn = Mtk::boolean(changer, 'ミュート')
+    end
+
+    def add_muted_user(user)
+      type_strict user => User
+      atomic{
+        muted = (UserConfig[:muted_users] ||= []).melt
+        muted << user.idname
+        UserConfig[:muted_users] = muted } end
+
+    def remove_muted_user(user)
+      type_strict user => User
+      atomic{
+        muted = (UserConfig[:muted_users] ||= []).melt
+        muted.delete(user.idname)
+        UserConfig[:muted_users] = muted } end
 
     def toolbar
       container = Gtk::HBox.new(false, 0)
@@ -189,7 +217,13 @@ Module.new do
             user = service.scan(:user_show,
                                 :no_auto_since_id => false,
                                 :screen_name => match[1, match.length])
-            Delayer.new{ makescreen(user.first, service) } if user } end } } end
+            Delayer.new{ makescreen(user.first, service) } if user } end } }
+    plugin.add_event_filter(:show_filter){ |messages|
+      muted_users = UserConfig[:muted_users]
+      if muted_users
+        [messages.select{ |m| not muted_users.include?(m.idname) }]
+      else
+        [messages] end } end
 
   private
 
@@ -210,3 +244,5 @@ end
 
 # Plugin::Ring.push Addon::Profile.new,[:boot]
 
+# ~> -:127: syntax error, unexpected '}', expecting kEND
+# ~> -:224: syntax error, unexpected $end, expecting '}'

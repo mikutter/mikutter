@@ -79,12 +79,15 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     if message[:rule] == :destroy
       remove_if_exists_all([message])
     else
-      mumble = Gtk::Mumble.new(message).show_all
-      @tl.pack(mumble, false)
-      if(@tl.children.size > timeline_max)
-        w = @tl.children.last
-        @tl.remove(w)
-        w.destroy end end end
+      message = Plugin.filtering(:show_filter, [message]).first.first
+      if message.is_a? Message
+        mumble = Gtk::Mumble.new(message).show_all
+        @tl.pack(mumble, false)
+        if(@tl.children.size > timeline_max)
+          w = @tl.children.last
+          @tl.remove(w)
+          w.destroy end end end
+    self end
 
   def block_add_all(messages)
     mainthread_only
@@ -92,21 +95,21 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     remove_if_exists_all(removes)
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)
-    @tl.pack_all(appends.map{ |m| Gtk::Mumble.new(m).show_all }, false)
-    if self.vadjustment.value != 0 or self.has_mumbleinput? then
-      if self.should_return_top? then
-        self.vadjustment.value = 0
-      else
-        self.vadjustment.value += appends.size * Gtk::Mumble::DEFAULT_HEIGHT
-      end
-    end
-    if(@tl.children.size > timeline_max) then
-      (@tl.children.size - timeline_max).times{
-        w = @tl.children.last
-        @tl.remove(w)
-        w.destroy }
-    end
-  end
+    appends = Plugin.filtering(:show_filter, appends).first
+    p appends
+    appends.each{|a| type_strict a => Message }
+    if not appends.empty?
+      @tl.pack_all(appends.map{ |m| Gtk::Mumble.new(m).show_all }, false)
+      if self.vadjustment.value != 0 or self.has_mumbleinput?
+        if self.should_return_top?
+          self.vadjustment.value = 0
+        else
+          self.vadjustment.value += appends.size * Gtk::Mumble::DEFAULT_HEIGHT end end
+      if(@tl.children.size > timeline_max)
+        (@tl.children.size - timeline_max).times{
+          w = @tl.children.last
+          @tl.remove(w)
+          w.destroy } end end end
 
   def remove_if_exists_all(msgs)
     if defined? @tl

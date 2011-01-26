@@ -429,14 +429,13 @@ class TwitterAPI < Mutex
     post_with_auth("/statuses/destroy/#{msg[:id]}.#{FORMAT}")
   end
 
-  def send(user, text)
+  def send(text, user)
+    enc = URI.encode(text, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n)
     path = '/direct_messages/new.' + FORMAT
     data = "user=" + URI.encode(user)
-    data += "&text=" + URI.encode(text)
-    data += '&source=' + PROG_NAME
+    data += "&text=" + URI.encode(enc)
     head = {'Host' => HOST}
-    res = post_with_auth(path, data)
-    res
+    post_with_auth(path, data, head)
   end
 
   def favorite(id)
