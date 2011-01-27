@@ -31,4 +31,4 @@ module MIKU
       obj.staticcode_line = 1
       obj.staticcode_file = 'runtime-code' end end
 
-end
+end 

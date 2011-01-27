@@ -29,7 +29,7 @@ class Array
 
   def unparse(start=true)
     result = ''
-    result = '#array(' if start
+    result = '(' if start
     result + self.map{ |n| MIKU.unparse(n) }.join(' ') + ')'
   end
 

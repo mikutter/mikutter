@@ -156,7 +156,7 @@ module MIKU
     elsif(val.is_a?(List))
       val.unparse
     elsif(val.is_a?(String))
-      val
+      '"' + val.melt.gsub("\n", '\\n').gsub('"', '\\"') + '"'
     elsif(val.respond_to?(:unparse))
       val.unparse
     else

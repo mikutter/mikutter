@@ -252,6 +252,9 @@ class Message < Retriever::Model
     body.split(//u)[0,140].join.freeze end
   memoize :to_s
 
+  def to_i
+    self[:id].to_i end
+
   # selfを返す
   def to_message
     self end
