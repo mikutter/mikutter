@@ -33,7 +33,6 @@ Module.new do
     size = DEFAULT_SIZE
     Thread.new{ # !> method redefined; discarding old inspect
       url = url.value if url.is_a? Thread
-      p url
       if not(url) or not(url.respond_to?(:to_s))
         Delayer.new{
           if cancel

@@ -349,7 +349,6 @@ class Post
         begin
           cnv[:user] = User.findbyid(msg['user']['id']) or scan_rule(:user_show, msg['user'])
         rescue => e
-          pp msg
           error e
           abort
         end

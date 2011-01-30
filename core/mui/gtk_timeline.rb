@@ -96,7 +96,6 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)
     appends = Plugin.filtering(:show_filter, appends).first
-    p appends
     appends.each{|a| type_strict a => Message }
     if not appends.empty?
       @tl.pack_all(appends.map{ |m| Gtk::Mumble.new(m).show_all }, false)

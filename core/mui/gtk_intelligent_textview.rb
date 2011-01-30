@@ -45,7 +45,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
       way_of_open_link.each_with_index{ |way, index|
       condition, open = *way
       if(condition === url)
-        p url
         open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
         break end } } end
 

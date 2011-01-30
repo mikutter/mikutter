@@ -72,8 +72,6 @@ module Gtk
     @@contextmenu.registmenu('リツイートをキャンセル', retweet_cancel_condition){ |this, w|
       Gtk::Mumble.active_mumbles.each { |e|
         retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
-        p e.message.retweeted_by
-        p retweet
         retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } }
     @@contextmenu.registline(&retweet_cancel_condition)
 

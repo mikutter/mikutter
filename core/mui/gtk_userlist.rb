@@ -118,9 +118,7 @@ module Gtk
           not iter[columnm].include?(key) }
 
         treeview.signal_connect("row-activated") do |view, path, column|
-          puts "Row #{path.to_str} was clicked!"
           if iter = view.model.get_iter(path)
-            puts "Double-clicked row contains name #{iter[1]}!"
             double_clicked.call(iter[3])
           end
         end

@@ -305,17 +305,13 @@ class Message < Retriever::Model
   def set_modified(time)
     if modified < time
       self[:modified] = time
-      Plugin::call(:message_modified, self)
-    end
-    p [modified, time]
-    self
-  end
+      Plugin::call(:message_modified, self) end
+    self end
 
   def system
     { :id => @@system_id += 1,
       :user => User.system,
-      :created => Time.now }
-  end
+      :created => Time.now } end
 
   #
   # Sub classes

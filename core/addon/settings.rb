@@ -64,7 +64,7 @@ Module.new do
 
 このソフトウェアは GPL3 によって浄化されています。"
     dialog.license = file_get_contents('../LICENSE') rescue nil
-    dialog.website = 'http://mikutter.d.hachune.net/'
+    dialog.website = 'http://mikutter.hachune.net/'
     dialog.logo = Gtk::WebIcon.new(MUI::Skin.get('icon.png')).pixbuf rescue nil
     dialog.authors = ['toshi_a', 'Phenomer', 'tana_ash']
     dialog.artists = ['toshi_a', 'soramame_bscl']
