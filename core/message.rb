@@ -96,11 +96,6 @@ class Message < Retriever::Model
     end
   end
 
-  # この投稿をお気に入りに追加する権限があればtrueを返す。
-  def favoriable?
-    not system?
-  end
-
   # obsolete
   # def <<(msg)
   #   if (msg.instance_of Symbol)
@@ -120,11 +115,19 @@ class Message < Retriever::Model
     self.service != nil
   end
 
+  # この投稿をお気に入りに追加する権限があればtrueを返す
+  def favoritable?
+    not system? end
+  alias favoriable? favoritable?
+
+  # この投稿をリツイートする権限があればtrueを返す
+  def retweetable?
+    not system? and not from_me? end
+
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?
     return false if self.system?
-    self[:user] == self.service.user if self.service
-  end
+    self[:user] == self.service.user if self.service end
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?

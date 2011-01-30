@@ -37,6 +37,7 @@ class Gtk::Object #GLib::Instantiatable
 
 module Gtk
   def self.keyname(key)
+    type_strict key => Array
     if key.empty? or key[0] == 0 or not key.all?(&ret_nth)
       return '(割り当てなし)'
     else
