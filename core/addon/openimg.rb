@@ -36,7 +36,7 @@ Module.new do
       if not(url) or not(url.respond_to?(:to_s))
         Delayer.new{
           if cancel
-            w.destroy
+            w.destroy unless w.destroyed?
             cancel.call
           else
             w.set_title("URLの取得に失敗") end }

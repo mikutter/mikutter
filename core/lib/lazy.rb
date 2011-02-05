@@ -98,3 +98,6 @@ def everytime(&proc)
 def parallel(&proc)
   Parallel.new(&proc) end
 
+# 値が真であるならtrueを返す。遅延評価オブジェクトでも正確に判断することができる。
+def bool(val)
+  not(val.nil? or val.is_a?(FalseClass)) end

@@ -38,8 +38,9 @@ class Gtk::ListList < Gtk::ScrolledWindow
         iter[1] = list['full_name']
         iter[2] = list } }
     destroy = plugin.add_event(:list_destroy){ |service, list_ids|
-      @view.each{ |model, path, iter|
-        @view.remove(iter) if list_ids.include?(iter[2]['id']) } }
+      unless @view.destroyed?
+        @view.each{ |model, path, iter|
+          @view.remove(iter) if list_ids.include?(iter[2]['id']) } end }
     @view.signal_connect('destroy-event'){ |w, event|
       plugin.detach(create).detach(destroy) }
     self end

@@ -22,7 +22,7 @@ module Gtk
           if cond.call(optional, widget)
             if label
               item = Gtk::MenuItem.new(if defined? label.call then label.call(optional, widget) else label end)
-              item.signal_connect('activate') { |w| proc.call(optional, widget); false } if proc
+              item.signal_connect('activate') { |w| proc.call(*[optional, widget][0...proc.arity]); false } if proc
               menu.append(item)
             else
               menu.append(Gtk::MenuItem.new) end end }

@@ -35,7 +35,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     signal_connect('destroy'){
       clear } end
 
-  # TLごとに繰り返す
+  # Mumbleごとに繰り返す
   def each(&iter)
     timeline{
       @tl.children.each(&iter) } end
@@ -145,6 +145,20 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     Gtk::PostBox.list.each{ |w|
       return true if w.get_ancestor(Gtk::TimeLine) == self }
     false end
+
+  def scroll_to(mumble)
+    mpos = mumble.window.geometry[1]
+    mheight = mumble.window.geometry[3]
+    tpos = self.vadjustment.value
+    theight = self.window.geometry[3]
+    mr = Range.new(mpos, mpos + mheight)
+    tr = Range.new(tpos, tpos + theight)
+    if not(tr.include?(mr.first) and tr.include?(mr.last))
+      if(tr.first > mr.first)
+        self.vadjustment.value = mr.first
+      else
+        self.vadjustment.value = mr.last - theight + mheight end end
+    self end
 
   private
 
