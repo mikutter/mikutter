@@ -58,6 +58,7 @@ class Message < Retriever::Model
 
   # 投稿主のidnameを返す
   def idname
+    type_strict self[:user] => User
     self[:user][:idname]
   end
 

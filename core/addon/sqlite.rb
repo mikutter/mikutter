@@ -157,7 +157,8 @@ SQL
           key = key.to_s.slice(0, key.to_s.size-3).to_sym
           if(modifier[key].is_a? Integer)
             modifier[key]
-          elsif modifier[key].respond_to?(:[])
+          elsif modifier[key].respond_to?(:[]) and not modifier[key].is_a?(String)
+            pp modifier[key]
             modifier[key][:id] || modifier[key]['id'] end
         elsif modifier[key].is_a?(Time)
           modifier[key].strftime('%Y-%m-%d %H:%M:%S')

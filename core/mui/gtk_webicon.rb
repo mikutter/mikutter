@@ -98,6 +98,7 @@ module Gtk
         Lock.synchronize{
           onload.call(self.genpixbuf(filename, *dim)) } } end
 
+    # アイコンキャッシュのファイル名をフルパスで返す
     def self.local_path(url)
       @@l_iconring[url].synchronize{
         filename = WebIcon.get_filename(url)

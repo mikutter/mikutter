@@ -26,7 +26,19 @@ HYDE = 156
 
 # CHIのコアソースコードファイルを読み込む。
 # _kind_ はファイルの種類、 _file_ はファイル名（拡張子を除く）。
-# _file_ を省略すると、その種類のファイルを全て読み込む。
+# _file_ を省略すると、そのディレクトリ下のrubyファイルを全て読み込む。
+# その際、そのディレクトリ下にディレクトリがあれば、そのディレクトリ内に
+# そのディレクトリと同じ名前のRubyファイルがあると仮定して読み込もうとする。
+# == Example
+#  miquire :plugin
+# == Directory hierarchy
+#  plugins/
+#  + a.rb
+#  `- b/
+#     + README
+#     + b.rb
+#     ` c.rb
+#  a.rbとb.rbが読み込まれる(c.rbやREADMEは読み込まれない)
 def miquire(kind, file=nil)
   path = ''
   case(kind)
@@ -46,8 +58,16 @@ def miquire(kind, file=nil)
     else
       require path + file.to_s end
   else
-    Dir.glob(path + "*.rb").sort.each{ |rb|
-      require rb } end end
+    Dir.glob(path + '*').sort.each{ |rb|
+      case
+      when /\.rb$/ === rb
+        notice "load #{rb}"
+        require rb
+      when FileTest.directory?(File.join(rb))
+        notice "load #{File.join(rb, File.basename(rb))}"
+        require File.join(rb, File.basename(rb))
+      else
+        notice "not loaded #{rb}" end } end end
 
 Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'
