@@ -7,5 +7,5 @@ miquire :core, 'message'
 
 
 # Image Object
-class Message
-end
+# class Message
+# end
