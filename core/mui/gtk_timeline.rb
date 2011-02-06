@@ -43,14 +43,14 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   # _message_ が新たに _user_ のお気に入りに追加されたことを通知する。selfを返す
   def favorite(user, message)
     mumble = get_mumble_by(message)
-    mumble.favorite(user) if mumble
+    mumble.on_favorited(user) if mumble
     self
   end
 
   # _message_ が _user_ のお気に入りから削除されたことを通知する。selfを返す
   def unfavorite(user, message)
     mumble = get_mumble_by(message)
-    mumble.unfavorite(user) if mumble
+    mumble.on_unfavorited(user) if mumble
     self
   end
 
@@ -72,10 +72,12 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       if message.is_a?(Enumerable) then
         self.block_add_all(message)
       else
-        self.block_add(message) end } end
+        self.block_add(message) end }
+    self end
 
   def block_add(message)
     mainthread_only
+    mumble = nil
     if message[:rule] == :destroy
       remove_if_exists_all([message])
     else
@@ -87,7 +89,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
           w = @tl.children.last
           @tl.remove(w)
           w.destroy end end end
-    self end
+    mumble end
 
   def block_add_all(messages)
     mainthread_only
@@ -177,9 +179,11 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     messages.each{ |message|
       parent = get_mumble_by(message[:retweet])
       if parent
-        parent.retweeted(message[:user])
+        parent.on_retweeted(message[:user])
       elsif message[:retweet]
-        block_add(message[:retweet]) end } end
+        mumble = block_add(message[:retweet])
+        if mumble
+          mumble.on_retweeted(message[:user]) end end } end
 
   def gen_timeline
     mainthread_only
