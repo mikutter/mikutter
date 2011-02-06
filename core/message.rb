@@ -230,7 +230,7 @@ class Message < Retriever::Model
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1] end
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
 
   # 本文を返す
   def body
