@@ -33,6 +33,8 @@ module Gtk
     attr_accessor :replies
     attr_reader :message
     alias to_message message
+    define_voter :favorited, 'Fav'
+    define_voter :retweeted, 'RT'
 
     @@contextmenu = Gtk::ContextMenu.new
     @@mumbles = Hash.new{ |h, k| h[k] = [] }

@@ -8,29 +8,34 @@ miquire :mui, 'extension'
 =end
 module Gtk::MumbleVote
 
-  def self.def_voter(voter, short_name)
-    # VOTEしたユーザの配列
-    by = define_method("#{voter}_by"){
-      @votebuf ||= {}
-      @votebuf[voter] ||= [] }
+  def self.included(includer)
+    includer.extend(Voter)
+  end
 
-    box = define_method("#{voter}_box"){
-      @vote_box ||= {}
-      @vote_box[voter] ||= Gtk::HBox.new(false, 0) }
+  module Voter
+    def define_voter(voter, short_name)
+      # VOTEしたユーザの配列
+      by = define_method("#{voter}_by"){
+        @votebuf ||= {}
+        @votebuf[voter] ||= [] }
 
-    label = define_method("#{voter}_label"){
-      @vote_label ||= {}
-      @vote_label[voter] ||= Gtk::Label.new('').set_no_show_all(true) }
+      box = define_method("#{voter}_box"){
+        @vote_box ||= {}
+        @vote_box[voter] ||= Gtk::HBox.new(false, 0) }
 
-    gen = define_method("gen_#{voter}"){
-      @gen_voter ||= {}
-      @gen_voter[voter] ||= Gtk::HBox.new(false, 4).closeup(instance_eval(&label)).closeup(instance_eval(&box)).right }
+      label = define_method("#{voter}_label"){
+        @vote_label ||= {}
+        @vote_label[voter] ||= Gtk::Label.new('').set_no_show_all(true) }
 
-    # _user_ にvoteされたことにする。
-    # votebufにユーザを格納し、レンダリングする。
-    define_method("on_#{voter}"){ |user|
-      mainthread_only
-      if(UserConfig[:"#{voter}_by_anyone_show_timeline"])
+      gen = define_method("gen_#{voter}"){
+        @gen_voter ||= {}
+        @gen_voter[voter] ||= Gtk::HBox.new(false, 4).closeup(instance_eval(&label)).closeup(instance_eval(&box)).right }
+
+      # _user_ にvoteされたことにする。
+      # votebufにユーザを格納し、レンダリングする。
+      define_method("on_#{voter}"){ |user|
+        mainthread_only
+        if(UserConfig[:"#{voter}_by_anyone_show_timeline"])
         type_strict user => User
         if(not instance_eval(&box).destroyed?) and (not instance_eval(&by).include?(user))
           instance_eval(&box).closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user.idname).show_all)
@@ -54,11 +59,8 @@ module Gtk::MumbleVote
           if(not destroyed?)
             instance_eval(&by).each{ |user| __send__("on_#{voter}", user) }
             instance_eval(&gen).show_all end } end }
-
+    end
   end
-
-  def_voter :favorited, 'Fav'
-  def_voter :retweeted, 'RT'
 
   def on_unfavorited(user)
     # mainthread_only
