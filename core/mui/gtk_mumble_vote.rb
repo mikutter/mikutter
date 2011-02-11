@@ -3,11 +3,16 @@
 require 'gtk2'
 miquire :mui, 'extension'
 
+=begin rdoc
+  includeすると、
+=end
 module Gtk::MumbleVote
 
   def self.def_voter(voter, short_name)
     # VOTEしたユーザの配列
-    by = define_method("#{voter}_by"){ @votebuf ||= [] }
+    by = define_method("#{voter}_by"){
+      @votebuf ||= {}
+      @votebuf[voter] ||= [] }
 
     box = define_method("#{voter}_box"){
       @vote_box ||= {}
@@ -28,7 +33,7 @@ module Gtk::MumbleVote
       if(UserConfig[:"#{voter}_by_anyone_show_timeline"])
         type_strict user => User
         if(not instance_eval(&box).destroyed?) and (not instance_eval(&by).include?(user))
-          instance_eval(&box).closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user[:idname]).show_all)
+          instance_eval(&box).closeup(Gtk::EventBox.new.add(icon(user, 24)).tooltip(user.idname).show_all)
           instance_eval(&by) << user
           __send__("rewind_#{voter}_count!") end end }
 
