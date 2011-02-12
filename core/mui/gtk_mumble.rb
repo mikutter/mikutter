@@ -11,6 +11,7 @@ miquire :core, 'serialthread'
 miquire :core, 'delayer'
 miquire :lib, 'weakstorage'
 miquire :mui, 'mumble_vote'
+miquire :mui, 'mumble_select'
 
 require 'gtk2'
 require 'time'
@@ -26,6 +27,7 @@ module Gtk
   class Mumble < Gtk::EventBox
 
     include Gtk::MumbleVote
+    include Gtk::MumbleSelect
 
     # ロード前のウィジェットの高さ
     DEFAULT_HEIGHT = 64 + 24
@@ -38,44 +40,43 @@ module Gtk
 
     @@contextmenu = Gtk::ContextMenu.new
     @@mumbles = Hash.new{ |h, k| h[k] = [] }
-    @@active_mumbles = []
 
     @@contextmenu.registmenu("コピー", lambda{ |m,w|
                                w.is_a?(Gtk::TextView) and
                                w.buffer.selection_bounds[2] }){ |this, w|
       w.copy_clipboard }
     @@contextmenu.registmenu('本文をコピー', lambda{ |m,w|
-                               Gtk::Mumble.active_mumbles.size == 1 and
+                               Gtk::Mumble.get_active_mumbles.size == 1 and
                                w.is_a?(Gtk::TextView) and
                                not w.buffer.selection_bounds[2] }){ |this, w|
       w.select_all(true)
       w.copy_clipboard
       w.select_all(false) }
     @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.message, :subreplies => Gtk::Mumble.active_mumbles) }
+      this.gen_postbox(this.message, :subreplies => Gtk::Mumble.get_active_mumbles) }
     @@contextmenu.registmenu("全員に返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
       this.gen_postbox(this.message,
                        :subreplies => this.message.ancestors,
                        :exclude_myself => true) }
     @@contextmenu.registmenu("引用", lambda{ |m,w|
-                               Gtk::Mumble.active_mumbles.size == 1 and
+                               Gtk::Mumble.get_active_mumbles.size == 1 and
                                m.message.repliable? }){ |this, w|
       this.gen_postbox(this.message, :retweet => true) }
     @@contextmenu.registmenu("公式リツイート", lambda{ |m,w|
                                m.message.repliable? and not m.message.from_me? }){ |this, w|
-      Gtk::Mumble.active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
+      Gtk::Mumble.get_active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
     @@contextmenu.registline
 
-    delete_condition = lambda{ |m,w| Gtk::Mumble.active_mumbles.all?{ |e| e.message.from_me? } }
+    delete_condition = lambda{ |m,w| Gtk::Mumble.get_active_mumbles.all?{ |e| e.message.from_me? } }
     @@contextmenu.registmenu('削除', delete_condition){ |this, w|
-      Gtk::Mumble.active_mumbles.each { |e|
+      Gtk::Mumble.get_active_mumbles.each { |e|
         e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } }
     @@contextmenu.registline(&delete_condition)
 
-    retweet_cancel_condition = lambda{ |m,w| Gtk::Mumble.active_mumbles.all?{ |e|
+    retweet_cancel_condition = lambda{ |m,w| Gtk::Mumble.get_active_mumbles.all?{ |e|
         e.message.service and e.message.retweeted_by.include?(e.message.service.user) } }
     @@contextmenu.registmenu('リツイートをキャンセル', retweet_cancel_condition){ |this, w|
-      Gtk::Mumble.active_mumbles.each { |e|
+      Gtk::Mumble.get_active_mumbles.each { |e|
         retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
         retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } }
     @@contextmenu.registline(&retweet_cancel_condition)
@@ -88,16 +89,6 @@ module Gtk
 
     def self.addwidgetrule(reg, proc)
       Gtk::IntelligentTextview.addwidgetrule(reg, proc) end
-
-    # フォーカスされているMumbleオブジェクトを配列で返す
-    def self.active_mumbles
-      @@active_mumbles end
-
-    # 全てのMumbleオブジェクトからフォーカスを外す
-    def self.inactive
-      inactive = @@active_mumbles
-      @@active_mumbles = []
-      inactive.each{ |x| x.inactivate } end
 
     def initialize(message)
       mainthread_only
@@ -167,42 +158,20 @@ module Gtk
             if defined?(@icon_over_button) and not @icon_over_button.destroyed?
               show_replied_icon end } end end end
 
-    # このメッセージを選択状態にする。
-    # _append_ がtrueなら、既に選択されているものをクリアせず、自分の選択状態を反転する。
-    # 最終的にアクティブになったかどうかを返す
-    def active(append = false)
-      mainthread_only
-      if append
-        if active?
-          inactive
-          false
-        else
-          @@active_mumbles.unshift(self)
-          activate
-          true end
-      else
-        if not active?
-          inactives = @@active_mumbles
-          @@active_mumbles = [self]
-          inactives.each{ |x| x.inactivate }
-          activate end
-        true end end
-
-    # このメッセージが選択状態ならtrueを返す
-    def active?
-      @@active_mumbles.include?(self) end
-
-    # 選択状態を解除する
-    def inactive
-      @@active_mumbles.delete(self)
-      inactivate
-      false end
-
     # 選択されたときに呼ばれるメソッド
     def activate
+      super
+      unless ancestor?(get_ancestor(Gtk::Window).focus)
+        get_ancestor(Gtk::Window).set_focus(@body) if @body
+      end
       modifybg
     end
-    alias inactivate activate
+
+    # 選択解除されたときに呼ばれるメソッド
+    def inactivate
+      super
+      modifybg
+    end
 
     private
 
@@ -392,7 +361,7 @@ module Gtk
         :etc => Gdk::Pixbuf.new(MUI::Skin::get("etc.png"), 24, 24) }
 
       def initialize(mumble, msg, icon)
-      mainthread_only
+        mainthread_only
         @mumble = mumble
         @msg = msg
         type_strict mumble => Gtk::Mumble, msg => Message

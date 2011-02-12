@@ -11,7 +11,7 @@ Module.new do
   # イベントが発生すると、選択されているMumbleオブジェクトの配列を引数にそれを呼び出す
   def self.event_maker
     lambda{ |service|
-      yield(Gtk::Mumble.active_mumbles) if not Gtk::Mumble.active_mumbles.empty? } end
+      yield(Gtk::Mumble.get_active_mumbles) if not Gtk::Mumble.get_active_mumbles.empty? } end
 
   # event_makerと同じだが、ブロックは選択されているつぶやきを１つづつ取り複数回呼び出される
   def self.event_maker_each

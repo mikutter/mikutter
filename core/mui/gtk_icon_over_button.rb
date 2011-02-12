@@ -73,15 +73,14 @@ class Gtk::IconOverButton < Gtk::EventBox
       }
       self.signal_connect('button_release_event'){ |widget, event|
         result = false
-        Gtk::Lock.synchronize do
-          case(event.button)
-          when 1
-              self.call_proc( self.get_focused_button(event.x, event.y) )
-          when 3
-              if @sub_button_proc
-                @sub_button_proc.call
-                result = true
-              end
+        case(event.button)
+        when 1
+          self.call_proc( self.get_focused_button(event.x, event.y) )
+          result = true
+        when 3
+          if @sub_button_proc
+            @sub_button_proc.call
+            result = true
           end
         end
         result
