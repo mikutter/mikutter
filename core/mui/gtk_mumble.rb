@@ -342,37 +342,31 @@ module Gtk
       mainthread_only
       if @message
         breakout!
-        Delayer.new{ gen_additional_widgets }
         shell = Gtk::VBox.new(false, 0)
         container = Gtk::HBox.new(false, 0)
         @replies = Gtk::VBox.new(false, 0)
         shell.border_width = 4
-        mumble = Gtk::VBox.new(false, 0).
-          add(gen_header(@message)).
-          add(gen_control(@message)).
-          add(gen_reply).
-          add(gen_retweeted).
-          add(gen_favorited).
-          add(@replies)
-        add(shell.add(container.add(mumble))).set_height_request(-1).show_all end end
+        mumble = Gtk::VBox.new(false, 0)
+        [gen_header(@message), gen_control(@message), gen_reply, gen_retweeted, gen_favorited, @replies].each{ |w|
+          unless(mumble.destroyed?)
+            mumble.add(w) end }
+        add(shell.add(container.add(mumble))).set_height_request(-1).show_all
+        Delayer.new{ gen_additional_widgets } end end
 
     def gen_reply
       @gen_reply ||= Gtk::VBox.new(false, 0) end
 
-    # def gen_additional_widgets
-    #   if message[:created] <= (Time.now - 3)
-    #     SerialThread.new{
-    #       reply_packer if message.has_receive_message?
-    #       retweeted_packer
-    #       favorited_packer }
-    #   elsif message.has_receive_message?
-    #     SerialThread.new{ reply_packer } end end
-
+    # リプライ、リツイート、ふぁぼられのウィジェットの初期値を設定する。
+    # ただし、投稿されてから3秒以内のつぶやきは基本的にリツイート、ふぁぼられはないと
+    # 思われるので（3秒以内にする迷惑な奴おるけどな）、リプライ元しか初期化しようとしない
     def gen_additional_widgets
-      SerialThread.new{
-        reply_packer if message.has_receive_message?
-        retweeted_packer
-        favorited_packer } end
+      if message[:created] <= (Time.now - 3)
+        SerialThread.new{
+          reply_packer if message.has_receive_message?
+          retweeted_packer
+          favorited_packer }
+      elsif message.has_receive_message?
+        SerialThread.new{ reply_packer } end end
 
     def reply_packer
       parent = message.receive_message(UserConfig[:retrieve_force_mumbleparent])

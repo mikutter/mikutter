@@ -185,12 +185,16 @@ class Message < Retriever::Model
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
   # 親投稿を受信していなくてもこの時受信できるが、スレッドがブロッキングされる。
   # falseならサーバに問い合わせずに結果を返す。
+  # @が投稿内に含まれていない場合は、データソースに問い合わせずに即座にfalseを返す
   def receive_message(force_retrieve=false)
-    count = if(force_retrieve) then -1 else 1 end
-    reply = get(:replyto, count) or get(:retweet, count)
-    if reply.is_a?(Message) and not reply.children.include?(self)
-      reply.add_child(self) end
-    reply end
+    if(self[:message].to_s.include?("@"))
+      count = if(force_retrieve) then -1 else 1 end
+      reply = get(:replyto, count) or get(:retweet, count)
+      if reply.is_a?(Message) and not reply.children.include?(self)
+        reply.add_child(self) end
+      reply
+    else
+      nil end end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。
