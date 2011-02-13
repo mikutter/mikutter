@@ -3,7 +3,11 @@
 module Gtk
   class ContextMenu
     def initialize(*context)
-      @contextmenu = context end
+      reset(context) end
+
+    def reset(context)
+      @contextmenu = context
+    end
 
     def registmenu(label, condition=ret_nth(), &callback)
       @contextmenu = @contextmenu.push([label, condition, callback]) end

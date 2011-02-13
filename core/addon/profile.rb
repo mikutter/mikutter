@@ -199,15 +199,7 @@ Module.new do
     plugin.add_event(:show_profile){ |service, user|
       makescreen(user, service) }
     plugin.add_event(:boot){ |service|
-      Gtk::Mumble.contextmenu.registmenu(lambda{ |m, w|
-                                           u = if(m.message[:retweet])
-                                                 m.message[:retweet].user
-                                               else
-                                                 m.message.user end
-                                           "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
-                                         lambda{ |m, w| m.message.repliable? }){ |m, w|
-        user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
-        makescreen(user, service) }
+      set_contextmenu(plugin, service)
       Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
         user = User.findbyidname(match[1, match.length])
         if user
@@ -226,6 +218,24 @@ Module.new do
         [messages] end } end
 
   private
+
+  def self.set_contextmenu(plugin, service)
+    plugin.add_event_filter(:contextmenu){ |menu|
+      menu << [lambda{ |m, w|
+                 if(nil == m and nil == w)
+                   'ユーザについて'
+                 else
+                 u = if(m.message[:retweet])
+                       m.message[:retweet].user
+                     else
+                       m.message.user end
+                 "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') end },
+               lambda{ |m, w| m.message.repliable? },
+               lambda{ |m, w|
+                 user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
+                 makescreen(user, service) } ]
+      [menu] }
+  end
 
   def self.makescreen(user, service)
     if user[:exact]

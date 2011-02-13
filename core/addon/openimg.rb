@@ -35,27 +35,29 @@ Module.new do
       url = url.value if url.is_a? Thread
       if not(url) or not(url.respond_to?(:to_s))
         Delayer.new{
-          if cancel
-            w.destroy unless w.destroyed?
-            cancel.call
-          else
-            w.set_title("URLの取得に失敗") end }
+          unless w.destroyed?
+            if cancel
+              w.destroy
+              cancel.call
+            else
+              w.set_title("URLの取得に失敗") end end }
       else
         Delayer.new{
-          w.set_title(url.to_s)
-          eventbox.signal_connect("event"){ |ev, event|
-            if event.is_a?(Gdk::EventButton) and (event.state.button1_mask?) and event.button == 1
-              w.destroy
-              cancel.call if cancel
-            end
-            false }
-          eventbox.signal_connect("expose_event"){ |ev, event|
-            move(w)
-            false }
-          eventbox.signal_connect(:"size-allocate"){
-            if w.window and size != w.window.geometry[2,2]
-              size = changesize(eventbox, w, url.to_s) end }
-          eventbox.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) } end }
+          unless w.destroyed?
+            w.set_title(url.to_s)
+            eventbox.signal_connect("event"){ |ev, event|
+              if event.is_a?(Gdk::EventButton) and (event.state.button1_mask?) and event.button == 1
+                w.destroy
+                cancel.call if cancel
+              end
+              false }
+            eventbox.signal_connect("expose_event"){ |ev, event|
+              move(w)
+              false }
+            eventbox.signal_connect(:"size-allocate"){
+              if w.window and size != w.window.geometry[2,2]
+                size = changesize(eventbox, w, url.to_s) end }
+            eventbox.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) end } end }
     w.show_all end
 
   def self.get_tag_by_attributes(tag)

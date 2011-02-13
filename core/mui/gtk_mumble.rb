@@ -37,52 +37,7 @@ module Gtk
     alias to_message message
     define_voter :favorited, 'Fav'
     define_voter :retweeted, 'RT'
-
-    @@contextmenu = Gtk::ContextMenu.new
     @@mumbles = Hash.new{ |h, k| h[k] = [] }
-
-    @@contextmenu.registmenu("コピー", lambda{ |m,w|
-                               w.is_a?(Gtk::TextView) and
-                               w.buffer.selection_bounds[2] }){ |this, w|
-      w.copy_clipboard }
-    @@contextmenu.registmenu('本文をコピー', lambda{ |m,w|
-                               Gtk::Mumble.get_active_mumbles.size == 1 and
-                               w.is_a?(Gtk::TextView) and
-                               not w.buffer.selection_bounds[2] }){ |this, w|
-      w.select_all(true)
-      w.copy_clipboard
-      w.select_all(false) }
-    @@contextmenu.registmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.message, :subreplies => Gtk::Mumble.get_active_mumbles) }
-    @@contextmenu.registmenu("全員に返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.message,
-                       :subreplies => this.message.ancestors,
-                       :exclude_myself => true) }
-    @@contextmenu.registmenu("引用", lambda{ |m,w|
-                               Gtk::Mumble.get_active_mumbles.size == 1 and
-                               m.message.repliable? }){ |this, w|
-      this.gen_postbox(this.message, :retweet => true) }
-    @@contextmenu.registmenu("公式リツイート", lambda{ |m,w|
-                               m.message.repliable? and not m.message.from_me? }){ |this, w|
-      Gtk::Mumble.get_active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
-    @@contextmenu.registline
-
-    delete_condition = lambda{ |m,w| Gtk::Mumble.get_active_mumbles.all?{ |e| e.message.from_me? } }
-    @@contextmenu.registmenu('削除', delete_condition){ |this, w|
-      Gtk::Mumble.get_active_mumbles.each { |e|
-        e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } }
-    @@contextmenu.registline(&delete_condition)
-
-    retweet_cancel_condition = lambda{ |m,w| Gtk::Mumble.get_active_mumbles.all?{ |e|
-        e.message.service and e.message.retweeted_by.include?(e.message.service.user) } }
-    @@contextmenu.registmenu('リツイートをキャンセル', retweet_cancel_condition){ |this, w|
-      Gtk::Mumble.get_active_mumbles.each { |e|
-        retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
-        retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } }
-    @@contextmenu.registline(&retweet_cancel_condition)
-
-    def self.contextmenu
-      @@contextmenu end
 
     def self.addlinkrule(reg, leftclick, rightclick=nil)
       Gtk::IntelligentTextview.addlinkrule(reg, leftclick, rightclick) end
@@ -145,7 +100,14 @@ module Gtk
 
     def menu_pop(widget)
       mainthread_only
-      @@contextmenu.popup(widget, self)
+      menu = []
+      Plugin.filtering(:contextmenu, []).first.each{ |x|
+        cur = x.first
+        cur = cur.call(nil, nil) if cur.respond_to?(:call)
+        index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
+        menu[index] = x
+      }
+      Gtk::ContextMenu.new(*menu).popup(widget, self)
     end
 
     def replied_by(message)

@@ -39,13 +39,14 @@ Module.new do
 
   plugin = Plugin::create(:smartthread)
 
-  plugin.add_event(:boot){ |service|
-    Delayer.new{
-      Gtk::Mumble.contextmenu.registmenu('スレッドを表示', lambda{ |m, w|
-                                           m.message.repliable? }){ |m, w|
-        tabclass.new("Thread #{counter.call}", service,
-                  :message => m.message,
-                  :icon => MUI::Skin.get("list.png")) } } }
+  plugin.add_event_filter(:contextmenu){ |menu|
+    menu << ['スレッドを表示',
+             lambda{ |m, w| m.message.repliable? },
+             lambda{ |m, w|
+               tabclass.new("Thread #{counter.call}", service,
+                            :message => m.message,
+                            :icon => MUI::Skin.get("list.png")) } ]
+    [menu] }
 
   plugin.add_event(:appear){ |messages|
     tabclass.tabs.each{ |tab|
