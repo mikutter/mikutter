@@ -40,33 +40,30 @@ Module.new do
           Plugin.call(:rewindstatus, 'UserStream: disconnected')
         end } end end
 
+  def self.thread_storage(name)
+    @thread_storage ||= Hash.new{|h, k|
+      queue = h[k] = Queue.new
+      Thread.new{
+        while resource = queue.pop
+          __send__("event_#{k}", resource)
+          sleep(1)
+        end
+        queue } }
+    @thread_storage[name.to_sym] end
+
   def self.trigger_event(query)
     begin
       return nil if not /^\{.*\}$/ === query
       json = JSON.parse(query)
       case
-      when json['friends'] then
-      when json['event'] == 'favorite' then
-        by = @service.__send__(:parse_json, json['source'], :user_show)
-        to = @service.__send__(:parse_json, json['target_object'], :status_show)
-        to.first.add_favorited_by(by.first, Time.parse(json['created_at']))
-      when json['event'] == 'unfavorite' then
-        by = @service.__send__(:parse_json, json['source'], :user_show)
-        to = @service.__send__(:parse_json, json['target_object'], :status_show)
-        to.first.remove_favorited_by(by.first)
-      when json['event'] == 'follow' then
-        source = @service.__send__(:parse_json, json['source'], :user_show).first
-        target = @service.__send__(:parse_json, json['target'], :user_show).first
-        if(target.is_me?)
-          Plugin.call(:followers_created, @service, [source])
-        elsif(source.is_me?)
-          Plugin.call(:followings_created, @service, [target])
-        end
-      when json['delete'] then
+      when json['friends']
+      when respond_to?("event_#{json['event']}")
+        thread_storage(json['event']).push(json)
+      when json['delete']
         if $debug
           Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
                                                  :system => true)]) end
-      when !json.has_key?('event') then
+      when !json.has_key?('event')
         messages = @service.__send__(:parse_json, json, :streaming_status)
         if messages
           messages.each{ |msg|
@@ -83,6 +80,26 @@ Module.new do
     rescue Exception => e
       notice e
     end end
+
+  def self.event_favorite(json)
+    by = @service.__send__(:parse_json, json['source'], :user_show)
+    to = @service.__send__(:parse_json, json['target_object'], :status_show)
+    to.first.add_favorited_by(by.first, Time.parse(json['created_at']))
+  end
+
+  def self.event_unfavorite(json)
+    by = @service.__send__(:parse_json, json['source'], :user_show)
+    to = @service.__send__(:parse_json, json['target_object'], :status_show)
+    to.first.remove_favorited_by(by.first)
+  end
+
+  def self.event_follow(json)
+    source = @service.__send__(:parse_json, json['source'], :user_show).first
+    target = @service.__send__(:parse_json, json['target'], :user_show).first
+    if(target.is_me?)
+      Plugin.call(:followers_created, @service, [source])
+    elsif(source.is_me?)
+      Plugin.call(:followings_created, @service, [target]) end end
 
   def self.start_streaming(&proc)
     begin
