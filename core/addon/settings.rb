@@ -67,7 +67,7 @@ Module.new do
     dialog.website = 'http://mikutter.hachune.net/'
     dialog.logo = Gtk::WebIcon.new(MUI::Skin.get('icon.png')).pixbuf rescue nil
     dialog.authors = ['toshi_a', 'Phenomer', 'tana_ash']
-    dialog.artists = ['toshi_a', 'soramame_bscl']
+    dialog.artists = ['toshi_a', 'soramame_bscl', 'bina1204', 'seibe2']
     dialog.documenters = ['toshi_a']
     dialog.signal_connect('response') { dialog.destroy } }
   box.closeup(about.right)

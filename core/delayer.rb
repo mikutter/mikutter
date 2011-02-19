@@ -41,6 +41,8 @@ class Delayer
   # 0.1秒以内に実行が終わらなければ、残りは保留してとりあえず処理を戻す。
   def self.run
     return if @frozen
+    begin
+      @busy = true
     st = Process.times.utime
     3.times{ |cnt|
       procs = []
@@ -49,8 +51,13 @@ class Delayer
         procs.each{ |routine|
           @@routines[cnt].delete(routine)
           routine.run
-          return if ((Process.times.utime - st) > 0.1) } end } end
+          return if ((Process.times.utime - st) > 0.1) } end }
+    ensure
+      @busy = false end end
 
+  # Delayerのタスクを消化中ならtrueを返す
+  def self.busy?
+    @busy end
 
   # 仕事がなければtrue
   def self.empty?

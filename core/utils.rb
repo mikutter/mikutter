@@ -227,7 +227,7 @@ end
 # チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。
 # チェックはassocできる配列か、Hashで定義する。
 #  type_check(value => nil,              # チェックしない(常にパス)
-#             value => Symbol,           # その型とis_a?関係ならパス
+#             value => Module,           # その型とis_a?関係ならパス
 #             value => [:method, *args], # value.method(*args)が真を返せばパス
 #             value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
 # チェックをすべてパスしたかどうかを真偽値で返す。
