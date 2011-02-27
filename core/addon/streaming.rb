@@ -120,12 +120,14 @@ Module.new do
     define_event(:favorite) do |service, json|
       by = service.__send__(:parse_json, json['source'], :user_show)
       to = service.__send__(:parse_json, json['target_object'], :status_show)
-      to.first.add_favorited_by(by.first, Time.parse(json['created_at'])) end
+      if(by.respond_to?(:first) and to.respond_to?(:first) and to.first.respond_to?(:add_favorited_by))
+        to.first.add_favorited_by(by.first, Time.parse(json['created_at'])) end end
 
     define_event(:unfavorite) do |service, json|
       by = service.__send__(:parse_json, json['source'], :user_show)
       to = service.__send__(:parse_json, json['target_object'], :status_show)
-      to.first.remove_favorited_by(by.first) end
+      if(by.respond_to?(:first) and to.respond_to?(:first) and to.first.respond_to?(:remove_favorited_by))
+        to.first.remove_favorited_by(by.first) end end
 
     define_event(:follow) do |service, json|
       source = service.__send__(:parse_json, json['source'], :user_show).first
