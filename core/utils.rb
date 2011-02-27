@@ -232,6 +232,8 @@ end
 #             value => lambda{ |x| ...}) # xにvalueを渡して実行し、真を返せばパス
 # チェックをすべてパスしたかどうかを真偽値で返す。
 # ブロックが指定されていれば、それを実行してブロックの実行結果を返す
+# メモ: いずれかのタイプに一致するチェックを定義するにはtcorを使う
+#   type_check object => tcor(Array, Hash)
 def type_check(args, &proc)
   check_function = lambda{ |val, check|
     if check.nil?

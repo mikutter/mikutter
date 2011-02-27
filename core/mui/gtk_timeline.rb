@@ -76,6 +76,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     self end
 
   def block_add(message)
+    type_strict message => Message
     mainthread_only
     mumble = nil
     if message[:rule] == :destroy
@@ -179,11 +180,11 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     messages.each{ |message|
       parent = get_mumble_by(message[:retweet])
       if parent
-        parent.on_retweeted(message[:user])
+        parent.on_retweeted(message.user)
       elsif message[:retweet]
-        mumble = block_add(message[:retweet])
+        mumble = block_add(message.retweet_source)
         if mumble
-          mumble.on_retweeted(message[:user]) end end } end
+          mumble.on_retweeted(message.user) end end } end
 
   def gen_timeline
     mainthread_only
@@ -198,8 +199,9 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   end
 
   def get_mumble_by(message)
-    find{ |m| m[:id].to_i == message[:id].to_i }
-  end
+    type_strict message => tcor(Message, Integer)
+    message = message[:id].to_i if message.is_a? Message
+    find{ |m| m[:id].to_i == message } end
 
 end
 

@@ -185,16 +185,26 @@ class Message < Retriever::Model
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
   # 親投稿を受信していなくてもこの時受信できるが、スレッドがブロッキングされる。
   # falseならサーバに問い合わせずに結果を返す。
-  # @が投稿内に含まれていない場合は、データソースに問い合わせずに即座にfalseを返す
+  # Messageのインスタンスかnilを返す。
   def receive_message(force_retrieve=false)
-    if(self[:message].to_s.include?("@"))
-      count = if(force_retrieve) then -1 else 1 end
-      reply = get(:replyto, count) or get(:retweet, count)
-      if reply.is_a?(Message) and not reply.children.include?(self)
-        reply.add_child(self) end
-      reply
-    else
-      nil end end
+    replyto_source(force_retrieve) or retweet_source(force_retrieve) end
+
+  def self.define_source_getter(key, condition=ret_nth, &onfound)
+    define_method("#{key}_source"){ |*args|
+      force_retrieve = args.first
+      if(condition === self[:message].to_s)
+        result = get(key, (force_retrieve ? -1 : 1))
+        if result.is_a?(Message)
+          onfound.call(self, result)
+          result end end } end
+
+  # Message#receive_message と同じ。ただし、リプライ元のみをさがす。
+  define_source_getter(:replyto, /@[a-zA-Z0-9_]/){ |this, result|
+    result.add_child(this) unless result.children.include?(this) }
+
+  # Message#receive_message と同じ。ただし、ReTweetedのみをさがす。
+  define_source_getter(:retweet, /^RT/){ |this, result|
+    result.add_child(this) unless result.retweeted_statuses.include?(this) }
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。
