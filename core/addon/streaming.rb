@@ -37,9 +37,9 @@ Module.new do
       Thread.new{
         sleep(1) while not service
         loop{
+          sleep(1) while Delayer.busy? or not(Delayer.empty?)
           datum = queue.pop
-          yield(service, datum)
-          sleep(1) } }
+          yield(service, datum) } }
       define_method("event_#{event_name}"){ |json|
         type_strict json => tcor(Array, Hash)
         service ||= @service
@@ -53,9 +53,9 @@ Module.new do
       thread = Thread.new{
         sleep(1) while not service
         loop{
+          sleep(1) while Delayer.busy? or not(Delayer.empty?)
           Thread.stop if events.empty?
-          yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze })
-          sleep(1) } }
+          yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze }) } }
       define_method("event_#{event_name}"){ |json|
         type_strict json => tcor(Array, Hash)
         service ||= @service

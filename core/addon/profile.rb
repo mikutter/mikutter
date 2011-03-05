@@ -115,7 +115,8 @@ Module.new do
               Plugin::call(new ? :followings_created : :followings_destroy, @service, [user])
               following = new
               Delayer.new{
-                widget.sensitive = true } end } end }
+                unless widget.destroyed?
+                  widget.sensitive = true end } end } end }
       btn = Mtk::boolean(changer, 'フォロー') end
 
     def mutebutton(user)
