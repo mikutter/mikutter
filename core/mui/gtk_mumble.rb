@@ -80,12 +80,13 @@ module Gtk
     end
 
     def april_fool(url)
-      if Time.now.strftime('%m%d') == '0401'
+      now = Time.now
+      if now.strftime('%m%d') == '0401'
         "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(url)[0,2].upcase}.png"
-      elsif Time.now.strftime('%m') == '03' and (rand(2) == 0)
+      elsif now.strftime('%m') == '03' and rand(100) < now.strftime('%d').to_i
         SerialThread.lator{
           notice "prefetch cache image #{url}"
-          Gtk::WebIcon.local_path(url) }
+          Gtk::WebIcon.local_path("http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(url)[0,2].upcase}.png") }
         url
       else
         url
