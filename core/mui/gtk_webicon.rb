@@ -45,6 +45,7 @@ module Gtk
     end
 
     def self.get_icon_pixbuf(img, width=48, height=width, &onload)
+      type_strict img => String
       if(img.index('http://') == 0)
         filename = WebIcon.get_filename(img)
         if not(File.exist?(filename)) then

@@ -80,8 +80,13 @@ module Gtk
     end
 
     def april_fool(url)
-      if Time.now.strftime('%m%d') == '0401' then
-        "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(url)[0,1].downcase}.png"
+      if Time.now.strftime('%m%d') == '0401'
+        "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(url)[0,2].upcase}.png"
+      elsif Time.now.strftime('%m') == '03' and (rand(2) == 0)
+        SerialThread.lator{
+          notice "prefetch cache image #{url}"
+          Gtk::WebIcon.local_path(url) }
+        url
       else
         url
       end
@@ -199,7 +204,7 @@ module Gtk
       if defined?(@icon_over_button) and @icon_over_button
         @icon_over_button
       else
-        iw = IOB.new(self, msg, Gtk::WebIcon.get_icon_pixbuf(msg.user[:profile_image_url], 48){ |pb|
+        iw = IOB.new(self, msg, Gtk::WebIcon.get_icon_pixbuf(april_fool(msg.user[:profile_image_url]), 48){ |pb|
                        iw.background = pb })
         iw.reply.retweet if(msg.repliable?)
         iw.etc
