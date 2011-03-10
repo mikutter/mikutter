@@ -246,25 +246,28 @@ class Message < Retriever::Model
   def retweeted_statuses
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
 
-  # 本文を返す
+  # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
-    text = self[:message].to_s.freeze
-    result = [text]
-    begin
-      if self[:tags].is_a?(Array)
-        result << self[:tags].select{|i| not text.include?(i) }.map{|i| "##{i.to_s}"} end
-      if not receiver.nil?
-        if self[:retweet] and self.receive_message(true)
-          result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
-        elsif not(text.include?("@#{receiver[:idname]}"))
-          result = ["@#{receiver[:idname]}", result] end end
-    rescue Exception => e
-      error e
-      abort end
-    result.join(' ').freeze end
-  memoize :body
+    self[:message].to_s.freeze
+  end
+  # def body
+  #   text = self[:message].to_s.freeze
+  #   result = [text]
+  #   begin
+  #     if self[:tags].is_a?(Array)
+  #       result << self[:tags].select{|i| not text.include?(i) }.map{|i| "##{i.to_s}"} end
+  #     if not receiver.nil?
+  #       if self[:retweet] and self.receive_message(true)
+  #         result << 'RT' << "@#{receiver[:idname]}" << self.receive_message(true)[:message]
+  #       elsif not(text.include?("@#{receiver[:idname]}"))
+  #         result = ["@#{receiver[:idname]}", result] end end
+  #   rescue Exception => e
+  #     error e
+  #     abort end
+  #   result.join(' ').freeze end
+  # memoize :body
 
-  # 本文を返す。投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
+  # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
     body.split(//u)[0,140].join.freeze end
   memoize :to_s
