@@ -166,6 +166,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   private
 
   def timeline
+    return nil if self.destroyed?
     if defined? @tl
       yield
     else

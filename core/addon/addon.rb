@@ -46,7 +46,8 @@ module Addon
         on_create end
 
       def update(msgs)
-        @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } }) end
+        unless destroyed?
+          @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } }) end end
 
       def remove
         on_remove
@@ -57,7 +58,7 @@ module Addon
         Addon.focus(actual_name) end
 
       def destroyed?
-        @destroyed end
+        @timeline.destroyed? or @destroyed end
 
       private
 
