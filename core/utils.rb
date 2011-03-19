@@ -328,17 +328,22 @@ def log(prefix, object)
     msg += "\nfrom " + object.backtrace.join("\nfrom ") if object.is_a? Exception
     unless $daemon
       if msg.is_a? Exception
-        $stderr.write(msg.to_s+"\n")
-        $stderr.write(msg.backtrace.join("\n")+"\n")
+        __write_stderr(msg.to_s)
+        __write_stderr(msg.backtrace.join("\n"))
       else
-        $stderr.write(msg+"\n") end
-    if logfile
-      FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
-      File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
-        wp.write("#{Time.now.to_s}: #{msg}\n") } end end
+        __write_stderr(msg) end
+      if logfile
+        FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
+        File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
+          wp.write("#{Time.now.to_s}: #{msg}\n") } end end
   rescue Exception => e
-    $stderr.write("critical!: #{caller(0)}: #{e.to_s}\n")
+    __write_stderr("critical!: #{caller(0)}: #{e.to_s}")
   end
+end
+
+FOLLOW_DIR = File.expand_path('..')
+def __write_stderr (msg)
+  $stderr.write(msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')+"\n")
 end
 
 # 環境や設定の不備で終了する。msgには、何が原因かを文字列で渡す。このメソッドは
