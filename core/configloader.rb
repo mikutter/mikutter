@@ -43,7 +43,10 @@ module ConfigLoader
     ConfigLoader.validate(val)
     SerialThread.new{
       ConfigLoader.transaction{
-        ConfigLoader.pstore[configloader_key(key)] = val } }
+        begin
+          ConfigLoader.pstore[configloader_key(key)] = val
+        rescue => e
+          error e end } }
     if(val.frozen?)
       @@configloader_cache[configloader_key(key)] = val
     else

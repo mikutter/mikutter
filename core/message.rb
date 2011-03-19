@@ -65,27 +65,27 @@ class Message < Retriever::Model
   def post(other, &proc)
     other[:replyto] = self
     other[:receiver] = self[:user]
-    if self.service then
+    if self.service
       self.service.post(other){|*a| yield *a }
-    elsif self.receive_message then
+    elsif self.receive_message
       self.receive_message.post(other){|*a| yield *a }
     end
   end
 
   # リツイートする
   def retweet
-    self.service.retweet(self){|*a| yield *a if block_given? } if self.service
-  end
+    if retweetable?
+      self.service.retweet(self){|*a| yield *a if block_given? } if self.service end end
 
   # この投稿を削除する
   def destroy
-    self.service.destroy(self){|*a| yield *a if block_given? } if self.service
-  end
+    if deletable?
+      self.service.destroy(self){|*a| yield *a if block_given? } if self.service end end
 
   # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
   def favorite(fav)
-    self.service.favorite(self, fav)
-  end
+    if favoritable?
+      self.service.favorite(self, fav) end end
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
@@ -96,15 +96,6 @@ class Message < Retriever::Model
     end
   end
 
-  # obsolete
-  # def <<(msg)
-  #   if (msg.instance_of Symbol)
-  #     self[:tags] << msg
-  #   else
-  #     self[:message] << msg
-  #   end
-  # end
-
   # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
     self[:system]
@@ -112,20 +103,25 @@ class Message < Retriever::Model
 
   # この投稿にリプライする権限があればtrueを返す
   def repliable?
-    self.service != nil
+    service and self.service != nil
   end
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
   def favoritable?
-    not system? end
+    service and not(system?) end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    not system? and not from_me? end
+    service and not system? and not from_me? end
+
+  # この投稿を削除する権限があればtrueを返す
+  def deletable?
+    from_me? end
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?
+    return false if not service
     return false if self.system?
     self[:user] == self.service.user if self.service end
 
@@ -143,11 +139,12 @@ class Message < Retriever::Model
   def user
     self.get(:user, -1) end
 
-  # この投稿のServiceオブジェクトを返す
+  # この投稿のServiceオブジェクトを返す。
+  # 設定されてなければnilを返す
   def service
-    if self[:post] then
+    if self[:post]
       self[:post]
-    elsif self.receive_message then
+    elsif self.receive_message
       self[:post] = self.receive_message.service end end
 
   # この投稿を宛てられたユーザを返す
@@ -275,27 +272,36 @@ class Message < Retriever::Model
 
   # :nodoc:
   def add_favorited_by(user, time=Time.now)
-    set_modified(time) if UserConfig[:favorited_by_anyone_age]
-    favorited_by.add(user)
-    Plugin.call(:favorite, service, user, self) end
+    type_strict user => User, time => Time
+    if service
+      set_modified(time) if UserConfig[:favorited_by_anyone_age]
+      favorited_by.add(user)
+      Plugin.call(:favorite, service, user, self) end end
 
   # :nodoc:
   def remove_favorited_by(user)
-    favorited_by.delete(user)
-    Plugin.call(:unfavorite, service, user, self) end
+    type_strict user => User
+    if service
+      favorited_by.delete(user)
+      Plugin.call(:unfavorite, service, user, self) end end
 
   # :nodoc:
   def add_child(child)
     type_strict child => Message
-    Thread.new{
-      if child[:retweet]
-        retweeted_by unless defined? @retweets
-        @retweets << child
-        set_modified(child[:created])
+    if child[:retweet]
+      if defined? @retweets
+        add_retweet_in_this_thread(child)
       else
-        children unless defined? @children
-        @children << child
-      end } end
+        SerialThread.new{
+          retweeted_by
+          add_retweet_in_this_thread(child) } end
+    else
+      if defined? @children
+        add_child_in_this_thread(child)
+      else
+        SerialThread.new{
+          children
+          add_child_in_this_thread(child) } end end end
 
   # 最終更新日時を取得する
   def modified
@@ -305,6 +311,14 @@ class Message < Retriever::Model
       self[:created] end end
 
   private
+
+  def add_retweet_in_this_thread(child)
+    @retweets << child
+    set_modified(child[:created]) end
+
+  def add_child_in_this_thread(child)
+    @children << child
+  end
 
   def set_modified(time)
     if modified < time
