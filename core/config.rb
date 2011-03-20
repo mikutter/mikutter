@@ -39,7 +39,7 @@ module CHIConfig
   NeverRetrieveOverlappedMumble = false
 
   # このソフトのバージョン。
-  VERSION = [0,0,2,11]
+  VERSION = [0,0,2,12]
 
 end
 
