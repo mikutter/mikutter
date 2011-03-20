@@ -4,54 +4,81 @@
 #
 
 require 'set'
+require 'thread'
 
-class WeakStorage
-  attr_reader :on_delete
-
+class WeakStore
   def initialize
-    @storage = Hash.new # { key => objid }
-    @on_delete = lambda{ |objid|
-      @storage.delete(@storage.key(objid)) if @storage.has_value?(objid) } end
+    @_storage = gen_storage
+    @_mutex = Mutex.new end
+
+  def atomic(&proc)
+    @_mutex.synchronize(&proc) end
+
+  protected
+
+  def storage
+    if(@_mutex.locked?)
+      @_storage
+    else
+      raise "WeakStore inner storage can control in atomic{} block only."
+      nil end end
+end
+
+class WeakStorage < WeakStore
 
   def [](key)
-    at(key) end
-
-  def []=(key, val)
-    ObjectSpace.define_finalizer(val, &on_delete)
-    @storage[key] = val.object_id end
-
-  def has_key?(key)
-    !!@storage[key] end
-
-  private
-
-  def at(key)
     begin
-      ObjectSpace._id2ref(@storage[key]) if @storage[key]
+      atomic{
+        ObjectSpace._id2ref(storage[key]) if storage[key] }
     rescue RangeError => e
       @@bug = true
       error "#{key} was deleted"
-      abort end end end
+      abort end end
+  alias add []
 
-class WeakSet
+  def []=(key, val)
+    ObjectSpace.define_finalizer(val, method(:on_delete))
+    atomic{
+      storage[key] = val.object_id } end
+  alias store []=
+
+  def has_key?(key)
+    atomic{
+      storage.has_key?(key) } end
+
+  private
+
+  def gen_storage
+    Hash.new end
+
+  def on_delete(objid)
+    atomic{
+      storage.delete(storage.key(objid)) if storage.has_value?(objid) } end end
+
+class WeakSet < WeakStore
   include Enumerable
-  attr_reader :on_delete
-
-  def initialize
-    @storage = Set.new
-    @on_delete = @storage.method(:delete).to_proc end
 
   def each
     begin
-      @storage.each{ |n| yield(ObjectSpace._id2ref(n)) }
+      atomic{
+        storage.each{ |n| yield(ObjectSpace._id2ref(n)) } }
     rescue RangeError => e
       error e
       nil end end
 
   def add(val)
-    ObjectSpace.define_finalizer(val, &on_delete)
-    @storage.add(val.object_id) end
+    ObjectSpace.define_finalizer(val, &method(:on_delete))
+    atomic{
+      storage.add(val.object_id) } end
   alias << add
 
-  def include?(key)
-    !!@storage[key] end end
+  private
+
+  def gen_storage
+    Set.new end
+
+  def on_delete(objid)
+    atomic{
+      storage.delete(objid) } end
+
+ end
