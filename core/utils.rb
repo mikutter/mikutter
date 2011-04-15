@@ -65,7 +65,7 @@ def miquire(kind, file=nil)
         require rb
       when FileTest.directory?(File.join(rb))
         plugin = (File.join(rb, File.basename(rb)))
-        if FileTest.exist? plugin
+        if FileTest.exist? plugin or FileTest.exist? "#{plugin}.rb"
           notice "load #{plugin}"
           require plugin
         end

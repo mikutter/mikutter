@@ -29,7 +29,7 @@ class WeakStorage < WeakStore
   def [](key)
     begin
       atomic{
-        ObjectSpace._id2ref(storage[key]) if storage[key] }
+        ObjectSpace._id2ref(storage[key]) if storage.has_key?(key) }
     rescue RangeError => e
       @@bug = true
       error "#{key} was deleted"
@@ -37,7 +37,7 @@ class WeakStorage < WeakStore
   alias add []
 
   def []=(key, val)
-    ObjectSpace.define_finalizer(val, method(:on_delete))
+    ObjectSpace.define_finalizer(val){ |objid| storage.delete(key) }
     atomic{
       storage[key] = val.object_id } end
   alias store []=
@@ -49,11 +49,7 @@ class WeakStorage < WeakStore
   private
 
   def gen_storage
-    Hash.new end
-
-  def on_delete(objid)
-    atomic{
-      storage.delete(storage.key(objid)) if storage.has_value?(objid) } end end
+    Hash.new end end
 
 class WeakSet < WeakStore
   include Enumerable
