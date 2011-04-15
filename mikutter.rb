@@ -203,6 +203,11 @@ begin
 rescue Interrupt => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
+rescue Exception => e
+  m = e.backtrace.first.match(/(.+?):(\d+)/)
+  file_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_file'), m[1])
+  file_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_line'), m[2])
+  raise e
 ensure
   # $stderr.close if errlog.closed?
 end

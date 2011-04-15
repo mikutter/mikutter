@@ -70,16 +70,20 @@ Module.new do
         Net::HTTP.start('mikutter.hachune.net'){ |http|
           param = encode_parameters({ 'backtrace' => backtrace,
                                       'svn' => revision,
+                                      'file' => crashed_file,
+                                      'line' => crashed_line,
                                       'ruby_version' => RUBY_VERSION,
                                       'platform' => RUBY_PLATFORM,
                                       'url' => 'bugreport',
                                       'version' => Environment::VERSION })
           http.post('/', param) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line')))
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file')))
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
       rescue TimeoutError, StandardError => e
-        Plugin.call(:update, nil, [Message.new(:message => "エラー通知「#{e.to_s}」フォロワー監視「エラー通知がやられたようだな」スレッド「しかしやつは我々プラグインのバグ情報をフィードバックするための機能・・・」プロフィール「そのプラグインにバグがあるとはmikutterプラグインの面汚しよ」",
+        Plugin.call(:update, nil, [Message.new(:message => "#{e.to_s}ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww",
                                                :system => true)])
       end } end
 
@@ -91,6 +95,14 @@ Module.new do
 
   def self.backtrace
     file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
+  end
+
+  def self.crashed_line
+    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))).to_i rescue 0
+  end
+
+  def self.crashed_file
+    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue '-'
   end
 
   def self.encode_parameters(params, delimiter = '&', quote = nil)
