@@ -77,9 +77,9 @@ Module.new do
                                       'url' => 'bugreport',
                                       'version' => Environment::VERSION })
           http.post('/', param) }
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line')))
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file')))
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))) rescue nil
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue nil
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
       rescue TimeoutError, StandardError => e
