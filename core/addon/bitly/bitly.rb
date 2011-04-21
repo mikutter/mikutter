@@ -9,6 +9,8 @@ require 'json'
 class Bitly < MessageConverters
   USER = 'mikutter'
   APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'
+
+  # bitlyユーザ名を返す
   def user
     if UserConfig[:bitly_user] == '' or not UserConfig[:bitly_user]
       USER
@@ -16,6 +18,7 @@ class Bitly < MessageConverters
       UserConfig[:bitly_user]
     end end
 
+  # bitly API keyを返す
   def apikey
     if UserConfig[:bitly_apikey] == '' or not UserConfig[:bitly_apikey]
       APIKEY
@@ -23,9 +26,11 @@ class Bitly < MessageConverters
       UserConfig[:bitly_apikey]
     end end
 
+  # 引数urlがこのプラグインで短縮されているものならtrueを返す
   def shrinked_url?(url)
     Regexp.new('http://(bit\\.ly|j\\.mp)/') === url end
 
+  # urlの配列 urls を受け取り、それら全てを短縮して返す
   def shrink_url(urls)
     query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "longUrl=#{Escape.query_segment(url).to_s}" }.join('&')
@@ -38,6 +43,7 @@ class Bitly < MessageConverters
       sleep(1) }
     nil end
 
+  # 短縮されたURLの配列 urls を受け取り、それら全てを展開して返す。
   def expand_url(urls)
     query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
