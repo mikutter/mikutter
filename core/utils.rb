@@ -24,6 +24,11 @@ $debug_avail_level = 2
 # http://ja.uncyclopedia.info/wiki/Hyde
 HYDE = 156
 
+PATH_KIND_CONVERTER = Hash.new{ |h, k| h[k] = k.to_s + '/' }
+PATH_KIND_CONVERTER[:mui] = 'mui/gtk_'
+PATH_KIND_CONVERTER[:core] = ''
+PATH_KIND_CONVERTER[:user_plugin] = '../plugin/'
+
 # CHIのコアソースコードファイルを読み込む。
 # _kind_ はファイルの種類、 _file_ はファイル名（拡張子を除く）。
 # _file_ を省略すると、そのディレクトリ下のrubyファイルを全て読み込む。
@@ -40,38 +45,32 @@ HYDE = 156
 #     ` c.rb
 #  a.rbとb.rbが読み込まれる(c.rbやREADMEは読み込まれない)
 def miquire(kind, file=nil)
-  path = ''
-  case(kind)
-  when :mui
-    path = 'mui/gtk_'
-  when :core
-    path = ''
-  when :user_plugin
-    path = '../plugin/'
-  else
-    path = kind.to_s + '/'
-  end
-  if file then
+  kind = kind.to_sym
+  if file
     if kind == :lib
-      Dir.chdir(path){
+      Dir.chdir(PATH_KIND_CONVERTER[kind]){
         require file.to_s }
     else
-      require path + file.to_s end
+      file_or_directory_require PATH_KIND_CONVERTER[kind] + file.to_s end
   else
-    Dir.glob(path + '*').sort.each{ |rb|
-      case
-      when /\.rb$/ === rb
-        notice "load #{rb}"
-        require rb
-      when FileTest.directory?(File.join(rb))
-        plugin = (File.join(rb, File.basename(rb)))
-        if FileTest.exist? plugin or FileTest.exist? "#{plugin}.rb"
-          notice "load #{plugin}"
-          require plugin
-        end
-        notice "not loaded #{plugin}"
-      else
-        notice "not loaded #{rb}" end } end end
+    miquire_all_files(kind) end end
+
+# miquireと同じだが、全てのファイルが対象になる
+def miquire_all_files(kind)
+  kind = kind.to_sym
+  Dir.glob(PATH_KIND_CONVERTER[kind] + '*').select{ |x| FileTest.directory?(x) or /\.rb$/ === x }.sort.each{ |rb|
+    file_or_directory_require(rb) } end
+
+def file_or_directory_require(rb)
+  if(match = rb.match(/^(.*)\.rb$/))
+    rb = match[1] end
+  case
+  when FileTest.directory?(File.join(rb))
+    plugin = (File.join(rb, File.basename(rb)))
+    if FileTest.exist? plugin or FileTest.exist? "#{plugin}.rb"
+      require plugin end
+  else
+    require rb end end
 
 Dir::chdir(File::dirname(__FILE__))
 miquire :lib, 'escape'

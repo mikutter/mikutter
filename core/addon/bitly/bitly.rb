@@ -32,28 +32,32 @@ class Bitly < MessageConverters
 
   # urlの配列 urls を受け取り、それら全てを短縮して返す
   def shrink_url(urls)
-    query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
-      "longUrl=#{Escape.query_segment(url).to_s}" }.join('&')
-    3.times{
-      result = begin
-                 JSON.parse(Net::HTTP.get("api.bit.ly", "/shorten?#{query}"))
-               rescue JSON::ParserError
-                 nil end
-      return Hash[ *result['results'].map{|pair| [pair[0], pair[1]['shortUrl']] }.flatten ] if result
-      sleep(1) }
-    nil end
+    result = Hash.new
+    urls.each{ |url|
+      query = "login=#{user}&apiKey=#{apikey}&longUrl=#{Escape.query_segment(url).to_s}"
+      3.times{
+        response = begin
+                   JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/shorten?#{query}"))
+                 rescue JSON::ParserError
+                   nil end
+        if response and response['status_code'].to_i == 200
+          result[response['data']['long_url']] = response['data']['url']
+          break end
+        sleep(1) } }
+    result if(not result.empty?) end
 
   # 短縮されたURLの配列 urls を受け取り、それら全てを展開して返す。
   def expand_url(urls)
-    query = "version=2.0.1&login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
+    query = "login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
     3.times{
       result = begin
                  JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/expand?#{query}"))
                rescue JSON::ParserError
                  nil end
-      return Hash[ *result['data']['expand'].map{|token|
-                     [token['short_url'], token['long_url']] }.flatten ] if result
+      if result and result['status_code'].to_i == 200
+        return Hash[ *result['data']['expand'].map{|token|
+                       [token['short_url'], token['long_url']] }.flatten ] end
       sleep(1) }
     nil end
 
