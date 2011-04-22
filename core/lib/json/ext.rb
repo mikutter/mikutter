@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-miquire :core, 'json/common'
+require 'json/common'
 
 module JSON
   # This module holds all the modules/classes that implement JSON's
   # functionality as C extensions.
   module Ext
-    miquire :core, 'json/ext/parser'
-    miquire :core, 'json/ext/generator'
+    require 'json/ext/parser'
+    require 'json/ext/generator'
     $DEBUG and warn "Using c extension for JSON."
     JSON.parser = Parser
     JSON.generator = Generator

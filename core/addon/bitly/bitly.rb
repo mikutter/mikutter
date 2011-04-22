@@ -4,7 +4,7 @@ miquire :core, 'messageconverters'
 miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'userconfig'
-require 'json'
+miquire :lib, "json"
 
 class Bitly < MessageConverters
   USER = 'mikutter'

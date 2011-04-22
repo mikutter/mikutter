@@ -8,7 +8,7 @@ miquire :core, 'message'
 miquire :core, 'userlist'
 miquire :core, 'configloader'
 miquire :core, 'userconfig'
-miquire :core, "json"
+miquire :lib, "json"
 miquire :core, 'delayer'
 
 Thread.abort_on_exception = true

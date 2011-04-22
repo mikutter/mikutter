@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-miquire :core, 'json/common'
-miquire :core, 'json/pure/parser'
-miquire :core, 'json/pure/generator'
+require 'json/common'
+require 'json/pure/parser'
+require 'json/pure/generator'
 
 module JSON
   begin

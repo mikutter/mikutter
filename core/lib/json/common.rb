@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-miquire :core, 'json/version'
+require 'json/version'
 
 module JSON
   class << self
