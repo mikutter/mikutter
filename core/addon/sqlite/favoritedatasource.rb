@@ -16,7 +16,7 @@ class SQLiteFavoriteDataSource < SQLiteDataSource
 
   def table_setting
     begin
-      @db.execute(<<SQL)
+      db.execute(<<SQL)
 CREATE TABLE IF NOT EXISTS `favorite` (
   `user_id` integer NOT NULL,
   `message_id` integer NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `favorite` (
 SQL
     rescue SQLite3::SQLException => e
       warn e end
-    transaction{ @db.execute(sql) } end end
+    transaction{ db.execute(sql) } end end
 
 # Module.new do
 #   plugin = Plugin.create(:sqlite)

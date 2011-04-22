@@ -32,4 +32,4 @@ CREATE TABLE IF NOT EXISTS `messages` (
 );
 SQL
     transaction{
-      @db.execute(sql) } end end
+      db.execute(sql) } end end

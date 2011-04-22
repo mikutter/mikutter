@@ -1,23 +1,67 @@
 # -*- coding: utf-8 -*-
 
+require 'thread'
+require 'set'
+require 'timeout'
+
 class SQLiteDataSource
   include Retriever::DataSource
 
+  @@db = begin
+           if not(FileTest.exist?(confroot("sqlite-datasource.db"))) or
+               FileTest.writable_real?(confroot("sqlite-datasource.db"))
+             SQLite3::Database.new(File::expand_path(Environment::CONFROOT + "sqlite-datasource.db"))
+           else
+             warn "sqlite database file #{Environment::CONFROOT}sqlite-datasource.db is not writable."
+             nil
+           end
+         rescue => e
+           error "sqlite initialize failed. #{e}"
+           nil
+         end
+
   @@transaction = Monitor.new
+
+  @@queue = Queue.new
+
+  Thread.new{
+    loop{
+      stock = Set.new
+      catch(:write){
+        loop{
+          if(stock.empty?)
+            poped = @@queue.pop
+          else
+            begin
+              timeout(5){
+                poped = @@queue.pop }
+            rescue Timeout::Error
+              throw :write end end
+          stock << poped
+          # notice "sqlite: stocked(#{stock.size})"
+          if stock.size > 1024
+            throw :write end } }
+      # notice "sqlite: write #{stock.size} query"
+      @@transaction.synchronize{
+        @@db.transaction{
+          stock.each{ |query|
+            @@db.execute(*query) } } }
+      # notice "sqlite: wrote"
+    } }
 
   def self.transaction
     @@transaction.synchronize(&Proc.new)
   end
 
   def transaction
-    @@transaction.synchronize(&Proc.new)
+    SQLiteDataSource.transaction(&Proc.new)
+    # @@transaction.synchronize(&Proc.new)
   end
 
   def initialize
     begin
       if not(FileTest.exist?(confroot("sqlite-datasource.db"))) or
           FileTest.writable_real?(confroot("sqlite-datasource.db"))
-        @db = SQLite3::Database.new(File::expand_path(Environment::CONFROOT + "sqlite-datasource.db"))
         transaction{ table_setting }
         @insert = "insert or ignore into #{table_name} (#{columns.join(',')}) values (#{columns.map{|x|'?'}.join(',')})"
         @update = "update #{table_name} set " + columns.slice(0, columns.size-1).map{|x| "#{x}=?"}.join(',') + " where id=?"
@@ -31,10 +75,15 @@ class SQLiteDataSource
     end
   end
 
+  def db
+    @@db
+  end
+
   def findbyid(id)
+    # notice "sqlite: fetch #{self.class.to_s} (#{id.inspect})"
     begin
       return findbyid_multi(id) if id.is_a? Array
-      key, val, = transaction{ @db.execute2(@findbyid ,id) }
+      key, val, = transaction{ db.execute2(@findbyid ,id) }
       return nil if not val
       return record_convert(key.zip(val))
     rescue Retriever::InvalidTypeError
@@ -104,7 +153,10 @@ class SQLiteDataSource
           else
             modifier, query = datum, @insert
           end
-          transaction{ @db.execute(query, *convert(modifier)) }
+          @@queue << [query, *convert(modifier)]
+          # transaction{ db.execute(query, *convert(modifier)) }
         }
       rescue SQLite3::SQLException => e
         warn e end } end end
+# ~> -:44: syntax error, unexpected '}', expecting kEND
+# ~> -:156: syntax error, unexpected $end, expecting '}'

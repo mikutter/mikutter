@@ -32,4 +32,4 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY  (`id`));
 SQL
     transaction{
-      @db.execute(sql) } end end
+      db.execute(sql) } end end

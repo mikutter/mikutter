@@ -16,7 +16,7 @@ class SQLiteUserListDataSource < SQLiteDataSource
 
   def belong_users_id(userlist_id)
     begin
-      r = transaction{ @db.execute("select user_id
+      r = transaction{ db.execute("select user_id
                                       from userlist_member
                                       where userlist_id = ? ", userlist_id) }
       r.map{|row| row.first} if r
@@ -30,7 +30,7 @@ class SQLiteUserListDataSource < SQLiteDataSource
   def belong?(userlist_id, user_id)
     begin
       transaction{
-        @db.execute("select user_id
+        db.execute("select user_id
                        from userlist_member
                        where user_id = ? AND userlist_id = ? ", user_id, userlist_id){ |row|
           return row.first } }
@@ -49,7 +49,7 @@ class SQLiteUserListDataSource < SQLiteDataSource
       datum[:member].each{ |u|
         begin
           transaction{
-            @db.execute("insert or ignore into userlist_member (user_id, userlist_id)
+            db.execute("insert or ignore into userlist_member (user_id, userlist_id)
                                             values (?, ?)", u, datum[:id]) }
         rescue SQLite3::SQLException => e
           warn e end } end
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `userlist_member` (
   `userlist_id` integer NOT NULL,
   PRIMARY KEY  (`user_id`, `userlist_id`));
 SQL
-      @db.execute(sql)
+      db.execute(sql)
       sql = <<SQL
 CREATE TABLE IF NOT EXISTS `userlist` (
   `id` integer NOT NULL,
@@ -74,4 +74,4 @@ CREATE TABLE IF NOT EXISTS `userlist` (
   `slug` text NOT NULL,
   PRIMARY KEY  (`id`));
 SQL
-      @db.execute(sql) } end end
+      db.execute(sql) } end end
