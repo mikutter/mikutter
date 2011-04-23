@@ -24,6 +24,8 @@ class SQLiteDataSource
 
   @@queue = Queue.new
 
+  # キューの消化。カオスｗ
+  # キューに５秒更新がないか、1024件溜まったら
   Thread.new{
     loop{
       stock = Set.new
@@ -38,15 +40,15 @@ class SQLiteDataSource
             rescue Timeout::Error
               throw :write end end
           stock << poped
-          # notice "sqlite: stocked(#{stock.size})"
+          notice "sqlite: stocked(#{stock.size})"
           if stock.size > 1024
             throw :write end } }
-      # notice "sqlite: write #{stock.size} query"
+      notice "sqlite: write #{stock.size} query"
       @@transaction.synchronize{
         @@db.transaction{
           stock.each{ |query|
             @@db.execute(*query) } } }
-      # notice "sqlite: wrote"
+      notice "sqlite: wrote"
     } }
 
   def self.transaction
@@ -55,7 +57,6 @@ class SQLiteDataSource
 
   def transaction
     SQLiteDataSource.transaction(&Proc.new)
-    # @@transaction.synchronize(&Proc.new)
   end
 
   def initialize
