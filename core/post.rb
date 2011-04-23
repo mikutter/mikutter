@@ -411,7 +411,7 @@ class Post
           cnv[:user] = user
         else
           cnv[:user] = User.new_ifnecessary(:idname => msg['from_user'],
-                                            :id => '+' + msg['from_user'],
+                                            :id => msg['from_user_id'],
                                             :profile_image_url => msg['profile_image_url'])
         end
         cnv } }
