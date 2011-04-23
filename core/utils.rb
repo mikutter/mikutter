@@ -281,9 +281,14 @@ def mainthread?
 # メインスレッド以外で呼び出されたらThreadErrorを投げる
 def mainthread_only
   unless mainthread?
-    raise ThreadError.new('The method calls can only main thread. but called by another thread.') end end
+    raise ThreadError.new('The method can calls only main thread. but called by another thread.') end end
 
-# type_checkで型をチェックしてからブロックを評価する無めい関数を生成して返す
+# メインスレッドで呼び出されたらThreadErrorを投げる
+def no_mainthread
+  if mainthread?
+    raise ThreadError.new('The method can not calls main thread. but called by main thread.') end end
+
+# type_checkで型をチェックしてからブロックを評価する無名関数を生成して返す
 def tclambda(*args, &proc)
   lambda{ |*a|
     if proc.arity >= 0

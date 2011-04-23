@@ -145,7 +145,7 @@ class Message < Retriever::Model
     if self[:post]
       self[:post]
     elsif self.receive_message
-      self[:post] = self.receive_message.service end end
+      @value[:post] = self.receive_message.service end end
 
   # この投稿を宛てられたユーザを返す
   def receiver
@@ -306,7 +306,7 @@ class Message < Retriever::Model
   # 最終更新日時を取得する
   def modified
     if UserConfig[:retweeted_by_anyone_age]
-      self[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
+      @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
     else
       self[:created] end end
 

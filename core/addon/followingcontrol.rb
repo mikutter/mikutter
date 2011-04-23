@@ -27,7 +27,8 @@ Module.new do
         service.__send__(api, UserConfig[retrieve_count]){ |users|
           users = users.select(&ret_nth).freeze
           boot_event(api, service, users - relations, relations - users) unless relations.empty?
-          relations = users } end } end
+          relations = users
+        } end } end
 
   def self.set_event(api, title)
     userlist = Gtk::UserList.new()
@@ -36,8 +37,9 @@ Module.new do
     Plugin.create(:following_control).add_event(:period){ |service|
       Thread.new{
         res = proc.call(service)
-         if(bool res)
-           Delayer.new{ userlist.add(res.reverse).show_all } end } }
+        if(bool res)
+          Delayer.new{ userlist.add(res.reverse).show_all } end }
+    }
     Plugin.create(:following_control).add_event("#{api}_created".to_sym){ |service, users|
       userlist.add(users).show_all }
     Plugin.create(:following_control).add_event("#{api}_destroy".to_sym){ |service, users|

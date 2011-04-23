@@ -288,7 +288,8 @@ module Gtk
           unless(mumble.destroyed?)
             mumble.add(w) end }
         add(shell.add(container.add(mumble))).set_height_request(-1).show_all
-        Delayer.new{ gen_additional_widgets } end end
+        gen_additional_widgets
+      end end
 
     def gen_reply
       @gen_reply ||= Gtk::VBox.new(false, 0) end
@@ -301,9 +302,11 @@ module Gtk
         SerialThread.new{
           reply_packer if message.has_receive_message?
           retweeted_packer
-          favorited_packer }
+          favorited_packer
+        }
       elsif message.has_receive_message?
-        SerialThread.new{ reply_packer } end end
+        SerialThread.new{ reply_packer }
+      end end
 
     def reply_packer
       parent = message.receive_message(UserConfig[:retrieve_force_mumbleparent])

@@ -332,11 +332,11 @@ class Post
       [] end end
 
   def following_method(api, limit=-1, next_cursor=-1, &proc)
-    parallel{
-      if proc
-        proc.call(query_following_method(api, limit, next_cursor))
-      else
-        query_following_method(api, limit, next_cursor) end } end
+    no_mainthread
+    if proc
+      proc.call(query_following_method(api, limit, next_cursor))
+    else
+      query_following_method(api, limit, next_cursor) end end
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|

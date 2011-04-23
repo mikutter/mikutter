@@ -50,17 +50,10 @@ module Retriever
         if hash.is_a?(self)
           hash
         elsif hash[:id] and hash[:id] != 0
-          @@storage[hash[:id]] or self.new(hash)
+          atomic{
+            @@storage[hash[:id].to_i] or self.new(hash) }
         else
           raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
-      # if hash.is_a?(self.class)
-      #   hash
-      # elsif not(hash.is_a?(Hash)) or not(hash[:id]) or hash[:id] == 0
-      #   raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}")
-      # else
-      #   result = @@storage[hash[:id]]
-      #   return result if result
-      #   self.new(hash) end end
 
     #
     # インスタンスメソッド
@@ -199,9 +192,7 @@ module Retriever
           detection = retriever.findbyid_timer(id)
           if detection
             result = detection
-            notice [retriever, result].inspect
             throw :found end } }
-      notice result.inspect
       self.retrievers_reorder
       if result.is_a? Retriever::Model
         result
@@ -255,7 +246,8 @@ module Retriever
       converted = datum.filtering
       self.retrievers.each{ |retriever|
         retriever.store_datum(converted) }
-      @@storage[datum[:id]] = result_strict(self){ datum }
+      atomic{
+        @@storage[datum[:id].to_i] = result_strict(self){ datum } }
       datum
     end
 
@@ -391,9 +383,9 @@ module Retriever
 
     def findbyid(id)
       if id.is_a? Array or id.is_a? Set
-        id.map{ |i| @storage[i] }
+        id.map{ |i| @storage[i.to_i] }
       else
-        @storage[id] end end
+        @storage[id.to_i] end end
 
     # def selectby(key, value)
     #   if key == :replyto
