@@ -50,7 +50,7 @@ Module.new do
   end
 
   def self.onupdate(post, raw_messages)
-    messages = raw_messages.select{ |m| not(m.from_me? or m.to_me?) }
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) }).first
     if not(first?(:update) or messages.empty?)
       if(UserConfig[:notify_friend_timeline])
         messages.each{ |message|
@@ -59,7 +59,7 @@ Module.new do
         self.notify_sound(UserConfig[:notify_sound_friend_timeline]) end end end
 
   def self.onmention(post, raw_messages)
-    messages = raw_messages.select{ |m| not m.from_me? and not m[:retweet] }
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not m.from_me? and not m[:retweet] }).first
     if not(first?(:mention) or messages.empty?)
       if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention])
         messages.each{ |message|
@@ -90,7 +90,7 @@ Module.new do
         self.notify_sound(UserConfig[:notify_sound_favorited]) end end end
 
   def self.onretweeted(post, raw_messages)
-    messages = raw_messages.select{ |m| m[:retweet] and not m.from_me? }
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| m[:retweet] and not m.from_me? }).first
     if not(messages.empty?)
       if(UserConfig[:notify_retweeted])
         messages.each{ |message|
