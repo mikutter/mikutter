@@ -73,6 +73,7 @@ Module.new do
                                       'file' => crashed_file,
                                       'line' => crashed_line,
                                       'ruby_version' => RUBY_VERSION,
+                                      'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
                                       'platform' => RUBY_PLATFORM,
                                       'url' => 'bugreport',
                                       'version' => Environment::VERSION })
