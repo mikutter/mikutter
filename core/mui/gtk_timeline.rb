@@ -61,9 +61,6 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     mumble = get_mumble_by(message)
     if mumble
       @tl.reorder(mumble)
-      # @tl.remove(mumble)
-      # mumble.destroy
-      # block_add(message)
     end
     self end
 
@@ -192,7 +189,6 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     container = Gtk::EventBox.new
     box = Gtk::PriorityVBox.new(false, 0){ |widget| [widget.modified, widget[:id].to_i] }
     container.add(box)
-    #box.spacing = 16
     style = Gtk::Style.new()
     style.set_bg(Gtk::STATE_NORMAL, *[255,255,255].map{|a| a*255})
     container.style = style

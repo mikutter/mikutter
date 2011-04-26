@@ -274,7 +274,7 @@ class Message < Retriever::Model
   def add_favorited_by(user, time=Time.now)
     type_strict user => User, time => Time
     if service
-      set_modified(time) if UserConfig[:favorited_by_anyone_age]
+      set_modified(time) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or service.user != user.idname)
       favorited_by.add(user)
       Plugin.call(:favorite, service, user, self) end end
 
@@ -314,7 +314,7 @@ class Message < Retriever::Model
 
   def add_retweet_in_this_thread(child)
     @retweets << child
-    set_modified(child[:created]) end
+    set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and (UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname) end
 
   def add_child_in_this_thread(child)
     @children << child

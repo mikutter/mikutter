@@ -21,7 +21,10 @@ Module.new do
                       tooltip("TL上にリツイートを表示します"),
                       Mtk.boolean(:retweeted_by_anyone_age,
                                   'リツイートされたつぶやきをTL上でageる').
-                      tooltip("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上にもってきます"))).
+                      tooltip("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"),
+                      Mtk.boolean(:retweeted_by_myself_age,
+                                  '自分がリツイートしたつぶやきをTL上でageる').
+                      tooltip("自分がリツイートしたつぶやきを、TLの一番上に上げます"))).
     closeup(Mtk.group('ふぁぼり',
                       Mtk.boolean(:favorited_by_anyone_show_timeline,
                                   'ふぁぼられを表示する').
@@ -31,7 +34,10 @@ Module.new do
                       tooltip("ふぁぼられたつぶやきが、リプライタブに現れるようになります。"),
                       Mtk.boolean(:favorited_by_anyone_age,
                                   'ふぁぼられたつぶやきをTL上でageる').
-                      tooltip("つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上にもってきます"))).
+                      tooltip("つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"),
+                      Mtk.boolean(:favorited_by_myself_age,
+                                  '自分がふぁぼったつぶやきをTL上でageる').
+                      tooltip("自分がふぁぼったつぶやきを、TLの一番上に上げます"))).
     closeup(Mtk.group('短縮URL', Mtk.boolean(:shrinkurl_expand, '短縮URLを展開して表示').tooltip("受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"))).
     closeup(Mtk.chooseone(:tab_position, 'タブの位置', 0 => '上', 1 => '下', 2 => '左', 3 => '右')).
     closeup(Mtk.default_or_custom(:url_open_command, 'URLを開く方法', 'デフォルトブラウザを使う', '次のコマンドを使う'))
