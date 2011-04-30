@@ -31,6 +31,7 @@ Module.new do
 
   def self._popup(watch)
     result = [nil]
+    main_windows = Plugin.filtering(:get_windows, Set.new)
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
     container, key, request_token = main(watch)
@@ -42,12 +43,11 @@ Module.new do
     quit = lambda{
       dialog.hide_all.destroy
       Gtk.main_iteration_do(false)
-      Gtk::Window.toplevels.first.show
+      main_windows.each{ |w| w.show }
       if alert_thread
         alert_thread.run
       else
-        Gtk.main_quit
-      end }
+        Gtk.main_quit end }
     dialog.signal_connect("response") do |widget, response|
       if response == Gtk::Dialog::RESPONSE_OK
         begin
@@ -65,7 +65,7 @@ Module.new do
     }
     container.show
     dialog.show_all
-    Gtk::Window.toplevels.first.hide
+    main_windows.each{ |w| w.hide }
     if(alert_thread)
       Thread.stop
     else
