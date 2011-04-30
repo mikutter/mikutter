@@ -1,53 +1,56 @@
 # -*- mode: org; coding: utf-8 -*-
-mikutter - the moest twitter client
-
+mikutter - simple, powerful and moeful twitter client
+file:core/skin/data/icon.png
 全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 
 * 用件
 
 ** 必須アプリケーション:
-***ruby (1.8.7)
+- ruby (1.8.7)
 - libgnome2-ruby
 - libopenssl-ruby
 - libhmac-ruby
 rubyは1.8.7(1.8系統最新)でしか動きません。1.8.6以前では動かないことが確認されています。
-また、1.9.1以降で動作することは確認されていますが、DebianやUbuntuではrubyやruby-gtk2を独自にビルドしてください。
+mikutterはruby1.9.2を推奨しています。1.9.2で動作させるには、必要なライブラリ等をビルドしてください。
 
-*** プラグインが必要とするもの(必須ではない):
+** プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
   - notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
-- sqliteプラグイン
-  - ruby用のsqliteのライブラリ(ubuntuでは、sudo apt-get install libsqlite3-ruby)
 
-*** gemで入れるもの(なくてもOKです):
+** gemで入れるもの(なくてもOKです):
 - httpclient
 
+* OS/ディストリ別インストール方法
 ** Windowsでのインストール方法
    mikutterのサイトより、Windows版をダウンロードして展開し、mikutter.exeを起動してください。
 
 ** Debian/Ubuntuでのインストール方法
-1. aptでインストール
-   - sudo apt-get install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
-2. 推奨パッケージたち（オプション）
-   - sudo apt-get install libnotify-bin libsqlite3-ruby
-   -> 共通の設定へ
+   1. aptでインストール
+      - sudo apt-get install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
+   2. 推奨パッケージたち（オプション）
+      - sudo apt-get install libnotify-bin
+        -> 共通の設定へ
+
+** その他のディストリビューション
+   基本的には、その他のディストリでは、同等のライブラリが配布されていたらそれを使ってください。
+   また、ディストリによってはmikutterが公式リポジトリに含まれていることがあります。
 
 ** Macでのインストール方法
-1. これといった設定は必要ありません。
-   -> 共通の設定へ
+   1. これといった設定は必要ありません。
+      -> 共通の設定へ
 
 ** 共通の設定
-  1. ruby mikutter.rb で起動できます。
-  2. ruby mikutter.rb --debug とすると、人柱気分が味わえます。
+   1. ruby mikutter.rb で起動できます。
+   2. ruby mikutter.rb --debug とすると、人柱気分が味わえます。
 
 ** 起動
    単純に、以下のようなコマンドで実行できます。
-   :ruby mikutter.rb
+   : ruby mikutter.rb
    - Mac OS X
-         portでrubyを入れて、以下のコマンドで起動して下さい。
-         :/opt/local/bin/ruby mikutter.rb
-         また、日本語入力をするためには、XにIMEをインストールする必要があるらしいです。現在調査中です。
+     portでrubyを入れて、以下のコマンドで起動して下さい。
+     : /opt/local/bin/ruby mikutter.rb
+     また、日本語入力をするためには、XにIMEをインストールする必要があるらしいです。現在調査中です。
 
 * ディレクトリ構成
   - mikutter.rb 本体起動スクリプト
@@ -60,8 +63,8 @@ rubyは1.8.7(1.8系統最新)でしか動きません。1.8.6以前では動か�
 
 | ファイル名        | 説明                                                     |
 |-------------------+----------------------------------------------------------|
-| cache/            | Twitter APIのレスポンスのキャッシュ                      |
-| icon/             | アイコンなど、画像のキャッシュ                           |
+| cache/            | Twitter APIのレスポンスのキャッシュ。                    |
+| icons/            | アイコンなど、画像のキャッシュ                           |
 | p_store_values.db | 設定やアカウント情報などが保存されるデータベースファイル |
 | logs/             | エラーログなど                                           |
 | tmp/              | 一時ファイル                                             |
@@ -69,12 +72,6 @@ rubyは1.8.7(1.8系統最新)でしか動きません。1.8.6以前では動か�
 各ファイルは、ない場合はすべて自動生成されます。ディスク容量が圧迫されているなど、削除したくなったら適宜削除してもらって構いません
 (ただし、p_store_values.dbは削除するとmikutterのデータが飛びます)。
 というか、一定期間でいらんものは削除するようにします。ほんとすみません。
-
-* その他
-  - 響かせて　きれいなつぶやき　心揺さぶる　RT
-  - 私は　つぶやくのが好き　私がそう　作られたからじゃない
-    このつぶやきを好きだと言う　あなたがふぁぼってくれるから
-  - あなただけのmikutterなの
 
 * リンク
 ** mikutter
