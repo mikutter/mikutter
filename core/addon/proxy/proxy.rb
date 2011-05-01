@@ -103,12 +103,12 @@ Module.new do
   end
 
   def self.gen_envval_ev
-    c = lambda{ |index|
+    env_getter = lambda{ |index|
       lambda{|x| Net::HTTP.get_env_proxy_settings[index].to_s } }
-    sv = Mtk.input(c[0], "サーバ"){|c,i|i.sensitive = false}
-    pt = Mtk.input(c[1], "ポート"){|c,i|i.sensitive = false}
-    us = Mtk.input(c[2], "ユーザ"){|c,i|i.sensitive = false}
-    pw = Mtk.input(c[3], "パスワード"){|c,i|i.sensitive = false}
+    sv = Mtk.input(env_getter[0], "サーバ"){|c,i|i.sensitive = false}
+    pt = Mtk.input(env_getter[1], "ポート"){|c,i|i.sensitive = false}
+    us = Mtk.input(env_getter[2], "ユーザ"){|c,i|i.sensitive = false}
+    pw = Mtk.input(env_getter[3], "パスワード"){|c,i|i.sensitive = false}
     Gtk::EventBox.new.add(Gtk::VBox.new(false, 8).closeup(sv).closeup(pt).closeup(us).closeup(pw))
   end
 
