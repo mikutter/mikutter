@@ -18,8 +18,7 @@ module Net
       when :disable
         new_org(host, port)
       else
-        new_org(host, port, *get_env_proxy_settings)end
-    end
+        new_org(host, port, *get_env_proxy_settings) end end
 
     def get_env_proxy_settings
       env_proxy_settings = (ENV["HTTP_PROXY"] || '').sub(/http:\/\//, '').split(/[@:]/)
@@ -30,7 +29,7 @@ module Net
         [env_proxy_settings[2], env_proxy_settings[3].to_i, env_proxy_settings[0], env_proxy_settings[1]]
       else
         [] end end
-    memoize :_env_proxy_settings
+    memoize :get_env_proxy_settings
   end
 end
 

@@ -6,11 +6,17 @@ miquire :addon, 'settings'
 #require 'gst'
 require_if_exist 'rubygems'
 require_if_exist 'win32/sound'
+require_if_exist 'ruby-growl'
+require_if_exist 'sdl'
 
 Module.new do
 
   DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
-
+  GROWL = Growl.new '127.0.0.1', 'ruby-growl', ['ruby-growl Notification'] if defined? Growl
+  if defined? SDL
+    SDL.init(SDL::INIT_AUDIO)
+    SDL::Mixer.open
+  end
   def self.boot
     plugin = Plugin::create(:notify)
 
@@ -107,25 +113,33 @@ Module.new do
       true end end
 
   def self.notify(user, text)
-    Thread.new(user, text){ |user, text|
-      command = ["notify-send"]
-      if(text.is_a? Message)
-        command << '--category=system'
-        text = text.to_s
-      end
-      command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
-      if user
-        command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
-        command << "@#{user[:idname]} (#{user[:name]})" end
-      command << text
-      bg_system(*command) } end
+    if defined? Growl
+      text = text.to_show if text.is_a? Message
+      u = "mikumiku"
+      u = "@#{user[:idname]} (#{user[:name]})" if user
+      GROWL.notify "ruby-growl Notification", u, text
+    else
+      Thread.new(user, text){ |user, text|
+        command = ["notify-send"]
+        if(text.is_a? Message)
+          command << '--category=system'
+          text = text.to_s
+        end
+        command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
+        if user
+          command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
+          command << "@#{user[:idname]} (#{user[:name]})" end
+        command << text
+        bg_system(*command) } end end
 
   def self.notify_sound(sndfile)
-     if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s)
-       if defined?(Win32::Sound)
-         Win32::Sound.play(sndfile, Win32::Sound::ASYNC)
-       else
-         bg_system("aplay","-q", sndfile) end end end
+    if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s)
+      if defined?(Win32::Sound)
+        Win32::Sound.play(sndfile, Win32::Sound::ASYNC)
+      elsif defined?(SDL::Mixer)
+        SDL::Mixer.play_music( SDL::Mixer::Music.load(sndfile), 1 )
+      else
+        bg_system("aplay","-q", sndfile) end end end
 
   boot
 end
