@@ -103,7 +103,7 @@ class Post
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
     @user_obj ||= parallel{
-      scaned = scan(:verify_credentials, :no_auto_since_id => false)
+      scaned = scan(:verify_credentials)
       @user_obj = scaned[0] if scaned } end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
@@ -143,9 +143,6 @@ class Post
     event_canceling = false
     if not(@scaned_events.include?(kind.to_sym)) and not(Environment::NeverRetrieveOverlappedMumble)
       event_canceling = true
-    elsif not(args[:no_auto_since_id]) and not(UserConfig[:anti_retrieve_fail]) then
-      since_id = at(kind.to_s + "_lastid")
-      args[:since_id] = since_id if since_id
     end
     raw_text = args[:get_raw_text]
     args.delete(:no_auto_since_id)
@@ -520,7 +517,6 @@ class Post
           tl = json end
         return nil if not tl.respond_to?(:map)
         result = tl.map{ |msg| scan_rule(cache, msg) }.select(&ret_nth).freeze
-        store(cache.to_s + "_lastid", result.first['id']) if result.first
         Delayer.new(Delayer::LAST){ Plugin.call(:appear, result) } if result.first.is_a? Message
         if get_raw_data
           return result, json
@@ -544,7 +540,7 @@ class Post
       if id.is_a? Enumerable
         id.map(&method(:findbyid))
       else
-        message = @post.scan(@api, :no_auto_since_id => true, :id => id)
+        message = @post.scan(@api, :id => id)
         message.first if message end end
 
     def time
@@ -562,12 +558,12 @@ class Post
         # id.map{ |i| findbyid(i) }
         front = id.to_a.slice(0, 100)
         remain = id.to_a.slice(100,id.size)
-        messages = @post.scan(:user_lookup, :no_auto_since_id => true, :id => front.join(','))
+        messages = @post.scan(:user_lookup, :id => front.join(','))
         messages = [] if not messages.is_a? Array
         messages.concat(findbyid(remain)) if remain and not remain.empty?
         messages
       else
-        message = @post.scan(@api, :no_auto_since_id => true, :id => id)
+        message = @post.scan(@api, :id => id)
         message.first if message end end end
 
 end

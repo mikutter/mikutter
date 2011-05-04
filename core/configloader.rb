@@ -7,9 +7,11 @@ require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'serialthread'
 miquire :miku, 'miku'
+miquire :lib, 'timelimitedqueue'
 
 require 'fileutils'
 require 'thread'
+require 'set'
 
 =begin rdoc
   オブジェクトにデータ保存機能をつけるmix-in
@@ -23,6 +25,19 @@ module ConfigLoader
 
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
+  @@configloader_queue = TimeLimitedQueue.new{ |data|
+    detected = Set.new
+    ConfigLoader.transaction{
+      data.each{ |pair|
+        key, val = *pair
+        if not detected.include?(key)
+          detected << key
+          begin
+            ConfigLoader.pstore[key] = val
+          rescue => e
+            error e end end } }
+    notice "configloader: wrote #{detected.size} keys (#{detected.to_a.join(', ')})"
+  }
 
   # _key_ に対応するオブジェクトを取り出す。
   # _key_ が存在しない場合は nil か _ifnone_ を返す
@@ -41,16 +56,12 @@ module ConfigLoader
   def store(key, val)
     ConfigLoader.validate(key)
     ConfigLoader.validate(val)
-    SerialThread.new{
-      ConfigLoader.transaction{
-        begin
-          ConfigLoader.pstore[configloader_key(key)] = val
-        rescue => e
-          error e end } }
+    ckey = configloader_key(key)
+    @@configloader_queue.push([ckey, val])
     if(val.frozen?)
-      @@configloader_cache[configloader_key(key)] = val
+      @@configloader_cache[ckey] = val
     else
-      @@configloader_cache[configloader_key(key)] = (val.clone.freeze rescue val) end end
+      @@configloader_cache[ckey] = (val.clone.freeze rescue val) end end
 
   # ConfigLoader#store と同じ。ただし、値を変更する前に _key_ に関連付けられていた値を返す。
   # もともと関連付けられていた値がない場合は _val_ を返す。
