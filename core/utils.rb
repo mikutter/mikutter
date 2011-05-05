@@ -303,6 +303,15 @@ def caller_util
   caller.each{ |result|
     return result unless /utils\.rb/ === result } end
 
+def caller_util_all
+  aflag = false
+  result = []
+  caller.each{ |c|
+    aflag |= /utils\.rb/ === c
+    result << c if aflag }
+  result end
+
+
 # デバッグモードの場合、_obj_ が _type_ とis_a?関係にない場合、RuntimeErrorを発生させる。
 # _obj_ を返す。
 def assert_type(type, obj)
@@ -800,7 +809,9 @@ class HatsuneStore < PStore
     start = Time.now
     result = synchronize{
       super(ro){ |db| block.call(db) } }
-    notice caller_util + " " + (Time.now - start).round_at(4).to_s if (Time.now - start) >= 0.1
+    if (Time.now - start) >= 0.1
+      notice (Time.now - start).round_at(4).to_s
+    end
     result
   end
 end

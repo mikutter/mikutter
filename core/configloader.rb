@@ -43,12 +43,11 @@ module ConfigLoader
   # _key_ が存在しない場合は nil か _ifnone_ を返す
   def at(key, ifnone=nil)
     ckey = configloader_key(key)
-    return @@configloader_cache[ckey] if @@configloader_cache.has_key?(ckey)
-    ConfigLoader.transaction(true){
-      if ConfigLoader.pstore.root?(ckey) then
+    @@configloader_cache[ckey] ||= ConfigLoader.transaction(true){
+      if ConfigLoader.pstore.root?(ckey)
         to_utf8(ConfigLoader.pstore[ckey]).freeze
-      elsif defined? yield then
-        @@configloader_cache[ckey] = yield(key, ifnone).freeze
+      elsif defined? yield
+        yield(key, ifnone).freeze
       else
         ifnone end } end
 
