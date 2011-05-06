@@ -252,8 +252,3 @@ Module.new do
 
   boot
 end
-
-# Plugin::Ring.push Addon::Profile.new,[:boot]
-
-# ~> -:127: syntax error, unexpected '}', expecting kEND
-# ~> -:224: syntax error, unexpected $end, expecting '}'

@@ -150,11 +150,11 @@ class TwitterAPI < Mutex
       nil end end
 
   def get(path, raw_options)
+    return get_with_auth(path, raw_options) if ip_limit
     options = getopts(raw_options)
     if options[:cache]
       cache = get_cache(path)
       return cache if cache end
-    return get_with_auth(path, raw_options) if ip_limit
     res = nil
     http = nil
     begin
@@ -174,8 +174,10 @@ class TwitterAPI < Mutex
     if res.is_a? Net::HTTPResponse
       limit, remain, reset = ip_api_remain(res)
       Plugin.call(:ipapiremain, remain, reset)
-      if res.code == '400'
-        @@ip_limit_reset = reset # Time.at(res['X-RateLimit-Reset'].to_i)
+      if res.code == '400' or res.code == '401' or res.code == '403'
+        if $debug and res.code != '400'
+          Plugin.call(:update, nil, [Message.new(:message => "Request protected account without OAuth.\n#{path}\n#{options.inspect}", :system => true)]) end
+        @@ip_limit_reset = reset
         return get_with_auth(path, raw_options) end
       res end end
 
@@ -259,7 +261,10 @@ class TwitterAPI < Mutex
   def user_timeline(args = {})
     path = '/statuses/user_timeline.' + FORMAT + get_args(args)
     head = {'Host' => HOST}
-    get(path, head) end
+    if (User.findbyid(args[:user_id])[:protected] rescue nil)
+      get_with_auth(path, head)
+    else
+      get(path, head) end end
 
   def friends_timeline(args = {})
     path = '/statuses/home_timeline.' + FORMAT + get_args(args)
