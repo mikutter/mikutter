@@ -41,18 +41,25 @@ class Gtk::CRUD < Gtk::TreeView
   def set_columns
     column_schemer.each_with_index{ |scheme, index|
       if(scheme[:label])
-        col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme[:kind], index), scheme[:kind] => index)
+        col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
         col.resizable = scheme[:resizable]
         append_column(col)
       end
     }
   end
 
-  def get_render_by(kind, index)
-    case kind
-    when :text
+  def get_render_by(scheme, index)
+    kind = scheme[:kind]
+    renderer = scheme[:renderer]
+    case
+    when renderer
+      if renderer.is_a?(Proc)
+        renderer.call(scheme, index)
+      else
+        renderer.new end
+    when kind == :text
       Gtk::CellRendererText.new
-    when :active
+    when kind == :active
       toggled = Gtk::CellRendererToggle.new
       toggled.signal_connect('toggled'){ |toggled, path|
         iter = model.get_iter(path)

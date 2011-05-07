@@ -242,12 +242,12 @@ module Retriever
     # データを一件保存します。
     # 保存は、全てのデータソースに対して行われます
     def self.store_datum(datum)
+      atomic{
+        @@storage[datum[:id].to_i] = result_strict(self){ datum } }
       return datum if datum[:system]
       converted = datum.filtering
       self.retrievers.each{ |retriever|
         retriever.store_datum(converted) }
-      atomic{
-        @@storage[datum[:id].to_i] = result_strict(self){ datum } }
       datum
     end
 

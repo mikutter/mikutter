@@ -4,6 +4,7 @@ require File.expand_path('utils')
 miquire :core, 'autotag'
 miquire :core, 'user'
 miquire :core, 'retriever'
+miquire :core, 'messageconverters'
 
 require 'net/http'
 

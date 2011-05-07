@@ -28,11 +28,9 @@ class TimeLimitedQueue < Queue
   attr_reader :thread # :nodoc:
 
   END{
-    p TLQGroup.list
     TLQGroup.list.each{ |thread|
       thread.kill if thread.alive?
-      p thread[:queue]
-      thread[:queue].instance_eval{ callback } } }
+      thread[:queue].instance_eval{ callback } if thread[:queue] } }
 
   def initialize(max=1024, expire=5, storage_class=Array, proc=Proc.new) # :yield: data
     @thread = nil
