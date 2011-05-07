@@ -18,6 +18,10 @@ module Gtk::TimeLineUtils
       def timelines
         @timelines = @timelines.select{ |tl| not tl.destroyed? } end
 
+      def get_active_mumbles
+        Set.new end
+
+
       alias :old_new :new
       def new
         result = old_new

@@ -16,6 +16,9 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   def self.addwidgetrule(reg, &proc)
     Gtk::Mumble.addwidgetrule(reg, proc) end
 
+  def self.get_active_mumbles
+    Gtk::Mumble.get_active_mumbles end
+
   def initialize()
     mainthread_only
     super()
