@@ -3,18 +3,10 @@ require 'gtk2'
 require 'time'
 miquire :mui, 'prioritybox'
 miquire :mui, 'mumble'
+miquire :mui, 'timeline_utils'
 
 class Gtk::TimeLine < Gtk::ScrolledWindow
-  include Enumerable
-
-  @@timelines = WeakSet.new
-
-  # このタイムラインに保存できるメッセージの最大数。超えれば古いものから捨てられる。
-  attr_accessor :timeline_max
-
-  # 存在するタイムラインを全て返す
-  def self.timelines
-    @@timelines = @@timelines.select{ |tl| not tl.destroyed? } end
+  include Gtk::TimeLineUtils
 
   # Gtk::Mumble.addlinkrule 参照
   def self.addlinkrule(reg, &proc)
@@ -31,7 +23,6 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     self.border_width = 0
     self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
     @mumbles = []
-    @@timelines << self
     signal_connect('destroy'){
       clear } end
 
@@ -223,5 +214,3 @@ Module.new do
       tl.remove_if_exists_all(messages) }
   }
 end
-
-

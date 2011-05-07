@@ -4,9 +4,9 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
 miquire :plugin, 'plugin'
-miquire :mui
 miquire :core, 'configloader'
 miquire :miku, 'miku'
+miquire :mui, 'postbox'
 
 require 'gtk2'
 require 'singleton'

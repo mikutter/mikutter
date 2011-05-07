@@ -4,6 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
 miquire :mui, 'extension'
 miquire :mui, 'message_picker'
 miquire :mui, 'crud'
+miquire :mui, 'keyconfig'
 
 require 'gtk2'
 

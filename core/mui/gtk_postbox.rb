@@ -204,7 +204,7 @@ module Gtk
         false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
       post.signal_connect_after('focus_in_event'){
-        Delayer.new{ Gtk::Mumble.inactive }
+        Delayer.new{ Gtk::Mumble.inactive } if defined? Gtk::Mumble
         # mumble = get_ancestor(Gtk::Mumble.superclass)
         # if mumble.is_a? Gtk::Mumble
         #   mumble.active

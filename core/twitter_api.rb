@@ -341,6 +341,8 @@ class TwitterAPI < Mutex
       user_show(args) end end
 
   def status_show(args)
+    type_strict args[:id] => Integer
+    raise "id must than 1 but specified #{args[:id].inspect}" if args[:id] <= 0
     path = "/statuses/show/#{args[:id]}.#{FORMAT}"
     head = {'Host' => HOST}
     get(path, head)

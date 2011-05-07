@@ -47,7 +47,9 @@ module Addon
 
       def update(msgs)
         unless destroyed?
-          @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } }) end end
+          # @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } })
+          @timeline.add(msgs)
+        end end
 
       def remove
         on_remove

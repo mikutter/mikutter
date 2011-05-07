@@ -12,6 +12,39 @@ You should have received a copy of the GNU General Public License along with thi
 
 =end
 
+def argument_parser()
+  $debug = false
+  $learnable = true
+  $daemon = false
+  $interactive = false
+  $quiet = false
+  $single_thread = false
+  $skip_version_check = false
+
+  ARGV.each{ |arg|
+    case arg
+    when '-i' # インタラクティブモード(default:off)
+      $interactive = true
+    when '--debug' # デバッグモード(default:off)
+      $debug = true
+    when '--cairo' # cairoを使用(default:off)
+      $cairo = true
+    when '-d' # デーモンモード(default:off)
+      $daemon = true
+    when '-l' # タグを学習しない(default:する)
+      $learnable = false
+    when '-q'
+      $quiet = true
+    when '-s' # シングルスレッドモード。他のスレッドがGTKのレンダリングを妨げる環境用
+      $single_thread = true
+    when '--skip-version-check' # あらゆるパッケージのバージョンチェックをしない
+      $skip_version_check = true
+    end
+  }
+end
+
+argument_parser()
+
 Dir.chdir(File.join(File.dirname($0), 'core'))
 
 if RUBY_VERSION >= '1.9.2'
@@ -26,6 +59,8 @@ miquire :core, 'watch'
 miquire :core, 'post'
 miquire :mui, 'extension'
 miquire :core, 'delayer'
+
+seterrorlevel(:notice) if $debug
 
 require 'benchmark'
 require 'webrick' # require to daemon
@@ -81,38 +116,6 @@ def already_exists_another_instance?
     notice 'pid file not found'
   end
   return false
-end
-
-def argument_parser()
-  $debug = false
-  $learnable = true
-  $daemon = false
-  $interactive = false
-  $quiet = false
-  $single_thread = false
-  $skip_version_check = false
-
-  ARGV.each{ |arg|
-    case arg
-    when '-i' # インタラクティブモード(default:off)
-      $interactive = true
-    when '--debug' # デバッグモード(default:off)
-      $debug = true
-      seterrorlevel(:notice)
-    when '--cairo' # cairoを使用(default:off)
-      $cairo = true
-    when '-d' # デーモンモード(default:off)
-      $daemon = true
-    when '-l' # タグを学習しない(default:する)
-      $learnable = false
-    when '-q'
-      $quiet = true
-    when '-s' # シングルスレッドモード。他のスレッドがGTKのレンダリングを妨げる環境用
-      $single_thread = true
-    when '--skip-version-check' # あらゆるパッケージのバージョンチェックをしない
-      $skip_version_check = true
-    end
-  }
 end
 
 def main()
@@ -187,8 +190,6 @@ errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
 if File.exist?(errfile)
   File.rename(errfile, File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
 end
-
-argument_parser()
 
 begin
   if not $debug
