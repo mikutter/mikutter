@@ -23,7 +23,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
             # }
             a
           },
-          :kind => :message_id, :widget => :text, :type => Integer, :label => ''},
+          :kind => :message_id, :widget => :text, :type => String, :label => ''},
         {:kind => :text, :widget => :text, :type => Message},
         {:kind => :text, :widget => :text, :type => Integer}
       ].freeze
@@ -48,7 +48,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
     iter = @tl.model.append
     if(!any?{ |m| m[:id] == message[:id] })
-      iter[0] = message[:id]
+      iter[0] = message[:id].to_s
       iter[1] = message
       iter[2] = message[:created].to_i
     end

@@ -7,13 +7,14 @@ require 'gtk2'
 module Gtk
   class TweetRenderer < CellRendererPixbuf
     type_register
-    install_property(GLib::Param::UInt64.new("message_id",
-                                            "message_id",
-                                            "showing message",
-                                            0,
-                                            2 ** 64 - 1,
-                                            0,
-                                            GLib::Param::READABLE|GLib::Param::WRITABLE))
+    # install_property(GLib::Param::UInt64.new("message_id",
+    #                                         "message_id",
+    #                                         "showing message",
+    #                                         0,
+    #                                         2 ** 64 - 1,
+    #                                         0,
+    #                                         GLib::Param::READABLE|GLib::Param::WRITABLE))
+    install_property(GLib::Param::String.new("message_id", "message_id", "showing message", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
 
     def initialize()
       super()
@@ -77,9 +78,9 @@ module Gtk
     attr_reader :message_id, :message
 
     def message_id=(id)
-      type_strict id => Integer
-      if id > 0
-        render_message(Message.findbyid(id))
+      # type_strict id => Integer
+      if id && id.to_i > 0
+        render_message(Message.findbyid(id.to_i))
       else
         self.pixbuf = Gdk::Pixbuf.new(MUI::Skin.get('notfound.png'))
       end
