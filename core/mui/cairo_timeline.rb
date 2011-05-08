@@ -31,7 +31,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   end
 
   addlinkrule(URI.regexp(['http','https'])){ |url, widget|
-    Gtk.openurl(url)
+    Gtk::TimeLine.openurl(url)
   }
 
   def initialize
