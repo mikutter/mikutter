@@ -54,9 +54,13 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     end
     self end
 
-  def each(index=1, &iter)
-    @tl.model.each{ |model,path,i|
-      iter.call(i[index]) if i[index].is_a?(Message)
+  def each(index=1)
+    @tl.model.each{ |model,path,iter|
+      yield(iter[index]) if iter[index].is_a?(Message)
     } end
+
+  def clear
+    @tl.model.clear
+    self end
 
 end
