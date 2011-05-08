@@ -786,6 +786,15 @@ class String
     else
       split(//u)[0,count].join end end
 
+  # _byte_ バイト目が何文字目にあたるかを返す
+  def get_index_from_byte(byte)
+    result = 0
+    split(//u).each{ |c|
+      byte -= c.to_enum(:each_byte).to_a.size
+      return result if(byte < 0)
+      result += 1 }
+    result end
+
   def inspect
     '"'+to_s+'"'
   end

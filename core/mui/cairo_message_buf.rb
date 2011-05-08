@@ -27,6 +27,7 @@ class Gdk::MessageBuf < GLib::Object
   def clicked(x, y)
     index = main_pos_to_index(x, y)
     if index
+      p message.to_s[index]
       links.each{ |l|
         match, range, regexp = *l
         if range.include?(index)
@@ -38,7 +39,7 @@ class Gdk::MessageBuf < GLib::Object
     x -= (icon_width + icon_margin * 2)
     y -= (icon_margin + header_left(context).size[1] / Pango::SCALE)
     inside, byte, trailing = *main_message(context).xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
-    message.to_show[0, byte].strsize if inside end
+    message.to_s.get_index_from_byte(byte) if inside end
 
   def signal_do_modified(this)
   end
@@ -51,7 +52,7 @@ class Gdk::MessageBuf < GLib::Object
   end
 
   def escaped_main_text
-    message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }.freeze end
+    message.to_show.gsub(/[<>&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}[$0] }.freeze end
   memoize :escaped_text
 
   def styled_main_text
@@ -141,25 +142,31 @@ class Gdk::MessageBuf < GLib::Object
   end
 
   def render_background(context)
-    context.set_source_rgb(1,1,1)
-    context.rectangle(0,0,width,height)
-    context.fill
+    context.save{
+      context.set_source_rgb(1,1,1)
+      context.rectangle(0,0,width,height)
+      context.fill
+    }
   end
 
   def render_main_icon(context)
-    context.translate(icon_margin, icon_margin)
-    context.set_source_pixbuf(main_icon)
-    context.paint
+    context.save{
+      context.translate(icon_margin, icon_margin)
+      context.set_source_pixbuf(main_icon)
+      context.paint
+    }
   end
 
   def render_main_text(context)
-    context.translate(icon_width + icon_margin * 2, icon_margin)
-    context.set_source_rgb(0,0,0)
-    hl_layout = header_left(context)
-    context.show_pango_layout(hl_layout)
-    context.show_pango_layout(header_right(context))
-    context.translate(0, hl_layout.size[1] / Pango::SCALE)
-    context.show_pango_layout(main_message(context))
+    context.save{
+      context.translate(icon_width + icon_margin * 2, icon_margin)
+      context.set_source_rgb(0,0,0)
+      hl_layout = header_left(context)
+      context.show_pango_layout(hl_layout)
+      context.show_pango_layout(header_right(context))
+      context.translate(0, hl_layout.size[1] / Pango::SCALE)
+      context.show_pango_layout(main_message(context))
+    }
   end
 
 end
