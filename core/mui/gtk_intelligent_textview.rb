@@ -10,8 +10,8 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   attr_accessor :fonts, :get_background
 
-  @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|
-                                       Gtk.openurl(url) }].freeze).freeze
+  # @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|
+  #                                      Gtk.openurl(url) }].freeze).freeze
 
   @@linkrule = MIKU::Cons.list([URI.regexp(['http','https']),
                                 lambda{ |u, clicked| self.openurl(u) },
@@ -23,10 +23,10 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   # URLを開く方法を追加する。
   # 追加に成功したらtrueを返す。
-  def self.addopenway(condition, &open)
-    if(type_check(condition => :===, open => :call))
-      @@wayofopenlink = MIKU::Cons.new([condition, open].freeze, @@wayofopenlink).freeze
-      true end end
+  # def self.addopenway(condition, &open)
+  #   if(type_check(condition => :===, open => :call))
+  #     @@wayofopenlink = MIKU::Cons.new([condition, open].freeze, @@wayofopenlink).freeze
+  #     true end end
 
   def self.addlinkrule(reg, leftclick, rightclick=nil)
     @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick].freeze, @@linkrule).freeze end
@@ -36,17 +36,18 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   # URLを開く
   def self.openurl(url)
-    gen_openurl_proc(url).call
+    # gen_openurl_proc(url).call
+    Gtk::TimeLine.openurl(url)
     false end
 
-  def self.gen_openurl_proc(url, way_of_open_link = @@wayofopenlink)
-    way_of_open_link.freeze
-    lambda{
-      way_of_open_link.each_with_index{ |way, index|
-      condition, open = *way
-      if(condition === url)
-        open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
-        break end } } end
+  # def self.gen_openurl_proc(url, way_of_open_link = @@wayofopenlink)
+  #   way_of_open_link.freeze
+  #   lambda{
+  #     way_of_open_link.each_with_index{ |way, index|
+  #     condition, open = *way
+  #     if(condition === url)
+  #       open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
+  #       break end } } end
 
   def initialize(msg, default_fonts = {}, *args)
     assert_type(String, msg)

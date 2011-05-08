@@ -110,13 +110,13 @@ Module.new do
   def self.addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
     if block == nil
-      Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
+      Gtk::TimeLine.addopenway(cond ){ |url, cancel|
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
           display(url, cancel)
         }
       }
     else
-      Gtk::IntelligentTextview.addopenway(cond ){ |url, cancel|
+      Gtk::TimeLine.addopenway(cond ){ |url, cancel|
         Delayer.new(Delayer::NORMAL, Thread.new{
                       imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
                     }) {|url|
@@ -166,7 +166,7 @@ Module.new do
       PIAPRO::Download.new(:cookie => piaprocookie).download_url(url, Gtk::WebIcon.get_filename(url))
     end }
 
-  Gtk::IntelligentTextview.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
+  Gtk::TimeLine.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
     Delayer.new{ display(url, cancel) }
   }
 

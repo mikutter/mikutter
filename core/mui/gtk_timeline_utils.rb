@@ -27,6 +27,28 @@ module Gtk::TimeLineUtils
         (@timelines ||= WeakSet.new) << result
         result end
 
+      def wayofopenlink
+        @wayofopenlink ||= MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|
+                                              Gtk.openurl(url) }].freeze).freeze end
+
+      def addopenway(condition, &open)
+        if(type_check(condition => :===, open => :call))
+          @wayofopenlink = MIKU::Cons.new([condition, open].freeze, wayofopenlink).freeze
+          true end end
+
+      def openurl(url)
+        gen_openurl_proc(url).call
+        false end
+
+      def gen_openurl_proc(url, way_of_open_link = wayofopenlink)
+        way_of_open_link.freeze
+        lambda{
+          way_of_open_link.each_with_index{ |way, index|
+            condition, open = *way
+            if(condition === url)
+              open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
+              break end } } end
+
       def linkrules
         @linkrules ||= {} end
 

@@ -54,12 +54,25 @@ class Gdk::MessageBuf < GLib::Object
     signal_emit(:modified, self)
   end
 
+  def escaped_main_text
+    message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }.freeze end
+  memoize :escaped_text
+
+  def styled_main_text
+    result = escaped_main_text.dup
+    links.reverse_each{ |l|
+      match, pos, regexp = l
+      splited = result.split(//u)
+      splited[pos, match.to_s.size] = '<span underline="single" underline_color="#000000">'+"#{match.to_s}</span>"
+      result = splited.join('') }
+    result end
+  memoize :styled_main_text
+
   # [[MatchData, 先頭からのインデックス(文字数), Regexp], ...] の配列を返す
   def links
     result = Set.new
-    text = message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }
     Gtk::TimeLine.linkrules.keys.each{ |regexp|
-      text.each_matches(regexp){ |*a| result << (a << regexp) } }
+      escaped_main_text.each_matches(regexp){ |*a| result << (a << regexp) } }
     result.sort_by{ |r| r[1] }.freeze end
   memoize :links
 
@@ -68,11 +81,10 @@ class Gdk::MessageBuf < GLib::Object
 
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context)
-    text = message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }
-    attr, text = Pango.parse_markup(text)
-
+    attr_list, text = Pango.parse_markup(styled_main_text)
     layout = context.create_pango_layout
     layout.width = (width - icon_width - icon_margin * 4) * Pango::SCALE
+    layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = text
