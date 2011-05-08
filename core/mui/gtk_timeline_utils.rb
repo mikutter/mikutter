@@ -21,16 +21,18 @@ module Gtk::TimeLineUtils
       def get_active_mumbles
         Set.new end
 
-
       alias :old_new :new
       def new
         result = old_new
         (@timelines ||= WeakSet.new) << result
         result end
 
+      def linkrules
+        @linkrules ||= {} end
+
       # IntelligentTextviewの中で、正規表現 _reg_ に一致する文字列がクリックされたとき、Procを呼ぶようにする
-      def addlinkrule(reg, &proc)
-      end
+      def addlinkrule(reg, proc0=nil, &proc1)
+        linkrules[reg] = if(proc0) then [proc0, proc1] else [proc1, nil] end end
 
       def addwidgetrule(reg, &proc)
       end end end

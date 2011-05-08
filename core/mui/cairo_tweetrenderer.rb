@@ -26,7 +26,11 @@ module Gtk
         }
         m
       }
-    end
+      signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
+        message = @tree.model.get_iter(path)[1]
+        if(@message_buf.has_key?(message))
+          @message_buf[message].clicked(cell_x, cell_y) end
+        false } end
 
     # Register events for this Renderer:
     signal_new("button_press_event", GLib::Signal::RUN_FIRST, nil, nil,

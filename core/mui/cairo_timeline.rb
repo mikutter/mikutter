@@ -12,9 +12,9 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       [ {:renderer => lambda{ |x,y|
             a = Gtk::TweetRenderer.new()
             a.tree = self
-            a.signal_connect(:click){|r, e, path, column, cell_x, cell_y|
-              p [cell_x, cell_y, e.x, e.y]
-            }
+            # a.signal_connect(:click){|r, e, path, column, cell_x, cell_y|
+            #   p [cell_x, cell_y, e.x, e.y]
+            # }
             a
           },
           :kind => :message_id, :widget => :text, :type => Integer, :label => ''},
@@ -23,6 +23,10 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       ].freeze
     end
   end
+
+  addlinkrule(URI.regexp(['http','https'])){ |url, widget|
+    Gtk.openurl(url)
+  }
 
   def initialize
     super

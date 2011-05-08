@@ -23,6 +23,27 @@ class Gdk::MessageBuf < GLib::Object
     @pixbuf ||= gen_pixbuf
   end
 
+  # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
+  def clicked(x, y)
+    index = main_pos_to_index(x, y)
+    if index
+      links.each{ |l|
+        match, pos, regexp = *l
+        if(pos <= index and (pos + match.to_s.size) >= index)
+          Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil]
+        end
+      }
+    end
+  end
+
+  # つぶやきの左上座標から、クリックされた文字のインデックスを返す
+  def main_pos_to_index(x, y)
+    context = dummy_context
+    x -= (icon_width + icon_margin * 2)
+    y -= (icon_margin + header_left(context).size[1] / Pango::SCALE)
+    inside, byte, trailing = *main_message(context).xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
+    message.to_show[0, byte].strsize if inside end
+
   def signal_do_modified(this)
   end
 
@@ -33,13 +54,28 @@ class Gdk::MessageBuf < GLib::Object
     signal_emit(:modified, self)
   end
 
+  # [[MatchData, 先頭からのインデックス(文字数), Regexp], ...] の配列を返す
+  def links
+    result = Set.new
+    text = message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }
+    Gtk::TimeLine.linkrules.keys.each{ |regexp|
+      text.each_matches(regexp){ |*a| result << (a << regexp) } }
+    result.sort_by{ |r| r[1] }.freeze end
+  memoize :links
+
+  def dummy_context
+    Gdk::Pixmap.new(nil, width, height, color).create_cairo_context end
+
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context)
+    text = message.body.gsub(/[<>"&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;', '"' => '&quot;'}[$0] }
+    attr, text = Pango.parse_markup(text)
+
     layout = context.create_pango_layout
     layout.width = (width - icon_width - icon_margin * 4) * Pango::SCALE
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = message.to_show
+    layout.text = text
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
@@ -72,7 +108,6 @@ class Gdk::MessageBuf < GLib::Object
         hl_layout = header_left(context)
         context.show_pango_layout(main_layout)
         context.show_pango_layout(hl_layout)
-        p (main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE
         [(main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE, icon_height].max + icon_margin * 2
       end end
 
