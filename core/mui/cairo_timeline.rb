@@ -14,14 +14,17 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       set_headers_visible(false)
     end
 
+    def tweetrenderer
+      @tweetrenderer ||= Gtk::TweetRenderer.new()
+    end
+
     def column_schemer
       [ {:renderer => lambda{ |x,y|
-            a = Gtk::TweetRenderer.new()
-            a.tree = self
+            tweetrenderer.tree = self
             # a.signal_connect(:click){|r, e, path, column, cell_x, cell_y|
             #   p [cell_x, cell_y, e.x, e.y]
             # }
-            a
+            tweetrenderer
           },
           :kind => :message_id, :widget => :text, :type => String, :label => ''},
         {:kind => :text, :widget => :text, :type => Message},
@@ -51,6 +54,11 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       iter[0] = message[:id].to_s
       iter[1] = message
       iter[2] = message[:created].to_i
+      @tl.tweetrenderer.message_buf(message).signal_connect(:modified){ |mb|
+        iter[0] = iter[0]
+        false
+      }
+
     end
     self end
 

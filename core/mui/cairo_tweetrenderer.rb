@@ -21,10 +21,11 @@ module Gtk
       @message = nil
       @message_buf = Hash.new{ |h, message|
         m = h[message] = Gdk::MessageBuf.new(message, avail_width)
-        m.signal_connect(:modified){ |mb|
-          self.pixbuf = mb.pixbuf
-          false
-        }
+        # p message
+        # m.signal_connect(:modified){ |mb|
+        #   self.pixbuf = mb.pixbuf
+        #   false
+        # }
         m
       }
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
@@ -76,6 +77,9 @@ module Gtk
           armed_column = nil end } end
 
     attr_reader :message_id, :message
+
+    def message_buf(message)
+      @message_buf[message] end
 
     def message_id=(id)
       # type_strict id => Integer

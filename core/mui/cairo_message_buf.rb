@@ -27,7 +27,6 @@ class Gdk::MessageBuf < GLib::Object
   def clicked(x, y)
     index = main_pos_to_index(x, y)
     if index
-      p message.to_s[index]
       links.each{ |l|
         match, range, regexp = *l
         if range.include?(index)
@@ -48,6 +47,7 @@ class Gdk::MessageBuf < GLib::Object
 
   # 更新イベントを発生させる
   def on_modify
+    @pixbuf = nil
     signal_emit(:modified, self)
   end
 
