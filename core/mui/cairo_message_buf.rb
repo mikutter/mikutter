@@ -28,13 +28,9 @@ class Gdk::MessageBuf < GLib::Object
     index = main_pos_to_index(x, y)
     if index
       links.each{ |l|
-        match, pos, regexp = *l
-        if(pos <= index and (pos + match.to_s.size) >= index)
-          Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil]
-        end
-      }
-    end
-  end
+        match, range, regexp = *l
+        if range.include?(index)
+          Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
@@ -61,19 +57,21 @@ class Gdk::MessageBuf < GLib::Object
   def styled_main_text
     result = escaped_main_text.dup
     links.reverse_each{ |l|
-      match, pos, regexp = l
+      match, range, regexp = l
       splited = result.split(//u)
-      splited[pos, match.to_s.size] = '<span underline="single" underline_color="#000000">'+"#{match.to_s}</span>"
+      splited[range] = '<span underline="single" underline_color="#000000">'+"#{match.to_s}</span>"
       result = splited.join('') }
     result end
   memoize :styled_main_text
 
-  # [[MatchData, 先頭からのインデックス(文字数), Regexp], ...] の配列を返す
+  # [[MatchData, 開始位置と終了位置のRangeオブジェクト(文字数), Regexp], ...] の配列を返す
   def links
     result = Set.new
     Gtk::TimeLine.linkrules.keys.each{ |regexp|
-      escaped_main_text.each_matches(regexp){ |*a| result << (a << regexp) } }
-    result.sort_by{ |r| r[1] }.freeze end
+      escaped_main_text.each_matches(regexp){ |match, pos|
+        if not result.any?{ |this| this[1].include?(pos) }
+          result << [match, Range.new(pos, pos + match.to_s.size, true), regexp] end } }
+    result.sort_by{ |r| r[1].first }.freeze end
   memoize :links
 
   def dummy_context

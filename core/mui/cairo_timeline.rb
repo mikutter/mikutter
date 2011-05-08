@@ -8,6 +8,12 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
   include Gtk::TimeLineUtils
 
   class InnerTL < Gtk::CRUD
+
+    def initialize
+      super
+      set_headers_visible(false)
+    end
+
     def column_schemer
       [ {:renderer => lambda{ |x,y|
             a = Gtk::TweetRenderer.new()
