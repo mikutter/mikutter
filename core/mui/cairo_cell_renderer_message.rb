@@ -5,7 +5,7 @@ miquire :mui, 'miracle_painter'
 require 'gtk2'
 
 module Gtk
-  class TweetRenderer < CellRendererPixbuf
+  class CellRendererMessage < CellRendererPixbuf
     type_register
     # install_property(GLib::Param::UInt64.new("message_id",
     #                                         "message_id",
