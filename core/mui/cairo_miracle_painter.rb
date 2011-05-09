@@ -3,19 +3,23 @@
 require 'gtk2'
 require 'cairo'
 
+miquire :mui, 'coordinate_module'
+
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
 class Gdk::MiraclePainter < GLib::Object
   type_register
   signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, self)
 
-  attr_accessor :message, :width, :color, :icon_width, :icon_height, :icon_margin
+  include Gdk::Coordinate
 
-  def initialize(message, width, color = 24)
+  attr_reader :message
+
+  def initialize(message, *coodinate)
     type_strict message => Message
-    @message, @width, @color, @icon_width, @icon_height, @icon_margin = message, width, 24, 48, 48, 2
-    @height = Hash.new
+    @message = message
     super()
+    coordinator(*coodinate)
   end
 
   # TLに表示するための Gdk::Pixbuf のインスタンスを返す
@@ -34,10 +38,11 @@ class Gdk::MiraclePainter < GLib::Object
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
-    context = dummy_context
-    x -= (icon_width + icon_margin * 2)
-    y -= (icon_margin + header_left(context).size[1] / Pango::SCALE)
-    inside, byte, trailing = *main_message(context).xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
+    # x -= (icon_width + icon_margin * 2)
+    # y -= (icon_margin + header_left(context).size[1] / Pango::SCALE)
+    x -= pos.main_text.x
+    y -= pos.main_text.y
+    inside, byte, trailing = *main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
     message.to_s.get_index_from_byte(byte) if inside end
 
   def signal_do_modified(this)
@@ -76,13 +81,13 @@ class Gdk::MiraclePainter < GLib::Object
   memoize :links
 
   def dummy_context
-    Gdk::Pixmap.new(nil, width, height, color).create_cairo_context end
+    Gdk::Pixmap.new(nil, 1, 1, color).create_cairo_context end
 
   # 本文のための Pango::Layout のインスタンスを返す
-  def main_message(context)
+  def main_message(context = dummy_context)
     attr_list, text = Pango.parse_markup(styled_main_text)
     layout = context.create_pango_layout
-    layout.width = (width - icon_width - icon_margin * 4) * Pango::SCALE
+    layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
@@ -90,7 +95,7 @@ class Gdk::MiraclePainter < GLib::Object
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
-  def header_left(context)
+  def header_left(context = dummy_context)
     attr_list, text = Pango.parse_markup("<b>#{message[:user][:idname]}</b> #{message[:user][:name]}")
     layout = context.create_pango_layout
     layout.attributes = attr_list
@@ -99,28 +104,15 @@ class Gdk::MiraclePainter < GLib::Object
     layout end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
-  def header_right(context)
+  def header_right(context = dummy_context)
     attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{message[:created].strftime('%H:%M:%S')}</span>")
     layout = context.create_pango_layout
     layout.attributes = attr_list
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = text
-    layout.width = (width - icon_width - icon_margin * 4) * Pango::SCALE
+    layout.width = pos.main_text.width * Pango::SCALE
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
-
-  # 高さを計算して返す
-  def height
-    @height[width] ||=
-      begin
-        pixmap = Gdk::Pixmap.new(nil, width, 100, color)
-        context = pixmap.create_cairo_context
-        main_layout = main_message(context)
-        hl_layout = header_left(context)
-        context.show_pango_layout(main_layout)
-        context.show_pango_layout(hl_layout)
-        [(main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE, icon_height].max + icon_margin * 2
-      end end
 
   # pixbufを組み立てる
   def gen_pixbuf
@@ -129,6 +121,7 @@ class Gdk::MiraclePainter < GLib::Object
     Gdk::Pixbuf.from_drawable(Gdk::Colormap.system, pixmap, 0, 0, width, height)
   end
 
+  # アイコンのpixbufを返す
   def main_icon
     @main_icon ||= Gtk::WebIcon.get_icon_pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
       @main_icon = pixbuf
@@ -151,7 +144,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   def render_main_icon(context)
     context.save{
-      context.translate(icon_margin, icon_margin)
+      context.translate(pos.main_icon.x, pos.main_icon.x)
       context.set_source_pixbuf(main_icon)
       context.paint
     }
@@ -159,12 +152,14 @@ class Gdk::MiraclePainter < GLib::Object
 
   def render_main_text(context)
     context.save{
-      context.translate(icon_width + icon_margin * 2, icon_margin)
+      context.translate(pos.header_text.x, pos.header_text.y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(context)
       context.show_pango_layout(hl_layout)
       context.show_pango_layout(header_right(context))
-      context.translate(0, hl_layout.size[1] / Pango::SCALE)
+    }
+    context.save{
+      context.translate(pos.main_text.x, pos.main_text.y)
       context.show_pango_layout(main_message(context))
     }
   end

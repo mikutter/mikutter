@@ -7,26 +7,13 @@ require 'gtk2'
 module Gtk
   class CellRendererMessage < CellRendererPixbuf
     type_register
-    # install_property(GLib::Param::UInt64.new("message_id",
-    #                                         "message_id",
-    #                                         "showing message",
-    #                                         0,
-    #                                         2 ** 64 - 1,
-    #                                         0,
-    #                                         GLib::Param::READABLE|GLib::Param::WRITABLE))
     install_property(GLib::Param::String.new("message_id", "message_id", "showing message", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
 
     def initialize()
       super()
       @message = nil
       @miracle_painter = Hash.new{ |h, message|
-        m = h[message] = Gdk::MiraclePainter.new(message, avail_width)
-        # p message
-        # m.signal_connect(:modified){ |mb|
-        #   self.pixbuf = mb.pixbuf
-        #   false
-        # }
-        m
+        h[message] = Gdk::MiraclePainter.new(message, avail_width)
       }
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
         message = @tree.model.get_iter(path)[1]
@@ -102,6 +89,7 @@ module Gtk
       self.pixbuf = @miracle_painter[message].pixbuf
     end
 
+    # 描画するセルの横幅を取得する
     def avail_width
       320
     end
