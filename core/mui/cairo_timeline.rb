@@ -54,7 +54,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       iter[0] = message[:id].to_s
       iter[1] = message
       iter[2] = message[:created].to_i
-      @tl.tweetrenderer.message_buf(message).signal_connect(:modified){ |mb|
+      @tl.tweetrenderer.miracle_painter(message).signal_connect(:modified){ |mb|
         iter[0] = iter[0]
         false
       }

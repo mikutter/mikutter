@@ -3,11 +3,11 @@
 require 'gtk2'
 require 'cairo'
 
-# 一つのMessageをPixbufにレンダリングするためのクラス。
-# 情報を設定してから、 Gdk::MessageBuf#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
-class Gdk::MessageBuf < GLib::Object
+# 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
+# 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
+class Gdk::MiraclePainter < GLib::Object
   type_register
-  signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, Gdk::MessageBuf)
+  signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, self)
 
   attr_accessor :message, :width, :color, :icon_width, :icon_height, :icon_margin
 

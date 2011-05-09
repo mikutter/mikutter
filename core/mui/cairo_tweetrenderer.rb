@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'message_buf'
+miquire :mui, 'miracle_painter'
 
 require 'gtk2'
 
@@ -19,8 +19,8 @@ module Gtk
     def initialize()
       super()
       @message = nil
-      @message_buf = Hash.new{ |h, message|
-        m = h[message] = Gdk::MessageBuf.new(message, avail_width)
+      @miracle_painter = Hash.new{ |h, message|
+        m = h[message] = Gdk::MiraclePainter.new(message, avail_width)
         # p message
         # m.signal_connect(:modified){ |mb|
         #   self.pixbuf = mb.pixbuf
@@ -30,8 +30,8 @@ module Gtk
       }
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
         message = @tree.model.get_iter(path)[1]
-        if(@message_buf.has_key?(message))
-          @message_buf[message].clicked(cell_x, cell_y) end
+        if(@miracle_painter.has_key?(message))
+          @miracle_painter[message].clicked(cell_x, cell_y) end
         false } end
 
     # Register events for this Renderer:
@@ -78,8 +78,8 @@ module Gtk
 
     attr_reader :message_id, :message
 
-    def message_buf(message)
-      @message_buf[message] end
+    def miracle_painter(message)
+      @miracle_painter[message] end
 
     def message_id=(id)
       # type_strict id => Integer
@@ -99,7 +99,7 @@ module Gtk
       # p [get_size(@tree, nil).x, get_size(@tree, nil).y, get_size(@tree, nil).width, get_size(@tree, nil).height] if defined? @tree
       # self.pixbuf = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 48, 48){ |pixbuf|
       #   self.pixbuf = pixbuf }
-      self.pixbuf = @message_buf[message].pixbuf
+      self.pixbuf = @miracle_painter[message].pixbuf
     end
 
     def avail_width
