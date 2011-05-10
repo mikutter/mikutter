@@ -19,7 +19,6 @@ module Gtk
         registmenu(nil){ |a,b| } end end
 
     def popup(widget, optional=nil)
-      Lock.synchronize{
         menu = Gtk::Menu.new
         @contextmenu.each{ |param|
           label, cond, proc = param
@@ -31,4 +30,6 @@ module Gtk
             else
               menu.append(Gtk::MenuItem.new) end end }
         menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detached" }
-        menu.show_all.popup(nil, nil, 0, 0) } end end end
+        menu.show_all.popup(nil, nil, 0, 0) end
+  end
+end

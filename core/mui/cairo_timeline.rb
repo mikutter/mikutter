@@ -9,10 +9,16 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
 
   class InnerTL < Gtk::CRUD
 
+    def self.current_tl
+      @@current_tl end
+
     def initialize
       super
+      @@current_tl ||= self
       set_headers_visible(false)
-    end
+      signal_connect(:focus_in_event){
+        @@current_tl = self
+        false } end
 
     def cell_renderer_message
       @cell_renderer_message ||= Gtk::CellRendererMessage.new()
@@ -31,15 +37,37 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
         {:kind => :text, :widget => :text, :type => Integer}
       ].freeze
     end
+
+    def menu_pop(widget)
+      menu = []
+      Plugin.filtering(:contextmenu, []).first.each{ |x|
+        cur = x.first
+        cur = cur.call(nil, nil) if cur.respond_to?(:call)
+        index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
+        menu[index] = x }
+      if selection.selected
+        Gtk::ContextMenu.new(*menu).popup(self, selection.selected[1]) end end
+
   end
 
   addlinkrule(URI.regexp(['http','https'])){ |url, widget|
     Gtk::TimeLine.openurl(url)
   }
 
+  def self.get_active_mumbles
+    selected = Set.new
+    if InnerTL.current_tl
+      InnerTL.current_tl.selection.selected_each{ |model, path, iter|
+        selected << iter[1] }
+    end
+    selected
+  end
+
+  @@tls = WeakSet.new
+
   def initialize
     super
-    @tl = InnerTL.new
+    @@tls << @tl = InnerTL.new
     self.add_with_viewport(@tl)
     self.border_width = 0
     self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
