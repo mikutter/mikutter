@@ -6,6 +6,7 @@
 
 require 'gtk2'
 require 'thread'
+miquire :mui, 'miracle_painter'
 
 module Gtk
   class PostBox < Gtk::EventBox
@@ -21,22 +22,22 @@ module Gtk
     end
 
     def initialize(watch, options = {})
-      Lock.synchronize{
-        @posting = false
-        @return_to_top = nil
-        @options = options
-        @watch = watch
-        super()
-        signal_connect('parent-set'){
-          if parent
-            sw = get_ancestor(Gtk::ScrolledWindow)
-            if(sw)
-              @return_to_top = sw.vadjustment.value == 0
-            else
-              @return_to_top = false end
-              post_it if @options[:delegated_by] end }
-        add(generate_box)
-        regist } end
+      mainthread_only
+      @posting = false
+      @return_to_top = nil
+      @options = options
+      @watch = watch
+      super()
+      signal_connect('parent-set'){
+        if parent
+          sw = get_ancestor(Gtk::ScrolledWindow)
+          if(sw)
+            @return_to_top = sw.vadjustment.value == 0
+          else
+            @return_to_top = false end
+          post_it if @options[:delegated_by] end }
+      add(generate_box)
+      regist end
 
     def posting?
       @posting end
@@ -45,15 +46,6 @@ module Gtk
       get_ancestor(Gtk::Window).set_focus(@post) if(get_ancestor(Gtk::Window)) end
 
     private
-
-#     def menu_pop(widget, event)
-#       menu = Gtk::Menu.new
-#       delete = Gtk::MenuItem.new("つぶやきを削除")
-#       delete.signal_connect('activate') { |w| destroy }
-#       [delete].each{|item| menu.append(item) }
-#       menu.attach_to_widget(widget) {|*args| yield(*args) if defined? yield }
-#       menu.show_all
-#       menu.popup(nil, nil, 0, 0) end
 
     def postable?
       not(@post.buffer.text.empty?) and (/[^\s]/ === @post.buffer.text) end
@@ -87,28 +79,27 @@ module Gtk
         (retweet? ? @watch.service : @watch) end end
 
     def post_it
-      Gtk::Lock.synchronize{
-        if postable? then
-          if(@options[:postboxstorage])
-            return if delegate
-            if not @options[:delegated_by]
-              postbox = Gtk::PostBox.new(@watch, @options)
-              @options[:postboxstorage].
-                pack_start(postbox).
-                show_all.
-                get_ancestor(Gtk::Window).
-                set_focus(postbox.post) end end
-          text = post.buffer.text
-          text += UserConfig[:footer] if add_footer?
-          @post_thread = service.post(:message => text){ |event, msg|
-            notice [event, msg].inspect
-            case event
-            when :start
-              Delayer.new{ start_post }
-            when :fail
-              Delayer.new{ end_post }
-            when :success
-              Delayer.new{ destroy } end } end } end
+      if postable? then
+        if(@options[:postboxstorage])
+          return if delegate
+          if not @options[:delegated_by]
+            postbox = Gtk::PostBox.new(@watch, @options)
+            @options[:postboxstorage].
+              pack_start(postbox).
+              show_all.
+              get_ancestor(Gtk::Window).
+              set_focus(postbox.post) end end
+        text = post.buffer.text
+        text += UserConfig[:footer] if add_footer?
+        @post_thread = service.post(:message => text){ |event, msg|
+          notice [event, msg].inspect
+          case event
+          when :start
+            Delayer.new{ start_post }
+          when :fail
+            Delayer.new{ end_post }
+          when :success
+            Delayer.new{ destroy } end } end end
 
     def post_is_empty?
       frozen? and @post.buffer.text == "" or
@@ -182,8 +173,20 @@ module Gtk
       @post, w_remain = generate_post
       @send = generate_send
       @tool = generate_tool
-      Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
-    end
+      result = Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
+      if(@watch.is_a?(Message))
+        mp = Gdk::MiraclePainter.new(@watch, 300)
+        da = Gtk::DrawingArea.new
+        da.signal_connect(:expose_event){
+          mp.width = da.window.geometry[2]
+          da.height_request = mp.height
+          gc = Gdk::GC.new(da.window)
+          da.window.draw_drawable(gc, mp.pixmap, 0, 0, 0, 0, mp.width, mp.height)
+          false
+        }
+        Gtk::VBox.new.closeup(da).add(result)
+      else
+        result end end
 
     def generate_post
       w_remain = Gtk::Label.new('---')

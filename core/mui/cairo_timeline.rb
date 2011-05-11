@@ -4,11 +4,14 @@ miquire :mui, 'crud'
 miquire :mui, 'cell_renderer_message'
 miquire :mui, 'timeline_utils'
 miquire :mui, 'pseudo_message_widget'
+miquire :mui, 'postbox'
 
-class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
+class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   include Gtk::TimeLineUtils
 
   class InnerTL < Gtk::CRUD
+
+    attr_accessor :postbox
 
     def self.current_tl
       @@current_tl end
@@ -49,11 +52,18 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
         index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
         menu[index] = x }
       if selection.selected
-        Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event)) end end
+        Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event, self)) end end
 
     def handle_row_activated
     end
 
+    def reply(message, options = {})
+      message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
+      message = message[1] if(message.is_a?(Gtk::TreeIter))
+      type_strict message => Message
+      postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+      get_ancestor(Gtk::Window).set_focus(pb.post)
+      self end
 
   end
 
@@ -73,12 +83,9 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
   def initialize
     super
     @@tls << @tl = InnerTL.new
-    # self.add_with_viewport(@tl)
-    # self.border_width = 0
-    # self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
-    pack_start(@tl)
+    @tl.postbox = postbox
     scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
-    closeup(scrollbar)
+    closeup(postbox).pack_start(Gtk::HBox.new.pack_start(@tl).closeup(scrollbar))
     @tl.model.set_sort_column_id(2, order = Gtk::SORT_DESCENDING)
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
@@ -120,6 +127,11 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
   def clear
     @tl.model.clear
     self end
+
+  private
+
+  def postbox
+    @postbox ||= Gtk::VBox.new end
 
   def scroll_to_zero_lator!
     @scroll_to_zero_lator = true end

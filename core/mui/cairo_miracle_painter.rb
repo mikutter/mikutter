@@ -22,6 +22,11 @@ class Gdk::MiraclePainter < GLib::Object
     coordinator(*coodinate)
   end
 
+  # TLに表示するための Gdk::Pixmap のインスタンスを返す
+  def pixmap
+    @pixmap ||= gen_pixmap
+  end
+
   # TLに表示するための Gdk::Pixbuf のインスタンスを返す
   def pixbuf
     @pixbuf ||= gen_pixbuf
@@ -50,6 +55,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 更新イベントを発生させる
   def on_modify(event=true)
+    @pixmap = nil
     @pixbuf = nil
     @coordinate = nil
     signal_emit(:modified, self) if event
@@ -116,9 +122,13 @@ class Gdk::MiraclePainter < GLib::Object
     layout end
 
   # pixbufを組み立てる
+  def gen_pixmap
+    pm = Gdk::Pixmap.new(nil, width, height, color)
+    render_to_context pm.create_cairo_context
+    pm end
+
+  # pixbufを組み立てる
   def gen_pixbuf
-    pixmap = Gdk::Pixmap.new(nil, width, height, color)
-    render_to_context pixmap.create_cairo_context
     Gdk::Pixbuf.from_drawable(Gdk::Colormap.system, pixmap, 0, 0, width, height)
   end
 

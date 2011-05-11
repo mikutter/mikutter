@@ -19,7 +19,9 @@ module Gtk
         message = @tree.model.get_iter(path)[1]
         if(@miracle_painter.has_key?(message))
           @miracle_painter[message].clicked(cell_x, cell_y) end
-        false } end
+        false }
+
+    end
 
     # Register events for this Renderer:
     signal_new("button_press_event", GLib::Signal::RUN_FIRST, nil, nil,
