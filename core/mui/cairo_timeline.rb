@@ -82,6 +82,18 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
     @tl.model.set_sort_column_id(2, order = Gtk::SORT_DESCENDING)
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
+    scroll_to_top_anime = false
+    @tl.vadjustment.signal_connect(:value_changed){ |this|
+      if(scroll_to_zero? and not(scroll_to_top_anime))
+        scroll_to_top_anime = true
+        scroll_speed = 2
+        Gtk.timeout_add(50){
+          @tl.vadjustment.value -= (scroll_speed += 1)
+          scroll_to_top_anime = @tl.vadjustment.value > 0.0
+        }
+      end
+      false
+    }
   end
 
   def block_add(message)
@@ -89,6 +101,7 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
     raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
     iter = @tl.model.append
     if(!any?{ |m| m[:id] == message[:id] })
+      scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
       iter[0] = message[:id].to_s
       iter[1] = message
       iter[2] = message[:created].to_i
@@ -107,5 +120,13 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
   def clear
     @tl.model.clear
     self end
+
+  def scroll_to_zero_lator!
+    @scroll_to_zero_lator = true end
+
+  def scroll_to_zero?
+    result = (defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator)
+    @scroll_to_zero_lator = false
+    result end
 
 end
