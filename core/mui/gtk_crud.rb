@@ -14,18 +14,27 @@ class Gtk::CRUD < Gtk::TreeView
     super(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
     @creatable = @updatable = @deletable = true
     set_columns
-    self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
-      not iter[column].include?(key) }
-    self.signal_connect('button_release_event'){ |widget, event|
-      if (event.button == 3)
-        menu_pop(self)
-        true end }
+    # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
+    #   not iter[column].include?(key) }
+    handle_release_event
+    handle_row_activated
+  end
+
+  protected
+
+  def handle_row_activated
     self.signal_connect("row-activated"){|view, path, column|
       if @editable and iter = view.model.get_iter(path)
         if record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
-          force_record_update(iter, record) end end } end
+          force_record_update(iter, record) end end }
+  end
 
-  protected
+  def handle_release_event
+    self.signal_connect('button_release_event'){ |widget, event|
+      if (event.button == 3)
+        menu_pop(self, event)
+        true end }
+  end
 
   def on_created(iter)
   end
@@ -113,7 +122,7 @@ class Gtk::CRUD < Gtk::TreeView
                                "一度削除するともうもどってこないよ。")
           force_record_delete(iter) end } end end
 
-  def menu_pop(widget)
+  def menu_pop(widget, event)
     if(@creatable or @updatable or @deletable)
       contextmenu = Gtk::ContextMenu.new
       contextmenu.registmenu("新規作成", &method(:record_create)) if @creatable

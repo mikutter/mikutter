@@ -41,6 +41,13 @@ module Gdk::Coordinate
       [(main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE, icon_height].max + icon_margin * 2
     } end
 
+  def width=(new)
+    if(@width != new)
+      @width = new
+      on_modify(true) end
+    new
+  end
+
   protected
 
   # 寸法の初期化

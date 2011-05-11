@@ -260,6 +260,7 @@ class Message < Retriever::Model
   # selfを返す
   def to_message
     self end
+  alias :message :to_message
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show

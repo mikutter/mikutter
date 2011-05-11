@@ -65,6 +65,17 @@ module Gtk
 
     attr_reader :message_id, :message
 
+    # def get_size(widget, cell_area)
+    #   p cell_area
+    #   exit
+    #   super
+    # end
+
+    # def render(window, widget, background_area, cell_area, expose_area, flags)
+    #   p expose_area
+    #   super
+    # end
+
     def miracle_painter(message)
       @miracle_painter[message] end
 
@@ -86,12 +97,15 @@ module Gtk
       # p [get_size(@tree, nil).x, get_size(@tree, nil).y, get_size(@tree, nil).width, get_size(@tree, nil).height] if defined? @tree
       # self.pixbuf = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 48, 48){ |pixbuf|
       #   self.pixbuf = pixbuf }
+      # p [@tree.get_cell_area(nil, @tree.get_column(0)).width, @tree.get_column(0).width]
+      if(@tree.realized?)
+        @miracle_painter[message].width = @tree.get_cell_area(nil, @tree.get_column(0)).width end
       self.pixbuf = @miracle_painter[message].pixbuf
     end
 
     # 描画するセルの横幅を取得する
     def avail_width
-      320
+      [@tree.get_column(0).width, 100].max
     end
 
   end

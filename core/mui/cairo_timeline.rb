@@ -3,8 +3,9 @@ require 'gtk2'
 miquire :mui, 'crud'
 miquire :mui, 'cell_renderer_message'
 miquire :mui, 'timeline_utils'
+miquire :mui, 'pseudo_message_widget'
 
-class Gtk::TimeLine < Gtk::ScrolledWindow
+class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
   include Gtk::TimeLineUtils
 
   class InnerTL < Gtk::CRUD
@@ -16,6 +17,8 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       super
       @@current_tl ||= self
       set_headers_visible(false)
+      # get_column(0).resizable = true
+      # get_column(0).sizing = (Gtk::TreeViewColumn::FIXED)
       signal_connect(:focus_in_event){
         @@current_tl = self
         false } end
@@ -38,7 +41,7 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
       ].freeze
     end
 
-    def menu_pop(widget)
+    def menu_pop(widget, event)
       menu = []
       Plugin.filtering(:contextmenu, []).first.each{ |x|
         cur = x.first
@@ -46,7 +49,11 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
         index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
         menu[index] = x }
       if selection.selected
-        Gtk::ContextMenu.new(*menu).popup(self, selection.selected[1]) end end
+        Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event)) end end
+
+    def handle_row_activated
+    end
+
 
   end
 
@@ -58,20 +65,23 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
     selected = Set.new
     if InnerTL.current_tl
       InnerTL.current_tl.selection.selected_each{ |model, path, iter|
-        selected << iter[1] }
-    end
-    selected
-  end
+        selected << iter[1] } end
+    selected end
 
   @@tls = WeakSet.new
 
   def initialize
     super
     @@tls << @tl = InnerTL.new
-    self.add_with_viewport(@tl)
-    self.border_width = 0
-    self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
+    # self.add_with_viewport(@tl)
+    # self.border_width = 0
+    # self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
+    pack_start(@tl)
+    scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
+    closeup(scrollbar)
     @tl.model.set_sort_column_id(2, order = Gtk::SORT_DESCENDING)
+    @tl.set_size_request(100, 100)
+    @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
   end
 
   def block_add(message)
@@ -86,7 +96,6 @@ class Gtk::TimeLine < Gtk::ScrolledWindow
         iter[0] = iter[0]
         false
       }
-
     end
     self end
 

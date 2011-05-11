@@ -48,13 +48,14 @@ class Gdk::MiraclePainter < GLib::Object
   def signal_do_modified(this)
   end
 
-  private
-
   # 更新イベントを発生させる
-  def on_modify
+  def on_modify(event=true)
     @pixbuf = nil
-    signal_emit(:modified, self)
+    @coordinate = nil
+    signal_emit(:modified, self) if event
   end
+
+  private
 
   def escaped_main_text
     message.to_show.gsub(/[<>&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}[$0] }.freeze end
