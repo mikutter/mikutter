@@ -33,7 +33,7 @@ class Gdk::MiraclePainter < GLib::Object
     if index
       links.each{ |l|
         match, range, regexp = *l
-        if range.include?(index)
+         if range.include?(index)
           Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す

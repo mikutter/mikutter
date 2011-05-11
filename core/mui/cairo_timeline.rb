@@ -86,9 +86,9 @@ class Gtk::TimeLine < Gtk::HBox #Gtk::ScrolledWindow
     @tl.vadjustment.signal_connect(:value_changed){ |this|
       if(scroll_to_zero? and not(scroll_to_top_anime))
         scroll_to_top_anime = true
-        scroll_speed = 2
-        Gtk.timeout_add(50){
-          @tl.vadjustment.value -= (scroll_speed += 1)
+        scroll_speed = 4
+        Gtk.timeout_add(25){
+          @tl.vadjustment.value -= (scroll_speed *= 2)
           scroll_to_top_anime = @tl.vadjustment.value > 0.0
         }
       end
