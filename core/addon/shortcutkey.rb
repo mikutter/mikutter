@@ -23,27 +23,27 @@ Module.new do
                       mumbles.first.gen_postbox(mumbles.first.to_message, :subreplies => mumbles) }],
                    ['公式リツイート', :retweet_key, event_maker_each(&lazy.to_message.retweet)],
                    ['ふぁぼる', :favorite_key, event_maker_each{ |m| m.to_message.favorite(!m.to_message.favorite?) }],
-                   ['上のメッセージへ移動', :up_mumble_key, event_maker{ |mumbles|
-                      target = mumbles.first
-                      if(tl = target.get_ancestor(Gtk::TimeLine))
-                        tl.inject(nil){ |before, mumble|
-                          if(mumble.message[:id] == target.message[:id])
-                            if before
-                              before.active
-                              tl.scroll_to(before) end
-                            break end
-                          mumble } end }],
-                   ['下のメッセージへ移動', :down_mumble_key, event_maker{ |mumbles|
-                      target = mumbles.first
-                      if(tl = target.get_ancestor(Gtk::TimeLine))
-                        active = false
-                        tl.each{ |mumble|
-                          if(mumble.message[:id] == target.message[:id])
-                            active = true
-                          elsif active
-                            mumble.active
-                            tl.scroll_to(mumble)
-                            break end } end }]
+                   # ['上のメッセージへ移動', :up_mumble_key, event_maker{ |mumbles|
+                   #    target = mumbles.first
+                   #    if(tl = target.get_ancestor(Gtk::TimeLine))
+                   #      tl.inject(nil){ |before, mumble|
+                   #        if(mumble.message[:id] == target.message[:id])
+                   #          if before
+                   #            before.active
+                   #            tl.scroll_to(before) end
+                   #          break end
+                   #        mumble } end }],
+                   # ['下のメッセージへ移動', :down_mumble_key, event_maker{ |mumbles|
+                   #    target = mumbles.first
+                   #    if(tl = target.get_ancestor(Gtk::TimeLine))
+                   #      active = false
+                   #      tl.each{ |mumble|
+                   #        if(mumble.message[:id] == target.message[:id])
+                   #          active = true
+                   #        elsif active
+                   #          mumble.active
+                   #          tl.scroll_to(mumble)
+                   #          break end } end }]
   ].freeze
 
   shortcutkeys.each{ |pair|
