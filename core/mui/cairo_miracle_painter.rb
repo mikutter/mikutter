@@ -78,6 +78,7 @@ class Gdk::MiraclePainter < GLib::Object
     @tree.reply(message) end
 
   def iob_retweet_clicked
+    @tree.reply(message, :retweet => true)
   end
 
   def iob_fav_clicked
