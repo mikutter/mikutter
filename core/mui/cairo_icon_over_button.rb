@@ -24,13 +24,13 @@ def Gdk::IconOverButton(schemer)
       [(lx / w).to_i, (ly / h).to_i] end
 
     def render_icon_over_button(context)
-      if(current_icon_pos)
-        pb_overbutton = Gdk::Pixbuf.new(MUI::Skin.get("overbutton.png"))
-        pb_overbutton_mo = Gdk::Pixbuf.new(MUI::Skin.get("overbutton_mouseover.png"))
-        _schemer[:y_count].times{ |posy|
-          _schemer[:x_count].times{ |posx|
-            pos = [posx, posy]
-            ir = get_icon_rectangle(*pos)
+      pb_overbutton = Gdk::Pixbuf.new(MUI::Skin.get("overbutton.png"))
+      pb_overbutton_mo = Gdk::Pixbuf.new(MUI::Skin.get("overbutton_mouseover.png"))
+      _schemer[:y_count].times{ |posy|
+        _schemer[:x_count].times{ |posx|
+          pos = [posx, posy]
+          ir = get_icon_rectangle(*pos)
+          if(current_icon_pos)
             context.save{
               pb = if current_icon_pos == pos
                      pb_overbutton_mo
@@ -39,15 +39,15 @@ def Gdk::IconOverButton(schemer)
               context.translate(ir.x, ir.y)
               context.scale(ir.width / pb.width, ir.height / pb.height)
               context.set_source_pixbuf(pb)
-              context.paint
-            }
+              context.paint } end
+          icon_file_name = (current_icon_pos ? iob_icon_pixbuf : iob_icon_pixbuf_off)[posx][posy]
+          if(icon_file_name)
             context.save{
               context.translate(ir.x, ir.y)
-              icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(iob_icon_pixbuf[posx][posy]))
+              icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(icon_file_name))
               context.scale(ir.width / icon_pb.width, ir.height / icon_pb.height)
               context.set_source_pixbuf(icon_pb)
-              context.paint
-            } } } end end
+              context.paint } end } } end
 
     def point_moved_main_icon(gx, gy)
       ipx, ipy = ip = globalpos2iconpos(gx, gy)
@@ -70,7 +70,7 @@ def Gdk::IconOverButton(schemer)
     def iob_clicked
       if(current_icon_pos)
         __send__([ [:iob_reply_clicked, :iob_etc_clicked],
-                   [:iob_retweet_clicked, :iob_unfav_clicked]][current_icon_pos[0]][current_icon_pos[1]]) end end
+                   [:iob_retweet_clicked, :iob_fav_clicked]][current_icon_pos[0]][current_icon_pos[1]]) end end
 
   }
 end

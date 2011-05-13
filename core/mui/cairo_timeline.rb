@@ -20,8 +20,6 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       super
       @@current_tl ||= self
       set_headers_visible(false)
-      # get_column(0).resizable = true
-      # get_column(0).sizing = (Gtk::TreeViewColumn::FIXED)
       signal_connect(:focus_in_event){
         @@current_tl = self
         false } end
@@ -33,9 +31,6 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     def column_schemer
       [ {:renderer => lambda{ |x,y|
             cell_renderer_message.tree = self
-            # a.signal_connect(:click){|r, e, path, column, cell_x, cell_y|
-            #   p [cell_x, cell_y, e.x, e.y]
-            # }
             cell_renderer_message
           },
           :kind => :message_id, :widget => :text, :type => String, :label => ''},
@@ -62,6 +57,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       message = message[1] if(message.is_a?(Gtk::TreeIter))
       type_strict message => Message
       postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+      pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
       self end
 
@@ -113,14 +109,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       iter[1] = message
       iter[2] = message[:created].to_i
       @tl.cell_renderer_message.miracle_painter(message).signal_connect(:modified){ |mb|
-        # iter[0] = iter[0]
         @tl.model.each{ |model, path, iter|
           if iter[0] == message[:id].to_s
-            p @tl.get_cell_area(path, @tl.get_column(0)).to_a
-            # @tl.queue_draw_area(*@tl.get_cell_area(path, @tl.get_column(0)).to_a)
             @tl.queue_draw
             break end }
-        puts "emit modified #{message.to_s}"
         false
       }
     end

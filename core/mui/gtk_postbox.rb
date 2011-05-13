@@ -45,6 +45,12 @@ module Gtk
     def active
       get_ancestor(Gtk::Window).set_focus(@post) if(get_ancestor(Gtk::Window)) end
 
+    def on_delete
+      if(block_given?)
+        @on_delete = Proc.new
+      elsif defined? @on_delete
+        @on_delete.call end end
+
     private
 
     def postable?
@@ -58,10 +64,9 @@ module Gtk
         tool.sensitive = true } end
 
     def end_post
-      Gtk::Lock.synchronize{
-        @posting = false
-        post.editable = true
-        [post, send].compact.each{|widget| widget.sensitive = true } } end
+      @posting = false
+      post.editable = true
+      [post, send].compact.each{|widget| widget.sensitive = true } end
 
     def delegate
       Gtk::Lock.synchronize{
@@ -131,13 +136,13 @@ module Gtk
           true end } end
 
     def destroy
-      Gtk::Lock.synchronize{
-        @@ringlock.synchronize{
-          if not(frozen?) and parent
-            parent.remove(self)
-            @@postboxes.delete(self)
-            super
-            self.freeze end } } end
+      @@ringlock.synchronize{
+        if not(frozen?) and parent
+          parent.remove(self)
+          @@postboxes.delete(self)
+          super
+          on_delete
+          self.freeze end } end
 
     def reply?
       @watch.is_a?(Retriever::Model) end

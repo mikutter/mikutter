@@ -116,10 +116,6 @@ module Gtk
 
     def render_message(message)
       type_strict message => Message
-      # p [get_size(@tree, nil).x, get_size(@tree, nil).y, get_size(@tree, nil).width, get_size(@tree, nil).height] if defined? @tree
-      # self.pixbuf = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 48, 48){ |pixbuf|
-      #   self.pixbuf = pixbuf }
-      # p [@tree.get_cell_area(nil, @tree.get_column(0)).width, @tree.get_column(0).width]
       if(@tree.realized?)
         miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width end
       self.pixbuf = miracle_painter(message).pixbuf

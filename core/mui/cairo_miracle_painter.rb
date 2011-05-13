@@ -63,19 +63,28 @@ class Gdk::MiraclePainter < GLib::Object
 
   def iob_icon_pixbuf
     [ ["reply.png", "etc.png"],
-      ["retweet.png", "unfav.png"]
-    ]
-  end
+      ["retweet.png",
+       message.favorite? ? "unfav.png" : "fav.png"] ] end
 
   def iob_icon_pixbuf_off
-    [ ["reply.png", "etc.png"],
-      ["retweet.png", "unfav.png"]
+    [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png"),
+       nil],
+      [nil,
+       message.favorite? ? "unfav.png" : nil]
     ]
   end
 
-
   def iob_reply_clicked
-    @tree.reply(message)
+    @tree.reply(message) end
+
+  def iob_retweet_clicked
+  end
+
+  def iob_fav_clicked
+    message.favorite(!message.favorite?)
+  end
+
+  def iob_etc_clicked
   end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
@@ -95,7 +104,6 @@ class Gdk::MiraclePainter < GLib::Object
     @pixmap = nil
     @pixbuf = nil
     @coordinate = nil
-    # puts "emit modified #{message.to_s}"
     signal_emit(:modified, self) if event
   end
 
@@ -213,6 +221,17 @@ class Gdk::MiraclePainter < GLib::Object
       context.show_pango_layout(main_message(context))
     }
   end
+
+  Plugin.create(:core).add_event(:posted){ |service, messages|
+    ObjectSpace.each_object(Gdk::MiraclePainter){ |mp|
+      if messages.include?(mp.message)
+        mp.on_modify end } }
+
+  Plugin.create(:core).add_event(:favorite){ |service, user, message|
+    if(user.is_me?)
+      ObjectSpace.each_object(Gdk::MiraclePainter){ |mp|
+        if message = mp.message
+          mp.on_modify end } end }
 
 end
 # ~> -:6: undefined method `miquire' for main:Object (NoMethodError)
