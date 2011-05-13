@@ -12,16 +12,16 @@ module Gtk
     def initialize()
       super()
       @message = nil
-      @miracle_painter = Hash.new{ |h, message|
-        h[message] = Gdk::MiraclePainter.new(message, avail_width)
-      }
+      @miracle_painter = Hash.new
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
-        message = @tree.model.get_iter(path)[1]
-        if(@miracle_painter.has_key?(message))
-          @miracle_painter[message].clicked(cell_x, cell_y) end
+        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y)
         false }
-
-    end
+      signal_connect(:motion_notify_event){ |r, e, path, column, cell_x, cell_y|
+        miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
+        false }
+      signal_connect(:leave_notify_event){ |r, e, path, column, cell_x, cell_y|
+        miracle_painter(@tree.model.get_iter(path)[1]).point_leaved(cell_x, cell_y)
+        false } end
 
     # Register events for this Renderer:
     signal_new("button_press_event", GLib::Signal::RUN_FIRST, nil, nil,
@@ -29,6 +29,14 @@ module Gtk
                Integer, Integer)
 
     signal_new("button_release_event", GLib::Signal::RUN_FIRST, nil, nil,
+               Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
+               Integer, Integer)
+
+    signal_new("motion_notify_event", GLib::Signal::RUN_FIRST, nil, nil,
+               Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
+               Integer, Integer)
+
+    signal_new("leave_notify_event", GLib::Signal::RUN_FIRST, nil, nil,
                Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
                Integer, Integer)
 
@@ -42,13 +50,35 @@ module Gtk
     def signal_do_button_release_event(event, path, column, cell_x, cell_y)
     end
 
+    def signal_do_motion_notify_event(event, path, column, cell_x, cell_y)
+    end
+
+    def signal_do_leave_notify_event(event, path, column, cell_x, cell_y)
+    end
+
     def signal_do_click(event, path, column, cell_x, cell_y)
     end
 
-    def tree=(tree) # !> `*' interpreted as argument prefix
+    def tree=(tree)
       @tree = tree
       tree.add_events(Gdk::Event::BUTTON_PRESS_MASK|Gdk::Event::BUTTON_RELEASE_MASK)
       armed_column = nil
+      last_motioned = nil
+      tree.signal_connect("leave_notify_event") { |w, e|
+        if last_motioned
+          signal_emit("leave_notify_event", e, *last_motioned)
+          last_motioned = nil end }
+
+      tree.signal_connect("motion_notify_event") { |w, e|
+        path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
+        if column
+          armed_column = column
+          motioned = [path, column, cell_x, cell_y]
+          signal_emit("motion_notify_event", e, *motioned)
+          if(last_motioned and @tree.model.get_iter(motioned[0])[0] != @tree.model.get_iter(last_motioned[0])[0])
+            signal_emit("leave_notify_event", e, *last_motioned) end
+          last_motioned = motioned end }
+
       tree.signal_connect("button_press_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
         if column
@@ -67,19 +97,9 @@ module Gtk
 
     attr_reader :message_id, :message
 
-    # def get_size(widget, cell_area)
-    #   p cell_area
-    #   exit
-    #   super
-    # end
-
-    # def render(window, widget, background_area, cell_area, expose_area, flags)
-    #   p expose_area
-    #   super
-    # end
-
     def miracle_painter(message)
-      @miracle_painter[message] end
+      type_strict message => Message
+      @miracle_painter[message[:id].to_i] ||= Gdk::MiraclePainter.new(message, avail_width).set_tree(@tree) end
 
     def message_id=(id)
       # type_strict id => Integer
@@ -101,8 +121,8 @@ module Gtk
       #   self.pixbuf = pixbuf }
       # p [@tree.get_cell_area(nil, @tree.get_column(0)).width, @tree.get_column(0).width]
       if(@tree.realized?)
-        @miracle_painter[message].width = @tree.get_cell_area(nil, @tree.get_column(0)).width end
-      self.pixbuf = @miracle_painter[message].pixbuf
+        miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width end
+      self.pixbuf = miracle_painter(message).pixbuf
     end
 
     # 描画するセルの横幅を取得する
@@ -112,3 +132,4 @@ module Gtk
 
   end
 end
+# ~> -:3: undefined method `miquire' for main:Object (NoMethodError)

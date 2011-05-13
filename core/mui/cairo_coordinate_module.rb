@@ -9,6 +9,10 @@ module Gdk::Coordinate
     def initialize(x, y, w, h)
       @x, @y, @w, @h = x, y, w, h end
 
+    def point_in?(mx, my)
+      left <= mx and mx <= right and top <= my and my <= bottom
+    end
+
     [:x, :y, :w, :h].each{ |node|
       define_method(node){
         n = instance_eval("@#{node}")

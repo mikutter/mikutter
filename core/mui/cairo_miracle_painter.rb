@@ -4,23 +4,32 @@ require 'gtk2'
 require 'cairo'
 
 miquire :mui, 'coordinate_module'
+miquire :mui, 'icon_over_button'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
 class Gdk::MiraclePainter < GLib::Object
+
   type_register
   signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, self)
 
   include Gdk::Coordinate
+  include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
 
-  attr_reader :message
+  attr_reader :message, :p_message, :tree
 
   def initialize(message, *coodinate)
-    type_strict message => Message
-    @message = message
+    @tree = tree
+    @p_message = message
+    @message = message.to_message
+    type_strict @message => Message
     super()
     coordinator(*coodinate)
   end
+
+  def set_tree(new)
+    @tree = new
+    self end
 
   # TLに表示するための Gdk::Pixmap のインスタンスを返す
   def pixmap
@@ -34,12 +43,40 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
   def clicked(x, y)
+    iob_clicked
     index = main_pos_to_index(x, y)
     if index
       links.each{ |l|
         match, range, regexp = *l
          if range.include?(index)
           Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
+
+  # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
+  def point_moved(x, y)
+    point_moved_main_icon(x, y)
+  end
+
+  # leaveイベントを発生させる
+  def point_leaved(x, y)
+    iob_main_leave
+  end
+
+  def iob_icon_pixbuf
+    [ ["reply.png", "etc.png"],
+      ["retweet.png", "unfav.png"]
+    ]
+  end
+
+  def iob_icon_pixbuf_off
+    [ ["reply.png", "etc.png"],
+      ["retweet.png", "unfav.png"]
+    ]
+  end
+
+
+  def iob_reply_clicked
+    @tree.reply(message)
+  end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
@@ -58,6 +95,7 @@ class Gdk::MiraclePainter < GLib::Object
     @pixmap = nil
     @pixbuf = nil
     @coordinate = nil
+    # puts "emit modified #{message.to_s}"
     signal_emit(:modified, self) if event
   end
 
@@ -158,6 +196,7 @@ class Gdk::MiraclePainter < GLib::Object
       context.translate(pos.main_icon.x, pos.main_icon.x)
       context.set_source_pixbuf(main_icon)
       context.paint
+      render_icon_over_button(context)
     }
   end
 
@@ -176,3 +215,4 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
 end
+# ~> -:6: undefined method `miquire' for main:Object (NoMethodError)
