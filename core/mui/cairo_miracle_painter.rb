@@ -18,6 +18,8 @@ class Gdk::MiraclePainter < GLib::Object
 
   attr_reader :message, :p_message, :tree
 
+  @@miracle_painters = Hash.new(Set.new)
+
   def initialize(message, *coodinate)
     @tree = tree
     @p_message = message
@@ -25,7 +27,7 @@ class Gdk::MiraclePainter < GLib::Object
     type_strict @message => Message
     super()
     coordinator(*coodinate)
-  end
+    (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new) << self end
 
   def set_tree(new)
     @tree = new
@@ -224,15 +226,15 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
   Plugin.create(:core).add_event(:posted){ |service, messages|
-    ObjectSpace.each_object(Gdk::MiraclePainter){ |mp|
-      if messages.include?(mp.message)
-        mp.on_modify end } }
+    messages.each{ |message|
+      if(replyto_source = message.replyto_source)
+        @@miracle_painters[replyto_source[:id].to_i].each{ |mp|
+          mp.on_modify } end } }
 
   Plugin.create(:core).add_event(:favorite){ |service, user, message|
     if(user.is_me?)
-      ObjectSpace.each_object(Gdk::MiraclePainter){ |mp|
-        if message = mp.message
-          mp.on_modify end } end }
+      @@miracle_painters[message[:id].to_i].each{ |mp|
+        mp.on_modify } end }
 
 end
 # ~> -:6: undefined method `miquire' for main:Object (NoMethodError)
