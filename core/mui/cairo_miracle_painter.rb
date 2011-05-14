@@ -58,7 +58,7 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
   def released(x, y)
-    textselector_select(main_pos_to_index(x, y))
+    textselector_release(main_pos_to_index(x, y))
   end
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
@@ -74,13 +74,15 @@ class Gdk::MiraclePainter < GLib::Object
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
     point_moved_main_icon(x, y)
-    textselector_select(main_pos_to_index(x, y))
-  end
+    textselector_select(main_pos_to_index(x, y)) end
 
   # leaveイベントを発生させる
   def point_leaved(x, y)
     iob_main_leave
-  end
+    textselector_release end
+
+  def unselect
+    textselector_unselect end
 
   def iob_icon_pixbuf
     [ ["reply.png", "etc.png"],
@@ -159,8 +161,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
-    attr_list, text = Pango.parse_markup(styled_main_text)
-    # p textselector_range
+    attr_list, text = Pango.parse_markup(textselector_markup(styled_main_text))
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list

@@ -14,13 +14,13 @@ module Gtk
       @message = nil
       @miracle_painter = Hash.new
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y)
+        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y) if e.button == 1
         false }
       signal_connect(:button_press_event){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).pressed(cell_x, cell_y)
+        miracle_painter(@tree.model.get_iter(path)[1]).pressed(cell_x, cell_y) if e.button == 1
         false }
       signal_connect(:button_release_event){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).released(cell_x, cell_y)
+        miracle_painter(@tree.model.get_iter(path)[1]).released(cell_x, cell_y) if e.button == 1
         false }
       signal_connect(:motion_notify_event){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
