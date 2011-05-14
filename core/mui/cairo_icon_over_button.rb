@@ -37,7 +37,7 @@ def Gdk::IconOverButton(schemer)
                    else
                      pb_overbutton end
               context.translate(ir.x, ir.y)
-              context.scale(ir.width / pb.width, ir.height / pb.height)
+              context.scale(ir.width.to_f / pb.width, ir.height.to_f / pb.height)
               context.set_source_pixbuf(pb)
               context.paint } end
           icon_file_name = (current_icon_pos ? iob_icon_pixbuf : iob_icon_pixbuf_off)[posx][posy]
@@ -45,7 +45,7 @@ def Gdk::IconOverButton(schemer)
             context.save{
               context.translate(ir.x, ir.y)
               icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(icon_file_name))
-              context.scale(ir.width / icon_pb.width, ir.height / icon_pb.height)
+              context.scale(ir.width.to_f / icon_pb.width, ir.height.to_f / icon_pb.height)
               context.set_source_pixbuf(icon_pb)
               context.paint } end } } end
 
