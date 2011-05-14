@@ -19,18 +19,18 @@ Module.new do
                        Gtk::TimeLine.get_active_mumbles.size == 1 }){ |opt|
     Gtk::Clipboard.copy(opt.message.to_s) }
 
-  define_contextmenu("返信", lambda{ |m, w| m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message, :subreplies => Gtk::TimeLine.get_active_mumbles) }
+  define_contextmenu("返信", lambda{ |m, w| m.message.repliable? }){ |opt, widget|
+    widget.reply(opt.message, :subreplies => Gtk::TimeLine.get_active_mumbles) }
 
-  define_contextmenu("全員に返信", lambda{ |m, w| m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message,
-                     :subreplies => this.message.ancestors,
-                     :exclude_myself => true) }
+  define_contextmenu("全員に返信", lambda{ |m, w| m.message.repliable? }){ |opt, widget|
+    widget.reply(opt.message,
+                 :subreplies => opt.message.ancestors,
+                 :exclude_myself => true) }
 
   define_contextmenu("引用", lambda{ |m,w|
                        Gtk::TimeLine.get_active_mumbles.size == 1 and
-                       m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message, :retweet => true) }
+                       m.message.repliable? }){ |opt, widget|
+    widget.reply(opt.message, :retweet => true) }
 
   define_contextmenu("公式リツイート", lambda{ |m,w|
                        m.message.repliable? and not m.message.from_me? }){ |this, w|

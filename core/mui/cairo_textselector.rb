@@ -50,9 +50,7 @@ module Gdk::TextSelector
     astr.size end
 
   def get_arange(astr, range)
-    p [get_aindex(astr, range.first), get_aindex(astr, range.last)]
-    Range.new(get_aindex(astr, range.first), get_aindex(astr, range.last))
-  end
+    Range.new(get_aindex(astr, range.first), get_aindex(astr, range.last)) end
 
   def arange_split(astr, range)
     result = []

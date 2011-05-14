@@ -42,16 +42,16 @@ Module.new do
   plugin.add_event(:boot){ |service|
     plugin.add_event_filter(:contextmenu){ |menu|
       menu << ['スレッドを表示',
-               lambda{ |m, w| m.message.repliable? },
-               lambda{ |m, w|
+               lambda{ |m| m.message.repliable? },
+               lambda{ |opt|
                  tabclass.new("Thread #{counter.call}", service,
-                              :message => m.message,
+                              :message => opt.message,
                               :icon => MUI::Skin.get("list.png")) } ]
       [menu] } }
 
   plugin.add_event(:appear){ |messages|
     tabclass.tabs.each{ |tab|
       rel = messages.select{ |message| message.receive_message and
-        tab.timeline.all_id.include?(message.receive_message(true)[:id].to_i) }
+        tab.timeline.any?{ |m| m[:id].to_i == message.receive_message(true)[:id].to_i } }
       tab.timeline.add(rel) if not rel.empty? } }
 end

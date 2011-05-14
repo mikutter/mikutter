@@ -48,7 +48,7 @@ module Gdk::Coordinate
 
   def width=(new)
     if(@width != new)
-      @width = new
+      @width = [new, 1].max
       on_modify(true) end
     new
   end
@@ -57,7 +57,7 @@ module Gdk::Coordinate
 
   # 寸法の初期化
   def coordinator(width, color = 24)
-    @width, @color, @icon_width, @icon_height, @icon_margin = width, 24, 48, 48, 2
+    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, 24, 48, 48, 2
     @height = Hash.new
   end
 
