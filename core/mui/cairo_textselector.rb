@@ -6,16 +6,16 @@ module Gdk::TextSelector
     if(@textselect_start and @textselect_end and @textselect_start != @textselect_end)
       Range.new(*[@textselect_start, @textselect_end].sort) end end
 
-  def textselector_press(index)
+  def textselector_press(index, trail=0)
     @textselector_pressing = true
     before = textselector_range
-    @textselect_end = @textselect_start = index
+    @textselect_end = @textselect_start = index + trail
     on_modify if before == textselector_range
     self
   end
 
-  def textselector_release(index = nil)
-    textselector_select(index) if index
+  def textselector_release(index = nil, trail=0)
+    textselector_select(index, trail) if index
     @textselector_pressing = false
   end
 
@@ -25,10 +25,10 @@ module Gdk::TextSelector
     on_modify
   end
 
-  def textselector_select(index)
+  def textselector_select(index, trail=0)
     if(@textselector_pressing)
       before = textselector_range
-      @textselect_end = index
+      @textselect_end = index + trail
       on_modify if before == textselector_range end end
 
   def textselector_markup(styled_text)
@@ -46,11 +46,11 @@ module Gdk::TextSelector
         index -= 1
       end
       return aindex if(index < 0)
-      aindex += 1
-    }
-  end
+      aindex += 1 }
+    astr.size end
 
   def get_arange(astr, range)
+    p [get_aindex(astr, range.first), get_aindex(astr, range.last)]
     Range.new(get_aindex(astr, range.first), get_aindex(astr, range.last))
   end
 
@@ -60,13 +60,10 @@ module Gdk::TextSelector
     start = arange.first
     level = 0
     arange.each{ |i|
-      [i, level] # => 
       case astr[i]
       when /<\/.*?>/
         if level <= 0
-          [i, start] # => 
           if start <= i-1
-            [start, i] # => 
             result << Range.new(start, i)
             start = i+1 end
         else
@@ -81,9 +78,7 @@ module Gdk::TextSelector
 
   def markup(str, range, s, e)
     astr = str.matches(/<.*?>|./)
-    astr # => 
-    aranges = arange_split(astr, range) # => 
-    aranges.reverse_each{ |arange|
+    arange_split(astr, range).reverse_each{ |arange|
       astr.insert(arange.last, e)
       astr.insert(arange.first, s)
     }

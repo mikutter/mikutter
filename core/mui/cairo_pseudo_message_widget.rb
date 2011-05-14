@@ -2,17 +2,15 @@
 
 class Gtk::PseudoMessageWidget
 
-  attr_reader :iter, :event
+  attr_reader :message, :event, :widget
 
-  def initialize(iter, event, tl)
-    @iter, @event, @tl = iter, event, tl
+  def initialize(message, event, widget)
+    @message, @event, @widget = message, event, widget
   end
 
-  def message
-    @iter[1] end
   alias :to_message :message
 
   def gen_postbox(m=message, options={})
-    @tl.reply(m, options) end
+    widget.reply(m, options) end
 
 end

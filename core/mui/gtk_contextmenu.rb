@@ -18,11 +18,11 @@ module Gtk
       else
         registmenu(nil){ |a,b| } end end
 
-    def popup(widget, optional=nil)
+    def popup(widget, optional)
         menu = Gtk::Menu.new
         @contextmenu.each{ |param|
           label, cond, proc = param
-          if cond.call(optional, widget)
+          if cond.call(*[optional, widget][0, cond.arity])
             if label
               item = Gtk::MenuItem.new(if defined? label.call then label.call(optional, widget) else label end)
               item.signal_connect('activate') { |w| proc.call(*[optional, widget][0...proc.arity]); false } if proc

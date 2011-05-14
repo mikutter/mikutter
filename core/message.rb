@@ -175,6 +175,10 @@ class Message < Retriever::Model
       if match
         match[1] == other[:idname] end end end
 
+  # 自分がこのMessageにリプライを返していればtrue
+  def mentioned_by_me?
+    children.any?{ |m| m.from_me? } end
+
   # このメッセージが何かしらの別のメッセージに宛てられたものなら真
   def has_receive_message?
     self[:replyto] end

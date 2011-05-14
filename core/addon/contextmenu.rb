@@ -15,23 +15,14 @@ Module.new do
 
   end
 
-  define_contextmenu("コピー", lambda{ |m,w|
-                       w.is_a?(Gtk::TextView) and
-                       w.buffer.selection_bounds[2] }){ |this, w|
-    w.copy_clipboard }
+  define_contextmenu('本文をコピー', lambda{ |opt|
+                       Gtk::TimeLine.get_active_mumbles.size == 1 }){ |opt|
+    Gtk::Clipboard.copy(opt.message.to_s) }
 
-  define_contextmenu('本文をコピー', lambda{ |m,w|
-                       Gtk::TimeLine.get_active_mumbles.size == 1 and
-                       w.is_a?(Gtk::TextView) and
-                       not w.buffer.selection_bounds[2] }){ |this, w|
-    w.select_all(true)
-    w.copy_clipboard
-    w.select_all(false) }
-
-  define_contextmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
+  define_contextmenu("返信", lambda{ |m, w| m.message.repliable? }){ |this, w|
     this.gen_postbox(this.message, :subreplies => Gtk::TimeLine.get_active_mumbles) }
 
-  define_contextmenu("全員に返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
+  define_contextmenu("全員に返信", lambda{ |m, w| m.message.repliable? }){ |this, w|
     this.gen_postbox(this.message,
                      :subreplies => this.message.ancestors,
                      :exclude_myself => true) }

@@ -14,7 +14,7 @@ module Gtk
       @message = nil
       @miracle_painter = Hash.new
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y) if e.button == 1
+        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y, e)
         false }
       signal_connect(:button_press_event){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).pressed(cell_x, cell_y) if e.button == 1

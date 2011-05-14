@@ -18,9 +18,10 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
 
-  attr_reader :message, :p_message, :tree
-
   EMPTY = Set.new.freeze
+  Event = Struct.new(:event, :message, :timeline, :miraclepainter)
+
+  attr_reader :message, :p_message, :tree
 
   @@miracle_painters = Hash.new
 
@@ -54,32 +55,39 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
   def pressed(x, y)
-    textselector_press(main_pos_to_index(x, y))
+    textselector_press(*main_pos_to_index_forclick(x, y)[1..2])
   end
 
   def released(x, y)
-    textselector_release(main_pos_to_index(x, y))
+    textselector_release(*main_pos_to_index_forclick(x, y)[1..2])
   end
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
-  def clicked(x, y)
-    iob_clicked
-    index = main_pos_to_index(x, y)
-    if index
-      links.each{ |l|
-        match, range, regexp = *l
-         if range.include?(index)
-          Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
+  def clicked(x, y, e)
+    case e.button
+    when 1
+      iob_clicked
+      index = main_pos_to_index(x, y)
+      if index
+        links.each{ |l|
+          match, range, regexp = *l
+          if range.include?(index)
+            Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end
+    when 3
+      menu_pop(e)
+    end
+  end
 
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
     point_moved_main_icon(x, y)
-    textselector_select(main_pos_to_index(x, y)) end
+    textselector_select(*main_pos_to_index_forclick(x, y)[1..2]) end
 
   # leaveイベントを発生させる
   def point_leaved(x, y)
     iob_main_leave
-    textselector_release end
+    # textselector_release
+  end
 
   def unselect
     textselector_unselect end
@@ -111,12 +119,37 @@ class Gdk::MiraclePainter < GLib::Object
   def iob_etc_clicked
   end
 
+  def menu_pop(event)
+    menu = []
+    filter = if textselector_range
+               :contextmenu_text_selected
+             else
+               :contextmenu end
+    Plugin.filtering(filter, []).first.each{ |x|
+      cur = x.first
+      cur = cur.call(nil, nil) if cur.respond_to?(:call)
+      index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
+      menu[index] = x }
+    selection = Gtk::TimeLine::InnerTL.current_tl.selection
+    if selection.selected
+      Gtk::ContextMenu.new(*menu).popup(Gtk::TimeLine::InnerTL.current_tl,
+                                        Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self)) end
+  end
+
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
     x -= pos.main_text.x
     y -= pos.main_text.y
-    inside, byte, trailing = *main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
+    main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
+    inside, byte, trailing = *main_pos_to_index_forclick(x, y)
     message.to_s.get_index_from_byte(byte) if inside end
+
+  def main_pos_to_index_forclick(x, y)
+    x -= pos.main_text.x
+    y -= pos.main_text.y
+    result = main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
+    result[1] = message.to_s.get_index_from_byte(result[1])
+    return *result end
 
   def signal_do_modified(this)
   end
@@ -256,6 +289,14 @@ class Gdk::MiraclePainter < GLib::Object
       if(user.is_me?)
         findbymessage(message).each{ |mp|
           mp.on_modify } end }
+
+    Plugin.create(:core).add_event_filter(:contextmenu_text_selected){ |menu|
+      menu << ['コピー',
+               lambda{ |opt| true },
+               lambda{ |opt|
+                 Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) } ]
+      [menu]
+    }
   }
 
 end

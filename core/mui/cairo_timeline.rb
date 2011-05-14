@@ -53,14 +53,15 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     end
 
     def menu_pop(widget, event)
-      menu = []
-      Plugin.filtering(:contextmenu, []).first.each{ |x|
-        cur = x.first
-        cur = cur.call(nil, nil) if cur.respond_to?(:call)
-        index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
-        menu[index] = x }
-      if selection.selected
-        Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event, self)) end end
+      # menu = []
+      # Plugin.filtering(:contextmenu, []).first.each{ |x|
+      #   cur = x.first
+      #   cur = cur.call(nil, nil) if cur.respond_to?(:call)
+      #   index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
+      #   menu[index] = x }
+      # if selection.selected
+      #   Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event, self)) end
+    end
 
     def handle_row_activated
     end
