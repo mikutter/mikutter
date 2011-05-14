@@ -43,7 +43,8 @@ module Gdk::Coordinate
       context.show_pango_layout(main_layout)
       context.show_pango_layout(hl_layout)
       [(main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE, icon_height].max + icon_margin * 2
-    } end
+    }
+  end
 
   def width=(new)
     if(@width != new)

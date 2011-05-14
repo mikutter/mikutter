@@ -20,6 +20,19 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       super
       @@current_tl ||= self
       set_headers_visible(false)
+      last_geo = nil
+      # signal_connect(:expose_event){
+      #   if last_geo != self.window.geometry[2,2]
+      #     get_column(0).set_sizing(Gtk::TreeViewColumn::FIXED)
+      #     self.fixed_height_mode = true
+      #     Delayer.new{
+      #       get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
+      #       self.fixed_height_mode = false
+      #     }
+      #     last_geo = self.window.geometry[2,2].freeze end
+      #   false
+      # }
+      get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
       signal_connect(:focus_in_event){
         @@current_tl = self
         false } end

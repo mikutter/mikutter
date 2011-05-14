@@ -5,6 +5,7 @@ require 'cairo'
 
 miquire :mui, 'coordinate_module'
 miquire :mui, 'icon_over_button'
+miquire :mui, 'textselector'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
@@ -15,12 +16,21 @@ class Gdk::MiraclePainter < GLib::Object
 
   include Gdk::Coordinate
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
+  include Gdk::TextSelector
 
   attr_reader :message, :p_message, :tree
 
-  @@miracle_painters = Hash.new(Set.new)
+  EMPTY = Set.new.freeze
+
+  @@miracle_painters = Hash.new
+
+  def self.findbymessage(message)
+    type_strict message => :to_message
+    @@miracle_painters[message.to_message[:id].to_i] || EMPTY
+  end
 
   def initialize(message, *coodinate)
+    type_strict message => :to_message
     @tree = tree
     @p_message = message
     @message = message.to_message
@@ -43,6 +53,14 @@ class Gdk::MiraclePainter < GLib::Object
     @pixbuf ||= gen_pixbuf
   end
 
+  def pressed(x, y)
+    textselector_press(main_pos_to_index(x, y))
+  end
+
+  def released(x, y)
+    textselector_select(main_pos_to_index(x, y))
+  end
+
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
   def clicked(x, y)
     iob_clicked
@@ -56,6 +74,7 @@ class Gdk::MiraclePainter < GLib::Object
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
     point_moved_main_icon(x, y)
+    textselector_select(main_pos_to_index(x, y))
   end
 
   # leaveイベントを発生させる
@@ -92,8 +111,6 @@ class Gdk::MiraclePainter < GLib::Object
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
-    # x -= (icon_width + icon_margin * 2)
-    # y -= (icon_margin + header_left(context).size[1] / Pango::SCALE)
     x -= pos.main_text.x
     y -= pos.main_text.y
     inside, byte, trailing = *main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
@@ -132,7 +149,8 @@ class Gdk::MiraclePainter < GLib::Object
     Gtk::TimeLine.linkrules.keys.each{ |regexp|
       escaped_main_text.each_matches(regexp){ |match, pos|
         if not result.any?{ |this| this[1].include?(pos) }
-          result << [match, Range.new(pos, pos + match.to_s.size, true), regexp] end } }
+          pos = escaped_main_text[0, pos].strsize
+          result << [match, Range.new(pos, pos + match.to_s.strsize, true), regexp] end } }
     result.sort_by{ |r| r[1].first }.freeze end
   memoize :links
 
@@ -142,6 +160,7 @@ class Gdk::MiraclePainter < GLib::Object
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
     attr_list, text = Pango.parse_markup(styled_main_text)
+    # p textselector_range
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list
@@ -207,8 +226,8 @@ class Gdk::MiraclePainter < GLib::Object
       context.translate(pos.main_icon.x, pos.main_icon.x)
       context.set_source_pixbuf(main_icon)
       context.paint
-      render_icon_over_button(context)
     }
+    render_icon_over_button(context)
   end
 
   def render_main_text(context)
@@ -225,16 +244,18 @@ class Gdk::MiraclePainter < GLib::Object
     }
   end
 
-  Plugin.create(:core).add_event(:posted){ |service, messages|
-    messages.each{ |message|
-      if(replyto_source = message.replyto_source)
-        @@miracle_painters[replyto_source[:id].to_i].each{ |mp|
-          mp.on_modify } end } }
+  Delayer.new{
+    Plugin.create(:core).add_event(:posted){ |service, messages|
+      messages.each{ |message|
+        if(replyto_source = message.replyto_source)
+          findbymessage(replyto_source).each{ |mp|
+            mp.on_modify } end } }
 
-  Plugin.create(:core).add_event(:favorite){ |service, user, message|
-    if(user.is_me?)
-      @@miracle_painters[message[:id].to_i].each{ |mp|
-        mp.on_modify } end }
+    Plugin.create(:core).add_event(:favorite){ |service, user, message|
+      if(user.is_me?)
+        findbymessage(message).each{ |mp|
+          mp.on_modify } end }
+  }
 
 end
 # ~> -:6: undefined method `miquire' for main:Object (NoMethodError)

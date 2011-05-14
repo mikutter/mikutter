@@ -16,6 +16,12 @@ module Gtk
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y)
         false }
+      signal_connect(:button_press_event){ |r, e, path, column, cell_x, cell_y|
+        miracle_painter(@tree.model.get_iter(path)[1]).pressed(cell_x, cell_y)
+        false }
+      signal_connect(:button_release_event){ |r, e, path, column, cell_x, cell_y|
+        miracle_painter(@tree.model.get_iter(path)[1]).released(cell_x, cell_y)
+        false }
       signal_connect(:motion_notify_event){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
         false }
@@ -117,8 +123,15 @@ module Gtk
     def render_message(message)
       type_strict message => Message
       if(@tree.realized?)
-        miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width end
+        h = miracle_painter(message).height
+        miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width
+        if(h != miracle_painter(message).height)
+          @tree.get_column(0).queue_resize end end
       self.pixbuf = miracle_painter(message).pixbuf
+      # set_fixed_size(self.pixbuf.width, self.pixbuf.height)
+      # self.width = self.pixbuf.width
+      # self.height = self.pixbuf.height
+      # @tree.get_column(0).queue_resize
     end
 
     # 描画するセルの横幅を取得する
