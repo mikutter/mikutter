@@ -56,6 +56,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
       pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
+      InnerTL.current_tl.selection.unselect_all
       self end
 
   end
