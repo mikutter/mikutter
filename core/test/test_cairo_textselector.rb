@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+require 'test/unit'
+$cairo = true
+require File.expand_path(File.dirname(__FILE__) + '/../utils')
+miquire :mui, 'textselector'
+
+$debug = true # !> instance variable @textselect_start not initialized
+seterrorlevel(:notice)
+$logfile = nil
+$daemon = false
+
+class MockPainter
+  include Gdk::TextSelector
+  def on_modify
+  end
+end
+
+class TC_TextSelector < Test::Unit::TestCase
+
+  S1 = 'this is <b>a <a>test</a></b> text'.freeze
+
+  def setup
+  end
+
+  def test_select
+    mp = MockPainter.new
+    assert_equal('th<span background="#000000" foreground="#ffffff">is is </span><b><span background="#000000" foreground="#ffffff">a </span><a><span background="#000000" foreground="#ffffff">te</span>st</a></b> text',
+                 mp.textselector_press(2).textselector_release(12).textselector_markup(S1))
+    assert_equal('th<span background="#000000" foreground="#ffffff">is i</span>s <b>a <a>test</a></b> text',
+                 mp.textselector_press(2).textselector_release(6).textselector_markup(S1))
+    assert_equal('th<span background="#000000" foreground="#ffffff">is is <b>a <a>test</a></b> tex</span>t',
+                 mp.textselector_press(2).textselector_release(18).textselector_markup(S1))
+  end
+end
+# -*- coding: utf-8 -*-
+# >> Loaded suite -
+# >> Started
+# >> .
+# >> Finished in 0.001702 seconds.
+# >> 
+# >> 1 tests, 3 assertions, 0 failures, 0 errors

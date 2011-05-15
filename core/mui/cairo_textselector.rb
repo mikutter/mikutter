@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+require_if_exist 'continuation'
 module Gdk
   module TextSelector
 
@@ -53,26 +53,46 @@ module Gdk
     def get_arange(astr, range)
       Range.new(get_aindex(astr, range.first), get_aindex(astr, range.last)) end
 
+    # def arange_split(astr, range)
+    #   result = []
+    #   arange = get_arange(astr, range)
+    #   start = arange.first
+    #   level = 0
+    #   arange.each{ |i|
+    #     case astr[i]
+    #     when /<\/.*?>/
+    #       if level <= 0
+    #         if start <= i-1
+    #           result << Range.new(start, i)
+    #           start = i+1 end
+    #       else
+    #         level -= 1 end
+    #     when /<.*?>/
+    #       level += 1 end }
+    #   if start < arange.last
+    #     result << Range.new(start, arange.last) end
+    #   result end
+
     def arange_split(astr, range)
-      result = []
-      arange = get_arange(astr, range)
+      result, stack, arange = [], [], get_arange(astr, range)
       start = arange.first
-      level = 0
       arange.each{ |i|
         case astr[i]
         when /<\/.*?>/
-          if level <= 0
+          if stack.empty?
             if start <= i-1
               result << Range.new(start, i)
               start = i+1 end
           else
-            level -= 1 end
+            stack.pop end
         when /<.*?>/
-          level += 1 end }
+          r, s = result.dup, start
+          if not callcc{ |cont| stack.push(cont) }
+            result, start = r << Range.new(s, i), i+1 end end }
       if start < arange.last
+        stack.pop.call if not stack.empty?
         result << Range.new(start, arange.last) end
-      result
-    end
+      result end
 
     def markup(str, range, s, e)
       astr = str.matches(/<.*?>|./)
@@ -84,4 +104,3 @@ module Gdk
     end
   end
 end
-# ~> -:3: uninitialized constant Gdk (NameError)
