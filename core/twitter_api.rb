@@ -341,11 +341,17 @@ class TwitterAPI < Mutex
       user_show(args) end end
 
   def status_show(args)
-    type_strict args[:id] => Integer
-    raise "id must than 1 but specified #{args[:id].inspect}" if args[:id] <= 0
-    path = "/statuses/show/#{args[:id]}.#{FORMAT}"
-    head = {'Host' => HOST}
-    get(path, head)
+    id = args[:id]
+    type_strict id => Integer
+    raise "id must than 1 but specified #{id.inspect}" if id <= 0
+    @status_show_mutex ||= WeakStorage.new
+    @status_show ||= WeakStorage.new
+    atomic{ @status_show_mutex[id] ||= Mutex.new }.synchronize{
+      return @status_show[id] if @status_show[id]
+      path = "/statuses/show/#{id}.#{FORMAT}"
+      head = {'Host' => HOST}
+      (@status_show[id] ||= get(path, head)).freeze
+    }
   end
 
   def saved_searches(args=nil)

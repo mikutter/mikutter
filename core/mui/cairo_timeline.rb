@@ -24,7 +24,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       selection.mode = Gtk::SELECTION_MULTIPLE
       get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
       signal_connect(:focus_in_event){
-        @@current_tl.selection.unselect_all if @@current_tl and @@current_tl != self
+        @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
         @@current_tl = self
         false } end
 
@@ -84,36 +84,40 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
     scroll_to_top_anime = false
+    @tl.signal_connect(:expose_event){
+      emit_expose_miraclepainter
+      false }
     @tl.vadjustment.signal_connect(:value_changed){ |this|
-      if(scroll_to_zero? and not(scroll_to_top_anime))
-        scroll_to_top_anime = true
-        scroll_speed = 4
-        Gtk.timeout_add(25){
-          @tl.vadjustment.value -= (scroll_speed *= 2)
-          scroll_to_top_anime = @tl.vadjustment.value > 0.0
-        }
-      end
-      false
-    }
-  end
+      if not(@tl.destroyed?)
+        emit_expose_miraclepainter
+        if(scroll_to_zero? and not(scroll_to_top_anime))
+          scroll_to_top_anime = true
+          scroll_speed = 4
+          Gtk.timeout_add(25){
+            if not(@tl.destroyed?)
+              @tl.vadjustment.value -= (scroll_speed *= 2)
+              scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end end
+      false } end
 
   def block_add(message)
     type_strict message => Message
-    raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
-    if(!any?{ |m| m[:id] == message[:id] })
-      scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
-      iter = @tl.model.append
-      iter[0] = message[:id].to_s
-      iter[1] = message
-      iter[2] = message[:created].to_i
-      @tl.cell_renderer_message.miracle_painter(message).signal_connect(:modified){ |mb|
-        @tl.model.each{ |model, path, iter|
-          if iter[0].to_i == message[:id]
-            @tl.queue_draw
-            break end }
-        false
-      }
-    end
+    if not @tl.destroyed?
+      raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
+      if(!any?{ |m| m[:id] == message[:id] })
+        scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
+        iter = @tl.model.append
+        iter[0] = message[:id].to_s
+        iter[1] = message
+        iter[2] = message[:created].to_i
+        sid = @tl.cell_renderer_message.miracle_painter(message).signal_connect(:modified){ |mb|
+          if not @tl.destroyed?
+          @tl.model.each{ |model, path, iter|
+            if iter[0].to_i == message[:id]
+              @tl.queue_draw
+              break end }
+          else
+            @tl.cell_renderer_message.miracle_painter(message).signal_handler_disconnect(sid) end
+          false } end end
     self end
 
   def each(index=1)
@@ -126,6 +130,18 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     self end
 
   private
+
+  def emit_expose_miraclepainter
+    @exposing_miraclepainter ||= []
+    if @tl.visible_range
+      current, last = @tl.visible_range.map{ |path| @tl.model.get_iter(path) }
+      messages = Set.new
+      while current[0].to_i >= last[0].to_i
+        messages << current[1]
+        break if not current.next! end
+      (messages - @exposing_miraclepainter).each{ |exposed|
+        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) }
+      @exposing_miraclepainter = messages end end
 
   def postbox
     @postbox ||= Gtk::VBox.new end

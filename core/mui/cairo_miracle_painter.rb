@@ -15,6 +15,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   type_register
   signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, self)
+  signal_new(:expose_event, GLib::Signal::RUN_FIRST, nil, nil)
 
   include Gdk::Coordinate
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
@@ -155,6 +156,9 @@ class Gdk::MiraclePainter < GLib::Object
     return *result end
 
   def signal_do_modified(this)
+  end
+
+  def signal_do_expose_event()
   end
 
   # 更新イベントを発生させる
