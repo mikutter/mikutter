@@ -4,7 +4,7 @@
 module Gdk::Coordinate
   attr_accessor :width, :color, :icon_width, :icon_height, :icon_margin
 
-  CoordinateStruct = Struct.new(:main_icon, :main_text, :header_text)
+  CoordinateStruct = Struct.new(:main_icon, :main_text, :header_text, :reply)
   class Region
     def initialize(x, y, w, h)
       @x, @y, @w, @h = x, y, w, h end
@@ -36,15 +36,27 @@ module Gdk::Coordinate
 
   # 高さを計算して返す
   def height
+    @height ||= Hash.new
     @height[width] ||= lazy{
-      context = dummy_context
-      main_layout = main_message(context)
-      hl_layout = header_left(context)
-      context.show_pango_layout(main_layout)
-      context.show_pango_layout(hl_layout)
-      [(main_layout.size[1] + hl_layout.size[1]) / Pango::SCALE, icon_height].max + icon_margin * 2
+      [(main_message.size[1] + header_left.size[1]) / Pango::SCALE, icon_height].max + icon_margin*2 + subparts_height
     }
   end
+
+  def mainpart_height
+    @minpart_height ||= Hash.new
+    @minpart_height[width] ||= height - subparts_height - icon_margin
+  end
+
+  def reset_height
+    if(@height and @minpart_height)
+      sid = signal_connect(:modified){
+        tree.get_column(0).queue_resize
+        signal_handler_disconnect(sid) if signal_handler_is_connected?(sid)
+        false }
+      @height = @minpart_height = nil
+      on_modify
+    end
+    self end
 
   def width=(new)
     if(@width != new)
@@ -58,7 +70,6 @@ module Gdk::Coordinate
   # 寸法の初期化
   def coordinator(width, color = 24)
     @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, 24, 48, 48, 2
-    @height = Hash.new
   end
 
   # 座標系を構造体にまとめて返す

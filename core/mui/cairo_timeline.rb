@@ -108,7 +108,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       iter[2] = message[:created].to_i
       @tl.cell_renderer_message.miracle_painter(message).signal_connect(:modified){ |mb|
         @tl.model.each{ |model, path, iter|
-          if iter[0] == message[:id].to_s
+          if iter[0].to_i == message[:id]
             @tl.queue_draw
             break end }
         false

@@ -6,6 +6,8 @@ require 'cairo'
 miquire :mui, 'coordinate_module'
 miquire :mui, 'icon_over_button'
 miquire :mui, 'textselector'
+miquire :mui, 'replyviewer'
+miquire :mui, 'sub_parts_helper'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
@@ -17,11 +19,13 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::Coordinate
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
+  include Gdk::SubPartsHelper(Gdk::ReplyViewer)
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
 
   attr_reader :message, :p_message, :tree
+  alias :to_message :message
 
   @@miracle_painters = Hash.new
 
@@ -161,6 +165,19 @@ class Gdk::MiraclePainter < GLib::Object
     signal_emit(:modified, self) if event
   end
 
+  # 画面上にこれが表示されているかを返す
+  def visible?
+    if tree
+      start, last = tree.visible_range
+      if start
+        range = Range.new(*[tree.model.get_iter(last)[2], tree.model.get_iter(start)[2]].sort)
+        if(tree.vadjustment.value == 0)
+          range.first <= message.modified.to_i
+        else
+          range.include?(message.modified.to_i) end end
+    else
+      true end end
+
   private
 
   def escaped_main_text
@@ -198,6 +215,7 @@ class Gdk::MiraclePainter < GLib::Object
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
+    context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = text
     layout end
@@ -222,11 +240,12 @@ class Gdk::MiraclePainter < GLib::Object
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
 
-  # pixbufを組み立てる
+  # pixmapを組み立てる
   def gen_pixmap
     pm = Gdk::Pixmap.new(nil, width, height, color)
     render_to_context pm.create_cairo_context
-    pm end
+    pm
+  end
 
   # pixbufを組み立てる
   def gen_pixbuf
@@ -244,6 +263,7 @@ class Gdk::MiraclePainter < GLib::Object
     render_background context
     render_main_icon context
     render_main_text context
+    render_parts context
   end
 
   def render_background(context)
