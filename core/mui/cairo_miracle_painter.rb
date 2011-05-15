@@ -68,6 +68,7 @@ class Gdk::MiraclePainter < GLib::Object
     when 1
       iob_clicked
       index = main_pos_to_index(x, y)
+      p index
       if index
         links.each{ |l|
           match, range, regexp = *l
@@ -140,8 +141,7 @@ class Gdk::MiraclePainter < GLib::Object
   def main_pos_to_index(x, y)
     x -= pos.main_text.x
     y -= pos.main_text.y
-    main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
-    inside, byte, trailing = *main_pos_to_index_forclick(x, y)
+    inside, byte, trailing = *main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
     message.to_s.get_index_from_byte(byte) if inside end
 
   def main_pos_to_index_forclick(x, y)
