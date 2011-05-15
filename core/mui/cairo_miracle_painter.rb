@@ -58,22 +58,24 @@ class Gdk::MiraclePainter < GLib::Object
     textselector_press(*main_pos_to_index_forclick(x, y)[1..2])
   end
 
-  def released(x, y)
-    textselector_release(*main_pos_to_index_forclick(x, y)[1..2])
-  end
+  def released(x=nil, y=nil)
+    if(x == y and not x)
+      unselect
+    else
+      textselector_release(*main_pos_to_index_forclick(x, y)[1..2]) end end
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
   def clicked(x, y, e)
     case e.button
     when 1
       iob_clicked
-      index = main_pos_to_index(x, y)
-      p index
-      if index
-        links.each{ |l|
-          match, range, regexp = *l
-          if range.include?(index)
-            Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end
+      if not textselector_range
+        index = main_pos_to_index(x, y)
+        if index
+          links.each{ |l|
+            match, range, regexp = *l
+            if range.include?(index)
+              Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
     when 3
       menu_pop(e)
     end

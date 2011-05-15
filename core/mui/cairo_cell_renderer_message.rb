@@ -13,14 +13,22 @@ module Gtk
       super()
       @message = nil
       @miracle_painter = Hash.new
+      last_pressed = nil
       signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y, e)
         false }
       signal_connect(:button_press_event){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).pressed(cell_x, cell_y) if e.button == 1
+        if e.button == 1
+          last_pressed = miracle_painter(@tree.model.get_iter(path)[1])
+          last_pressed.pressed(cell_x, cell_y) end
         false }
       signal_connect(:button_release_event){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).released(cell_x, cell_y) if e.button == 1
+        if e.button == 1 and last_pressed
+          if(last_pressed == miracle_painter(@tree.model.get_iter(path)[1]))
+            last_pressed.released(cell_x, cell_y)
+          else
+            last_pressed.released end
+          last_pressed = nil end
         false }
       signal_connect(:motion_notify_event){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
@@ -90,6 +98,7 @@ module Gtk
         if column
           armed_column = column
           signal_emit("button_press_event", e, path, column, cell_x, cell_y) end }
+
       tree.signal_connect("button_release_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
         if column
@@ -97,8 +106,7 @@ module Gtk
           cell_y ||= -1
           signal_emit("button_release_event", e, path, column, cell_x, cell_y)
           if (column == armed_column)
-            signal_emit("click", e, path, column, cell_x, cell_y)
-          end
+            signal_emit("click", e, path, column, cell_x, cell_y) end
           armed_column = nil end } end
 
     attr_reader :message_id, :message
