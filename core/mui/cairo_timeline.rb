@@ -21,19 +21,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       @@current_tl ||= self
       set_headers_visible(false)
       last_geo = nil
-      # signal_connect(:expose_event){
-      #   if last_geo != self.window.geometry[2,2]
-      #     get_column(0).set_sizing(Gtk::TreeViewColumn::FIXED)
-      #     self.fixed_height_mode = true
-      #     Delayer.new{
-      #       get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
-      #       self.fixed_height_mode = false
-      #     }
-      #     last_geo = self.window.geometry[2,2].freeze end
-      #   false
-      # }
+      selection.mode = Gtk::SELECTION_MULTIPLE
       get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
       signal_connect(:focus_in_event){
+        @@current_tl.selection.unselect_all if @@current_tl and @@current_tl != self
         @@current_tl = self
         false } end
 
@@ -53,14 +44,6 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     end
 
     def menu_pop(widget, event)
-      # menu = []
-      # Plugin.filtering(:contextmenu, []).first.each{ |x|
-      #   cur = x.first
-      #   cur = cur.call(nil, nil) if cur.respond_to?(:call)
-      #   index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
-      #   menu[index] = x }
-      # if selection.selected
-      #   Gtk::ContextMenu.new(*menu).popup(self, Gtk::PseudoMessageWidget.new(selection.selected, event, self)) end
     end
 
     def handle_row_activated

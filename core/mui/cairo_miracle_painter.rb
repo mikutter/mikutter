@@ -133,10 +133,11 @@ class Gdk::MiraclePainter < GLib::Object
       cur = cur.call(nil, nil) if cur.respond_to?(:call)
       index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
       menu[index] = x }
-    selection = Gtk::TimeLine::InnerTL.current_tl.selection
-    if selection.selected
+    # selection = Gtk::TimeLine::InnerTL.current_tl.selection
+    # if selection.selected
       Gtk::ContextMenu.new(*menu).popup(Gtk::TimeLine::InnerTL.current_tl,
-                                        Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self)) end
+                                        Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self))
+    # end
   end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
