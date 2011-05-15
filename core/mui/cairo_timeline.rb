@@ -116,9 +116,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   def block_add(message)
     type_strict message => Message
     raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
-    iter = @tl.model.append
     if(!any?{ |m| m[:id] == message[:id] })
       scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
+      iter = @tl.model.append
       iter[0] = message[:id].to_s
       iter[1] = message
       iter[2] = message[:created].to_i
