@@ -13,7 +13,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
     super
     @icon_width, @icon_height, @margin = 24, 24, 2
     if message and not helper.visible?
-      sid = helper.signal_connect(:expose_event){
+      sid = helper.ssc(:expose_event, helper){
         helper.on_modify
         helper.signal_handler_disconnect(sid)
         false } end

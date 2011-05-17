@@ -9,20 +9,22 @@ module Gtk
     type_register
     install_property(GLib::Param::String.new("message_id", "message_id", "showing message", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
 
+    attr_reader :message_id, :message
+
     def initialize()
       super()
       @message = nil
       @miracle_painter = Hash.new
       last_pressed = nil
-      signal_connect(:click){ |r, e, path, column, cell_x, cell_y|
+      ssc(:click, lambda{ @tree }){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y, e)
         false }
-      signal_connect(:button_press_event){ |r, e, path, column, cell_x, cell_y|
+      ssc(:button_press_event, lambda{ @tree }){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1
           last_pressed = miracle_painter(@tree.model.get_iter(path)[1])
           last_pressed.pressed(cell_x, cell_y) end
         false }
-      signal_connect(:button_release_event){ |r, e, path, column, cell_x, cell_y|
+      ssc(:button_release_event, lambda{ @tree }){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1 and last_pressed
           if(last_pressed == miracle_painter(@tree.model.get_iter(path)[1]))
             last_pressed.released(cell_x, cell_y)
@@ -30,10 +32,10 @@ module Gtk
             last_pressed.released end
           last_pressed = nil end
         false }
-      signal_connect(:motion_notify_event){ |r, e, path, column, cell_x, cell_y|
+      ssc(:motion_notify_event, lambda{ @tree }){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
         false }
-      signal_connect(:leave_notify_event){ |r, e, path, column, cell_x, cell_y|
+      ssc(:leave_notify_event, lambda{ @tree }){ |r, e, path, column, cell_x, cell_y|
         miracle_painter(@tree.model.get_iter(path)[1]).point_leaved(cell_x, cell_y)
         false } end
 
@@ -78,12 +80,13 @@ module Gtk
       tree.add_events(Gdk::Event::BUTTON_PRESS_MASK|Gdk::Event::BUTTON_RELEASE_MASK)
       armed_column = nil
       last_motioned = nil
-      tree.signal_connect("leave_notify_event") { |w, e|
+      tree.ssc("leave_notify_event") { |w, e|
         if last_motioned
           signal_emit("leave_notify_event", e, *last_motioned)
-          last_motioned = nil end }
+          last_motioned = nil end
+        false }
 
-      tree.signal_connect("motion_notify_event") { |w, e|
+      tree.ssc("motion_notify_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
         if column
           armed_column = column
@@ -93,13 +96,13 @@ module Gtk
             signal_emit("leave_notify_event", e, *last_motioned) end
           last_motioned = motioned end }
 
-      tree.signal_connect("button_press_event") { |w, e|
+      tree.ssc("button_press_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
         if column
           armed_column = column
           signal_emit("button_press_event", e, path, column, cell_x, cell_y) end }
 
-      tree.signal_connect("button_release_event") { |w, e|
+      tree.ssc("button_release_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
         if column
           cell_x ||= -1
@@ -108,8 +111,6 @@ module Gtk
           if (column == armed_column)
             signal_emit("click", e, path, column, cell_x, cell_y) end
           armed_column = nil end } end
-
-    attr_reader :message_id, :message
 
     def miracle_painter(message)
       type_strict message => Message

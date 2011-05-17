@@ -84,11 +84,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
     scroll_to_top_anime = false
-    @tl.signal_connect(:expose_event){
+    @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
-    @tl.vadjustment.signal_connect(:value_changed){ |this|
-      if not(@tl.destroyed?)
+    @tl.vadjustment.ssc(:value_changed, @tl){ |this|
         emit_expose_miraclepainter
         if(scroll_to_zero? and not(scroll_to_top_anime))
           scroll_to_top_anime = true
@@ -96,7 +95,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
           Gtk.timeout_add(25){
             if not(@tl.destroyed?)
               @tl.vadjustment.value -= (scroll_speed *= 2)
-              scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end end
+              scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end
       false } end
 
   def block_add(message)
@@ -109,7 +108,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
         iter[0] = message[:id].to_s
         iter[1] = message
         iter[2] = message[:created].to_i
-        sid = @tl.cell_renderer_message.miracle_painter(message).signal_connect(:modified){ |mb|
+        sid = @tl.cell_renderer_message.miracle_painter(message).ssc(:modified, @tl){ |mb|
           if not @tl.destroyed?
           @tl.model.each{ |model, path, iter|
             if iter[0].to_i == message[:id]

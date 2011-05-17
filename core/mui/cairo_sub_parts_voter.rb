@@ -13,7 +13,7 @@ class Gdk::SubPartsVoter < Gdk::SubParts
     super
     @icon_width, @icon_height, @margin, @votes, @user_icon = 24, 24, 2, helper.message.favorited_by.to_a, Hash.new
     if not(helper.visible? or @votes.empty?)
-      sid = helper.signal_connect(:expose_event){
+      sid = helper.ssc(:expose_event){
         helper.on_modify
         helper.signal_handler_disconnect(sid)
         false } end end
