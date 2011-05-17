@@ -12,23 +12,21 @@ class Gdk::ReplyViewer < Gdk::SubParts
   def initialize(*args)
     super
     @icon_width, @icon_height, @margin = 24, 24, 2
+    if message and not helper.visible?
+      sid = helper.signal_connect(:expose_event){
+        helper.on_modify
+        helper.signal_handler_disconnect(sid)
+        false } end
   end
 
   def render(context)
-    if(message)
-      if not helper.visible?
-        sid = helper.signal_connect(:expose_event){
-          p message
-          helper.on_modify
-          helper.signal_handler_disconnect(sid)
-          false }
-      else
-        context.save{
-          context.translate(@margin, 0)
-          render_main_icon(context)
-          context.translate(@icon_width + @margin, 0)
-          context.set_source_rgb(*(UserConfig[:mumble_reply_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
-          context.show_pango_layout(main_message(context)) } end end end
+    if message and helper.visible?
+      context.save{
+        context.translate(@margin, 0)
+        render_main_icon(context)
+        context.translate(@icon_width + @margin, 0)
+        context.set_source_rgb(*(UserConfig[:mumble_reply_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
+        context.show_pango_layout(main_message(context)) } end end
 
   def height
     if helper.to_message.has_receive_message?

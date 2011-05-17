@@ -8,6 +8,7 @@ miquire :mui, 'icon_over_button'
 miquire :mui, 'textselector'
 miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_helper'
+miquire :mui, 'sub_parts_favorite'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
@@ -20,7 +21,7 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::Coordinate
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
-  include Gdk::SubPartsHelper(Gdk::ReplyViewer)
+  include Gdk::SubPartsHelper(Gdk::ReplyViewer, Gdk::SubPartsFavorite)
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
@@ -166,6 +167,9 @@ class Gdk::MiraclePainter < GLib::Object
     @pixmap = nil
     @pixbuf = nil
     @coordinate = nil
+    if(defined? @last_modify_height and @last_modify_height != height)
+      tree.get_column(0).queue_resize
+      @last_modify_height = height end
     signal_emit(:modified, self) if event
   end
 
