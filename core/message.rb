@@ -183,6 +183,10 @@ class Message < Retriever::Model
   def has_receive_message?
     self[:replyto] end
 
+  # このメッセージが何かに対するリツイートなら真
+  def retweet?
+    !!self[:retweet] end
+
   # この投稿が別の投稿に宛てられたものならそれを返す。
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
   # 親投稿を受信していなくてもこの時受信できるが、スレッドがブロッキングされる。

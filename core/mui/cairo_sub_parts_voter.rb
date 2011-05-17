@@ -11,7 +11,7 @@ class Gdk::SubPartsVoter < Gdk::SubParts
 
   def initialize(*args)
     super
-    @icon_width, @icon_height, @margin, @votes, @user_icon = 24, 24, 2, helper.message.favorited_by.to_a, Hash.new
+    @icon_width, @icon_height, @margin, @votes, @user_icon = 24, 24, 2, get_default_votes.to_a, Hash.new
     if not(helper.visible? or @votes.empty?)
       sid = helper.ssc(:expose_event){
         helper.on_modify
@@ -50,6 +50,9 @@ class Gdk::SubPartsVoter < Gdk::SubParts
       self end end
   alias << add
 
+  def label
+    "" end
+
   private
 
   def render_icon(context, user)
@@ -67,14 +70,8 @@ class Gdk::SubPartsVoter < Gdk::SubParts
     layout = context.create_pango_layout
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = "#{votes.size} fav"
+    layout.text = "#{votes.size} #{label}"
     layout
   end
-
-  Delayer.new{
-    Plugin.create(:core).add_event(:favorite){ |service, user, message|
-      Gdk::MiraclePainter.findbymessage(message).each{ |mp|
-        mp.subparts.find{ |sp| sp.class == Gdk::SubPartsFavorite }.add(user)
-        mp.on_modify } } }
 
 end

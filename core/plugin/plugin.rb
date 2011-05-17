@@ -113,6 +113,7 @@ module Plugin
 
   # ブロックの実行時間を記録しながら実行
   def self.call_routine(plugintag, event_name, kind)
+    return yield
     begin
       yield
     rescue Exception => e
@@ -229,6 +230,9 @@ _text_ に渡される。エラーメッセージが得られなかった場合�
 ユーザに情報 _mes_ を「さりげなく」提示する。 GUI プラグインがハンドルしていて、ステータスバーを
 更新する。
 
+=== retweet(Array messages)
+リツイートを受信したときに呼ばれる
+
 === favorite(Post service, User user, Message message)
 _user_ が _message_ をお気に入りに追加した時に呼ばれる。
 
@@ -342,6 +346,11 @@ Module.new do
   end
 
   never_message_filter(:update, :mention)
+
+  Plugin.create(:core).add_event(:appear){ |messages|
+    retweets = messages.select(&:retweet?)
+    if not(retweets.empty?)
+      Plugin.call(:retweet, retweets) end }
 end
 
 miquire :plugin # if defined? Test::Unit

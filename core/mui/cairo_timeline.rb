@@ -128,6 +128,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @tl.model.clear
     self end
 
+  def add_retweets(messages)
+  end
+
   private
 
   def emit_expose_miraclepainter
