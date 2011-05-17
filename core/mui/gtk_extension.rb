@@ -10,11 +10,11 @@ class GLib::Instantiatable
   # また、relatedの中に既に削除されたGLib objectがあれば、ブロックを実行せずにシグナルをselfから切り離す。
   def safety_signal_connect(signal, *related, &proc)
     related.each{ |gobj|
-      raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) or gobj.respond_to?(:call) }
+      raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
     if related
       sid = signal_connect(signal){ |*args|
         if not(destroyed?)
-          if (related.any?{ |o| (o.respond_to?(:call) ? o.call : o).destroyed? })
+          if (related.any?(&:destroyed?))
             signal_handler_disconnect(sid)
           else
             proc.call(*args) end end }
