@@ -15,7 +15,7 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
     "RT" end
 
   def name
-    :retweet end
+    :retweeted end
 
   Delayer.new{
     Plugin.create(:core).add_event(:retweet){ |retweets|

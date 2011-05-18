@@ -73,7 +73,7 @@ module Retriever
     end
 
     def <=>(other)
-      if other.respond_to?(:id)
+      if other.is_a?(Retriever)
         id - other.id
       elsif other.respond_to?(:[]) and other[:id]
         id - other[:id]
@@ -81,7 +81,7 @@ module Retriever
         id - other end end
 
     def ==(other)
-      if other.respond_to?(:id)
+      if other.is_a?(Retriever)
         id == other.id
       elsif other.respond_to?(:[]) and other[:id]
         id == other[:id]

@@ -40,18 +40,23 @@ class Gdk::SubPartsVoter < Gdk::SubParts
       icon_height end end
 
   def add(new)
-    if not @votes.include?(new)
-      before_height = height
-      @votes << new
-      if(before_height == height)
-        helper.on_modify
-      else
-        helper.reset_height end
-      self end end
+    p [:"#{name}_by_anyone_show_timeline", UserConfig[:"#{name}_by_anyone_show_timeline"]]
+    if UserConfig[:"#{name}_by_anyone_show_timeline"]
+      if not @votes.include?(new)
+        before_height = height
+        @votes << new
+        if(before_height == height)
+          helper.on_modify
+        else
+          helper.reset_height end
+        self end end end
   alias << add
 
+  def name
+    raise end
+
   def label
-    "" end
+    raise end
 
   private
 

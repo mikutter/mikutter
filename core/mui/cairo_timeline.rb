@@ -121,8 +121,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   def each(index=1)
     @tl.model.each{ |model,path,iter|
-      yield(iter[index]) if iter[index].is_a?(Message)
-    } end
+      yield(iter[index]) } end
 
   def clear
     @tl.model.clear
@@ -130,6 +129,23 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   def add_retweets(messages)
   end
+
+  def modified(message)
+    type_strict message => Message
+    mpi = get_iter_message_by(message)
+    if(mpi)
+      model, path, iter = mpi
+      iter[2] = message.modified.to_i
+      @tl.model.rows_reordered(path, iter, [0]) end
+    self end
+
+  def get_iter_message_by(message)
+    type_strict message => Message
+    id = message[:id].to_i
+    @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id } end
+
+  def destroyed?
+    @tl.destroyed? or @tl.model.destroyed? end
 
   private
 
@@ -156,4 +172,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @scroll_to_zero_lator = false
     result end
 
+  Delayer.new{
+    Plugin::create(:core).add_event(:message_modified){ |message|
+      p [:message_modified, message]
+      ObjectSpace.each_object(Gtk::TimeLine){ |tl|
+        tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } } }
 end
