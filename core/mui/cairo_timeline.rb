@@ -84,6 +84,13 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
     scroll_to_top_anime = false
+    @tl.ssc(:scroll_event){ |this, e|
+      case e.direction
+      when Gdk::EventScroll::UP
+        this.vadjustment.value -= this.vadjustment.step_increment
+      when Gdk::EventScroll::DOWN
+        this.vadjustment.value += this.vadjustment.step_increment end
+      false }
     @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
