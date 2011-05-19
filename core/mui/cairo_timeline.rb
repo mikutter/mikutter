@@ -20,6 +20,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       super
       @@current_tl ||= self
       set_headers_visible(false)
+      set_enable_search(false)
       last_geo = nil
       selection.mode = Gtk::SELECTION_MULTIPLE
       get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)

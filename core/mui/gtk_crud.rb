@@ -153,7 +153,7 @@ class Gtk::CRUD < Gtk::TreeView
                                      results[index].freeze_ifn
                                    else
                                      results[index] = new.freeze_ifn end },
-                                 scheme[:label], *(scheme[:args] or []))) end }
+                                 scheme[:label], *(scheme[:args].to_a or []))) end }
     { :widget => widget,
       :result => lambda{
         results } } end

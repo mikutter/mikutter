@@ -40,14 +40,28 @@ Module.new do
   plugin = Plugin::create(:smartthread)
 
   plugin.add_event(:boot){ |service|
-    plugin.add_event_filter(:contextmenu){ |menu|
-      menu << ['スレッドを表示',
-               lambda{ |m| m.message.repliable? },
-               lambda{ |opt|
-                 tabclass.new("Thread #{counter.call}", service,
-                              :message => opt.message,
-                              :icon => MUI::Skin.get("list.png")) } ]
-      [menu] } }
+    plugin.add_event_filter(:command){ |menu|
+      menu[:smartthread] = {
+        :slug => :smartthread,
+        :name => '会話スレッドを表示',
+        :icon => MUI::Skin.get("list.png"),
+        :condition => lambda{ |m| m.message.repliable? },
+        :exec => lambda{ |m| tabclass.new("Thread #{counter.call}", service,
+                                          :message => m.message,
+                                          :icon => MUI::Skin.get("list.png")) },
+        :visible => true,
+        :role => Set.new([:message]).freeze }
+      [menu]
+    }
+    # plugin.add_event_filter(:contextmenu){ |menu|
+    #   menu << ['スレッドを表示',
+    #            lambda{ |m| m.message.repliable? },
+    #            lambda{ |opt|
+    #              tabclass.new("Thread #{counter.call}", service,
+    #                           :message => opt.message,
+    #                           :icon => MUI::Skin.get("list.png")) } ]
+    #   [menu] }
+  }
 
   plugin.add_event(:appear){ |messages|
     tabclass.tabs.each{ |tab|

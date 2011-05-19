@@ -138,14 +138,20 @@ module Mtk
     return container
   end
 
-  def self.keyconfig(title, key)
-    keyconfig = Gtk::KeyConfig.new(title, UserConfig[key])
+  def self.keyconfig(key, title)
+    if key.respond_to?(:call)
+      proc = key
+    else
+      proc = lambda{ |new|
+        if new
+          UserConfig[key] = new
+        else
+          UserConfig[key].to_s end } end
+    keyconfig = Gtk::KeyConfig.new(title, proc.call(nil))
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(title), false, true, 0)
     container.closeup(keyconfig.right)
-    keyconfig.change_hook = lambda{ |keycode|
-      UserConfig[key] = keycode
-    }
+    keyconfig.change_hook = proc
     return container
   end
 

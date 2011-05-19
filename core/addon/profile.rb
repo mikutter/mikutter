@@ -221,6 +221,28 @@ Module.new do
   private
 
   def self.set_contextmenu(plugin, service)
+
+    plugin.add_event_filter(:command){ |menu|
+      menu[:show_profile] = {
+        :slug => :show_profile,
+        :name => 'ユーザについて',
+        :show_face => lambda{ |m|
+          u = if(m.message[:retweet])
+                m.message[:retweet].user
+              else
+                m.message.user end
+          "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
+        :condition => lambda{ |m| m.message.repliable? },
+        :exec => lambda{ |m|
+          user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
+          makescreen(user, service) },
+        :visible => true,
+        :role => Set.new([:message]).freeze }
+      [menu]
+    }
+
+    return
+
     plugin.add_event_filter(:contextmenu){ |menu|
       menu << [lambda{ |m, w|
                  if(nil == m and nil == w)

@@ -130,18 +130,17 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
   def menu_pop(event)
-    menu = []
-    filter = if textselector_range
-               :contextmenu_text_selected
-             else
-               :contextmenu end
-    Plugin.filtering(filter, []).first.each{ |x|
-      cur = x.first
-      cur = cur.call(nil, nil) if cur.respond_to?(:call)
-      index = where_should_insert_it(cur, menu, UserConfig[:mumble_contextmenu_order] || [])
-      menu[index] = x }
-    Gtk::ContextMenu.new(*menu).popup(Gtk::TimeLine::InnerTL.current_tl,
-                                      Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self)) end
+    labels = []
+    contextmenu = []
+    role = :message
+    role = :message_select if textselector_range and Gtk::TimeLine.get_active_mumbles.size == 1
+    Plugin.filtering(:command, Hash.new).first.values.each{ |record|
+      if(record[:visible] and (record[:role] || EMPTY).include?(role))
+        index = where_should_insert_it(record[:slug], labels, UserConfig[:mumble_contextmenu_order] || [])
+        labels[index] = record[:slug]
+        contextmenu[index] = [record[:show_face] || record[:name], lambda{ |x| record[:condition] === x }, record[:exec]] end }
+    Gtk::ContextMenu.new(*contextmenu).popup(Gtk::TimeLine::InnerTL.current_tl,
+                                             Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self)) end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)
@@ -319,13 +318,13 @@ class Gdk::MiraclePainter < GLib::Object
         findbymessage(message).each{ |mp|
           mp.on_modify } end }
 
-    Plugin.create(:core).add_event_filter(:contextmenu_text_selected){ |menu|
-      menu << ['コピー',
-               lambda{ |opt| true },
-               lambda{ |opt|
-                 Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) } ]
-      [menu]
-    }
+    # Plugin.create(:core).add_event_filter(:contextmenu_text_selected){ |menu|
+    #   menu << ['コピー',
+    #            lambda{ |opt| true },
+    #            lambda{ |opt|
+    #              Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) } ]
+    #   [menu]
+    # }
   }
 
 end
