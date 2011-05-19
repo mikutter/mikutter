@@ -78,16 +78,19 @@ Module.new do
 
   plugin = Plugin::create(:shortcutkey)
   plugin.add_event(:keypress){ |key|
-    keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
-    commands = lazy{ Plugin.filtering(:command, Hash.new).first }
-    arg = Gdk::MiraclePainter::Event.new(nil, Gtk::TimeLine.get_active_mumbles.to_a.first, Gtk::TimeLine::InnerTL.current_tl, nil)
-    keybinds.values.each{ |behavior|
-      if behavior[:key] == key and (commands[behavior[:slug]][:role] || []).include?(:message)
-        if commands[behavior[:slug]][:condition] === arg
-          commands[behavior[:slug]][:exec].call(arg)
+    active_mumble = Gtk::TimeLine.get_active_mumbles.to_a.first
+    if active_mumble
+      keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
+      commands = lazy{ Plugin.filtering(:command, Hash.new).first }
+      arg = Gdk::MiraclePainter::Event.new(nil, active_mumble, Gtk::TimeLine::InnerTL.current_tl, nil)
+      keybinds.values.each{ |behavior|
+        if behavior[:key] == key and (commands[behavior[:slug]][:role] || []).include?(:message)
+          if commands[behavior[:slug]][:condition] === arg
+            commands[behavior[:slug]][:exec].call(arg)
+          end
         end
-      end
-    }
+      }
+    end
   }
 
 end
