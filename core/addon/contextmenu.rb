@@ -12,7 +12,7 @@ Module.new do
     #   :description => コマンドの説明。
     #   :visible => 真理値。コンテキストメニューに表示するかどうかのフラグ
     #   :icon => アイコン。Gdk::Pixbufかファイル名をStringで
-    #   :role => 実行できる環境の配列。以下のうちの何れかを含む
+    #   :role => 実行できる環境の配列。以下のうちの何れか1つ
     #            :message        messageを右クリックしたとき
     #            :message_select messageのテキストが選択されたとき
     #            :timeline       タイムラインを右クリックしたとき
@@ -30,7 +30,17 @@ Module.new do
 
   end
 
-  ROLE_MESSAGE = Set.new([:message]).freeze
+  ROLE_MESSAGE = :message
+  ROLE_MESSAGE_SELECTED = :message_select
+  ROLE_TIMELINE = :timeline
+  ROLE_POSTBOX = :postbox
+
+  define_command(:copy_selected_region,
+                 :name => 'コピー',
+                 :condition => lambda{ |m| true },
+                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE_SELECTED )
 
   define_command(:copy_description,
                  :name => '本文をコピー',
@@ -67,6 +77,13 @@ Module.new do
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
+  define_command(:favorite,
+                 :name => 'ふぁぼふぁぼする',
+                 :condition => lambda{ |m| m.message.favoritable? },
+                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(true)} },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
+
   define_command(:delete,
                  :name => '削除',
                  :condition => lambda{ |m| Gtk::TimeLine.get_active_mumbles.all?{ |e| e.message.from_me? } },
@@ -88,11 +105,37 @@ Module.new do
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
-  define_command(:copy_selected_region,
-                 :name => 'コピー',
-                 :condition => lambda{ |m| true },
-                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
-                 :visible => true,
-                 :role => Set.new([:message_select]) )
+  define_command(:select_prev,
+                 :name => 'ひとつ上のつぶやきを選択',
+                 :condition => lambda{ |tl| true },
+                 :exec => lambda{ |tl|
+                   path = tl.get_active_pathes.first
+                   if path
+                     if path.prev!
+                       tl.selection.select_path(path)
+                       path.next!
+                       tl.selection.unselect_path(path) end end },
+                 :visible => false,
+                 :role => ROLE_TIMELINE )
+
+  define_command(:select_next,
+                 :name => 'ひとつ下のつぶやきを選択',
+                 :condition => lambda{ |tl| true },
+                 :exec => lambda{ |tl|
+                   path = tl.get_active_pathes.first
+                   if path
+                     if path.next!
+                       tl.selection.select_path(path)
+                       path.prev!
+                       tl.selection.unselect_path(path) end end },
+                 :visible => false,
+                 :role => ROLE_TIMELINE )
+
+  define_command(:post_it,
+                 :name => '投稿する',
+                 :condition => lambda{ |postbox| postbox.post.editable? },
+                 :exec => :post_it.to_proc,
+                 :visible => false,
+                 :role => ROLE_POSTBOX )
 
 end

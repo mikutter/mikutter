@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 require 'gtk2'
 
 miquire :mui, 'crud'
@@ -14,7 +16,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     attr_accessor :postbox
 
     def self.current_tl
-      @@current_tl end
+      ctl = @@current_tl and @@current_tl.toplevel.focus.get_ancestor(Gtk::TimeLine::InnerTL) rescue nil
+      ctl if(ctl.is_a?(Gtk::TimeLine::InnerTL))
+    end
 
     def initialize
       super
@@ -51,14 +55,31 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     end
 
     def reply(message, options = {})
-      message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
-      message = message[1] if(message.is_a?(Gtk::TreeIter))
-      type_strict message => Message
-      postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
-      pb.on_delete(&Proc.new) if block_given?
-      get_ancestor(Gtk::Window).set_focus(pb.post)
-      InnerTL.current_tl.selection.unselect_all
+      ctl = InnerTL.current_tl
+      if(ctl)
+        message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
+        message = message[1] if(message.is_a?(Gtk::TreeIter))
+        type_strict message => Message
+        postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+        pb.on_delete(&Proc.new) if block_given?
+        get_ancestor(Gtk::Window).set_focus(pb.post)
+        ctl.selection.unselect_all end
       self end
+
+    def get_active_messages
+      get_active_iterators.map{ |iter| iter[1] } end
+
+    def get_active_iterators
+      selected = []
+      selection.selected_each{ |model, path, iter|
+        selected << iter }
+      selected end
+
+    def get_active_pathes
+      selected = []
+      selection.selected_each{ |model, path, iter|
+        selected << path }
+      selected end
 
   end
 
@@ -67,11 +88,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   }
 
   def self.get_active_mumbles
-    selected = Set.new
-    if InnerTL.current_tl
-      InnerTL.current_tl.selection.selected_each{ |model, path, iter|
-        selected << iter[1] } end
-    selected end
+    if Gtk::TimeLine::InnerTL.current_tl
+      InnerTL.current_tl.get_active_messages
+    else
+      [] end end
 
   @@tls = WeakSet.new
 

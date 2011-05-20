@@ -50,7 +50,7 @@ Module.new do
                                           :message => m.message,
                                           :icon => MUI::Skin.get("list.png")) },
         :visible => true,
-        :role => Set.new([:message]).freeze }
+        :role => :message }
       [menu]
     }
     # plugin.add_event_filter(:contextmenu){ |menu|

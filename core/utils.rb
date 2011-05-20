@@ -245,8 +245,8 @@ end
 #   type_check object => tcor(Array, Hash)
 def type_check(args, &proc)
   check_function = lambda{ |val, check|
-    if check.nil?
-      nil
+    if not check
+      true
     elsif check.respond_to?(:call)
       check.call(val)
     elsif check.is_a? Array

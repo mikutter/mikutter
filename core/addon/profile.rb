@@ -237,7 +237,7 @@ Module.new do
           user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
           makescreen(user, service) },
         :visible => true,
-        :role => Set.new([:message]).freeze }
+        :role => :message }
       [menu]
     }
 

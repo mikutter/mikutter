@@ -68,6 +68,79 @@ module Addon
         @timeline = Gtk::TimeLine.new
         @header = (@options[:header] or Gtk::HBox.new)
         Gtk::VBox.new(false, 0).closeup(@header).add(@timeline) end end end
+
+=begin rdoc
+  コマンド関連のユーティリティ
+=end
+  module Command
+
+    # キー _key_ に関連付けられたコマンドを全て実行する。
+    # コマンドを一つでも実行したらtrueを返す
+    def self.call_keypress_event(key, defaults = {})
+      tl, active_mumble, miracle_painter, postbox, valid_roles = tampr(defaults)
+      executed = false
+      keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
+      commands = lazy{ Plugin.filtering(:command, Hash.new).first }
+      arg = lazy{ Gdk::MiraclePainter::Event.new(nil, active_mumble, tl, miracle_painter) }
+      options = {
+        :message => arg,
+        :message_select => arg,
+        :timeline => tl,
+        :postbox => postbox }
+      keybinds.values.each{ |behavior|
+        if behavior[:key] == key
+          cmd = commands[behavior[:slug]]
+          if(valid_roles.include?(cmd[:role]))
+            option = options[cmd[:role]]
+            if cmd[:condition] === option
+              executed = true
+              cmd[:exec].call(option) end end end }
+      executed end
+
+    # 有効なロールを返す。
+    # :timeline Gtk::TimeLineがアクティブであるなら
+    # :message active_mumbleとmiracle_painterが真なら
+    # :message_select :messageが真であり、なおかつつぶやきのテキストが選択状態であるなら
+    # :postbox postboxがアクティブであるなら
+    def self.get_valid_roles(focus, tl, active_mumble, miracle_painter, postbox)
+      valid_roles = Set.new
+      if tl
+        valid_roles << :timeline end
+      if active_mumble and miracle_painter
+        valid_roles << :message
+        if tl.cell_renderer_message.miracle_painter(active_mumble).textselector_range
+          valid_roles << :message_select end end
+      if postbox
+        valid_roles << :postbox end
+      valid_roles.freeze
+    end
+
+    # _tl_ , _active_mumble_ , _miracle_painter_ , _postbox_ , _roles_ の6つの値を返す。
+    # 名前の由来は返す値の頭文字で読み方は「タンパー」ってところまで考えてそんな裏設定いらねえだろと我に帰った。
+    # どうせこのユーティリティの存在すら、すぐに忘れちゃうんだろうし。
+    # *tl* 現在フォーカスされているタイムライン(Gtk::TimeLine::InnerTL)
+    # *active_mumble* 選択されているメッセージ（代表一つ）(Message)
+    # *miracle_painter* _active_mumble_ のレンダー(Gdk::MiraclePainter)
+    # *postbox* 現在フォーカスされているPostBox(Gtk::PostBox)
+    # *roles* 実行してもよいコマンドのロールのリスト
+    def self.tampr(defaults={})
+      t, a, m, p, r = tampr = _tampr(defaults)
+      type_strict t => (t and Gtk::TimeLine::InnerTL), a => (a and Message), m => (m and Gdk::MiraclePainter), p => (p and Gtk::PostBox), r => (r and Set)
+      tampr
+    end
+
+    def self._tampr(defaults={})
+      type_strict defaults => Hash
+      focus = defaults[:focus] || Plugin.filtering(:get_windows, []).first.focus
+      tl = defaults[:tl] || Gtk::TimeLine::InnerTL.current_tl
+      active_mumble = defaults[:message] || Gtk::TimeLine.get_active_mumbles.to_a.first
+      miracle_painter = defaults[:miracle_painter] || ((active_mumble and tl) ? tl.cell_renderer_message.miracle_painter(active_mumble) : false)
+      postbox = defaults[:postbox] || (focus ? focus.get_ancestor(Gtk::PostBox) : false)
+      [tl, active_mumble, miracle_painter, postbox, get_valid_roles(focus, tl, active_mumble, miracle_painter, postbox)].freeze
+    end
+
+  end
+
 end
 
 

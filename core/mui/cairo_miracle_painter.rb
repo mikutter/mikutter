@@ -130,17 +130,17 @@ class Gdk::MiraclePainter < GLib::Object
   end
 
   def menu_pop(event)
+    tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr(:message => message, :miracle_painter => self)
     labels = []
     contextmenu = []
-    role = :message
-    role = :message_select if textselector_range and Gtk::TimeLine.get_active_mumbles.size == 1
     Plugin.filtering(:command, Hash.new).first.values.each{ |record|
-      if(record[:visible] and (record[:role] || EMPTY).include?(role))
+      if(record[:visible] and valid_roles.include?(record[:role]))
         index = where_should_insert_it(record[:slug], labels, UserConfig[:mumble_contextmenu_order] || [])
-        labels[index] = record[:slug]
-        contextmenu[index] = [record[:show_face] || record[:name], lambda{ |x| record[:condition] === x }, record[:exec]] end }
-    Gtk::ContextMenu.new(*contextmenu).popup(Gtk::TimeLine::InnerTL.current_tl,
-                                             Event.new(event, message, Gtk::TimeLine::InnerTL.current_tl, self)) end
+        labels.insert(index, record[:slug])
+        contextmenu.insert(index, [record[:show_face] || record[:name], lambda{ |x| record[:condition] === x }, record[:exec]]) end }
+    Gtk::ContextMenu.new(*contextmenu).popup(tl,
+                                             Event.new(event, active_mumble, tl, miracle_painter))
+  end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す
   def main_pos_to_index(x, y)

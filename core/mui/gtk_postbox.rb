@@ -51,38 +51,6 @@ module Gtk
       elsif defined? @on_delete
         @on_delete.call end end
 
-    private
-
-    def postable?
-      not(@post.buffer.text.empty?) and (/[^\s]/ === @post.buffer.text) end
-
-    def start_post
-      Gtk::Lock.synchronize{
-        @posting = true
-        post.editable = false
-        [post, send].compact.each{|widget| widget.sensitive = false }
-        tool.sensitive = true } end
-
-    def end_post
-      @posting = false
-      post.editable = true
-      [post, send].compact.each{|widget| widget.sensitive = true } end
-
-    def delegate
-      Gtk::Lock.synchronize{
-        if(@options[:postboxstorage] and @options[:delegate_other])
-          options = @options.clone
-          options[:delegate_other] = false
-          options[:delegated_by] = self
-          @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
-          true end } end
-
-    def service
-      if UserConfig[:legacy_retweet_act_as_reply]
-        @watch
-      else
-        (retweet? ? @watch.service : @watch) end end
-
     def post_it
       if postable? then
         if(@options[:postboxstorage])
@@ -105,6 +73,39 @@ module Gtk
             Delayer.new{ end_post }
           when :success
             Delayer.new{ destroy } end } end end
+
+    private
+
+    def postable?
+      not(@post.buffer.text.empty?) and (/[^\s]/ === @post.buffer.text) end
+
+    def start_post
+      if not(frozen? or destroyed?)
+        @posting = true
+        post.editable = false
+        [post, send].compact.each{|widget| widget.sensitive = false }
+        tool.sensitive = true end end
+
+    def end_post
+      if not(frozen? or destroyed?)
+        @posting = false
+        post.editable = true
+        [post, send].compact.each{|widget| widget.sensitive = true } end end
+
+    def delegate
+      Gtk::Lock.synchronize{
+        if(@options[:postboxstorage] and @options[:delegate_other])
+          options = @options.clone
+          options[:delegate_other] = false
+          options[:delegated_by] = self
+          @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
+          true end } end
+
+    def service
+      if UserConfig[:legacy_retweet_act_as_reply]
+        @watch
+      else
+        (retweet? ? @watch.service : @watch) end end
 
     def post_is_empty?
       frozen? and @post.buffer.text == "" or
@@ -201,10 +202,12 @@ module Gtk
       post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       post.border_width = 2
       post.signal_connect('key_press_event'){ |widget, event|
-          if(widget.editable? and
-             Gtk::keyname([event.keyval ,event.state]) == UserConfig[:mumble_post_key])
-            post_it
-            true end }
+        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self)
+          # if(widget.editable? and
+          #    Gtk::keyname([event.keyval ,event.state]) == UserConfig[:mumble_post_key])
+          #   post_it
+          #   true end
+      }
       post.signal_connect('key_release_event'){ |textview, event|
         w_remain.set_text(remain_charcount.to_s)
         send.sensitive = postable?

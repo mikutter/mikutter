@@ -45,7 +45,7 @@ class UserConfig
     :anti_retrieve_fail => false,
 
     # つぶやきを投稿するキー
-    :mumble_post_key => "Control + Return",
+    :shortcutkey_keybinds => {1 => {:key => "Control + Return", :name => '投稿する', :slug => :post_it}},
 
     # リクエストをリトライする回数
     :message_retry_limit => 10,
