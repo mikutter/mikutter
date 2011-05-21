@@ -53,26 +53,6 @@ module Gdk
     def get_arange(astr, range)
       Range.new(get_aindex(astr, range.first), get_aindex(astr, range.last)) end
 
-    # def arange_split(astr, range)
-    #   result = []
-    #   arange = get_arange(astr, range)
-    #   start = arange.first
-    #   level = 0
-    #   arange.each{ |i|
-    #     case astr[i]
-    #     when /<\/.*?>/
-    #       if level <= 0
-    #         if start <= i-1
-    #           result << Range.new(start, i)
-    #           start = i+1 end
-    #       else
-    #         level -= 1 end
-    #     when /<.*?>/
-    #       level += 1 end }
-    #   if start < arange.last
-    #     result << Range.new(start, arange.last) end
-    #   result end
-
     def arange_split(astr, range)
       result, stack, arange = [], [], get_arange(astr, range)
       start = arange.first
@@ -95,7 +75,8 @@ module Gdk
       result end
 
     def markup(str, range, s, e)
-      astr = str.matches(/<.*?>|./)
+      astr = str.matches(/<.*?>|./m)
+      p astr
       arange_split(astr, range).reverse_each{ |arange|
         astr.insert(arange.last, e)
         astr.insert(arange.first, s)

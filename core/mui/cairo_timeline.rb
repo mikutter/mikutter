@@ -13,7 +13,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   class InnerTL < Gtk::CRUD
     attr_accessor :postbox
-    type_register
+    type_register('GtkInnerTL')
 
     def self.current_tl
       ctl = @@current_tl and @@current_tl.toplevel.focus.get_ancestor(Gtk::TimeLine::InnerTL) rescue nil
