@@ -185,6 +185,12 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     self
   end
 
+  # つぶやきが削除されたときに呼ばれる
+  def remove_if_exists_all(messages)
+    messages.each{ |message|
+      mpi = get_iter_message_by(message)
+      @tl.model.remove(mpi[2]) if mpi } end
+
   def get_iter_message_by(message)
     type_strict message => Message
     id = message[:id].to_i
@@ -219,10 +225,14 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     result end
 
   Delayer.new{
-    Plugin::create(:core).add_event(:message_modified){ |message|
-      p [:message_modified, message]
+    plugin = Plugin::create(:core)
+    plugin.add_event(:message_modified){ |message|
       ObjectSpace.each_object(Gtk::TimeLine){ |tl|
-        tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } } }
+        tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } }
+    plugin.add_event(:destroyed){ |messages|
+      ObjectSpace.each_object(Gtk::TimeLine){ |tl|
+        tl.remove_if_exists_all(messages) } }
+  }
 
   Gtk::RC.parse_string <<EOS
 style "timelinestyle"
