@@ -136,7 +136,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
         iter = @tl.model.append
         iter[0] = message[:id].to_s
         iter[1] = message
-        iter[2] = message[:created].to_i
+        iter[2] = message.modified.to_i
         sid = @tl.cell_renderer_message.miracle_painter(message).ssc(:modified, @tl){ |mb|
           if not @tl.destroyed?
           @tl.model.each{ |model, path, iter|
@@ -157,6 +157,11 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     self end
 
   def add_retweets(messages)
+    messages.each{ |message|
+      if not include?(message.retweet_source)
+        block_add(message.retweet_source)
+      end
+    }
   end
 
   def modified(message)
