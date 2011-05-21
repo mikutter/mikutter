@@ -202,24 +202,13 @@ module Gtk
       post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       post.border_width = 2
       post.signal_connect('key_press_event'){ |widget, event|
-        r = Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self)
-        p [r, Gtk::keyname([event.keyval ,event.state])]
-        r
-      }
+        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       post.signal_connect('key_release_event'){ |textview, event|
         w_remain.set_text(remain_charcount.to_s)
         send.sensitive = postable?
         tool.sensitive = destructible? if tool
         false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
-      post.signal_connect_after('focus_in_event'){
-        Delayer.new{ Gtk::Mumble.inactive } if defined? Gtk::Mumble
-        # mumble = get_ancestor(Gtk::Mumble.superclass)
-        # if mumble.is_a? Gtk::Mumble
-        #   mumble.active
-        # else
-        #   Gtk::Mumble.inactive end
-      }
       return post, w_remain end
 
     def generate_send

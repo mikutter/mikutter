@@ -87,7 +87,6 @@ module Addon
         :message_select => arg,
         :timeline => tl,
         :postbox => postbox }
-      p valid_roles
       keybinds.values.each{ |behavior|
         if behavior[:key] == key
           cmd = commands[behavior[:slug]]

@@ -21,9 +21,9 @@ module Gtk::TimeLineUtils
       def get_active_mumbles
         Set.new end
 
-      alias :old_new :new
+      alias :old_new_Ak6FV :new
       def new
-        result = old_new
+        result = old_new_Ak6FV
         (@timelines ||= WeakSet.new) << result
         result end
 

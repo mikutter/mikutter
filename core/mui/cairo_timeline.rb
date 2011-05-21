@@ -13,6 +13,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   class InnerTL < Gtk::CRUD
     attr_accessor :postbox
+    type_register
 
     def self.current_tl
       ctl = @@current_tl and @@current_tl.toplevel.focus.get_ancestor(Gtk::TimeLine::InnerTL) rescue nil
@@ -21,8 +22,8 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
     def initialize
       super
-      set_property('name', 'timeline')
       @@current_tl ||= self
+      self.name = 'timeline'
       set_headers_visible(false)
       set_enable_search(false)
       last_geo = nil
@@ -207,12 +208,12 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
         tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } } }
 
   Gtk::RC.parse_string <<EOS
-style "timeline-style"
+style "timelinestyle"
 {
   GtkTreeView::vertical-separator = 0
   GtkTreeView::horizontal-separator = 0
 }
-widget "*.timeline" style "timeline-style"
+widget "*.timeline" style "timelinestyle"
 EOS
 
 end
