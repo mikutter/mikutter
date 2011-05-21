@@ -188,16 +188,11 @@ class Gdk::MiraclePainter < GLib::Object
 
   private
 
-  ESCAPE_RULE = {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}.freeze
-
-  def escape_text(text)
-    text.gsub(/[<>&]/){|m| ESCAPE_RULE[m] } end
-
   def escaped_main_text
-    escape_text(message.to_show) end
+    Pango.escape(message.to_show) end
 
   def styled_main_array
-    splited = message.to_show.split(//u).map{ |s| ESCAPE_RULE[s] || s }
+    splited = message.to_show.split(//u).map{ |s| Pango::ESCAPE_RULE[s] || s }
     links.reverse_each{ |l|
       match, range, regexp = l
       splited[range] = '<span underline="single" underline_color="#000000">'+"#{match.to_s}</span>"
@@ -235,7 +230,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
-    attr_list, text = Pango.parse_markup("<b>#{message[:user][:idname]}</b> #{message[:user][:name]}")
+    attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
     layout = context.create_pango_layout
     layout.attributes = attr_list
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
@@ -244,7 +239,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
   def header_right(context = dummy_context)
-    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{message[:created].strftime('%H:%M:%S')}</span>")
+    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(message[:created].strftime('%H:%M:%S'))}</span>")
     layout = context.create_pango_layout
     layout.attributes = attr_list
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
@@ -333,4 +328,23 @@ class Gdk::MiraclePainter < GLib::Object
   }
 
 end
+
+module Pango
+  ESCAPE_RULE = {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}.freeze
+  class << self
+
+    # テキストをPango.parse_markupで安全にパースできるようにエスケープする。
+    def escape(text)
+      text.gsub(/[<>&]/){|m| Pango::ESCAPE_RULE[m] } end
+
+    alias old_parse_markup parse_markup
+
+    # パースエラーが発生した場合、その文字列をerrorで印字する。
+    def parse_markup(str)
+      begin
+        old_parse_markup(str)
+      rescue GLib::Error => e
+        error str
+        raise e end end end end
+
 # ~> -:6: undefined method `miquire' for main:Object (NoMethodError)

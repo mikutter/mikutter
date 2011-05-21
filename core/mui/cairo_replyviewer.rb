@@ -54,8 +54,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
         result }.call end end
 
   def escaped_main_text
-    message.to_show.gsub(/[<>&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}[$0] }.freeze end
-  memoize :escaped_main_text
+    Pango.escape(message.to_show) end
 
   def main_message(context = dummy_context)
     attr_list, text = Pango.parse_markup(escaped_main_text)

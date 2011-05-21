@@ -113,6 +113,7 @@ Module.new do
                    if path
                      if path.prev!
                        tl.selection.select_path(path)
+                       tl.scroll_to_cell(path, tl.get_column(0), false, 0.0, 0.0)
                        path.next!
                        tl.selection.unselect_path(path) end end },
                  :visible => false,
@@ -126,6 +127,7 @@ Module.new do
                    if path
                      if path.next!
                        tl.selection.select_path(path)
+                       tl.scroll_to_cell(path, tl.get_column(0), false, 1.0, 0.0)
                        path.prev!
                        tl.selection.unselect_path(path) end end },
                  :visible => false,
