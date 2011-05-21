@@ -78,6 +78,9 @@ Module.new do
 
   plugin = Plugin::create(:shortcutkey)
   plugin.add_event(:keypress){ |key|
-    Addon::Command.call_keypress_event(key) }
+    tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr
+    type_check(tl => (tl and Gtk::TimeLine::InnerTL), active_mumble => (active_mumble and Message), miracle_painter => (miracle_painter and Gdk::MiraclePainter), postbox => (postbox and Gtk::PostBox)){
+      if not(valid_roles.include?(:postbox))
+        Addon::Command.call_keypress_event(key, :tl => tl, :message => active_mumble, :miracle_painter => miracle_painter, :postbox => postbox) end } }
 
 end
