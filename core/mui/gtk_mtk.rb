@@ -5,6 +5,7 @@ miquire :mui, 'extension'
 miquire :mui, 'message_picker'
 miquire :mui, 'crud'
 miquire :mui, 'keyconfig'
+miquire :mui, 'selectbox'
 
 require 'gtk2'
 
