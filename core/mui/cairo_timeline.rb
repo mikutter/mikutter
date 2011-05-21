@@ -12,7 +12,6 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   include Gtk::TimeLineUtils
 
   class InnerTL < Gtk::CRUD
-
     attr_accessor :postbox
 
     def self.current_tl
@@ -22,6 +21,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
     def initialize
       super
+      set_property('name', 'timeline')
       @@current_tl ||= self
       set_headers_visible(false)
       set_enable_search(false)
@@ -205,4 +205,14 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       p [:message_modified, message]
       ObjectSpace.each_object(Gtk::TimeLine){ |tl|
         tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } } }
+
+  Gtk::RC.parse_string <<EOS
+style "timeline-style"
+{
+  GtkTreeView::vertical-separator = 0
+  GtkTreeView::horizontal-separator = 0
+}
+widget "*.timeline" style "timeline-style"
+EOS
+
 end

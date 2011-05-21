@@ -267,6 +267,16 @@ class Gdk::MiraclePainter < GLib::Object
       @main_icon = pixbuf
       on_modify } end
 
+  # 背景色を返す
+  def get_backgroundcolor
+    color = if(message.from_me?)
+              UserConfig[:mumble_self_bg]
+            elsif(message.to_me?)
+              UserConfig[:mumble_reply_bg]
+            else
+              UserConfig[:mumble_basic_bg] end
+    color.map{ |c| c.to_f / 65536 } end
+
   # Graphic Context にパーツを描画
   def render_to_context(context)
     render_background context
@@ -277,7 +287,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   def render_background(context)
     context.save{
-      context.set_source_rgb(1,1,1)
+      context.set_source_rgb(*get_backgroundcolor)
       context.rectangle(0,0,width,height)
       context.fill
     }
@@ -318,13 +328,6 @@ class Gdk::MiraclePainter < GLib::Object
         findbymessage(message).each{ |mp|
           mp.on_modify } end }
 
-    # Plugin.create(:core).add_event_filter(:contextmenu_text_selected){ |menu|
-    #   menu << ['コピー',
-    #            lambda{ |opt| true },
-    #            lambda{ |opt|
-    #              Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) } ]
-    #   [menu]
-    # }
   }
 
 end

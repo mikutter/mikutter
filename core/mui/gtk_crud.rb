@@ -7,7 +7,6 @@ miquire :mui, 'contextmenu'
 
 # CRUDなリストビューを簡単に実現するためのクラス
 class Gtk::CRUD < Gtk::TreeView
-
   attr_accessor :creatable, :updatable, :deletable
 
   def initialize

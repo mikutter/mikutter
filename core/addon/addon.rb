@@ -87,6 +87,7 @@ module Addon
         :message_select => arg,
         :timeline => tl,
         :postbox => postbox }
+      p valid_roles
       keybinds.values.each{ |behavior|
         if behavior[:key] == key
           cmd = commands[behavior[:slug]]
@@ -111,7 +112,7 @@ module Addon
         if tl.cell_renderer_message.miracle_painter(active_mumble).textselector_range
           valid_roles << :message_select end end
       if postbox
-        valid_roles << :postbox end
+        valid_roles.clear << :postbox end
       valid_roles.freeze
     end
 

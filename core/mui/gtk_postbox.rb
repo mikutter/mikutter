@@ -202,11 +202,9 @@ module Gtk
       post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       post.border_width = 2
       post.signal_connect('key_press_event'){ |widget, event|
-        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self)
-          # if(widget.editable? and
-          #    Gtk::keyname([event.keyval ,event.state]) == UserConfig[:mumble_post_key])
-          #   post_it
-          #   true end
+        r = Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self)
+        p [r, Gtk::keyname([event.keyval ,event.state])]
+        r
       }
       post.signal_connect('key_release_event'){ |textview, event|
         w_remain.set_text(remain_charcount.to_s)
