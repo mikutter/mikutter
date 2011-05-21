@@ -188,19 +188,24 @@ class Gdk::MiraclePainter < GLib::Object
 
   private
 
-  def escaped_main_text
-    message.to_show.gsub(/[<>&]/){|m| {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}[$0] }.freeze end
-  memoize :escaped_text
+  ESCAPE_RULE = {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}.freeze
 
-  def styled_main_text
-    result = escaped_main_text.dup
+  def escape_text(text)
+    text.gsub(/[<>&]/){|m| ESCAPE_RULE[m] } end
+
+  def escaped_main_text
+    escape_text(message.to_show) end
+
+  def styled_main_array
+    splited = message.to_show.split(//u).map{ |s| ESCAPE_RULE[s] || s }
     links.reverse_each{ |l|
       match, range, regexp = l
-      splited = result.split(//u)
       splited[range] = '<span underline="single" underline_color="#000000">'+"#{match.to_s}</span>"
-      result = splited.join('') }
-    result end
-  memoize :styled_main_text
+    }
+    splited end
+
+  def styled_main_text
+    styled_main_array.join end
 
   # [[MatchData, 開始位置と終了位置のRangeオブジェクト(文字数), Regexp], ...] の配列を返す
   def links
@@ -308,13 +313,10 @@ class Gdk::MiraclePainter < GLib::Object
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(context)
       context.show_pango_layout(hl_layout)
-      context.show_pango_layout(header_right(context))
-    }
+      context.show_pango_layout(header_right(context)) }
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)
-      context.show_pango_layout(main_message(context))
-    }
-  end
+      context.show_pango_layout(main_message(context)) } end
 
   Delayer.new{
     Plugin.create(:core).add_event(:posted){ |service, messages|

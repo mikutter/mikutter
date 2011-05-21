@@ -33,6 +33,7 @@ module Gdk
       self end
 
     def textselector_markup(styled_text)
+      type_strict styled_text => String
       if textselector_range
         markup(styled_text, textselector_range, '<span background="#000000" foreground="#ffffff">', '</span>')
       else
@@ -75,8 +76,8 @@ module Gdk
       result end
 
     def markup(str, range, s, e)
-      astr = str.matches(/<.*?>|./m)
-      p astr
+      type_strict str => String
+      astr = str.matches(/<.*?>|&(?:gt|lt|amp);|./m)
       arange_split(astr, range).reverse_each{ |arange|
         astr.insert(arange.last, e)
         astr.insert(arange.first, s)
