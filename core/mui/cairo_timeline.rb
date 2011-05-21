@@ -84,6 +84,8 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   end
 
+  attr_reader :tl
+
   addlinkrule(URI.regexp(['http','https'])){ |url, widget|
     Gtk::TimeLine.openurl(url)
   }
@@ -172,6 +174,16 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       iter[2] = message.modified.to_i
       @tl.model.rows_reordered(path, iter, [0]) end
     self end
+
+  # _message_ が新たに _user_ のお気に入りに追加された時に呼ばれる
+  def favorite(user, message)
+    self
+  end
+
+  # _message_ が _user_ のお気に入りから削除された時に呼ばれる
+  def unfavorite(user, message)
+    self
+  end
 
   def get_iter_message_by(message)
     type_strict message => Message

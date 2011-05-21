@@ -20,7 +20,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
   end
 
   def render(context)
-    if message and helper.visible?
+    if helper.visible? and message
       context.save{
         context.translate(@margin, 0)
         render_main_icon(context)

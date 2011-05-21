@@ -11,7 +11,7 @@ miquire :mui, 'sub_parts_helper'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
 
-# 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。
+# 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
 class Gdk::MiraclePainter < GLib::Object
 
@@ -32,6 +32,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   @@miracle_painters = Hash.new
 
+  # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す
   def self.findbymessage(message)
     type_strict message => :to_message
     @@miracle_painters[message.to_message[:id].to_i] || EMPTY
@@ -47,7 +48,9 @@ class Gdk::MiraclePainter < GLib::Object
     coordinator(*coodinate)
     (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new) << self end
 
+  # Gtk::TimeLine::InnerTLのインスタンスを設定する。今後、このインスタンスは _new_ に所属するものとして振舞う
   def set_tree(new)
+    type_strict new => Gtk::TimeLine::InnerTL
     @tree = new
     self end
 
@@ -61,10 +64,12 @@ class Gdk::MiraclePainter < GLib::Object
     @pixbuf ||= gen_pixbuf
   end
 
+  # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が押されたことを通知する
   def pressed(x, y)
     textselector_press(*main_pos_to_index_forclick(x, y)[1..2])
   end
 
+  # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が離されたことを通知する
   def released(x=nil, y=nil)
     if(x == y and not x)
       unselect
@@ -99,6 +104,7 @@ class Gdk::MiraclePainter < GLib::Object
     # textselector_release
   end
 
+  # MiraclePainterが選択解除されたことを通知する
   def unselect
     textselector_unselect end
 
@@ -346,5 +352,3 @@ module Pango
       rescue GLib::Error => e
         error str
         raise e end end end end
-
-# ~> -:6: undefined method `miquire' for main:Object (NoMethodError)
