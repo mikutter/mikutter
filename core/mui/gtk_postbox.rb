@@ -175,22 +175,38 @@ module Gtk
 
     # Initialize Methods
 
+    def get_backgroundcolor(message)
+      if(message.from_me?)
+        UserConfig[:mumble_self_bg]
+      elsif(message.to_me?)
+        UserConfig[:mumble_reply_bg]
+      else
+        UserConfig[:mumble_basic_bg] end end
+
+    def get_backgroundstyle(message)
+      style = Gtk::Style.new()
+      color = get_backgroundcolor(message)
+      [Gtk::STATE_ACTIVE, Gtk::STATE_NORMAL, Gtk::STATE_SELECTED, Gtk::STATE_PRELIGHT, Gtk::STATE_INSENSITIVE].each{ |state|
+        style.set_bg(state, *color) }
+      style end
+
     def generate_box
       @post, w_remain = generate_post
       @send = generate_send
       @tool = generate_tool
       result = Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
-      if(@watch.is_a?(Message))
-        mp = Gdk::MiraclePainter.new(@watch, 300)
-        da = Gtk::DrawingArea.new
-        da.signal_connect(:expose_event){
-          mp.width = da.window.geometry[2]
-          da.height_request = mp.height
-          gc = Gdk::GC.new(da.window)
-          da.window.draw_drawable(gc, mp.pixmap, 0, 0, 0, 0, mp.width, mp.height)
-          false
+      if(reply?)
+        w_replies = Gtk::VBox.new
+        in_reply_to_all.each{ |message|
+          w_reply = Gtk::HBox.new
+          itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
+          itv.get_background = lambda{ get_backgroundstyle(message) }
+          itv.bg_modifier
+          ev = Gtk::EventBox.new
+          ev.style = get_backgroundstyle(message)
+          w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
         }
-        Gtk::VBox.new.closeup(da).add(result)
+        w_replies.add(result)
       else
         result end end
 
@@ -254,6 +270,15 @@ module Gtk
       end
       replies.uniq.map{ |x| "@#{x}" }.join(' ')
     end
+
+    # 全てのリプライ元を返す
+    def in_reply_to_all
+      result = Set.new
+      if reply?
+        result << @watch
+        if @options[:subreplies].is_a? Enumerable
+          result += @options[:subreplies] end end
+      result end
 
   end
 end

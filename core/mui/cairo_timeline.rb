@@ -134,20 +134,13 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     if not @tl.destroyed?
       raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
       if(!any?{ |m| m[:id] == message[:id] })
-        scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
-        iter = @tl.model.append
-        iter[0] = message[:id].to_s
-        iter[1] = message
-        iter[2] = message.modified.to_i
-        sid = @tl.cell_renderer_message.miracle_painter(message).ssc(:modified, @tl){ |mb|
-          if not @tl.destroyed?
-          @tl.model.each{ |model, path, iter|
-            if iter[0].to_i == message[:id]
-              @tl.queue_draw
-              break end }
-          else
-            @tl.cell_renderer_message.miracle_painter(message).signal_handler_disconnect(sid) end
-          false } end end
+        case
+        when message[:rule] == :destroy
+          remove_if_exists_all([message])
+        when message.retweet?
+          add_retweets([messages])
+        else
+          _add(message) end end end
     self end
 
   def each(index=1)
@@ -168,9 +161,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
   def modified(message)
     type_strict message => Message
-    mpi = get_iter_message_by(message)
-    if(mpi)
-      model, path, iter = mpi
+    path = get_path_by_message(message)
+    if(path)
+      iter = @tl.model.get_iter(path)
       iter[2] = message.modified.to_i
       @tl.model.rows_reordered(path, iter, [0]) end
     self end
@@ -188,18 +181,37 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   # つぶやきが削除されたときに呼ばれる
   def remove_if_exists_all(messages)
     messages.each{ |message|
-      mpi = get_iter_message_by(message)
-      @tl.model.remove(mpi[2]) if mpi } end
+      path = get_path_by_message(message)
+      @tl.model.remove(@tl.model.get_iter(path)) if path } end
 
-  def get_iter_message_by(message)
+  # _message_ に対応する _Gtk::TreePath_ を返す
+  def get_path_by_message(message)
     type_strict message => Message
     id = message[:id].to_i
-    @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id } end
+    found = @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
+    found[1] if found  end
 
   def destroyed?
     @tl.destroyed? or @tl.model.destroyed? end
 
   private
+
+  def _add(message)
+    scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
+    iter = @tl.model.append
+    iter[0] = message[:id].to_s
+    iter[1] = message
+    iter[2] = message.modified.to_i
+    sid = @tl.cell_renderer_message.miracle_painter(message).ssc(:modified, @tl){ |mb|
+      if not @tl.destroyed?
+        @tl.model.each{ |model, path, iter|
+          if iter[0].to_i == message[:id]
+            @tl.queue_draw
+            break end }
+      else
+        @tl.cell_renderer_message.miracle_painter(message).signal_handler_disconnect(sid) end
+      false }
+  end
 
   def emit_expose_miraclepainter
     @exposing_miraclepainter ||= []
