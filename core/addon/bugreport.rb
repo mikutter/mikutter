@@ -26,7 +26,7 @@ Module.new do
     quit = lambda{
       dialog.hide_all.destroy
       Gtk.main_iteration_do(false)
-      Gtk::Window.toplevels.first.show
+      Plugin.filtering(:get_windows, []).first.show
       if alert_thread
         alert_thread.run
       else
@@ -42,7 +42,7 @@ Module.new do
       false
     }
     dialog.show_all
-    Gtk::Window.toplevels.first.hide
+    Plugin.filtering(:get_windows, []).first.hide
     if(alert_thread)
       Thread.stop
     else
