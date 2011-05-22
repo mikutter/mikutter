@@ -16,7 +16,7 @@ miquire :mui, 'sub_parts_retweet'
 class Gdk::MiraclePainter < GLib::Object
 
   type_register
-  signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil, self)
+  signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil)
   signal_new(:expose_event, GLib::Signal::RUN_FIRST, nil, nil)
 
   include Gdk::Coordinate
@@ -162,7 +162,7 @@ class Gdk::MiraclePainter < GLib::Object
     result[1] = message.to_s.get_index_from_byte(result[1])
     return *result end
 
-  def signal_do_modified(this)
+  def signal_do_modified()
   end
 
   def signal_do_expose_event()
@@ -176,7 +176,7 @@ class Gdk::MiraclePainter < GLib::Object
     if(defined? @last_modify_height and @last_modify_height != height)
       tree.get_column(0).queue_resize
       @last_modify_height = height end
-    signal_emit(:modified, self) if event
+    signal_emit('modified') if event
   end
 
   # 画面上にこれが表示されているかを返す
