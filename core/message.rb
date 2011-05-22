@@ -175,9 +175,17 @@ class Message < Retriever::Model
       if match
         match[1] == other[:idname] end end end
 
+  # 自分がこのMessageにリプライを返していればtrue
+  def mentioned_by_me?
+    children.any?{ |m| m.from_me? } end
+
   # このメッセージが何かしらの別のメッセージに宛てられたものなら真
   def has_receive_message?
     self[:replyto] end
+
+  # このメッセージが何かに対するリツイートなら真
+  def retweet?
+    !!self[:retweet] end
 
   # この投稿が別の投稿に宛てられたものならそれを返す。
   # _force_retrieve_ がtrueなら、呼び出し元のスレッドでサーバに問い合わせるので、
@@ -307,16 +315,18 @@ class Message < Retriever::Model
 
   # 最終更新日時を取得する
   def modified
-    if UserConfig[:retweeted_by_anyone_age]
-      @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
-    else
-      self[:created] end end
+    @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
+    # if UserConfig[:retweeted_by_anyone_age]
+    #   @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
+    # else
+    #   self[:created] end
+  end
 
   private
 
   def add_retweet_in_this_thread(child)
     @retweets << child
-    set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and (UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname) end
+    set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
     @children << child

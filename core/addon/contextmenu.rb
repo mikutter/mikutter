@@ -4,59 +4,140 @@ Module.new do
 
   class << self
 
-    def define_contextmenu(name, appear_condition=ret_nth, &proc)
-      # Gtk::Mumble.contextmenu.registmenu(name, appear_condition, &proc)
-      column = [name.freeze, appear_condition, proc].freeze
-      Plugin.create(:contextmenu).add_event_filter(:contextmenu){ |menu|
-        menu << column
+    # argsの例
+    # {
+    #   :condition => (===でPoseudoMessageのインスタンスかnilと比較される。このコマンドをつかえるならtrueを返す)
+    #   :exec => (実行内容。callメソッドが呼ばれる)
+    #   :name => コマンドの名前。文字列。
+    #   :description => コマンドの説明。
+    #   :visible => 真理値。コンテキストメニューに表示するかどうかのフラグ
+    #   :icon => アイコン。Gdk::Pixbufかファイル名をStringで
+    #   :role => 実行できる環境の配列。以下のうちの何れか1つ
+    #            :message        messageを右クリックしたとき
+    #            :message_select messageのテキストが選択されたとき
+    #            :timeline       タイムラインを右クリックしたとき
+    #            :postbox        つぶやき入力ウィンドウ
+    # }
+    def define_command(slug, args)
+      type_strict args => Hash
+      args[:slug] = slug.to_sym
+      args.freeze
+      Plugin.create(:contextmenu).add_event_filter(:command){ |menu|
+        menu[slug] = args
         [menu]
       }
     end
 
   end
 
-  define_contextmenu("コピー", lambda{ |m,w|
-                       w.is_a?(Gtk::TextView) and
-                       w.buffer.selection_bounds[2] }){ |this, w|
-    w.copy_clipboard }
+  ROLE_MESSAGE = :message
+  ROLE_MESSAGE_SELECTED = :message_select
+  ROLE_TIMELINE = :timeline
+  ROLE_POSTBOX = :postbox
 
-  define_contextmenu('本文をコピー', lambda{ |m,w|
-                       Gtk::TimeLine.get_active_mumbles.size == 1 and
-                       w.is_a?(Gtk::TextView) and
-                       not w.buffer.selection_bounds[2] }){ |this, w|
-    w.select_all(true)
-    w.copy_clipboard
-    w.select_all(false) }
+  define_command(:copy_selected_region,
+                 :name => 'コピー',
+                 :condition => lambda{ |m| true },
+                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE_SELECTED )
 
-  define_contextmenu("返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message, :subreplies => Gtk::TimeLine.get_active_mumbles) }
+  define_command(:copy_description,
+                 :name => '本文をコピー',
+                 :condition => lambda{ |opt| Gtk::TimeLine.get_active_mumbles.size == 1 },
+                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  define_contextmenu("全員に返信", lambda{ |m,w| m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message,
-                     :subreplies => this.message.ancestors,
-                     :exclude_myself => true) }
+  define_command(:reply,
+                 :name => '返信',
+                 :condition => lambda{ |m| m.message.repliable? },
+                 :exec => lambda{ |m| m.timeline.reply(m.message, :subreplies => Gtk::TimeLine.get_active_mumbles) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  define_contextmenu("引用", lambda{ |m,w|
-                       Gtk::TimeLine.get_active_mumbles.size == 1 and
-                       m.message.repliable? }){ |this, w|
-    this.gen_postbox(this.message, :retweet => true) }
+  define_command(:reply_all,
+                 :name => '全員に返信',
+                 :condition => lambda{ |m| m.message.repliable? },
+                 :exec => lambda{ |m| m.timeline.reply(m.message, :subreplies => m.message.ancestors, :exclude_myself => true) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  define_contextmenu("公式リツイート", lambda{ |m,w|
-                       m.message.repliable? and not m.message.from_me? }){ |this, w|
-    Gtk::TimeLine.get_active_mumbles.map{ |m| m.to_message }.uniq.select{ |m| not m.from_me? }.each{ |x| x.retweet } }
+  define_command(:legacy_retweet,
+                 :name => '引用',
+                 :condition => lambda{ |m| Gtk::TimeLine.get_active_mumbles.size == 1 and m.message.repliable? },
+                 :exec => lambda{ |m| m.timeline.reply(m.message, :retweet => true) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  delete_condition = lambda{ |m,w| Gtk::TimeLine.get_active_mumbles.all?{ |e| e.message.from_me? } }
+  define_command(:retweet,
+                 :name => 'リツイート',
+                 :condition => lambda{ |m| m.message.repliable? and not m.message.from_me? },
+                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).select{ |x| not x.from_me? }.each(&:retweet) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  define_contextmenu('削除', delete_condition){ |this, w|
-    Gtk::TimeLine.get_active_mumbles.each { |e|
-      e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } }
+  define_command(:favorite,
+                 :name => 'ふぁぼふぁぼする',
+                 :condition => lambda{ |m| m.message.favoritable? },
+                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(true)} },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  retweet_cancel_condition = lambda{ |m,w| Gtk::TimeLine.get_active_mumbles.all?{ |e|
-      e.message.service and e.message.retweeted_by.include?(e.message.service.user) } }
+  define_command(:delete,
+                 :name => '削除',
+                 :condition => lambda{ |m| Gtk::TimeLine.get_active_mumbles.all?{ |e| e.message.from_me? } },
+                 :exec => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.each { |e|
+                     e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 
-  define_contextmenu('リツイートをキャンセル', retweet_cancel_condition){ |this, w|
-    Gtk::TimeLine.get_active_mumbles.each { |e|
-      retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
-      retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } }
+  define_command(:delete_retweet,
+                 :name => 'リツイートをキャンセル',
+                 :condition => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
+                     e.message.service and e.message.retweeted_by.include?(e.message.service.user) } },
+                 :exec => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.each { |e|
+                     retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
+                     retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
+
+  define_command(:select_prev,
+                 :name => 'ひとつ上のつぶやきを選択',
+                 :condition => lambda{ |tl| true },
+                 :exec => lambda{ |tl|
+                   path = tl.get_active_pathes.first
+                   if path
+                     if path.prev!
+                       tl.selection.select_path(path)
+                       tl.scroll_to_cell(path, tl.get_column(0), false, 0.0, 0.0)
+                       path.next!
+                       tl.selection.unselect_path(path) end end },
+                 :visible => false,
+                 :role => ROLE_TIMELINE )
+
+  define_command(:select_next,
+                 :name => 'ひとつ下のつぶやきを選択',
+                 :condition => lambda{ |tl| true },
+                 :exec => lambda{ |tl|
+                   path = tl.get_active_pathes.first
+                   if path
+                     if path.next!
+                       tl.selection.select_path(path)
+                       tl.scroll_to_cell(path, tl.get_column(0), false, 1.0, 0.0)
+                       path.prev!
+                       tl.selection.unselect_path(path) end end },
+                 :visible => false,
+                 :role => ROLE_TIMELINE )
+
+  define_command(:post_it,
+                 :name => '投稿する',
+                 :condition => lambda{ |postbox| postbox.post.editable? },
+                 :exec => :post_it.to_proc,
+                 :visible => false,
+                 :role => ROLE_POSTBOX )
 
 end

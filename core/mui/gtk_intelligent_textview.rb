@@ -115,7 +115,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
   end
 
   def create_tag_ifnecessary(tagname, buffer, leftclick, rightclick)
-    tag = buffer.create_tag(tagname, 'foreground' => 'blue', "underline" => Pango::UNDERLINE_SINGLE)
+    tag = buffer.create_tag(tagname, "underline" => Pango::UNDERLINE_SINGLE)
     tag.signal_connect('event'){ |this, textview, event, iter|
       result = false
       if(event.is_a?(Gdk::EventButton)) and

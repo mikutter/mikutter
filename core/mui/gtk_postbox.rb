@@ -6,6 +6,7 @@
 
 require 'gtk2'
 require 'thread'
+miquire :mui, 'miracle_painter'
 
 module Gtk
   class PostBox < Gtk::EventBox
@@ -21,22 +22,22 @@ module Gtk
     end
 
     def initialize(watch, options = {})
-      Lock.synchronize{
-        @posting = false
-        @return_to_top = nil
-        @options = options
-        @watch = watch
-        super()
-        signal_connect('parent-set'){
-          if parent
-            sw = get_ancestor(Gtk::ScrolledWindow)
-            if(sw)
-              @return_to_top = sw.vadjustment.value == 0
-            else
-              @return_to_top = false end
-              post_it if @options[:delegated_by] end }
-        add(generate_box)
-        regist } end
+      mainthread_only
+      @posting = false
+      @return_to_top = nil
+      @options = options
+      @watch = watch
+      super()
+      signal_connect('parent-set'){
+        if parent
+          sw = get_ancestor(Gtk::ScrolledWindow)
+          if(sw)
+            @return_to_top = sw.vadjustment.value == 0
+          else
+            @return_to_top = false end
+          post_it if @options[:delegated_by] end }
+      add(generate_box)
+      regist end
 
     def posting?
       @posting end
@@ -44,32 +45,52 @@ module Gtk
     def active
       get_ancestor(Gtk::Window).set_focus(@post) if(get_ancestor(Gtk::Window)) end
 
-    private
+    def on_delete
+      if(block_given?)
+        @on_delete = Proc.new
+      elsif defined? @on_delete
+        @on_delete.call end end
 
-#     def menu_pop(widget, event)
-#       menu = Gtk::Menu.new
-#       delete = Gtk::MenuItem.new("つぶやきを削除")
-#       delete.signal_connect('activate') { |w| destroy }
-#       [delete].each{|item| menu.append(item) }
-#       menu.attach_to_widget(widget) {|*args| yield(*args) if defined? yield }
-#       menu.show_all
-#       menu.popup(nil, nil, 0, 0) end
+    def post_it
+      if postable? then
+        if(@options[:postboxstorage])
+          return if delegate
+          if not @options[:delegated_by]
+            postbox = Gtk::PostBox.new(@watch, @options)
+            @options[:postboxstorage].
+              pack_start(postbox).
+              show_all.
+              get_ancestor(Gtk::Window).
+              set_focus(postbox.post) end end
+        text = post.buffer.text
+        text += UserConfig[:footer] if add_footer?
+        @post_thread = service.post(:message => text){ |event, msg|
+          notice [event, msg].inspect
+          case event
+          when :start
+            Delayer.new{ start_post }
+          when :fail
+            Delayer.new{ end_post }
+          when :success
+            Delayer.new{ destroy } end } end end
+
+    private
 
     def postable?
       not(@post.buffer.text.empty?) and (/[^\s]/ === @post.buffer.text) end
 
     def start_post
-      Gtk::Lock.synchronize{
+      if not(frozen? or destroyed?)
         @posting = true
         post.editable = false
         [post, send].compact.each{|widget| widget.sensitive = false }
-        tool.sensitive = true } end
+        tool.sensitive = true end end
 
     def end_post
-      Gtk::Lock.synchronize{
+      if not(frozen? or destroyed?)
         @posting = false
         post.editable = true
-        [post, send].compact.each{|widget| widget.sensitive = true } } end
+        [post, send].compact.each{|widget| widget.sensitive = true } end end
 
     def delegate
       Gtk::Lock.synchronize{
@@ -85,30 +106,6 @@ module Gtk
         @watch
       else
         (retweet? ? @watch.service : @watch) end end
-
-    def post_it
-      Gtk::Lock.synchronize{
-        if postable? then
-          if(@options[:postboxstorage])
-            return if delegate
-            if not @options[:delegated_by]
-              postbox = Gtk::PostBox.new(@watch, @options)
-              @options[:postboxstorage].
-                pack_start(postbox).
-                show_all.
-                get_ancestor(Gtk::Window).
-                set_focus(postbox.post) end end
-          text = post.buffer.text
-          text += UserConfig[:footer] if add_footer?
-          @post_thread = service.post(:message => text){ |event, msg|
-            notice [event, msg].inspect
-            case event
-            when :start
-              Delayer.new{ start_post }
-            when :fail
-              Delayer.new{ end_post }
-            when :success
-              Delayer.new{ destroy } end } end } end
 
     def post_is_empty?
       frozen? and @post.buffer.text == "" or
@@ -140,13 +137,13 @@ module Gtk
           true end } end
 
     def destroy
-      Gtk::Lock.synchronize{
-        @@ringlock.synchronize{
-          if not(frozen?) and parent
-            parent.remove(self)
-            @@postboxes.delete(self)
-            super
-            self.freeze end } } end
+      @@ringlock.synchronize{
+        if not(frozen?) and parent
+          parent.remove(self)
+          @@postboxes.delete(self)
+          super
+          on_delete
+          self.freeze end } end
 
     def reply?
       @watch.is_a?(Retriever::Model) end
@@ -178,12 +175,40 @@ module Gtk
 
     # Initialize Methods
 
+    def get_backgroundcolor(message)
+      if(message.from_me?)
+        UserConfig[:mumble_self_bg]
+      elsif(message.to_me?)
+        UserConfig[:mumble_reply_bg]
+      else
+        UserConfig[:mumble_basic_bg] end end
+
+    def get_backgroundstyle(message)
+      style = Gtk::Style.new()
+      color = get_backgroundcolor(message)
+      [Gtk::STATE_ACTIVE, Gtk::STATE_NORMAL, Gtk::STATE_SELECTED, Gtk::STATE_PRELIGHT, Gtk::STATE_INSENSITIVE].each{ |state|
+        style.set_bg(state, *color) }
+      style end
+
     def generate_box
       @post, w_remain = generate_post
       @send = generate_send
       @tool = generate_tool
-      Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
-    end
+      result = Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
+      if(reply?)
+        w_replies = Gtk::VBox.new
+        in_reply_to_all.each{ |message|
+          w_reply = Gtk::HBox.new
+          itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
+          itv.get_background = lambda{ get_backgroundstyle(message) }
+          itv.bg_modifier
+          ev = Gtk::EventBox.new
+          ev.style = get_backgroundstyle(message)
+          w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
+        }
+        w_replies.add(result)
+      else
+        result end end
 
     def generate_post
       w_remain = Gtk::Label.new('---')
@@ -193,24 +218,13 @@ module Gtk
       post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       post.border_width = 2
       post.signal_connect('key_press_event'){ |widget, event|
-          if(widget.editable? and
-             Gtk::keyname([event.keyval ,event.state]) == UserConfig[:mumble_post_key])
-            post_it
-            true end }
+        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       post.signal_connect('key_release_event'){ |textview, event|
         w_remain.set_text(remain_charcount.to_s)
         send.sensitive = postable?
         tool.sensitive = destructible? if tool
         false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
-      post.signal_connect_after('focus_in_event'){
-        Delayer.new{ Gtk::Mumble.inactive } if defined? Gtk::Mumble
-        # mumble = get_ancestor(Gtk::Mumble.superclass)
-        # if mumble.is_a? Gtk::Mumble
-        #   mumble.active
-        # else
-        #   Gtk::Mumble.inactive end
-      }
       return post, w_remain end
 
     def generate_send
@@ -256,6 +270,15 @@ module Gtk
       end
       replies.uniq.map{ |x| "@#{x}" }.join(' ')
     end
+
+    # 全てのリプライ元を返す
+    def in_reply_to_all
+      result = Set.new
+      if reply?
+        result << @watch
+        if @options[:subreplies].is_a? Enumerable
+          result += @options[:subreplies] end end
+      result end
 
   end
 end
