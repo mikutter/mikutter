@@ -224,6 +224,10 @@ class TwitterAPI < Mutex
         cacheing(path, res.body) if options.has_key?(:cache)
         Plugin.call(:apiremain, remain, reset)
       elsif(res.code == '401')
+          begin
+            return res if(JSON.parse(res.body)["error"] == "Not authorized")
+          rescue JSON::ParserError
+          end
         if @fail_trap
           last_success = @@last_success
           @@failed_lock.synchronize{

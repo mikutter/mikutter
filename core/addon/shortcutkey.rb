@@ -5,62 +5,82 @@ miquire :addon, 'settings'
 
 Module.new do
 
-  container = Gtk::VBox.new(false, 8)
+  class ShortcutKeyListView < Gtk::CRUD
 
-  # キープレスイベントを処理する無名関数を作って返す。
-  # イベントが発生すると、選択されているMumbleオブジェクトの配列を引数にそれを呼び出す
-  def self.event_maker
-    lambda{ |service|
-      yield(Gtk::TimeLine.get_active_mumbles) if not Gtk::TimeLine.get_active_mumbles.empty? } end
+    COLUMN_KEYBIND = 0
+    COLUMN_COMMAND = 1
+    COLUMN_SLUG = 2
+    COLUMN_ID = 3
 
-  # event_makerと同じだが、ブロックは選択されているつぶやきを１つづつ取り複数回呼び出される
-  def self.event_maker_each
-    event_maker{ |mumbles|
-      mumbles.each{ |mumble| yield mumble } } end
+    def initialize
+      super
+      shortcutkeys.each{ |id, behavior|
+        iter = model.append
+        iter[COLUMN_ID] = id
+        iter[COLUMN_KEYBIND] = behavior[:key]
+        iter[COLUMN_COMMAND] = behavior[:name]
+        iter[COLUMN_SLUG] = behavior[:slug]
+      }
+    end
 
-  shortcutkeys = [ ['つぶやきを投稿する', :mumble_post_key],
-                   ['リプライ', :reply_write_key, event_maker{ |mumbles|
-                      mumbles.first.gen_postbox(mumbles.first.to_message, :subreplies => mumbles) }],
-                   ['公式リツイート', :retweet_key, event_maker_each(&lazy.to_message.retweet)],
-                   ['ふぁぼる', :favorite_key, event_maker_each{ |m| m.to_message.favorite(!m.to_message.favorite?) }],
-                   ['上のメッセージへ移動', :up_mumble_key, event_maker{ |mumbles|
-                      target = mumbles.first
-                      if(tl = target.get_ancestor(Gtk::TimeLine))
-                        tl.inject(nil){ |before, mumble|
-                          if(mumble.message[:id] == target.message[:id])
-                            if before
-                              before.active
-                              tl.scroll_to(before) end
-                            break end
-                          mumble } end }],
-                   ['下のメッセージへ移動', :down_mumble_key, event_maker{ |mumbles|
-                      target = mumbles.first
-                      if(tl = target.get_ancestor(Gtk::TimeLine))
-                        active = false
-                        tl.each{ |mumble|
-                          if(mumble.message[:id] == target.message[:id])
-                            active = true
-                          elsif active
-                            mumble.active
-                            tl.scroll_to(mumble)
-                            break end } end }]
-  ].freeze
+    def column_schemer
+      [{:kind => :text, :widget => :keyconfig, :type => String, :label => 'キーバインド'},
+       {:kind => :text, :type => String, :label => '機能名'},
+       {:kind => :text, :widget => :chooseone, :args => [Hash[Plugin.filtering(:command, Hash.new).first.values.map{ |x|
+                                                            [x[:slug], x[:name]]
+                                                          }].freeze],
+         :type => Symbol},
+       {:type => Integer},
+      ].freeze
+    end
 
-  shortcutkeys.each{ |pair|
-    container.closeup(Mtk.keyconfig(*pair[0..1])) }
+    def shortcutkeys
+      (UserConfig[:shortcutkey_keybinds] || Hash.new).dup end
 
-  plugin = Plugin::create(:shortcutkey)
+    def new_serial
+      @new_serial ||= (shortcutkeys.keys.max || 0)
+      @new_serial += 1 end
 
-  service = nil
+    def on_created(iter)
+      bind = shortcutkeys
+      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      iter[COLUMN_ID] = new_serial
+      bind[iter[COLUMN_ID]] = {
+        :key => iter[COLUMN_KEYBIND].to_s,
+        :name => name,
+        :slug => iter[COLUMN_SLUG].to_sym }
+      iter[COLUMN_COMMAND] = name
+      UserConfig[:shortcutkey_keybinds] = bind
+    end
 
-  plugin.add_event(:boot){ |srv|
-    service = srv
+    def on_updated(iter)
+      bind = shortcutkeys
+      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      bind[iter[COLUMN_ID].to_i] = {
+        :key => iter[COLUMN_KEYBIND].to_s,
+        :name => name,
+        :slug => iter[COLUMN_SLUG].to_sym }
+      iter[COLUMN_COMMAND] = name
+      UserConfig[:shortcutkey_keybinds] = bind
+    end
+
+    def on_deleted(iter)
+      bind = shortcutkeys
+      bind.delete(iter[COLUMN_ID].to_i)
+      UserConfig[:shortcutkey_keybinds] = bind
+    end
+
+  end
+
+  Delayer.new{
+    container = ShortcutKeyListView.new
     Plugin.call(:setting_tab_regist, container, 'ショートカットキー') }
 
+  plugin = Plugin::create(:shortcutkey)
   plugin.add_event(:keypress){ |key|
-    shortcutkeys.each{ |definition|
-      name, config, proc = definition
-      if(UserConfig[config] == key) and proc
-        proc.call(service) end } }
+    tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr
+    type_check(tl => (tl and Gtk::TimeLine::InnerTL), active_mumble => (active_mumble and Message), miracle_painter => (miracle_painter and Gdk::MiraclePainter), postbox => (postbox and Gtk::PostBox)){
+      if not(valid_roles.include?(:postbox))
+        Addon::Command.call_keypress_event(key, :tl => tl, :message => active_mumble, :miracle_painter => miracle_painter, :postbox => postbox) end } }
 
 end

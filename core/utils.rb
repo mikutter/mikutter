@@ -245,8 +245,8 @@ end
 #   type_check object => tcor(Array, Hash)
 def type_check(args, &proc)
   check_function = lambda{ |val, check|
-    if check.nil?
-      nil
+    if not check
+      true
     elsif check.respond_to?(:call)
       check.call(val)
     elsif check.is_a? Array
@@ -274,7 +274,7 @@ def tcor(*types)
 # type_checkの戻り値を返す
 def type_strict(args, &proc)
   result = type_check(args, &proc)
-  abort if not result
+  raise ArgumentError.new if not result
   result end
 
 # blockの評価結果がチェックをパスしなかった場合にabortする
@@ -801,19 +801,23 @@ class String
 
 end
 
-def Symbol
+class Symbol
+  if RUBY_VERSION <= '1.8'
+    def to_proc
+      proc { |obj, *args| obj.send(self, *args) } end end
+
   def freezable?
     false end end
 
-def TrueClass
+class TrueClass
   def freezable?
     false end end
 
-def FalseClass
+class FalseClass
   def freezable?
     false end end
 
-def NilClass
+class NilClass
   def freezable?
     false end end
 

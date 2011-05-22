@@ -5,7 +5,28 @@ miquire :core, 'userconfig'
 require 'gtk2'
 require 'monitor'
 
-class Gtk::Object #GLib::Instantiatable
+class GLib::Instantiatable
+  # signal_connectと同じだが、イベントが呼ばれるたびにselfが削除されたGLib Objectでない場合のみブロックを実行する点が異なる。
+  # また、relatedの中に既に削除されたGLib objectがあれば、ブロックを実行せずにシグナルをselfから切り離す。
+  def safety_signal_connect(signal, *related, &proc)
+    related.each{ |gobj|
+      raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
+    if related
+      sid = signal_connect(signal){ |*args|
+        if not(destroyed?)
+          if (related.any?(&:destroyed?))
+            signal_handler_disconnect(sid)
+          else
+            proc.call(*args) end end }
+    else
+      signal_connect(signal){ |*args|
+        if not(destroyed?)
+          proc.call(*args) end } end end
+  alias ssc safety_signal_connect
+
+end
+
+class Gtk::Object
   if false
     @@instance_list = {}
     @@new = method(:new)

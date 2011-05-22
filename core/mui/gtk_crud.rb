@@ -7,11 +7,12 @@ miquire :mui, 'contextmenu'
 
 # CRUDなリストビューを簡単に実現するためのクラス
 class Gtk::CRUD < Gtk::TreeView
-
   attr_accessor :creatable, :updatable, :deletable
+  type_register
 
   def initialize
-    super(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
+    super()
+    set_model(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
     @creatable = @updatable = @deletable = true
     set_columns
     # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
@@ -153,7 +154,7 @@ class Gtk::CRUD < Gtk::TreeView
                                      results[index].freeze_ifn
                                    else
                                      results[index] = new.freeze_ifn end },
-                                 scheme[:label], *(scheme[:args] or []))) end }
+                                 scheme[:label], *(scheme[:args].to_a or []))) end }
     { :widget => widget,
       :result => lambda{
         results } } end
