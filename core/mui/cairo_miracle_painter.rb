@@ -250,7 +250,6 @@ class Gdk::MiraclePainter < GLib::Object
     layout.attributes = attr_list
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = text
-    layout.width = pos.main_text.width * Pango::SCALE
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
 
@@ -313,8 +312,22 @@ class Gdk::MiraclePainter < GLib::Object
       context.translate(pos.header_text.x, pos.header_text.y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(context)
+      hr_layout = header_right(context)
       context.show_pango_layout(hl_layout)
-      context.show_pango_layout(header_right(context)) }
+
+      context.save{
+        context.translate(pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), 0)
+        if (hl_layout.size[0] / Pango::SCALE) > (pos.header_text.w - (hr_layout.size[0] / Pango::SCALE) - 20)
+          r, g, b = get_backgroundcolor
+          grad = Cairo::LinearPattern.new(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, 0)
+          grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
+          grad.add_color_stop_rgba(0.2, r, g, b, 1.0)
+          grad.add_color_stop_rgba(1.0, r, g, b, 1.0)
+          context.rectangle(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, hr_layout.size[1] / Pango::SCALE)
+          context.set_source(grad)
+          context.fill() end
+
+        context.show_pango_layout(hr_layout) } }
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)
       context.show_pango_layout(main_message(context)) } end
@@ -352,3 +365,4 @@ module Pango
       rescue GLib::Error => e
         error str
         raise e end end end end
+# ~> -:6: undefined method `miquire' for main:Object (NoMethodError)

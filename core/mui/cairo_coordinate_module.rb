@@ -83,7 +83,7 @@ module Gdk::Coordinate
                                                     0),
                                          Region.new(icon_width + icon_margin * 2, # ヘッダ
                                                     icon_margin,
-                                                    0,
+                                                    width - (icon_width + icon_margin * 4),
                                                     lambda{ header_left.size[1] / Pango::SCALE })
                                          )
   end
