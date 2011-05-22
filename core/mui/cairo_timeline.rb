@@ -101,6 +101,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
   def initialize
     super
     @@tls << @tl = InnerTL.new
+    init_remover
     @tl.postbox = postbox
     scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
     closeup(postbox).pack_start(Gtk::HBox.new.pack_start(@tl).closeup(scrollbar))
@@ -147,6 +148,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @tl.model.each{ |model,path,iter|
       yield(iter[index]) } end
 
+  def each_iter
+    @tl.model.each{ |model,path,iter|
+      yield(iter) } end
+
   def clear
     @tl.model.clear
     self end
@@ -191,6 +196,9 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     found = @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
     found[1] if found  end
 
+  def size
+    @tl.model.to_enum(:each).inject(0){ |i, r| i + 1 } end
+
   def destroyed?
     @tl.destroyed? or @tl.model.destroyed? end
 
@@ -211,7 +219,17 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
       else
         @tl.cell_renderer_message.miracle_painter(message).signal_handler_disconnect(sid) end
       false }
+    @remover_queue.push(message)
+    self
   end
+
+  def init_remover
+    @timeline_max = 200
+    @remover_queue = TimeLimitedQueue.new(1024, 1){ |messages|
+      Delayer.new{
+        remove_count = size - timeline_max
+        if remove_count > 0
+          to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end } } end
 
   def emit_expose_miraclepainter
     @exposing_miraclepainter ||= []
