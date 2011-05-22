@@ -803,6 +803,11 @@ end
 
 class Symbol
   if RUBY_VERSION <= '1.8'
+    include Comparable
+
+    def <=>(other)
+      self.to_s <=> other.to_s end
+
     def to_proc
       proc { |obj, *args| obj.send(self, *args) } end end
 
