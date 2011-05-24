@@ -10,6 +10,7 @@ miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_helper'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
+miquire :mui, 'pseudo_signal_handler'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
@@ -23,6 +24,7 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
   include Gdk::SubPartsHelper(Gdk::ReplyViewer, Gdk::SubPartsFavorite, Gdk::SubPartsRetweet)
+  include PseudoSignalHandler
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
@@ -144,7 +146,6 @@ class Gdk::MiraclePainter < GLib::Object
         index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])
         labels.insert(index, record[:slug].to_s)
         contextmenu.insert(index, [record[:show_face] || record[:name], lambda{ |x| record[:condition] === x }, record[:exec]]) end }
-    p contextmenu
     Gtk::ContextMenu.new(*contextmenu).popup(tl,
                                              Event.new(event, active_mumble, tl, miracle_painter))
   end
