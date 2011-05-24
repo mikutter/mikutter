@@ -141,9 +141,10 @@ class Gdk::MiraclePainter < GLib::Object
     contextmenu = []
     Plugin.filtering(:command, Hash.new).first.values.each{ |record|
       if(record[:visible] and valid_roles.include?(record[:role]))
-        index = where_should_insert_it(record[:slug], labels, UserConfig[:mumble_contextmenu_order] || [])
-        labels.insert(index, record[:slug])
+        index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])
+        labels.insert(index, record[:slug].to_s)
         contextmenu.insert(index, [record[:show_face] || record[:name], lambda{ |x| record[:condition] === x }, record[:exec]]) end }
+    p contextmenu
     Gtk::ContextMenu.new(*contextmenu).popup(tl,
                                              Event.new(event, active_mumble, tl, miracle_painter))
   end
