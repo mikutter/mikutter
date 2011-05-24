@@ -24,6 +24,9 @@ $debug_avail_level = 2
 # http://ja.uncyclopedia.info/wiki/Hyde
 HYDE = 156
 
+# Rubyのバージョンを配列で。あると便利。
+RUBY_VERSION_ARRAY = RUBY_VERSION.split('.').map{ |i| i.to_i }.freeze
+
 PATH_KIND_CONVERTER = Hash.new{ |h, k| h[k] = k.to_s + '/' }
 # PATH_KIND_CONVERTER[:mui] = 'mui/gtk_'
 PATH_KIND_CONVERTER[:mui] = Class.new{
@@ -616,6 +619,8 @@ class Array
   # 以下、オリジナル
   #
 
+  include Comparable
+
   # index番目からlength個の要素を先頭にもっていく
   def bubbleup!(index, length=1)
     if index.abs >= self.size
@@ -802,14 +807,14 @@ class String
 end
 
 class Symbol
-  if RUBY_VERSION <= '1.8'
+  if RUBY_VERSION_ARRAY[0, 2] <= [1, 8]
     include Comparable
 
     def <=>(other)
       self.to_s <=> other.to_s end
 
     def to_proc
-      proc { |obj, *args| obj.send(self, *args) } end end
+      proc { |obj, *args| obj.__send__(self, *args) } end end
 
   def freezable?
     false end end
@@ -825,6 +830,12 @@ class FalseClass
 class NilClass
   def freezable?
     false end end
+
+class Proc
+  if RUBY_VERSION_ARRAY[0, 2] <= [1, 8]
+    alias === call
+  end
+end
 
 class HatsuneStore < PStore
 
