@@ -19,6 +19,7 @@ class TC_TextSelector < Test::Unit::TestCase
 
   S1 = 'this is <b>a <a>test</a></b> text'.freeze
   S2 = 'escape &gt; text'
+  S3 = 'にほんごもじれつ'
 
   def setup
   end
@@ -34,13 +35,16 @@ class TC_TextSelector < Test::Unit::TestCase
 
     assert_equal('esca<span background="#000000" foreground="#ffffff">pe &gt; t</span>ext',
                  mp.textselector_press(4).textselector_release(9).textselector_markup(S2))
+
+    assert_equal('にほ<span background="#000000" foreground="#ffffff">んごも</span>じれつ',
+                 mp.textselector_press(2).textselector_release(5).textselector_markup(S3))
+
   end
 
 end
-# -*- coding: utf-8 -*-
 # >> Loaded suite -
 # >> Started
 # >> .
-# >> Finished in 0.001997 seconds.
+# >> Finished in 0.002221 seconds.
 # >> 
-# >> 1 tests, 4 assertions, 0 failures, 0 errors
+# >> 1 tests, 5 assertions, 0 failures, 0 errors
