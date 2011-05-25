@@ -98,7 +98,7 @@ Module.new do
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
-  define_command(:unfavorite,
+  define_command(:delete_favorite,
                  :name => 'ふぁぼをキャンセル',
                  :condition => lambda{ |m| m.message.favoritable? and m.message.favorited_by_me? },
                  :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(false)} },

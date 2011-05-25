@@ -89,6 +89,18 @@ class UserConfig
     :mumble_self_bg => [65535, 65535, 255*222],
     :mumble_selected_bg => [255*222, 255*222, 65535],
 
+    # 右クリックメニューの並び順
+    :mumble_contextmenu_order => ['copy_selected_region',
+                                  'copy_description',
+                                  'reply',
+                                  'reply_all',
+                                  'retweet',
+                                  'delete_retweet',
+                                  'legacy_retweet',
+                                  'favorite',
+                                  'delete_favorite',
+                                  'delete']
+
   }
 
   @@watcher = Hash.new{ [] }
