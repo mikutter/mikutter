@@ -43,7 +43,7 @@ class Post
     end
   }
 
-  @@services = []
+  @@services = Set.new
 
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
@@ -64,7 +64,8 @@ class Post
     @@services << self
   end
 
-  # サービスオブジェクト一覧
+  # 存在するServiceオブジェクトをSetで返す。
+  # つまり、投稿権限のある「自分」のアカウントを全て返す。
   def self.services
     @@services.dup end
 

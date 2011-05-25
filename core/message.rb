@@ -243,6 +243,11 @@ class Message < Retriever::Model
   def favorited_by
     @favorited ||= Plugin.filtering(:favorited_by, self, Set.new())[1] end
 
+  # この投稿を「自分」がふぁぼっていれば真
+  def favorited_by_me?(me = Post.services)
+    not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+  end
+
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
     retweeted_statuses.map{ |x| x.user }.uniq
@@ -251,6 +256,11 @@ class Message < Retriever::Model
   # この投稿に対するリツイートを返す
   def retweeted_statuses
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
+
+  # この投稿を「自分」がリツイートしていれば真
+  def retweeted_by_me?(me = Post.services)
+    not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+  end
 
   # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
