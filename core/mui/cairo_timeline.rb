@@ -227,9 +227,10 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
     @timeline_max = 200
     @remover_queue = TimeLimitedQueue.new(1024, 1){ |messages|
       Delayer.new{
-        remove_count = size - timeline_max
-        if remove_count > 0
-          to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end } } end
+        if not destroyed?
+          remove_count = size - timeline_max
+          if remove_count > 0
+            to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end end } } end
 
   def emit_expose_miraclepainter
     @exposing_miraclepainter ||= []

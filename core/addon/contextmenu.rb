@@ -72,15 +72,36 @@ Module.new do
 
   define_command(:retweet,
                  :name => 'リツイート',
-                 :condition => lambda{ |m| m.message.repliable? and not m.message.from_me? },
+                 :condition => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
+                     m.message.retweetable? and not m.message.retweeted_by_me? } },
                  :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).select{ |x| not x.from_me? }.each(&:retweet) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
+
+  define_command(:delete_retweet,
+                 :name => 'リツイートをキャンセル',
+                 :condition => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
+                     m.message.retweetable? and m.message.retweeted_by_me? } },
+                 :exec => lambda{ |m|
+                   Gtk::TimeLine.get_active_mumbles.each { |e|
+                     retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
+                     retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
   define_command(:favorite,
                  :name => 'ふぁぼふぁぼする',
-                 :condition => lambda{ |m| m.message.favoritable? },
+                 :condition => lambda{ |m| m.message.favoritable? and not m.message.favorited_by_me? },
                  :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(true)} },
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
+
+  define_command(:unfavorite,
+                 :name => 'ふぁぼをキャンセル',
+                 :condition => lambda{ |m| m.message.favoritable? and m.message.favorited_by_me? },
+                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(false)} },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
@@ -90,18 +111,6 @@ Module.new do
                  :exec => lambda{ |m|
                    Gtk::TimeLine.get_active_mumbles.each { |e|
                      e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } },
-                 :visible => true,
-                 :role => ROLE_MESSAGE )
-
-  define_command(:delete_retweet,
-                 :name => 'リツイートをキャンセル',
-                 :condition => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
-                     e.message.service and e.message.retweeted_by.include?(e.message.service.user) } },
-                 :exec => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.each { |e|
-                     retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
-                     retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
