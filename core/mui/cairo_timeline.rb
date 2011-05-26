@@ -17,7 +17,7 @@ class Gtk::TimeLine < Gtk::VBox #Gtk::ScrolledWindow
 
     def self.current_tl
       ctl = @@current_tl and @@current_tl.toplevel.focus.get_ancestor(Gtk::TimeLine::InnerTL) rescue nil
-      ctl if(ctl.is_a?(Gtk::TimeLine::InnerTL))
+      ctl if(ctl.is_a?(Gtk::TimeLine::InnerTL) and not ctl.destroyed?)
     end
 
     def initialize
