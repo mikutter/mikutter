@@ -38,7 +38,8 @@ Module.new do
   define_command(:copy_selected_region,
                  :name => 'コピー',
                  :condition => lambda{ |m| true },
-                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
+                 :exec => lambda{ |opt|
+                   Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
                  :visible => true,
                  :role => ROLE_MESSAGE_SELECTED )
 

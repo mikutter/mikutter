@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'gtk2'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
-miquire :mui, 'mtk'
 miquire :mui, 'extension'
 miquire :mui, 'contextmenu'
 

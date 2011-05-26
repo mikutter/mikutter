@@ -5,7 +5,8 @@ module Gdk
 
     def textselector_range
       if(@textselect_start and @textselect_end and @textselect_start != @textselect_end)
-        Range.new(*[@textselect_start, @textselect_end].sort) end end
+        first, last = [@textselect_start, @textselect_end].sort
+        Range.new(first, last, true) end end
 
     def textselector_press(index, trail=0)
       @textselector_pressing = true
