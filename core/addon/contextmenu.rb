@@ -118,13 +118,8 @@ Module.new do
                  :name => 'ひとつ上のつぶやきを選択',
                  :condition => lambda{ |tl| true },
                  :exec => lambda{ |tl|
-                   path = tl.get_active_pathes.first
-                   if path
-                     if path.prev!
-                       tl.selection.select_path(path)
-                       tl.scroll_to_cell(path, tl.get_column(0), false, 0.0, 0.0)
-                       path.next!
-                       tl.selection.unselect_path(path) end end },
+                   path, column = tl.cursor
+                   tl.set_cursor(path, column, false) if path and column and path.prev! },
                  :visible => false,
                  :role => ROLE_TIMELINE )
 
@@ -132,13 +127,8 @@ Module.new do
                  :name => 'ひとつ下のつぶやきを選択',
                  :condition => lambda{ |tl| true },
                  :exec => lambda{ |tl|
-                   path = tl.get_active_pathes.first
-                   if path
-                     if path.next!
-                       tl.selection.select_path(path)
-                       tl.scroll_to_cell(path, tl.get_column(0), false, 1.0, 0.0)
-                       path.prev!
-                       tl.selection.unselect_path(path) end end },
+                   path, column = tl.cursor
+                   tl.set_cursor(path, column, false) if path and column and path.next! },
                  :visible => false,
                  :role => ROLE_TIMELINE )
 
