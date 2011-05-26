@@ -116,8 +116,7 @@ module Addon
     end
 
     # _tl_ , _active_mumble_ , _miracle_painter_ , _postbox_ , _roles_ の6つの値を返す。
-    # 名前の由来は返す値の頭文字で読み方は「タンパー」ってところまで考えてそんな裏設定いらねえだろと我に帰った。
-    # どうせこのユーティリティの存在すら、すぐに忘れちゃうんだろうし。
+    # 酷いメソッドである
     # *tl* 現在フォーカスされているタイムライン(Gtk::TimeLine::InnerTL)
     # *active_mumble* 選択されているメッセージ（代表一つ）(Message)
     # *miracle_painter* _active_mumble_ のレンダー(Gdk::MiraclePainter)
@@ -136,6 +135,7 @@ module Addon
       active_mumble = defaults[:message] || Gtk::TimeLine.get_active_mumbles.to_a.first
       miracle_painter = defaults[:miracle_painter] || ((active_mumble and tl) ? tl.cell_renderer_message.miracle_painter(active_mumble) : false)
       postbox = defaults[:postbox] || (focus ? focus.get_ancestor(Gtk::PostBox) : false)
+      postbox = false if not postbox.is_a?(Gtk::PostBox)
       [tl, active_mumble, miracle_painter, postbox, get_valid_roles(focus, tl, active_mumble, miracle_painter, postbox)].freeze
     end
 
