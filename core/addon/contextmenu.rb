@@ -140,4 +140,12 @@ Module.new do
                  :visible => false,
                  :role => ROLE_POSTBOX )
 
+  define_command(:google_search,
+                 :name => '選択した語句をGoogleで検索',
+                 :condition => lambda{ |m| true },
+                 :exec => lambda{ |opt|
+                   kamiya_google_search_word = opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join
+                   Gtk::openurl("http://www.google.co.jp/search?q=" + Escape.uri_segment(kamiya_google_search_word).to_s) },
+                 :visible => true,
+                 :role => ROLE_MESSAGE_SELECTED )
 end
