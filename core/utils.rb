@@ -32,11 +32,8 @@ PATH_KIND_CONVERTER = Hash.new{ |h, k| h[k] = k.to_s + '/' }
 PATH_KIND_CONVERTER[:mui] = Class.new{
   define_method(:+){ |other|
     render = lambda{ |r| File.join('mui', "#{r}_" + other) }
-    if($cairo)
-      if other == '*' or FileTest.exist?(render[:cairo] + '.rb')
-        render[:cairo]
-      else
-        render[:gtk] end
+    if other == '*' or FileTest.exist?(render[:cairo] + '.rb')
+      render[:cairo]
     else
       render[:gtk] end } }.new
 PATH_KIND_CONVERTER[:core] = ''
