@@ -23,6 +23,6 @@ end
 # >> Loaded suite -
 # >> Started
 # >> .
-# >> Finished in 0.000391 seconds.
+# >> Finished in 0.000582 seconds.
 # >> 
 # >> 1 tests, 1 assertions, 0 failures, 0 errors

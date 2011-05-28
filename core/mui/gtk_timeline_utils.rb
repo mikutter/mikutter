@@ -83,10 +83,21 @@ module Gtk::TimeLineUtils
   # _message_ を追加する。配列で複数のMessageオブジェクトを渡すこともできる。
   def add(message)
     if message.is_a?(Enumerable) then
-      self.block_add_all(message)
+      self.block_add_all(Plugin.filtering(:show_filter, message).first)
     else
-      self.block_add(message) end
+      m = Plugin.filtering(:show_filter, [message]).first.first
+      self.block_add(m) if m.is_a?(Message) end
     self end
+
+  # つぶやきが削除されたときに呼ばれる
+  def remove_if_exists_all(msgs)
+  end
+
+  # リツイートを受信したときにそれを引数に呼ばれる
+  def add_retweets(messages)
+  end
+
+  protected
 
   # 配列で複数のMessageオブジェクトを受け取って適切に処理する。
   # 削除されたつぶやきに関しては _remove_if_exists_all_ を呼び、リツイートだった場合は _add_retweets_ を呼ぶ。
@@ -96,13 +107,5 @@ module Gtk::TimeLineUtils
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)
     appends.each(&method(:block_add))
-  end
-
-  # つぶやきが削除されたときに呼ばれる
-  def remove_if_exists_all(msgs)
-  end
-
-  # リツイートを受信したときにそれを引数に呼ばれる
-  def add_retweets(messages)
   end
 end
