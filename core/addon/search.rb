@@ -88,7 +88,7 @@ Module.new do
       if res
         remove_unmarked{
           res.each{ |record|
-            add_tab(record['id'], URI.decode(record['query']), URI.decode(record['name'])) } } end }
+            add_tab(record[:id], URI.decode(record[:query]), URI.decode(record[:name])) } } end }
     # Thread.new{
     #   Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
     #     remove_unmarked{

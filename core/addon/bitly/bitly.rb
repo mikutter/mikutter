@@ -5,10 +5,29 @@ miquire :addon, 'addon'
 miquire :addon, 'settings'
 miquire :core, 'userconfig'
 miquire :lib, "json"
+miquire :lib, "timelimitedqueue"
 
 class Bitly < MessageConverters
   USER = 'mikutter'
   APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'
+
+  def initialize
+    # bit.lyの一度のリクエストでexpandできる最大数は15
+    # http://code.google.com/p/bitly-api/wiki/ApiDocumentation#/v3/expand
+    @expand_queue = TimeLimitedQueue.new(15, 0.1, Set){ |set|
+      Thread.new{
+        expand_url_many(set).each{ |pair|
+          shrinked, expanded = pair
+          if @expand_waiting[shrinked]
+            atomic{
+              @expand_waiting[shrinked].call(expanded)
+              @expand_waiting.delete(shrinked) } end } } }
+    @expand_waiting = Hash.new        # { url => Proc(url) }
+  end
+
+  def plugin_name
+    :bitly
+  end
 
   # bitlyユーザ名を返す
   def user
@@ -31,23 +50,34 @@ class Bitly < MessageConverters
     Regexp.new('http://(bit\\.ly|j\\.mp)/') === url end
 
   # urlの配列 urls を受け取り、それら全てを短縮して返す
-  def shrink_url(urls)
-    result = Hash.new
-    urls.each{ |url|
-      query = "login=#{user}&apiKey=#{apikey}&longUrl=#{Escape.query_segment(url).to_s}"
-      3.times{
-        response = begin
+  def shrink_url(url)
+    query = "login=#{user}&apiKey=#{apikey}&longUrl=#{Escape.query_segment(url).to_s}"
+    3.times{
+      response = begin
                    JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/shorten?#{query}"))
                  rescue JSON::ParserError
                    nil end
-        if response and response['status_code'].to_i == 200
-          result[response['data']['long_url']] = response['data']['url']
-          break end
-        sleep(1) } }
-    result if(not result.empty?) end
+      if response and response['status_code'].to_i == 200
+        return response['data']['url'] end
+      sleep(1) }
+    nil end
 
   # 短縮されたURLの配列 urls を受け取り、それら全てを展開して返す。
-  def expand_url(urls)
+  def expand_url(url)
+    url.freeze
+    stopper = Queue.new
+    atomic{
+      if(@expand_waiting[url])
+        parent = @expand_waiting[url]
+        @expand_waiting[url] = lambda{ |url| parent.call(url); stopper << url }
+      else
+        @expand_waiting[url] = lambda{ |url| stopper << url }
+      end
+      @expand_queue.push(url) }
+    stopper.pop end
+
+  def expand_url_many(urls)
+    p urls
     query = "login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
     3.times{
@@ -60,6 +90,8 @@ class Bitly < MessageConverters
                        [token['short_url'], token['long_url']] }.flatten ] end
       sleep(1) }
     nil end
+
+  regist
 
 end
 

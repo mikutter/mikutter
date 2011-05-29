@@ -4,7 +4,6 @@
 コールバックは、以下の条件の何れかを満たしたときに動く。
 1. キューの個数が _max_ を超えたとき
 2. キューに _expire_ 秒以上値の追加が無かったとき
-ただし、何らかの理由で一度にコールバックに渡される値の数は _max_ 個を超える場合がある。
 =end
 
 require 'thread'
@@ -57,20 +56,21 @@ class TimeLimitedQueue < Queue
     loop do
       catch(:write){
         loop{
-          begin
-            timeout(expire){ @stock.push(pop) }
-          rescue Timeout::Error
-            throw :write end
           if @stock.size > max
+            throw :write end
+          begin
+            timeout(expire){ @stock << (pop) }
+          rescue Timeout::Error
             throw :write end } }
       callback if not @stock.empty?
       break if empty? end
   end
 
   def callback
-    @stock.push(pop) while not empty?
-    @callback.call(@stock.freeze)
-    @stock = @storage_class.new end
+    # @stock.push(pop) while not empty?
+    stock = @stock.to_a
+    @callback.call(stock[0, max].freeze)
+    @stock = @storage_class.new(stock[max, stock.size] || []) end
 
   # キューに値が追加された時のイベント
   def pushed_event

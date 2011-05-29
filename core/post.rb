@@ -338,21 +338,21 @@ class Post
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|
-      cnv = msg.convert_key('text' => :message,
-                            'in_reply_to_user_id' => :receiver,
-                            'in_reply_to_status_id' => :replyto)
-      cnv[:favorited] = !!msg['favorited']
-      cnv[:created] = Time.parse(msg['created_at'])
+      cnv = msg.convert_key(:text => :message,
+                            :in_reply_to_user_id => :receiver,
+                            :in_reply_to_status_id => :replyto)
+      cnv[:favorited] = !!msg[:favorited]
+      cnv[:created] = Time.parse(msg[:created_at])
       if user_retrieve
         begin
-          cnv[:user] = User.findbyid(msg['user']['id']) or scan_rule(:user_show, msg['user'])
+          cnv[:user] = User.findbyid(msg[:user][:id]) or scan_rule(:user_show, msg[:user])
         rescue => e
           error e
           abort
         end
       else
-        cnv[:user] = scan_rule(:user_show, msg['user']) end
-      cnv[:retweet] = scan_rule(:status_show, msg['retweeted_status']) if msg['retweeted_status']
+        cnv[:user] = scan_rule(:user_show, msg[:user]) end
+      cnv[:retweet] = scan_rule(:status_show, msg[:retweeted_status]) if msg[:retweeted_status]
       cnv }
   end
 
@@ -365,27 +365,27 @@ class Post
         arg end end
     boolean = lambda{ |name| lambda{ |msg| msg[name] == 'true' } }
     users_parser = {
-      :hasmany => 'users',
+      :hasmany => :users,
       :class => User,
       :method => :rewind,
       :proc => tclambda(Hash){ |msg|
-        cnv = msg.convert_key('screen_name' =>:idname, 'url' => :url)
-        cnv[:created] = Time.parse(msg['created_at'])
-        cnv[:detail] = msg['description']
-        cnv[:protected] = !!msg['protected']
-        cnv[:followers_count] = msg['followers_count'].to_i
-        cnv[:friends_count] = msg['friends_count'].to_i
-        cnv[:statuses_count] = msg['statuses_count'].to_i
-        cnv[:notifications] = msg['notifications']
-        cnv[:verified] = msg['verified']
-        cnv[:following] = msg['following']
+        cnv = msg.convert_key(:screen_name =>:idname, :url => :url)
+        cnv[:created] = Time.parse(msg[:created_at])
+        cnv[:detail] = msg[:description]
+        cnv[:protected] = !!msg[:protected]
+        cnv[:followers_count] = msg[:followers_count].to_i
+        cnv[:friends_count] = msg[:friends_count].to_i
+        cnv[:statuses_count] = msg[:statuses_count].to_i
+        cnv[:notifications] = msg[:notifications]
+        cnv[:verified] = msg[:verified]
+        cnv[:following] = msg[:following]
         cnv } }
     users_lookup_parser = users_parser.clone
     users_lookup_parser[:hasmany] = true
     user_parser = users_parser.clone
     user_parser[:hasmany] = false
     users_list_parser = users_parser.clone
-    users_list_parser[:hasmany] = 'users'
+    users_list_parser[:hasmany] = :users
     timeline_parser = {
       :hasmany => true,
       :class => Message,
@@ -396,21 +396,21 @@ class Post
     streaming_status = unimessage_parser.clone
     streaming_status[:proc] = message_parser(true)
     search_parser = {
-      :hasmany => 'results',
+      :hasmany => :results,
       :class => Message,
       :method => :new_ifnecessary,
       :proc => tclambda(Hash){ |msg|
-        cnv = msg.convert_key('text' => :message,
-                              'in_reply_to_user_id' => :receiver,
-                              'in_reply_to_status_id' => :replyto)
-        cnv[:created] = Time.parse(msg['created_at'])
-        user = User.findbyidname(msg['from_user'])
+        cnv = msg.convert_key(:text => :message,
+                              :in_reply_to_user_id => :receiver,
+                              :in_reply_to_status_id => :replyto)
+        cnv[:created] = Time.parse(msg[:created_at])
+        user = User.findbyidname(msg[:from_user])
         if user
           cnv[:user] = user
         else
-          cnv[:user] = User.new_ifnecessary(:idname => msg['from_user'],
-                                            :id => msg['from_user_id'],
-                                            :profile_image_url => msg['profile_image_url'])
+          cnv[:user] = User.new_ifnecessary(:idname => msg[:from_user],
+                                            :id => msg[:from_user_id],
+                                            :profile_image_url => msg[:profile_image_url])
         end
         cnv } }
     saved_searches_parser = {
@@ -421,7 +421,7 @@ class Post
     saved_search_parser = saved_searches_parser.clone
     saved_search_parser[:hasmany] = false
     lists_parser = {
-      :hasmany => 'lists',
+      :hasmany => :lists,
       :class => UserList,
       :method => :new_ifnecessary,
       :proc => tclambda(Hash){ |msg|
@@ -436,13 +436,13 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => tclambda(Hash){ |msg|
-        msg = msg['relationship']
-        Hash[:following, msg['source']['following'],     # 自分がフォローしているか
-             :followed_by, msg['source']['followed_by'], # 相手にフォローされているか
-             :user, User.new_ifnecessary(:idname => msg['target']['screen_name'], # 相手
-                                         :id => msg['target']['id'])] } }
+        msg = msg[:relationship]
+        Hash[:following, msg[:source][:following],     # 自分がフォローしているか
+             :followed_by, msg[:source][:followed_by], # 相手にフォローされているか
+             :user, User.new_ifnecessary(:idname => msg[:target][:screen_name], # 相手
+                                         :id => msg[:target][:id])] } }
     ids = {
-      :hasmany => "ids",
+      :hasmany => :ids,
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => lambda{|x| {:id => x} } }
@@ -498,6 +498,7 @@ class Post
                        :exact => true }) }
     rescue => e
       error e
+      raise e
       nil end end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)
@@ -509,8 +510,8 @@ class Post
         rescue JSON::ParserError
           warn "json parse error"
           return nil end
-        json.freeze
-        if rule(cache, :hasmany).is_a?(String)
+        json = (json.symbolize).freeze
+        if rule(cache, :hasmany).is_a?(Symbol)
           tl = json[rule(cache, :hasmany)]
         elsif json.is_a?(Hash) or not rule(cache, :hasmany)
           tl = [json]

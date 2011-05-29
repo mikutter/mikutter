@@ -20,10 +20,9 @@ class TC_TimeLimitedQueue < Test::Unit::TestCase
   end
 
 end
-# >> []
 # >> Loaded suite -
 # >> Started
 # >> .
-# >> Finished in 0.002203 seconds.
+# >> Finished in 0.001979 seconds.
 # >> 
 # >> 1 tests, 1 assertions, 0 failures, 0 errors

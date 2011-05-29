@@ -661,6 +661,13 @@ class Array
       return i if compare[x] }
     nil end
 
+  def symbolize
+    result = []
+    each { |val|
+      result << if val.respond_to?(:symbolize) then val.symbolize else val end }
+    result
+  end
+
 end
 
 class Hash
@@ -690,7 +697,7 @@ class Hash
   def symbolize
     result = {}
     each_pair { |key, val|
-      result[key.to_sym] = val }
+      result[key.to_sym] = if val.respond_to?(:symbolize) then val.symbolize else val end }
     result
   end
 
