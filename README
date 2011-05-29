@@ -7,16 +7,16 @@ file:core/skin/data/icon.png
 * 用件
 
 ** 必須アプリケーション:
-- ruby (1.8.7)
-- libgnome2-ruby
-- libopenssl-ruby
-- libhmac-ruby
-rubyは1.8.7(1.8系統最新)でしか動きません。1.8.6以前では動かないことが確認されています。
-mikutterはruby1.9.2を推奨しています。1.9.2で動作させるには、必要なライブラリ等をビルドしてください。
+- ruby (1.8.7, 1.9.2)
+- ruby gtk
+- rcairo
+- Open SSL
+mikutterはruby1.9.2を推奨しています。
 
 ** プラグインが必要とするもの(必須ではない):
 - notifyプラグイン
   - notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
+  - aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
 
 ** gemで入れるもの(なくてもOKです):
 - httpclient
@@ -27,7 +27,7 @@ mikutterはruby1.9.2を推奨しています。1.9.2で動作させるには、�
 
 ** Debian/Ubuntuでのインストール方法
    1. aptでインストール
-      - sudo apt-get install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby
+      - sudo apt-get install libgnome2-ruby libopenssl-ruby ruby1.8 ruby
    2. 推奨パッケージたち（オプション）
       - sudo apt-get install libnotify-bin
         -> 共通の設定へ

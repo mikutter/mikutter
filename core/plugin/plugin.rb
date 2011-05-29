@@ -66,14 +66,15 @@ module Plugin
   # フィルタ関数を用いて引数をフィルタリングする
   def self.filtering(event_name, *args)
     length = args.size
-    @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
-      result = store
-      plugintag, proc = *plugin
-      boot_plugin(plugintag, event_name, :filter, false){
-        result = proc.call(*store)
-        if length != result.size
-          raise "filter changes arguments length (#{length} to #{result.size})" end
-        result } } end
+    callcc{ |cont|
+      @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
+        result = store
+        plugintag, proc = *plugin
+        boot_plugin(plugintag, event_name, :filter, false){
+          result = proc.call(*store){ |result| cont.call(result) }
+          if length != result.size
+            raise "filter changes arguments length (#{length} to #{result.size})" end
+          result } } } end
 
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。

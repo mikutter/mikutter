@@ -12,6 +12,9 @@ miquire :mui, 'pseudo_message_widget'
 miquire :mui, 'postbox'
 miquire :mui, 'inner_tl'
 
+=begin rdoc
+  タイムラインのGtkウィジェット。
+=end
 class Gtk::TimeLine
   include Gtk::TimeLineUtils
 
@@ -21,6 +24,7 @@ class Gtk::TimeLine
     Gtk::TimeLine.openurl(url)
   }
 
+  # 現在アクティブなTLで選択されているすべてのMessageオブジェクトを返す
   def self.get_active_mumbles
     if Gtk::TimeLine::InnerTL.current_tl
       InnerTL.current_tl.get_active_messages
@@ -61,18 +65,22 @@ class Gtk::TimeLine
               scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end
       false } end
 
+  # TLに含まれているMessageを順番に走査する。最新のものから順番に。
   def each(index=1)
     @tl.model.each{ |model,path,iter|
       yield(iter[index]) } end
 
+  # Gtk::TreeIterについて繰り返す
   def each_iter
     @tl.model.each{ |model,path,iter|
       yield(iter) } end
 
+  # TLのログを全て消去する
   def clear
     @tl.model.clear
     self end
 
+  # リツイートを追加する。 _messages_ には Message の配列を指定し、それらはretweetでなければならない
   def add_retweets(messages)
     messages.each{ |message|
       if not include?(message.retweet_source)
@@ -81,6 +89,7 @@ class Gtk::TimeLine
     }
   end
 
+  # Messageオブジェクト _message_ が更新されたときに呼ばれる
   def modified(message)
     type_strict message => Message
     path = get_path_by_message(message)
@@ -106,21 +115,24 @@ class Gtk::TimeLine
       path = get_path_by_message(message)
       @tl.model.remove(@tl.model.get_iter(path)) if path } end
 
-  # _message_ に対応する _Gtk::TreePath_ を返す
+  # _message_ に対応する Gtk::TreePath を返す
   def get_path_by_message(message)
     type_strict message => Message
     id = message[:id].to_i
     found = @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
     found[1] if found  end
 
+  # TL上のつぶやきの数を返す
   def size
     @tl.model.to_enum(:each).inject(0){ |i, r| i + 1 } end
 
+  # このTLが既に削除されているなら真
   def destroyed?
     @tl.destroyed? or @tl.model.destroyed? end
 
   protected
 
+  # _message_ をTLに追加する
   def block_add(message)
     type_strict message => Message
     if not @tl.destroyed?
@@ -156,6 +168,8 @@ class Gtk::TimeLine
     self
   end
 
+  # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
+  # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。
   def init_remover
     @timeline_max = 200
     @remover_queue = TimeLimitedQueue.new(1024, 1){ |messages|
@@ -165,6 +179,7 @@ class Gtk::TimeLine
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end end } } end
 
+  # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
   def emit_expose_miraclepainter
     @exposing_miraclepainter ||= []
     if @tl.visible_range

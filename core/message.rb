@@ -55,7 +55,12 @@ class Message < Retriever::Model
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
     if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
-      self[:message] = MessageConverters.expand_url_all(value[:message]) end end
+      @message_lock = Mutex.new
+      Thread.new{
+        @message_lock.synchronize{
+          self[:message] = MessageConverters.expand_url_all(value[:message])
+        }
+      } end end
 
   # 投稿主のidnameを返す
   def idname
@@ -264,6 +269,8 @@ class Message < Retriever::Model
 
   # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
+    if defined?(@message_lock) and @message_lock.is_a? Mutex
+      @message_lock.synchronize{ } end
     self[:message].to_s.freeze
   end
 

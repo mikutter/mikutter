@@ -20,7 +20,6 @@ def argument_parser()
   $quiet = false
   $single_thread = false
   $skip_version_check = false
-  $cairo = true
 
   ARGV.each{ |arg|
     case arg
@@ -28,8 +27,6 @@ def argument_parser()
       $interactive = true
     when '--debug' # デバッグモード(default:off)
       $debug = true
-    when '--cairo' # cairoを使用(default:off)
-      $cairo = true
     when '--no-cairo'
       $cairo = false
     when '-d' # デーモンモード(default:off)
