@@ -22,7 +22,7 @@ module PseudoSignalHandler
     __signals[signal.to_sym].each{ |handler|
       Delayer.new{
         if not destroyed?
-          handler.call(*[self, *args][0, handler.arity]) end } }
+          handler.call(*[self, *args][0, (handler.arity <= -1 ? (args.size + 1) : handler.arity)]) end } }
     self end
 
   private

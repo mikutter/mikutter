@@ -350,9 +350,9 @@ class TwitterAPI < Mutex
       return @status_show[id] if @status_show[id]
       path = "/statuses/show/#{id}.#{FORMAT}"
       head = {'Host' => HOST}
-      (@status_show[id] ||= get(path, head)).freeze
-    }
-  end
+      result = get(path, head)
+      (@status_show[id] ||= result).freeze if result.is_a?(String)
+      result } end
 
   def saved_searches(args=nil)
     get_with_auth('/saved_searches.' + FORMAT, head(args))

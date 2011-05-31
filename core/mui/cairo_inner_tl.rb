@@ -6,6 +6,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   attr_accessor :postbox
   type_register('GtkInnerTL')
 
+  MESSAGE_ID = 0
+  MESSAGE = 1
+  CREATED = 2
+  MIRACLE_PAINTER = 3
+
   def self.current_tl
     ctl = @@current_tl and @@current_tl.toplevel.focus.get_ancestor(Gtk::TimeLine::InnerTL) rescue nil
     ctl if(ctl.is_a?(Gtk::TimeLine::InnerTL) and not ctl.destroyed?)
@@ -36,7 +41,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         },
         :kind => :message_id, :widget => :text, :type => String, :label => ''},
       {:kind => :text, :widget => :text, :type => Message},
-      {:kind => :text, :widget => :text, :type => Integer}
+      {:kind => :text, :type => Integer},
+      {:kind => :text, :type => Object}
     ].freeze
   end
 
