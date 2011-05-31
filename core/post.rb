@@ -148,6 +148,7 @@ class Post
     raw_text = args[:get_raw_text]
     args.delete(:no_auto_since_id)
     args.delete(:get_raw_text)
+    result = json = nil
     UserConfig[:message_retry_limit].times{
       data = scan_data(kind, args)
       if raw_text
@@ -492,10 +493,9 @@ class Post
       # notice param.inspect
       result = rule(rule_name, :class).method(rule(rule_name, :method)).call(param)
       # notice result.inspect
-      type_check(result => [:respond_to?, :merge]){
-        result.merge({ :rule => rule_name,
-                       :post => self,
-                       :exact => true }) }
+      result.merge({ :rule => rule_name,
+                     :post => self,
+                     :exact => true })
     rescue => e
       error e
       raise e
@@ -510,7 +510,7 @@ class Post
         rescue JSON::ParserError
           warn "json parse error"
           return nil end
-        json = (json.symbolize).freeze
+        json = json.symbolize
         if rule(cache, :hasmany).is_a?(Symbol)
           tl = json[rule(cache, :hasmany)]
         elsif json.is_a?(Hash) or not rule(cache, :hasmany)
