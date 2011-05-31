@@ -13,8 +13,7 @@ module Gtk
 
     def initialize()
       super()
-      @message = nil
-      @miracle_painter = Hash.new end
+      @message = nil end
 
     # Register events for this Renderer:
     signal_new("button_press_event", GLib::Signal::RUN_FIRST, nil, nil,
@@ -91,9 +90,21 @@ module Gtk
       event_hooks
     end
 
+    # Messageに関連付けられた Gdk::MiraclePainter を取得する
     def miracle_painter(message)
       type_strict message => Message
-      @miracle_painter[message[:id].to_i] ||= Gdk::MiraclePainter.new(message, avail_width).set_tree(@tree) end
+      mid = message[:id].to_s.freeze
+      @tree.model.each{ |model,path,iter|
+        if(iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] == mid)
+          if mp = iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER]
+            return mp
+          else
+            return iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = create_miracle_painter(message) end end } end
+
+    # MiraclePainterを生成して返す
+    def create_miracle_painter(message)
+      Gdk::MiraclePainter.new(message, avail_width).set_tree(@tree)
+    end
 
     def message_id=(id)
       # type_strict id => Integer

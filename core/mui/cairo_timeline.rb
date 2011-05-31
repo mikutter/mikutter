@@ -151,21 +151,24 @@ class Gtk::TimeLine
 
   def _add(message)
     scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
+    miracle_painter = @tl.cell_renderer_message.create_miracle_painter(message)
     iter = @tl.model.append
-    iter[0] = message[:id].to_s
-    iter[1] = message
-    iter[2] = message.modified.to_i
-    sid = @tl.cell_renderer_message.miracle_painter(message).ssc(:modified, @tl){ |mb|
-      if not @tl.destroyed?
-        @tl.model.each{ |model, path, iter|
-          if iter[0].to_i == message[:id]
-            @tl.queue_draw
-            break end }
-      else
-        @tl.cell_renderer_message.miracle_painter(message).signal_handler_disconnect(sid) end
-      false }
+    iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] = message[:id].to_s
+    iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
+    iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
+    iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
+    sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
     @remover_queue.push(message)
     self
+  end
+
+  def gen_mp_modifier(message)
+    lambda{ |mb|
+      @tl.model.each{ |model, path, iter|
+        if iter[0].to_i == message[:id]
+          @tl.queue_draw
+          break end }
+      false }
   end
 
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
