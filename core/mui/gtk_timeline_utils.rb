@@ -24,7 +24,7 @@ module Gtk::TimeLineUtils
       alias :old_new_Ak6FV :new
       def new
         result = old_new_Ak6FV
-        (@timelines ||= WeakSet.new) << result
+        (@timelines ||= WeakSet.new(self)) << result
         result end
 
       def wayofopenlink

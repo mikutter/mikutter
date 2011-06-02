@@ -68,7 +68,7 @@ module Gtk
           armed_column = column
           motioned = [path, column, cell_x, cell_y]
           signal_emit("motion_notify_event", e, *motioned)
-          if(last_motioned and @tree.model.get_iter(motioned[0])[0] != @tree.model.get_iter(last_motioned[0])[0])
+          if(last_motioned and @tree.get_record(motioned[0]).id != @tree.get_record(last_motioned[0]).id)
             signal_emit("leave_notify_event", e, *last_motioned) end
           last_motioned = motioned end }
 
@@ -94,12 +94,17 @@ module Gtk
     def miracle_painter(message)
       type_strict message => Message
       mid = message[:id].to_s.freeze
-      @tree.model.each{ |model,path,iter|
-        if(iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] == mid)
-          if mp = iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER]
-            return mp
-          else
-            return iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = create_miracle_painter(message) end end } end
+      record = @tree.get_record_by_message(message)
+      if record.miracle_painter
+        record.miracle_painter
+      else
+        @tree.update!(message, Gtk::TimeLine::InnerTL::MIRACLE_PAINTER, create_miracle_painter(message)) end end
+      # @tree.model.each{ |model,path,iter|
+      #   if(iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] == mid)
+      #     if mp = iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER]
+      #       return mp
+      #     else
+      #       return iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = create_miracle_painter(message) end end } end
 
     # MiraclePainterを生成して返す
     def create_miracle_painter(message)
@@ -143,26 +148,26 @@ module Gtk
     def event_hooks
       last_pressed = nil
       ssc(:click, @tree){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).clicked(cell_x, cell_y, e)
+        @tree.get_record(path).miracle_painter.clicked(cell_x, cell_y, e)
         false }
       ssc(:button_press_event, @tree){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1
-          last_pressed = miracle_painter(@tree.model.get_iter(path)[1])
+          last_pressed = @tree.get_record(path).miracle_painter
           last_pressed.pressed(cell_x, cell_y) end
         false }
       ssc(:button_release_event, @tree){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1 and last_pressed
-          if(last_pressed == miracle_painter(@tree.model.get_iter(path)[1]))
+          if(last_pressed == @tree.get_record(path).miracle_painter)
             last_pressed.released(cell_x, cell_y)
           else
             last_pressed.released end
           last_pressed = nil end
         false }
       ssc(:motion_notify_event, @tree){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).point_moved(cell_x, cell_y)
+        @tree.get_record(path).miracle_painter.point_moved(cell_x, cell_y)
         false }
       ssc(:leave_notify_event, @tree){ |r, e, path, column, cell_x, cell_y|
-        miracle_painter(@tree.model.get_iter(path)[1]).point_leaved(cell_x, cell_y)
+        @tree.get_record(path).miracle_painter.point_leaved(cell_x, cell_y)
         false }
     end
 

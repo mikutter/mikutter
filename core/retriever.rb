@@ -15,7 +15,7 @@ module Retriever
   class Model
     include Comparable
 
-    @@storage = WeakStorage.new # id => <Model>
+    @@storage = WeakStorage.new(Integer, Model) # id => <Model>
 
     #
     # ジェネレータ

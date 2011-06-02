@@ -26,6 +26,11 @@ end
 
 class WeakStorage < WeakStore
 
+  def initialize(key_class, val_class)
+    @key_class, @val_class = key_class, val_class
+    super()
+  end
+
   def [](key)
     begin
       atomic{
@@ -37,7 +42,8 @@ class WeakStorage < WeakStore
   alias add []
 
   def []=(key, val)
-    ObjectSpace.define_finalizer(val){ |objid| storage.delete(key) }
+    type_strict key => @key_class, val => @val_class
+    ObjectSpace.define_finalizer(val, &gen_deleter)
     atomic{
       storage[key] = val.object_id } end
   alias store []=
@@ -46,13 +52,26 @@ class WeakStorage < WeakStore
     atomic{
       storage.has_key?(key) } end
 
+  def inspect
+    atomic{ "#<WeakStorage(#{@key_class} => #{@val_class}): #{storage.size}>" }
+  end
+
   private
+
+  def gen_deleter
+    @deleter ||= lambda{ |objid| atomic{ storage.delete_if{ |key, val| val == objid } } }
+  end
 
   def gen_storage
     Hash.new end end
 
 class WeakSet < WeakStore
   include Enumerable
+
+  def initialize(val_class)
+    @val_class = val_class
+    super()
+  end
 
   def each
     begin
@@ -63,18 +82,24 @@ class WeakSet < WeakStore
       nil end end
 
   def add(val)
-    ObjectSpace.define_finalizer(val, &method(:on_delete))
+    type_strict val => @val_class
+    ObjectSpace.define_finalizer(val, &gen_deleter)
     atomic{
       storage.add(val.object_id) } end
   alias << add
+
+  def inspect
+    atomic{ "#<WeakSet(#{@val_class}): #{storage.size}>" }
+  end
 
   private
 
   def gen_storage
     Set.new end
 
-  def on_delete(objid)
-    atomic{
-      storage.delete(objid) } end
+  def gen_deleter
+    @gen_deleter ||= lambda{ |objid|
+      atomic{
+        storage.delete(objid) } } end
 
  end

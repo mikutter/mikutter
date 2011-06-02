@@ -31,7 +31,7 @@ class Gtk::TimeLine
     else
       [] end end
 
-  @@tls = WeakSet.new
+  @@tls = WeakSet.new(InnerTL)
 
   def initialize
     super
@@ -92,7 +92,7 @@ class Gtk::TimeLine
   # Messageオブジェクト _message_ が更新されたときに呼ばれる
   def modified(message)
     type_strict message => Message
-    path = get_path_by_message(message)
+    path = @tl.get_path_by_message(message)
     if(path)
       iter = @tl.model.get_iter(path)
       iter[2] = message.modified.to_i
@@ -112,15 +112,8 @@ class Gtk::TimeLine
   # つぶやきが削除されたときに呼ばれる
   def remove_if_exists_all(messages)
     messages.each{ |message|
-      path = get_path_by_message(message)
+      path = @tl.get_path_by_message(message)
       @tl.model.remove(@tl.model.get_iter(path)) if path } end
-
-  # _message_ に対応する Gtk::TreePath を返す
-  def get_path_by_message(message)
-    type_strict message => Message
-    id = message[:id].to_i
-    found = @tl.model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
-    found[1] if found  end
 
   # TL上のつぶやきの数を返す
   def size
@@ -129,6 +122,9 @@ class Gtk::TimeLine
   # このTLが既に削除されているなら真
   def destroyed?
     @tl.destroyed? or @tl.model.destroyed? end
+
+  def method_missing(method_name, *args, &proc)
+    @tl.__send__(method_name, *args, &proc) end
 
   protected
 
