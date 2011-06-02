@@ -498,7 +498,6 @@ class Post
                      :exact => true })
     rescue => e
       error e
-      raise e
       nil end end
 
   def parse_json(json, cache='friends_timeline', get_raw_data=false)

@@ -6,6 +6,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   attr_accessor :postbox
   type_register('GtkInnerTL')
 
+  # TLの値を返すときに使う
+  Record = Struct.new(:id, :message, :created, :miracle_painter)
+
   MESSAGE_ID = 0
   MESSAGE = 1
   CREATED = 2
@@ -78,5 +81,44 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     selection.selected_each{ |model, path, iter|
       selected << path }
     selected end
+
+  # 選択範囲の時刻(UNIX Time)の最初と最後を含むRangeを返す
+  def selected_range_bytime
+    start, last = visible_range
+    Range.new(*[model.get_iter(last)[2], model.get_iter(start)[2]].sort)
+  end
+
+  # _message_ のレコードの _column_ 番目のカラムの値を _value_ にセットする。
+  # 成功したら _value_ を返す
+  def update!(message, column, value)
+    iter = get_iter_by_message(message)
+    iter[column] = value if iter end
+
+  # _path_ からレコードを取得する
+  def get_record(path)
+    iter = model.get_iter(path)
+    Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end
+
+  # _message_ に対応する Gtk::TreePath を返す
+  def get_path_by_message(message)
+    get_path_and_iter_by_message(message)[1] end
+
+  # _message_ に対応する値の構造体を返す。Gtk::TreeIterに関わるメソッドはできるだけ減らしましょう！
+  def get_record_by_message(message)
+    path = get_path_and_iter_by_message(message)[1]
+    get_record(path) if path
+  end
+
+  private
+
+  # _message_ に対応する Gtk::TreeIter を返す
+  def get_iter_by_message(message)
+    get_path_and_iter_by_message(message)[2] end
+
+  # _message_ から [model, path, iter] の配列を返す。見つからなかった場合は空の配列を返す。
+  def get_path_and_iter_by_message(message)
+    id = message[:id].to_i
+    found = model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
+    found || []  end
 
 end

@@ -4,7 +4,7 @@ miquire :core, 'retriever'
 
 class User < Retriever::Model
 
-  @@users_id = WeakStorage.new # {idname => User}
+  @@users_id = WeakStorage.new(String, User) # {idname => User}
 
   # args format
   # key     | value

@@ -34,12 +34,18 @@ class Gdk::MiraclePainter < GLib::Object
   attr_reader :message, :p_message, :tree
   alias :to_message :message
 
-  @@miracle_painters = Hash.new
+  # @@miracle_painters = Hash.new
 
   # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す
   def self.findbymessage(message)
     type_strict message => :to_message
-    @@miracle_painters[message.to_message[:id].to_i] || EMPTY
+    message = message.to_message
+    result = Set.new
+    Gtk::TimeLine.timelines.each{ |tl|
+      found = tl.get_record_by_message(message)
+      result << found.miracle_painter if found }
+    result.freeze
+    # @@miracle_painters[message.to_message[:id].to_i] || EMPTY
   end
 
   def initialize(message, *coodinate)
@@ -50,7 +56,8 @@ class Gdk::MiraclePainter < GLib::Object
     type_strict @message => Message
     super()
     coordinator(*coodinate)
-    (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new) << self end
+    # (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new(Gdk::MiraclePainter)) << self
+  end
 
   # Gtk::TimeLine::InnerTLのインスタンスを設定する。今後、このインスタンスは _new_ に所属するものとして振舞う
   def set_tree(new)
@@ -188,7 +195,7 @@ class Gdk::MiraclePainter < GLib::Object
     if tree
       start, last = tree.visible_range
       if start
-        range = Range.new(*[tree.model.get_iter(last)[2], tree.model.get_iter(start)[2]].sort)
+        range = tree.selected_range_bytime
         if(tree.vadjustment.value == 0)
           range.first <= message.modified.to_i
         else

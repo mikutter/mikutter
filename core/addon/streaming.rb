@@ -106,11 +106,12 @@ Module.new do
       trigger_event(service, events) end
 
     def self.pack_message_event(messages, buffer=Hash.new)
-      messages.each{ |msg|
-        type_strict msg => Message
-        buffer[:update] << msg
-        buffer[:mention] << msg if msg.to_me?
-        buffer[:mypost] << msg if msg.from_me? }
+      if(messages.is_a? Enumerable)
+        messages.each{ |msg|
+          type_strict msg => Message
+          buffer[:update] << msg
+          buffer[:mention] << msg if msg.to_me?
+          buffer[:mypost] << msg if msg.from_me? } end
       buffer end
 
     def self.trigger_event(service, events)
