@@ -105,7 +105,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _path_ からレコードを取得する
   def get_record(path)
-    record = sorted_path_record[-path.indices.first - 1][2]
+    record = sorted_path_record[path.indices.first][2]
     if record
       record
     else
@@ -129,7 +129,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         record end end end
 
   def sorted_path_record
-    @path_record = @path_record.sort_by{ |n| n[2].created } end
+    @path_record = @path_record.sort_by{ |n| [-(n[2].created), -n[2].id] } end
 
   # model.appendで生成したイテレータにデータを格納し終わったら、それを引数に呼ぶといいですよ
   def add_iter(iter)
@@ -149,9 +149,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     found || []  end
 
   def init_signal_hooks
-    model.ssc(:row_deleted){ |path|
-      if @path_record.size >= 200
-        sorted_path_record.shift end
+    model.ssc(:row_deleted){ |model, path|
+      sorted_path_record.delete(path.indices.first)
       false
     }
   end
