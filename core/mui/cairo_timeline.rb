@@ -90,6 +90,7 @@ class Gtk::TimeLine
     path = @tl.get_path_by_message(message)
     if(path)
       @tl.update!(message, 2, message.modified.to_i)
+      @tl.model.rows_reordered(path, @tl.model.get_iter(path), [0])
     end
     self end
 
