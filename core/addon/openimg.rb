@@ -157,28 +157,10 @@ Module.new do
   # piapro
   addsupport(Regexp.new('^http://piapro.jp/t/[a-zA-Z0-9]+'), 'tag' => 'meta', 'attribute' => 'content',
   'content' => Regexp.new('^http://[a-z0-9]+?\.piapro.jp/timg/[a-zA-Z0-9_]+?_0500_0500\.(jpg|png|gif)'))
-  # piaproaccount = piaprocookie = nil
-  # addsupport(/^http:\/\/piapro.jp\/content\/[a-zA-Z0-9]+/){ |url, cancel|
-  #   if piaproaccount != [UserConfig[:piapro_username], UserConfig[:piapro_password]]
-  #     piaproaccount = [UserConfig[:piapro_username], UserConfig[:piapro_password]]
-  #     piaprocookie = lazy{ PIAPRO::Auth.auth(UserConfig[:piapro_username], UserConfig[:piapro_password], 1) } end
-  #   url = imgurlresolver(url, 'tag' => 'a', 'attribute' => 'href',
-  #                        'href' => Regexp.new("^" + Regexp.escape("http://piapro.jp/download/?view=content_image&id=") + "[a-zA-Z0-9]+"))
-  #   if url
-  #     PIAPRO::Download.new(:cookie => piaprocookie).download_url(url, Gtk::WebIcon.get_filename(url))
-  #   end }
 
-  # Gtk::TimeLine.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
-  #   Delayer.new{ display(url, cancel) }
-  # }
-
-  # Plugin::create(:openimg).add_event(:boot){ |service|
-  #   container = Gtk::VBox.new(false, 8).
-  #   closeup(Mtk.accountdialog_button('piapro アカウント設定',
-  #                                 :piapro_username, 'ユーザ名',
-  #                                 :piapro_password, 'パスワード'){ |user, pass|
-  #             true })
-  #   Plugin.call(:setting_tab_regist, container, '画像プレビュー') }
+  Gtk::TimeLine.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
+    Delayer.new{ display(url, cancel) }
+  }
 
   if $0 == __FILE__
     $debug = true
