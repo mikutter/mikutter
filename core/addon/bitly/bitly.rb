@@ -77,6 +77,7 @@ class Bitly < MessageConverters
     stopper.pop end
 
   def expand_url_many(urls)
+    notice urls
     query = "login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
     3.times{

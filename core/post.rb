@@ -83,7 +83,7 @@ class Post
     }
     define_postal(*other) if not other.empty? end
 
-  # Post系APIの5B挙動を詳細に定義する
+  # Post系APIの挙動を詳細に定義する
   def self.define_postal_detail(api, &main)
     if $quiet
       define_method(api.to_sym){ |msg|

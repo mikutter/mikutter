@@ -95,9 +95,8 @@ class Gdk::MiraclePainter < GLib::Object
       if not textselector_range
         index = main_pos_to_index(x, y)
         if index
-          links.each{ |l|
-            if l[:range].include?(index)
-              l[:callback].call(l) end } end end
+          l = message.links.segment_by_index(index)
+          l[:callback].call(l) if l end end
     when 3
       menu_pop(e)
     end
