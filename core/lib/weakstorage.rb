@@ -6,13 +6,22 @@
 require 'set'
 require 'thread'
 
+END{
+  ObjectSpace.each_object(WeakStore){ |s|
+    s.exit = true
+  }
+}
+
 class WeakStore
+  attr_accessor :exit
+
   def initialize
     @_storage = gen_storage
-    @_mutex = Mutex.new end
+    @_mutex = Mutex.new
+    @exit = false end
 
   def atomic(&proc)
-    @_mutex.synchronize(&proc) end
+    @_mutex.synchronize(&proc) if not exit end
 
   protected
 
@@ -33,17 +42,18 @@ class WeakStorage < WeakStore
 
   def [](key)
     begin
-      atomic{
+      result = atomic{
         ObjectSpace._id2ref(storage[key]) if storage.has_key?(key) }
+      type_strict result => @val_class if result
+      result
     rescue RangeError => e
-      @@bug = true
       error "#{key} was deleted"
-      abort end end
+      nil end end
   alias add []
 
   def []=(key, val)
     type_strict key => @key_class, val => @val_class
-    ObjectSpace.define_finalizer(val){ |objid| atomic{ storage.delete_if{ |key, val| val == objid } } }
+    ObjectSpace.define_finalizer(val, &gen_deleter)
     atomic{
       storage[key] = val.object_id } end
   alias store []=

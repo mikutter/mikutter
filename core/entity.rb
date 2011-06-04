@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+miquire :core, 'message'
 
 class Message::Entity
   include Enumerable
@@ -119,7 +120,7 @@ class Message::Entity
         children.each{ |link|
           rule = @@linkrule[slug] || {}
           range = indices_to_range(link[:indices])
-          face = message.body.split(//u)[range].join
+          face = (message.to_show.split(//u)[range] || '').join
           result << @@filter[slug].call(rule.merge({ :message => message,
                                                      :range => range,
                                                      :face => face,
