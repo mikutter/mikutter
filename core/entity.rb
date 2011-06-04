@@ -9,7 +9,7 @@ class Message::Entity
   @@linkrule = {}
   @@filter = Hash.new(ret_nth)
 
-  def self.addlinkrule(slug, regexp, &callback)
+  def self.addlinkrule(slug, regexp=nil, &callback)
     slug = slug.to_sym
     @@linkrule[slug] = { :slug => slug, :regexp => regexp, :callback => callback }.freeze
     self end
@@ -25,6 +25,11 @@ class Message::Entity
         segment[:face] = segment[:expanded_url]
       elsif MessageConverters.shrinkable_url_regexp === segment[:url]
         segment[:face] = MessageConverters.expand_url([segment[:url]])[segment[:url]] end end
+    segment }
+
+  filter(:media){ |segment|
+    segment[:face] = segment[:display_url]
+    segment[:url] = segment[:media_url]
     segment }
 
   def initialize(message)
@@ -102,13 +107,14 @@ class Message::Entity
   def _generate_value
     result = Set.new(message_entities)
     @@linkrule.values.each{ |rule|
-      message.to_show.each_matches(rule[:regexp]){ |match, pos|
-        if not result.any?{ |this| this[:range].include?(pos) }
-          pos = message.to_show[0, pos].strsize
-          result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
-                                                            :range => Range.new(pos, pos + match.to_s.strsize, true),
-                                                            :face => match.to_s,
-                                                            :url => match.to_s})).freeze end } }
+      if rule[:regexp]
+        message.to_show.each_matches(rule[:regexp]){ |match, pos|
+          if not result.any?{ |this| this[:range].include?(pos) }
+            pos = message.to_show[0, pos].strsize
+            result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
+                                                              :range => Range.new(pos, pos + match.to_s.strsize, true),
+                                                              :face => match.to_s,
+                                                              :url => match.to_s})).freeze end } end }
     result.sort_by{ |r| r[:range].first }.freeze end
 
 
@@ -120,7 +126,7 @@ class Message::Entity
         children.each{ |link|
           rule = @@linkrule[slug] || {}
           range = indices_to_range(link[:indices])
-          face = (message.to_show.split(//u)[range] || '').join
+          face = (message.to_show.split(//u)[range] || ['']).join
           result << @@filter[slug].call(rule.merge({ :message => message,
                                                      :range => range,
                                                      :face => face,
