@@ -16,16 +16,16 @@ module Gtk::TimeLineUtils
 
       # 存在するタイムラインを全て返す
       def timelines
-        @timelines = @timelines.select{ |tl| not tl.destroyed? } end
+        ObjectSpace.to_enum(:each_object, Gtk::TimeLineUtils).select{ |tl| not tl.destroyed? } end
 
       def get_active_mumbles
         Set.new end
 
-      alias :old_new_Ak6FV :new
-      def new
-        result = old_new_Ak6FV
-        (@timelines ||= WeakSet.new(self)) << result
-        result end
+      # alias :old_new_Ak6FV :new
+      # def new
+      #   result = old_new_Ak6FV
+      #   (@timelines ||= WeakSet.new(self)) << result
+      #   result end
 
       def wayofopenlink
         @wayofopenlink ||= MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|

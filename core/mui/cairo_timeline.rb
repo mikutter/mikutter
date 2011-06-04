@@ -34,11 +34,9 @@ class Gtk::TimeLine
     else
       [] end end
 
-  @@tls = WeakSet.new(InnerTL)
-
   def initialize
     super
-    @@tls << @tl = InnerTL.new
+    @tl = InnerTL.new
     init_remover
     @tl.postbox = postbox
     scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
