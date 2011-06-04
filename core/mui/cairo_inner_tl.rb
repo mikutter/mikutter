@@ -151,7 +151,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def init_signal_hooks
     model.ssc(:row_deleted){ |path|
       if @path_record.size >= 200
-        sorted_path_record.pop end
+        sorted_path_record.shift end
       false
     }
   end

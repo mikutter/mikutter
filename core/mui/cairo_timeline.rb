@@ -89,9 +89,7 @@ class Gtk::TimeLine
     type_strict message => Message
     path = @tl.get_path_by_message(message)
     if(path)
-      @tl.update!(message, 2, message.modified.to_i)
-      @tl.model.rows_reordered(path, @tl.model.get_iter(path), [0])
-    end
+      @tl.update!(message, 2, message.modified.to_i) end
     self end
 
   # _message_ が新たに _user_ のお気に入りに追加された時に呼ばれる
