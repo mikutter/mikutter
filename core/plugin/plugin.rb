@@ -66,12 +66,12 @@ module Plugin
   # フィルタ関数を用いて引数をフィルタリングする
   def self.filtering(event_name, *args)
     length = args.size
-    callcc{ |cont|
+    catch(:filter_exit){
       @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
         result = store
         plugintag, proc = *plugin
         boot_plugin(plugintag, event_name, :filter, false){
-          result = proc.call(*store){ |result| cont.call(result) }
+          result = proc.call(*store){ |result| throw(:filter_exit, result) }
           if length != result.size
             raise "filter changes arguments length (#{length} to #{result.size})" end
           result } } } end

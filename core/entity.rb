@@ -119,7 +119,7 @@ class Message::Entity
         children.each{ |link|
           rule = @@linkrule[slug] || {}
           range = indices_to_range(link[:indices])
-          face = message.body[range]
+          face = message.body.split(//u)[range].join
           result << @@filter[slug].call(rule.merge({ :message => message,
                                                      :range => range,
                                                      :face => face,
