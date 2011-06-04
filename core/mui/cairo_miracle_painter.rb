@@ -208,10 +208,14 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
-    attr_list, text = Pango.parse_markup(textselector_markup(styled_main_text))
+    begin
+      attr_list, text = Pango.parse_markup(textselector_markup(styled_main_text))
+    rescue GLib::Error => e
+      attr_list, text = nil, Pango.escape(message.to_show)
+    end
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
-    layout.attributes = attr_list
+    layout.attributes = attr_list if attr_list
     layout.wrap = Pango::WRAP_CHAR
     context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
