@@ -23,14 +23,15 @@ Net::HTTP.version_1_2
 class TwitterAPI
 =end
 class TwitterAPI < Mutex
-  HOST = 'api.twitter.com'
-  BASE_PATH = "http://#{HOST}/1"
+  HOST = 'api.twitter.com'.freeze
+  BASE_PATH = "http://#{HOST}/1".freeze
   OPEN_TIMEOUT = 10
   READ_TIMEOUT = 20
-  FORMAT = 'json'
+  FORMAT = 'json'.freeze
   API_MAX = 150
   API_RESET_INTERVAL = 3600
-  OAUTH_VERSION = '1.0'
+  OAUTH_VERSION = '1.0'.freeze
+  DEFAULT_API_ARGUMENT = {:include_entities => 1}.freeze
 
   include ConfigLoader
 
@@ -259,7 +260,7 @@ class TwitterAPI < Mutex
   end
 
   def user_timeline(args = {})
-    path = '/statuses/user_timeline.' + FORMAT + get_args(args)
+    path = '/statuses/user_timeline.' + FORMAT + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => HOST}
     if (User.findbyid(args[:user_id])[:protected] rescue nil)
       get_with_auth(path, head)
@@ -267,31 +268,31 @@ class TwitterAPI < Mutex
       get(path, head) end end
 
   def friends_timeline(args = {})
-    path = '/statuses/home_timeline.' + FORMAT + get_args(args)
+    path = '/statuses/home_timeline.' + FORMAT + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
 
   def replies(args = {})
-    path = '/statuses/mentions.' + FORMAT + get_args(args)
+    path = '/statuses/mentions.' + FORMAT + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
 
   def search(args = {})
-    path = '/search.' + FORMAT + get_args(args)
+    path = '/search.' + FORMAT + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => 'search.twitter.com'}
     get(path, head)
   end
 
   def retweeted_to_me(args = {})
-    path = "/statuses/retweeted_to_me.#{FORMAT}" + get_args(args)
+    path = "/statuses/retweeted_to_me.#{FORMAT}" + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
 
   def retweets_of_me(args = {})
-    path = "/statuses/retweets_of_me.#{FORMAT}" + get_args(args)
+    path = "/statuses/retweets_of_me.#{FORMAT}" + get_args(args.merge(DEFAULT_API_ARGUMENT))
     head = {'Host' => HOST}
     get_with_auth(path, head)
   end
@@ -348,7 +349,7 @@ class TwitterAPI < Mutex
     @status_show ||= WeakStorage.new(Integer, String)
     atomic{ @status_show_mutex[id] ||= Mutex.new }.synchronize{
       return @status_show[id] if @status_show[id]
-      path = "/statuses/show/#{id}.#{FORMAT}"
+      path = "/statuses/show/#{id}.#{FORMAT}" + get_args(DEFAULT_API_ARGUMENT)
       head = {'Host' => HOST}
       result = get(path, head)
       (@status_show[id] ||= result).freeze if result.is_a?(String)
@@ -389,7 +390,7 @@ class TwitterAPI < Mutex
 
   def list_statuses(args=nil)
     if args[:mode] == :public
-      get("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args))
+      get("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT + get_args(DEFAULT_API_ARGUMENT), head(args))
     else
       get_with_auth("/#{args[:user]}/lists/#{args[:id]}/statuses." + FORMAT, head(args)) end end
 

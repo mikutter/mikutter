@@ -40,7 +40,6 @@ Module.new do
     container = Gtk::VBox.new(false, 0).pack_start(querycont, false).pack_start(main, true)
     Plugin.call(:mui_tab_regist, container, 'Search', MUI::Skin.get("search.png"))
     Message::Entity.addlinkrule(:hashtags, /[#|＃]([a-zA-Z0-9_]+)/){ |segment|
-      p segment[:url]
       querybox.text = '#' + segment[:url].match(/^[#|＃]?(.+)$/)[1]
       searchbtn.clicked
       Addon.focus('Search') } }

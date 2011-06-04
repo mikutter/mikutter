@@ -39,14 +39,14 @@ Module.new do
                  :name => 'コピー',
                  :condition => lambda{ |m| true },
                  :exec => lambda{ |opt|
-                   Gtk::Clipboard.copy(opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
+                   Gtk::Clipboard.copy(opt.message.entity.to_s.split(//u)[opt.miraclepainter.textselector_range].join) },
                  :visible => true,
                  :role => ROLE_MESSAGE_SELECTED )
 
   define_command(:copy_description,
                  :name => '本文をコピー',
                  :condition => lambda{ |opt| Gtk::TimeLine.get_active_mumbles.size == 1 },
-                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_s) },
+                 :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_show) },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
@@ -141,10 +141,10 @@ Module.new do
                  :role => ROLE_POSTBOX )
 
   define_command(:google_search,
-                 :name => '選択した語句をGoogleで検索',
+                 :name => 'ggrks',
                  :condition => lambda{ |m| true },
                  :exec => lambda{ |opt|
-                   kamiya_google_search_word = opt.message.to_s.split(//u)[opt.miraclepainter.textselector_range].join
+                   kamiya_google_search_word = opt.message.entity.to_s.split(//u)[opt.miraclepainter.textselector_range].join
                    Gtk::openurl("http://www.google.co.jp/search?q=" + Escape.uri_segment(kamiya_google_search_word).to_s) },
                  :visible => true,
                  :role => ROLE_MESSAGE_SELECTED )

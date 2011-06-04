@@ -55,13 +55,13 @@ class Message < Retriever::Model
       self[:replyto].add_child(self) end
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
-    if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
-      @message_lock = Mutex.new
-      Thread.new{
-        @message_lock.synchronize{
-          self[:message] = MessageConverters.expand_url_all(value[:message])
-        }
-      } end end
+    @entity = Entity.new(self)
+    # if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
+    #   @message_lock = Mutex.new
+    #   Thread.new{
+    #     @message_lock.synchronize{
+    #       self[:message] = MessageConverters.expand_url_all(value[:message]) } } end
+  end
 
   # 投稿主のidnameを返す
   def idname
@@ -277,8 +277,8 @@ class Message < Retriever::Model
 
   # リンクを貼る場所とその種類を表現するEntityオブジェクトを返す
   def links
-    @entity ||= Entity.new(self)
-  end
+    @entity end
+  alias :entity :links
 
   def inspect
     @value.inspect
