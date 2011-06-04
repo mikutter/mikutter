@@ -49,13 +49,6 @@ module Gtk::TimeLineUtils
               open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
               break end } } end
 
-      def linkrules
-        @linkrules ||= {} end
-
-      # IntelligentTextviewの中で、正規表現 _reg_ に一致する文字列がクリックされたとき、Procを呼ぶようにする
-      def addlinkrule(reg, proc0=nil, &proc1)
-        linkrules[reg] = if(proc0) then [proc0, proc1] else [proc1, nil] end end
-
       def addwidgetrule(reg, &proc)
       end end end
 

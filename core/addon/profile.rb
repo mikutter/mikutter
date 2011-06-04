@@ -201,15 +201,16 @@ Module.new do
       makescreen(user, service) }
     plugin.add_event(:boot){ |service|
       set_contextmenu(plugin, service)
-      Gtk::TimeLine.addlinkrule(/@[a-zA-Z0-9_]+/){ |match, *trash|
-        user = User.findbyidname(match[1, match.length])
+      Message::Entity.addlinkrule(:user_mentions, /[@＠〄][a-zA-Z0-9_]+/){ |segment|
+        idname = segment[:url].match(/^[@＠〄]?(.+)$/)[1]
+        user = User.findbyidname(idname)
         if user
           makescreen(user, service)
         else
           Thread.new{
             user = service.scan(:user_show,
                                 :no_auto_since_id => false,
-                                :screen_name => match[1, match.length])
+                                :screen_name => idname)
             Delayer.new{ makescreen(user.first, service) } if user } end } }
     plugin.add_event_filter(:show_filter){ |messages|
       muted_users = UserConfig[:muted_users]

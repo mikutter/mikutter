@@ -96,9 +96,8 @@ class Gdk::MiraclePainter < GLib::Object
         index = main_pos_to_index(x, y)
         if index
           links.each{ |l|
-            match, range, regexp = *l
-            if range.include?(index)
-              Gtk::TimeLine.linkrules[regexp][0][match.to_s, nil] end } end end
+            if l[:range].include?(index)
+              l[:callback].call(l) end } end end
     when 3
       menu_pop(e)
     end

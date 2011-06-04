@@ -19,6 +19,7 @@ class Message < Retriever::Model
   # key     | value(class)
   #---------+--------------
   # id      | id of status(mixed)
+  # entity  | entity(mixed)
   # message | posted text(String)
   # tags    | kind of message(Array)
   # user    | user who post this message(User or Hash or mixed(User IDNumber))
@@ -274,6 +275,11 @@ class Message < Retriever::Model
     self[:message].to_s.freeze
   end
 
+  # リンクを貼る場所とその種類を表現するEntityオブジェクトを返す
+  def links
+    @entity ||= Entity.new(self)
+  end
+
   def inspect
     @value.inspect
   end
@@ -393,3 +399,5 @@ class Message < Retriever::Model
     end
   end
 end
+
+miquire :core, 'entity'
