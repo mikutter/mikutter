@@ -20,8 +20,8 @@ class Gtk::TimeLine
 
   attr_reader :tl
 
-  addlinkrule(URI.regexp(['http','https'])){ |url, widget|
-    Gtk::TimeLine.openurl(url)
+  Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
+    Gtk::TimeLine.openurl(segment[:url])
   }
 
   # 現在アクティブなTLで選択されているすべてのMessageオブジェクトを返す

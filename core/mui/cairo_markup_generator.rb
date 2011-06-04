@@ -18,8 +18,7 @@ module Gdk::MarkupGenerator
   def styled_main_array
     splited = message.to_show.split(//u).map{ |s| Pango::ESCAPE_RULE[s] || s }
     links.reverse_each{ |l|
-      match, range, regexp = l
-      splited[range] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(match.to_s)}</span>"
+      splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
     }
     splited end
 
@@ -29,6 +28,7 @@ module Gdk::MarkupGenerator
 
   # [[MatchData, 開始位置と終了位置のRangeオブジェクト(文字数), Regexp], ...] の配列を返す
   def links
+    return message.links.to_a
     result = Set.new
     Gtk::TimeLine.linkrules.keys.each{ |regexp|
       main_text.each_matches(regexp){ |match, pos|
@@ -36,6 +36,5 @@ module Gdk::MarkupGenerator
           pos = escaped_main_text[0, pos].strsize
           result << [match, Range.new(pos, pos + match.to_s.strsize, true), regexp] end } }
     result.sort_by{ |r| r[1].first }.freeze end
-  memoize :links
 
 end
