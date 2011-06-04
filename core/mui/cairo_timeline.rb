@@ -20,6 +20,9 @@ class Gtk::TimeLine
 
   attr_reader :tl
 
+  # addlinkrule(URI.regexp(['http','https'])){ |url, widget|
+  #   Gtk::TimeLine.openurl(url)
+  # }
   Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
     Gtk::TimeLine.openurl(segment[:url])
   }
@@ -41,6 +44,14 @@ class Gtk::TimeLine
     scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
     closeup(postbox).pack_start(Gtk::HBox.new.pack_start(@tl).closeup(scrollbar))
     @tl.model.set_sort_column_id(2, order = Gtk::SORT_DESCENDING)
+    @tl.model.set_sort_func(2){ |a, b|
+      order = a[2] <=> b[2]
+      if order == 0
+        a[0] <=> b[0]
+      else
+        order
+      end
+    }
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
     scroll_to_top_anime = false
@@ -183,8 +194,8 @@ class Gtk::TimeLine
     if @tl.visible_range
       current, last = @tl.visible_range.map{ |path| @tl.get_record(path) }
       path_record = @tl.sorted_path_record
-      start = path_record.index{|n|n[2].created == last.created}
-      stop = path_record.index{|n|n[2].created == current.created}
+      start = path_record.index{|n|n[2].created == current.created}
+      stop = path_record.index{|n|n[2].created == last.created}
       if(start and stop)
         messages = Set.new(path_record[start..stop].map{|s|s[2]})
         (messages - @exposing_miraclepainter).each{ |exposed|

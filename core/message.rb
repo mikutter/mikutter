@@ -56,11 +56,6 @@ class Message < Retriever::Model
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
     @entity = Entity.new(self)
-    # if UserConfig[:shrinkurl_expand] and MessageConverters.shrinkable_url_regexp === value[:message]
-    #   @message_lock = Mutex.new
-    #   Thread.new{
-    #     @message_lock.synchronize{
-    #       self[:message] = MessageConverters.expand_url_all(value[:message]) } } end
   end
 
   # 投稿主のidnameを返す
@@ -270,8 +265,6 @@ class Message < Retriever::Model
 
   # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
-    if defined?(@message_lock) and @message_lock.is_a? Mutex
-      @message_lock.synchronize{ } end
     self[:message].to_s.freeze
   end
 
@@ -343,10 +336,6 @@ class Message < Retriever::Model
   # 最終更新日時を取得する
   def modified
     @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
-    # if UserConfig[:retweeted_by_anyone_age]
-    #   @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
-    # else
-    #   self[:created] end
   end
 
   private
