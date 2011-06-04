@@ -21,6 +21,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def initialize
     super
+    @path_record = []
     @@current_tl ||= self
     self.name = 'timeline'
     set_headers_visible(false)
@@ -28,6 +29,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     last_geo = nil
     selection.mode = Gtk::SELECTION_MULTIPLE
     get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
+    init_signal_hooks
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
@@ -85,19 +87,30 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # 選択範囲の時刻(UNIX Time)の最初と最後を含むRangeを返す
   def selected_range_bytime
     start, last = visible_range
-    Range.new(*[model.get_iter(last)[2], model.get_iter(start)[2]].sort)
+    Range.new(get_record(last).created, get_record(start).created)
   end
 
   # _message_ のレコードの _column_ 番目のカラムの値を _value_ にセットする。
   # 成功したら _value_ を返す
   def update!(message, column, value)
     iter = get_iter_by_message(message)
-    iter[column] = value if iter end
+    if iter
+      iter[column] = value
+      node = @path_record.rassoc(message)
+      if node
+        node[2] = Record.new(iter[0].to_i, iter[1], iter[2], iter[3])
+      else
+        add_iter(iter) end
+      value end end
 
   # _path_ からレコードを取得する
   def get_record(path)
-    iter = model.get_iter(path)
-    Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end
+    record = sorted_path_record[-path.indices.first - 1][2]
+    if record
+      record
+    else
+      iter = model.get_iter(path)
+      Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end end
 
   # _message_ に対応する Gtk::TreePath を返す
   def get_path_by_message(message)
@@ -105,9 +118,23 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ に対応する値の構造体を返す。Gtk::TreeIterに関わるメソッドはできるだけ減らしましょう！
   def get_record_by_message(message)
-    path = get_path_and_iter_by_message(message)[1]
-    get_record(path) if path
-  end
+    node = @path_record.rassoc(message)
+    if(node)
+      node[2]
+    else
+      path = get_path_and_iter_by_message(message)[1]
+      if path
+        record = get_record(path)
+        @path_record.unshift([nil, record.message, record])
+        record end end end
+
+  def sorted_path_record
+    @path_record = @path_record.sort_by{ |n| n[2].created } end
+
+  # model.appendで生成したイテレータにデータを格納し終わったら、それを引数に呼ぶといいですよ
+  def add_iter(iter)
+    @path_record.unshift([nil, iter[1], Record.new(iter[0].to_i, iter[1], iter[2], iter[3])])
+    self end
 
   private
 
@@ -120,5 +147,13 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     id = message[:id].to_i
     found = model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
     found || []  end
+
+  def init_signal_hooks
+    model.ssc(:row_deleted){ |path|
+      if @path_record.size >= 200
+        sorted_path_record.pop end
+      false
+    }
+  end
 
 end

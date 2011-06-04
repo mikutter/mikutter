@@ -70,11 +70,6 @@ class Gtk::TimeLine
     @tl.model.each{ |model,path,iter|
       yield(iter[index]) } end
 
-  # Gtk::TreeIterについて繰り返す
-  def each_iter
-    @tl.model.each{ |model,path,iter|
-      yield(iter) } end
-
   # TLのログを全て消去する
   def clear
     @tl.model.clear
@@ -94,9 +89,8 @@ class Gtk::TimeLine
     type_strict message => Message
     path = @tl.get_path_by_message(message)
     if(path)
-      iter = @tl.model.get_iter(path)
-      iter[2] = message.modified.to_i
-      @tl.model.rows_reordered(path, iter, [0]) end
+      @tl.update!(message, 2, message.modified.to_i)
+    end
     self end
 
   # _message_ が新たに _user_ のお気に入りに追加された時に呼ばれる
@@ -143,6 +137,11 @@ class Gtk::TimeLine
           _add(message) end end end
     self end
 
+  # Gtk::TreeIterについて繰り返す
+  def each_iter
+    @tl.model.each{ |model,path,iter|
+      yield(iter) } end
+
   private
 
   def _add(message)
@@ -153,6 +152,7 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
+    @tl.add_iter(iter)
     sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
     @remover_queue.push(message)
     self
@@ -180,16 +180,17 @@ class Gtk::TimeLine
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
   def emit_expose_miraclepainter
-    @exposing_miraclepainter ||= []
+    @exposing_miraclepainter ||= Set.new
     if @tl.visible_range
-      current, last = @tl.visible_range.map{ |path| @tl.model.get_iter(path) }
-      messages = Set.new
-      while current[0].to_i >= last[0].to_i
-        messages << current[1]
-        break if not current.next! end
-      (messages - @exposing_miraclepainter).each{ |exposed|
-        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) }
-      @exposing_miraclepainter = messages end end
+      current, last = @tl.visible_range.map{ |path| @tl.get_record(path) }
+      path_record = @tl.sorted_path_record
+      start = path_record.index{|n|n[2].created == last.created}
+      stop = path_record.index{|n|n[2].created == current.created}
+      if(start and stop)
+        messages = Set.new(path_record[start..stop].map{|s|s[2]})
+        (messages - @exposing_miraclepainter).each{ |exposed|
+          exposed.miracle_painter.signal_emit(:expose_event) }
+        @exposing_miraclepainter = messages end end end
 
   def postbox
     @postbox ||= Gtk::VBox.new end
