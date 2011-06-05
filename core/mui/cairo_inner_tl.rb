@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 miquire :mui, 'timeline'
+miquire :lib, 'ruby-bsearch-1.5/bsearch'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
   attr_accessor :postbox
@@ -96,11 +97,13 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     iter = get_iter_by_message(message)
     if iter
       iter[column] = value
-      node = @path_record.rassoc(message)
-      if node
-        node[2] = Record.new(iter[0].to_i, iter[1], iter[2], iter[3])
-      else
-        add_iter(iter) end
+      atomic{
+        node = sorted_path_record.rassoc(message)
+        if node
+          node[2] = Record.new(iter[0].to_i, iter[1], iter[2], iter[3])
+          @path_record_sorted = false
+        else
+          add_iter(iter) end }
       value end end
 
   # _path_ からレコードを取得する
@@ -118,22 +121,38 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ に対応する値の構造体を返す。Gtk::TreeIterに関わるメソッドはできるだけ減らしましょう！
   def get_record_by_message(message)
-    node = @path_record.rassoc(message)
+    id = message[:id].to_i
+    time = message.modified.to_i
+    node = atomic{
+      node_index = sorted_path_record.bsearch{ |x|
+        order = time <=> x[2].created
+        order = id <=> x[2].id if order == 0
+        order }
+      sorted_path_record[node_index] if node_index }
     if(node)
       node[2]
     else
       path = get_path_and_iter_by_message(message)[1]
       if path
         record = get_record(path)
-        @path_record.unshift([nil, record.message, record])
+        atomic{
+          @path_record_sorted = false
+          @path_record.unshift([nil, record.message, record]) }
         record end end end
 
   def sorted_path_record
-    @path_record = @path_record.sort_by{ |n| [-(n[2].created), -n[2].id] } end
+    if @path_record_sorted
+      @path_record
+    else
+      atomic{
+        @path_record_sorted = true
+        @path_record = @path_record.sort_by{ |n| [-(n[2].created), -(n[2].id)] } } end end
 
   # model.appendで生成したイテレータにデータを格納し終わったら、それを引数に呼ぶといいですよ
   def add_iter(iter)
-    @path_record.unshift([nil, iter[1], Record.new(iter[0].to_i, iter[1], iter[2], iter[3])])
+    atomic{
+      @path_record_sorted = false
+      @path_record.unshift([nil, iter[1], Record.new(iter[0].to_i, iter[1], iter[2], iter[3])]) }
     self end
 
   private
