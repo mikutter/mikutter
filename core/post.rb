@@ -105,7 +105,15 @@ class Post
   def user_obj
     @user_obj ||= parallel{
       scaned = scan(:verify_credentials)
-      @user_obj = scaned[0] if scaned } end
+      if scaned
+        @user_obj = scaned[0]
+        UserConfig[:verify_credentials] = {
+          :id => @user_obj[:id],
+          :idname => @user_obj[:idname],
+          :name => @user_obj[:name],
+          :profile_image_url => @user_obj[:profile_image_url] }
+      else
+        @user_obj = User.generate(UserConfig[:verify_credentials]) end } end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
@@ -151,6 +159,7 @@ class Post
     result = json = nil
     UserConfig[:message_retry_limit].times{
       data = scan_data(kind, args)
+      return nil if not(data) and twitter.rate_limiting?
       if raw_text
         result, json = parse_json(data, kind, true)
       else
@@ -346,7 +355,11 @@ class Post
       cnv[:created] = Time.parse(msg[:created_at])
       if user_retrieve
         begin
-          cnv[:user] = User.findbyid(msg[:user][:id]) or scan_rule(:user_show, msg[:user])
+          cnv[:user] = User.findbyid(msg[:user][:id]) || scan_rule(:user_show, msg[:user])
+          unless cnv[:user]
+            error 'ユーザ情報が不足しています'
+            pp msg[:user]
+            abort end
         rescue => e
           error e
           abort

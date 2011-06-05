@@ -17,9 +17,6 @@ module Retriever
 
     @@storage = WeakStorage.new(Integer, Model) # id => <Model>
 
-    #
-    # ジェネレータ
-    #
     def initialize(args)
       type_strict args => Hash
       @value = args.dup

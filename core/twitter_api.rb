@@ -89,6 +89,11 @@ class TwitterAPI < Mutex
     return *@ip_api_remain
   end
 
+  # 規制されていたらtrue
+  def rate_limiting?
+    limit, remain, reset = api_remain
+    remain and reset and remain <= 0 and Time.new <= reset end
+
   def user
     nil
   end
@@ -215,11 +220,13 @@ class TwitterAPI < Mutex
     rescue Exception => evar
       res = evar end
     notice "#{method} #{path} => #{res}"
-    if res.is_a?(Net::HTTPResponse)
+    begin
       limit, remain, reset = self.api_remain(res)
+      Plugin.call(:apiremain, remain, reset)
+    rescue => e; end
+    if res.is_a?(Net::HTTPResponse)
       if(res.code == '200')
         cacheing(path, res.body) if options.has_key?(:cache)
-        Plugin.call(:apiremain, remain, reset)
       elsif(res.code == '401')
           begin
             return res if(JSON.parse(res.body)["error"] == "Not authorized")
