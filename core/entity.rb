@@ -76,7 +76,8 @@ class Message::Entity
         if segment.is_a? Hash
           return segment
         else
-          return nil end end } end
+          return nil end end }
+    nil end
 
   private
 
