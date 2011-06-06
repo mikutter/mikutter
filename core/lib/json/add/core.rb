@@ -1,12 +1,23 @@
-# -*- coding: utf-8 -*-
 # This file contains implementations of ruby core's custom objects for
 # serialisation/deserialisation.
 
-unless Object.const_defined?(:JSON) and ::JSON.const_defined?(:JSON_LOADED) and
-  ::JSON::JSON_LOADED
+unless defined?(::JSON::JSON_LOADED) and ::JSON::JSON_LOADED
   require 'json'
 end
 require 'date'
+
+class Symbol
+  def to_json(*a)
+    {
+      JSON.create_id => self.class.name,
+      's' => to_s,
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    o['s'].to_sym
+  end
+end
 
 class Time
   def self.json_create(object)
@@ -22,7 +33,7 @@ class Time
 
   def to_json(*args)
     {
-      'json_class' => self.class.name,
+      JSON.create_id => self.class.name,
       's' => tv_sec,
       'n' => respond_to?(:tv_nsec) ? tv_nsec : tv_usec * 1000
     }.to_json(*args)
@@ -38,7 +49,7 @@ class Date
 
   def to_json(*args)
     {
-      'json_class' => self.class.name,
+      JSON.create_id => self.class.name,
       'y' => year,
       'm' => month,
       'd' => day,
@@ -64,7 +75,7 @@ class DateTime
 
   def to_json(*args)
     {
-      'json_class' => self.class.name,
+      JSON.create_id => self.class.name,
       'y' => year,
       'm' => month,
       'd' => day,
@@ -84,7 +95,7 @@ class Range
 
   def to_json(*args)
     {
-      'json_class'   => self.class.name,
+      JSON.create_id   => self.class.name,
       'a'         => [ first, last, exclude_end? ]
     }.to_json(*args)
   end
@@ -99,7 +110,7 @@ class Struct
     klass = self.class.name
     klass.to_s.empty? and raise JSON::JSONError, "Only named structs are supported!"
     {
-      'json_class' => klass,
+      JSON.create_id => klass,
       'v'     => values,
     }.to_json(*args)
   end
@@ -114,7 +125,7 @@ class Exception
 
   def to_json(*args)
     {
-      'json_class' => self.class.name,
+      JSON.create_id => self.class.name,
       'm'   => message,
       'b' => backtrace,
     }.to_json(*args)
@@ -128,7 +139,7 @@ class Regexp
 
   def to_json(*)
     {
-      'json_class' => self.class.name,
+      JSON.create_id => self.class.name,
       'o' => options,
       's' => source,
     }.to_json

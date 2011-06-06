@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 module JSON
   MAP = {
     "\x0" => '\u0000',
@@ -39,11 +38,20 @@ module JSON
 
   # Convert a UTF8 encoded Ruby string _string_ to a JSON string, encoded with
   # UTF16 big endian characters as \u????, and return it.
-  if String.method_defined?(:force_encoding)
+  if defined?(::Encoding)
     def utf8_to_json(string) # :nodoc:
       string = string.dup
       string << '' # XXX workaround: avoid buffer sharing
-      string.force_encoding(Encoding::ASCII_8BIT)
+      string.force_encoding(::Encoding::ASCII_8BIT)
+      string.gsub!(/["\\\x0-\x1f]/) { MAP[$&] }
+      string.force_encoding(::Encoding::UTF_8)
+      string
+    end
+
+    def utf8_to_json_ascii(string) # :nodoc:
+      string = string.dup
+      string << '' # XXX workaround: avoid buffer sharing
+      string.force_encoding(::Encoding::ASCII_8BIT)
       string.gsub!(/["\\\x0-\x1f]/) { MAP[$&] }
       string.gsub!(/(
                       (?:
@@ -54,16 +62,20 @@ module JSON
                       [\x80-\xc1\xf5-\xff]       # invalid
                     )/nx) { |c|
                       c.size == 1 and raise GeneratorError, "invalid utf8 byte: '#{c}'"
-                      s = JSON::UTF8toUTF16.iconv(c).unpack('H*')[0]
+                      s = JSON.iconv('utf-16be', 'utf-8', c).unpack('H*')[0]
                       s.gsub!(/.{4}/n, '\\\\u\&')
                     }
-      string.force_encoding(Encoding::UTF_8)
+      string.force_encoding(::Encoding::UTF_8)
       string
-    rescue Iconv::Failure => e
+    rescue => e
       raise GeneratorError, "Caught #{e.class}: #{e}"
     end
   else
     def utf8_to_json(string) # :nodoc:
+      string.gsub(/["\\\x0-\x1f]/) { MAP[$&] }
+    end
+
+    def utf8_to_json_ascii(string) # :nodoc:
       string = string.gsub(/["\\\x0-\x1f]/) { MAP[$&] }
       string.gsub!(/(
                       (?:
@@ -74,15 +86,15 @@ module JSON
                       [\x80-\xc1\xf5-\xff]       # invalid
                     )/nx) { |c|
         c.size == 1 and raise GeneratorError, "invalid utf8 byte: '#{c}'"
-        s = JSON::UTF8toUTF16.iconv(c).unpack('H*')[0]
+        s = JSON.iconv('utf-16be', 'utf-8', c).unpack('H*')[0]
         s.gsub!(/.{4}/n, '\\\\u\&')
       }
       string
-    rescue Iconv::Failure => e
+    rescue => e
       raise GeneratorError, "Caught #{e.class}: #{e}"
     end
   end
-  module_function :utf8_to_json
+  module_function :utf8_to_json, :utf8_to_json_ascii
 
   module Pure
     module Generator
@@ -94,13 +106,15 @@ module JSON
         # an unconfigured instance. If _opts_ is a State object, it is just
         # returned.
         def self.from_state(opts)
-          case opts
-          when self
+          case
+          when self === opts
             opts
-          when Hash
-            new(opts)
+          when opts.respond_to?(:to_hash)
+            new(opts.to_hash)
+          when opts.respond_to?(:to_h)
+            new(opts.to_h)
           else
-            new
+            SAFE_STATE_PROTOTYPE.dup
           end
         end
 
@@ -113,22 +127,20 @@ module JSON
         # * *space_before*: a string that is put before a : pair delimiter (default: ''),
         # * *object_nl*: a string that is put at the end of a JSON object (default: ''), 
         # * *array_nl*: a string that is put at the end of a JSON array (default: ''),
-        # * *check_circular*: true if checking for circular data structures
-        #   should be done (the default), false otherwise.
-        # * *check_circular*: true if checking for circular data structures
-        #   should be done, false (the default) otherwise.
+        # * *check_circular*: is deprecated now, use the :max_nesting option instead,
+        # * *max_nesting*: sets the maximum level of data structure nesting in
+        #   the generated JSON, max_nesting = 0 if no maximum should be checked.
         # * *allow_nan*: true if NaN, Infinity, and -Infinity should be
         #   generated, otherwise an exception is thrown, if these values are
         #   encountered. This options defaults to false.
         def initialize(opts = {})
-          @seen = {}
           @indent         = ''
           @space          = ''
           @space_before   = ''
           @object_nl      = ''
           @array_nl       = ''
-          @check_circular = true
           @allow_nan      = false
+          @ascii_only     = false
           configure opts
         end
 
@@ -153,17 +165,21 @@ module JSON
         # the generated JSON, max_nesting = 0 if no maximum is checked.
         attr_accessor :max_nesting
 
-        def check_max_nesting(depth) # :nodoc:
+        # This integer returns the current depth data structure nesting in the
+        # generated JSON.
+        attr_accessor :depth
+
+        def check_max_nesting # :nodoc:
           return if @max_nesting.zero?
           current_nesting = depth + 1
           current_nesting > @max_nesting and
             raise NestingError, "nesting of #{current_nesting} is too deep"
         end
 
-        # Returns true, if circular data structures should be checked,
+        # Returns true, if circular data structures are checked,
         # otherwise returns false.
         def check_circular?
-          @check_circular
+          !@max_nesting.zero?
         end
 
         # Returns true if NaN, Infinity, and -Infinity should be considered as
@@ -172,21 +188,8 @@ module JSON
           @allow_nan
         end
 
-        # Returns _true_, if _object_ was already seen during this generating
-        # run. 
-        def seen?(object)
-          @seen.key?(object.__id__)
-        end
-
-        # Remember _object_, to find out if it was already encountered (if a
-        # cyclic data structure is if a cyclic data structure is rendered). 
-        def remember(object)
-          @seen[object.__id__] = true
-        end
-
-        # Forget _object_ for this generating run.
-        def forget(object)
-          @seen.delete object.__id__
+        def ascii_only?
+          @ascii_only
         end
 
         # Configure this State instance with the Hash _opts_, and return
@@ -197,8 +200,9 @@ module JSON
           @space_before   = opts[:space_before] if opts.key?(:space_before)
           @object_nl      = opts[:object_nl] if opts.key?(:object_nl)
           @array_nl       = opts[:array_nl] if opts.key?(:array_nl)
-          @check_circular = !!opts[:check_circular] if opts.key?(:check_circular)
           @allow_nan      = !!opts[:allow_nan] if opts.key?(:allow_nan)
+          @ascii_only     = opts[:ascii_only] if opts.key?(:ascii_only)
+          @depth          = opts[:depth] || 0
           if !opts.key?(:max_nesting) # defaults to 19
             @max_nesting = 19
           elsif opts[:max_nesting]
@@ -213,10 +217,26 @@ module JSON
         # passed to the configure method.
         def to_h
           result = {}
-          for iv in %w[indent space space_before object_nl array_nl check_circular allow_nan max_nesting]
+          for iv in %w[indent space space_before object_nl array_nl allow_nan max_nesting ascii_only depth]
             result[iv.intern] = instance_variable_get("@#{iv}")
           end
           result
+        end
+
+        # Generates a valid JSON document from object +obj+ and returns the
+        # result. If no valid JSON document can be created this method raises a
+        # GeneratorError exception.
+        def generate(obj)
+          result = obj.to_json(self)
+          if result !~ /\A\s*(?:\[.*\]|\{.*\})\s*\Z/m
+            raise GeneratorError, "only generation of JSON objects or arrays allowed"
+          end
+          result
+        end
+
+        # Return the value returned by method +name+.
+        def [](name)
+          __send__ name
         end
       end
 
@@ -234,58 +254,41 @@ module JSON
           # _state_ is a JSON::State object, that can also be used to configure the
           # produced JSON string output further.
           # _depth_ is used to find out nesting depth, to indent accordingly.
-          def to_json(state = nil, depth = 0, *)
-            if state
-              state = JSON.state.from_state(state)
-              state.check_max_nesting(depth)
-              json_check_circular(state) { json_transform(state, depth) }
-            else
-              json_transform(state, depth)
-            end
+          def to_json(state = nil, *)
+            state = State.from_state(state)
+            state.check_max_nesting
+            json_transform(state)
           end
 
           private
 
-          def json_check_circular(state)
-            if state and state.check_circular?
-              state.seen?(self) and raise JSON::CircularDatastructure,
-                  "circular data structures not supported!"
-              state.remember self
-            end
-            yield
-          ensure
-            state and state.forget self
+          def json_shift(state)
+            state.object_nl.empty? or return ''
+            state.indent * state.depth
           end
 
-          def json_shift(state, depth)
-            state and not state.object_nl.empty? or return ''
-            state.indent * depth
-          end
-
-          def json_transform(state, depth)
+          def json_transform(state)
             delim = ','
-            if state
-              delim << state.object_nl
-              result = '{'
-              result << state.object_nl
-              result << map { |key,value|
-                s = json_shift(state, depth + 1)
-                s << key.to_s.to_json(state, depth + 1)
-                s << state.space_before
-                s << ':'
-                s << state.space
-                s << value.to_json(state, depth + 1)
-              }.join(delim)
-              result << state.object_nl
-              result << json_shift(state, depth)
-              result << '}'
-            else
-              result = '{'
-              result << map { |key,value|
-                key.to_s.to_json << ':' << value.to_json
-              }.join(delim)
-              result << '}'
-            end
+            delim << state.object_nl
+            result = '{'
+            result << state.object_nl
+            depth = state.depth += 1
+            first = true
+            indent = !state.object_nl.empty?
+            each { |key,value|
+              result << delim unless first
+              result << state.indent * depth if indent
+              result << key.to_s.to_json(state)
+              result << state.space_before
+              result << ':'
+              result << state.space
+              result << value.to_json(state)
+              first = false
+            }
+            depth = state.depth -= 1
+            result << state.object_nl
+            result << state.indent * depth if indent if indent
+            result << '}'
             result
           end
         end
@@ -295,50 +298,32 @@ module JSON
           # this Array instance.
           # _state_ is a JSON::State object, that can also be used to configure the
           # produced JSON string output further.
-          # _depth_ is used to find out nesting depth, to indent accordingly.
-          def to_json(state = nil, depth = 0, *)
-            if state
-              state = JSON.state.from_state(state)
-              state.check_max_nesting(depth)
-              json_check_circular(state) { json_transform(state, depth) }
-            else
-              json_transform(state, depth)
-            end
+          def to_json(state = nil, *)
+            state = State.from_state(state)
+            state.check_max_nesting
+            json_transform(state)
           end
 
           private
 
-          def json_check_circular(state)
-            if state and state.check_circular?
-              state.seen?(self) and raise JSON::CircularDatastructure,
-                "circular data structures not supported!"
-              state.remember self
-            end
-            yield
-          ensure
-            state and state.forget self
-          end
-
-          def json_shift(state, depth)
-            state and not state.array_nl.empty? or return ''
-            state.indent * depth
-          end
-
-          def json_transform(state, depth)
+          def json_transform(state)
             delim = ','
-            if state
-              delim << state.array_nl
-              result = '['
-              result << state.array_nl
-              result << map { |value|
-                json_shift(state, depth + 1) << value.to_json(state, depth + 1)
-              }.join(delim)
-              result << state.array_nl
-              result << json_shift(state, depth) 
-              result << ']'
-            else
-              '[' << map { |value| value.to_json }.join(delim) << ']'
-            end
+            delim << state.array_nl
+            result = '['
+            result << state.array_nl
+            depth = state.depth += 1
+            first = true
+            indent = !state.array_nl.empty?
+            each { |value|
+              result << delim unless first
+              result << state.indent * depth if indent
+              result << value.to_json(state)
+              first = false
+            }
+            depth = state.depth -= 1
+            result << state.array_nl
+            result << state.indent * depth if indent
+            result << ']'
           end
         end
 
@@ -350,15 +335,16 @@ module JSON
         module Float
           # Returns a JSON string representation for this Float number.
           def to_json(state = nil, *)
+            state = State.from_state(state)
             case
             when infinite?
-              if !state || state.allow_nan?
+              if state.allow_nan?
                 to_s
               else
                 raise GeneratorError, "#{self} not allowed in JSON"
               end
             when nan?
-              if !state || state.allow_nan?
+              if state.allow_nan?
                 to_s
               else
                 raise GeneratorError, "#{self} not allowed in JSON"
@@ -370,18 +356,43 @@ module JSON
         end
 
         module String
-          # This string should be encoded with UTF-8 A call to this method
-          # returns a JSON string encoded with UTF16 big endian characters as
-          # \u????.
-          def to_json(*)
-            '"' << JSON.utf8_to_json(self) << '"'
+          if defined?(::Encoding)
+            # This string should be encoded with UTF-8 A call to this method
+            # returns a JSON string encoded with UTF16 big endian characters as
+            # \u????.
+            def to_json(state = nil, *args)
+              state = State.from_state(state)
+              if encoding == ::Encoding::UTF_8
+                string = self
+              else
+                string = encode(::Encoding::UTF_8)
+              end
+              if state.ascii_only?
+                '"' << JSON.utf8_to_json_ascii(string) << '"'
+              else
+                '"' << JSON.utf8_to_json(string) << '"'
+              end
+            end
+          else
+            # This string should be encoded with UTF-8 A call to this method
+            # returns a JSON string encoded with UTF16 big endian characters as
+            # \u????.
+            def to_json(state = nil, *args)
+              state = State.from_state(state)
+              if state.ascii_only?
+                '"' << JSON.utf8_to_json_ascii(self) << '"'
+              else
+                '"' << JSON.utf8_to_json(self) << '"'
+              end
+            end
           end
 
           # Module that holds the extinding methods if, the String module is
           # included.
           module Extend
-            # Raw Strings are JSON Objects (the raw bytes are stored in an array for the
-            # key "raw"). The Ruby String can be created by this module method.
+            # Raw Strings are JSON Objects (the raw bytes are stored in an
+            # array for the key "raw"). The Ruby String can be created by this
+            # module method.
             def json_create(o)
               o['raw'].pack('C*')
             end

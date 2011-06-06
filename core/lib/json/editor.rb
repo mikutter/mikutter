@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # To use the GUI JSON editor, start the edit_json.rb executable script. It
 # requires ruby-gtk to be installed.
 
 require 'gtk2'
-require 'iconv'
 require 'json'
 require 'rbconfig'
 require 'open-uri'
@@ -1273,8 +1271,7 @@ module JSON
       def parse_json(json)
         check_pretty_printed(json)
         if @encoding && !/^utf8$/i.match(@encoding)
-          iconverter = Iconv.new('utf8', @encoding)
-          json = iconverter.iconv(json)
+          json = JSON.iconv 'utf-8', @encoding, json
         end
         JSON::parse(json, :max_nesting => false, :create_additions => false)
       end
