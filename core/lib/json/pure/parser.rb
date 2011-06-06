@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'strscan'
 
 module JSON
@@ -61,13 +60,52 @@ module JSON
       # * *allow_nan*: If set to true, allow NaN, Infinity and -Infinity in
       #   defiance of RFC 4627 to be parsed by the Parser. This option defaults
       #   to false.
+      # * *symbolize_names*: If set to true, returns symbols for the names
+      #   (keys) in a JSON object. Otherwise strings are returned, which is also
+      #   the default.
       # * *create_additions*: If set to false, the Parser doesn't create
       #   additions even if a matchin class and create_id was found. This option
       #   defaults to true.
       # * *object_class*: Defaults to Hash
       # * *array_class*: Defaults to Array
       def initialize(source, opts = {})
-        super
+        opts ||= {}
+        if defined?(::Encoding)
+          if source.encoding == ::Encoding::ASCII_8BIT
+            b = source[0, 4].bytes.to_a
+            source = case
+                     when b.size >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 0
+                       source.dup.force_encoding(::Encoding::UTF_32BE).encode!(::Encoding::UTF_8)
+                     when b.size >= 4 && b[0] == 0 && b[2] == 0
+                       source.dup.force_encoding(::Encoding::UTF_16BE).encode!(::Encoding::UTF_8)
+                     when b.size >= 4 && b[1] == 0 && b[2] == 0 && b[3] == 0
+                       source.dup.force_encoding(::Encoding::UTF_32LE).encode!(::Encoding::UTF_8)
+
+                     when b.size >= 4 && b[1] == 0 && b[3] == 0
+                       source.dup.force_encoding(::Encoding::UTF_16LE).encode!(::Encoding::UTF_8)
+                     else
+                       source.dup
+                     end
+          else
+            source = source.encode(::Encoding::UTF_8)
+          end
+          source.force_encoding(::Encoding::ASCII_8BIT)
+        else
+          b = source
+          source = case
+                   when b.size >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 0
+                     JSON.iconv('utf-8', 'utf-32be', b)
+                   when b.size >= 4 && b[0] == 0 && b[2] == 0
+                     JSON.iconv('utf-8', 'utf-16be', b)
+                   when b.size >= 4 && b[1] == 0 && b[2] == 0 && b[3] == 0
+                     JSON.iconv('utf-8', 'utf-32le', b)
+                   when b.size >= 4 && b[1] == 0 && b[3] == 0
+                     JSON.iconv('utf-8', 'utf-16le', b)
+                   else
+                     b
+                   end
+        end
+        super source
         if !opts.key?(:max_nesting) # defaults to 19
           @max_nesting = 19
         elsif opts[:max_nesting]
@@ -75,12 +113,13 @@ module JSON
         else
           @max_nesting = 0
         end
-        @allow_nan = !!opts[:allow_nan]
-        ca = true
-        ca = opts[:create_additions] if opts.key?(:create_additions)
-        @create_id = ca ? JSON.create_id : nil
-        @object_class = opts[:object_class] || Hash
-        @array_class = opts[:array_class] || Array
+        @allow_nan        = !!opts[:allow_nan]
+        @symbolize_names  = !!opts[:symbolize_names]
+        @create_additions = opts.key?(:create_additions) ? !!opts[:create_additions] : true
+        @create_id        = opts[:create_id] || JSON.create_id
+        @object_class     = opts[:object_class] || Hash
+        @array_class      = opts[:array_class] || Array
+        @match_string     = opts[:match_string]
       end
 
       alias source string
@@ -126,6 +165,11 @@ module JSON
         ?u  => nil, 
       })
 
+      EMPTY_8BIT_STRING = ''
+      if ::String.method_defined?(:encode)
+        EMPTY_8BIT_STRING.force_encoding Encoding::ASCII_8BIT 
+      end
+
       def parse_string
         if scan(STRING)
           return '' if self[1].empty?
@@ -133,24 +177,30 @@ module JSON
             if u = UNESCAPE_MAP[$&[1]]
               u
             else # \uXXXX
-              bytes = ''
+              bytes = EMPTY_8BIT_STRING.dup
               i = 0
               while c[6 * i] == ?\\ && c[6 * i + 1] == ?u
                 bytes << c[6 * i + 2, 2].to_i(16) << c[6 * i + 4, 2].to_i(16)
                 i += 1
               end
-              JSON::UTF16toUTF8.iconv(bytes)
+              JSON.iconv('utf-8', 'utf-16be', bytes)
             end
           end
           if string.respond_to?(:force_encoding)
-            string.force_encoding(Encoding::UTF_8)
+            string.force_encoding(::Encoding::UTF_8)
+          end
+          if @create_additions and @match_string
+            for (regexp, klass) in @match_string
+              klass.json_creatable? or next
+              string =~ regexp and return klass.json_create(string)
+            end
           end
           string
         else
           UNPARSED
         end
-      rescue Iconv::Failure => e
-        raise GeneratorError, "Caught #{e.class}: #{e}"
+      rescue => e
+        raise ParserError, "Caught #{e.class} at '#{peek(20)}': #{e}"
       end
 
       def parse_value
@@ -234,7 +284,7 @@ module JSON
             end
             skip(IGNORE)
             unless (value = parse_value).equal? UNPARSED
-              result[string] = value
+              result[@symbolize_names ? string.to_sym : string] = value
               delim = false
               skip(IGNORE)
               if scan(COLLECTION_DELIMITER)
@@ -251,7 +301,7 @@ module JSON
             if delim
               raise ParserError, "expected next name, value pair in object at '#{peek(20)}'!"
             end
-            if @create_id and klassname = result[@create_id]
+            if @create_additions and klassname = result[@create_id]
               klass = JSON.deep_const_get klassname
               break unless klass and klass.json_creatable?
               result = klass.json_create(result)

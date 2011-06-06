@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'json/version'
 
 module JSON
@@ -11,9 +10,9 @@ module JSON
     # generate and parse for their documentation.
     def [](object, opts = {})
       if object.respond_to? :to_str
-        JSON.parse(object.to_str, opts => {})
+        JSON.parse(object.to_str, opts)
       else
-        JSON.generate(object, opts => {})
+        JSON.generate(object, opts)
       end
     end
 
@@ -24,7 +23,7 @@ module JSON
     # Set the JSON parser class _parser_ to be used by JSON.
     def parser=(parser) # :nodoc:
       @parser = parser
-      remove_const :Parser if const_defined? :Parser
+      remove_const :Parser if JSON.const_defined_in?(self, :Parser)
       const_set :Parser, parser
     end
 
@@ -33,18 +32,23 @@ module JSON
     # level (absolute namespace path?). If there doesn't exist a constant at
     # the given path, an ArgumentError is raised.
     def deep_const_get(path) # :nodoc:
-      path = path.to_s
-      path.split(/::/).inject(Object) do |p, c|
+      path.to_s.split(/::/).inject(Object) do |p, c|
         case
-        when c.empty?             then p
-        when p.const_defined?(c)  then p.const_get(c)
-        else                      raise ArgumentError, "can't find const #{path}"
+        when c.empty?                     then p
+        when JSON.const_defined_in?(p, c) then p.const_get(c)
+        else
+          begin
+            p.const_missing(c)
+          rescue NameError => e
+            raise ArgumentError, "can't get const #{path}: #{e}"
+          end
         end
       end
     end
 
     # Set the module _generator_ to be used by JSON.
     def generator=(generator) # :nodoc:
+      old, $VERBOSE = $VERBOSE, nil
       @generator = generator
       generator_methods = generator::GeneratorMethods
       for const in generator_methods.constants
@@ -59,6 +63,22 @@ module JSON
       end
       self.state = generator::State
       const_set :State, self.state
+      const_set :SAFE_STATE_PROTOTYPE, State.new
+      const_set :FAST_STATE_PROTOTYPE, State.new(
+        :indent         => '',
+        :space          => '',
+        :object_nl      => "",
+        :array_nl       => "",
+        :max_nesting    => false
+      )
+      const_set :PRETTY_STATE_PROTOTYPE, State.new(
+        :indent         => '  ',
+        :space          => ' ',
+        :object_nl      => "\n",
+        :array_nl       => "\n"
+      )
+    ensure
+      $VERBOSE = old
     end
 
     # Returns the JSON generator modul, that is used by JSON. This might be
@@ -75,7 +95,7 @@ module JSON
   end
   self.create_id = 'json_class'
 
-  NaN           = (-1.0) ** 0.5
+  NaN           = 0.0/0
 
   Infinity      = 1.0/0
 
@@ -91,14 +111,14 @@ module JSON
   # deep.
   class NestingError < ParserError; end
 
+  # :stopdoc:
+  class CircularDatastructure < NestingError; end
+  # :startdoc:
+
   # This exception is raised, if a generator or unparser error occurs.
   class GeneratorError < JSONError; end
   # For backwards compatibility
   UnparserError = GeneratorError
-
-  # If a circular data structure is encountered while unparsing
-  # this exception is raised.
-  class CircularDatastructure < GeneratorError; end
 
   # This exception is raised, if the required unicode support is missing on the
   # system. Usually this means, that the iconv library is not installed.
@@ -106,7 +126,7 @@ module JSON
 
   module_function
 
-  # Parse the JSON string _source_ into a Ruby data structure and return it.
+  # Parse the JSON document _source_ into a Ruby data structure and return it.
   #
   # _opts_ can have the following
   # keys:
@@ -116,16 +136,21 @@ module JSON
   # * *allow_nan*: If set to true, allow NaN, Infinity and -Infinity in
   #   defiance of RFC 4627 to be parsed by the Parser. This option defaults
   #   to false.
+  # * *symbolize_names*: If set to true, returns symbols for the names
+  #   (keys) in a JSON object. Otherwise strings are returned, which is also
+  #   the default.
   # * *create_additions*: If set to false, the Parser doesn't create
   #   additions even if a matchin class and create_id was found. This option
   #   defaults to true.
+  # * *object_class*: Defaults to Hash
+  # * *array_class*: Defaults to Array
   def parse(source, opts = {})
-    JSON.parser.new(source, opts).parse
+    Parser.new(source, opts).parse
   end
 
-  # Parse the JSON string _source_ into a Ruby data structure and return it.
+  # Parse the JSON document _source_ into a Ruby data structure and return it.
   # The bang version of the parse method, defaults to the more dangerous values
-  # for the _opts_ hash, so be sure only to parse trusted _source_ strings.
+  # for the _opts_ hash, so be sure only to parse trusted _source_ documents.
   #
   # _opts_ can have the following keys:
   # * *max_nesting*: The maximum depth of nesting allowed in the parsed data
@@ -140,15 +165,14 @@ module JSON
   #   defaults to true.
   def parse!(source, opts = {})
     opts = {
-      :max_nesting => false,
-      :allow_nan => true
+      :max_nesting  => false,
+      :allow_nan    => true
     }.update(opts)
-    JSON.parser.new(source, opts).parse
+    Parser.new(source, opts).parse
   end
 
-  # Unparse the Ruby data structure _obj_ into a single line JSON string and
-  # return it. _state_ is
-  # * a JSON::State object,
+  # Generate a JSON document from the Ruby data structure _obj_ and return
+  # it. _state_ is * a JSON::State object,
   # * or a Hash like object (responding to to_hash),
   # * an object convertible into a hash by a to_h method,
   # that is used as or to configure a State object.
@@ -163,8 +187,6 @@ module JSON
   # * *space_before*: a string that is put before a : pair delimiter (default: ''),
   # * *object_nl*: a string that is put at the end of a JSON object (default: ''), 
   # * *array_nl*: a string that is put at the end of a JSON array (default: ''),
-  # * *check_circular*: true if checking for circular data structures
-  #   should be done (the default), false otherwise.
   # * *allow_nan*: true if NaN, Infinity, and -Infinity should be
   #   generated, otherwise an exception is thrown, if these values are
   #   encountered. This options defaults to false.
@@ -175,13 +197,19 @@ module JSON
   # See also the fast_generate for the fastest creation method with the least
   # amount of sanity checks, and the pretty_generate method for some
   # defaults for a pretty output.
-  def generate(obj, state = nil)
-    if state
-      state = State.from_state(state)
-    else
-      state = State.new
+  def generate(obj, opts = nil)
+    state = SAFE_STATE_PROTOTYPE.dup
+    if opts
+      if opts.respond_to? :to_hash
+        opts = opts.to_hash
+      elsif opts.respond_to? :to_h
+        opts = opts.to_h
+      else
+        raise TypeError, "can't convert #{opts.class} into Hash"
+      end
+      state = state.configure(opts)
     end
-    obj.to_json(state)
+    state.generate(obj)
   end
 
   # :stopdoc:
@@ -191,35 +219,13 @@ module JSON
   module_function :unparse
   # :startdoc:
 
-  # Unparse the Ruby data structure _obj_ into a single line JSON string and
-  # return it. This method disables the checks for circles in Ruby objects, and
-  # also generates NaN, Infinity, and, -Infinity float values.
+  # Generate a JSON document from the Ruby data structure _obj_ and return it.
+  # This method disables the checks for circles in Ruby objects.
   #
   # *WARNING*: Be careful not to pass any Ruby data structures with circles as
   # _obj_ argument, because this will cause JSON to go into an infinite loop.
-  def fast_generate(obj)
-    obj.to_json(nil)
-  end
-
-  # :stopdoc:
-  # I want to deprecate these later, so I'll first be silent about them, and later delete them.
-  alias fast_unparse fast_generate
-  module_function :fast_unparse
-  # :startdoc:
-
-  # Unparse the Ruby data structure _obj_ into a JSON string and return it. The
-  # returned string is a prettier form of the string returned by #unparse.
-  #
-  # The _opts_ argument can be used to configure the generator, see the
-  # generate method for a more detailed explanation.
-  def pretty_generate(obj, opts = nil)
-    state = JSON.state.new(
-      :indent     => '  ',
-      :space      => ' ',
-      :object_nl  => "\n",
-      :array_nl   => "\n",
-      :check_circular => true
-    )
+  def fast_generate(obj, opts = nil)
+    state = FAST_STATE_PROTOTYPE.dup
     if opts
       if opts.respond_to? :to_hash
         opts = opts.to_hash
@@ -230,7 +236,34 @@ module JSON
       end
       state.configure(opts)
     end
-    obj.to_json(state)
+    state.generate(obj)
+  end
+
+  # :stopdoc:
+  # I want to deprecate these later, so I'll first be silent about them, and later delete them.
+  alias fast_unparse fast_generate
+  module_function :fast_unparse
+  # :startdoc:
+
+  # Generate a JSON document from the Ruby data structure _obj_ and return it.
+  # The returned document is a prettier form of the document returned by
+  # #unparse.
+  #
+  # The _opts_ argument can be used to configure the generator, see the
+  # generate method for a more detailed explanation.
+  def pretty_generate(obj, opts = nil)
+    state = PRETTY_STATE_PROTOTYPE.dup
+    if opts
+      if opts.respond_to? :to_hash
+        opts = opts.to_hash
+      elsif opts.respond_to? :to_h
+        opts = opts.to_h
+      else
+        raise TypeError, "can't convert #{opts.class} into Hash"
+      end
+      state.configure(opts)
+    end
+    state.generate(obj)
   end
 
   # :stopdoc:
@@ -271,8 +304,6 @@ module JSON
       proc.call result
     end
   end
-  private :recurse_proc
-  module_function :recurse_proc
 
   alias restore load
   module_function :restore
@@ -308,6 +339,37 @@ module JSON
   rescue JSON::NestingError
     raise ArgumentError, "exceed depth limit"
   end
+
+  # Swap consecutive bytes of _string_ in place.
+  def self.swap!(string) # :nodoc:
+    0.upto(string.size / 2) do |i|
+      break unless string[2 * i + 1]
+      string[2 * i], string[2 * i + 1] = string[2 * i + 1], string[2 * i]
+    end
+    string
+  end
+
+  # Shortuct for iconv.
+  if ::String.method_defined?(:encode)
+    def self.iconv(to, from, string)
+      string.encode(to, from)
+    end
+  else
+    require 'iconv'
+    def self.iconv(to, from, string)
+      Iconv.iconv(to, from, string).first
+    end
+  end
+
+  if ::Object.method(:const_defined?).arity == 1
+    def self.const_defined_in?(modul, constant)
+      modul.const_defined?(constant)
+    end
+  else
+    def self.const_defined_in?(modul, constant)
+      modul.const_defined?(constant, false)
+    end
+  end
 end
 
 module ::Kernel
@@ -337,11 +399,11 @@ module ::Kernel
   #
   # The _opts_ argument is passed through to generate/parse respectively, see
   # generate and parse for their documentation.
-  def JSON(object, opts = {})
+  def JSON(object, *args)
     if object.respond_to? :to_str
-      JSON.parse(object.to_str, opts)
+      JSON.parse(object.to_str, args.first)
     else
-      JSON.generate(object, opts)
+      JSON.generate(object, args.first)
     end
   end
 end
