@@ -26,28 +26,30 @@ def Gdk::IconOverButton(schemer)
     def render_icon_over_button(context)
       pb_overbutton = Gdk::Pixbuf.new(MUI::Skin.get("overbutton.png"))
       pb_overbutton_mo = Gdk::Pixbuf.new(MUI::Skin.get("overbutton_mouseover.png"))
-      _schemer[:y_count].times{ |posy|
-        _schemer[:x_count].times{ |posx|
-          pos = [posx, posy]
-          ir = get_icon_rectangle(*pos)
-          if(current_icon_pos)
-            context.save{
-              pb = if current_icon_pos == pos
-                     pb_overbutton_mo
-                   else
-                     pb_overbutton end
-              context.translate(ir.x, ir.y)
-              context.scale(ir.width.to_f / pb.width, ir.height.to_f / pb.height)
-              context.set_source_pixbuf(pb)
-              context.paint } end
-          icon_file_name = (current_icon_pos ? iob_icon_pixbuf : iob_icon_pixbuf_off)[posx][posy]
-          if(icon_file_name)
-            context.save{
-              context.translate(ir.x, ir.y)
-              icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(icon_file_name))
-              context.scale(ir.width.to_f / icon_pb.width, ir.height.to_f / icon_pb.height)
-              context.set_source_pixbuf(icon_pb)
-              context.paint } end } } end
+      context.save{
+        context.translate(pos.main_icon.x, pos.main_icon.y)
+        _schemer[:y_count].times{ |posy|
+          _schemer[:x_count].times{ |posx|
+            pos = [posx, posy]
+            ir = get_icon_rectangle(*pos)
+            if(current_icon_pos)
+              context.save{
+                pb = if current_icon_pos == pos
+                       pb_overbutton_mo
+                     else
+                       pb_overbutton end
+                context.translate(ir.x, ir.y)
+                context.scale(ir.width.to_f / pb.width, ir.height.to_f / pb.height)
+                context.set_source_pixbuf(pb)
+                context.paint } end
+            icon_file_name = (current_icon_pos ? iob_icon_pixbuf : iob_icon_pixbuf_off)[posx][posy]
+            if(icon_file_name)
+              context.save{
+                context.translate(ir.x, ir.y)
+                icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(icon_file_name))
+                context.scale(ir.width.to_f / icon_pb.width, ir.height.to_f / icon_pb.height)
+                context.set_source_pixbuf(icon_pb)
+                context.paint } end } } } end
 
     def point_moved_main_icon(gx, gy)
       ipx, ipy = ip = globalpos2iconpos(gx, gy)
