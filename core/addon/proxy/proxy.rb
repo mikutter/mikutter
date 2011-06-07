@@ -75,14 +75,14 @@ Module.new do
 
   def self.gen_record(name, radio)
     radio.signal_connect('toggled'){ |widget|
-      UserConfig[:proxy_enabled] = name }
+      UserConfig[:proxy_enabled] = name if widget.active? }
     radio
   end
 
   def self.gen_group(name, radio)
     eventbox = __send__("gen_#{name}_ev")
     radio.signal_connect('toggled'){ |widget|
-      UserConfig[:proxy_enabled] = name
+      UserConfig[:proxy_enabled] = name if widget.active?
       eventbox.sensitive = widget.active? }
     eventbox.sensitive = UserConfig[:proxy_enabled] == name
     Mtk::group(radio, eventbox)
