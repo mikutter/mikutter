@@ -26,17 +26,16 @@ module ConfigLoader
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
   @@configloader_queue = TimeLimitedQueue.new{ |data|
-    detected = Set.new
+    detected = Array.new
     ConfigLoader.transaction{
       data.each{ |pair|
         key, val = *pair
-        if not detected.include?(key)
-          detected << key
-          begin
-            ConfigLoader.pstore[key] = val
-          rescue => e
-            error e end end } }
-    notice "configloader: wrote #{detected.size} keys (#{detected.to_a.join(', ')})"
+        detected << key
+        begin
+          ConfigLoader.pstore[key] = val
+        rescue => e
+          error e end } }
+    notice "configloader: wrote #{detected.size} keys (#{detected.join(', ')})"
   }
 
   # _key_ に対応するオブジェクトを取り出す。

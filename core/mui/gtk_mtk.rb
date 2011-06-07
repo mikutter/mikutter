@@ -104,6 +104,7 @@ module Mtk
     group = default = Gtk::RadioButton.new(default_label)
     custom = Gtk::RadioButton.new(group, custom_label)
     input = Gtk::Entry.new
+    input.text = UserConfig[:url_open_command] if UserConfig[:url_open_command].is_a?(String)
     default.active = !(input.sensitive = custom.active = UserConfig[key])
     default.signal_connect('toggled'){ |widget|
       UserConfig[key] = nil
