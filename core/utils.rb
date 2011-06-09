@@ -767,15 +767,32 @@ class String
     result
   end
 
-  def each_matches(regexp)
-    pos = 0
-    str = self
-    while(match = regexp.match(str))
-      yield(match, pos + match.begin(0))
-      str = match.post_match
-      pos += match.end(0)
-    end
-  end
+  if RUBY_VERSION_ARRAY >= [1, 9]
+    def each_matches(regexp, &proc) # :yield: match, byte_index, char_intex
+      pos = 0
+      str = self
+      while(match = regexp.match(str))
+        if(proc.arity == 1)
+          proc.call(match)
+        elsif(proc.arity == 2)
+          proc.call(match, pos + match.begin(0))
+        else
+          proc.call(match, pos + match.begin(0), pos + match.begin(0)) end
+        str = match.post_match
+        pos += match.end(0) end end
+  else
+    def each_matches(regexp, &proc)
+      pos = 0
+      str = self
+      while(match = regexp.match(str))
+        if(proc.arity == 1)
+          proc.call(match)
+        elsif(proc.arity == 2)
+          proc.call(match, pos + match.begin(0))
+        else
+          proc.call(match, pos + match.begin(0), get_index_from_byte(pos + match.begin(0))) end
+        str = match.post_match
+        pos += match.end(0) end end end
 
   def shrink(count, uni_char=nil, separator=' ')
     o_match = uni_char && match(uni_char)

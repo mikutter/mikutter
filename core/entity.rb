@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :core, 'message'
+miquire :core, 'userconfig'
 
 class Message::Entity
   include Enumerable
@@ -109,7 +110,7 @@ class Message::Entity
     result = Set.new(message_entities)
     @@linkrule.values.each{ |rule|
       if rule[:regexp]
-        message.to_show.each_matches(rule[:regexp]){ |match, pos|
+        message.to_show.each_matches(rule[:regexp]){ |match, byte, pos|
           if not result.any?{ |this| this[:range].include?(pos) }
             pos = message.to_show[0, pos].strsize
             result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
@@ -136,11 +137,12 @@ class Message::Entity
   memoize :message_entities
 
   def indices_to_range(indices)
-    Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]-1), false) end
+    Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
 
   def index_to_escaped_index(index)
-    message.to_show.split(//u)[0, index].map{ |s| Pango::ESCAPE_RULE[s] || s }.join.strsize
-    # Pango.escape(message.body.split(//u)[0, index].join).strsize
+    index
+    # message.to_show.split(//u)[0, index].map{ |s| Pango::ESCAPE_RULE[s] || s }.join.strsize
+    # # Pango.escape(message.body.split(//u)[0, index].join).strsize
   end
 
 end
