@@ -5,6 +5,9 @@ require 'uri'
   URL短縮・展開のためのクラス。これを継承したクラスを作れば短縮URL機能として利用されるようになる
 =end
 class MessageConverters
+
+  @@shrinked_cache = {}         # { shrinked => expanded }
+
   def self.regist
     converter = self.new
     plugin = Plugin.create(converter.plugin_name)
@@ -45,7 +48,7 @@ class MessageConverters
       if shrinked_url?(url)
         result[url] = url
       else
-        result[url] = Plugin.filtering(:shrink_url, url).first end }
+        result[url] = @@shrinked_cache.key(url) || Plugin.filtering(:shrink_url, url).first.tap{ |s| @@shrinked_cache[s.freeze] = url } end }
     result.freeze end
 
   # URL _url_ を展開する。urlは配列で渡す。
@@ -56,7 +59,7 @@ class MessageConverters
     urls.each{ |url|
       url.freeze
       if shrinked_url?(url)
-        result[url] = Plugin.filtering(:expand_url, url).first
+        result[url] = @@shrinked_cache[url] ||= Plugin.filtering(:expand_url, url).first.freeze
       else
         result[url] = url end }
     result.freeze end
