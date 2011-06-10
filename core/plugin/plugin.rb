@@ -90,7 +90,7 @@ module Plugin
   # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
   def self.plugin_callback_loop(ary, event_name, kind, *args)
     plugin_loop(ary, event_name, kind){ |tag, proc|
-      proc.call(*args) } end
+      proc.call(*args){ throw(:plugin_exit) } } end
 
   # _ary_ [ _event\_name_ ] に登録されているプラグイン一つひとつを引数に _proc_ を繰り返し呼ぶ。
   # _proc_ のシグニチャは以下の通り。
@@ -114,11 +114,11 @@ module Plugin
 
   # ブロックの実行時間を記録しながら実行
   def self.call_routine(plugintag, event_name, kind)
-    return yield
-    begin
-      yield
-    rescue Exception => e
-      plugin_fault(plugintag, event_name, kind, e) end end
+    catch(:plugin_exit){ yield } end
+    # begin
+    #   yield
+    # rescue Exception => e
+    #   plugin_fault(plugintag, event_name, kind, e) end
 
   # 登録済みプラグインの一覧を返す。
   # 返すHashは以下のような構造。
@@ -242,6 +242,16 @@ _user_ が _message_ をお気に入りから外した時に呼ばれる。
 
 === after_event(Post service)
 periodなど、毎分実行されるイベントのクロールが終わった後に呼び出される。
+
+=== play_sound(String filename)
+ファイル名 _filename_ の音楽ファイルを鳴らす。
+
+=== popup_notify(User user, String text)
+通知を表示する。雰囲気としては、
+- Windows : バルーン
+- Linux : libnotify
+- Mac : Growl
+みたいなイメージの通知。 _user_ のアイコンが使われ、名前がタイトルになり、本文は _text_ が使われる。
 
 == フィルタ
 

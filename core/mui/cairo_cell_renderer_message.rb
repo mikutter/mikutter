@@ -99,12 +99,6 @@ module Gtk
         record.miracle_painter
       else
         @tree.update!(message, Gtk::TimeLine::InnerTL::MIRACLE_PAINTER, create_miracle_painter(message)) end end
-      # @tree.model.each{ |model,path,iter|
-      #   if(iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] == mid)
-      #     if mp = iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER]
-      #       return mp
-      #     else
-      #       return iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = create_miracle_painter(message) end end } end
 
     # MiraclePainterを生成して返す
     def create_miracle_painter(message)
@@ -112,13 +106,11 @@ module Gtk
     end
 
     def message_id=(id)
-      # type_strict id => Integer
       if id && id.to_i > 0
-        render_message(Message.findbyid(id.to_i))
-      else
-        self.pixbuf = Gdk::Pixbuf.new(MUI::Skin.get('notfound.png'))
-      end
-    end
+        message = Message.findbyid(id.to_i, 1)
+        if message
+          return render_message(message) end end
+      self.pixbuf = Gdk::Pixbuf.new(MUI::Skin.get('notfound.png')) end
 
     private
 
@@ -133,12 +125,7 @@ module Gtk
         miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width
         if(h != miracle_painter(message).height)
           @tree.get_column(0).queue_resize end end
-      self.pixbuf = miracle_painter(message).pixbuf
-      # set_fixed_size(self.pixbuf.width, self.pixbuf.height)
-      # self.width = self.pixbuf.width
-      # self.height = self.pixbuf.height
-      # @tree.get_column(0).queue_resize
-    end
+      self.pixbuf = miracle_painter(message).pixbuf end
 
     # 描画するセルの横幅を取得する
     def avail_width
