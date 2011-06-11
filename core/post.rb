@@ -167,9 +167,9 @@ class Post
       if(result)
         @scaned_events << kind.to_sym if(event_canceling)
         if raw_text
-          return result.reverse, json
+          return result, json
         else
-          return result.reverse end end }
+          return result end end }
     return nil, json if raw_text end
 
   # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。
