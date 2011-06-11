@@ -78,6 +78,7 @@ Module.new do
     param = {:cache => false, :user => @service.user}
     @service.call_api(:lists, param){ |lists|
       if lists
+        lists = lists.melt
         @service.call_api(:list_subscriptions, param){ |subscriptions|
           if subscriptions
             lists.concat(subscriptions)

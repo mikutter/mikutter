@@ -88,6 +88,15 @@ class Gtk::TimeLine
     @tl.model.clear
     self end
 
+  # 新しいものから順番にpackしていく。
+  def block_add_all(messages)
+    removes, appends = *messages.partition{ |m| m[:rule] == :destroy }
+    remove_if_exists_all(removes)
+    retweets, appends = *messages.partition{ |m| m[:retweet] }
+    add_retweets(retweets)
+    appends.sort_by{ |m| -(m.modified.to_i) }.each(&method(:block_add))
+  end
+
   # リツイートを追加する。 _messages_ には Message の配列を指定し、それらはretweetでなければならない
   def add_retweets(messages)
     messages.each{ |message|

@@ -32,6 +32,7 @@ class TwitterAPI < Mutex
   API_RESET_INTERVAL = 3600
   OAUTH_VERSION = '1.0'.freeze
   DEFAULT_API_ARGUMENT = {:include_entities => 1}.freeze
+  CACHE_EXPIRE = 60 * 60 * 24 * 7
 
   include ConfigLoader
 
@@ -59,6 +60,14 @@ class TwitterAPI < Mutex
   def self.next_test_response=(ntr)
     @@ntr = ntr
   end
+
+  def self.garbage_collect
+    File.delete(*Dir.glob("#{Environment::CACHE}**#{File::Separator}*").select(&method(:is_tooold))) rescue nil end
+
+  def self.is_tooold(file)
+    Time.now - File.mtime(file) > CACHE_EXPIRE end
+
+  SerialThread.new{ garbage_collect }
 
   def consumer
     OAuth::Consumer.new(Environment::TWITTER_CONSUMER_KEY,
@@ -357,7 +366,7 @@ class TwitterAPI < Mutex
     atomic{ @status_show_mutex[id] ||= Mutex.new }.synchronize{
       return @status_show[id] if @status_show[id]
       path = "/statuses/show/#{id}.#{FORMAT}" + get_args(DEFAULT_API_ARGUMENT)
-      head = {'Host' => HOST}
+      head = {'Host' => HOST, 'Cache' => true}
       result = get(path, head)
       (@status_show[id] ||= result).freeze if result.is_a?(String)
       result } end
