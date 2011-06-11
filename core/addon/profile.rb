@@ -201,8 +201,8 @@ Module.new do
       makescreen(user, service) }
     plugin.add_event(:boot){ |service|
       set_contextmenu(plugin, service)
-      Message::Entity.addlinkrule(:user_mentions, /[@＠〄][a-zA-Z0-9_]+/){ |segment|
-        idname = segment[:url].match(/^[@＠〄]?(.+)$/)[1]
+      Message::Entity.addlinkrule(:user_mentions, /(?:@|＠|〄)[a-zA-Z0-9_]+/){ |segment|
+        idname = segment[:url].match(/^(?:@|＠|〄)?(.+)$/)[1]
         user = User.findbyidname(idname)
         if user
           makescreen(user, service)

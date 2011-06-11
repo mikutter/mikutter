@@ -112,7 +112,6 @@ class Message::Entity
       if rule[:regexp]
         message.to_show.each_matches(rule[:regexp]){ |match, byte, pos|
           if not result.any?{ |this| this[:range].include?(pos) }
-            pos = message.to_show[0, pos].strsize
             result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
                                                               :range => Range.new(pos, pos + match.to_s.strsize, true),
                                                               :face => match.to_s,
