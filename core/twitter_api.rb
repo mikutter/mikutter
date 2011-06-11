@@ -321,12 +321,12 @@ class TwitterAPI < Mutex
 
   def friends(args = {})
     path = '/statuses/friends.' + FORMAT + get_args(args)
-    get(path, head(args))
+    get_with_auth(path, head(args))
   end
 
   def followers(args = {})
     path = '/statuses/followers.' + FORMAT + get_args(args)
-    get(path, head(args))
+    get_with_auth(path, head(args))
   end
 
   def friends_id(args = {})

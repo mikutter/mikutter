@@ -38,7 +38,7 @@ Module.new do
       Thread.new{
         res = proc.call(service)
         if(bool res)
-          Delayer.new{ userlist.add(res.reverse).show_all } end }
+          Delayer.new{ userlist.add(res).show_all } end }
     }
     Plugin.create(:following_control).add_event("#{api}_created".to_sym){ |service, users|
       userlist.add(users).show_all }
