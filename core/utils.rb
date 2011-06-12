@@ -422,9 +422,12 @@ def entity_unescape(str)
 end
 
 # コマンドをバックグラウンドで起動することを覗いては system() と同じ
-def bg_system(*args)
-  # cmd = args.map{|token| Escape.shell_command(token).to_s }.join(' ') + ' &'
-  system('sh', '-c', Escape.shell_command(args).to_s + ' &')
+if (RUBY_VERSION_ARRAY[0, 2] <=> [1, 9]) >= 0
+  alias :bg_system :spawn
+else
+  def bg_system(*args)
+    fork{ exec(*args) }
+  end
 end
 
 def wakachigaki(str)

@@ -178,7 +178,7 @@ end
 # _url_ を設定されているブラウザで開く
 def Gtk::openurl(url)
   if UserConfig[:url_open_command]
-    system("#{Escape.shell_command([UserConfig[:url_open_command], url])} &")
+    bg_system(UserConfig[:url_open_command], url)
   elsif(defined? Win32API) then
     shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
     shellExecuteA.call(0, 'open', url, 0, 0, 1)
@@ -187,5 +187,5 @@ def Gtk::openurl(url)
       command = 'xdg-open'
     else
       command = '/etc/alternatives/x-www-browser' end
-    system("#{Escape.shell_command([command, url])} &") || system("firefox #{url} &") end end
+    bg_system(UserConfig[:url_open_command], url) end end
 
