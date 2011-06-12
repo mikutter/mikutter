@@ -157,19 +157,18 @@ class Post
     args.delete(:no_auto_since_id)
     args.delete(:get_raw_text)
     result = json = nil
-    UserConfig[:message_retry_limit].times{
-      data = scan_data(kind, args)
-      return nil if not(data) and twitter.rate_limiting?
+    data = scan_data(kind, args)
+    return nil if not(data) and twitter.rate_limiting?
+    if raw_text
+      result, json = parse_json(data, kind, true)
+    else
+      result = parse_json(data, kind) end
+    if(result)
+      @scaned_events << kind.to_sym if(event_canceling)
       if raw_text
-        result, json = parse_json(data, kind, true)
+        return result, json
       else
-        result = parse_json(data, kind) end
-      if(result)
-        @scaned_events << kind.to_sym if(event_canceling)
-        if raw_text
-          return result, json
-        else
-          return result end end }
+        return result end end
     return nil, json if raw_text end
 
   # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。

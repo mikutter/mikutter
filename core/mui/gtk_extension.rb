@@ -187,5 +187,5 @@ def Gtk::openurl(url)
       command = 'xdg-open'
     else
       command = '/etc/alternatives/x-www-browser' end
-    bg_system(UserConfig[:url_open_command], url) end end
+    bg_system(command, url) end end
 
