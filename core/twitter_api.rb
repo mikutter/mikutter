@@ -13,7 +13,6 @@ require 'net/http'
 require 'thread'
 require 'base64'
 require 'io/wait'
-miquire :lib, 'escape'
 miquire :lib, 'oauth'
 miquire :plugin, 'plugin'
 miquire :core, 'environment'
@@ -512,12 +511,17 @@ class TwitterAPI < Mutex
     query_with_auth(:delete, "/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}")
   end
 
-  def get_args(args)
-    if not args.empty?
-      "?" + args.map{|k, v| "#{Escape.uri_segment(k.to_s).to_s}=#{Escape.uri_segment(v.to_s).to_s}"}.join('&')
-    else
-      ''
-    end
-  end
+  if(RUBY_VERSION_ARRAY[0,2] >= [1,9])
+    def get_args(args)
+      if not args.empty?
+        "?" + args.map{|k, v| "#{URI.encode_www_form_component(k.to_s).to_s}=#{URI.encode_www_form_component(v.to_s).to_s}"}.join('&')
+      else
+        '' end end
+  else
+    def get_args(args)
+      if not args.empty?
+        "?" + args.map{|k, v| "#{URI.encode(k.to_s).to_s}=#{URI.encode(v.to_s).to_s}"}.join('&')
+      else
+        '' end end end
 end
 # ~> -:13: undefined method `miquire' for main:Object (NoMethodError)
