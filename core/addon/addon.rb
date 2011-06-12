@@ -104,14 +104,16 @@ module Addon
     # :postbox postboxがアクティブであるなら
     def self.get_valid_roles(focus, tl, active_mumble, miracle_painter, postbox)
       valid_roles = Set.new
-      if tl
-        valid_roles << :timeline end
-      if active_mumble and miracle_painter
-        valid_roles << :message
-        if tl.cell_renderer_message.miracle_painter(active_mumble).textselector_range
-          valid_roles << :message_select end end
       if postbox
-        valid_roles.clear << :postbox end
+        valid_roles << :postbox
+      else
+        if focus.is_a?(Gtk::TimeLine::InnerTL)
+          if tl
+            valid_roles << :timeline end
+          if active_mumble and miracle_painter
+            valid_roles << :message
+            if tl.cell_renderer_message.miracle_painter(active_mumble).textselector_range
+              valid_roles << :message_select end end end end
       valid_roles.freeze
     end
 
