@@ -131,10 +131,31 @@ class TC_Message < Test::Unit::TestCase
     assert_equal(tweet, entity.to_s.inspect)
   end
 
+  def test_5
+    tweet = '一体何をやってんだろう(笑)。 > @toshi_a the hacker'
+    mes = stub
+    mes.stubs(:to_show).returns(tweet)
+    mes.stubs(:[]).with(:entities).returns({:hashtags=>[], :urls=>[], :user_mentions=>[{:name=>"蝶舞スカーフ型としぁ", :screen_name=>"toshi_a", :indices=>[21, 29], :id=>15926668, :id_str=>"15926668"}]})
+    mes.stubs(:is_a?).with(Message).returns(true)
+    entity = Message::Entity.new(mes)
+
+    assert_kind_of(String, entity.to_s)
+    assert_equal(tweet, entity.to_s.inspect)
+  end
+
+
 end
 # >> Loaded suite -
 # >> Started
-# >> ....
-# >> Finished in 0.0107 seconds.
+# >> ....F
+# >> Finished in 0.012096 seconds.
 # >> 
-# >> 4 tests, 7 assertions, 0 failures, 0 errors
+# >>   1) Failure:
+# >> test_5(TC_Message)
+# >>     [-:143:in `test_5'
+# >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `__send__'
+# >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `run']:
+# >> <一体何をやってんだろう(笑)。 > @toshi_a the hacker> expected but was
+# >> <一体何をやってんだろう(笑)。 > @toshi_acker>.
+# >> 
+# >> 5 tests, 9 assertions, 1 failures, 0 errors
