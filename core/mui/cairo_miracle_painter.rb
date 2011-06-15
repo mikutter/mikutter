@@ -50,7 +50,6 @@ class Gdk::MiraclePainter < GLib::Object
 
   def initialize(message, *coodinate)
     type_strict message => :to_message
-    @tree = tree
     @p_message = message
     @message = message.to_message
     type_strict @message => Message
@@ -179,13 +178,15 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 更新イベントを発生させる
   def on_modify(event=true)
-    @pixmap = nil
-    @pixbuf = nil
-    @coordinate = nil
-    if(defined? @last_modify_height and @last_modify_height != height)
-      tree.get_column(0).queue_resize
-      @last_modify_height = height end
-    signal_emit('modified') if event
+    if not destroyed?
+      @pixmap = nil
+      @pixbuf = nil
+      @coordinate = nil
+      if(defined? @last_modify_height and @last_modify_height != height)
+        tree.get_column(0).queue_resize
+        @last_modify_height = height end
+      signal_emit('modified') if event
+    end
   end
 
   # 画面上にこれが表示されているかを返す
@@ -200,6 +201,26 @@ class Gdk::MiraclePainter < GLib::Object
           range.include?(message.modified.to_i) end end
     else
       true end end
+
+  def destroy
+    def self.destroyed?
+      true end
+    def self.tree
+      raise DestroyedError.new end
+    def self.to_message
+      raise DestroyedError.new end
+    def self.p_message
+      raise DestroyedError.new end
+
+    instance_variables.each{ |v|
+      instance_variable_set(v, nil) }
+
+    @tree = nil
+    freeze
+  end
+
+  def destroyed?
+    false end
 
   private
 
@@ -257,8 +278,9 @@ class Gdk::MiraclePainter < GLib::Object
   # アイコンのpixbufを返す
   def main_icon
     @main_icon ||= Gtk::WebIcon.get_icon_pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
-      @main_icon = pixbuf
-      on_modify } end
+      if not destroyed?
+        @main_icon = pixbuf
+        on_modify end } end
 
   # 背景色を返す
   def get_backgroundcolor
@@ -333,6 +355,9 @@ class Gdk::MiraclePainter < GLib::Object
           mp.on_modify } end }
 
   }
+
+  class DestroyedError < Exception
+  end
 
 end
 

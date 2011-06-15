@@ -29,7 +29,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
         context.show_pango_layout(main_message(context)) } end end
 
   def height
-    if UserConfig[:retrieve_force_mumbleparent] ? helper.to_message.has_receive_message? : helper.to_message.receive_message
+    if not(helper.destroyed?) and UserConfig[:retrieve_force_mumbleparent] ? helper.to_message.has_receive_message? : helper.to_message.receive_message
       icon_height
     else
       0 end end
@@ -48,9 +48,10 @@ class Gdk::ReplyViewer < Gdk::SubParts
           Thread.new{
             before_height = height
             @message = helper.to_message.receive_message(true)
-            helper.on_modify
-            helper.reset_height if before_height != height
-          } end
+            Delayer.new{
+              if not helper.destroyed?
+                helper.on_modify
+                helper.reset_height if before_height != height end } } end
         result }.call end end
 
   def escaped_main_text

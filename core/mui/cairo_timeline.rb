@@ -20,9 +20,6 @@ class Gtk::TimeLine
 
   attr_reader :tl
 
-  # addlinkrule(URI.regexp(['http','https'])){ |url, widget|
-  #   Gtk::TimeLine.openurl(url)
-  # }
   Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
     Gtk::TimeLine.openurl(segment[:url])
   }
@@ -41,10 +38,36 @@ class Gtk::TimeLine
   def initialize
     super
     @tl = InnerTL.new
-    init_remover
+    closeup(postbox).pack_start(init_tl)
+    Gtk.timeout_add(60000) {
+      if(@tl.destroyed?)
+        false
+      else
+        window_active = Plugin.filtering(:get_windows, []).any?(&:has_toplevel_focus?)
+        @tl.hp -= 1 if not window_active
+        refresh if not(window_active and InnerTL.current_tl == @tl) and @tl.hp <= (window_active ? -156 : 0)
+        true end } end
+
+  # InnerTLをすげ替える。
+  def refresh
+    scroll = @tl.vadjustment.value
+    oldtl = @tl
+    @tl = InnerTL.new
+    remove(@shell)
+    @shell = init_tl
+    @tl.vadjustment.value = scroll
+    pack_start(@shell.show_all)
+    oldtl.model.each{ |model, path, iter|
+      iter[InnerTL::MIRACLE_PAINTER].destroy
+      _add(iter[InnerTL::MESSAGE])
+    }
+    @exposing_miraclepainter = []
+    oldtl.destroy if not oldtl.destroyed?
+  end
+
+  def init_tl
     @tl.postbox = postbox
     scrollbar = Gtk::VScrollbar.new(@tl.vadjustment)
-    closeup(postbox).pack_start(Gtk::HBox.new.pack_start(@tl).closeup(scrollbar))
     @tl.model.set_sort_column_id(2, order = Gtk::SORT_DESCENDING)
     @tl.model.set_sort_func(2){ |a, b|
       order = a[2] <=> b[2]
@@ -67,7 +90,7 @@ class Gtk::TimeLine
     @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
-    @tl.vadjustment.ssc(:value_changed, @tl){ |this|
+    @tl.vadjustment.ssc(:value_changed){ |this|
         emit_expose_miraclepainter
         if(scroll_to_zero? and not(scroll_to_top_anime))
           scroll_to_top_anime = true
@@ -76,7 +99,9 @@ class Gtk::TimeLine
             if not(@tl.destroyed?)
               @tl.vadjustment.value -= (scroll_speed *= 2)
               scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end
-      false } end
+      false }
+    init_remover
+    @shell = Gtk::HBox.new.pack_start(@tl).closeup(scrollbar) end
 
   # TLに含まれているMessageを順番に走査する。最新のものから順番に。
   def each(index=1)
@@ -166,16 +191,17 @@ class Gtk::TimeLine
   private
 
   def _add(message)
-    scroll_to_zero_lator! if @tl.vadjustment.value == 0.0
+    scroll_to_zero_lator! if @tl.realized? and @tl.vadjustment.value == 0.0
     miracle_painter = @tl.cell_renderer_message.create_miracle_painter(message)
     iter = @tl.model.append
     iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] = message[:id].to_s
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
-    @tl.add_iter(iter)
+    # @tl.add_iter(iter)
     sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
-    @remover_queue.push(message)
+    @remover_queue.push(message) if @tl.realized?
+    @tl.hp -= 1
     self
   end
 
@@ -200,18 +226,29 @@ class Gtk::TimeLine
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end end } } end
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
+  # def emit_expose_miraclepainter
+  #   @exposing_miraclepainter ||= Set.new
+  #   if @tl.visible_range
+  #     current, last = @tl.visible_range.map{ |path| @tl.get_record(path) }
+  #     path_record = @tl.sorted_path_record
+  #     start = path_record.index{|n|n[2].created == current.created}
+  #     stop = path_record.index{|n|n[2].created == last.created}
+  #     if(start and stop)
+  #       messages = Set.new(path_record[start..stop].map{|s|s[2]})
+  #       (messages - @exposing_miraclepainter).each{ |exposed|
+  #         exposed.miracle_painter.signal_emit(:expose_event) }
+  #       @exposing_miraclepainter = messages end end end
   def emit_expose_miraclepainter
-    @exposing_miraclepainter ||= Set.new
+    @exposing_miraclepainter ||= []
     if @tl.visible_range
-      current, last = @tl.visible_range.map{ |path| @tl.get_record(path) }
-      path_record = @tl.sorted_path_record
-      start = path_record.index{|n|n[2].created == current.created}
-      stop = path_record.index{|n|n[2].created == last.created}
-      if(start and stop)
-        messages = Set.new(path_record[start..stop].map{|s|s[2]})
-        (messages - @exposing_miraclepainter).each{ |exposed|
-          exposed.miracle_painter.signal_emit(:expose_event) }
-        @exposing_miraclepainter = messages end end end
+      current, last = @tl.visible_range.map{ |path| @tl.model.get_iter(path) }
+      messages = Set.new
+      while current[0].to_i >= last[0].to_i
+        messages << current[1]
+        break if not current.next! end
+      (messages - @exposing_miraclepainter).each{ |exposed|
+        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) }
+      @exposing_miraclepainter = messages end end
 
   def postbox
     @postbox ||= Gtk::VBox.new end

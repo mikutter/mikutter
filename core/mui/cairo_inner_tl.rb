@@ -4,7 +4,7 @@ miquire :mui, 'timeline'
 miquire :lib, 'ruby-bsearch-1.5/bsearch'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
-  attr_accessor :postbox
+  attr_accessor :postbox, :hp
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -22,7 +22,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def initialize
     super
-    @path_record = []
+    @hp = 252
     @@current_tl ||= self
     self.name = 'timeline'
     set_headers_visible(false)
@@ -30,7 +30,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     last_geo = nil
     selection.mode = Gtk::SELECTION_MULTIPLE
     get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
-    init_signal_hooks
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
@@ -75,14 +74,16 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def get_active_iterators
     selected = []
-    selection.selected_each{ |model, path, iter|
-      selected << iter }
+    if not destroyed?
+      selection.selected_each{ |model, path, iter|
+        selected << iter } end
     selected end
 
   def get_active_pathes
     selected = []
-    selection.selected_each{ |model, path, iter|
-      selected << path }
+    if not destroyed?
+      selection.selected_each{ |model, path, iter|
+        selected << path } end
     selected end
 
   # 選択範囲の時刻(UNIX Time)の最初と最後を含むRangeを返す
@@ -97,22 +98,12 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     iter = get_iter_by_message(message)
     if iter
       iter[column] = value
-      atomic{
-        node = sorted_path_record.rassoc(message)
-        if node
-          node[2] = Record.new(iter[0].to_i, iter[1], iter[2], iter[3])
-          @path_record_sorted = false
-        else
-          add_iter(iter) end }
       value end end
 
   # _path_ からレコードを取得する
   def get_record(path)
-    record = sorted_path_record[path.indices.first][2]
-    if record
-      record
-    else
-      iter = model.get_iter(path)
+    iter = model.get_iter(path)
+    if iter
       Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end end
 
   # _message_ に対応する Gtk::TreePath を返す
@@ -121,39 +112,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ に対応する値の構造体を返す。Gtk::TreeIterに関わるメソッドはできるだけ減らしましょう！
   def get_record_by_message(message)
-    id = message[:id].to_i
-    time = message.modified.to_i
-    node = atomic{
-      node_index = sorted_path_record.bsearch{ |x|
-        order = time <=> x[2].created
-        order = id <=> x[2].id if order == 0
-        order }
-      sorted_path_record[node_index] if node_index }
-    if(node)
-      node[2]
-    else
-      path = get_path_and_iter_by_message(message)[1]
-      if path
-        record = get_record(path)
-        atomic{
-          @path_record_sorted = false
-          @path_record.unshift([nil, record.message, record]) }
-        record end end end
+    path = get_path_and_iter_by_message(message)[1]
+    get_record(path) if path end
 
-  def sorted_path_record
-    if @path_record_sorted
-      @path_record
-    else
-      atomic{
-        @path_record_sorted = true
-        @path_record = @path_record.sort_by{ |n| [-(n[2].created), -(n[2].id)] } } end end
-
-  # model.appendで生成したイテレータにデータを格納し終わったら、それを引数に呼ぶといいですよ
-  def add_iter(iter)
-    atomic{
-      @path_record_sorted = false
-      @path_record.unshift([nil, iter[1], Record.new(iter[0].to_i, iter[1], iter[2], iter[3])]) }
-    self end
 
   private
 
@@ -165,13 +126,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def get_path_and_iter_by_message(message)
     id = message[:id].to_i
     found = model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
-    found || []  end
-
-  def init_signal_hooks
-    model.ssc(:row_deleted){ |model, path|
-      sorted_path_record.delete(path.indices.first)
-      false
-    }
-  end
+    found || [] end
 
 end
