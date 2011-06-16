@@ -39,14 +39,8 @@ class Gtk::TimeLine
     super
     @tl = InnerTL.new
     closeup(postbox).pack_start(init_tl)
-    Gtk.timeout_add(60000) {
-      if(@tl.destroyed?)
-        false
-      else
-        window_active = Plugin.filtering(:get_windows, []).any?(&:has_toplevel_focus?)
-        @tl.hp -= 1 if not window_active
-        refresh if not(window_active and InnerTL.current_tl == @tl) and @tl.hp <= (window_active ? -156 : 0)
-        true end } end
+    refresh_timer
+  end
 
   # InnerTLをすげ替える。
   def refresh
@@ -63,6 +57,18 @@ class Gtk::TimeLine
     }
     @exposing_miraclepainter = []
     oldtl.destroy if not oldtl.destroyed?
+  end
+
+  # ある条件を満たしたらInnerTLを捨てて、全く同じ内容の新しいInnerTLにすげ替えるためのイベントを定義する。
+  def refresh_timer
+    Gtk.timeout_add(60000) {
+      if(@tl.destroyed?)
+        false
+      else
+        window_active = Plugin.filtering(:get_windows, []).any?(&:has_toplevel_focus?)
+        @tl.hp -= 1 if not window_active
+        refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.hp <= (window_active ? -HYDE : 0)
+        true end }
   end
 
   def init_tl
@@ -201,7 +207,6 @@ class Gtk::TimeLine
     # @tl.add_iter(iter)
     sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
     @remover_queue.push(message) if @tl.realized?
-    @tl.hp -= 1
     self
   end
 
@@ -223,21 +228,11 @@ class Gtk::TimeLine
         if not destroyed?
           remove_count = size - timeline_max
           if remove_count > 0
-            to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter| @tl.model.remove(iter) } end end } } end
+            to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
+              @tl.hp -= 1
+              @tl.model.remove(iter) } end end } } end
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
-  # def emit_expose_miraclepainter
-  #   @exposing_miraclepainter ||= Set.new
-  #   if @tl.visible_range
-  #     current, last = @tl.visible_range.map{ |path| @tl.get_record(path) }
-  #     path_record = @tl.sorted_path_record
-  #     start = path_record.index{|n|n[2].created == current.created}
-  #     stop = path_record.index{|n|n[2].created == last.created}
-  #     if(start and stop)
-  #       messages = Set.new(path_record[start..stop].map{|s|s[2]})
-  #       (messages - @exposing_miraclepainter).each{ |exposed|
-  #         exposed.miracle_painter.signal_emit(:expose_event) }
-  #       @exposing_miraclepainter = messages end end end
   def emit_expose_miraclepainter
     @exposing_miraclepainter ||= []
     if @tl.visible_range
