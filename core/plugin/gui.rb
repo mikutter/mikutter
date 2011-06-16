@@ -283,17 +283,17 @@ module Plugin
           windows = Set.new unless windows
           windows << window
           windows }
-
-        last_controlled = Time.new
-        window.ssc(:event){ |this, event|
-          if not [Gdk::Event::Type::EXPOSE, Gdk::Event::Type::NO_EXPOSE].include?(event.event_type)
-            last_controlled = Time.new end
-          false }
-        Plugin.create(:gui).add_event_filter(:get_idle_time){ |time|
-          [(time or (Time.new - last_controlled))]
-        }
-
+        last_store(window)
         window end end
+
+    def last_store(window)
+      last_controlled = Time.new
+      window.ssc(:event){ |this, event|
+        if not [Gdk::Event::Type::EXPOSE, Gdk::Event::Type::NO_EXPOSE].include?(event.event_type)
+          last_controlled = Time.new end
+        false }
+      Plugin.create(:gui).add_event_filter(:get_idle_time){ |time|
+        [(time or (Time.new - last_controlled))] } end
 
   end
 
