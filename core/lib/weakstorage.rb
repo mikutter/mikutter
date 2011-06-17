@@ -33,6 +33,61 @@ class WeakStore
       nil end end
 end
 
+# 一定時間以上参照されなかったデータを自動的に忘れていく連想配列っぽいもの。
+# デフォルトの最低有効期限(expire)は1800秒(30分)。expireより長くオブジェクトが保持される可能性がある。
+class TimeLimitedStorage < WeakStore
+
+  def initialize(key_class=Object, val_class=Object, expire = 1800)
+    @key_class, @val_class, @expire, @repository, @last_modified = key_class, val_class, expire, gen_storage, Time.new.freeze
+    super()
+  end
+
+  def [](key)
+    atomic{
+      result = if storage.has_key?(key)
+                 storage[key]
+               elsif @repository.has_key?(key)
+                 @_storage[key] = @repository[key] end
+      repository
+      result } end
+  alias add []
+
+  def []=(key, val)
+    type_strict key => @key_class, val => @val_class
+    atomic{
+      storage[key] = val
+      @repository.delete(key) if(@repository.has_key?(key))
+      repository }
+  end
+  alias store []=
+
+  def has_key?(key)
+    atomic{
+      result = if storage.has_key?(key)
+                 true
+               elsif @repository.has_key?(key)
+                 @_storage[key] = @repository[key]
+                 true end
+      repository
+      result } end
+
+  def inspect
+    atomic{ "#<TimeLimitedStorage(#{@key_class} => #{@val_class}): #{storage.size}>" }
+  end
+
+  private
+  def repository
+    now = Time.new
+    if (@last_modified + @expire) < now
+      @last_modified = now.freeze
+      @repository = @_storage
+      @_storage = gen_storage end end
+
+  def gen_storage
+    Hash.new end
+
+end
+
 class WeakStorage < WeakStore
 
   def initialize(key_class, val_class)

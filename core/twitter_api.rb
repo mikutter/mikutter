@@ -358,16 +358,30 @@ class TwitterAPI < Mutex
 
   def status_show(args)
     id = args[:id]
+    @last_id ||= Hash.new(0)
     type_strict id => Integer
     raise "id must than 1 but specified #{id.inspect}" if id <= 0
-    @status_show_mutex ||= WeakStorage.new(Integer, Mutex)
-    @status_show ||= WeakStorage.new(Integer, String)
+    @status_show_mutex ||= TimeLimitedStorage.new(Integer, Mutex)
+    @status_show ||= TimeLimitedStorage.new(Integer)
     atomic{ @status_show_mutex[id] ||= Mutex.new }.synchronize{
-      return @status_show[id] if @status_show[id]
+      return @status_show[id] if @status_show.has_key?(id)
+
+      if(@last_id[id] >= 10)
+        error "a lot of calls status_show/#{id}"
+        pp caller
+        abort
+      end
+      @last_id[id] += 1
+
       path = "/statuses/show/#{id}.#{FORMAT}" + get_args(DEFAULT_API_ARGUMENT)
       head = {'Host' => HOST, 'Cache' => true}
       result = get(path, head)
-      (@status_show[id] ||= result).freeze if result.is_a?(String)
+      (@status_show[id] ||= result).freeze if result.is_a?(Net::HTTPOK)
+      if result.is_a? Net::HTTPForbidden and JSON.parse(result.body)["error"] == 'Sorry, you are not authorized to see this status.'
+        notice 'Sorry, you are not authorized to see this status.'
+        @status_show[id] = nil
+      end
+
       result } end
 
   def saved_searches(args=nil)
