@@ -25,7 +25,7 @@ Module.new do
     lambda{ |service|
       if (count.call % UserConfig[retrieve_interval]) == 0
         service.__send__(api, UserConfig[retrieve_count]){ |users|
-          users = users.select(&ret_nth).freeze
+          users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users) unless relations.empty?
           relations = users
         } end } end

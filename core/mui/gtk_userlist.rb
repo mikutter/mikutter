@@ -11,7 +11,7 @@ require 'set'
 #
 
 module Gtk
-  class UserList < Gtk::ScrolledWindow
+  class UserList < Gtk::HBox
     include Enumerable
 
     attr_accessor :double_clicked
@@ -22,8 +22,8 @@ module Gtk
       @block_add = method(:block_add).to_proc
       super()
       Lock.synchronize do
-        self.border_width = 0
-        self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
+        #self.border_width = 0
+        #self.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_ALWAYS)
       end
     end
 
@@ -33,9 +33,9 @@ module Gtk
       else
         @evbox, @ul, @treeview = gen_userlist
         yield
-        self.add_with_viewport(Gtk::VBox.new(false, 0).
-                               pack_start(@evbox, false).
-                               pack_start(Gtk::VBox.new)).show_all end end
+        scrollbar = Gtk::VScrollbar.new(@treeview.vadjustment)
+        pack_start(@evbox).closeup(scrollbar).show_all
+      end end
 
     def each(&iter)
       @users.each(&iter)
@@ -124,6 +124,7 @@ module Gtk
         end
 
         container.add(treeview)
+
         style = Gtk::Style.new()
         style.set_bg(Gtk::STATE_NORMAL, *[255,255,255].map{|a| a*255})
         container.style = style
