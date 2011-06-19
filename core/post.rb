@@ -334,7 +334,7 @@ class Post
                               :get_raw_text => true,
                               :cursor => next_cursor)
       return [] if not res
-      res.reverse.concat(query_following_method(api, limit-1, raw['next_cursor']))
+      res + query_following_method(api, limit-1, raw[:next_cursor])
     else
       [] end end
 

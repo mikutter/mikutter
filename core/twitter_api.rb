@@ -223,11 +223,13 @@ class TwitterAPI < Mutex
       return cache if cache end
     access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
     res = nil
+    start_time = Time.new
+    notice "request #{method} #{path}"
     begin
       res = access_token.method(method).call(BASE_PATH+path, options[:head])
     rescue Exception => evar
       res = evar end
-    notice "#{method} #{path} => #{res}"
+    notice "#{method} #{path} => #{res} (#{(Time.new - start_time).to_f}s)"
     begin
       limit, remain, reset = self.api_remain(res)
       Plugin.call(:apiremain, remain, reset)
@@ -329,11 +331,11 @@ class TwitterAPI < Mutex
   end
 
   def friends_id(args = {})
-    get('/friends/ids.' + FORMAT + get_args(args), head(args))
+    get_with_auth('/friends/ids.' + FORMAT + get_args(args), head(args))
   end
 
   def followers_id(args = {})
-    get('/followers/ids.' + FORMAT + get_args(args), head(args))
+    get_with_auth('/followers/ids.' + FORMAT + get_args(args), head(args))
   end
 
   def direct_messages(since = nil)
