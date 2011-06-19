@@ -189,24 +189,24 @@ class Post
 
   # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followers(limit=-1, next_cursor=-1, &proc)
-    following_method(:followers, limit, next_cursor, &proc) end
+  def followers(limit=-1, next_cursor=-1, cache=false, &proc)
+    following_method(:followers, limit, next_cursor, cache, &proc) end
 
   # フォローしている人のID一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followers_id(limit=-1, next_cursor=-1, &proc)
+  def followers_id(limit=-1, next_cursor=-1, cache=false, &proc)
     following_method(:followers_id, limit, next_cursor, &proc) end
 
   # フォローされている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followings(limit=-1, next_cursor=-1, &proc)
-    following_method(:friends, limit, next_cursor, &proc) end
+  def followings(limit=-1, next_cursor=-1, cache=false, &proc)
+    following_method(:friends, limit, next_cursor, cache, &proc) end
 
   # フォローされている人のID一覧を取得する。
   # 取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followings_id(limit=-1, next_cursor=-1, &proc)
-    following_method(:friends_id, limit, next_cursor, &proc) end
+  def followings_id(limit=-1, next_cursor=-1, cache=false, &proc)
+    following_method(:friends_id, limit, next_cursor, cache, &proc) end
 
   # 検索文字列 _q_ で、サーバ上から全てのアカウントの投稿を対象に検索する。
   # 別スレッドで実行され、結果はブロックの引数として与えられる。
@@ -327,23 +327,24 @@ class Post
         Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end }
     return result  end
 
-  def query_following_method(api, limit=-1, next_cursor=-1)
+  def query_following_method(api, limit=-1, next_cursor=-1, cache=:keep)
     if(next_cursor and next_cursor != 0 and limit != 0)
       res, raw = service.scan(api.to_sym,
                               :id => service.user,
                               :get_raw_text => true,
+                              :cache => cache,
                               :cursor => next_cursor)
       return [] if not res
-      res + query_following_method(api, limit-1, raw[:next_cursor])
+      res + query_following_method(api, limit-1, raw[:next_cursor], cache)
     else
       [] end end
 
-  def following_method(api, limit=-1, next_cursor=-1, &proc)
+  def following_method(api, limit=-1, next_cursor=-1, cache=:keep, &proc)
     no_mainthread
     if proc
-      proc.call(query_following_method(api, limit, next_cursor))
+      proc.call(query_following_method(api, limit, next_cursor, cache))
     else
-      query_following_method(api, limit, next_cursor) end end
+      query_following_method(api, limit, next_cursor, cache) end end
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|

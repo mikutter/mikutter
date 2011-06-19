@@ -23,8 +23,9 @@ Module.new do
     retrieve_interval = "retrieve_interval_#{api}".to_sym
     retrieve_count = "retrieve_count_#{api}".to_sym
     lambda{ |service|
-      if (count.call % UserConfig[retrieve_interval]) == 0
-        service.__send__(api, UserConfig[retrieve_count]){ |users|
+      c = count.call
+      if (c % UserConfig[retrieve_interval]) == 0
+        service.__send__(api, UserConfig[retrieve_count], -1, (c==0 ? true : :keep)){ |users|
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users) unless relations.empty?
           relations = users
