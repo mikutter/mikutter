@@ -31,7 +31,8 @@ class TwitterAPI < Mutex
   API_RESET_INTERVAL = 3600
   OAUTH_VERSION = '1.0'.freeze
   DEFAULT_API_ARGUMENT = {:include_entities => 1}.freeze
-  CACHE_EXPIRE = 60 * 60 * 24 * 7
+  CACHE_EXPIRE = 60 * 60 * 24 * 2
+  EXCLUDE_OPTIONS = [:cache].freeze
 
   include ConfigLoader
 
@@ -218,7 +219,7 @@ class TwitterAPI < Mutex
   def query_with_auth(method, path, raw_options={})
     no_mainthread
     options = getopts(raw_options)
-    if options[:cache]
+    if options[:cache] and options[:cache] != :keep
       cache = get_cache(path)
       return cache if cache end
     access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
@@ -238,10 +239,10 @@ class TwitterAPI < Mutex
       if(res.code == '200')
         cacheing(path, res.body) if options.has_key?(:cache)
       elsif(res.code == '401')
-          begin
-            return res if(JSON.parse(res.body)["error"] == "Not authorized")
-          rescue JSON::ParserError
-          end
+        begin
+          return res if(JSON.parse(res.body)["error"] == "Not authorized")
+        rescue JSON::ParserError
+        end
         if @fail_trap
           last_success = @@last_success
           @@failed_lock.synchronize{
@@ -249,7 +250,10 @@ class TwitterAPI < Mutex
             @a_token, @a_secret, callback = *@@last_success
             callback.call if callback
             res = self.query_with_auth(method, path, raw_options) } end end end
-    res end
+    if res
+      res
+    elsif options[:cache] == :keep
+      get_cache(path) end end
 
   def post(path, data, head)
     res = nil
@@ -530,13 +534,13 @@ class TwitterAPI < Mutex
   if(RUBY_VERSION_ARRAY[0,2] >= [1,9])
     def get_args(args)
       if not args.empty?
-        "?" + args.map{|k, v| "#{URI.encode_www_form_component(k.to_s).to_s}=#{URI.encode_www_form_component(v.to_s).to_s}"}.join('&')
+        "?" + args.select{|k, v| not EXCLUDE_OPTIONS.include? k }.map{|pair| "#{URI.encode_www_form_component(pair[0].to_s).to_s}=#{URI.encode_www_form_component(pair[1].to_s).to_s}"}.join('&')
       else
         '' end end
   else
     def get_args(args)
       if not args.empty?
-        "?" + args.map{|k, v| "#{URI.encode(k.to_s).to_s}=#{URI.encode(v.to_s).to_s}"}.join('&')
+        "?" +  args.select{|k, v| not EXCLUDE_OPTIONS.include? k }.map{|pair| "#{URI.encode(pair[0].to_s).to_s}=#{URI.encode(pair[1].to_s).to_s}"}.join('&')
       else
         '' end end end
 end
