@@ -89,7 +89,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # 選択範囲の時刻(UNIX Time)の最初と最後を含むRangeを返す
   def selected_range_bytime
     start, last = visible_range
-    Range.new(get_record(last).created, get_record(start).created)
+    start_record, last_record = get_record(start), get_record(last)
+    Range.new(last_record.created, start_record.created) if (start_record and last_record)
   end
 
   # _message_ のレコードの _column_ 番目のカラムの値を _value_ にセットする。
@@ -100,17 +101,17 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       iter[column] = value
       value end end
 
-  # _path_ からレコードを取得する
+  # _path_ からレコードを取得する。なければnilを返す。
   def get_record(path)
     iter = model.get_iter(path)
     if iter
       Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end end
 
-  # _message_ に対応する Gtk::TreePath を返す
+  # _message_ に対応する Gtk::TreePath を返す。なければnilを返す。
   def get_path_by_message(message)
     get_path_and_iter_by_message(message)[1] end
 
-  # _message_ に対応する値の構造体を返す。Gtk::TreeIterに関わるメソッドはできるだけ減らしましょう！
+  # _message_ に対応する値の構造体を返す。なければnilを返す。
   def get_record_by_message(message)
     path = get_path_and_iter_by_message(message)[1]
     get_record(path) if path end
@@ -118,7 +119,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   private
 
-  # _message_ に対応する Gtk::TreeIter を返す
+  # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
   def get_iter_by_message(message)
     get_path_and_iter_by_message(message)[2] end
 
