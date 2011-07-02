@@ -68,8 +68,11 @@ module Gtk
           armed_column = column
           motioned = [path, column, cell_x, cell_y]
           signal_emit("motion_notify_event", e, *motioned)
-          if(last_motioned and @tree.get_record(motioned[0]).id != @tree.get_record(last_motioned[0]).id)
-            signal_emit("leave_notify_event", e, *last_motioned) end
+          if last_motioned
+            motioned_id = @tree.get_record(motioned[0]).id rescue nil
+            last_motioned_id = @tree.get_record(last_motioned[0]).id rescue nil
+            if(last_motioned_id and motioned_id != last_motioned_id)
+              signal_emit("leave_notify_event", e, *last_motioned) end end
           last_motioned = motioned end }
 
       tree.ssc("button_press_event") { |w, e|
@@ -135,26 +138,33 @@ module Gtk
     def event_hooks
       last_pressed = nil
       ssc(:click, @tree){ |r, e, path, column, cell_x, cell_y|
-        @tree.get_record(path).miracle_painter.clicked(cell_x, cell_y, e)
+        record = @tree.get_record(path)
+        record.miracle_painter.clicked(cell_x, cell_y, e) if record
         false }
       ssc(:button_press_event, @tree){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1
-          last_pressed = @tree.get_record(path).miracle_painter
-          last_pressed.pressed(cell_x, cell_y) end
+          record = @tree.get_record(path)
+          if record
+            last_pressed = record.miracle_painter
+            last_pressed.pressed(cell_x, cell_y) end end
         false }
       ssc(:button_release_event, @tree){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1 and last_pressed
-          if(last_pressed == @tree.get_record(path).miracle_painter)
-            last_pressed.released(cell_x, cell_y)
-          else
-            last_pressed.released end
+          record = @tree.get_record(path)
+          if record
+            if(last_pressed == record.miracle_painter)
+              last_pressed.released(cell_x, cell_y)
+            else
+              last_pressed.released end end
           last_pressed = nil end
         false }
       ssc(:motion_notify_event, @tree){ |r, e, path, column, cell_x, cell_y|
-        @tree.get_record(path).miracle_painter.point_moved(cell_x, cell_y)
+        record = @tree.get_record(path)
+        record.miracle_painter.point_moved(cell_x, cell_y) if record
         false }
       ssc(:leave_notify_event, @tree){ |r, e, path, column, cell_x, cell_y|
-        @tree.get_record(path).miracle_painter.point_leaved(cell_x, cell_y)
+        record = @tree.get_record(path)
+        record.miracle_painter.point_leaved(cell_x, cell_y) if record
         false }
     end
 
