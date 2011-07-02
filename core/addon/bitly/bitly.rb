@@ -55,7 +55,7 @@ class Bitly < MessageConverters
     3.times{
       response = begin
                    JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/shorten?#{query}"))
-                 rescue JSON::ParserError
+                 rescue Exception
                    nil end
       if response and response['status_code'].to_i == 200
         return response['data']['url'] end
@@ -83,7 +83,7 @@ class Bitly < MessageConverters
     3.times{
       result = begin
                  JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/expand?#{query}"))
-               rescue JSON::ParserError
+               rescue Exception
                  nil end
       if result and result['status_code'].to_i == 200
         return Hash[ *result['data']['expand'].map{|token|
