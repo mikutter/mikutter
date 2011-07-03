@@ -113,7 +113,8 @@ class Post
           :name => @user_obj[:name],
           :profile_image_url => @user_obj[:profile_image_url] }
       else
-        @user_obj = User.generate(UserConfig[:verify_credentials]) end } end
+        @user_obj = User.generate(UserConfig[:verify_credentials]) end
+      @user_obj } end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
