@@ -164,11 +164,12 @@ class Message < Retriever::Model
         self[:receiver] = result if result end end end
   memoize :receiver
 
-  # ユーザOtherに宛てられたメッセージならtrueを返す
+  # ユーザ _other_ に宛てられたメッセージならtrueを返す。
+  # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
   def receive_to?(other)
-    type_strict other => User
+    type_strict other => :[]
     if self[:receiver].is_a? User
-      self[:receiver] == other
+      other[:id] == self[:receiver][:id]
     elsif self[:receiver]
       other[:id] == self[:receiver]
     else
