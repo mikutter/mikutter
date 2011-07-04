@@ -423,10 +423,12 @@ end
 
 # コマンドをバックグラウンドで起動することを覗いては system() と同じ
 if (RUBY_VERSION_ARRAY[0, 2] <=> [1, 9]) >= 0
-  alias :bg_system :spawn
+  def bg_system(*args)
+    Process.detach(spawn(*args))
+  end
 else
   def bg_system(*args)
-    fork{ exec(*args) }
+    Process.detach(fork{ exec(*args) })
   end
 end
 
