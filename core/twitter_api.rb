@@ -383,11 +383,13 @@ class TwitterAPI < Mutex
       head = {'Host' => HOST, 'Cache' => true}
       result = get(path, head)
       (@status_show[id] ||= result).freeze if result.is_a?(Net::HTTPOK)
-      if result.is_a? Net::HTTPForbidden and JSON.parse(result.body)["error"] == 'Sorry, you are not authorized to see this status.'
+      if result.is_a?(Net::HTTPNotFound)
+        notice "Status not found ##{id}."
+        @status_show[id] = nil
+      elsif (result.is_a?(Net::HTTPForbidden) and JSON.parse(result.body)["error"] == 'Sorry, you are not authorized to see this status.')
         notice 'Sorry, you are not authorized to see this status.'
         @status_show[id] = nil
       end
-
       result } end
 
   def saved_searches(args=nil)
