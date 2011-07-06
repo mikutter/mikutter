@@ -325,13 +325,17 @@ class TwitterAPI < Mutex
   end
 
   def friends(args = {})
-    path = '/statuses/friends.' + FORMAT + get_args(args)
-    get_with_auth(path, head(args))
+    path = '/statuses/friends.' + FORMAT
+    if(args[:cache] == :keep and args[:cursor] == -1)
+      FileUtils.rm_rf(Dir.glob(File::expand_path(Environment::CACHE + path) + '*')) end
+    get_with_auth(path + get_args(args), head(args))
   end
 
   def followers(args = {})
-    path = '/statuses/followers.' + FORMAT + get_args(args)
-    get_with_auth(path, head(args))
+    path = '/statuses/followers.' + FORMAT
+    if(args[:cache] == :keep and args[:cursor] == -1)
+      FileUtils.rm_rf(Dir.glob(File::expand_path(Environment::CACHE + path) + '*')) end
+    get_with_auth(path + get_args(args), head(args))
   end
 
   def friends_id(args = {})
