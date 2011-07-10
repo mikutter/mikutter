@@ -13,19 +13,26 @@ class Delayer
   @@routines = [[],[],[]]
   @frozen = false
 
-  attr_reader :backtrace
+  attr_reader :backtrace, :status
 
   # あとで実行するブロックを登録する。
   def initialize(prio = NORMAL, *args, &block)
     @routine = block
     @args = args
     @backtrace = caller
+    @status = :wait
     regist(prio)
+  end
+
+  # このDelayerを取り消す。処理が呼ばれる前に呼べば、処理をキャンセルできる
+  def reject
+    @status = nil
   end
 
   # このブロックを実行する。内部で呼ぶためにあるので、明示的に呼ばないこと
   def run
-    #notice "run #{@routine.inspect}(" + @args.map{|a| a.inspect}.join(', ') + ')'
+    return if @status != :wait
+    @status = :run
     now = caller.size
     begin
       @routine.call(*@args)
@@ -33,8 +40,8 @@ class Delayer
       $@ = e.backtrace[0, now] + @backtrace
       raise e
     end
-    #notice "end. #{@routine.inspect}"
     @routine = nil
+    @status = nil
   end
 
   # 登録されたDelayerオブジェクトをいくつか実行する。
