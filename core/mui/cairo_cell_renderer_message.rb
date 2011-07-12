@@ -56,6 +56,7 @@ module Gtk
       tree.add_events(Gdk::Event::BUTTON_PRESS_MASK|Gdk::Event::BUTTON_RELEASE_MASK)
       armed_column = nil
       last_motioned = nil
+
       tree.ssc("leave_notify_event") { |w, e|
         if last_motioned
           signal_emit("leave_notify_event", e, *last_motioned)

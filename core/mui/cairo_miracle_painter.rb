@@ -58,6 +58,23 @@ class Gdk::MiraclePainter < GLib::Object
     # (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new(Gdk::MiraclePainter)) << self
   end
 
+  signal_new(:click, GLib::Signal::RUN_FIRST, nil, nil,
+             Gdk::EventButton, Integer, Integer)
+
+  signal_new(:motion_notify_event, GLib::Signal::RUN_FIRST, nil, nil,
+             Integer, Integer)
+
+  signal_new(:leave_notify_event, GLib::Signal::RUN_FIRST, nil, nil)
+
+  def signal_do_click(event, cell_x, cell_y)
+  end
+
+  def signal_do_motion_notify_event(cell_x, cell_y)
+  end
+
+  def signal_do_leave_notify_event()
+  end
+
   # Gtk::TimeLine::InnerTLのインスタンスを設定する。今後、このインスタンスは _new_ に所属するものとして振舞う
   def set_tree(new)
     type_strict new => Gtk::TimeLine::InnerTL
@@ -88,6 +105,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
   def clicked(x, y, e)
+    signal_emit(:click, e, x, y)
     case e.button
     when 1
       iob_clicked
@@ -104,11 +122,13 @@ class Gdk::MiraclePainter < GLib::Object
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
     point_moved_main_icon(x, y)
+    signal_emit(:motion_notify_event, x, y)
     textselector_select(*main_pos_to_index_forclick(x, y)[1..2]) end
 
   # leaveイベントを発生させる
   def point_leaved(x, y)
     iob_main_leave
+    signal_emit(:leave_notify_event)
     # textselector_release
   end
 
@@ -254,7 +274,13 @@ class Gdk::MiraclePainter < GLib::Object
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
   def header_right(context = dummy_context)
-    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(message[:created].strftime('%H:%M:%S'))}</span>")
+    now = Time.now
+    hms = if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
+            message[:created].strftime('%H:%M:%S')
+          else
+            message[:created].strftime('%Y/%m/%d %H:%M:%S')
+          end
+    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(hms)}</span>")
     layout = context.create_pango_layout
     layout.attributes = attr_list
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
@@ -331,7 +357,7 @@ class Gdk::MiraclePainter < GLib::Object
           r, g, b = get_backgroundcolor
           grad = Cairo::LinearPattern.new(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, 0)
           grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
-          grad.add_color_stop_rgba(0.2, r, g, b, 1.0)
+          grad.add_color_stop_rgba(20.0 / (hr_layout.size[0] / Pango::SCALE + 20), r, g, b, 1.0)
           grad.add_color_stop_rgba(1.0, r, g, b, 1.0)
           context.rectangle(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, hr_layout.size[1] / Pango::SCALE)
           context.set_source(grad)

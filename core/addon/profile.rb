@@ -235,7 +235,12 @@ Module.new do
           "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') },
         :condition => lambda{ |m| m.message.repliable? },
         :exec => lambda{ |m|
-          user = if(m.message[:retweet]) then m.message[:retweet].user else m.message.user end
+          user = if(m.is_a? User)
+                   m
+                 elsif(m.message[:retweet])
+                   m.message[:retweet].user
+                 else
+                   m.message.user end
           makescreen(user, service) },
         :visible => true,
         :role => :message }
