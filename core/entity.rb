@@ -115,6 +115,7 @@ class Message::Entity
             result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
                                                               :range => Range.new(pos, pos + match.to_s.strsize, true),
                                                               :face => match.to_s,
+                                                              :from => :_generate_value,
                                                               :url => match.to_s})).freeze end } end }
     result.sort_by{ |r| r[:range].first }.freeze end
 
@@ -131,6 +132,7 @@ class Message::Entity
           result << @@filter[slug].call(rule.merge({ :message => message,
                                                      :range => range,
                                                      :face => face,
+                                                     :from => :message_entities,
                                                      :url => face}.merge(link))).freeze } } end
     result.sort_by{ |r| r[:range].first }.freeze end
   memoize :message_entities
@@ -139,9 +141,15 @@ class Message::Entity
     Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
 
   def index_to_escaped_index(index)
-    index
+    # index
     # message.to_show.split(//u)[0, index].map{ |s| Pango::ESCAPE_RULE[s] || s }.join.strsize
-    # # Pango.escape(message.body.split(//u)[0, index].join).strsize
+    # Pango::ESCAPE_RULE.inject(message.to_show.split(//u).map{ |s|
+    #                             Pango::ESCAPE_RULE[s] || s }.join.split(//u)[0, index].join){ |str, pair|
+    #   str.gsub(pair[1], pair[0])
+    # }.strsize
+    message.to_show.split(//u).map{ |s|
+      Pango::ESCAPE_RULE[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
   end
+
 
 end
