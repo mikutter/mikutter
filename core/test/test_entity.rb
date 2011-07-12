@@ -57,14 +57,14 @@ class TC_Message < Test::Unit::TestCase
   THE_TWEET2 = '&#9829; Unfaithful by Rihanna #lastfm: http://bit.ly/3YP9Hq amazon: http://bit.ly/1tmPYb'
   THE_ENTITY2 = {
     :user_mentions=>[],
-    :hashtags=> [ { :text=>"lastfm", # !> instance variable @busy not initialized
+    :hashtags=> [ { :text=>"lastfm",
                     :indices=>[30, 37] } ],
     :urls=> [ { :expanded_url=>nil,
                 :indices=>[39, 59],
                 :url=>"http://bit.ly/3YP9Hq" },
               { :expanded_url=>nil,
                 :indices=>[68, 88],
-                :url=>"http://bit.ly/1tmPYb" } ] }
+                :url=>"http://bit.ly/1tmPYb" } ] } # !> instance variable @busy not initialized
 
   THE_TWEET3 = 'RT @toshi_a: おいmikutterが変態ツイッタークライアントだという風説が'
   THE_ENTITY3 = {}
@@ -90,32 +90,13 @@ class TC_Message < Test::Unit::TestCase
   end
  # !> `&' interpreted as argument prefix
 
-  def test_2
-    mes = stub
-    mes.stubs(:to_show).returns(THE_TWEET2)
-    mes.stubs(:[]).with(:entities).returns(THE_ENTITY2)
-    mes.stubs(:is_a?).with(Message).returns(true)
-
-    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/3YP9Hq').returns(['http://www.last.fm/music/Rihanna/_/Unfaithful']) # !> method redefined; discarding old categories_for
-    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/1tmPYb').returns(['http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA'])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/3YP9Hq').returns([false])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/1tmPYb').returns([false])
-
-    entity = Message::Entity.new(mes)
-
-    a = entity.to_a.map{ |x| x.dup.tap{|n|n.delete(:regexp)} }
-
-    assert_kind_of(String, entity.to_s)
-    assert_equal('&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA', entity.to_s.inspect)
-  end
-
   def test_3
     mes = stub
     mes.stubs(:to_show).returns(THE_TWEET3)
     mes.stubs(:[]).with(:entities).returns(THE_ENTITY3)
     mes.stubs(:is_a?).with(Message).returns(true)
     entity = Message::Entity.new(mes)
-    assert_kind_of(String, entity.to_s)
+    assert_kind_of(String, entity.to_s) # !> method redefined; discarding old categories_for
     assert_equal("RT @toshi_a: \343\201\212\343\201\204mikutter\343\201\214\345\244\211\346\205\213\343\203\204\343\202\244\343\203\203\343\202\277\343\203\274\343\202\257\343\203\251\343\202\244\343\202\242\343\203\263\343\203\210\343\201\240\343\201\250\343\201\204\343\201\206\351\242\250\350\252\254\343\201\214", entity.to_s.inspect)
   end
 
@@ -143,19 +124,116 @@ class TC_Message < Test::Unit::TestCase
     assert_equal(tweet, entity.to_s.inspect)
   end
 
+  def test_2
+    mes = stub
+    mes.stubs(:to_show).returns(THE_TWEET2)
+    mes.stubs(:[]).with(:entities).returns(THE_ENTITY2)
+    mes.stubs(:is_a?).with(Message).returns(true)
+
+    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/3YP9Hq').returns(['http://www.last.fm/music/Rihanna/_/Unfaithful'])
+    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/1tmPYb').returns(['http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA'])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/3YP9Hq').returns([false])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/1tmPYb').returns([false])
+
+    entity = Message::Entity.new(mes)
+
+    pp entity.to_a
+
+    a = entity.to_a.map{ |x| x.dup.tap{|n|n.delete(:regexp)} }
+
+    assert_kind_of(String, entity.to_s)
+    assert_equal('&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA', entity.to_s.inspect)
+  end
 
 end
 # >> Loaded suite -
 # >> Started
-# >> ....F
-# >> Finished in 0.012096 seconds.
+# >> .[{:face=>#9829,
+# >>   :from=>:_generate_value,
+# >>   :message=>#<Mock:0x7ff196f200c8>,
+# >>   :slug=>:hashtags,
+# >>   :callback=>#<Proc:0x0000000000000000@-:18>,
+# >>   :url=>#9829,
+# >>   :range=>1...6,
+# >>   :regexp=>/(#|\357\274\203)([a-zA-Z0-9_]+)/},
+# >>  {:from=>:message_entities,
+# >>   :face=>nna #la,
+# >>   :message=>#<Mock:0x7ff196f200c8>,
+# >>   :slug=>:hashtags,
+# >>   :text=>lastfm,
+# >>   :callback=>#<Proc:0x0000000000000000@-:18>,
+# >>   :url=>nna #la,
+# >>   :range=>26...33,
+# >>   :indices=>[30, 37],
+# >>   :regexp=>/(#|\357\274\203)([a-zA-Z0-9_]+)/},
+# >>  {:from=>:message_entities,
+# >>   :face=>http://www.last.fm/music/Rihanna/_/Unfaithful,
+# >>   :message=>#<Mock:0x7ff196f200c8>,
+# >>   :slug=>:urls,
+# >>   :callback=>#<Proc:0x0000000000000000@-:16>,
+# >>   :expanded_url=>nil,
+# >>   :url=>http://bit.ly/3YP9Hq,
+# >>   :range=>35...55,
+# >>   :indices=>[39, 59],
+# >>   :regexp=>
+# >>    /(?=(?-mix:http|https):)
+# >>         ([a-zA-Z][-+.a-zA-Z\d]*):                     (?# 1: scheme)
+# >>         (?:
+# >>            ((?:[-_.!~*'()a-zA-Z\d;?:@&=+$,]|%[a-fA-F\d]{2})(?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*)              (?# 2: opaque)
+# >>         |
+# >>            (?:(?:
+# >>              \/\/(?:
+# >>                  (?:(?:((?:[-_.!~*'()a-zA-Z\d;:&=+$,]|%[a-fA-F\d]{2})*)@)?  (?# 3: userinfo)
+# >>                    (?:((?:(?:(?:[a-zA-Z\d](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.)*(?:[a-zA-Z](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.?|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:(?:[a-fA-F\d]{1,4}:)*[a-fA-F\d]{1,4})?::(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))?)\]))(?::(\d*))?))?(?# 4: host, 5: port)
+# >>                |
+# >>                  ((?:[-_.!~*'()a-zA-Z\d$,;:@&=+]|%[a-fA-F\d]{2})+)           (?# 6: registry)
+# >>                )
+# >>              |
+# >>              (?!\/\/))                              (?# XXX: '\/\/' is the mark for hostport)
+# >>              (\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*(?:\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*)*)?              (?# 7: path)
+# >>            )(?:\?((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?           (?# 8: query)
+# >>         )
+# >>         (?:\#((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?            (?# 9: fragment)
+# >>       /xn},
+# >>  {:from=>:message_entities,
+# >>   :face=>
+# >>    http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA,
+# >>   :message=>#<Mock:0x7ff196f200c8>,
+# >>   :slug=>:urls,
+# >>   :callback=>#<Proc:0x0000000000000000@-:16>,
+# >>   :expanded_url=>nil,
+# >>   :url=>http://bit.ly/1tmPYb,
+# >>   :range=>64...84,
+# >>   :indices=>[68, 88],
+# >>   :regexp=>
+# >>    /(?=(?-mix:http|https):)
+# >>         ([a-zA-Z][-+.a-zA-Z\d]*):                     (?# 1: scheme)
+# >>         (?:
+# >>            ((?:[-_.!~*'()a-zA-Z\d;?:@&=+$,]|%[a-fA-F\d]{2})(?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*)              (?# 2: opaque)
+# >>         |
+# >>            (?:(?:
+# >>              \/\/(?:
+# >>                  (?:(?:((?:[-_.!~*'()a-zA-Z\d;:&=+$,]|%[a-fA-F\d]{2})*)@)?  (?# 3: userinfo)
+# >>                    (?:((?:(?:(?:[a-zA-Z\d](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.)*(?:[a-zA-Z](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.?|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:(?:[a-fA-F\d]{1,4}:)*[a-fA-F\d]{1,4})?::(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))?)\]))(?::(\d*))?))?(?# 4: host, 5: port)
+# >>                |
+# >>                  ((?:[-_.!~*'()a-zA-Z\d$,;:@&=+]|%[a-fA-F\d]{2})+)           (?# 6: registry)
+# >>                )
+# >>              |
+# >>              (?!\/\/))                              (?# XXX: '\/\/' is the mark for hostport)
+# >>              (\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*(?:\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*)*)?              (?# 7: path)
+# >>            )(?:\?((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?           (?# 8: query)
+# >>         )
+# >>         (?:\#((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?            (?# 9: fragment)
+# >>       /xn}]
+# >> F...
+# >> Finished in 0.022618 seconds.
 # >> 
 # >>   1) Failure:
-# >> test_5(TC_Message)
-# >>     [-:143:in `test_5'
+# >> test_2(TC_Message)
+# >>     [-:145:in `test_2'
 # >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `__send__'
 # >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `run']:
-# >> <一体何をやってんだろう(笑)。 > @toshi_a the hacker> expected but was
-# >> <一体何をやってんだろう(笑)。 > @toshi_acker>.
+# >> <&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA> expected but was
+# >> <&#9829; Unfaithful by Rihanna #lasthttp://www.last.fm/music/Rihanna/_/UnfaithfulP9Hq amazhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBAmPYb>.
 # >> 
 # >> 5 tests, 9 assertions, 1 failures, 0 errors
