@@ -467,13 +467,10 @@ class TwitterAPI < Mutex
   end
 
   def update(status, reply_to = nil)
+    args = { :status => URI.encode(status, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n) }
+    args[:in_reply_to_status_id] = reply_to.to_s if reply_to
     path = '/statuses/update.' + FORMAT
-    enc = URI.encode(status, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n)
-    data = 'status=' + enc
-    data += '&in_reply_to_status_id=' + reply_to.to_s if reply_to
-    # data += '&source=' + PROG_NAME
-    head = {'Host' => HOST}
-    post_with_auth(path, data, head)
+    post_with_auth(path, args.merge(DEFAULT_API_ARGUMENT), head)
   end
 
   def retweet(msg)
