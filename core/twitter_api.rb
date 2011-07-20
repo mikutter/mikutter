@@ -218,42 +218,61 @@ class TwitterAPI < Mutex
 
   def query_with_auth(method, path, raw_options={})
     no_mainthread
+    serial = query_serial_number
     options = getopts(raw_options)
     if options[:cache] and options[:cache] != :keep
       cache = get_cache(path)
       return cache if cache end
     access_token = OAuth::AccessToken.new(consumer, @a_token, @a_secret)
     res = nil
-    start_time = Time.new
-    notice "request #{method} #{path}"
+    start_time = Time.new.freeze
     begin
-      res = access_token.method(method).call(BASE_PATH+path, options[:head])
-    rescue Exception => evar
-      res = evar end
-    notice "#{method} #{path} => #{res} (#{(Time.new - start_time).to_f}s)"
-    begin
-      limit, remain, reset = self.api_remain(res)
-      Plugin.call(:apiremain, remain, reset)
-    rescue => e; end
-    if res.is_a?(Net::HTTPResponse)
-      if(res.code == '200')
-        cacheing(path, res.body) if options.has_key?(:cache)
-      elsif(res.code == '401')
-        begin
-          return res if(JSON.parse(res.body)["error"] == "Not authorized")
-        rescue JSON::ParserError
-        end
-        if @fail_trap
-          last_success = @@last_success
-          @@failed_lock.synchronize{
-            @@last_success = @fail_trap.call() if(@@last_success == last_success)
-            @a_token, @a_secret, callback = *@@last_success
-            callback.call if callback
-            res = self.query_with_auth(method, path, raw_options) } end end end
-    if res
-      res
-    elsif options[:cache] == :keep
-      get_cache(path) end end
+      Plugin.call(:query_start,
+                  :serial     => serial,
+                  :method     => method,
+                  :path       => path,
+                  :options    => options,
+                  :start_time => start_time)
+      notice "request #{method} #{path}"
+      begin
+        res = access_token.method(method).call(BASE_PATH+path, options[:head])
+      rescue Exception => evar
+        res = evar end
+      notice "#{method} #{path} => #{res} (#{(Time.new - start_time).to_f}s)"
+      begin
+        limit, remain, reset = self.api_remain(res)
+        Plugin.call(:apiremain, remain, reset)
+      rescue => e; end
+      if res.is_a?(Net::HTTPResponse)
+        if(res.code == '200')
+          cacheing(path, res.body) if options.has_key?(:cache)
+        elsif(res.code == '401')
+          begin
+            return res if(JSON.parse(res.body)["error"] == "Not authorized")
+          rescue JSON::ParserError
+          end
+          if @fail_trap
+            last_success = @@last_success
+            @@failed_lock.synchronize{
+              @@last_success = @fail_trap.call() if(@@last_success == last_success)
+              @a_token, @a_secret, callback = *@@last_success
+              callback.call if callback
+              res = self.query_with_auth(method, path, raw_options) } end end end
+      if res
+        res
+      elsif options[:cache] == :keep
+        res = get_cache(path) end
+    ensure
+      Plugin.call(:query_end,
+                  :serial     => serial,
+                  :method     => method,
+                  :path       => path,
+                  :options    => options,
+                  :start_time => start_time,
+                  :end_time   => Time.new.freeze,
+                  :res        => res)
+    end end
+  define_method(:query_serial_number, &gen_counter)
 
   def post(path, data, head)
     res = nil
