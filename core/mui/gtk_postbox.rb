@@ -224,6 +224,12 @@ module Gtk
         send.sensitive = postable?
         tool.sensitive = destructible? if tool
         false }
+      post.ssc('paste-clipboard'){ |this|
+        Delayer.new{
+          w_remain.set_text(remain_charcount.to_s)
+          send.sensitive = postable?
+          tool.sensitive = destructible? if tool }
+        false }
       post.signal_connect_after('focus_out_event', &method(:focus_out_event))
       return post, w_remain end
 
