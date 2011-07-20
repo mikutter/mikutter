@@ -147,8 +147,9 @@ class Message::Entity
     #                             Pango::ESCAPE_RULE[s] || s }.join.split(//u)[0, index].join){ |str, pair|
     #   str.gsub(pair[1], pair[0])
     # }.strsize
+    escape_rule = {'>' => '&gt;', '<' => '&lt;'}
     message.to_show.split(//u).map{ |s|
-      Pango::ESCAPE_RULE[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
+      escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
   end
 
 

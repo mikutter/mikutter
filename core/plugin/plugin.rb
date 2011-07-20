@@ -253,6 +253,36 @@ periodなど、毎分実行されるイベントのクロールが終わった�
 - Mac : Growl
 みたいなイメージの通知。 _user_ のアイコンが使われ、名前がタイトルになり、本文は _text_ が使われる。
 
+=== query_start(:serial => Integer, :method => Symbol|String, :path => String, :options => Hash, :start_time => Time)
+HTTP問い合わせが始まった時に呼ばれる。
+serial::
+  コネクションのID
+method::
+  HTTPメソッド名。GETやPOSTなど
+path::
+  サーバ上のパス。/statuses/show.json など
+options::
+  雑多な呼び出しオプション。
+start_time::
+  クエリの開始時間
+
+=== query_end(:serial => Integer, :method => Symbol|String, :path => String, :options => Hash, :start_time => Time, :end_time => Time, :res => Net::HTTPResponse|Exception)
+HTTP問い合わせが終わった時に呼ばれる。
+serial::
+  コネクションのID
+method::
+  HTTPメソッド名。GETやPOSTなど
+path::
+  サーバ上のパス。/statuses/show.json など
+options::
+  雑多な呼び出しオプション。
+start_time::
+  クエリの開始時間
+end_time::
+  クエリのレスポンスを受け取った時間。
+res::
+  受け取ったレスポンス。通常はNet::HTTPResponseを渡す。捕捉できない例外が発生した場合はここにその例外を渡す。
+
 == フィルタ
 
 以下に、フックできる主なフィルタを示す。

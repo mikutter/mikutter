@@ -137,7 +137,7 @@ class TC_Message < Test::Unit::TestCase
 
     entity = Message::Entity.new(mes)
 
-    pp entity.to_a
+    # pp entity.to_a
 
     a = entity.to_a.map{ |x| x.dup.tap{|n|n.delete(:regexp)} }
 
@@ -146,87 +146,12 @@ class TC_Message < Test::Unit::TestCase
   end
 
 end
+
+
 # >> Loaded suite -
 # >> Started
-# >> .[{:face=>#9829,
-# >>   :from=>:_generate_value,
-# >>   :message=>#<Mock:0x7ff196f200c8>,
-# >>   :slug=>:hashtags,
-# >>   :callback=>#<Proc:0x0000000000000000@-:18>,
-# >>   :url=>#9829,
-# >>   :range=>1...6,
-# >>   :regexp=>/(#|\357\274\203)([a-zA-Z0-9_]+)/},
-# >>  {:from=>:message_entities,
-# >>   :face=>nna #la,
-# >>   :message=>#<Mock:0x7ff196f200c8>,
-# >>   :slug=>:hashtags,
-# >>   :text=>lastfm,
-# >>   :callback=>#<Proc:0x0000000000000000@-:18>,
-# >>   :url=>nna #la,
-# >>   :range=>26...33,
-# >>   :indices=>[30, 37],
-# >>   :regexp=>/(#|\357\274\203)([a-zA-Z0-9_]+)/},
-# >>  {:from=>:message_entities,
-# >>   :face=>http://www.last.fm/music/Rihanna/_/Unfaithful,
-# >>   :message=>#<Mock:0x7ff196f200c8>,
-# >>   :slug=>:urls,
-# >>   :callback=>#<Proc:0x0000000000000000@-:16>,
-# >>   :expanded_url=>nil,
-# >>   :url=>http://bit.ly/3YP9Hq,
-# >>   :range=>35...55,
-# >>   :indices=>[39, 59],
-# >>   :regexp=>
-# >>    /(?=(?-mix:http|https):)
-# >>         ([a-zA-Z][-+.a-zA-Z\d]*):                     (?# 1: scheme)
-# >>         (?:
-# >>            ((?:[-_.!~*'()a-zA-Z\d;?:@&=+$,]|%[a-fA-F\d]{2})(?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*)              (?# 2: opaque)
-# >>         |
-# >>            (?:(?:
-# >>              \/\/(?:
-# >>                  (?:(?:((?:[-_.!~*'()a-zA-Z\d;:&=+$,]|%[a-fA-F\d]{2})*)@)?  (?# 3: userinfo)
-# >>                    (?:((?:(?:(?:[a-zA-Z\d](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.)*(?:[a-zA-Z](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.?|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:(?:[a-fA-F\d]{1,4}:)*[a-fA-F\d]{1,4})?::(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))?)\]))(?::(\d*))?))?(?# 4: host, 5: port)
-# >>                |
-# >>                  ((?:[-_.!~*'()a-zA-Z\d$,;:@&=+]|%[a-fA-F\d]{2})+)           (?# 6: registry)
-# >>                )
-# >>              |
-# >>              (?!\/\/))                              (?# XXX: '\/\/' is the mark for hostport)
-# >>              (\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*(?:\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*)*)?              (?# 7: path)
-# >>            )(?:\?((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?           (?# 8: query)
-# >>         )
-# >>         (?:\#((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?            (?# 9: fragment)
-# >>       /xn},
-# >>  {:from=>:message_entities,
-# >>   :face=>
-# >>    http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA,
-# >>   :message=>#<Mock:0x7ff196f200c8>,
-# >>   :slug=>:urls,
-# >>   :callback=>#<Proc:0x0000000000000000@-:16>,
-# >>   :expanded_url=>nil,
-# >>   :url=>http://bit.ly/1tmPYb,
-# >>   :range=>64...84,
-# >>   :indices=>[68, 88],
-# >>   :regexp=>
-# >>    /(?=(?-mix:http|https):)
-# >>         ([a-zA-Z][-+.a-zA-Z\d]*):                     (?# 1: scheme)
-# >>         (?:
-# >>            ((?:[-_.!~*'()a-zA-Z\d;?:@&=+$,]|%[a-fA-F\d]{2})(?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*)              (?# 2: opaque)
-# >>         |
-# >>            (?:(?:
-# >>              \/\/(?:
-# >>                  (?:(?:((?:[-_.!~*'()a-zA-Z\d;:&=+$,]|%[a-fA-F\d]{2})*)@)?  (?# 3: userinfo)
-# >>                    (?:((?:(?:(?:[a-zA-Z\d](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.)*(?:[a-zA-Z](?:[-a-zA-Z\d]*[a-zA-Z\d])?)\.?|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?:(?:[a-fA-F\d]{1,4}:)*[a-fA-F\d]{1,4})?::(?:(?:[a-fA-F\d]{1,4}:)*(?:[a-fA-F\d]{1,4}|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))?)\]))(?::(\d*))?))?(?# 4: host, 5: port)
-# >>                |
-# >>                  ((?:[-_.!~*'()a-zA-Z\d$,;:@&=+]|%[a-fA-F\d]{2})+)           (?# 6: registry)
-# >>                )
-# >>              |
-# >>              (?!\/\/))                              (?# XXX: '\/\/' is the mark for hostport)
-# >>              (\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*(?:\/(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*(?:;(?:[-_.!~*'()a-zA-Z\d:@&=+$,]|%[a-fA-F\d]{2})*)*)*)?              (?# 7: path)
-# >>            )(?:\?((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?           (?# 8: query)
-# >>         )
-# >>         (?:\#((?:[-_.!~*'()a-zA-Z\d;\/?:@&=+$,\[\]]|%[a-fA-F\d]{2})*))?            (?# 9: fragment)
-# >>       /xn}]
-# >> F...
-# >> Finished in 0.022618 seconds.
+# >> .F...
+# >> Finished in 0.015698 seconds.
 # >> 
 # >>   1) Failure:
 # >> test_2(TC_Message)
@@ -234,6 +159,9 @@ end
 # >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `__send__'
 # >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `run']:
 # >> <&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA> expected but was
-# >> <&#9829; Unfaithful by Rihanna #lasthttp://www.last.fm/music/Rihanna/_/UnfaithfulP9Hq amazhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBAmPYb>.
+# >> <&#9829; Unfaithful by Rihanna #lahttp://www.last.fm/music/Rihanna/_/Unfaithful3YP9Hq amhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA1tmPYb>.
 # >> 
 # >> 5 tests, 9 assertions, 1 failures, 0 errors
+
+# >> <&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA> expected but was
+# >> <&#9829; Unfaithful by Rihanna #lasthttp://www.last.fm/music/Rihanna/_/UnfaithfulP9Hq amazhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBAmPYb>.
