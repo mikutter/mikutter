@@ -32,7 +32,7 @@ class User < Retriever::Model
   def self.system
     if not defined? @@system then
       @@system = User.new({ :id => 0,
-                            :idname => Environment::ACRO,
+                            :idname => 'mikutter_bot',
                             :name => Environment::NAME,
                             :profile_image_url => MUI::Skin.get("icon.png")})
     end
