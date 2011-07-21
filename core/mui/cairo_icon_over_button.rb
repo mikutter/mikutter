@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+=begin rdoc
+  アイコン上にボタンを表示するためのモジュールを返す。
+schemerはHashで、 _:x_count_ と _:y_count_ に、縦横いくつのボタンを表示するかを決めることができる
+=end
 def Gdk::IconOverButton(schemer)
   schemer.freeze
   Module.new{
@@ -8,6 +12,7 @@ def Gdk::IconOverButton(schemer)
 
     attr_accessor :current_icon_pos
 
+    # アイコンインデックスからアイコンの左上座標を計算する
     def index2point(index)
       x, y = _schemer[:x_count], _schemer[:y_count]
       (index / y)*x + index % x
@@ -23,6 +28,7 @@ def Gdk::IconOverButton(schemer)
       w, h = pos.main_icon.width / _schemer[:x_count], pos.main_icon.height / _schemer[:y_count]
       [(lx / w).to_i, (ly / h).to_i] end
 
+    # _context_ にicon over buttonを描画する。
     def render_icon_over_button(context)
       pb_overbutton = Gdk::Pixbuf.new(MUI::Skin.get("overbutton.png"))
       pb_overbutton_mo = Gdk::Pixbuf.new(MUI::Skin.get("overbutton_mouseover.png"))
@@ -51,6 +57,9 @@ def Gdk::IconOverButton(schemer)
                 context.set_source_pixbuf(icon_pb)
                 context.paint } end } } } end
 
+    # アイコン上でマウスポインタが動いた時に呼ぶ。
+    # - _gx_ MiraclePainter全体から見たx座標
+    # - _gy_MiraclePainter 全体から見たy座標
     def point_moved_main_icon(gx, gy)
       ipx, ipy = ip = globalpos2iconpos(gx, gy)
       if ipx >= 0 and ipx < _schemer[:x_count] and ipy >= 0 and ipy < _schemer[:y_count]
@@ -62,6 +71,7 @@ def Gdk::IconOverButton(schemer)
       end
     end
 
+    # icon over buttonからマウスポインタが離れたときに呼ぶ。
     def iob_main_leave
       if(current_icon_pos)
         @current_icon_pos = nil
@@ -69,6 +79,8 @@ def Gdk::IconOverButton(schemer)
       end
     end
 
+    # icon over buttonがクリックされたことを通知する。
+    # 最後に point_moved_main_icon() が呼ばれた箇所がクリックされたことになる
     def iob_clicked
       if(current_icon_pos)
         __send__([ [:iob_reply_clicked, :iob_etc_clicked],
