@@ -51,6 +51,7 @@ module Gtk
     # ファイル名が外部URLだった場合、ロード中に表示するためのpixbufが返され、
     # ロードが終わったら _onload_ ブロックを、 Gdk::Pixbuf を引数にコールバックする。
     def self.get_icon_pixbuf(img, width=48, height=width, &onload)
+      img ||= MUI::Skin.get('notfound.png')
       type_strict img => String
       if(img.index('http://') == 0)
         filename = WebIcon.get_filename(img)
