@@ -65,7 +65,7 @@ class Gtk::TimeLine
       if(@tl.destroyed?)
         false
       else
-        window_active = Plugin.filtering(:get_windows, []).any?(&:has_toplevel_focus?)
+        window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
         @tl.hp -= 1 if not window_active
         refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.hp <= (window_active ? -HYDE : 0)
         true end }
