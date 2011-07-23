@@ -28,7 +28,7 @@ module Gtk
     @@l_iconring = Hash.new{ Mutex.new }
     @@pixbuf = @@oldpixbuf = Hash.new{ Hash.new{ Hash.new } }
     @@pixbufcache_lastcleartime = Time.now
-    WebIconThread = SerialThreadGroup.new
+    WebIconThread = SerialThreadGroup.new # Gtk::WebIcon::WebIconThread
     WebIconThread.max_threads = 16
 
     def initialize(img, width=48, height=48)
