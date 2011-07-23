@@ -23,13 +23,13 @@ class SerialThreadGroup
   # 実行するブロックを新しく登録する
   def push(proc=Proc.new)
     @lock.synchronize{
-      flush
-      @queue.push(proc) } end
+      @queue.push(proc)
+      new_thread if 0 == @queue.num_waiting and @thread_pool.size < max_threads } end
   alias new push
 
   # 処理中なら真
   def self.busy?
-    @thread_pool.any?{ |t| "run" == t.status } end
+    @thread_pool.any?{ |t| :run == t.status.to_sym } end
 
   private
 
@@ -37,9 +37,10 @@ class SerialThreadGroup
   # これ以上Threadが必要ない場合はtrueを返す。
   def flush
     @lock.synchronize{
+      @thread_pool.delete_if{ |t| not t.alive? }
       if @thread_pool.size > max_threads
         return true
-      elsif(0 == @queue.num_waiting and @thread_pool.size < max_threads)
+      elsif 0 == @queue.num_waiting and @thread_pool.size < max_threads
         new_thread end }
     false end
 

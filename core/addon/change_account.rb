@@ -31,7 +31,7 @@ Module.new do
 
   def self._popup(watch)
     result = [nil]
-    main_windows = Plugin.filtering(:get_windows, Set.new)
+    main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
     container, key, request_token = main(watch)

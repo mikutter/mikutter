@@ -132,7 +132,7 @@ module Addon
 
     def self._tampr(defaults={})
       type_strict defaults => Hash
-      focus = defaults[:focus] || Plugin.filtering(:get_windows, []).first.focus
+      focus = defaults[:focus] || Plugin.filtering(:get_windows, []).first.first.focus
       tl = defaults[:tl] || Gtk::TimeLine::InnerTL.current_tl
       active_mumble = defaults[:message] || Gtk::TimeLine.get_active_mumbles.to_a.first
       miracle_painter = defaults[:miracle_painter] || ((active_mumble and tl) ? tl.cell_renderer_message.miracle_painter(active_mumble) : false)

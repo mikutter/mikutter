@@ -282,7 +282,7 @@ module Plugin
         Plugin.create(:gui).add_event_filter(:get_windows){ |windows|
           windows = Set.new unless windows
           windows << window
-          windows }
+          [windows] }
         last_store(window)
         window end end
 
