@@ -3,42 +3,65 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
 miquire :core, 'delayer'
 
+require 'set'
 require 'thread'
+require 'timeout'
 
-# コンストラクタにブロックを与えると別スレッドでそれを実行するが、
-# 別々のSerialThread同士は同じスレッドで実行される（複数のSerialThreadは同時に実行されない）
-class SerialThread
-  @wait_queue = Queue.new
-  @rapid_queue = Queue.new
-  @lock = Mutex.new
+# 渡されたブロックを順番に実行するクラス
+class SerialThreadGroup
 
-  # SerialThreadの中でブロックを実行する。
-  def self.new(wait_finish_delayer = true)
-    (wait_finish_delayer ? @wait_queue : @rapid_queue).push(Proc.new)
-    nil end
+  # ブロックを同時に処理する個数。最大でこの数だけThreadが作られる
+  attr_accessor :max_threads
 
-  # SerialThread.new(false) と同じ
-  def self.rapid
-    self.new(false, &Proc.new) end
+  def initialize
+    @lock = Monitor.new
+    @queue = Queue.new
+    @max_threads = 1
+    @thread_pool = Set.new
+  end
 
-  # SerialThread.new(true) と同じ
-  def self.lator
-    self.new(true, &Proc.new) end
+  # 実行するブロックを新しく登録する
+  def push(proc=Proc.new)
+    @lock.synchronize{
+      flush
+      @queue.push(proc) } end
+  alias new push
 
+  # 処理中なら真
   def self.busy?
-    @lock.locked? end
+    @thread_pool.any?{ |t| "run" == t.status } end
 
-  def self.new_thread(queue, wait_finish_delayer)
-    Thread.new do
+  private
+
+  # Threadが必要なら一つ立ち上げる。
+  # これ以上Threadが必要ない場合はtrueを返す。
+  def flush
+    @lock.synchronize{
+      if @thread_pool.size > max_threads
+        return true
+      elsif(0 == @queue.num_waiting and @thread_pool.size < max_threads)
+        new_thread end }
+    false end
+
+  def new_thread
+    @thread_pool << Thread.new{
       begin
-        while proc = queue.pop
-          @lock.synchronize{ proc.call }
-          sleep(0.1) while Delayer.busy? if wait_finish_delayer end
+        while proc = timeout(1){ @queue.pop }
+          proc.call
+          break if flush
+          Thread.pass end
+      rescue TimeoutError => e
+        ;
       rescue Object => e
         error e
-        abort end end end
-
-  new_thread(@wait_queue, true)
-  new_thread(@rapid_queue, false)
+        abort
+      ensure
+        @lock.synchronize{
+          @thread_pool.delete(Thread.current) } end } end
 
 end
+
+# SerialThreadGroup のインスタンス。
+# 同時実行数は1固定
+SerialThread = SerialThreadGroup.new
+
