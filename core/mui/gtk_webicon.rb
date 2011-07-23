@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# ／(^o^)＼
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :mui, 'skin'

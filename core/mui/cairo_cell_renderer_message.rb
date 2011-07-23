@@ -56,6 +56,7 @@ module Gtk
       tree.add_events(Gdk::Event::BUTTON_PRESS_MASK|Gdk::Event::BUTTON_RELEASE_MASK)
       armed_column = nil
       last_motioned = nil
+      click_start = []
 
       tree.ssc("leave_notify_event") { |w, e|
         if last_motioned
@@ -78,6 +79,7 @@ module Gtk
 
       tree.ssc("button_press_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
+        click_start = [cell_x, cell_y]
         if column
           armed_column = column
           signal_emit("button_press_event", e, path, column, cell_x, cell_y) end }
@@ -88,11 +90,10 @@ module Gtk
           cell_x ||= -1
           cell_y ||= -1
           signal_emit("button_release_event", e, path, column, cell_x, cell_y)
-          if (column == armed_column)
+          if (column == armed_column) and (click_start[0] - cell_x).abs <= 4 and (click_start[1] - cell_y).abs <= 4
             signal_emit("click", e, path, column, cell_x, cell_y) end
           armed_column = nil end }
-      event_hooks
-    end
+      event_hooks end
 
     # Messageに関連付けられた Gdk::MiraclePainter を取得する
     def miracle_painter(message)
