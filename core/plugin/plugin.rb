@@ -79,7 +79,7 @@ module Plugin
   # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
   # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
   def self.call(event_name, *args)
-    SerialThread.rapid{
+    SerialThread.new{
       plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
 
   # イベントが追加されたときに呼ばれるフックを呼ぶ。

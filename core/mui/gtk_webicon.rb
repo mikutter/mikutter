@@ -28,6 +28,8 @@ module Gtk
     @@l_iconring = Hash.new{ Mutex.new }
     @@pixbuf = @@oldpixbuf = Hash.new{ Hash.new{ Hash.new } }
     @@pixbufcache_lastcleartime = Time.now
+    WebIconThread = SerialThreadGroup.new
+    WebIconThread.max_threads = 16
 
     def initialize(img, width=48, height=48)
       @loading_thread = nil
@@ -62,7 +64,7 @@ module Gtk
     # Gdk::Pixbufは _dim_ で指定された寸法(px)に収まるようにリサイズされて渡される
     # ロードをしているThreadを返す
     def self.iconring(img, dim=[48,48], &onload)
-      Thread.new{
+      WebIconThread.new{
         WebIcon.background_icon_loader(img, dim, &onload) } end
 
     # 外部URLからキャッシュファイル名を生成して返す
