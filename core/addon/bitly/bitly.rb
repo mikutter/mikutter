@@ -16,12 +16,14 @@ class Bitly < MessageConverters
     # http://code.google.com/p/bitly-api/wiki/ApiDocumentation#/v3/expand
     @expand_queue = TimeLimitedQueue.new(15, 0.1, Set){ |set|
       Thread.new{
-        expand_url_many(set).each{ |pair|
-          shrinked, expanded = pair
-          if @expand_waiting[shrinked]
-            atomic{
-              @expand_waiting[shrinked].call(expanded)
-              @expand_waiting.delete(shrinked) } end } } }
+        expanded_urls = expand_url_many(set)
+        if expanded_urls.is_a? Enumerable
+          expanded_urls.each{ |pair|
+            shrinked, expanded = pair
+            if @expand_waiting[shrinked]
+              atomic{
+                @expand_waiting[shrinked].call(expanded)
+                @expand_waiting.delete(shrinked) } end } end } }
     @expand_waiting = Hash.new        # { url => Proc(url) }
   end
 
