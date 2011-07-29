@@ -148,4 +148,16 @@ Module.new do
                    Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(kamiya_google_search_word).to_s) },
                  :visible => true,
                  :role => ROLE_MESSAGE_SELECTED )
+
+  define_command(:open_link,
+                 :name => 'リンクを開く',
+                 :condition => lambda{ |opt|
+                   opt.message.entity.to_a.each {|u|
+                     return true if u[:face][0,4] == "http"}
+                   false },
+                 :exec => lambda{ |opt|
+                   opt.message.entity.to_a.each {|u|
+                     Gtk::openurl(u[:url]) if u[:face][0,4] == "http" }},
+                 :visible => true,
+                 :role => ROLE_MESSAGE )
 end
