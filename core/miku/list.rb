@@ -127,7 +127,7 @@ module MIKU
         e.fire(self)
       end
       if result.is_a? List
-        result.melt.extend(StaticCode).staticcode_copy_info(self)
+        result.dup.extend(StaticCode).staticcode_copy_info(self)
       else
         result end end
 
