@@ -47,6 +47,6 @@ class Gdk::SubParts
     0 end
 
   def dummy_context
-    Gdk::Pixmap.new(nil, 1, 1, 24).create_cairo_context end
+    Gdk::Pixmap.new(nil, 1, 1, @helper.color).create_cairo_context end
 
 end
