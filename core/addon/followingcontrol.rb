@@ -12,9 +12,6 @@ Module.new do
       Plugin.call(:show_profile, service, user) } end
 
   def self.boot_event(api, service, created, destroy)
-    notice "following created: #{created.inspect}"
-    notice "following deleted: #{destroy.inspect}"
-    exit
     unless created.empty?
       Plugin.call("#{api}_created".to_sym, service, created) end
     unless destroy.empty?
