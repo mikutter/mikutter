@@ -12,6 +12,9 @@ Module.new do
       Plugin.call(:show_profile, service, user) } end
 
   def self.boot_event(api, service, created, destroy)
+    notice "following created: #{created.inspect}"
+    notice "following deleted: #{destroy.inspect}"
+    exit
     unless created.empty?
       Plugin.call("#{api}_created".to_sym, service, created) end
     unless destroy.empty?
@@ -28,11 +31,11 @@ Module.new do
         service.__send__(api, UserConfig[retrieve_count], -1, (c==0 ? true : :keep)){ |users|
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users) unless relations.empty?
-          # relations = users
+          users
         } end } end
 
   def self.set_event(api, title)
-    userlist = Gtk::UserList.new
+    userlist = Gtk::UserList.new.show_all
     proc = gen_relationship(api, userlist)
     Plugin.call(:mui_tab_regist, userlist, title, MUI::Skin.get("#{api}.png"))
     Plugin.create(:following_control).add_event(:period){ |service|
