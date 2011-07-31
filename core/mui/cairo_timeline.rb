@@ -259,10 +259,10 @@ class Gtk::TimeLine
   Delayer.new{
     plugin = Plugin::create(:core)
     plugin.add_event(:message_modified){ |message|
-      Gtk::TimeLine.timelines{ |tl|
+      Gtk::TimeLine.timelines.each{ |tl|
         tl.modified(message) if not(tl.destroyed?) and tl.include?(message) } }
     plugin.add_event(:destroyed){ |messages|
-      Gtk::TimeLine.timelines{ |tl|
+      Gtk::TimeLine.timelines.each{ |tl|
         tl.remove_if_exists_all(messages) if not(tl.destroyed?) } }
   }
 
