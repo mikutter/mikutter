@@ -17,23 +17,23 @@ Module.new do
     unless destroy.empty?
       Plugin.call("#{api}_destroy".to_sym, service, destroy) end end
 
-  def self.gen_relationship(api)
+  def self.gen_relationship(api, userlist)
     count = gen_counter
-    relations = []
     retrieve_interval = "retrieve_interval_#{api}".to_sym
     retrieve_count = "retrieve_count_#{api}".to_sym
     lambda{ |service|
+      relations = userlist.to_a
       c = count.call
       if (c % UserConfig[retrieve_interval]) == 0
         service.__send__(api, UserConfig[retrieve_count], -1, (c==0 ? true : :keep)){ |users|
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users) unless relations.empty?
-          relations = users
+          # relations = users
         } end } end
 
   def self.set_event(api, title)
-    userlist = Gtk::UserList.new()
-    proc = gen_relationship(api)
+    userlist = Gtk::UserList.new
+    proc = gen_relationship(api, userlist)
     Plugin.call(:mui_tab_regist, userlist, title, MUI::Skin.get("#{api}.png"))
     Plugin.create(:following_control).add_event(:period){ |service|
       Thread.new{
