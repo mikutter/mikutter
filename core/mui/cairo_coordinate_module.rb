@@ -5,6 +5,9 @@ module Gdk::Coordinate
   attr_accessor :width, :color, :icon_width, :icon_height, :icon_margin
 
   CoordinateStruct = Struct.new(:main_icon, :main_text, :header_text, :reply)
+
+  DEPTH = Gdk::Visual.system.depth
+
   class Region
     def initialize(x, y, w, h)
       @x, @y, @w, @h = x, y, w, h end
@@ -68,7 +71,7 @@ module Gdk::Coordinate
 
   # 寸法の初期化
   def coordinator(width)
-    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, Gdk::Visual.system.depth, 48, 48, 2
+    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, DEPTH, 48, 48, 2
   end
 
   # 座標系を構造体にまとめて返す
