@@ -138,6 +138,9 @@ Module.new do
   # Moby picture
   addsupport(Regexp.new("^http://moby.to/[a-zA-Z0-9]+"), 'id' => 'main_picture')
 
+  # Lokerz
+  addsupport(/^http:\/\/lockerz\.com\/s\/[0-9]+/, 'id' => 'photo')
+
   # 携帯百景
   addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
   addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
