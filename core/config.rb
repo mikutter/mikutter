@@ -18,16 +18,16 @@ module CHIConfig
   TWITTER_CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
 
   # pidファイル
-  PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}mikutter.pid"
+  PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
 
   # コンフィグファイルのディレクトリ
-  CONFROOT = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}"
+  CONFROOT = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}"
 
   # 一時ディレクトリ
-  TMPDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}tmp#{File::SEPARATOR}"
+  TMPDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}tmp#{File::SEPARATOR}"
 
   # ログディレクトリ
-  LOGDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}log#{File::SEPARATOR}"
+  LOGDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}log#{File::SEPARATOR}"
 
   # キャッシュディレクトリ
   CACHE = "#{CONFROOT}cache#{File::SEPARATOR}"

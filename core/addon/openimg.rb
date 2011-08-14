@@ -110,13 +110,15 @@ Module.new do
   def self.addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
     if block == nil
-      Gtk::TimeLine.addopenway(cond ){ |url, cancel|
+      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+        url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
           display(url, cancel)
         }
       }
     else
-      Gtk::TimeLine.addopenway(cond ){ |url, cancel|
+      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+        url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{
                       imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
                     }) {|url|
