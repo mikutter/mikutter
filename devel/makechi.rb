@@ -29,9 +29,9 @@ end
 FileUtils.mkdir_p File.join(DEST, 'plugin')
 FileUtils.cp File.join(SRC, 'mikutter.rb'), DEST
 FileUtils.cp_r File.join(SRC, 'core'), DEST
-FileUtils.copy File.join(SRC, 'mikutter.rb'), File.join(SRC, 'chi.rb')
 FileUtils.rm_rf File.join(DEST, 'core', 'plugin', 'gui.rb')
 FileUtils.rm_rf Dir.glob(File.join(DEST, 'core', 'addon', '*'))
+FileUtils.cp_r Dir.glob(File.join(BASE, 'chiskel', '*')), DEST
 
 Dir.chdir(File.join(DEST, 'core'))
 require 'config'
@@ -40,6 +40,8 @@ Dir.chdir(BASE)
 open(File.join(DEST, "core/config.rb"), 'w'){ |out|
   out.write([ '# -*- coding: utf-8 -*-','','module CHIConfig',
               CHIConfig.constants.map{ |name|
-                "  #{name} = #{get_config_data(name).inspect}"
+                value = get_config_data(name)
+                value.gsub!('mikutter', 'chi') if value.is_a? String
+                "  #{name} = #{value.inspect}"
               },
               'end'].join("\n")) }
