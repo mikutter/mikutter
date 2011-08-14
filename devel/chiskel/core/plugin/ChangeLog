@@ -1,0 +1,7 @@
+2009-10-26  Toshiaki Asai  <qtoship@gmail.com>
+
+	* uptime.rb (Plugin::Uptime::on_nextday): 経過日数に一日足した値を
+	報告するようにした
+	(Plugin::Uptime::on_bootfirst): タグをuptimeに変更
+	(Plugin::Uptime::on_nextday): タグをuptimeに変更
+

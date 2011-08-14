@@ -1,0 +1,25 @@
+Computer Humanoid Interface
+
+* CHIとは
+  もともと、mikutterはCHI(Computer Humanoid Interface)にGUIプラグインを足しただけのものでした。
+  現在でも、mikutterを簡単にCHIに戻すことができます。
+
+* 必要なもの
+  - プラグインが必要としているアプリケーション
+    - temperature
+      - lm_sensors
+  - gemで入れるもの
+    - httpclient
+    - classifier
+    - stemmer
+    - sys-filesystem
+    - sys-uptime
+
+* インストール方法・使いかた
+  このディレクトリにあるmakechi.rbを起動します。すると、src/を作り、その中にCHIを作成します。
+  あとは、src/mikutter.rb を端末から起動すればOK。
+  初回起動時は、OAuthの認証を求めてくるので、端末から切り離すのはその後で
+
+* 起動オプション
+  - -d デーモンモード。端末と切り離される。（初回起動時はこのオプションを有効にしないこと）
+  - --debug デバッグモード
