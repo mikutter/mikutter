@@ -135,7 +135,6 @@ class Message::Entity
                                                      :from => :message_entities,
                                                      :url => face}.merge(link))).freeze } } end
     result.sort_by{ |r| r[:range].first }.freeze end
-  memoize :message_entities
 
   def indices_to_range(indices)
     Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
