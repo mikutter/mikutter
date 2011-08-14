@@ -143,6 +143,9 @@ Module.new do
   # Lokerz
   addsupport(/^http:\/\/lockerz\.com\/s\/[0-9]+/, 'id' => 'photo')
 
+  # GYAZO
+  addsupport(/^http:\/\/gyazo.com\/[a-zA-Z0-9]+/, 'id' => 'gyazo_img')
+
   # 携帯百景
   addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
   addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
