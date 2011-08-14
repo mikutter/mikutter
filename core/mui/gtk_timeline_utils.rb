@@ -42,10 +42,11 @@ module Gtk::TimeLineUtils
 
       def gen_openurl_proc(url, way_of_open_link = wayofopenlink)
         way_of_open_link.freeze
+        expanded = MessageConverters.expand_url_one(url)
         lambda{
           way_of_open_link.each_with_index{ |way, index|
             condition, open = *way
-            if(condition === url)
+            if(condition === expanded)
               open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
               break end } } end
 

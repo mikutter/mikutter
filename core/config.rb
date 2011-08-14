@@ -18,16 +18,16 @@ module CHIConfig
   TWITTER_CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
 
   # pidファイル
-  PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}mikutter.pid"
+  PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
 
   # コンフィグファイルのディレクトリ
-  CONFROOT = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}"
+  CONFROOT = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}"
 
   # 一時ディレクトリ
-  TMPDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}tmp#{File::SEPARATOR}"
+  TMPDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}tmp#{File::SEPARATOR}"
 
   # ログディレクトリ
-  LOGDIR = "~#{File::SEPARATOR}.mikutter#{File::SEPARATOR}log#{File::SEPARATOR}"
+  LOGDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}log#{File::SEPARATOR}"
 
   # キャッシュディレクトリ
   CACHE = "#{CONFROOT}cache#{File::SEPARATOR}"
@@ -38,7 +38,7 @@ module CHIConfig
   # 再起動後に、前回取得したポストを取得しない
   NeverRetrieveOverlappedMumble = false
 
-  REVISION = 456
+  REVISION = 460
 
   # このソフトのバージョン。
   VERSION = [0,0,4, ((/Last Changed Rev\s*:\s*(\d+)/.match(`sh -c 'LANG=C svn info ../'`)[1] || REVISION).to_i rescue REVISION)]
