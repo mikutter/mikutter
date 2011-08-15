@@ -91,6 +91,7 @@ class Gtk::TimeLine
       when Gdk::EventScroll::UP
         this.vadjustment.value -= this.vadjustment.step_increment
       when Gdk::EventScroll::DOWN
+        @scroll_to_zero_lator = false if this.vadjustment.value == 0
         this.vadjustment.value += this.vadjustment.step_increment end
       false }
     @tl.ssc(:expose_event){
