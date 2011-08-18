@@ -7,6 +7,7 @@ miquire :core, 'retriever'
 miquire :core, 'messageconverters'
 
 require 'net/http'
+require 'delegate'
 
 =begin
 = Message
@@ -364,6 +365,22 @@ class Message < Retriever::Model
   # Sub classes
   #
 
+  # このツイートのユーザ情報
+  class MessageUser < User
+    undef_method *(public_instance_methods - [:object_id, :__send__])
+
+    def initialize(user, raw)
+      abort if not user.is_a? User
+      @raw = raw.freeze
+      @user = user end
+
+    def [](key)
+      @raw.has_key?(key.to_sym) ? @raw[key.to_sym] : @user[key] end
+
+    def method_missing(*args)
+      @user.__send__(*args) end end
+
+  # 添付画像
   class Image
     attr_accessor :url
     attr_reader :resource
