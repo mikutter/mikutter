@@ -212,9 +212,23 @@ class TwitterAPI < Mutex
                                      'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
         res.read_body(&Proc.new) }
     rescue Exception => evar
-      warn evar
-    end
-  end
+      warn evar end end
+
+  def filter_stream(params={})
+    begin
+      callback = Proc.new
+      buf = ""
+      access_token.method(:get).call('http://stream.twitter.com/1/statuses/filter.' + FORMAT + get_args(params),
+                                     'Host' => 'stream.twitter.com',
+                                     'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
+        res.read_body{ |chunk|
+          if chunk.split(//u)[-1] == "\n"
+            callback.call(buf + chunk)
+            buf.clear
+          else
+            buf << chunk end } }
+    rescue Exception => evar
+      warn evar end end
 
   def query_with_auth(method, path, raw_options={})
     no_mainthread
@@ -408,6 +422,8 @@ class TwitterAPI < Mutex
       (@status_show[id] ||= result).freeze if result.is_a?(Net::HTTPOK)
       if result.is_a?(Net::HTTPNotFound)
         notice "Status not found ##{id}."
+        @status_show[id] = nil
+      elsif (result.is_a? Net::HTTPBadRequest)
         @status_show[id] = nil
       elsif (result.is_a?(Net::HTTPForbidden) and JSON.parse(result.body)["error"] == 'Sorry, you are not authorized to see this status.')
         notice 'Sorry, you are not authorized to see this status.'

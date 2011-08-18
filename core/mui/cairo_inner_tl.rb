@@ -4,6 +4,7 @@ miquire :mui, 'timeline'
 miquire :lib, 'ruby-bsearch-1.5/bsearch'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
+  attr_writer :force_retrieve_in_reply_to
   attr_accessor :postbox, :hp
   type_register('GtkInnerTL')
 
@@ -22,6 +23,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def initialize
     super
+    @force_retrieve_in_reply_to = :auto
     @hp = 252
     @@current_tl ||= self
     self.name = 'timeline'
@@ -116,6 +118,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     path = get_path_and_iter_by_message(message)[1]
     get_record(path) if path end
 
+  def force_retrieve_in_reply_to
+    if(:auto == @force_retrieve_in_reply_to)
+      UserConfig[:retrieve_force_mumbleparent]
+    else
+      @force_retrieve_in_reply_to end end
 
   private
 
