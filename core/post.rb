@@ -354,6 +354,7 @@ class Post
                             :in_reply_to_status_id => :replyto)
       cnv[:favorited] = !!msg[:favorited]
       cnv[:created] = Time.parse(msg[:created_at])
+      user_raw = msg[:user].dup.freeze
       if user_retrieve
         begin
           cnv[:user] = User.findbyid(msg[:user][:id]) || scan_rule(:user_show, msg[:user])
@@ -367,6 +368,7 @@ class Post
         end
       else
         cnv[:user] = scan_rule(:user_show, msg[:user]) end
+      cnv[:user] = Message::MessageUser.new(cnv[:user], user_raw)
       cnv[:retweet] = scan_rule(:status_show, msg[:retweeted_status]) if msg[:retweeted_status]
       cnv }
   end
