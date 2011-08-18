@@ -249,9 +249,9 @@ class Post
           message.__send__(fav ? :add_favorited_by : :remove_favorited_by, user_obj)
         end } end end
 
-  def streaming(&proc)
-    twitter.userstream(&proc)
-  end
+  # Streaming APIに接続する
+  def streaming(method = :userstream, *args, &proc)
+    twitter.__send__(method, *args, &proc) end
 
   def inspect
     "#<Post #{idname}>" end
