@@ -38,7 +38,7 @@ class Post
       access_token = request_token.get_access_token(:oauth_token => request_token.token,
                                                     :oauth_verifier => STDIN.gets.chomp)
       [access_token.token, access_token.secret]
-    rescue => e
+    rescue Timeout::Error, StandardError => e
       error('invalid number')
     end
   }
@@ -300,10 +300,9 @@ class Post
       yield(:start, nil)
       begin
         try_post(message, api, &Proc.new)
-      rescue => err
+      rescue Timeout::Error, StandardError => err
         yield(:err, err)
         yield(:fail, err)
-      ensure
         yield(:exit, nil) end } end
 
   def marshal_dump
@@ -519,7 +518,7 @@ class Post
       result.merge({ :rule => rule_name,
                      :post => self,
                      :exact => true })
-    rescue => e
+    rescue Timeout::Error, StandardError => e
       error e
       nil end end
 
@@ -546,7 +545,7 @@ class Post
           return result, json
         else
           result end
-      rescue => e
+      rescue Timeout::Error, StandardError => e
         error e
         nil end end end
 
