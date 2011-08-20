@@ -1,37 +1,45 @@
 # -*- coding: utf-8 -*-
 # Preview Image
 
-require 'gtk2'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
 
-miquire :mui, 'webicon'
-miquire :mui, 'intelligent_textview'
+unless $openimg # !> global variable `$openimg' not initialized
+$openimg = true # !> redefine call_routine
+require 'gtk2'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'utils'))
+
+miquire :plugin, 'plugin'
 miquire :core, 'delayer'
 miquire :core, 'userconfig'
-miquire :lib, 'piapro'
+miquire :core, 'message'
+miquire :mui, 'webicon'
+miquire :mui, 'intelligent_textview' # !> ambiguous first argument; put parentheses or even spaces
+miquire :mui, 'timeline'
+miquire :lib, 'piapro' # !> `*' interpreted as argument prefix
+miquire :lib, 'json'
 
+ # !> ambiguous first argument; put parentheses or even spaces
 Module.new do
-  DEFAULT_SIZE = [640, 480].freeze # !> `*' interpreted as argument prefix
+  DEFAULT_SIZE = [640, 480].freeze
   @size = DEFAULT_SIZE
   @position = [Gdk.screen_width/2 - @size[0]/2, Gdk.screen_height/2 - @size[1]/2].freeze
 
   def self.move(window)
     @position = window.position.freeze end
-
+ # !> instance variable @timelines not initialized
   def self.changesize(eb, w, url)
     eb.remove(w.children.first)
     @size = w.window.geometry[2,2].freeze
-    eb.add(Gtk::WebIcon.new(url, *@size).show_all)
-    @size end
+    eb.add(Gtk::WebIcon.new(url, *@size).show_all) # !> statement not reached
+    @size end # !> redefine get_active_mumbles
 
   def self.display(url, cancel = nil)
-    w = Gtk::Window.new.set_title("（読み込み中）")
+    w = Gtk::Window.new.set_title("（読み込み中）") # !> method redefined; discarding old inspect
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
     eventbox = Gtk::EventBox.new
     w.add(eventbox)
     size = DEFAULT_SIZE
-    Thread.new{ # !> method redefined; discarding old inspect
+    Thread.new{
       url = url.value if url.is_a? Thread
       if not(url) or not(url.respond_to?(:to_s))
         Delayer.new{
@@ -53,7 +61,7 @@ Module.new do
               false }
             eventbox.signal_connect("expose_event"){ |ev, event|
               move(w)
-              false }
+              false } # !> method redefined; discarding old width=
             eventbox.signal_connect(:destroy){
               Gtk::WebIcon.remove_cache(url.to_s)
               false }
@@ -62,26 +70,26 @@ Module.new do
                 size = changesize(eventbox, w, url.to_s) end }
             eventbox.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) end } end }
     w.show_all end
-
+ # !> `*' interpreted as argument prefix
   def self.get_tag_by_attributes(tag)
-    attribute = {}
+    attribute = {} # !> `*' interpreted as argument prefix
     tag.each_matches(/([a-zA-Z0-9]+?)=(['"])(.*?)\2/){ |pair, pos|
       key, val = pair[1], pair[3]
       attribute[key] = val }
     attribute.freeze end
 
   def self.get_tagattr(dom, element_rule)
-    element_rule = element_rule.melt
+    element_rule = element_rule.melt # !> `*' interpreted as argument prefix
     tag_name = element_rule['tag'] or 'img'
     attr_name = element_rule.has_key?('attribute') ? element_rule['attribute'] : 'src'
     element_rule.delete('tag')
     element_rule.delete('attribute')
-    if dom
+    if dom # !> `*' interpreted as argument prefix
       attribute = {}
-      catch(:imgtag_match){
+      catch(:imgtag_match){ # !> global variable `$quiet' not initialized
         dom.each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
           attr = get_tag_by_attributes(str.to_s)
-          if element_rule.all?{ |k, v| v === attr[k] }
+          if element_rule.all?{ |k, v| v === attr[k] } # !> `&' interpreted as argument prefix
             attribute = attr.freeze
             throw :imgtag_match end } }
       unless attribute.empty?
@@ -89,7 +97,7 @@ Module.new do
     nil end
 
   def self.imgurlresolver(url, element_rule, &block)
-    if block != nil
+    if block != nil # !> method redefined; discarding old categories_for
       return block.call(url)
     end
     res = dom = nil
@@ -109,7 +117,7 @@ Module.new do
 
   def self.addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
-    if block == nil
+    if block == nil # !> method redefined; discarding old filter_stream
       Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
@@ -128,27 +136,10 @@ Module.new do
     end
   end
 
-  # Twitpic
-  addsupport(/^http:\/\/twitpic\.com\/[a-zA-Z0-9]+/, 'id' => 'photo-display')
-
-  # yfrog
-  addsupport(/^http:\/\/yfrog\.com\/[a-zA-Z0-9]+/, 'id' => 'main_image')
-
-  # Twipple Photo
-  addsupport(/^http:\/\/p\.twipple\.jp\/[a-zA-Z0-9]+/, 'id' => 'post_image')
-
-  # Moby picture
-  addsupport(Regexp.new("^http://moby.to/[a-zA-Z0-9]+"), 'id' => 'main_picture')
-
-  # Lokerz
-  addsupport(/^http:\/\/lockerz\.com\/s\/[0-9]+/, 'id' => 'photo')
-
-  # GYAZO
-  addsupport(/^http:\/\/gyazo.com\/[a-zA-Z0-9]+/, 'id' => 'gyazo_img')
-
-  # 携帯百景
-  addsupport(/^http:\/\/movapic\.com\/[a-zA-Z0-9]+\/pic\/\d+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
-  addsupport(/^http:\/\/movapic\.com\/pic\/[a-zA-Z0-9]+/, 'class' => 'image', 'src' => /^http:\/\/image\.movapic\.com\/pic\//)
+  pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))))
+  pattern.each{ |name, config|
+    addsupport(Regexp.new(config["url"]), config["attribute"])
+  }
 
   # plixi 参考: http://groups.google.com/group/plixi/web/fetch-photos-from-url
   addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url, cancel|
@@ -162,21 +153,13 @@ Module.new do
     end
   }
 
-  # piapro
-  addsupport(Regexp.new('^http://piapro.jp/t/[a-zA-Z0-9]+'), 'tag' => 'meta', 'attribute' => 'content',
-  'content' => Regexp.new('^http://[a-z0-9]+?\.piapro.jp/timg/[a-zA-Z0-9_]+?_0500_0500\.(jpg|png|gif)'))
-
-  Gtk::TimeLine.addopenway(/\.(png|jpg|gif)$/ ){ |url, cancel|
-    Delayer.new{ display(url, cancel) }
-  }
-
   if $0 == __FILE__
     $debug = true
     seterrorlevel(:notice)
     w = Gtk::Window.new
     w.signal_connect(:destroy){ Gtk::main_quit }
     w.show_all
-    url = 'http://piapro.jp/content/h7e1cgpq3nujg93g'
+    url = 'http://movapic.com/pic/201108210141594e4fe3d79b30a'
     Gtk::IntelligentTextview.openurl(url)
     Gtk.timeout_add(1000){
       Delayer.run
@@ -184,4 +167,5 @@ Module.new do
     }
     Gtk::main
   end
+end
 end

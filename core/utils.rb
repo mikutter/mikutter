@@ -867,6 +867,19 @@ class Proc
   end
 end
 
+class Regexp
+  def to_json(*a)
+    {
+      'json_class'   => self.class.name,
+      'data'         => to_s
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    new(o['data'])
+  end
+end
+
 class HatsuneStore < PStore
 
   def initialize(*args)

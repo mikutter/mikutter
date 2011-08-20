@@ -3,6 +3,7 @@
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :mui, 'skin'
+miquire :core, 'serialthread'
 
 require 'gtk2'
 require 'net/http'

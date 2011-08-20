@@ -1,0 +1,59 @@
+{
+    "twitpic": {
+        "url": "^http://twitpic\\.com/[a-zA-Z0-9]+",
+        "attribute": {
+            "id": "photo-display"
+        }
+    },
+    "yfrog": {
+        "url": "^http://yfrog\\.com/[a-zA-Z0-9]+",
+        "attribute": {
+            "id": "main_image"
+        }
+    },
+    "twipple photo": {
+        "url": "^http://p\\.twipple\\.jp/[a-zA-Z0-9]+",
+        "attribute": {
+            "id": "post_image"
+        }
+    },
+    "moby picture": {
+        "url": "^http://moby.to/[a-zA-Z0-9]+",
+        "attribute": {
+            "id": "main_picture"
+        }
+    },
+    "lockerz": {
+        "url": "^http://lockerz\\.com/s/[0-9]+",
+        "attribute": {
+            "id": "photo"
+        }
+    },
+    "gyazo": {
+        "url": "^http://gyazo.com/[a-zA-Z0-9]+",
+        "attribute": {
+            "id": "gyazo_img"
+        }
+    },
+    "携帯百景": {
+        "url": "^http://movapic.com/(?:[a-zA-Z0-9]+/pic/d+|pic/[a-zA-Z0-9]+)",
+        "attribute": {
+            "class": "image",
+            "src": {
+                "json_class": "Regexp",
+                "data": "^http://image\\.movapic\\.com/pic/"
+            }
+        }
+    },
+    "piapro": {
+        "url": "^http://piapro.jp/t/[a-zA-Z0-9]+",
+        "attribute": {
+            "tag": "meta",
+            "attribute": "content",
+            "content": {
+                "json_class": "Regexp",
+                "data": "^http://[a-z0-9]+?\\.piapro.jp/timg/[a-zA-Z0-9_]+?_0500_0500\\.(jpg|png|gif)"
+            }
+        }
+    }
+}
