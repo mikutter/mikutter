@@ -100,7 +100,7 @@ module Gtk
       type_strict message => Message
       mid = message[:id].to_s.freeze
       record = @tree.get_record_by_message(message)
-      if record.miracle_painter
+      if record and record.miracle_painter
         record.miracle_painter
       else
         @tree.update!(message, Gtk::TimeLine::InnerTL::MIRACLE_PAINTER, create_miracle_painter(message)) end end

@@ -164,7 +164,7 @@ class TwitterAPI < Mutex
       warn e
       nil end end
 
-  def get(path, raw_options)
+  def get(path, raw_options={})
     return get_with_auth(path, raw_options) if ip_limit
     options = getopts(raw_options)
     if options[:cache]
@@ -338,6 +338,9 @@ class TwitterAPI < Mutex
     head = {'Host' => 'search.twitter.com'}
     get(path, head)
   end
+
+  def trends(args = nil)
+    get '/trends.' + FORMAT end
 
   def retweeted_to_me(args = {})
     path = "/statuses/retweeted_to_me.#{FORMAT}" + get_args(args.merge(DEFAULT_API_ARGUMENT))

@@ -432,12 +432,16 @@ else
   end
 end
 
-def wakachigaki(str)
-  IO.popen('mecab -Owakati', 'r+'){ |io|
-    io.write(str);
-    io.close_write
-    io.read } end
-memoize :wakachigaki
+def wakachigaki(str, ret_io=false)
+  if(ret_io)
+    IO.popen('mecab -Owakati', 'r+').tap{ |io|
+      io.write(str)
+      io.close_write }
+  else
+    IO.popen('mecab -Owakati', 'r+'){ |io|
+      io.write(str)
+      io.close_write
+      io.read } end end
 
 class Object
 
