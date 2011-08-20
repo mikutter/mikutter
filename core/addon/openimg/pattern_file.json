@@ -55,5 +55,20 @@
                 "data": "^http://[a-z0-9]+?\\.piapro.jp/timg/[a-zA-Z0-9_]+?_0500_0500\\.(jpg|png|gif)"
             }
         }
+    },
+    "Flickr": {
+        "url": "^http://www\\.flickr\\.com/photos/[a-zA-Z0-9_]+/\\d+",
+        "attribute": {
+            "src": {
+                "json_class": "Regexp",
+                "data": "^http://farm\\d+\\.static\\.flickr\\.com/\\d+/[a-zA-Z0-9_]+\\.jpg"
+            }
+        }
+    },
+    "Instagram": {
+        "url": "^http://instagr.am/p/[a-zA-Z0-9_]+",
+        "attribute": {
+            "class": "photo"
+        }
     }
 }
