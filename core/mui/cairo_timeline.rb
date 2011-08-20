@@ -91,6 +91,7 @@ class Gtk::TimeLine
       when Gdk::EventScroll::UP
         this.vadjustment.value -= this.vadjustment.step_increment
       when Gdk::EventScroll::DOWN
+        @scroll_to_zero_lator = false if this.vadjustment.value == 0
         this.vadjustment.value += this.vadjustment.step_increment end
       false }
     @tl.ssc(:expose_event){
@@ -242,7 +243,7 @@ class Gtk::TimeLine
         messages << current[1]
         break if not current.next! end
       (messages - @exposing_miraclepainter).each{ |exposed|
-        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) }
+        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) if exposed.is_a? Message }
       @exposing_miraclepainter = messages end end
 
   def postbox

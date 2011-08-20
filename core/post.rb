@@ -353,11 +353,12 @@ class Post
                             :in_reply_to_user_id => :receiver,
                             :in_reply_to_status_id => :replyto)
       cnv[:favorited] = !!msg[:favorited]
-      cnv[:created] = Time.parse(msg[:created_at])
+      cnv[:created] = (Time.parse(msg[:created_at]) rescue Time.now)
+      user_raw = msg[:user].dup.freeze
       user_raw = msg[:user].dup.freeze
       if user_retrieve
         begin
-          cnv[:user] = User.findbyid(msg[:user][:id]) || scan_rule(:user_show, msg[:user])
+          cnv[:user] = scan_rule(:user_show, msg[:user]) || User.findbyid(msg[:user][:id])
           unless cnv[:user]
             error 'ユーザ情報が不足しています'
             pp msg[:user]
@@ -430,6 +431,11 @@ class Post
                                             :profile_image_url => msg[:profile_image_url])
         end
         cnv } }
+    trend_parser = {
+      :hasmany => :trends,
+      :class => shell_class,
+      :method => :new_ifnecessary,
+      :proc => tclambda(Hash){ |msg| msg } }
     saved_searches_parser = {
       :hasmany => true,
       :class => shell_class,
@@ -499,6 +505,7 @@ class Post
       :friendship => friendship,
       :follow => user_parser,
       :unfollow => user_parser,
+      :trends => trend_parser
     } end
 
   def scan_rule(rule_name, msg)

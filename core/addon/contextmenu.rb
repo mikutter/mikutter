@@ -152,9 +152,8 @@ Module.new do
   define_command(:open_link,
                  :name => 'リンクを開く',
                  :condition => lambda{ |opt|
-                   opt.message.entity.to_a.each {|u|
-                     return true if u[:face][0,4] == "http"}
-                   false },
+                   opt.message.entity.to_a.any? {|u|
+                     u[:face][0,4] == "http" } },
                  :exec => lambda{ |opt|
                    opt.message.entity.to_a.each {|u|
                      Gtk::openurl(u[:url]) if u[:face][0,4] == "http" }},
