@@ -45,6 +45,8 @@ end
 
 argument_parser()
 
+trace_var('$debug'){ require 'pp'; pp caller(); abort }
+
 Dir.chdir(File.join(File.dirname($0), 'core'))
 
 if RUBY_VERSION >= '1.9.2'
