@@ -90,12 +90,30 @@ module Addon
       keybinds.values.each{ |behavior|
         if behavior[:key] == key
           cmd = commands[behavior[:slug]]
-          if(valid_roles.include?(cmd[:role]))
-            option = options[cmd[:role]]
+          if role_executable?(valid_roles, cmd[:role])
+            option = role_argument(cmd[:role], options)
             if cmd[:condition] === option
               executed = true
               cmd[:exec].call(option) end end end }
       executed end
+
+    # currentのRoleでexecutableのロールが実行できるかを返す。
+    def self.role_executable?(current, executable)
+      type_strict current => tcor(Enumerable, Set)
+      if(executable.is_a? Enumerable or executable.is_a? Set)
+        not (current & executable).empty?
+      else
+        current.include? executable end end
+
+    def self.role_argument(role, options)
+      type_strict options => Hash
+      if(role.respond_to? :each)
+        result = {}
+        role.each{|x| result[x] = options[x] }
+        p [role, result]
+        result
+      else
+        options[role] end end
 
     # 有効なロールを返す。
     # :timeline Gtk::TimeLineがアクティブであるなら
