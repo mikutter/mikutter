@@ -21,7 +21,7 @@ class Gtk::TimeLine
   attr_reader :tl
 
   Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
-    Gtk::TimeLine.openurl(segment[:url])
+    Gtk::TimeLine.openurl(segment[:expanded_url])
   }
 
   Message::Entity.addlinkrule(:media){ |segment|

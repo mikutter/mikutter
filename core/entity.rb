@@ -23,9 +23,9 @@ class Message::Entity
   filter(:urls){ |segment|
     if UserConfig[:shrinkurl_expand]
       if segment[:expanded_url]
-        segment[:face] = segment[:expanded_url]
+        segment[:face] = MessageConverters.expand_url([segment[:expanded_url]])[segment[:expanded_url]]
       elsif MessageConverters.shrinkable_url_regexp === segment[:url]
-        segment[:face] = MessageConverters.expand_url([segment[:url]])[segment[:url]] end end
+        segment[:face] = segment[:expanded_url] = MessageConverters.expand_url([segment[:url]])[segment[:url]] end end
     segment }
 
   filter(:media){ |segment|
