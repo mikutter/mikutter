@@ -90,7 +90,7 @@ module Addon
       keybinds.values.each{ |behavior|
         if behavior[:key] == key
           cmd = commands[behavior[:slug]]
-          if role_executable?(valid_roles, cmd[:role])
+          if cmd and role_executable?(valid_roles, cmd[:role])
             option = role_argument(cmd[:role], options)
             if cmd[:condition] === option
               executed = true
