@@ -18,12 +18,12 @@ class Bitly < MessageConverters
       Thread.new{
         expanded_urls = expand_url_many(set)
         if expanded_urls.is_a? Enumerable
-          expanded_urls.each{ |pair|
-            shrinked, expanded = pair
-            if @expand_waiting[shrinked]
-              atomic{
+          atomic{
+            expanded_urls.each{ |pair|
+              shrinked, expanded = pair
+              if @expand_waiting[shrinked]
                 @expand_waiting[shrinked].call(expanded)
-                @expand_waiting.delete(shrinked) } end } end } }
+                @expand_waiting.delete(shrinked) end } } end } }
     @expand_waiting = Hash.new        # { url => Proc(url) }
   end
 
