@@ -36,6 +36,8 @@ class TC_MessageConverters < Test::Unit::TestCase
     Plugin.stubs(:filtering).with(:expand_url, 'http://ha2.ne/39').returns(['http://mikutter.d.hachune.net/'])
     Plugin.stubs(:filtering).with(:is_expanded, 'http://ha2.ne/39').returns([false])
     Plugin.stubs(:filtering).with(:is_expanded, 'http://ha2.ne/156').returns([false])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://google.jp/').returns([true])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://mikutter.d.hachune.net/').returns([true])
 
     w = MessageConverters.expand_url_all('watching: http://ha2.ne/156')
     assert_equal("watching: http://google.jp/", w)
@@ -46,6 +48,6 @@ end
 # >> Loaded suite -
 # >> Started
 # >> ..
-# >> Finished in 0.002824 seconds.
+# >> Finished in 0.003505 seconds.
 # >> 
 # >> 2 tests, 4 assertions, 0 failures, 0 errors
