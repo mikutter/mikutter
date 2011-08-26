@@ -15,11 +15,11 @@ class MessageConverters
       plugin = Plugin.create(converter.plugin_name)
       [:shrink, :expand].each{ |convert|
         plugin.add_event_filter("#{convert}_url"){ |url, &cont|
-          converted = converter.__send__("#{convert}_url", url)
-          if(converted)
-            cont.call([converted])
+          converted = converter.__send__("#{convert}_url_ifnecessary", url)
+          if converted.equal? url
+            [url]
           else
-            [url] end } }
+            cont.call([converted]) end } }
       plugin.add_event_filter(:is_expanded){ |url, &cont|
         if(converter.shrinked_url?(url))
           cont.call([false])
@@ -78,20 +78,25 @@ class MessageConverters
       URI.regexp(['http','https']) end
 
     def shrinked_url?(url)
-      not Plugin.filtering(:is_expanded, url).first
-    end
+      not Plugin.filtering(:is_expanded, url).first end
 
   end
 
+  # URLを一つ受け取り、それを短縮する。
+  # 何らかの理由で短縮できない場合はnilを返す
   def shrink_url(url)
     nil end
 
+  # 短縮URLを一つ受け取り、それを展開する。
+  # 何らかの理由で展開できない場合はnilを返す
   def expand_url(url)
     nil end
 
+  # URLが短縮されたものであれば真
   def shrinked_url?(url)
     raise end
 
+  # プラグイン名を返す
   def plugin_name
     raise end
 
@@ -101,7 +106,12 @@ class MessageConverters
     if shrinked_url?(url)
       url
     else
-      shrink_url(url)
-    end
-  end
+      shrink_url(url) or url end end
+
+  def expand_url_ifnecessary(url)
+    if shrinked_url?(url)
+      expand_url(url) or url
+    else
+      url end end
+
 end
