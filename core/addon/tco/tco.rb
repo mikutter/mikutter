@@ -4,32 +4,37 @@
 
 miquire :core, 'messageconverters'
 miquire :addon, 'addon'
+require 'uri'
+require 'net/http'
 
 class TCo < MessageConverters
-  require 'uri'
-  require 'net/http'
+
   def plugin_name()
     :tco
   end
+
   def shrink_url(url)
     # 未対応
     return url
   end
+
   def shrinked_url?(url)
-    if url =~ /http:\/\/t\.co\// then
-      return true
-    else
-      return false
-    end
+    !!(url =~ /http:\/\/t\.co\//)
   end
+
   def expand_url(url)
+    type_strict url => :to_s
     hash = Hash.new
-    res = Net::HTTP.get_response(URI.parse(url))
-    if res.is_a?(Net::HTTPRedirection)
-      return res["location"]
-    else
-      return url
+    begin
+      res = Net::HTTP.get_response(URI.parse(url.to_s))
+      if res.is_a?(Net::HTTPRedirection)
+        res["location"]
+      else
+        url.to_s end
+    rescue Exception => e
+      url.to_s
     end
   end
+
   regist
 end
