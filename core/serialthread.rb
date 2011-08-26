@@ -10,6 +10,8 @@ require 'timeout'
 # 渡されたブロックを順番に実行するクラス
 class SerialThreadGroup
 
+  class QueueTimeout < Timeout::Error; end
+
   # ブロックを同時に処理する個数。最大でこの数だけThreadが作られる
   attr_accessor :max_threads
 
@@ -47,13 +49,14 @@ class SerialThreadGroup
   def new_thread
     @thread_pool << Thread.new{
       begin
-        while proc = timeout(1){ @queue.pop }
+        while proc = timeout(1, QueueTimeout){ @queue.pop }
           proc.call
           break if flush
           Thread.pass end
-      rescue TimeoutError => e
+      rescue QueueTimeout => e
         ;
-      rescue Object => e
+      rescue => e
+        pp e
         error e
         abort
       ensure
