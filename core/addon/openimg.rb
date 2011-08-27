@@ -79,13 +79,14 @@ Module.new do
     if dom
       attribute = {}
       catch(:imgtag_match){
-        dom.each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
+        dom.gsub("\n", ' ').each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
           attr = get_tag_by_attributes(str.to_s)
           if element_rule.all?{ |k, v| v === attr[k] }
             attribute = attr.freeze
             throw :imgtag_match end } }
       unless attribute.empty?
         return attr_name ? attribute[attr_name.to_s] : attribute end end
+    notice 'not match'
     nil end
 
   def self.imgurlresolver(url, element_rule, &block)
@@ -98,7 +99,7 @@ Module.new do
       res = Net::HTTP.new(uri.host).get(uri.path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
         result = get_tagattr(res.body, element_rule)
-        notice result
+        notice result.inspect
         result
       else
         warn "#{res.code} failed"
