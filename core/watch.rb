@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require File.expand_path('utils')
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 miquire :core, 'post'
 miquire :core, 'environment'
 miquire :core, 'userconfig'

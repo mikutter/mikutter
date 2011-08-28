@@ -3,7 +3,7 @@
 #
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 miquire :core, 'configloader'
 miquire :miku, 'miku'
 miquire :mui, 'postbox'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 
 module Addon
 
@@ -163,7 +163,6 @@ module Addon
 
 end
 
-
-miquire :addon
-miquire :user_plugin
+# miquire :addon
+# miquire :user_plugin
 # ~> -:2: undefined method `miquire' for main:Object (NoMethodError)

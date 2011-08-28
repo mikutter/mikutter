@@ -7,6 +7,7 @@
 require 'gtk2'
 require 'thread'
 miquire :mui, 'miracle_painter'
+miquire :mui, 'intelligent_textview'
 
 module Gtk
   class PostBox < Gtk::EventBox

@@ -14,8 +14,9 @@ require 'thread'
 require 'base64'
 require 'io/wait'
 miquire :lib, 'oauth'
-miquire :plugin, 'plugin'
 miquire :core, 'environment'
+miquire :core, 'plugin'
+miquire :core, 'configloader'
 
 Net::HTTP.version_1_2
 =begin
