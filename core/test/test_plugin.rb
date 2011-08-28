@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require File.expand_path(File.expand_path(File.dirname(__FILE__) + '/../utils'))
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 miquire :core, 'message'
 
 require 'pp'

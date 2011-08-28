@@ -394,4 +394,4 @@ Module.new do
       Plugin.call(:retweet, retweets) end }
 end
 
-miquire :plugin # if defined? Test::Unit
+# miquire :plugin # if defined? Test::Unit

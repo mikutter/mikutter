@@ -124,14 +124,9 @@ def main()
   #create_pidfile
   notice Environment::VERSION
 
-#   if $debug then
-#     notice '-- loaded plugins'
-#     Plugin::Ring.avail_plugins.each_pair{|name, insts|
-#       inst = insts.map{|inst| inst.class }.join(', ')
-#       notice "#{name}: #{inst}"
-#     }
-#     notice '--'
-#   end
+  require File.expand_path './plugin'
+  Miquire::Plugin.loadpath << 'plugin' << 'addon' << '../plugin' << '~/.mikutter/plugin'
+  Miquire::Plugin.each{ |path| require path }
 
   watch = Watch.instance
 

@@ -2,7 +2,7 @@
 require 'test/unit'
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'user'
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 require 'benchmark'
 
 $debug = 2

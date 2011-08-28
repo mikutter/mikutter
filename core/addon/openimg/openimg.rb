@@ -7,7 +7,7 @@ $openimg = true # !> redefine call_routine
 require 'gtk2'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'utils'))
 
-miquire :plugin, 'plugin'
+miquire :core, 'plugin'
 miquire :core, 'delayer'
 miquire :core, 'userconfig'
 miquire :core, 'message'

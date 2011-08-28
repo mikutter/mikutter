@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-# 多くの人に最初に突っ込まれるメソッドを定義するのだ
+# 多くの人に最初に突っ込まれるメソッドを定義する
+
+require 'set'
 
 # ミクってかわいいよねぇ。
 # ツインテールいいよねー。
@@ -52,10 +54,6 @@ module Miquire
       else
         miquire_all_files(kind) end end
 
-    def plugin_loadpath
-      @@plugin_loadpath ||= []
-    end
-
     # miquireと同じだが、全てのファイルが対象になる
     def miquire_all_files(kind)
       kind = kind.to_sym
@@ -76,5 +74,33 @@ module Miquire
     def miquire_original_require(file)
       require file end
 
+  end
+
+  # プラグインのロードに関すること
+  module Plugin
+
+    class << self
+
+      include Enumerable
+
+      # ロードパスの配列を返す。
+      # ロードパスに追加したい場合は、以下のようにすればいい
+      #
+      #  Miquire::Plugin.loadpath << 'pathA' << 'pathB'
+      def loadpath
+        @loadpath ||= [] end
+
+      # プラグインのファイル名(フルパス)で繰り返す。
+      def each
+        iterated = Set.new
+        loadpath.reverse.each { |path|
+          p File.join(File.expand_path(path), '*.rb')
+          Dir[File.join(File.expand_path(path), '*.rb')].each { |file|
+            plugin_name = File.basename(file, '.rb')
+            if not iterated.include? plugin_name
+              iterated << plugin_name
+              yield file end } } end
+
+    end
   end
 end
