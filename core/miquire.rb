@@ -102,12 +102,8 @@ module Miquire
               next end
             plugin_name = File.basename(file, '.rb')
             if not iterated.include? plugin_name
-              puts "loaded: #{plugin_name} #{file}"
               iterated << plugin_name
-              detected << file
-            else
-              puts "rejected: #{plugin_name} #{file}"
-            end } }
+              detected << file end } }
         detected.sort.each &Proc.new end
 
     end

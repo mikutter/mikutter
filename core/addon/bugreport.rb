@@ -15,39 +15,41 @@ Module.new do
   private
 
   def self.popup
-    alert_thread = if(Thread.main != Thread.current) then Thread.current end
-    dialog = Gtk::Dialog.new("bug report")
-    dialog.set_size_request(600, 400)
-    dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(main, true, true, 30)
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
-    dialog.default_response = Gtk::Dialog::RESPONSE_OK
-    quit = lambda{
-      dialog.hide_all.destroy
-      Gtk.main_iteration_do(false)
-      Plugin.filtering(:get_windows, []).first.first.show
-      if alert_thread
-        alert_thread.run
+    Delayer.new{
+      alert_thread = if(Thread.main != Thread.current) then Thread.current end
+      dialog = Gtk::Dialog.new("bug report")
+      dialog.set_size_request(600, 400)
+      dialog.window_position = Gtk::Window::POS_CENTER
+      dialog.vbox.pack_start(main, true, true, 30)
+      dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+      dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
+      dialog.default_response = Gtk::Dialog::RESPONSE_OK
+      quit = lambda{
+        dialog.hide_all.destroy
+        Gtk.main_iteration_do(false)
+        Plugin.filtering(:get_windows, []).first.first.show
+        if alert_thread
+          alert_thread.run
+        else
+          Gtk.main_quit
+        end }
+      dialog.signal_connect("response"){ |widget, response|
+        if response == Gtk::Dialog::RESPONSE_OK
+          send
+        else
+          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) end
+        quit.call }
+      dialog.signal_connect("destroy") {
+        false
+      }
+      dialog.show_all
+      Plugin.filtering(:get_windows, []).first.first.hide
+      if(alert_thread)
+        Thread.stop
       else
-        Gtk.main_quit
-      end }
-    dialog.signal_connect("response"){ |widget, response|
-      if response == Gtk::Dialog::RESPONSE_OK
-        send
-      else
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) end
-      quit.call }
-    dialog.signal_connect("destroy") {
-      false
+        Gtk::main
+      end
     }
-    dialog.show_all
-    Plugin.filtering(:get_windows, []).first.first.hide
-    if(alert_thread)
-      Thread.stop
-    else
-      Gtk::main
-    end
   end
 
   def self.imsorry
