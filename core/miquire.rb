@@ -93,13 +93,22 @@ module Miquire
       # プラグインのファイル名(フルパス)で繰り返す。
       def each
         iterated = Set.new
+        detected = []
         loadpath.reverse.each { |path|
-          p File.join(File.expand_path(path), '*.rb')
-          Dir[File.join(File.expand_path(path), '*.rb')].each { |file|
+          Dir[File.join(File.expand_path(path), '*')].each { |file|
+            if FileTest.directory?(file) and FileTest.exist?(File.join(file, File.basename(file))+'.rb')
+              file = File.join(file, File.basename(file))+'.rb'
+            elsif not /\.rb$/ =~ file
+              next end
             plugin_name = File.basename(file, '.rb')
             if not iterated.include? plugin_name
+              puts "loaded: #{plugin_name} #{file}"
               iterated << plugin_name
-              yield file end } } end
+              detected << file
+            else
+              puts "rejected: #{plugin_name} #{file}"
+            end } }
+        detected.sort.each &Proc.new end
 
     end
   end
