@@ -16,6 +16,10 @@ miquire :mui, 'inner_tl'
   タイムラインのGtkウィジェット。
 =end
 class Gtk::TimeLine
+
+  FRAME_PER_SECOND = 30
+  FRAME_MS = 1000.to_f / FRAME_PER_SECOND
+
   include Gtk::TimeLineUtils
 
   attr_reader :tl
@@ -86,26 +90,32 @@ class Gtk::TimeLine
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
     scroll_to_top_anime = false
+    scroll_to_top_anime_id = 1
+    scroll_to_top_anime_lock = Mutex.new
     @tl.ssc(:scroll_event){ |this, e|
       case e.direction
       when Gdk::EventScroll::UP
         this.vadjustment.value -= this.vadjustment.step_increment
+        scroll_to_top_anime_lock.synchronize{ scroll_to_top_anime_id += 1 }
       when Gdk::EventScroll::DOWN
         @scroll_to_zero_lator = false if this.vadjustment.value == 0
-        this.vadjustment.value += this.vadjustment.step_increment end
+        this.vadjustment.value += this.vadjustment.step_increment
+        scroll_to_top_anime_lock.synchronize{ scroll_to_top_anime_id += 1 } end
       false }
     @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
     @tl.vadjustment.ssc(:value_changed){ |this|
-        emit_expose_miraclepainter
-        if(scroll_to_zero? and not(scroll_to_top_anime))
-          scroll_to_top_anime = true
-          scroll_speed = 4
-          Gtk.timeout_add(25){
-            if not(@tl.destroyed?)
-              @tl.vadjustment.value -= (scroll_speed *= 2)
-              scroll_to_top_anime = @tl.vadjustment.value > 0.0 end } end
+      emit_expose_miraclepainter
+      if(scroll_to_zero? and not(scroll_to_top_anime))
+        scroll_to_top_anime = true
+        my_id = scroll_to_top_anime_lock.synchronize {
+          scroll_to_top_anime_id += 1
+          scroll_to_top_anime_id }
+        Gtk.timeout_add(FRAME_MS){
+          scroll_to_top_anime = if scroll_to_top_anime_id == my_id and not(@tl.destroyed?)
+            @tl.vadjustment.value -= (@tl.vadjustment.value / 2) + 1
+            @tl.vadjustment.value > 0.0 end } end
       false }
     init_remover
     @shell = Gtk::HBox.new.pack_start(@tl).closeup(scrollbar) end
