@@ -45,10 +45,10 @@ Module.new do
       userlist.add(users).show_all }
     Plugin.create(:following_control).add_event("#{api}_destroy".to_sym){ |service, users|
       userlist.remove_if_exists_all(users) }
-    Plugin.create(:following_control).add_event(:boot){ |service|
-      userlist.double_clicked = open_user(service) } end
+    userlist.double_clicked = open_user(Post.services.first) end
 
-  set_event(:followings, 'Followings')
-  set_event(:followers, 'Followers')
+  Delayer.new{
+    set_event(:followings, 'Followings')
+    set_event(:followers, 'Followers') }
 
 end
