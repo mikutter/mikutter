@@ -12,6 +12,7 @@ miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
 miquire :mui, 'pseudo_signal_handler'
 miquire :mui, 'markup_generator'
+miquire :lib, 'uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
@@ -27,6 +28,7 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::SubPartsHelper(Gdk::ReplyViewer, Gdk::SubPartsFavorite, Gdk::SubPartsRetweet)
   include PseudoSignalHandler
   include Gdk::MarkupGenerator
+  include UiThreadOnly
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)

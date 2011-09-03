@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :lib, 'weakstorage'
+miquire :lib, 'uithreadonly'
 
 require 'gtk2'
 
@@ -10,7 +11,10 @@ require 'gtk2'
 - each
 =end
 module Gtk::TimeLineUtils
+
+  include UiThreadOnly
   include Enumerable
+
   def self.included(obj)
     class << obj
 

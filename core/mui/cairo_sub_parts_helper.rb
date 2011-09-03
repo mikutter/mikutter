@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+miquire :lib, 'uithreadonly'
 
 def Gdk::SubPartsHelper(*subparts_classes)
   subparts_classes.freeze
@@ -30,6 +31,8 @@ def Gdk::SubPartsHelper(*subparts_classes)
   } end
 
 class Gdk::SubParts
+
+  include UiThreadOnly
 
   attr_reader :helper
 
