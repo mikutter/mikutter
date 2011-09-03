@@ -2,8 +2,12 @@
 
 miquire :mui, 'timeline'
 miquire :lib, 'ruby-bsearch-1.5/bsearch'
+miquire :lib, 'uithreadonly'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
+
+  include UiThreadOnly
+
   attr_writer :force_retrieve_in_reply_to
   attr_accessor :postbox, :hp
   type_register('GtkInnerTL')

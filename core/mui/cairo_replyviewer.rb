@@ -45,14 +45,14 @@ class Gdk::ReplyViewer < Gdk::SubParts
       @message ||= lambda{
         result = helper.to_message.receive_message
         if(helper.tree.force_retrieve_in_reply_to and not result)
+          parent_message = helper.to_message
+          before_height = height
           Thread.new{
-            if not helper.destroyed?
-              before_height = height
-              @message = helper.to_message.receive_message(true)
-              Delayer.new{
-                if not helper.destroyed?
-                  helper.on_modify
-                  helper.reset_height if before_height != height end } end } end
+            @message = parent_message.receive_message(true)
+            Delayer.new{
+              if not helper.destroyed?
+                helper.on_modify
+                helper.reset_height if before_height != height end } } end
         result }.call end end
 
   def escaped_main_text
