@@ -29,7 +29,7 @@ class Watch
   def event_factory
     event_booking = Hash.new{ |h, k| h[k] = [] }
     event_add = lambda{ |event, values|
-      Plugin.call(event, @post, values) }
+      Plugin.call(event, Post.primary_service, values) }
     return {
       :period => {
         :interval => 1,
@@ -55,9 +55,11 @@ class Watch
 
   def initialize()
     @counter = 0
-    @post = Post.new
     @received = Hash.new{ |h, k| h[k] = Set.new }
-    Plugin.call(:boot, @post)
+    Post.services_refresh
+    Post.primary_service.user_initialize
+    Plugin.call(:boot, Post.primary_service)
+    p Post.auth_confirm_func
   end
 
   def action
@@ -66,14 +68,14 @@ class Watch
       get_events.each_pair{ |name, event|
         if((counter % event[:interval]) == 0)
           event_threads << Thread.new{
-            event[:proc].call(name, @post, event[:options]) } end }
+            event[:proc].call(name, Post.primary_service, event[:options]) } end }
       event_threads.each &lazy.join
-      Plugin.call(:after_event, @post) }
+      Plugin.call(:after_event, Post.primary_service) }
     @counter += 1
   end
 
   def get_posts(api, options={})
-    @post.scan(api, options)
+    Post.primary_service.scan(api, options)
   end
 
 end

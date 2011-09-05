@@ -8,8 +8,8 @@ Module.new do
 
   def self.boot
     plugin = Plugin::create(:friend_timeline)
+    Post.auth_confirm_func = method(:popup)
     plugin.add_event(:boot){ |service|
-      Post.auth_confirm_func = method(:popup)
       Plugin.call(:setting_tab_regist, main_for_tab(service), 'アカウント情報') }
   end
 
@@ -30,6 +30,7 @@ Module.new do
   end
 
   def self._popup(watch)
+    notice 'pass'
     result = [nil]
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end

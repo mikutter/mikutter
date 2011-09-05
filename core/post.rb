@@ -50,12 +50,13 @@ class Post
   def initialize
     @scaned_events = []
     @code = nil
-    @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]){
+    UserConfig[:twitter_token] = UserConfig[:twitter_secret] = nil if UserConfig[:twitter_authenticate_revision] != Environment::TWITTER_AUTHENTICATE_REVISION
+    @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]) {
       token, secret = self.class.auth_confirm_func.call(self)
       if token
         UserConfig[:twitter_token] = token
         UserConfig[:twitter_secret] = secret
-      end
+        UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION end
       @user_idname = nil
       [token, secret] }
     notice caller(1).first
@@ -64,13 +65,18 @@ class Post
     @@services << self
   end
 
+  def self.services_refresh
+    Post.new if(@@services.empty?)
+  end
+
   # 存在するServiceオブジェクトをSetで返す。
   # つまり、投稿権限のある「自分」のアカウントを全て返す。
   def self.services
-    @@services.dup end
+    @@services.dup
+  end
 
   def self.primary_service
-    @@services.first end
+    services.first end
 
   # Post系APIメソッドを定義するためのメソッド。
   def self.define_postal(api, *other)
@@ -101,20 +107,23 @@ class Post
     @twitter.request_oauth_token
   end
 
+  def user_initialize
+    scaned = scan(:verify_credentials)
+    if scaned
+      @user_obj = scaned[0]
+      UserConfig[:verify_credentials] = {
+        :id => @user_obj[:id],
+        :idname => @user_obj[:idname],
+        :name => @user_obj[:name],
+        :profile_image_url => @user_obj[:profile_image_url] }
+    else
+      @user_obj = User.generate(UserConfig[:verify_credentials]) end
+    @user_obj
+  end
+
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
-    @user_obj ||= parallel{
-      scaned = scan(:verify_credentials)
-      if scaned
-        @user_obj = scaned[0]
-        UserConfig[:verify_credentials] = {
-          :id => @user_obj[:id],
-          :idname => @user_obj[:idname],
-          :name => @user_obj[:name],
-          :profile_image_url => @user_obj[:profile_image_url] }
-      else
-        @user_obj = User.generate(UserConfig[:verify_credentials]) end
-      @user_obj } end
+    @user_obj ||= parallel { user_initialize } end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
@@ -141,6 +150,7 @@ class Post
   # 認証がはじかれた場合に呼び出される関数を設定する。
   # ユーザに新たに認証を要求するような関数を設定する。
   def self.auth_confirm_func=(val)
+    p val
     return @@auth_confirm_func = val
   end
 

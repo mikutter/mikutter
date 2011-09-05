@@ -16,6 +16,7 @@ module CHIConfig
   # 下の２行は馬鹿にしか見えない
   TWITTER_CONSUMER_KEY = "AmDS1hCCXWstbss5624kVw"
   TWITTER_CONSUMER_SECRET = "KOPOooopg9Scu7gJUBHBWjwkXz9xgPJxnhnhO55VQ"
+  TWITTER_AUTHENTICATE_REVISION = 1
 
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"

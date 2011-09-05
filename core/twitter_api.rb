@@ -232,7 +232,6 @@ class TwitterAPI < Mutex
       warn evar end end
 
   def query_with_auth(method, path, raw_options={})
-    no_mainthread
     serial = query_serial_number
     options = getopts(raw_options)
     if options[:cache] and options[:cache] != :keep
