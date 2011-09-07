@@ -121,8 +121,6 @@ Module.new do
         Plugin.call(event_name, service, data) } end
 
     define_together_event(:direct_message) do |service, data|
-      pp data
-      #pp data.map{ |datum| service.__send__(:parse_json, datum, :direct_message) }
       trigger_event(service, :direct_messages => service.__send__(:parse_json, data.to_a, :direct_messages)) end
 
     define_event(:favorite) do |service, json|

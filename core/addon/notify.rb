@@ -19,6 +19,7 @@ Module.new do
     plugin.add_event(:followers_created, &method(:onfollowed))
     plugin.add_event(:followers_destroy, &method(:onremoved))
     plugin.add_event(:favorite, &method(:onfavorited))
+    plugin.add_event(:direct_messages, &method(:ondm))
     plugin.add_event(:after_event){ first?(:after_event) }
   end
 
@@ -42,7 +43,10 @@ Module.new do
     fv = Mtk.group('ふぁぼられたとき',
                    Mtk.boolean(:notify_favorited, 'ポップアップ'),
                    Mtk.fileselect(:notify_sound_favorited, 'サウンド', DEFAULT_SOUND_DIRECTORY))
-    box.closeup(ft).closeup(me).closeup(fd).closeup(rd).closeup(rt).closeup(fv)
+    dm = Mtk.group('ダイレクトメッセージ受信',
+                   Mtk.boolean(:notify_direct_message, 'ポップアップ'),
+                   Mtk.fileselect(:notify_sound_direct_message, 'サウンド', DEFAULT_SOUND_DIRECTORY))
+    box.closeup(ft).closeup(me).closeup(fd).closeup(rd).closeup(rt).closeup(fv).closeup(dm)
     box.pack_start(Mtk.adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60), false)
   end
 
@@ -94,6 +98,14 @@ Module.new do
           self.notify(message[:user], 'ReTweet: ' +  message.to_s) } end
       if(UserConfig[:notify_sound_retweeted])
         self.notify_sound(UserConfig[:notify_sound_retweeted]) end end end
+
+  def self.ondm(post, dms)
+    if not(first?(:direct_message) or dms.empty?)
+      if(UserConfig[:notify_direct_message])
+        dms.each{ |dm|
+          self.notify(User.generate(dm[:sender]), dm[:text]) } end
+      if(UserConfig[:notify_sound_direct_message])
+        self.notify_sound(UserConfig[:notify_sound_direct_message]) end end end
 
   def self.first?(func)
     @called = [] if not defined? @called
