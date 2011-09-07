@@ -40,7 +40,7 @@ Plugin.create(:directmessage) do
   end
 
   filter_profile_tab do |notebook, user|
-    notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("timeline.png"), 16, 16).show_all)
+    notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("underconstruction.png"), 16, 16).show_all)
     [notebook, user]
   end
 

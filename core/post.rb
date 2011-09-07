@@ -384,7 +384,11 @@ class Post
   end
 
   def rule(kind, prop)
-    (@rule ||= _gen_rule.freeze)[kind.to_sym][prop.to_sym] end
+    parser = (@rule ||= _gen_rule.freeze)[kind.to_sym]
+    if defined? parser[prop.to_sym]
+      parser[prop.to_sym]
+    else
+      raise ArgumentError.new("API Response parse rule not found: \"#{kind}\"") end end
 
   def _gen_rule()
     shell_class = Class.new do
