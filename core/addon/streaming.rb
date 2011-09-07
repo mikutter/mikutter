@@ -84,6 +84,8 @@ Module.new do
         when respond_to?("event_#{json['event']}")
           __send__(:"event_#{json['event']}", json)
           # thread_storage(json['event']).push(json)
+        when json['direct_message']
+          event_direct_message(json['direct_message'])
         when json['delete']
           if $debug
             Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
@@ -117,6 +119,11 @@ Module.new do
     def self.trigger_event(service, events)
       events.each{ |event_name, data|
         Plugin.call(event_name, service, data) } end
+
+    define_together_event(:direct_message) do |service, data|
+      pp data
+      #pp data.map{ |datum| service.__send__(:parse_json, datum, :direct_message) }
+      trigger_event(service, :direct_messages => service.__send__(:parse_json, data.to_a, :direct_messages)) end
 
     define_event(:favorite) do |service, json|
       by = service.__send__(:parse_json, json['source'], :user_show)
