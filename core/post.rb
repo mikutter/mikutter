@@ -473,6 +473,11 @@ class Post
              :followed_by, msg[:source][:followed_by], # 相手にフォローされているか
              :user, User.new_ifnecessary(:idname => msg[:target][:screen_name], # 相手
                                          :id => msg[:target][:id])] } }
+    direct_messages_parser = {
+      :hasmany => true,
+      :class => shell_class,
+      :method => :new_ifnecessary,
+      :proc => tclambda(Hash){ |msg| msg } }
     ids = {
       :hasmany => :ids,
       :class => shell_class,
@@ -514,7 +519,8 @@ class Post
       :friendship => friendship,
       :follow => user_parser,
       :unfollow => user_parser,
-      :trends => trend_parser
+      :trends => trend_parser,
+      :direct_messages => direct_messages_parser
     } end
 
   def scan_rule(rule_name, msg)

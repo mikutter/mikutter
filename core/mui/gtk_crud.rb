@@ -68,6 +68,8 @@ class Gtk::CRUD < Gtk::TreeView
         renderer.new end
     when kind == :text
       Gtk::CellRendererText.new
+    when kind == :pixbuf
+      Gtk::CellRendererPixbuf.new
     when kind == :active
       toggled = Gtk::CellRendererToggle.new
       toggled.signal_connect('toggled'){ |toggled, path|

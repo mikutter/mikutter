@@ -382,11 +382,10 @@ class TwitterAPI < Mutex
     get_with_auth('/followers/ids.' + FORMAT + get_args(args), head(args))
   end
 
-  def direct_messages(since = nil)
-    path = '/direct_messages.' + FORMAT
-    path += "?since=#{option_since(since)}" if since
-    head = {'Host' => HOST}
-    get_with_auth(path, head)
+  def direct_messages(args = {})
+    args = DEFAULT_API_ARGUMENT.merge(:skip_status => true,
+                                      :count => 200).merge(args)
+    get_with_auth('/direct_messages.' + FORMAT + get_args(args), head(args))
   end
 
   def user_show(args)

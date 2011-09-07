@@ -26,11 +26,13 @@ class UserConfig
     :retrieve_interval_search => 60,    # 検索を更新する間隔(int)
     :retrieve_interval_followings => 60,  # followを更新する間隔(int)
     :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
+    :retrieve_interval_direct_messages => 20,  # DirectMessageを更新する間隔(int)
 
     :retrieve_count_friendtl => 20,   # TLを取得する数(int)
     :retrieve_count_mention => 20,    # Replyを取得する数(int)
     :retrieve_count_followings => 20,   # followを取得する数(int)
     :retrieve_count_followers => 20,   # followerを取得する数(int)
+    :retrieve_count_direct_messages => 200,   # followerを取得する数(int)
 
     # User Stream
     :realtime_rewind => true,
