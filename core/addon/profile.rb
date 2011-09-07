@@ -65,6 +65,7 @@ Module.new do
       @notebook = Gtk::Notebook.new.set_tab_pos(Gtk::POS_TOP).set_tab_border(0)
       @notebook.append_page(@timeline,
                             Gtk::WebIcon.new(MUI::Skin.get("timeline.png"), 16, 16).show_all)
+      Plugin.filtering(:profile_tab, @notebook, user)
       @header = (@options[:header] or Gtk::HBox.new)
       Gtk::VBox.new(false, 0).closeup(@header).add(@notebook) end
 

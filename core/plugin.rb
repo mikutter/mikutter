@@ -109,8 +109,15 @@ module Plugin
         call_routine(plugintag, event_name, kind, &routine) end end end
 
   # プラグインタグをなければ作成して返す。
+  # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
   def self.create(name)
-    PluginTag.create(name) end
+    if block_given?
+      tag = PluginTag.create(name)
+      catch(:plugin_define_exit) {
+        tag.instance_eval(&Proc.new) }
+      tag
+    else
+      PluginTag.create(name) end end
 
   # ブロックの実行時間を記録しながら実行
   def self.call_routine(plugintag, event_name, kind)
@@ -366,6 +373,17 @@ class Plugin::PluginTag
 
   def active?
     @status == :active end
+
+  def method_missing(method, *args, &proc)
+    case method.to_s
+    when /on_?(.+)/
+      add_event($1, &proc)
+    when /filter_?(.+)/
+      add_event_filter($1, &proc)
+    when /hook_?(.+)/
+      add_event_hook($1, &proc)
+    else
+      super end end
 
   private
 
