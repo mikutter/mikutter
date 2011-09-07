@@ -50,8 +50,11 @@ class Post
   def initialize
     @scaned_events = []
     @code = nil
-    UserConfig[:twitter_token] = UserConfig[:twitter_secret] = nil if UserConfig[:twitter_authenticate_revision] != Environment::TWITTER_AUTHENTICATE_REVISION
-    @twitter = Twitter.new(UserConfig[:twitter_token], UserConfig[:twitter_secret]) {
+    token, secret = UserConfig[:twitter_token], UserConfig[:twitter_secret]
+    if UserConfig[:twitter_authenticate_revision] != Environment::TWITTER_AUTHENTICATE_REVISION
+      token = secret = nil
+    end
+    @twitter = Twitter.new(token, secret) {
       token, secret = self.class.auth_confirm_func.call(self)
       if token
         UserConfig[:twitter_token] = token
