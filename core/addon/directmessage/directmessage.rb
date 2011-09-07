@@ -14,7 +14,7 @@ Plugin.create(:directmessage) do
     @userlist.double_clicked = lambda{ |user|
       Plugin.call(:show_profile, Post.primary_service, user) }
     Delayer.new{
-      Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("timeline.png"))
+      Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("underconstruction.png"))
     }
   end
 
