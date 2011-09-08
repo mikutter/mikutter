@@ -388,6 +388,11 @@ class TwitterAPI < Mutex
     get_with_auth('/direct_messages.' + FORMAT + get_args(args), head(args))
   end
 
+  def sent_direct_messages(args = {})
+    args = DEFAULT_API_ARGUMENT.merge(:count => 200).merge(args)
+    get_with_auth('/direct_messages/sent.' + FORMAT + get_args(args), head(args))
+  end
+
   def user_show(args)
     raise if args[:id].is_a?(User)
     get("/users/show." + FORMAT + get_args(args), head(args))

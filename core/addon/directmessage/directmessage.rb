@@ -21,8 +21,8 @@ Plugin.create(:directmessage) do
   onperiod do
     service = Post.primary_service
     if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
-      service.call_api(:direct_messages, :count => UserConfig[:retrieve_count_direct_messages]){ |dms|
-        Plugin.call(:direct_messages, service, dms) if dms } end end
+      call_api(service, :direct_messages)
+      call_api(service, :sent_direct_messages) end end
 
   filter_direct_messages do |service, dms|
     result = []
@@ -43,6 +43,10 @@ Plugin.create(:directmessage) do
     notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("underconstruction.png"), 16, 16).show_all)
     [notebook, user]
   end
+
+  def call_api(service, api)
+    service.call_api(api, :count => UserConfig[:retrieve_count_direct_messages]){ |dms|
+      Plugin.call(:direct_messages, service, dms) if dms } end
 
   def add_dm(dm, user_id)
     unless @dm_store[user_id].any?{ |stored| stored[:id] == dm[:id] }
