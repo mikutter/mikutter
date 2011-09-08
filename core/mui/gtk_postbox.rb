@@ -139,7 +139,7 @@ module Gtk
 
     def destroy
       @@ringlock.synchronize{
-        if not(frozen?) and parent
+        if not(destroyed?) and not(frozen?) and parent
           parent.remove(self)
           @@postboxes.delete(self)
           super

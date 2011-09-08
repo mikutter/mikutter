@@ -519,12 +519,10 @@ class TwitterAPI < Mutex
   end
 
   def send(text, user)
-    enc = URI.encode(text, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n)
-    path = '/direct_messages/new.' + FORMAT
-    data = "user=" + URI.encode(user)
-    data += "&text=" + URI.encode(enc)
-    head = {'Host' => HOST}
-    post_with_auth(path, data, head)
+    args = {
+      :text => URI.encode(text, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n),
+      :user => user[:id] }
+    post_with_auth('/direct_messages/new.' + FORMAT, args, head)
   end
 
   def favorite(id)
