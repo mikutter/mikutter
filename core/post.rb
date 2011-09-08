@@ -527,7 +527,8 @@ class Post
       :follow => user_parser,
       :unfollow => user_parser,
       :trends => trend_parser,
-      :direct_messages => direct_messages_parser
+      :direct_messages => direct_messages_parser,
+      :sent_direct_messages => direct_messages_parser
     } end
 
   def scan_rule(rule_name, msg)
