@@ -25,6 +25,13 @@ class Twitter < TwitterAPI
     post_with_auth('/statuses/update.'+FORMAT, data)
   end
 
+  # DMを送る
+  # - message
+  # 送信する情報のハッシュ。
+  # -- :message
+  # 送信する本文。
+  # -- :user
+  # 宛先。Userオブジェクトを渡す。
   def send_direct_message(message)
     text = self.convert_message(message)
     post_with_auth('/direct_messages/new.' + FORMAT,

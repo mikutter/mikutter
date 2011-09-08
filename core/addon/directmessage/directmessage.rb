@@ -22,7 +22,7 @@ Plugin.create(:directmessage) do
     service = Post.primary_service
     if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
       service.call_api(:direct_messages, :count => UserConfig[:retrieve_count_direct_messages]){ |dms|
-        Plugin.call(:direct_messages, service, dms) } end end
+        Plugin.call(:direct_messages, service, dms) if dms } end end
 
   filter_direct_messages do |service, dms|
     result = []
@@ -50,7 +50,7 @@ Plugin.create(:directmessage) do
   end
 
   def dm_list_widget(user)
-    container = Gtk::HBox.new
+    container = Gtk::VBox.new
     tl = DirectMessage.new
     tl.model.set_sort_column_id(DirectMessage::C_ID, Gtk::SORT_DESCENDING)
 
@@ -86,9 +86,23 @@ Plugin.create(:directmessage) do
     tl.ssc(:destroy){
       detach(:direct_message, event)
     }
-
-    container.add(Gtk::HBox.new.add(tl).closeup(scrollbar))
+    mumbles = Gtk::VBox.new(false, 0)
+    postbox = Gtk::PostBox.new(DirectMessageSender.new(Post.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
+    mumbles.pack_start(postbox)
+    container.closeup(mumbles).add(Gtk::HBox.new.add(tl).closeup(scrollbar))
     container
+  end
+
+  class DirectMessageSender
+    attr_reader :service
+
+    def initialize(service, user)
+      @service, @user = service, user
+    end
+
+    def post(args)
+      @service.send_direct_message({:message => args[:message], :user => @user}, &Proc.new)
+    end
   end
 
   class DirectMessage < Gtk::CRUD
