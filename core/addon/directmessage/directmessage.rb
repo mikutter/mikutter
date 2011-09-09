@@ -21,8 +21,14 @@ Plugin.create(:directmessage) do
   onperiod do
     service = Post.primary_service
     if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
-      call_api(service, :direct_messages)
-      call_api(service, :sent_direct_messages) end end
+      Thread.new{
+        threads = [ call_api(service, :direct_messages),
+                    call_api(service, :sent_direct_messages) ]
+        Plugin.call(:direct_messages,
+                    service,
+                    threads.inject([]){ |dms, thread|
+                      result = thread.value
+                      dms + result if result }) } end end
 
   filter_direct_messages do |service, dms|
     result = []
@@ -45,8 +51,7 @@ Plugin.create(:directmessage) do
   end
 
   def call_api(service, api)
-    service.call_api(api, :count => UserConfig[:retrieve_count_direct_messages]){ |dms|
-      Plugin.call(:direct_messages, service, dms) if dms } end
+    service.call_api(api, :count => UserConfig[:retrieve_count_direct_messages]) end
 
   def add_dm(dm, user_id)
     unless @dm_store[user_id].any?{ |stored| stored[:id] == dm[:id] }

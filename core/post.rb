@@ -192,14 +192,15 @@ class Post
   def call_api(api, args = {})
     Thread.new{
       if args[:get_raw_text]
-        res, data = scan(api.to_sym, args)
+        res = scan(api.to_sym, args)
       else
-        res = scan(api.to_sym, args) end
-      Delayer.new{
-        if args[:get_raw_text]
-          yield res, data
-        else
-          yield res end } } end
+        res = [scan(api.to_sym, args)] end
+      if block_given?
+        Delayer.new{
+          yield *res }
+      else
+        args[:get_raw_text] ? res : res.first end } end
+
 
   # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
