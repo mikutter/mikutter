@@ -24,19 +24,24 @@ Plugin.create(:directmessage) do
       Thread.new{
         threads = [ call_api(service, :direct_messages),
                     call_api(service, :sent_direct_messages) ]
-        Plugin.call(:direct_messages,
-                    service,
-                    threads.inject([]){ |dms, thread|
-                      result = thread.value
-                      dms + result if result }) } end end
+        result = threads.inject([]){ |dms, thread|
+          result = thread.value
+          if result
+            dms + result
+          else
+            dms end }
+        Plugin.call(:direct_messages, service, result) if result and not result.empty? } end end
 
   filter_direct_messages do |service, dms|
-    result = []
-    @dm_lock.synchronize do
-      dms.sort_by{ |s| Time.parse(s[:created_at]) rescue Time.now }.each { |dm|
-        if add_dm(dm, dm[:sender][:id].to_i) and add_dm(dm, dm[:recipient][:id].to_i)
-          result << dm end } end
-    [service, result] end
+    if defined? dms.sort_by
+      result = []
+      @dm_lock.synchronize do
+        dms.sort_by{ |s| Time.parse(s[:created_at]) rescue Time.now }.each { |dm|
+          if add_dm(dm, dm[:sender][:id].to_i) and add_dm(dm, dm[:recipient][:id].to_i)
+            result << dm end } end
+      [service, result]
+    else
+      [service, dms] end end
 
   on_direct_message_add_user do |user_id|
     user = User.findbyid(user_id)
