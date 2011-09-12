@@ -66,7 +66,7 @@ Plugin.create(:directmessage) do
   def dm_list_widget(user)
     container = Gtk::VBox.new
     tl = DirectMessage.new
-    tl.model.set_sort_column_id(DirectMessage::C_ID, Gtk::SORT_DESCENDING)
+    tl.model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
 
     scrollbar = Gtk::VScrollbar.new(tl.vadjustment)
     model = tl.model
@@ -74,7 +74,7 @@ Plugin.create(:directmessage) do
       if @dm_store.has_key?(user[:id])
         @dm_store[user[:id]].each { |dm|
           iter = model.append
-          iter[DirectMessage::C_ID] = dm[:id].to_i
+          iter[DirectMessage::C_CREATED] = Time.parse(dm[:created_at]).to_i
           iter[DirectMessage::C_ICON] = Gtk::WebIcon.get_icon_pixbuf(dm[:sender][:profile_image_url], 16, 16)
           iter[DirectMessage::C_TEXT] = dm[:text]
           iter[DirectMessage::C_RAW] = dm } end end
@@ -84,7 +84,7 @@ Plugin.create(:directmessage) do
         dms.each{ |dm|
           if user[:id].to_i == dm[:sender][:id].to_i or user[:id].to_i == dm[:recipient][:id].to_i
             iter = model.append
-            iter[DirectMessage::C_ID] = dm[:id].to_i
+            iter[DirectMessage::C_CREATED] = Time.parse(dm[:created_at]).to_i
             iter[DirectMessage::C_ICON] = Gtk::WebIcon.get_icon_pixbuf(dm[:sender][:profile_image_url], 16, 16)
             iter[DirectMessage::C_TEXT] = dm[:text]
             iter[DirectMessage::C_RAW] = dm end } end end
@@ -120,7 +120,7 @@ Plugin.create(:directmessage) do
   end
 
   class DirectMessage < Gtk::CRUD
-    C_ID = 2
+    C_CREATED = 2
     C_ICON = 0
     C_TEXT = 1
     C_RAW = 3
