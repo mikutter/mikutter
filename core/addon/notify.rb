@@ -8,6 +8,8 @@ miquire :addon, 'settings'
 Module.new do
 
   DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
+  DEFINED_TIME = Time.new.freeze
+
   def self.boot
     plugin = Plugin::create(:notify)
 
@@ -19,7 +21,6 @@ Module.new do
     plugin.add_event(:followers_created, &method(:onfollowed))
     plugin.add_event(:followers_destroy, &method(:onremoved))
     plugin.add_event(:favorite, &method(:onfavorited))
-    plugin.add_event(:after_event){ first?(:after_event) }
   end
 
   def self.main
@@ -47,8 +48,8 @@ Module.new do
   end
 
   def self.onupdate(post, raw_messages)
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) }).first
-    if not(first?(:update) or messages.empty?)
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > DEFINED_TIME }).first
+    if not(messages.empty?)
       if(UserConfig[:notify_friend_timeline])
         messages.each{ |message|
           self.notify(message[:user], message) if not message.from_me? } end
@@ -56,8 +57,8 @@ Module.new do
         self.notify_sound(UserConfig[:notify_sound_friend_timeline]) end end end
 
   def self.onmention(post, raw_messages)
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not m.from_me? and not m[:retweet] }).first
-    if not(first?(:mention) or messages.empty?)
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m[:retweet]) and m[:created] > DEFINED_TIME }).first
+    if not(messages.empty?)
       if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention])
         messages.each{ |message|
           self.notify(message[:user], message) } end
@@ -94,14 +95,6 @@ Module.new do
           self.notify(message[:user], 'ReTweet: ' +  message.to_s) } end
       if(UserConfig[:notify_sound_retweeted])
         self.notify_sound(UserConfig[:notify_sound_retweeted]) end end end
-
-  def self.first?(func)
-    @called = [] if not defined? @called
-    if @called.include?(func.to_sym) and @called.include?(:after_event)
-      false
-    else
-      @called << func.to_sym
-      true end end
 
   def self.notify(user, text)
     Plugin.call(:popup_notify, user, text) end
