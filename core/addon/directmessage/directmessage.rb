@@ -66,7 +66,6 @@ Plugin.create(:directmessage) do
   def dm_list_widget(user)
     container = Gtk::VBox.new
     tl = DirectMessage.new
-    tl.model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
 
     scrollbar = Gtk::VScrollbar.new(tl.vadjustment)
     model = tl.model
@@ -124,6 +123,11 @@ Plugin.create(:directmessage) do
     C_ICON = 0
     C_TEXT = 1
     C_RAW = 3
+
+    def initialize
+      super
+      model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
+    end
 
     def column_schemer
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},

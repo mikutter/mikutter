@@ -19,118 +19,134 @@ module Gtk
     def initialize()
       @users = Set.new
       @double_clicked = ret_nth
-      @block_add = method(:block_add).to_proc
       super()
+      @evbox, @ul, @treeview = gen_userlist
+      scrollbar = Gtk::VScrollbar.new(@treeview.vadjustment)
+      pack_start(@evbox).closeup(scrollbar).show_all
     end
 
-    def userlist
-      if defined? @ul
-        yield
-      else
-        @evbox, @ul, @treeview = gen_userlist
-        yield
-        scrollbar = Gtk::VScrollbar.new(@treeview.vadjustment)
-        pack_start(@evbox).closeup(scrollbar).show_all
-      end end
-
-    def each(&iter)
+    # Userクラスのインスタンスを引数に繰り返すイテレータ
+    def each(&iter) # :yields: user
       @users.each(&iter)
     end
 
+    # リストに _user_ を追加する。既にある場合は何もしない。
+    # ==== Args
+    # - user Userのインスタンスか、Userの配列(Enumerable)
+    # ==== Return
+    # _self_
     def add(user)
-      userlist{
-        if user.is_a?(Array) then
-          self.block_add_all(user)
-        else
-          self.block_add(user) end }
+      if user.is_a?(Array) then
+        self.block_add_all(user)
+      else
+        self.block_add(user) end
       self.show_all end
 
+    # リストに _user) を追加する
+    # ==== Args
+    # - Object user
+    # ==== Return
+    # _self_
     def block_add(user)
-      Lock.synchronize do
-        if user[:rule] == :destroy
-          remove_if_exists_all([user])
-        elsif not @users.include?(user)
-          iter = @ul.prepend
-          iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
-            iter[0] = pixbuf }
-          iter[1] = user[:idname]
-          iter[2] = user[:name]
-          iter[3] = user
-          @users << user end end end
+      if user[:rule] == :destroy
+        remove_if_exists_all([user])
+      elsif not @users.include?(user)
+        iter = @ul.prepend
+        iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
+          iter[0] = pixbuf }
+        iter[1] = user[:idname]
+        iter[2] = user[:name]
+        iter[3] = user
+        @users << user end end
 
+    # Userの配列を受け取って、それら全てを追加する
+    # ==== Args
+    # - Object users
+    # ==== Return
+    # _self_
     def block_add_all(users)
-      Lock.synchronize do
-        removes, appends = *users.partition{ |m| m[:rule] == :destroy }
-        remove_if_exists_all(removes)
-        appends.each(&@block_add)
-      end
+      removes, appends = *users.partition{ |m| m[:rule] == :destroy }
+      remove_if_exists_all(removes)
+      appends.each(&method(:block_add))
     end
 
+    # Userの配列を受け取って、リストに入っているユーザは削除する
+    # ==== Args
+    # - Object users
+    # ==== Return
+    # _self_
     def remove_if_exists_all(users)
       if defined? @ul
-        Lock.synchronize do
-          users_idname = users.map{ |user| user[:idname] }.freeze
-          @ul.each{ |model, path, iter|
-            remove_user_name = iter[1].to_s
-            if users_idname.include?(remove_user_name)
-              @ul.remove(iter)
-              @users.delete_if{ |user| user[:idname] == remove_user_name }
-            end }
-          end end
+        users_idname = users.map{ |user| user[:idname] }.freeze
+        @ul.each{ |model, path, iter|
+          remove_user_name = iter[1].to_s
+          if users_idname.include?(remove_user_name)
+            @ul.remove(iter)
+            @users.delete_if{ |user| user[:idname] == remove_user_name } end } end
       self end
 
+    # リストに入っているユーザのIDを配列にして返す
+    # ==== Return
+    # リスト内のUserのidの配列
     def all_id
       if defined? @ul
         @users.map{ |x| x[:id].to_i }
       else
         [] end end
 
+    # リスト内のユーザを全て削除する
+    # ==== Return
+    # _self_
     def clear
       if defined? @treeview
-        Lock.synchronize do
           @treeview.clear
-          @users.clear end end
+          @users.clear end
       self end
 
+    private
+
     def gen_userlist
-      Lock.synchronize do
-        container = Gtk::EventBox.new
-        box = Gtk::ListStore.new(Gdk::Pixbuf, String, String, User)
-        treeview = Gtk::TreeView.new(box)
-        crText = Gtk::CellRendererText.new
-        col = Gtk::TreeViewColumn.new 'icon', Gtk::CellRendererPixbuf.new, :pixbuf => 0
-        col.resizable = true
-        treeview.append_column col
+      container = Gtk::EventBox.new
+      treeview = View.new
+      box = treeview.model
 
-        col = Gtk::TreeViewColumn.new 'ユーザID', Gtk::CellRendererText.new, :text => 1
-        col.resizable = true
-        treeview.append_column col
+      treeview.signal_connect("row-activated") do |view, path, column|
+        if iter = view.model.get_iter(path)
+          double_clicked.call(iter[3]) end end
 
-        col = Gtk::TreeViewColumn.new '名前', Gtk::CellRendererText.new, :text => 2
-        col.resizable = true
-        treeview.append_column col
+      container.add(treeview)
 
-        treeview.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, columnm, key, iter|
-          not iter[columnm].include?(key) }
+      style = Gtk::Style.new()
+      style.set_bg(Gtk::STATE_NORMAL, *[255,255,255].map{|a| a*255})
+      container.style = style
 
-        treeview.signal_connect("row-activated") do |view, path, column|
-          if iter = view.model.get_iter(path)
-            double_clicked.call(iter[3]) end end
+      treeview.ssc(:scroll_event){ |this, e|
+        case e.direction
+        when Gdk::EventScroll::UP
+          this.vadjustment.value -= this.vadjustment.step_increment
+        when Gdk::EventScroll::DOWN
+          this.vadjustment.value += this.vadjustment.step_increment end
+        false }
+      return container, box, treeview end
 
-        container.add(treeview)
+    class View < Gtk::CRUD
+      C_ICON = 0
+      C_TEXT = 1
+      C_RAW = 2
 
-        style = Gtk::Style.new()
-        style.set_bg(Gtk::STATE_NORMAL, *[255,255,255].map{|a| a*255})
-        container.style = style
+      def initialize
+        super()
+        @creatable = @updatable = @deletable = false
+      end
 
-        treeview.ssc(:scroll_event){ |this, e|
-          case e.direction
-          when Gdk::EventScroll::UP
-            this.vadjustment.value -= this.vadjustment.step_increment
-          when Gdk::EventScroll::DOWN
-            this.vadjustment.value += this.vadjustment.step_increment end
-          false }
-        return container, box, treeview end end
+      private
+
+      def column_schemer
+        [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
+         {:kind => :text, :type => String, :label => 'screen_name'},
+         {:kind => :text, :type => String, :label => '名前'},
+         {:type => User} ].freeze end end
+
   end
 end
 # ~> -:3: undefined method `miquire' for main:Object (NoMethodError)
