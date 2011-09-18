@@ -107,7 +107,7 @@ module Gtk
 
     def gen_userlist
       container = Gtk::EventBox.new
-      treeview = View.new
+      treeview = View.new(column_schemer)
       box = treeview.model
 
       treeview.signal_connect("row-activated") do |view, path, column|
@@ -129,23 +129,27 @@ module Gtk
         false }
       return container, box, treeview end
 
+      def column_schemer
+        [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
+         {:kind => :text, :type => String, :label => 'screen_name'},
+         {:kind => :text, :type => String, :label => '名前'},
+         {:type => User} ].freeze end
+
     class View < Gtk::CRUD
       C_ICON = 0
       C_TEXT = 1
       C_RAW = 2
 
-      def initialize
+      def initialize(column_schemer)
+        @column_schemer = column_schemer
         super()
         @creatable = @updatable = @deletable = false
       end
 
       private
 
-      def column_schemer
-        [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
-         {:kind => :text, :type => String, :label => 'screen_name'},
-         {:kind => :text, :type => String, :label => '名前'},
-         {:type => User} ].freeze end end
+      attr_reader :column_schemer
+    end
 
   end
 end
