@@ -11,7 +11,7 @@ module Plugin::DirectMessage
     def initialize
       super
       model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
-      creatable = updatable = false
+      @creatable = @updatable = false
     end
 
     def on_deleted(iter)
@@ -19,8 +19,25 @@ module Plugin::DirectMessage
     end
 
     def column_schemer
+      renderer = nil
+      width = nil
+      ssc(:expose_event) { |s, e|
+        if renderer
+          nw =  get_cell_area(nil, get_column(C_TEXT)).width
+          if nw != width
+            width = nw
+            renderer.set_property "wrap-width", nw
+            get_column(C_TEXT).queue_resize end end
+        false }
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
-       {:kind => :text, :type => String, :label => '本文'},
+       {:kind => :text, :type => String, :label => '本文', :renderer => lambda{ |scheme, index|
+           renderer = Gtk::CellRendererText.new
+           Delayer.new{
+             if not destroyed?
+               width = get_cell_area(nil, get_column(C_TEXT)).width
+               renderer.set_property "wrap-width", width
+               renderer.set_property "wrap-mode", Pango::WRAP_CHAR end }
+           renderer } },
        {:type => Integer},
        {:type => Object},
       ].freeze
