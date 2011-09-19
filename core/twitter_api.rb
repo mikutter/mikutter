@@ -530,6 +530,10 @@ class TwitterAPI < Mutex
     post_with_auth('/direct_messages/new.' + FORMAT, args, head)
   end
 
+  def destroy_direct_message(msg)
+    delete_with_auth("/directmessages/destroy/#{msg[:id]}.#{FORMAT}", head)
+  end
+
   def favorite(id)
     path = "/favorites/create/#{id}." + FORMAT
     post_with_auth(path)

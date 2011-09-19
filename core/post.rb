@@ -235,7 +235,7 @@ class Post
 
   define_postal :update, :retweet, :search_create, :search_destroy, :follow, :unfollow
   define_postal :add_list_member, :delete_list_member, :add_list, :delete_list, :update_list
-  define_postal :send_direct_message
+  define_postal :send_direct_message, :destroy_direct_message
   alias post update
 
   define_postal_detail(:destroy){|service, event, msg|
@@ -486,6 +486,8 @@ class Post
       :class => shell_class,
       :method => :new_ifnecessary,
       :proc => tclambda(Hash){ |msg| msg } }
+    direct_message_parser = direct_messages_parser.clone
+    direct_message_parser[:hasmany] = false
     ids = {
       :hasmany => :ids,
       :class => shell_class,
@@ -529,7 +531,8 @@ class Post
       :unfollow => user_parser,
       :trends => trend_parser,
       :direct_messages => direct_messages_parser,
-      :sent_direct_messages => direct_messages_parser
+      :sent_direct_messages => direct_messages_parser,
+      :directmessage_destroy => direct_message_parser
     } end
 
   def scan_rule(rule_name, msg)

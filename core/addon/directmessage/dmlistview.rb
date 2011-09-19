@@ -11,6 +11,11 @@ module Plugin::DirectMessage
     def initialize
       super
       model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
+      creatable = updatable = false
+    end
+
+    def on_deleted(iter)
+      Post.primary_service.destroy_direct_message :id => iter[C_RAW][:id]
     end
 
     def column_schemer
