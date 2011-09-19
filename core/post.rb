@@ -287,15 +287,20 @@ class Post
             yield(:success, receive)
             return receive end
         elsif result.code[0] == '4'[0]
-          begin
-            errmes = JSON.parse(result.body)["error"]
-            Plugin.call(:rewindstatus, "twitter 投稿エラー: #{result.code} #{errmes}")
-            if errmes == "Status is a duplicate."
-              yield(:success, nil)
-              return true end
-          rescue JSON::ParserError
-          end
-          if result.code == '404'
+          errmes = begin
+                     JSON.parse(result.body)["error"]
+                   rescue JSON::ParserError
+                     nil end
+          Plugin.call(:rewindstatus, "twitter 投稿エラー: #{result.code} #{errmes}")
+          if errmes == "Status is a duplicate."
+            yield(:success, nil)
+            return true end
+          case result.code
+          when '404'
+            yield(:fail, nil)
+            return nil
+          when '403'
+            Plugin.call(:teokure, api, message, errmes)
             yield(:fail, nil)
             return nil end
         elsif not(result.code[0] == '5'[0])
