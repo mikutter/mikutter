@@ -100,7 +100,10 @@ module Gtk
 
     # 一ヶ月より古い画像を削除する。
     def self.garbage_collect
-      File.delete(*Dir.glob("#{icon_dir}#{File::Separator}*").select(&method(:is_tooold))) rescue nil end
+      File.delete(*Dir.glob("#{File.expand_path(self.icondir)}#{File::Separator}*").select(&method(:is_tooold)))
+    rescue => e
+      notice e
+    end
 
     # 画像が古すぎるならtrueを返す
     def self.is_tooold(file)
