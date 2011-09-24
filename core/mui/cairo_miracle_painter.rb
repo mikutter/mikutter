@@ -6,8 +6,8 @@ require 'cairo'
 miquire :mui, 'coordinate_module'
 miquire :mui, 'icon_over_button'
 miquire :mui, 'textselector'
-miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_helper'
+miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
 miquire :mui, 'pseudo_signal_handler'
@@ -25,7 +25,7 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::Coordinate
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
-  include Gdk::SubPartsHelper(Gdk::ReplyViewer, Gdk::SubPartsFavorite, Gdk::SubPartsRetweet)
+  include Gdk::SubPartsHelper
   include PseudoSignalHandler
   include Gdk::MarkupGenerator
   include UiThreadOnly
