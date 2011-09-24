@@ -6,6 +6,7 @@ require 'gtk2'
 require 'cairo'
 
 class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
+  regist
 
   def get_default_votes
     helper.message.retweeted_by

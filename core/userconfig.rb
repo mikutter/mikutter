@@ -101,7 +101,9 @@ class UserConfig
                                   'legacy_retweet',
                                   'favorite',
                                   'delete_favorite',
-                                  'delete']
+                                  'delete'],
+
+    :subparts_order => ["Gdk::ReplyViewer", "Gdk::SubPartsFavorite", "Gdk::SubPartsRetweet"]
 
   }
 
