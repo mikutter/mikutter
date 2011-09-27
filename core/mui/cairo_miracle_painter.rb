@@ -309,7 +309,7 @@ class Gdk::MiraclePainter < GLib::Object
   # pixbufを組み立てる
   def gen_pixbuf
     @pixmap = gen_pixmap
-    Gdk::Pixbuf.from_drawable(Gdk::Colormap.system, @pixmap, 0, 0, width, height)
+    Gdk::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
   end
 
   # アイコンのpixbufを返す
