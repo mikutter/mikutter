@@ -219,7 +219,7 @@ class TwitterAPI < Mutex
     begin
       callback = Proc.new
       buf = ""
-      access_token.method(:get).call('http://stream.twitter.com/1/statuses/filter.' + FORMAT + get_args(params),
+      access_token.method(:get).call('https://stream.twitter.com/1/statuses/filter.' + FORMAT + get_args(params),
                                      'Host' => 'stream.twitter.com',
                                      'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
         res.read_body{ |chunk|
