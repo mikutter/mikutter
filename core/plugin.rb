@@ -385,6 +385,14 @@ class Plugin::PluginTag
     else
       super end end
 
+  # 設定画面を作る
+  # ==== Args
+  # - String name タイトル
+  # - Proc &place 設定画面を作る無名関数
+  def settings(name, &place)
+    Plugin.call(:settings, name, place)
+  end
+
   private
 
   def regist
