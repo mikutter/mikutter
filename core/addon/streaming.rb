@@ -37,7 +37,7 @@ Module.new do
       Thread.new{
         sleep(1) while not service
         loop{
-          sleep(1)
+          sleep(0.1)
           datum = queue.pop
           yield(service, datum) } }
       define_method("event_#{event_name}"){ |json|
@@ -53,7 +53,7 @@ Module.new do
       thread = Thread.new{
         sleep(1) while not service
         loop{
-          sleep(1)
+          sleep(0.1)
           Thread.stop if events.empty?
           yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze }) } }
       define_method("event_#{event_name}"){ |json|

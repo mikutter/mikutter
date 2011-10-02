@@ -30,6 +30,11 @@ RUBY_VERSION_ARRAY = RUBY_VERSION.split('.').map{ |i| i.to_i }.freeze
 require File.join(File::dirname(__FILE__), 'miquire')
 
 Dir::chdir(File::dirname(__FILE__))
+if RUBY_VERSION >= '1.9.2'
+  ['.', 'lib', 'miku'].each{|path|
+    $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
+  }
+end
 miquire :lib, 'escape'
 miquire :lib, 'lazy'
 
