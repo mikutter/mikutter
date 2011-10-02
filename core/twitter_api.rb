@@ -14,6 +14,7 @@ require 'thread'
 require 'base64'
 require 'io/wait'
 miquire :lib, 'oauth'
+miquire :lib, 'reserver'
 miquire :core, 'environment'
 miquire :core, 'plugin'
 miquire :core, 'configloader'
@@ -83,9 +84,11 @@ class TwitterAPI < Mutex
 
   def api_remain(response = nil)
     if response and response['X-RateLimit-Reset'] then
+      time = Time.at(response['X-RateLimit-Reset'].to_i)
       @api_remain = [ response['X-RateLimit-Limit'].to_i,
                       response['X-RateLimit-Remaining'].to_i,
-                      Time.at(response['X-RateLimit-Reset'].to_i) ]
+                      time ]
+      Reserver.new(time){ Plugin.call(:before_exit_api_section) }
     end
     return *@api_remain
   end
@@ -418,7 +421,7 @@ class TwitterAPI < Mutex
 
       if(@last_id[id] >= 10)
         error "a lot of calls status_show/#{id}"
-        pp caller
+        error caller
         abort
       end
       @last_id[id] += 1

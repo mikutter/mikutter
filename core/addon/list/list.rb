@@ -3,6 +3,7 @@
 
 miquire :addon, 'addon'
 miquire :mui, 'listlist'
+require File.expand_path File.join(File.dirname(__FILE__), 'liststream')
 
 require 'set'
 
@@ -14,14 +15,9 @@ Module.new do
     def initialize(*args)
       super(*args)
       if list.member.empty?
-        # @service.call_api(:list_members,
-        #                   :id => list[:id],
-        #                   :user => @service.user,
-        #                   :cache => false){ |users| list.add_member(users) if users } end end
         @service.list_members( :id => list[:id],
                                :cache => true,
-                               :user => @service.user){ |users| list.add_member(users) if users
-        p users} end end
+                               :user => @service.user){ |users| list.add_member(users) if users } end end
 
     def list
       @options[:list] end
@@ -57,6 +53,10 @@ Module.new do
         update
         @count = 0 end }
 
+    @plugin.add_event(:before_exit_api_section){
+      update_member
+    }
+
     @plugin.add_event(:list){ |query|
       add_tab(query, query) }
 
@@ -66,6 +66,9 @@ Module.new do
 
     @plugin.add_event_hook(:list_data){ |event|
       event.call(@service, @lists) }
+
+    @plugin.add_event_filter(:displayable_lists) { |lists|
+      [lists + displayable_lists.map(&method(:list_detail))] }
 
     exist_lists = []
     @plugin.add_event(:list_data){ |service, lists|
@@ -90,6 +93,15 @@ Module.new do
             remove_unmarked{
               lists.each{ |list|
                 add_tab(list) } } end } end } end
+
+  def self.update_member
+    displayable_lists.each{ |list_id|
+      list = list_detail(list)
+      if list
+        @service.list_members( :id => list_id,
+                               :cache => :keep,
+                               :user => @service.user){ |users| list[:member] = users if users } end }
+  end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{

@@ -153,7 +153,6 @@ class Post
   # 認証がはじかれた場合に呼び出される関数を設定する。
   # ユーザに新たに認証を要求するような関数を設定する。
   def self.auth_confirm_func=(val)
-    p val
     return @@auth_confirm_func = val
   end
 
@@ -390,7 +389,7 @@ class Post
           cnv[:user] = scan_rule(:user_show, msg[:user]) || User.findbyid(msg[:user][:id])
           unless cnv[:user]
             error 'ユーザ情報が不足しています'
-            pp msg[:user]
+            error msg[:user]
             abort end
         rescue => e
           error e
