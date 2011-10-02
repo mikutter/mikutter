@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require File.expand_path('utils')
 miquire :core, 'retriever'
+miquire :mui, 'skin'
 
 class User < Retriever::Model
 

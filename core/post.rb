@@ -201,27 +201,37 @@ class Post
       else
         args[:get_raw_text] ? res : res.first end } end
 
+  def self.def_following_methods(name, api=name)
+    define_method(name) do |limit=-1, next_cursor=-1, cache=false, &proc|
+      following_method(api, limit,
+                       :id => service.user,
+                       :get_raw_text => true,
+                       :cache => cache,
+                       :cursor => next_cursor, &proc) end end
 
   # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followers(limit=-1, next_cursor=-1, cache=false, &proc)
-    following_method(:followers, limit, next_cursor, cache, &proc) end
+  def_following_methods(:followers)
 
   # フォローしている人のID一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followers_id(limit=-1, next_cursor=-1, cache=false, &proc)
-    following_method(:followers_id, limit, next_cursor, &proc) end
+  def_following_methods(:followers_id)
 
   # フォローされている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followings(limit=-1, next_cursor=-1, cache=false, &proc)
-    following_method(:friends, limit, next_cursor, cache, &proc) end
+  def_following_methods(:followings, :friends)
 
   # フォローされている人のID一覧を取得する。
   # 取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
-  def followings_id(limit=-1, next_cursor=-1, cache=false, &proc)
-    following_method(:friends_id, limit, next_cursor, cache, &proc) end
+  def_following_methods(:followings_id, :friends_id)
+
+  def list_members(param, &proc)
+    args = {
+      :cursor => -1,
+      :cache => :keep }.merge(param)
+    following_method(:list_members, -1, args, &proc)
+  end
 
   # 検索文字列 _q_ で、サーバ上から全てのアカウントの投稿を対象に検索する。
   # 別スレッドで実行され、結果はブロックの引数として与えられる。
@@ -344,26 +354,27 @@ class Post
         @code = tl.code
       else
         Plugin.call(:apifail, (tl.methods.include?(:code) and tl.code)) end }
-    return result  end
+    return result end
 
-  def query_following_method(api, limit=-1, next_cursor=-1, cache=:keep)
-    if(next_cursor and next_cursor != 0 and limit != 0)
-      res, raw = service.scan(api.to_sym,
-                              :id => service.user,
-                              :get_raw_text => true,
-                              :cache => cache,
-                              :cursor => next_cursor)
+  # args
+  # cache :: true or false of :keep
+  # cursor :: next cursor
+  # limit :: paging limit (nil means infinity)
+  def query_following_method(api, limit, args)
+    if(args[:cursor] and args[:cursor] != 0 and limit != 0)
+      args[:get_raw_text] = true
+      res, raw = service.scan(api.to_sym, args)
       return [] if not res
-      res + query_following_method(api, limit-1, raw[:next_cursor], cache)
+      args[:cursor] = raw[:next_cursor]
+      res + query_following_method(api, limit-1, args)
     else
       [] end end
 
-  def following_method(api, limit=-1, next_cursor=-1, cache=:keep, &proc)
-    no_mainthread
+  def following_method(api, limit = -1, args = {}, &proc)
     if proc
-      proc.call(query_following_method(api, limit, next_cursor, cache))
+      proc.call(query_following_method(api, limit, args))
     else
-      query_following_method(api, limit, next_cursor, cache) end end
+      query_following_method(api, limit, args) end end
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|

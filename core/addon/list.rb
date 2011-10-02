@@ -14,10 +14,14 @@ Module.new do
     def initialize(*args)
       super(*args)
       if list.member.empty?
-        @service.call_api(:list_members,
-                          :id => list[:id],
-                          :user => @service.user,
-                          :cache => false){ |users| list.add_member(users) if users } end end
+        # @service.call_api(:list_members,
+        #                   :id => list[:id],
+        #                   :user => @service.user,
+        #                   :cache => false){ |users| list.add_member(users) if users } end end
+        @service.list_members( :id => list[:id],
+                               :cache => true,
+                               :user => @service.user){ |users| list.add_member(users) if users
+        p users} end end
 
     def list
       @options[:list] end
@@ -261,7 +265,3 @@ Module.new do
 
   boot
 end
-# ~> -:158: syntax error, unexpected '}', expecting kEND
-# ~>         end } end
-# ~>              ^
-# ~> -:232: syntax error, unexpected $end, expecting '}'

@@ -464,7 +464,10 @@ class TwitterAPI < Mutex
   end
 
   def list_members(args=nil)
-    get_with_auth("/#{args[:user]}/#{args[:id]}/members." + FORMAT, head(args))
+    path = "/#{args[:user]}/#{args[:id]}/members." + FORMAT
+    if(args[:cache] == :keep and args[:cursor] == -1)
+      FileUtils.rm_rf(Dir.glob(File::expand_path(Environment::CACHE + path) + '*')) end
+    get_with_auth(path + get_args(args), head(args))
   end
 
   def list_user_followers(args=nil)
