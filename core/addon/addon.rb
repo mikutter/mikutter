@@ -110,7 +110,6 @@ module Addon
       if(role.respond_to? :each)
         result = {}
         role.each{|x| result[x] = options[x] }
-        p [role, result]
         result
       else
         options[role] end end

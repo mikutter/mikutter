@@ -28,7 +28,6 @@ module Plugin::DirectMessage
     def modify_date(user)
       @ul.each { |model, path, iter|
         if iter[4] == user[:id]
-          p user
           iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
             iter[0] = pixbuf }
           iter[1] = user[:idname]

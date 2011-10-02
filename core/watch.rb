@@ -59,7 +59,7 @@ class Watch
     Post.services_refresh
     Post.primary_service.user_initialize
     Plugin.call(:boot, Post.primary_service)
-    p Post.auth_confirm_func
+    Post.auth_confirm_func
   end
 
   def action
