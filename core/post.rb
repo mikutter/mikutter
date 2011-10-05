@@ -202,11 +202,11 @@ class Post
 
   def self.def_following_methods(name, api=name)
     define_method(name) do |limit=-1, next_cursor=-1, cache=false, &proc|
-      following_method(api, limit,
-                       :id => service.user,
-                       :get_raw_text => true,
-                       :cache => cache,
-                       :cursor => next_cursor, &proc) end end
+      smart_pager(api, limit,
+                  :id => service.user,
+                  :get_raw_text => true,
+                  :cache => cache,
+                  :cursor => next_cursor, &proc) end end
 
   # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
@@ -229,8 +229,25 @@ class Post
     args = {
       :cursor => -1,
       :cache => :keep }.merge(param)
-    following_method(:list_members, -1, args, &proc)
+    smart_pager(:list_members, -1, args, &proc)
   end
+
+  # ページつきAPIを自動的にさかのぼって取得する。
+  # カレントスレッドをブロックするので注意
+  # ==== Args
+  # api :: API名(Symbol)
+  # limit :: 遡るページ数。-1なら無限
+  # args :: APIの引数(Hash)
+  # &proc :: 終了後に呼ばれるコールバック
+  # ==== Return
+  # ブロックが指定された場合は、APIの問い合わせが全て終わったら全てを結合して
+  # ブロックの第一引数に配列として渡し、ブロックの戻り値を返す。
+  # ブロックが指定されなかった場合は、その配列を返す。
+  def smart_pager(api, limit = -1, args = {}, &proc)
+    if proc
+      proc.call(smart_pager_inner(api, limit, args))
+    else
+      smart_pager_inner(api, limit, args) end end
 
   # 検索文字列 _q_ で、サーバ上から全てのアカウントの投稿を対象に検索する。
   # 別スレッドで実行され、結果はブロックの引数として与えられる。
@@ -359,21 +376,15 @@ class Post
   # cache :: true or false of :keep
   # cursor :: next cursor
   # limit :: paging limit (nil means infinity)
-  def query_following_method(api, limit, args)
+  def smart_pager_inner(api, limit, args)
     if(args[:cursor] and args[:cursor] != 0 and limit != 0)
       args[:get_raw_text] = true
       res, raw = service.scan(api.to_sym, args)
       return [] if not res
       args[:cursor] = raw[:next_cursor]
-      res + query_following_method(api, limit-1, args)
+      res + smart_pager_inner(api, limit-1, args)
     else
       [] end end
-
-  def following_method(api, limit = -1, args = {}, &proc)
-    if proc
-      proc.call(query_following_method(api, limit, args))
-    else
-      query_following_method(api, limit, args) end end
 
   def message_parser(user_retrieve)
     tclambda(Hash){ |msg|
@@ -515,6 +526,7 @@ class Post
       :followers => users_parser,
       :friends_id => ids,
       :followers_id => ids,
+      :favorites => timeline_parser,
       :favorite => unimessage_parser,
       :unfavorite => unimessage_parser,
       :status_show => unimessage_parser,

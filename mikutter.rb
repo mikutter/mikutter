@@ -49,12 +49,6 @@ trace_var('$debug'){ require 'pp'; pp caller(); abort }
 
 Dir.chdir(File.join(File.dirname($0), 'core'))
 
-if RUBY_VERSION >= '1.9.2'
-  ['.', 'lib', 'miku'].each{|path|
-    $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
-  }
-end
-
 require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'watch'
