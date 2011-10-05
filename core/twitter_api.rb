@@ -540,6 +540,14 @@ class TwitterAPI < Mutex
     delete_with_auth("/directmessages/destroy/#{msg[:id]}.#{FORMAT}", head)
   end
 
+  def favorites(args = {})
+    path = '/favorites.' + FORMAT + get_args(args.merge(DEFAULT_API_ARGUMENT))
+    head = {'Host' => HOST}
+    if (User.findbyid(args[:user_id])[:protected] rescue nil)
+      get_with_auth(path, head)
+    else
+      get(path, head) end end
+
   def favorite(id)
     path = "/favorites/create/#{id}." + FORMAT
     post_with_auth(path)
