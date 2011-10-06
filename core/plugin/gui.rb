@@ -78,7 +78,7 @@ module Plugin
         @window.signal_connect(:key_press_event){ |widget, event|
           Plugin.call(:keypress, Gtk.keyname([event.keyval ,event.state]))
           if Gtk.keyname([event.keyval ,event.state]) == 'Alt + x'
-            input = Gtk::PostBox.new(Executer.new(watch), :delegate_other => false)
+            input = ExecuteBox.new(Executer.new(watch), :delegate_other => false)
             @prompt.add(input).show_all
             input.active
             true
@@ -296,6 +296,10 @@ module Plugin
         [(time or (Time.new - last_controlled))] } end
 
   end
+
+  class ExecuteBox < Gtk::PostBox
+    def add_footer?
+      false end end
 
   class Executer
     @@toplevel = MIKU::SymbolTable.new.run_init_script
