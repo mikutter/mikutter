@@ -24,7 +24,10 @@ Module.new do
 
     def update(messages)
       messages.each{ |m|
-        list.add_member(m[:user]) if not list.member?(m[:user]) }
+        if list.member?(m[:user])
+          idnames = m.receive_user_screen_names
+          if m.retweet? or idnames.empty? or list.member.any?{ |user| idnames.include?(user[:idname]) }
+            list.add_member(m[:user]) end end }
       super(messages) end
 
     def suffix
