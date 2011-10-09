@@ -62,8 +62,18 @@ Module.new do
   rcbox.pack_start(Mtk.adjustment('フォロー', :retrieve_count_followings, 1, 100000), false)
   rcbox.pack_start(Mtk.adjustment('フォロワー', :retrieve_count_followers, 1, 100000), false)
   rcbox.pack_start(Mtk.adjustment('ダイレクトメッセージ', :retrieve_count_direct_messages, 1, 200), false)
+
+  queue_interval_count = Gtk::Frame.new('イベントの発生頻度(ミリ秒単位)').set_border_width(8)
+  qibox = Gtk::VBox.new(false, 0).set_border_width(4)
+  queue_interval_count.add(qibox)
+  qibox.pack_start(Mtk.adjustment('タイムラインとリプライとリツイート', :update_queue_delay, 1, 1000), false)
+  qibox.pack_start(Mtk.adjustment('ふぁぼられ', :favorite_queue_delay, 1, 1000), false)
+  qibox.pack_start(Mtk.adjustment('フォロワー', :follow_queue_delay, 1, 1000), false)
+  qibox.pack_start(Mtk.adjustment('ダイレクトメッセージ', :direct_message_queue_delay, 1, 1000), false)
+
   box.pack_start(retrieve_interval, false)
   box.pack_start(retrieve_count, false)
+  box.pack_start(queue_interval_count, false)
   box.pack_start(Mtk.boolean(:retrieve_force_mumbleparent, 'リプライ元をサーバに問い合わせて取得する'), false)
   box.pack_start(Mtk.boolean(:anti_retrieve_fail, 'つぶやきの取得漏れを防止する（遅延対策）'), false)
   box.pack_start(Gtk::Label.new('遅延に強くなりますが、ちょっと遅くなります。'), false)

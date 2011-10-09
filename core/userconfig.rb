@@ -34,6 +34,11 @@ class UserConfig
     :retrieve_count_followers => 20,   # followerを取得する数(int)
     :retrieve_count_direct_messages => 200,   # followerを取得する数(int)
 
+    :update_queue_delay => 100,
+    :favorite_queue_delay => 100,
+    :follow_queue_delay => 100,
+    :direct_message_queue_delay => 100,
+
     # User Stream
     :realtime_rewind => true,
 
