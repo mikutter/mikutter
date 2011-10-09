@@ -178,6 +178,13 @@ class Message < Retriever::Model
       if match
         match[1] == other[:idname] end end end
 
+  # このツイートが宛てられたユーザを可能な限り推測して、その idname(screen_name) を配列で返す。
+  # 例えばツイート本文内に「@a @b @c」などと書かれていたら、["a", "b", "c"]を返す。
+  # ==== Return
+  # 宛てられたユーザの idname(screen_name) の配列
+  def receive_user_screen_names
+    match = self[:message].to_s.to_enum(:each_matches, /@([a-zA-Z0-9_]+)/).map{ |m| m[1] } end
+
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
     children.any?{ |m| m.from_me? } end

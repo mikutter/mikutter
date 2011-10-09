@@ -15,13 +15,12 @@ Plugin::create(:liststream) do
               member + list[:member]
             else
               member end }
-          users = member - Plugin.filtering(:followings, []).first
-          if users.empty?
+          not_followings = member - Plugin.filtering(:followings, []).first
+          if not_followings.empty?
             sleep(60)
           else
-            service.streaming(:filter_stream, :follow => users.map(&:id).join(',')){ |json|
+            service.streaming(:filter_stream, :follow => not_followings.map(&:id).join(',')){ |json|
               json.strip!
-              err = json
               case json
               when /^\{.*\}$/
                 service.__send__(:parse_json, json, :streaming_status) rescue nil end } end
