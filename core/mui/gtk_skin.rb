@@ -6,7 +6,9 @@ module MUI
   class Skin
 
     def self.get(filename)
-      File.join(*[path, filename].flatten)
+      fn = File.join(*[path, filename].flatten)
+      return MUI::Skin.get('notfound.png') if 'notfound.png' != filename and not FileTest.exist?(fn)
+      fn
     end
 
     def self.path

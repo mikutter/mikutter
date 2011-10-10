@@ -46,7 +46,9 @@ module Gtk
               self.changed
               self.notify_observers end }
           filename = File.expand_path(MUI::Skin.get("loading.png")) end
-        img = filename end
+        img = filename
+      elsif not FileTest.exist?(img)
+        img = MUI::Skin.get('notfound.png') end
       super(WebIcon.genpixbuf(img, width, height)) end
 
     # ファイル名に応じた Gdk::Pixbuf を返す。
