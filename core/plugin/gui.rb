@@ -301,6 +301,10 @@ module Plugin
 
   end
 
+  class ExecuteBox < Gtk::PostBox
+    def add_footer?
+      false end end
+
   class Executer
     @@toplevel = MIKU::SymbolTable.new.run_init_script
 

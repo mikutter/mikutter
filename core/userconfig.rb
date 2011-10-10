@@ -83,7 +83,7 @@ class UserConfig
     # 非公式RTにin_reply_to_statusをつける
     :legacy_retweet_act_as_reply => false,
 
-    :biyly_user => '',
+    :bitly_user => '',
     :bitly_apikey => '',
 
     :mumble_basic_font => 'Sans 10',
