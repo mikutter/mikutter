@@ -27,7 +27,7 @@ mikutterはruby1.9.2を推奨しています。
 
 ** Debian/Ubuntuでのインストール方法
    1. aptでインストール
-      - sudo apt-get install libgnome2-ruby libopenssl-ruby ruby1.8 ruby
+      - sudo apt-get install ruby1.9.1 ruby-gnome2
    2. 推奨パッケージたち（オプション）
       - sudo apt-get install libnotify-bin
         -> 共通の設定へ

@@ -12,6 +12,8 @@ You should have received a copy of the GNU General Public License along with thi
 
 =end
 
+ENV['LIBOVERLAY_SCROLLBAR'] = '0'
+
 def argument_parser()
   $debug = false
   $learnable = true

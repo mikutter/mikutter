@@ -6,11 +6,11 @@
 require 'set'
 require 'thread'
 
-END{
-  ObjectSpace.each_object(WeakStore){ |s|
-    s.exit = true
-  }
-}
+# END{
+#   ObjectSpace.each_object(WeakStore){ |s|
+#     s.exit = true
+#   }
+# }
 
 class WeakStore
   attr_accessor :exit
