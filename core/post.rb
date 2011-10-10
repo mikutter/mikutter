@@ -201,12 +201,14 @@ class Post
         args[:get_raw_text] ? res : res.first end } end
 
   def self.def_following_methods(name, api=name)
-    define_method(name) do |limit=-1, next_cursor=-1, cache=false, &proc|
+    define_method(name) do |*args, &proc|
+      limit, next_cursor, cache = [-1, -1, false].to_enum(:each_with_index).map{ |d, i| defined?(args[i]) ? args[i] : d }
       smart_pager(api, limit,
                   :id => service.user,
                   :get_raw_text => true,
                   :cache => cache,
-                  :cursor => next_cursor, &proc) end end
+                  :cursor => next_cursor, &proc) end
+    end
 
   # フォローしている人一覧を取得する。取得したリストは、ブロックの引数として呼び出されることに注意。
   # Threadを返す。
