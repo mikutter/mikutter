@@ -16,6 +16,9 @@ module Plugin
   class GUI
     include ConfigLoader
 
+    REQUIRE_RUBYGTK_VERSION = [1,0,0]
+    REQUIRE_RUBY_VERSION = [1,9,2]
+
     module TabButton
       include Comparable
       attr_accessor :label
@@ -45,47 +48,48 @@ module Plugin
     end
     memoize :color
 
-    def onboot(watch)
-      if((Gtk::BINDING_VERSION <=> [1, 0, 0]) < 0)
+    def version_check(name, require, now)
+      if((now <=> require) < 0)
         if $skip_version_check
-          Plugin.call(:update, nil, [Message.new(:message => "Ruby Gnome2のバージョンが古すぎます(1.0.0以降が必要、現在#{Gtk::BINDING_VERSION.join('.')})。\n問題が起こるかもしれません。更新してください。", :system => true)])
+          Plugin.call(:update, nil, [Message.new(:message => "#{name}のバージョンが古すぎます(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n問題が起こるかもしれません。更新してください。", :system => true)])
         else
-          chi_fatal_alert("Ruby Gnome2のバージョンが古すぎます"+
-                          "(1.0.0以降が必要、現在#{Gtk::BINDING_VERSION.join('.')})。\n"+
-                          "どうしても起動したい人は、--skip-version-checkをつけて起動してください。")
+          chi_fatal_alert("#{name}のバージョンが古すぎます"+
+                          "(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n"+
+                          "どうしても起動したい人は、--skip-version-checkをつけて起動してください。") end end end
+
+    def onboot(watch)
+      version_check('Ruby', REQUIRE_RUBY_VERSION, RUBY_VERSION_ARRAY)
+      version_check('RubyGnome2', REQUIRE_RUBYGTK_VERSION, Gtk::BINDING_VERSION)
+
+      self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user_by_cache}? みっくみくにしてやんよ")
+      @window = self.gen_window()
+      container = Gtk::VBox.new(false, 0)
+      main = Gtk::HBox.new(false, 0)
+      @paneshell = Gtk::HBox.new(false, 0)
+      @pane = Gtk::HBox.new(true, 0)
+      sidebar = Gtk::VBox.new(false, 0)
+      @prompt = Gtk::VBox.new(false, 0)
+      mumbles = Gtk::VBox.new(false, 0)
+      postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
+      mumbles.pack_start(postbox)
+      @window.set_focus(postbox.post)
+      UserConfig[:tab_order] = UserConfig[:tab_order].select{ |n| not n.empty? }
+      UserConfig[:tab_order].size.times{ |cnt|
+        @pane.pack_end(self.books(cnt)) }
+      main.pack_start(@paneshell.pack_end(@pane)).closeup(sidebar)
+      newpane
+      @window.add(container.closeup(mumbles).pack_start(main).closeup(@prompt).closeup(statusbar))
+      set_icon
+      @window.signal_connect(:key_press_event){ |widget, event|
+        Plugin.call(:keypress, Gtk.keyname([event.keyval ,event.state]))
+        if Gtk.keyname([event.keyval ,event.state]) == 'Alt + x'
+          input = Gtk::PostBox.new(Executer.new(watch), :delegate_other => false)
+          @prompt.add(input).show_all
+          input.active
+          true
         end
-      end
-      Gtk::Lock.synchronize do
-        self.statusbar.push(self.statusbar.get_context_id('hello'), "#{watch.user_by_cache}? みっくみくにしてやんよ")
-        @window = self.gen_window()
-        container = Gtk::VBox.new(false, 0)
-        main = Gtk::HBox.new(false, 0)
-        @paneshell = Gtk::HBox.new(false, 0)
-        @pane = Gtk::HBox.new(true, 0)
-        sidebar = Gtk::VBox.new(false, 0)
-        @prompt = Gtk::VBox.new(false, 0)
-        mumbles = Gtk::VBox.new(false, 0)
-        postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
-        mumbles.pack_start(postbox)
-        @window.set_focus(postbox.post)
-        UserConfig[:tab_order] = UserConfig[:tab_order].select{ |n| not n.empty? }
-        UserConfig[:tab_order].size.times{ |cnt|
-          @pane.pack_end(self.books(cnt)) }
-        main.pack_start(@paneshell.pack_end(@pane)).closeup(sidebar)
-        newpane
-        @window.add(container.closeup(mumbles).pack_start(main).closeup(@prompt).closeup(statusbar))
-        set_icon
-        @window.signal_connect(:key_press_event){ |widget, event|
-          Plugin.call(:keypress, Gtk.keyname([event.keyval ,event.state]))
-          if Gtk.keyname([event.keyval ,event.state]) == 'Alt + x'
-            input = Gtk::PostBox.new(Executer.new(watch), :delegate_other => false)
-            @prompt.add(input).show_all
-            input.active
-            true
-          end
-        }
-        @window.show_all
-      end
+      }
+      @window.show_all
     end
 
     def set_icon
