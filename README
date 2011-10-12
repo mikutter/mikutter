@@ -7,38 +7,39 @@ file:core/skin/data/icon.png
 * 用件
 
 ** 必須アプリケーション:
-- ruby (1.8.7, 1.9.2)
-- ruby gtk
-- rcairo
+- ruby (1.9.2)
+- ruby gtk (1.0.0)
+- rcairo (1.10.0)
 - Open SSL
-mikutterはruby1.9.2を推奨しています。
 
 ** プラグインが必要とするもの(必須ではない):
-- notifyプラグイン
-  - notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
-  - aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
+- notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
+- aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
 
 ** gemで入れるもの(なくてもOKです):
 - httpclient
 
 * OS/ディストリ別インストール方法
-** Windowsでのインストール方法
-   mikutterのサイトより、Windows版をダウンロードして展開し、mikutter.exeを起動してください。
-
-** Debian/Ubuntuでのインストール方法
+** Ubuntu 11.10でのインストール方法
    1. aptでインストール
-      - sudo apt-get install ruby1.9.1 ruby-gnome2
-   2. 推奨パッケージたち（オプション）
-      - sudo apt-get install libnotify-bin
-        -> 共通の設定へ
+      - sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
+   2. バージョンの確認
+      以下のコマンドを実行してください。
+      : $ ruby -v
+      ubuntu 11.10 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。
+      そのため、上記コマンドでruby 1.9.2 以前のバージョンが表示されたら、以下のようなコマンドで起動しなければいけません。
+      : $ ruby1.9.1 mikutter.rb
+      -> 共通の設定へ
 
 ** その他のディストリビューション
    基本的には、その他のディストリでは、同等のライブラリが配布されていたらそれを使ってください。
    また、ディストリによってはmikutterが公式リポジトリに含まれていることがあります。
 
 ** Macでのインストール方法
-   1. これといった設定は必要ありません。
-      -> 共通の設定へ
+   [[http://sites.google.com/site/yorufukurou/]]
+
+** Windowsでのインストール方法
+   [[http://janetter.net/jp/]]
 
 ** 共通の設定
    1. ruby mikutter.rb で起動できます。
@@ -47,10 +48,6 @@ mikutterはruby1.9.2を推奨しています。
 ** 起動
    単純に、以下のようなコマンドで実行できます。
    : ruby mikutter.rb
-   - Mac OS X
-     portでrubyを入れて、以下のコマンドで起動して下さい。
-     : /opt/local/bin/ruby mikutter.rb
-     また、日本語入力をするためには、XにIMEをインストールする必要があるらしいです。現在調査中です。
 
 * ディレクトリ構成
   - mikutter.rb 本体起動スクリプト
