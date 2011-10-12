@@ -38,6 +38,7 @@ module Gtk
             @return_to_top = false end
           post_it if @options[:delegated_by] end }
       add(generate_box)
+      set_border_width(2)
       regist end
 
     def posting?
@@ -94,13 +95,12 @@ module Gtk
         [post, send].compact.each{|widget| widget.sensitive = true } end end
 
     def delegate
-      Gtk::Lock.synchronize{
-        if(@options[:postboxstorage] and @options[:delegate_other])
-          options = @options.clone
-          options[:delegate_other] = false
-          options[:delegated_by] = self
-          @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
-          true end } end
+      if(@options[:postboxstorage] and @options[:delegate_other])
+        options = @options.clone
+        options[:delegate_other] = false
+        options[:delegated_by] = self
+        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
+        true end end
 
     def service
       if UserConfig[:legacy_retweet_act_as_reply]
@@ -115,14 +115,14 @@ module Gtk
 
     def brothers
       if(@options[:postboxstorage])
-        Gtk::Lock::synchronize{
-          @options[:postboxstorage].children.find_all{|c| c.sensitive? } }
+        @options[:postboxstorage].children.find_all{|c| c.sensitive? }
       else
         [] end end
 
     def lonely?
       brothers.size <= 1 end
 
+    # フォーカスが外れたことによって削除して良いなら真を返す。
     def destructible?
       if(@options.has_key?(:postboxstorage))
         return false if lonely? or (brothers - [self]).any?{ |w| w.posting? }
@@ -130,12 +130,11 @@ module Gtk
       else
         true end end
 
+    # _related_widgets_ のうちどれもアクティブではなく、フォーカスが外れたら削除される設定の場合、このウィジェットを削除する
     def destroy_if_necessary(*related_widgets)
-      Gtk::Lock::synchronize{
-        if(not(frozen?) and not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and
-           destructible?)
-          destroy
-          true end } end
+      if(not(frozen?) and not([@post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?)
+        destroy
+        true end end
 
     def destroy
       @@ringlock.synchronize{
@@ -171,7 +170,7 @@ module Gtk
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|
         if(not(frozen?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
-          destroy_if_necessary(send, tool) end }
+          destroy_if_necessary(send, tool, *@replies) end }
       false end
 
     # Initialize Methods
@@ -195,9 +194,10 @@ module Gtk
       @post, w_remain = generate_post
       @send = generate_send
       @tool = generate_tool
+      @replies = []
       result = Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
       if(reply?)
-        w_replies = Gtk::VBox.new
+        w_replies = Gtk::VBox.new.add(result)
         in_reply_to_all.each{ |message|
           w_reply = Gtk::HBox.new
           itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
@@ -206,8 +206,9 @@ module Gtk
           ev = Gtk::EventBox.new
           ev.style = get_backgroundstyle(message)
           w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
+          @replies << itv
         }
-        w_replies.add(result)
+        w_replies
       else
         result end end
 
