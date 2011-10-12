@@ -37,6 +37,7 @@ module Gtk
             @return_to_top = false end
           post_it if @options[:delegated_by] end }
       add(generate_box)
+      set_border_width(2)
       regist end
 
     def posting?
@@ -195,7 +196,7 @@ module Gtk
       @replies = []
       result = Gtk::HBox.new(false, 0).closeup(@tool).pack_start(@post).closeup(w_remain).closeup(@send)
       if(reply?)
-        w_replies = Gtk::VBox.new
+        w_replies = Gtk::VBox.new.add(result)
         in_reply_to_all.each{ |message|
           w_reply = Gtk::HBox.new
           itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font, 'foreground' => :mumble_basic_color)
@@ -206,7 +207,7 @@ module Gtk
           w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
           @replies << itv
         }
-        w_replies.add(result)
+        w_replies
       else
         result end end
 
