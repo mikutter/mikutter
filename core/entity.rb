@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 miquire :core, 'message'
 miquire :core, 'userconfig'
+miquire :lib, 'addressable/uri'
 
 class Message::Entity
   include Enumerable
@@ -23,7 +24,8 @@ class Message::Entity
   filter(:urls){ |segment|
     if UserConfig[:shrinkurl_expand]
       if segment[:expanded_url]
-        segment[:face] = MessageConverters.expand_url([segment[:expanded_url]])[segment[:expanded_url]]
+        normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
+        segment[:face] = normalized[2, normalized.size]
       elsif MessageConverters.shrinkable_url_regexp === segment[:url]
         segment[:face] = segment[:expanded_url] = MessageConverters.expand_url([segment[:url]])[segment[:url]] end end
     segment }
@@ -140,12 +142,6 @@ class Message::Entity
     Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
 
   def index_to_escaped_index(index)
-    # index
-    # message.to_show.split(//u)[0, index].map{ |s| Pango::ESCAPE_RULE[s] || s }.join.strsize
-    # Pango::ESCAPE_RULE.inject(message.to_show.split(//u).map{ |s|
-    #                             Pango::ESCAPE_RULE[s] || s }.join.split(//u)[0, index].join){ |str, pair|
-    #   str.gsub(pair[1], pair[0])
-    # }.strsize
     escape_rule = {'>' => '&gt;', '<' => '&lt;'}
     message.to_show.split(//u).map{ |s|
       escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
