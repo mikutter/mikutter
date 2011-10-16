@@ -395,6 +395,21 @@ def wakachigaki(str, ret_io=false)
       io.close_write
       io.read } end end
 
+class Module
+  # ハッシュ用のアクセサ。最初から空の連想配列が入っている
+  # 引数なしで呼び出すとハッシュ自身を返し、１つ引数を与えると、引数をキーにハッシュの値を返す
+  def attr_hash_accessor(*names)
+    names.each { |name|
+      hash = {}
+      define_method(name){ |*args|
+        case args.size
+        when 0
+          hash
+        when 1
+          hash[args[0]]
+        when 2
+          hash[args[0]] = args[1] end } } end end
+
 class Object
 
   def self.defun(method_name, *args, &proc)
