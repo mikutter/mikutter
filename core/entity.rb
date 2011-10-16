@@ -36,7 +36,7 @@ class Message::Entity
   def initialize(message)
     type_strict message => Message
     @message = message
-    @generate_thread = Thread.new{
+    @generate_thread = Thread.new {
       @generate_value = _generate_value || []
       def self.generate_value
         @generate_value end

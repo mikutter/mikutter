@@ -8,7 +8,19 @@ class MessageConverters
 
   class << self
 
-    @@shrinked_cache = {}         # { shrinked => expanded }
+    attr_hash_accessor :expand_by_cache, :shrink_by_cache
+
+    def cache(shrinked, expanded)
+      expand_by_cache[shrinked] = expanded.freeze
+      shrink_by_cache[expanded] = shrinked.freeze end
+
+    # {expanded => shrinked}
+    def shrink_by_cache(src=nil)
+      @expanded ||= {}
+      if src
+        @expanded[src]
+      else
+        @expanded end end
 
     def regist
       converter = self.new
@@ -50,7 +62,7 @@ class MessageConverters
         if shrinked_url?(url)
           result[url] = url
         else
-          result[url] = @@shrinked_cache.key(url) || Plugin.filtering(:shrink_url, url).first.tap{ |s| @@shrinked_cache[s.freeze] = url } end }
+          result[url] = shrink_by_cache(url) || Plugin.filtering(:shrink_url, url).first.tap{ |s| cache(s, url) } end }
       result.freeze end
 
     # URL _url_ を展開する。urlは配列で渡す。
@@ -66,11 +78,13 @@ class MessageConverters
     # それ以上展開できなくなれば直ちにそれを返す。
     def expand_url_one(url, recur=0)
       if recur < 4 and shrinked_url?(url)
-        expanded = @@shrinked_cache[url] ||= Plugin.filtering(:expand_url, url).first.freeze
+        expanded = Plugin.filtering(:expand_url, url).first.freeze
         if(expanded == url)
           url
         else
-          expand_url_one(expanded, recur + 1) end
+          result = expand_url_one(expanded, recur + 1)
+          cache(url, result)
+          result end
       else
         url end end
 

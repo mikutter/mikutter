@@ -49,7 +49,7 @@ class Bitly < MessageConverters
 
   # 引数urlがこのプラグインで短縮されているものならtrueを返す
   def shrinked_url?(url)
-    Regexp.new('http://(bit\\.ly|j\\.mp)/') === url end
+    url.is_a? String and Regexp.new('^http://(bit\\.ly|j\\.mp)/') === url end
 
   # urlの配列 urls を受け取り、それら全てを短縮して返す
   def shrink_url(url)
@@ -64,8 +64,9 @@ class Bitly < MessageConverters
       sleep(1) }
     nil end
 
-  # 短縮されたURLの配列 urls を受け取り、それら全てを展開して返す。
+  # 短縮されたURL url を受け取り、それら全てを展開して返す。
   def expand_url(url)
+    return nil unless shrinked_url? url
     url.freeze
     stopper = Queue.new
     atomic{
@@ -80,6 +81,8 @@ class Bitly < MessageConverters
 
   def expand_url_many(urls)
     notice urls
+    urls = urls.select &method(:shrinked_url?)
+    return nil if urls.empty?
     query = "login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
       "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
     3.times{
