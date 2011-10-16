@@ -24,8 +24,12 @@ class Message::Entity
   filter(:urls){ |segment|
     if UserConfig[:shrinkurl_expand]
       if segment[:expanded_url]
-        normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
-        segment[:face] = normalized[2, normalized.size]
+        begin
+          normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
+          segment[:face] = normalized[2, normalized.size]
+        rescue => e
+          error e
+          segment[:face] = segment[:display_url] end
       elsif MessageConverters.shrinkable_url_regexp === segment[:url]
         segment[:face] = segment[:expanded_url] = MessageConverters.expand_url([segment[:url]])[segment[:url]] end end
     segment }
