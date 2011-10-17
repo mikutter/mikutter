@@ -39,6 +39,16 @@ class Message::Entity
     segment[:url] = segment[:media_url]
     segment }
 
+  filter(:hashtags){ |segment|
+    segment[:face] ||= "#"+segment[:text]
+    segment[:url] ||= "#"+segment[:text]
+    segment }
+
+  filter(:user_mentions){ |segment|
+    segment[:face] ||= "@"+segment[:screen_name]
+    segment[:url] ||= "@"+segment[:screen_name]
+    segment }
+
   def initialize(message)
     type_strict message => Message
     @message = message
@@ -133,14 +143,23 @@ class Message::Entity
       message[:entities].each{ |slug, children|
         children.each{ |link|
           rule = @@linkrule[slug] || {}
-          range = indices_to_range(link[:indices])
-          face = (message.to_show.split(//u)[range] || ['']).join
-          result << @@filter[slug].call(rule.merge({ :message => message,
-                                                     :range => range,
-                                                     :face => face,
-                                                     :from => :message_entities,
-                                                     :url => face}.merge(link))).freeze } } end
+          entity = @@filter[slug].call(rule.merge({ :message => message,
+                                                    :from => :message_entities}.merge(link)))
+          entity[:range] = get_range_by_face(entity) #indices_to_range(link[:indices])
+          result << entity.freeze } } end
     result.sort_by{ |r| r[:range].first }.freeze end
+
+  def get_range_by_face(link)
+    right = message.to_show.index(link[:url], link[:indices][0])
+    left = message.to_show.rindex(link[:url], link[:indices][1])
+    if right and left
+      start = [right - link[:indices][0], left - link[:indices][0]].map(&:abs).min + link[:indices][0]
+      start...(start + link[:url].size)
+    elsif right or left
+      start = right || left
+      start...(start + link[:url].size)
+    else
+      indices_to_range(link[:indices]) end end
 
   def indices_to_range(indices)
     Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
