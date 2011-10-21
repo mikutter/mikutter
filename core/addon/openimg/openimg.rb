@@ -107,6 +107,8 @@ Module.new do
       res = Net::HTTP.new(uri.host).get(uri.path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
         result = get_tagattr(res.body, element_rule)
+        unless result.match(/^https?:/)
+          result = "http:"+result end
         notice result.inspect
         result
       else
