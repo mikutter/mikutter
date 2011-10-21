@@ -18,10 +18,15 @@ class Message::Entity
 
   def self.filter(slug, &filter)
     parent = @@filter[slug]
-    @@filter[slug] = lambda{ |s| filter.call(parent.call(s)) }
+    @@filter[slug] = lambda{ |s|
+      result = filter.call(parent.call(s))
+      [:url, :face].each{ |key|
+        raise InvalidEntityError.new("entity key :#{key} required. but not exist.", message) unless result[key] }
+      result }
     self end
 
   filter(:urls){ |segment|
+    segment[:face] ||= segment[:url]
     if UserConfig[:shrinkurl_expand]
       if segment[:expanded_url]
         begin
@@ -170,5 +175,7 @@ class Message::Entity
       escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
   end
 
+  class InvalidEntityError < Message::MessageError
+  end
 
 end

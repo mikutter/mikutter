@@ -366,7 +366,10 @@ module Retriever
     @@cast[type]
   end
 
-  class InvalidTypeError < Exception
+  class RetrieverError < StandardError
+  end
+
+  class InvalidTypeError < RetrieverError
   end
 
   class Model::Memory

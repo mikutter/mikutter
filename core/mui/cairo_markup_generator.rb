@@ -17,9 +17,9 @@ module Gdk::MarkupGenerator
   # リンクに装飾をつけた文字列の配列を返す。だいたい一文字づつに分かれてる。
   def styled_main_array
     splited = message.to_show.split(//u).map{ |s| Pango::ESCAPE_RULE[s] || s }
-    links.reverse_each{ |l|
-      splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
-    }
+      links.reverse_each{ |l|
+        splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
+      }
     splited end
 
   # Gdk::MarkupGenerator#styled_main_array をjoinした文字列
