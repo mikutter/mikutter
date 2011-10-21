@@ -412,6 +412,18 @@ class Message < Retriever::Model
       return @url
     end
   end
+
+  # 例外を引き起こした原因となるMessageをセットにして例外を発生させることができる
+  class MessageError < Retriever::RetrieverError
+    # messageは、Exceptionクラスと名前が被る
+    attr_reader :to_message
+
+    def initialize(body, message)
+      super("#{body} occured by #{message[:id]}(#{message[:message]})")
+      @to_message = message end
+
+  end
+
 end
 
 miquire :core, 'entity'
