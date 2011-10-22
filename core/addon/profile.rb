@@ -189,7 +189,7 @@ Module.new do
             (event.event_type == Gdk::Event::BUTTON_RELEASE) and
             not(textview.buffer.selection_bounds[2])
           if (event.button == 1)
-            Gtk::openurl('http://twitter.com/'+user[:idname]) end
+            Gtk::openurl('http://twitter.com/#!/'+user[:idname]) end
         elsif(event.is_a?(Gdk::EventMotion))
           body.set_cursor(textview, Gdk::Cursor::HAND2) end
         result }
