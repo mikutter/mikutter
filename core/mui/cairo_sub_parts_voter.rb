@@ -73,10 +73,12 @@ class Gdk::SubPartsVoter < Gdk::SubParts
           context.save{
             context.translate(0, (icon_width/2) - (plc.size[1] / Pango::SCALE / 2))
             context.show_pango_layout(plc) }
-          @icon_ofst = plc.size[0] / Pango::SCALE
+          xpos = @icon_ofst = plc.size[0] / Pango::SCALE
           context.translate(@icon_ofst, 0)
           votes.each{ |user|
-            render_icon(context, user) } } end end
+            render_icon(context, user)
+            xpos += icon_width
+            break if width <= xpos } } end end
     @last_height = height end
 
   def height
