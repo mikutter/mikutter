@@ -51,14 +51,14 @@ class Reserver < Delegator
               recerver = @recervers.first
               sleep_time = recerver.time - Time.now
               if sleep_time <= 0
-                notice "reserver: execute"
                 @recervers.delete recerver
                 Thread.new(&recerver)
               else
-                notice "reserver: wait start"
-                timeout(sleep_time / 2){ Thread.stop } end
+                timeout(1 + sleep_time / 2){ Thread.stop } end
             rescue TimeoutError
-              ; end end end end end
+              ;
+            rescue Exception => e
+              warn e end end end end end
 
   end
 end
