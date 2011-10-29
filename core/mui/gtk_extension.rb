@@ -177,7 +177,7 @@ end
 
 # _url_ を設定されているブラウザで開く
 def Gtk::openurl(url)
-  if UserConfig[:url_open_command]
+  if UserConfig[:url_open_specified_command]
     bg_system(UserConfig[:url_open_command], url)
   elsif(defined? Win32API) then
     shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')

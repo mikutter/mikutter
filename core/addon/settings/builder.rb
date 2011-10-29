@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+miquire :core, 'plugin'
+
+require 'gtk2'
+
 =begin rdoc
 プラグインに、簡単に設定ファイルを定義する機能を提供する。
 以下の例は、このクラスを利用してプラグインの設定画面を定義する例。
@@ -29,11 +33,11 @@ class Plugin::Setting < Gtk::VBox
     input.accepts_tab = false
     input.editable = true
     input.width_request = HYDE
-    input.buffer.text = UserConfig[config] || ''
+    input.buffer.text = Listener[config].get || ''
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     input.buffer.ssc('changed'){ |widget|
-      UserConfig[config] = widget.text }
+      Listener[config].set widget.text }
     closeup container
     container
   end
@@ -47,11 +51,11 @@ class Plugin::Setting < Gtk::VBox
   def adjustment(name, config, min, max)
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(name), false, true, 0)
-    adj = Gtk::Adjustment.new((UserConfig[config] or min), min*1.0, max*1.0, 1.0, 5.0, 0.0)
+    adj = Gtk::Adjustment.new((Listener[config].get or min), min*1.0, max*1.0, 1.0, 5.0, 0.0)
     spinner = Gtk::SpinButton.new(adj, 0, 0)
     spinner.wrap = true
     adj.signal_connect('value-changed'){ |widget, e|
-      UserConfig[config] = widget.value.to_i
+      Listener[config].set widget.value.to_i
       false
     }
     closeup container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
@@ -62,11 +66,11 @@ class Plugin::Setting < Gtk::VBox
   # ==== Args
   # [label] ラベル
   # [config] 設定のキー
-  def boolean(label, key)
+  def boolean(label, config)
     input = Gtk::CheckButton.new(label)
-    input.active = UserConfig[key]
+    input.active = Listener[config].get
     input.signal_connect('toggled'){ |widget|
-      UserConfig[key] = widget.active? }
+      Listener[config].set widget.active? }
     closeup input
     input end
 
@@ -75,11 +79,9 @@ class Plugin::Setting < Gtk::VBox
   # [label] ラベル
   # [config] 設定のキー
   # [current] 初期のディレクトリ
-  def fileselect(label, key, current=Dir.pwd)
-    container = input = nil
-    Mtk.input(key, label){ |c, i|
-      container = c
-      input = i }
+  def fileselect(label, config, current=Dir.pwd)
+    container = input(label, config)
+    input = container.children.last.children.first
     button = Gtk::Button.new('参照')
     container.pack_start(button, false)
     button.signal_connect('clicked'){ |widget|
@@ -91,11 +93,26 @@ class Plugin::Setting < Gtk::VBox
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(current)
       if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-        UserConfig[key] = dialog.filename
+        Listener[config].set dialog.filename
         input.text = dialog.filename
       end
       dialog.destroy
     }
+    container
+  end
+
+  # 一行テキストボックス
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  def input(label, config)
+    container = Gtk::HBox.new(false, 0)
+    input = Gtk::Entry.new
+    input.text = Listener[config].get
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    input.signal_connect('changed'){ |widget|
+      Listener[config].set widget.text }
     closeup container
     container
   end
@@ -141,9 +158,66 @@ class Plugin::Setting < Gtk::VBox
     closeup about
     about end
 
+  # フォントを決定させる。押すとフォント、サイズを設定するダイアログが出てくる。
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  def font(label, config)
+    closeup container = Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(fontselect(label, config))
+    container end
+
+  # 色を決定させる。押すと色を設定するダイアログが出てくる。
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  def color(label, config)
+    closeup container = Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(colorselect(label, config))
+    container end
+
+  # フォントと色を決定させる。
+  # ==== Args
+  # [label] ラベル
+  # [font] フォントの設定のキー
+  # [color] 色の設定のキー
+  def fontcolor(label, font, color)
+    closeup container = font(label, font).closeup(colorselect(label, color))
+    container end
+
+  # 要素を１つ選択させる
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  # [default]
+  #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
+  #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
+  # [&block] 内容
+  def select(label, config, default = {})
+    builder = Plugin::Setting::Select.new(default)
+    builder.instance_eval(&Proc.new) if block_given?
+    closeup container = builder.build(label, config)
+    container end
+
   private
   def about_converter
     Hash.new(ret_nth).merge!( :logo => lambda{ |value| Gtk::WebIcon.new(value).pixbuf rescue nil } ) end
   memoize :about_converter
 
+  def colorselect(label, config)
+    color = Listener[config].get
+    button = Gtk::ColorButton.new((color and Gdk::Color.new(*color)))
+    button.title = label
+    button.signal_connect('color-set'){ |w|
+      Listener[config].set w.color.to_a }
+    button end
+
+  def fontselect(label, config)
+    button = Gtk::FontButton.new(Listener[config].get)
+    button.title = label
+    button.signal_connect('font-set'){ |w|
+      Listener[config].set w.font_name }
+    button end
+
 end
+
+require File.expand_path File.join(File.dirname(__FILE__), 'select')
+require File.expand_path File.join(File.dirname(__FILE__), 'listener')
