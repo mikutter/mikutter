@@ -38,11 +38,17 @@ Plugin::create(:basic_settings) do
       adjustment('ダイレクトメッセージ', :direct_message_queue_delay, 1, 1000)
     end
 
+    settings 'リアルタイム更新' do
+      boolean('ホームタイムライン', :realtime_rewind).
+        tooltip 'Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります'
+      boolean('リスト', :list_realtime_rewind).
+        tooltip 'Twitter の Streaming APIを用いて、リアルタイムにリストの更新を受け取ります'
+    end
+
     boolean 'リプライ元をサーバに問い合わせて取得する', :retrieve_force_mumbleparent
     boolean('つぶやきの取得漏れを防止する（遅延対策）', :anti_retrieve_fail).
       tooltip '遅延に強くなりますが、ちょっと遅くなります。'
-    boolean('リアルタイム更新', :realtime_rewind).
-      tooltip 'Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります'
+
     about "#{Environment::NAME} について", {
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,

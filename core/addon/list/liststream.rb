@@ -2,9 +2,23 @@
 # リストをリアルタイム化
 
 Plugin::create(:liststream) do
+  thread = nil
   Delayer.new {
-    service = Post.services.first
+    thread = start if UserConfig[:list_realtime_rewind]
+    UserConfig.connect(:list_realtime_rewind) do |key, new_val, before_val, id|
+      if new_val
+        notice 'list stream: enable'
+        thread = start unless thread.is_a? Thread
+      else
+        notice 'list stream: disable'
+        thread.kill if thread.is_a? Thread
+        thread = nil
+      end
+    end
+  }
 
+  def self.start
+    service = Post.services.first
     Thread.new{
       loop{
         sleep(3)
@@ -27,7 +41,8 @@ Plugin::create(:liststream) do
         rescue TimeoutError => e
         rescue => e
           warn e end
-        notice 'list stream: disconnected' } } }
+        notice 'list stream: disconnected' } }
+  end
 
 end
 
