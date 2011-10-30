@@ -22,13 +22,9 @@ Module.new do
     def list
       @options[:list] end
 
+    # Messageをタイムラインに追加する
     def update(messages)
-      messages.each{ |m|
-        if list.member?(m[:user])
-          idnames = m.receive_user_screen_names
-          if m.retweet? or idnames.empty? or list.member.any?{ |user| idnames.include?(user[:idname]) }
-            list.add_member(m[:user]) end end }
-      super(messages) end
+      super(messages.select{ |m| list.member?(m[:user]) }) end
 
     def suffix
       '(List)' end
@@ -65,7 +61,7 @@ Module.new do
 
     @plugin.add_event(:appear){ |messages|
       @tabclass.tabs.each{ |tab|
-        tab.update(messages.select{ |m| tab.list.member?(m[:user]) }) } }
+        tab.update(messages) } }
 
     @plugin.add_event_hook(:list_data){ |event|
       event.call(@service, @lists) }

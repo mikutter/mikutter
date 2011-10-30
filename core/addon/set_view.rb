@@ -16,12 +16,12 @@ Plugin::create(:set_view) do
       color '自分のつぶやき', :mumble_self_bg
     end
 
-    boolean('つぶやきの右側にボタンを表示する', :show_cumbersome_buttons).
-      tooltip("各つぶやきの右側に、リプライボタンと引用ボタンを表示します。")
-    boolean('リプライを返したつぶやきにはアイコンを表示', :show_replied_icon).
-      tooltip("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。")
+    settings('Mentions') do
+      boolean('リプライを返したつぶやきにはアイコンを表示', :show_replied_icon).
+        tooltip("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。")
+    end
 
-    settings('リツイート') do
+    settings('Retweets') do
       boolean('リツイートを表示する', :retweeted_by_anyone_show_timeline).
         tooltip("TL上にリツイートを表示します")
       boolean('リツイートされたつぶやきをTL上でageる', :retweeted_by_anyone_age).
@@ -30,7 +30,7 @@ Plugin::create(:set_view) do
         tooltip("自分がリツイートしたつぶやきを、TLの一番上に上げます")
     end
 
-    settings('ふぁぼり') do
+    settings('ふぁぼふぁぼ') do
       boolean('ふぁぼられを表示する', :favorited_by_anyone_show_timeline).
         tooltip("ふぁぼられたつぶやきの下に、ふぁぼった人のアイコンを表示します")
       boolean('ふぁぼられをリプライの受信として処理する', :favorited_by_anyone_act_as_reply).

@@ -45,11 +45,13 @@ module Addon
         Addon.regist_tab(@tab, actual_name, icon)
         on_create end
 
+      # Messageをタイムラインに追加する
+      # ==== Args
+      # [msgs]
+      #   Message のインスタンスか、複数の Message が入った配列
       def update(msgs)
         unless destroyed?
-          # @timeline.add(msgs.select{|msg| not @timeline.any?{ |m| m[:id] == msg[:id] } })
-          @timeline.add(msgs)
-        end end
+          @timeline.add(msgs) end end
 
       def remove
         on_remove
