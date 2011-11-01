@@ -20,9 +20,10 @@ class Bitly < MessageConverters
         if expanded_urls.is_a? Enumerable
           expanded_urls.each{ |pair|
             shrinked, expanded = pair
-            if @expand_waiting[shrinked]
+            ew_proc = @expand_waiting[shrinked]
+            if ew_proc.respond_to? :call
               atomic{
-                @expand_waiting[shrinked].call(expanded)
+                ew_proc.call(expanded)
                 @expand_waiting.delete(shrinked) } end } end } }
     @expand_waiting = Hash.new        # { url => Proc(url) }
   end
