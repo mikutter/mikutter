@@ -22,9 +22,33 @@ Module.new do
     def list
       @options[:list] end
 
-    # Messageをタイムラインに追加する
-    def update(messages)
-      super(messages.select{ |m| list.member?(m[:user]) }) end
+    # リストのTLに _messages_ を入れる。
+    # メンバーにないUserのMessageが含まれている場合、そのUserをリストに加入させる
+    # ==== Args
+    # [messages]
+    #   Message の配列。
+    #   このリストのメンバーにないUserのMessageが含まれている場合、そのUserをリストに加入させる
+    def update_member_messages!(messages)
+      messages.each{ |m|
+        if list.member?(m[:user])
+          idnames = m.receive_user_screen_names
+          if m.retweet? or idnames.empty?
+            list.add_member(m[:user]) end end }
+      update(messages, false) end
+
+    # リストのTLに、 _messages_ を入れる。
+    # ==== Args
+    # [messages] Message の配列
+    # [filtering] メンバー以外が投稿したMessageが含まれている場合、無視される
+    def update(messages, filtering = true)
+      if(filtering)
+        super(messages.select{ |m|
+                idnames = lazy{ m.receive_user_screen_names }
+                list.member?(m[:user]) or list.member.any?{ |user| idnames.include?(user[:idname]) } })
+      else
+        super(messages)
+      end
+    end
 
     def suffix
       '(List)' end
@@ -36,7 +60,7 @@ Module.new do
                         :cache => use_cache,
                         :user => list[:user][:idname]){ |res|
         Gtk::Lock.synchronize{
-          update(res) if res.is_a? Array } }
+          update_member_messages!(res) if res.is_a? Array } }
       self end }
 
   def self.boot
