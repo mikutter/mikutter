@@ -247,24 +247,6 @@ class Plugin
 
     # プラグインタグをなければ作成して返す。
     # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
-    alias :newSAyTof :new
-    alias :create :new
-    def new(name)
-      if block_given?
-        tag = _create(name)
-        catch(:plugin_define_exit) {
-          tag.instance_eval(&Proc.new) }
-        tag
-      else
-        _create(name) end end
-
-    # 新しくプラグインを作成する。もしすでに同じ名前で作成されていれば、新しく作成せずにそれを返す。
-    def _create(name)
-      plugin = @@plugins.find{ |p| p.name == name }
-      if plugin
-        plugin
-      else
-        newSAyTof(name) end end
 
     def plugins
       @@plugins
@@ -273,10 +255,6 @@ class Plugin
     # ブロックの実行時間を記録しながら実行
     def call_routine(plugintag, event_name, kind)
       catch(:plugin_exit){ yield } end
-    # begin
-    #   yield
-    # rescue Exception => e
-    #   plugin_fault(plugintag, event_name, kind, e) end
 
     # 登録済みプラグインの一覧を返す。
     # 返すHashは以下のような構造。
@@ -312,7 +290,21 @@ class Plugin
       else
         Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
                                                :system => true)])
-        plugintag.stop! end end end
+        plugintag.stop! end end
+
+    alias :newSAyTof :new
+    def new(name)
+      plugin = @@plugins.find{ |p| p.name == name }
+      if plugin
+        plugin
+      else
+        plugin = newSAyTof(name) end
+      if block_given?
+        catch(:plugin_define_exit) {
+          plugin.instance_eval(&Proc.new) } end
+      plugin end
+    alias :create :new
+  end
 
   include ConfigLoader
 
@@ -325,6 +317,10 @@ class Plugin
     @name = name
     active!
     regist end
+
+
+    def create(name)
+      new(name) end
 
   # イベント _event_name_ を監視するイベントリスナーを追加する。
   def add_event(event_name, &callback)
