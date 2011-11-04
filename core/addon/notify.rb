@@ -9,20 +9,20 @@ Plugin.create(:notify) do
   DEFINED_TIME = Time.new.freeze
 
   settings("通知") do
-    def self.def_notify(label, kind)
+    def self.defnotify(label, kind)
       settings (label) do
-        boolean 'ポップアップ', :"notify_#{kind}"
-      fileselect('サウンド', :"notify_sound_#{kind}", DEFAULT_SOUND_DIRECTORY) end end
+        boolean 'ポップアップ', "notify_#{kind}".to_sym
+      fileselect('サウンド', "notify_sound_#{kind}".to_sym, DEFAULT_SOUND_DIRECTORY) end end
 
-  def_notify "フレンドタイムライン", :friend_timeline
-  def_notify "リプライ", :mention
-  def_notify 'フォローされたとき', :followed
-  def_notify 'フォロー解除されたとき', :removed
-  def_notify 'リツイートされたとき', :retweeted
-  def_notify 'ふぁぼられたとき', :favorited
-  def_notify 'ダイレクトメッセージ受信', :direct_message
-  adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60)
-end
+    defnotify "フレンドタイムライン", :friend_timeline
+    defnotify "リプライ", :mention
+    defnotify 'フォローされたとき', :followed
+    defnotify 'フォロー解除されたとき', :removed
+    defnotify 'リツイートされたとき', :retweeted
+    defnotify 'ふぁぼられたとき', :favorited
+    defnotify 'ダイレクトメッセージ受信', :direct_message
+    adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60)
+  end
 
   onupdate do |post, raw_messages|
     messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > DEFINED_TIME }).first

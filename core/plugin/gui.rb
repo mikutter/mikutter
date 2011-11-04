@@ -12,7 +12,7 @@ require 'gtk2'
 require 'singleton'
 require 'monitor'
 
-module Plugin
+class Plugin
   class GUI
     include ConfigLoader
 

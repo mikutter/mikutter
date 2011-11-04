@@ -10,167 +10,20 @@ require 'monitor'
 require 'set'
 require 'thread'
 
-#
-#= Plugin プラグイン管理/イベント管理モジュール
-#
-# CHIコアにプラグインを報告します。
-# Plugin.create でPluginTagのインスタンスを作り、コアにプラグインを登録します。
-# イベントリスナーの登録とイベントの発行については、Plugin::PluginTagを参照してください。
-#
-#== プラグインの実行順序
-# まず、Plugin.call()が呼ばれると、予めadd_event_filter()で登録されたフィルタ関数に
-# 引数が順次通され、最終的な戻り値がadd_event()に渡される。イメージとしては、
-# イベントリスナ(*フィルタ(*引数))というかんじ。
-# リスナもフィルタも、実行される順序は特に規定されていない。
-module Plugin
-
-  @@eventqueue = Queue.new
-  EventFilterThread = SerialThreadGroup.new
-
-  Thread.new{
-    while proc = @@eventqueue.pop
-      proc.call end
-  }
-
-  def self.gen_event_ring
-    Hash.new{ |hash, key| hash[key] = [] }
-  end
-  @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
-  @@add_event_hook = gen_event_ring
-  @@event_filter   = gen_event_ring
-
-  # イベントリスナーを追加する。
-  def self.add_event(event_name, tag, &callback)
-    @@event[event_name.to_sym] << [tag, callback]
-    call_add_event_hook(event_name, callback)
-    callback end
-
-  # イベントフィルタを追加する。
-  # フィルタは、イベントリスナーと同じ引数で呼ばれるし、引数の数と同じ数の値を
-  # 返さなければいけない。
-  def self.add_event_filter(event_name, tag, &callback)
-    @@event_filter[event_name.to_sym] << [tag, callback]
-    callback end
-
-  def self.fetch_event(event_name, tag, &callback)
-    call_add_event_hook(event_name, callback)
-    callback end
-
-  def self.add_event_hook(event_name, tag, &callback)
-    @@add_event_hook[event_name.to_sym] << [tag, callback]
-    callback end
-
-  def self.detach(event_name, event)
-    deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
-    deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
-
-  # フィルタ関数を用いて引数をフィルタリングする
-  def self.filtering(event_name, *args)
-    length = args.size
-    catch(:filter_exit){
-      @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
-        result = store
-        plugintag, proc = *plugin
-        boot_plugin(plugintag, event_name, :filter, false){
-          result = proc.call(*store){ |result| throw(:filter_exit, result) }
-          if length != result.size
-            raise "filter changes arguments length (#{length} to #{result.size})" end
-          result } } } end
-
-  # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
-  # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
-  def self.call(event_name, *args)
-    EventFilterThread.new{
-      plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
-
-  # イベントが追加されたときに呼ばれるフックを呼ぶ。
-  # _callback_ には、登録されたイベントのProcオブジェクトを渡す
-  def self.call_add_event_hook(event_name, callback)
-    plugin_callback_loop(@@add_event_hook, event_name, :hook, callback) end
-
-  # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
-  def self.plugin_callback_loop(ary, event_name, kind, *args)
-    plugin_loop(ary, event_name, kind){ |tag, proc|
-      proc.call(*args){ throw(:plugin_exit) } } end
-
-  # _ary_ [ _event\_name_ ] に登録されているプラグイン一つひとつを引数に _proc_ を繰り返し呼ぶ。
-  # _proc_ のシグニチャは以下の通り。
-  #   _proc_ ( プラグイン名, コールバック )
-  def self.plugin_loop(ary, event_name, kind, &proc)
-    ary[event_name.to_sym].each{ |plugin|
-      boot_plugin(plugin.first, event_name, kind){
-         proc.call(*plugin) } } end
-
-  # プラグインを起動できるならyieldする。コールバックに引数は渡されない。
-  def self.boot_plugin(plugintag, event_name, kind, delay = true, &routine)
-    if(plugintag.active?)
-      if(delay)
-        Delayer.new{ call_routine(plugintag, event_name, kind, &routine) }
-      else
-        call_routine(plugintag, event_name, kind, &routine) end end end
-
-  # プラグインタグをなければ作成して返す。
-  # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
-  def self.create(name)
-    if block_given?
-      tag = PluginTag.create(name)
-      catch(:plugin_define_exit) {
-        tag.instance_eval(&Proc.new) }
-      tag
-    else
-      PluginTag.create(name) end end
-
-  # ブロックの実行時間を記録しながら実行
-  def self.call_routine(plugintag, event_name, kind)
-    catch(:plugin_exit){ yield } end
-    # begin
-    #   yield
-    # rescue Exception => e
-    #   plugin_fault(plugintag, event_name, kind, e) end
-
-  # 登録済みプラグインの一覧を返す。
-  # 返すHashは以下のような構造。
-  #  { plugin tag =>{
-  #      event name => [proc]
-  #    }
-  #  }
-  # plugin tag:: Plugin::PluginTag のインスタンス
-  # event name:: イベント名。Symbol
-  # proc:: イベント発生時にコールバックされる Proc オブジェクト。
-  def self.plugins
-    result = Hash.new{ |hash, key|
-      hash[key] = Hash.new{ |hash, key|
-        hash[key] = [] } }
-    @@event.each_pair{ |event, pair|
-      result[pair[0]][event] << proc }
-    result
-  end
-
-  # 登録済みプラグイン名を一次元配列で返す
-  def self.plugin_list
-    Plugin::PluginTag.plugins end
-
-  # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
-  # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
-  def self.abort_on_exception?
-    true end
-
-  def self.plugin_fault(plugintag, event_name, event_kind, e)
-    error e
-    if abort_on_exception?
-      abort
-    else
-      Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
-                                             :system => true)])
-      plugintag.stop! end end
-end
-
 =begin rdoc
 
-= Plugin プラグインタグクラス
+= Plugin プラグイン管理/イベント管理クラス
 
- プラグインを一意に識別するためのタグ。
- newは使わずに、 Plugin.create でインスタンスを作ること。
+CHIコアにプラグインを報告します。
+Plugin.create でPluginTagのインスタンスを作り、コアにプラグインを登録します。
+イベントリスナーの登録とイベントの発行については、Plugin::PluginTagを参照してください。
+
+== プラグインの実行順序
+
+まず、Plugin.call()が呼ばれると、予めadd_event_filter()で登録されたフィルタ関数に
+引数が順次通され、最終的な戻り値がadd_event()に渡される。イメージとしては、
+イベントリスナ(*フィルタ(*引数))というかんじ。
+リスナもフィルタも、実行される順序は特に規定されていない。
 
 == イベントの種類
 
@@ -303,7 +156,163 @@ _users_ は、お気に入りに入れているユーザの集合。
 _messages_ から、表示してはいけないものを取り除く
 
 =end
-class Plugin::PluginTag
+
+class Plugin
+
+  class << self
+    @@eventqueue = Queue.new
+    EventFilterThread = SerialThreadGroup.new
+
+    Thread.new{
+      while proc = @@eventqueue.pop
+        proc.call end
+    }
+
+    def self.gen_event_ring
+      Hash.new{ |hash, key| hash[key] = [] }
+    end
+    @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
+    @@add_event_hook = gen_event_ring
+    @@event_filter   = gen_event_ring
+
+    # イベントリスナーを追加する。
+    def add_event(event_name, tag, &callback)
+      @@event[event_name.to_sym] << [tag, callback]
+      call_add_event_hook(event_name, callback)
+      callback end
+
+    # イベントフィルタを追加する。
+    # フィルタは、イベントリスナーと同じ引数で呼ばれるし、引数の数と同じ数の値を
+    # 返さなければいけない。
+    def add_event_filter(event_name, tag, &callback)
+      @@event_filter[event_name.to_sym] << [tag, callback]
+      callback end
+
+    def fetch_event(event_name, tag, &callback)
+      call_add_event_hook(event_name, callback)
+      callback end
+
+    def add_event_hook(event_name, tag, &callback)
+      @@add_event_hook[event_name.to_sym] << [tag, callback]
+      callback end
+
+    def detach(event_name, event)
+      deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
+      deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
+
+    # フィルタ関数を用いて引数をフィルタリングする
+    def filtering(event_name, *args)
+      length = args.size
+      catch(:filter_exit){
+        @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
+          result = store
+          plugintag, proc = *plugin
+          boot_plugin(plugintag, event_name, :filter, false){
+            result = proc.call(*store){ |result| throw(:filter_exit, result) }
+            if length != result.size
+              raise "filter changes arguments length (#{length} to #{result.size})" end
+            result } } } end
+
+    # イベント _event_name_ を呼ぶ予約をする。第二引数以降がイベントの引数として渡される。
+    # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
+    def call(event_name, *args)
+      EventFilterThread.new{
+        plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
+
+    # イベントが追加されたときに呼ばれるフックを呼ぶ。
+    # _callback_ には、登録されたイベントのProcオブジェクトを渡す
+    def call_add_event_hook(event_name, callback)
+      plugin_callback_loop(@@add_event_hook, event_name, :hook, callback) end
+
+    # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
+    def plugin_callback_loop(ary, event_name, kind, *args)
+      plugin_loop(ary, event_name, kind){ |tag, proc|
+        proc.call(*args){ throw(:plugin_exit) } } end
+
+    # _ary_ [ _event\_name_ ] に登録されているプラグイン一つひとつを引数に _proc_ を繰り返し呼ぶ。
+    # _proc_ のシグニチャは以下の通り。
+    #   _proc_ ( プラグイン名, コールバック )
+    def plugin_loop(ary, event_name, kind, &proc)
+      ary[event_name.to_sym].each{ |plugin|
+        boot_plugin(plugin.first, event_name, kind){
+          proc.call(*plugin) } } end
+
+    # プラグインを起動できるならyieldする。コールバックに引数は渡されない。
+    def boot_plugin(plugintag, event_name, kind, delay = true, &routine)
+      if(plugintag.active?)
+        if(delay)
+          Delayer.new{ call_routine(plugintag, event_name, kind, &routine) }
+        else
+          call_routine(plugintag, event_name, kind, &routine) end end end
+
+    # プラグインタグをなければ作成して返す。
+    # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
+    alias :newSAyTof :new
+    alias :create :new
+    def new(name)
+      if block_given?
+        tag = _create(name)
+        catch(:plugin_define_exit) {
+          tag.instance_eval(&Proc.new) }
+        tag
+      else
+        _create(name) end end
+
+    # 新しくプラグインを作成する。もしすでに同じ名前で作成されていれば、新しく作成せずにそれを返す。
+    def _create(name)
+      plugin = @@plugins.find{ |p| p.name == name }
+      if plugin
+        plugin
+      else
+        newSAyTof(name) end end
+
+    def plugins
+      @@plugins
+    end
+
+    # ブロックの実行時間を記録しながら実行
+    def call_routine(plugintag, event_name, kind)
+      catch(:plugin_exit){ yield } end
+    # begin
+    #   yield
+    # rescue Exception => e
+    #   plugin_fault(plugintag, event_name, kind, e) end
+
+    # 登録済みプラグインの一覧を返す。
+    # 返すHashは以下のような構造。
+    #  { plugin tag =>{
+    #      event name => [proc]
+    #    }
+    #  }
+    # plugin tag:: Plugin::PluginTag のインスタンス
+    # event name:: イベント名。Symbol
+    # proc:: イベント発生時にコールバックされる Proc オブジェクト。
+    def plugins
+      result = Hash.new{ |hash, key|
+        hash[key] = Hash.new{ |hash, key|
+          hash[key] = [] } }
+      @@event.each_pair{ |event, pair|
+        result[pair[0]][event] << proc }
+      result
+    end
+
+    # 登録済みプラグイン名を一次元配列で返す
+    def plugin_list
+      Plugin.plugins end
+
+    # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
+    # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
+    def abort_on_exception?
+      true end
+
+    def plugin_fault(plugintag, event_name, event_kind, e)
+      error e
+      if abort_on_exception?
+        abort
+      else
+        Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
+                                               :system => true)])
+        plugintag.stop! end end end
 
   include ConfigLoader
 
@@ -316,18 +325,6 @@ class Plugin::PluginTag
     @name = name
     active!
     regist end
-
-  # 新しくプラグインを作成する。もしすでに同じ名前で作成されていれば、新しく作成せずにそれを返す。
-  def self.create(name)
-    plugin = @@plugins.find{ |p| p.name == name }
-    if plugin
-      plugin
-    else
-      Plugin::PluginTag.new(name) end end
-
-  def self.plugins
-    @@plugins
-  end
 
   # イベント _event_name_ を監視するイベントリスナーを追加する。
   def add_event(event_name, &callback)
@@ -419,6 +416,6 @@ Module.new do
     retweets = messages.select(&:retweet?)
     if not(retweets.empty?)
       Plugin.call(:retweet, retweets) end }
+
 end
 
-# miquire :plugin # if defined? Test::Unit
