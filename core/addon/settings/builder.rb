@@ -108,7 +108,7 @@ class Plugin::Setting < Gtk::VBox
   def input(label, config)
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
-    input.text = Listener[config].get
+    input.text = Listener[config].get || ""
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     input.signal_connect('changed'){ |widget|
