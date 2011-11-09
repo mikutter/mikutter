@@ -169,12 +169,6 @@ class Gdk::MiraclePainter < GLib::Object
     tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr(:message => message, :miracle_painter => self)
     labels = []
     contextmenu = []
-    arg = lazy{ Gdk::MiraclePainter::Event.new(nil, active_mumble, tl, miracle_painter) }
-    options = {
-      :message => arg,
-      :message_select => arg,
-      :timeline => tl,
-      :postbox => postbox }
     Plugin.filtering(:command, Hash.new).first.values.each{ |record|
       if(record[:visible] and Addon::Command::role_executable?(valid_roles, record[:role]))
         index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])
@@ -184,7 +178,7 @@ class Gdk::MiraclePainter < GLib::Object
         contextmenu.insert(index, [name,
                                    lambda{ |x| record[:condition] === Addon::Command::role_argument(record[:role], x) },
                                    lambda{ |x| record[:exec].call(Addon::Command::role_argument(record[:role], x)) }]) end }
-    Gtk::ContextMenu.new(*contextmenu).popup(tl, options)
+    Gtk::ContextMenu.new(*contextmenu).popup(tl, Addon::Command.generate_options(tl, active_mumble, miracle_painter, postbox))
   end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す

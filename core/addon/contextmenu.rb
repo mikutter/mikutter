@@ -13,10 +13,11 @@ Module.new do
     #   :visible => 真理値。コンテキストメニューに表示するかどうかのフラグ
     #   :icon => アイコン。Gdk::Pixbufかファイル名をStringで
     #   :role => 実行できる環境の配列。以下のうちの何れか1つ
-    #            :message        messageを右クリックしたとき
-    #            :message_select messageのテキストが選択されたとき
-    #            :timeline       タイムラインを右クリックしたとき
-    #            :postbox        つぶやき入力ウィンドウ
+    #            :message           messageを右クリックしたとき(単数)
+    #            :messages          messageが選択された時(配列で複数個)
+    #            :message_select    messageのテキストが選択されたとき(単数)
+    #            :timeline          タイムラインを右クリックしたとき
+    #            :postbox           つぶやき入力ウィンドウ
     # }
     def define_command(slug, args)
       type_strict args => Hash
@@ -31,6 +32,7 @@ Module.new do
   end
 
   ROLE_MESSAGE = :message
+  ROLE_MESSAGES = :messages
   ROLE_MESSAGE_SELECTED = :message_select
   ROLE_TIMELINE = :timeline
   ROLE_POSTBOX = :postbox
@@ -52,68 +54,70 @@ Module.new do
 
   define_command(:reply,
                  :name => '返信',
-                 :condition => lambda{ |m| m.message.repliable? },
-                 :exec => lambda{ |m| m.timeline.reply(m.message, :subreplies => Gtk::TimeLine.get_active_mumbles) },
+                 :condition => lambda{ |ms| ms.map(&:message).all? &:repliable? },
+                 :exec => lambda{ |ms| ms.first.timeline.reply(ms.first.message, :subreplies => ms.map(&:message)) },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:reply_all,
                  :name => '全員に返信',
-                 :condition => lambda{ |m| m.message.repliable? },
-                 :exec => lambda{ |m| m.timeline.reply(m.message, :subreplies => m.message.ancestors, :exclude_myself => true) },
+                 :condition => lambda{ |ms| ms.map(&:message).all? &:repliable? },
+                 :exec => lambda{ |ms|ms.first.timeline.reply(ms.first.message,
+                                                              :subreplies => ms.map{ |m| m.message.ancestors }.flatten,
+                                                              :exclude_myself => true) },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:legacy_retweet,
                  :name => '引用',
-                 :condition => lambda{ |m| Gtk::TimeLine.get_active_mumbles.size == 1 and m.message.repliable? },
+                 :condition => lambda{ |m| m.message.repliable? },
                  :exec => lambda{ |m| m.timeline.reply(m.message, :retweet => true) },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 
   define_command(:retweet,
                  :name => 'リツイート',
-                 :condition => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
+                 :condition => lambda{ |ms|
+                   ms.all?{ |m|
                      m.message.retweetable? and not m.message.retweeted_by_me? } },
-                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).select{ |x| not x.from_me? }.each(&:retweet) },
+                 :exec => lambda{ |ms| ms.map(&:message).select{ |x| not x.from_me? }.each(&:retweet) },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:delete_retweet,
                  :name => 'リツイートをキャンセル',
-                 :condition => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.all?{ |e|
-                     m.message.retweetable? and m.message.retweeted_by_me? } },
-                 :exec => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.each { |e|
+                 :condition => lambda{ |ms|
+                   ms.all?{ |e|
+                     e.message.retweetable? and e.message.retweeted_by_me? } },
+                 :exec => lambda{ |ms|
+                   ms.each { |e|
                      retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
                      retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:favorite,
                  :name => 'ふぁぼふぁぼする',
-                 :condition => lambda{ |m| m.message.favoritable? and not m.message.favorited_by_me? },
-                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(true)} },
+                 :condition => lambda{ |ms| ms.map(&:message).all?{ |m| m.favoritable? and not m.favorited_by_me? } },
+                 :exec => lambda{ |ms| ms.map(&:message).each{ |m| m.favorite(true)} },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:delete_favorite,
                  :name => 'ふぁぼをキャンセル',
-                 :condition => lambda{ |m| m.message.favoritable? and m.message.favorited_by_me? },
-                 :exec => lambda{ |m| Gtk::TimeLine.get_active_mumbles.map(&:message).each{ |m| m.favorite(false)} },
+                 :condition => lambda{ |ms| ms.all?{ |m| m.message.favorited_by_me? } },
+                 :exec => lambda{ |ms| ms.each{ |m| m.message.favorite(false)} },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:delete,
                  :name => '削除',
-                 :condition => lambda{ |m| Gtk::TimeLine.get_active_mumbles.all?{ |e| e.message.from_me? } },
-                 :exec => lambda{ |m|
-                   Gtk::TimeLine.get_active_mumbles.each { |e|
+                 :condition => lambda{ |ms| ms.all?{ |e| e.message.from_me? } },
+                 :exec => lambda{ |ms|
+                   ms.each { |e|
                      e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } },
                  :visible => true,
-                 :role => ROLE_MESSAGE )
+                 :role => ROLE_MESSAGES )
 
   define_command(:select_prev,
                  :name => 'ひとつ上のつぶやきを選択',
