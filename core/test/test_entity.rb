@@ -148,6 +148,7 @@ class TC_Message < Test::Unit::TestCase
   end
 
   def test_6
+    Plugin.stubs(:filtering).with(:is_expanded, 'goo.gl/2tsIG').returns([true])
     tweet = 'まだまだ絶賛配信中！今日は「日常のラヂオ」第３５回がランティスネットラジオ goo.gl/2tsIG にて２２時から配信スタートです！「日常」が好きな人ならきっと楽しんでいただけますのでよろしくお願いします。 #nichijou'
     mes = stub
     mes.stubs(:to_show).returns(tweet)

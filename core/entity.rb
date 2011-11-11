@@ -104,6 +104,9 @@ class Message::Entity
 
   private
 
+  # "look http://example.com/" のようなツイートに対して、
+  #  ["l", "o", "o", "k", " ", {エンティティのURLの値}]
+  # のように、エンティティの情報を間に入れた配列にして返す。
   def segment_splitted
     result = message.to_show.split(//u)
     reverse_each{ |segment|
