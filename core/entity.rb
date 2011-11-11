@@ -93,7 +93,7 @@ class Message::Entity
       if segment.is_a? Integer
         index -= segment
       elsif segment.is_a? Hash
-        index -= segment[:face].strsize
+        index -= segment[:face].size
       end
       if index < 0
         if segment.is_a? Hash
@@ -135,7 +135,7 @@ class Message::Entity
         message.to_show.each_matches(rule[:regexp]){ |match, byte, pos|
           if not result.any?{ |this| this[:range].include?(pos) }
             result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
-                                                              :range => Range.new(pos, pos + match.to_s.strsize, true),
+                                                              :range => Range.new(pos, pos + match.to_s.size, true),
                                                               :face => match.to_s,
                                                               :from => :_generate_value,
                                                               :url => match.to_s})).freeze end } end }
@@ -173,7 +173,7 @@ class Message::Entity
   def index_to_escaped_index(index)
     escape_rule = {'>' => '&gt;', '<' => '&lt;'}
     message.to_show.split(//u).map{ |s|
-      escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').strsize
+      escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').size
   end
 
   class InvalidEntityError < Message::MessageError

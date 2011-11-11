@@ -288,7 +288,7 @@ class Message < Retriever::Model
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
-    body.split(//u)[0,140].join.freeze end
+    body[0,140].freeze end
   memoize :to_s
 
   def to_i

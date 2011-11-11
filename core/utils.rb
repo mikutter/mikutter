@@ -30,11 +30,9 @@ RUBY_VERSION_ARRAY = RUBY_VERSION.split('.').map{ |i| i.to_i }.freeze
 require File.join(File::dirname(__FILE__), 'miquire')
 
 Dir::chdir(File::dirname(__FILE__))
-if RUBY_VERSION >= '1.9.2'
-  ['.', 'lib', 'miku'].each{|path|
-    $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
-  }
-end
+['.', 'lib', 'miku'].each{|path|
+  $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
+}
 miquire :lib, 'escape'
 miquire :lib, 'lazy'
 
@@ -374,14 +372,8 @@ def entity_unescape(str)
 end
 
 # コマンドをバックグラウンドで起動することを覗いては system() と同じ
-if (RUBY_VERSION_ARRAY[0, 2] <=> [1, 9]) >= 0
-  def bg_system(*args)
-    Process.detach(spawn(*args))
-  end
-else
-  def bg_system(*args)
-    Process.detach(fork{ exec(*args) })
-  end
+def bg_system(*args)
+  Process.detach(spawn(*args))
 end
 
 def wakachigaki(str, ret_io=false)
@@ -690,11 +682,6 @@ end
 
 class String
 
-  # 文字数を数える。1.9の String#size と同じ
-  def strsize
-    self.split(//u).size
-  end
-
   # 最初に文字列内に見つかった小数を返す
   def trim_f()
     if /-{0,1}\d+\.\d+/ =~ self then
@@ -743,40 +730,26 @@ class String
     result
   end
 
-  if RUBY_VERSION_ARRAY >= [1, 9]
-    def each_matches(regexp, &proc) # :yield: match, byte_index, char_intex
-      pos = 0
-      str = self
-      while(match = regexp.match(str))
-        if(proc.arity == 1)
-          proc.call(match)
-        elsif(proc.arity == 2)
-          proc.call(match, pos + match.begin(0))
-        else
-          proc.call(match, pos + match.begin(0), pos + match.begin(0)) end
-        str = match.post_match
-        pos += match.end(0) end end
-  else
-    def each_matches(regexp, &proc)
-      pos = 0
-      str = self
-      while(match = regexp.match(str))
-        if(proc.arity == 1)
-          proc.call(match)
-        elsif(proc.arity == 2)
-          proc.call(match, pos + match.begin(0))
-        else
-          proc.call(match, pos + match.begin(0), get_index_from_byte(pos + match.begin(0))) end
-        str = match.post_match
-        pos += match.end(0) end end end
+  def each_matches(regexp, &proc) # :yield: match, byte_index, char_intex
+    pos = 0
+    str = self
+    while(match = regexp.match(str))
+      if(proc.arity == 1)
+        proc.call(match)
+      elsif(proc.arity == 2)
+        proc.call(match, pos + match.begin(0))
+      else
+        proc.call(match, pos + match.begin(0), pos + match.begin(0)) end
+      str = match.post_match
+      pos += match.end(0) end end
 
   def shrink(count, uni_char=nil, separator=' ')
     o_match = uni_char && match(uni_char)
     if o_match
       pure_matched = lazy{ o_match.pre_match + o_match[0] }
-      sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.strsize, uni_char, separator) }
-      sh_head = lazy{ o_match.pre_match.split(//u)[0, count-separator.strsize-o_match[0].strsize].join }
-      if pure_matched.strsize <= count
+      sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.size, uni_char, separator) }
+      sh_head = lazy{ o_match.pre_match[0, count-separator.size-o_match[0].size] }
+      if pure_matched.size <= count
         pure_matched + sh_post
       elsif not sh_head.nil?
         sh_head + separator + o_match[0] + sh_post
@@ -786,7 +759,7 @@ class String
     elsif empty?
       ""
     else
-      split(//u)[0,count].join end end
+      self[0,count] end end
 
   # _byte_ バイト目が何文字目にあたるかを返す
   def get_index_from_byte(byte)
@@ -804,15 +777,6 @@ class String
 end
 
 class Symbol
-  if RUBY_VERSION_ARRAY[0, 2] <= [1, 8]
-    include Comparable
-
-    def <=>(other)
-      self.to_s <=> other.to_s end
-
-    def to_proc
-      proc { |obj, *args| obj.__send__(self, *args) } end end
-
   def freezable?
     false end end
 
@@ -827,12 +791,6 @@ class FalseClass
 class NilClass
   def freezable?
     false end end
-
-class Proc
-  if RUBY_VERSION_ARRAY[0, 2] <= [1, 8]
-    alias === call
-  end
-end
 
 class Regexp
   def to_json(*a)

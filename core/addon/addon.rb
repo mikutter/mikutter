@@ -83,12 +83,7 @@ module Addon
       executed = false
       keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
       commands = lazy{ Plugin.filtering(:command, Hash.new).first }
-      arg = lazy{ Gdk::MiraclePainter::Event.new(nil, active_mumble, tl, miracle_painter) }
-      options = {
-        :message => arg,
-        :message_select => arg,
-        :timeline => tl,
-        :postbox => postbox }
+      options = generate_options(tl, active_mumble, miracle_painter, postbox)
       keybinds.values.each{ |behavior|
         if behavior[:key] == key
           cmd = commands[behavior[:slug]]
@@ -116,6 +111,15 @@ module Addon
       else
         options[role] end end
 
+    def self.generate_options(tl, active_mumble, miracle_painter, postbox)
+      arg = Gdk::MiraclePainter::Event.new(nil, active_mumble, tl, miracle_painter)
+      { :message => arg,
+        :message_select => arg,
+        :messages => Gtk::TimeLine.get_active_mumbles.map{ |m|
+          Gdk::MiraclePainter::Event.new(nil, m, tl, lazy{ tl.cell_renderer_message.miracle_painter(m) })},
+        :timeline => tl,
+        :postbox => postbox } end
+
     # 有効なロールを返す。
     # :timeline Gtk::TimeLineがアクティブであるなら
     # :message active_mumbleとmiracle_painterが真なら
@@ -130,7 +134,7 @@ module Addon
           if tl
             valid_roles << :timeline end
           if active_mumble and miracle_painter
-            valid_roles << :message
+            valid_roles << :message << :messages
             if tl.cell_renderer_message.miracle_painter(active_mumble).textselector_range
               valid_roles << :message_select end end end end
       valid_roles.freeze
