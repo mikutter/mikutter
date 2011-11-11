@@ -159,7 +159,7 @@ Module.new do
       tags = []
       text = "#{user[:idname]} #{user[:name]}\n"
       append = lambda{ |title, value|
-        tags << ['_caption_style', text.strsize, title.strsize]
+        tags << ['_caption_style', text.size, title.size]
         text << "#{title} #{value}" }
       append.call "location", "#{user[:location]}\n" if user[:location]
       append.call  "web", "#{user[:url]}\n" if user[:url]

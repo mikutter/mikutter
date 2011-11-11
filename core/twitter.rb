@@ -98,7 +98,7 @@ class Twitter < TwitterAPI
       result << "RT" << "@#{message[:retweet][:user][:idname]}:" << message[:retweet].to_s
     end
     text = result.join(' ')
-    if(UserConfig[:shrinkurl_always] or text.strsize > 140)
+    if(UserConfig[:shrinkurl_always] or text.size > 140)
       text = MessageConverters.shrink_url_all(text) end
     text.shrink(140, URI.regexp(['http','https'])) if text end
 

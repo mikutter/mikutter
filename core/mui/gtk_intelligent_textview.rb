@@ -137,9 +137,9 @@ class Gtk::IntelligentTextview < Gtk::TextView
       reg, left, right = param
       buffer.text.each_matches(reg) { |match, index|
         match = match.to_s
-        index = buffer.text[0, index].strsize
+        index = buffer.text[0, index].size
         create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
-        range = buffer.get_range(index, match.strsize)
+        range = buffer.get_range(index, match.size)
         buffer.apply_tag(match, *range)
       } } end
 
@@ -149,8 +149,8 @@ class Gtk::IntelligentTextview < Gtk::TextView
       reg, widget_generator = param
       buffer.text.each_matches(reg) { |match, index|
         match = match.to_s
-        index = buffer.text[0, index].strsize
-        range = buffer.get_range(index, match.strsize + offset)
+        index = [buffer.text.size, index].min
+        range = buffer.get_range(index, match.size + offset)
         widget = widget_generator.call(match)
         if widget
           self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))

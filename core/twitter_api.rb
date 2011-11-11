@@ -226,7 +226,7 @@ class TwitterAPI < Mutex
                                      'Host' => 'stream.twitter.com',
                                      'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
         res.read_body{ |chunk|
-          if chunk.split(//u)[-1] == "\n"
+          if chunk[-1] == "\n"
             callback.call(buf + chunk)
             buf.clear
           else
@@ -592,17 +592,11 @@ class TwitterAPI < Mutex
     query_with_auth(:delete, "/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}")
   end
 
-  if(RUBY_VERSION_ARRAY[0,2] >= [1,9])
-    def get_args(args)
-      if not args.empty?
-        "?" + args.select{|k, v| not EXCLUDE_OPTIONS.include? k }.map{|pair| "#{URI.encode_www_form_component(pair[0].to_s).to_s}=#{URI.encode_www_form_component(pair[1].to_s).to_s}"}.join('&')
-      else
-        '' end end
-  else
-    def get_args(args)
-      if not args.empty?
-        "?" +  args.select{|k, v| not EXCLUDE_OPTIONS.include? k }.map{|pair| "#{URI.encode(pair[0].to_s).to_s}=#{URI.encode(pair[1].to_s).to_s}"}.join('&')
-      else
-        '' end end end
+  def get_args(args)
+    if not args.empty?
+      "?" + args.select{|k, v| not EXCLUDE_OPTIONS.include? k }.map{|pair| "#{URI.encode_www_form_component(pair[0].to_s).to_s}=#{URI.encode_www_form_component(pair[1].to_s).to_s}"}.join('&')
+    else
+      '' end end
+
 end
 # ~> -:13: undefined method `miquire' for main:Object (NoMethodError)

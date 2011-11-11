@@ -45,7 +45,7 @@ module Gdk
     def get_aindex(astr, index)
       aindex = 0
       astr.each{ |n|
-        if n.strsize == 1
+        if n.size == 1
           index -= 1
         end
         return aindex if(index < 0)

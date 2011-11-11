@@ -40,17 +40,8 @@ class TC_Miquire < Test::Unit::TestCase
     miquire :allfiles
   end
 
-  must "enum plugins" do
-    Miquire::Plugin.loadpath << 'addon/'
-    p Miquire::Plugin.to_a
-  end
+  # must "enum plugins" do
+  #   Miquire::Plugin.loadpath << 'addon/'
+  # end
 
 end
-# >> Loaded suite -
-# >> Started
-# >> "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/*.rb"
-# >> ["/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/change_account.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/settings.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/shortcutkey.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/search.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/followingcontrol.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/set_view.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/contextmenu.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/mentions.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/friend_timeline.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/addon.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/streaming.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/extract.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/profile.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/notify.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/bugreport.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/smartthread.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/list.rb", "/home/toshi/Documents/hobby/scripts/mikutter/trunk/core/addon/set_input.rb"]
-# >> ....
-# >> Finished in 0.002515 seconds.
-# >> 
-# >> 4 tests, 6 assertions, 0 failures, 0 errors
