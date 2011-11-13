@@ -236,8 +236,11 @@ class TwitterAPI < Mutex
       notice "request #{method} #{path}"
       begin
         res = access_token.method(method).call(BASE_PATH+path, options[:head])
+      rescue ThreadError => evar
+        notice "request canceled #{method} #{path}"
+        raise evar
       rescue Exception => evar
-        res = evar end
+        return res = evar end
       notice "#{method} #{path} => #{res} (#{(Time.new - start_time).to_f}s)"
       begin
         limit, remain, reset = self.api_remain(res)
