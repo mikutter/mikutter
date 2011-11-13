@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :addon, 'addon'
+miquire :mui, 'crud'
 Module.new do
 
   def self.boot

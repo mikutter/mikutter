@@ -21,7 +21,7 @@ class Message::Entity
     @@filter[slug] = lambda{ |s|
       result = filter.call(parent.call(s))
       [:url, :face].each{ |key|
-        raise InvalidEntityError.new("entity key :#{key} required. but not exist.", message) unless result[key] }
+        raise InvalidEntityError.new("entity key :#{key} required. but not exist. ##{message[:id]}(#{message.to_s})") unless result[key] }
       result }
     self end
 

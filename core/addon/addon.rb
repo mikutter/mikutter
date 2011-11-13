@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'plugin'
+miquire :mui, 'mtk'
 
 module Addon
 
