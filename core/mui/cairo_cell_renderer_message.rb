@@ -82,7 +82,9 @@ module Gtk
         click_start = [cell_x, cell_y]
         if column
           armed_column = column
-          signal_emit("button_press_event", e, path, column, cell_x, cell_y) end }
+          signal_emit("button_press_event", e, path, column, cell_x, cell_y) end
+        e.button == 3 && tree.get_active_pathes.include?(path) # 選択してるものを右クリックした時は、他のセルの選択を解除しない
+      }
 
       tree.ssc("button_release_event") { |w, e|
         path, column, cell_x, cell_y = tree.get_path_at_pos(e.x, e.y)
