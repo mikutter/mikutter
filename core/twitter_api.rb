@@ -569,4 +569,17 @@ class TwitterAPI < Mutex
       else
         '' end end end
 end
-# ~> -:13: undefined method `miquire' for main:Object (NoMethodError)
+
+module OAuth
+  class Consumer
+    alias request_ADzX5f8 request
+
+    # 通信中に例外が発生した場合、コネクションを強制的に切断する
+    def request(http_method, path, *arguments, &block)
+      request_ADzX5f8(http_method, path, *arguments, &block)
+    rescue Exception => e
+      @http.finish if defined? @http and @http.started?
+      raise e end
+
+  end
+end

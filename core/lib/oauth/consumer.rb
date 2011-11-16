@@ -139,7 +139,7 @@ module OAuth
     #   @consumer.request(:get,  '/people', @token, { :scheme => :query_string })
     #   @consumer.request(:post, '/people', @token, {}, @person.to_xml, { 'Content-Type' => 'application/xml' })
     #
-    def request(http_method, path, token = nil, request_options = {}, *arguments, &block)
+     def request(http_method, path, token = nil, request_options = {}, *arguments, &block)
       if path !~ /^\//
         @http = create_http(path)
         _uri = URI.parse(path)
