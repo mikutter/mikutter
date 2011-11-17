@@ -22,7 +22,11 @@ file:core/skin/data/icon.png
 * OS/ディストリ別インストール方法
 ** Ubuntu 11.10でのインストール方法
    1. aptでインストール
-      - sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
+      1. まず、パッケージをすべて最新にします
+         - sudo apt-get update
+         - sudo apt-get upgrade
+      2. mikutterに必要なパッケージをインストールします
+         - sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
    2. バージョンの確認
       以下のコマンドを実行してください。
       : $ ruby -v
