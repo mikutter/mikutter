@@ -109,7 +109,7 @@ module Gtk
         false }
       @tool.ssc('button_release_event'){
         if posting?
-          @posting.kill
+          @posting.raise(ThreadError, "submit canceled")
           @tool.sensitive = destructible? || posting?
           cancel_post
         else
