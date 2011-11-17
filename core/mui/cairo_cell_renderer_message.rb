@@ -90,7 +90,7 @@ module Gtk
           cell_x ||= -1
           cell_y ||= -1
           signal_emit("button_release_event", e, path, column, cell_x, cell_y)
-          if (column == armed_column) and (click_start[0] - cell_x).abs <= 4 and (click_start[1] - cell_y).abs <= 4
+          if click_start.size == 2 and click_start.all?{|x| x.respond_to? :-} and (column == armed_column) and (click_start[0] - cell_x).abs <= 4 and (click_start[1] - cell_y).abs <= 4
             signal_emit("click", e, path, column, cell_x, cell_y) end
           armed_column = nil end }
       event_hooks end
