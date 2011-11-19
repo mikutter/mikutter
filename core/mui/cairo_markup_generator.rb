@@ -48,7 +48,7 @@ module Gdk::MarkupGenerator
       splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
       terminate = l[:range].first
     }
-    splited[0..terminate] = splited[0..terminate].gsub(ESCAPE_KEYS, &ESCAPE_KV) if terminate != 0
+    splited[0...terminate] = splited[0...terminate].gsub(ESCAPE_KEYS, &ESCAPE_KV) if terminate != 0
     splited end
 
 end
