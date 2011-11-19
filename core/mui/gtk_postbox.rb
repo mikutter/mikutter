@@ -259,7 +259,7 @@ module Gtk
 
     def remain_charcount
       footer = if add_footer? then UserConfig[:footer].size else 0 end
-      140 - @post.buffer.text.size - footer end
+      140 - widget_post.buffer.text.size - footer end
 
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|

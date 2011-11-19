@@ -347,6 +347,10 @@ class Post
       yield(:start, nil)
       begin
         try_post(message, api, &Proc.new)
+      rescue ThreadError => err
+        yield(:err, err)
+        yield(:fail, err)
+        yield(:exit, nil)
       rescue Timeout::Error, StandardError => err
         yield(:err, err)
         yield(:fail, err)
