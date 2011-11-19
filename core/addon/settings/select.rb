@@ -68,7 +68,7 @@ class Plugin::Setting::Select
   # すべてテキストなら、コンボボックスで要素を描画する
   def build_combobox(listener)
     input = Gtk::ComboBox.new(true)
-    sorted = @options.map(&:first).sort_by(&:to_s).freeze
+    sorted = @options.map{ |o| o.first }.sort_by(&:to_s).freeze
     sorted.each{ |x|
       input.append_text(@options.assoc(x).last) }
     input.active = (sorted.index{ |i| i.to_s == listener.get.to_s } || 0)
