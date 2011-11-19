@@ -20,16 +20,29 @@ file:core/skin/data/icon.png
 - httpclient
 
 * OS/ディストリ別インストール方法
+** Ubuntu 11.04以前のインストール方法
+   1. aptでインストール
+      1. まず、パッケージをすべて最新にします
+         : $ sudo apt-get update
+         : $ sudo apt-get upgrade
+      2. mikutterに必要なパッケージをインストールします
+         : $ sudo apt-get install libgnome2-ruby libopenssl-ruby libhmac-ruby ruby1.8 ruby libnotify-bin
+         [[common settings][共通の設定]]へ
+
 ** Ubuntu 11.10でのインストール方法
    1. aptでインストール
-      - sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
+      1. まず、パッケージをすべて最新にします
+         : $ sudo apt-get update
+         : $ sudo apt-get upgrade
+      2. mikutterに必要なパッケージをインストールします
+         : $ sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
    2. バージョンの確認
       以下のコマンドを実行してください。
       : $ ruby -v
       ubuntu 11.10 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。
       そのため、上記コマンドでruby 1.9.2 以前のバージョンが表示されたら、以下のようなコマンドで起動しなければいけません。
       : $ ruby1.9.1 mikutter.rb
-      -> 共通の設定へ
+      [[common settings][共通の設定]]へ
 
 ** その他のディストリビューション
    基本的には、その他のディストリでは、同等のライブラリが配布されていたらそれを使ってください。
@@ -41,7 +54,7 @@ file:core/skin/data/icon.png
 ** Windowsでのインストール方法
    [[http://janetter.net/jp/]]
 
-** 共通の設定
+** 共通の設定 # <<common settings>>
    1. ruby mikutter.rb で起動できます。
    2. ruby mikutter.rb --debug とすると、人柱気分が味わえます。
 
