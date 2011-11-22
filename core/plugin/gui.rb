@@ -50,7 +50,7 @@ class Plugin
 
     def version_check(name, require, now)
       if((now <=> require) < 0)
-        if $skip_version_check
+        if Mopt.skip_version_check
           Plugin.call(:update, nil, [Message.new(:message => "#{name}のバージョンが古すぎます(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n問題が起こるかもしれません。更新してください。", :system => true)])
         else
           chi_fatal_alert("#{name}のバージョンが古すぎます"+
