@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 Dir.chdir(File.join(File.dirname($0), 'core'))
 Thread.abort_on_exception = true
+ENV['LIBOVERLAY_SCROLLBAR'] = '0'
 
 require 'benchmark'
 require 'webrick'
