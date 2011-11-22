@@ -67,7 +67,9 @@ module Miquire
       when FileTest.directory?(File.join(rb))
         plugin = (File.join(rb, File.basename(rb)))
         if FileTest.exist? plugin or FileTest.exist? "#{plugin}.rb"
-          miquire_original_require plugin end
+          miquire_original_require plugin
+        else
+          miquire_original_require rb end
       else
         miquire_original_require rb end end
 

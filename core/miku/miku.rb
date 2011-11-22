@@ -5,12 +5,12 @@ if not defined? $loaded_miku
   $loaded_miku = true
 
   Dir.chdir(File.dirname(__FILE__)){
-    require 'array'
-    require 'hash'
-    require 'symbol'
-    require 'symboltable'
-    require 'nil'
-    require 'parser'
+    require_relative 'array'
+    require_relative 'hash'
+    require_relative 'symbol'
+    require_relative 'symboltable'
+    require_relative 'nil'
+    require_relative 'parser'
   }
 
   def miku(node, scope=MIKU::SymbolTable.new)
@@ -39,7 +39,7 @@ if not defined? $loaded_miku
     if ARGV.last
       miku_stream(open(ARGV.last, 'r'), scope)
     else
-      require 'readline'
+      require_relative 'readline'
       while buf = Readline.readline('>>> ', true)
         begin
           puts MIKU.unparse(miku(MIKU.parse(buf), scope))

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'error'
+require_relative 'error'
 
 module MIKU
   class SymbolTable < Hash
@@ -78,18 +78,28 @@ module MIKU
     # Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
 
     def self.defaults
-      @@defaults ||= Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
-                      :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
-                      :<, :>, :<=, :>=, :eq, :eql, :equal) +
-             [:lambda , Cons.new(nil, Primitive.new(:negi)),
-              :def , Cons.new(nil, Primitive.new(:defun)),
-              :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
-              :'macro-expand-all' , Cons.new(nil, Primitive.new(:macro_expand_all)),
-              :"=", Cons.new(nil, Primitive.new(:eq)),
-              :not, Cons.new(nil, Primitive.new(:_not)),
-              :true, Cons.new(true, nil),
-              :false, Cons.new(false, nil)
-             ] + consts)].freeze end
+      @@defaults ||= __defaults end
+
+    def self.__defaults
+      default = Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
+                                :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
+                                :<, :>, :<=, :>=, :eq, :eql, :equal) +
+                       [:lambda , Cons.new(nil, Primitive.new(:negi)),
+                        :def , Cons.new(nil, Primitive.new(:defun)),
+                        :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
+                        :'macro-expand-all' , Cons.new(nil, Primitive.new(:macro_expand_all)),
+                        :"=", Cons.new(nil, Primitive.new(:eq)),
+                        :not, Cons.new(nil, Primitive.new(:_not)),
+                        :true, Cons.new(true, nil),
+                        :false, Cons.new(false, nil)
+                       ] + consts)].freeze
+      Hash.new{ |h, k|
+        if default[k]
+          h[k] = default[k]
+        elsif /^[A-Z][a-zA-Z0-9_]*/ =~ k.to_s and klass = eval(k.to_s)
+          h[k] = klass
+        end }
+    end
 
     def run_init_script
       miku_stream(File.open(INITIALIZE_FILE), self)

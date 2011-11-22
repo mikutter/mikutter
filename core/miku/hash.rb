@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'list'
+require_relative 'list'
 
 class Hash
   include MIKU::List

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'atom'
+require_relative 'atom'
 
 class Symbol
 

@@ -87,13 +87,13 @@ Module.new do
         when json['direct_message']
           event_direct_message(json['direct_message'])
         when json['delete']
-          if $debug
+          if Mopt.debug
             Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
                                                    :system => true)]) end
         when !json.has_key?('event')
           # thread_storage(:update).push(json)
           event_update(json)
-        when $debug
+        when Mopt.debug
           Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
                                                  :system => true)])
         end

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
-require 'node'
-require 'primitive'
+require_relative 'node'
+require_relative 'primitive'
 
 module MIKU
 
@@ -141,8 +141,12 @@ module MIKU
           block = nil
           count = if func.arity < 0 then -(func.arity)+1 else func.arity end
           if args.size > count
-            args = args.dup
-            block = args.pop end
+            atmp = args.dup
+            block = atmp.pop
+            if(block.respond_to? :call)
+              args = atmp
+            else
+              block = nil end end
           func.call(*args, &block)
         rescue => e
           raise e end
@@ -151,7 +155,7 @@ module MIKU
 
     def get_function(symtable)
       if car.is_a? Symbol
-        symtable[car].cdr or car
+        symtable[car].cdr or symtable[car].car or car
       else
         miku_eval_another(symtable, car)
       end
@@ -180,5 +184,5 @@ module MIKU
 
 end
 
-require 'cons'
-require 'array'
+require_relative 'cons'
+require_relative 'array'

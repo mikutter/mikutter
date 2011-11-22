@@ -180,6 +180,8 @@ module Retriever
     def self.findbyid(id, count=-1)
       return findbyid_ary(id, count) if id.is_a? Array
       raise if(id.is_a? Model)
+      it = (@findbyid ||= TimeLimitedStorage.new(Integer, Model))[id]
+      # return it if it
       result = nil
       catch(:found){
         rs = self.retrievers
@@ -192,9 +194,16 @@ module Retriever
             throw :found end } }
       self.retrievers_reorder
       if result.is_a? Retriever::Model
-        result
+        @findbyid[id] = result
       elsif result.is_a? Hash
-        self.new_ifnecessary(result) end end
+        @findbyid[id] = self.new_ifnecessary(result) end
+    rescue => e
+      p({
+        model: self,
+        id: id,
+        count: count })
+      raise e
+    end
 
     def self.findbyid_ary(ids, count=-1)
       result = []

@@ -368,5 +368,3 @@ plugin.add_event(:ipapiremain,
 
 plugin.add_event(:rewindstatus){ |mes|
   gui.statusbar.push(gui.statusbar.get_context_id('system'), mes) }
-
-miquire :addon, 'addon'

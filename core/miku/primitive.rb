@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-require 'atom'
-require 'error'
-require 'macro'
+require_relative 'atom'
+require_relative 'error'
+require_relative 'macro'
 
 module MIKU
   class Primitive
@@ -164,7 +164,7 @@ module MIKU
           eval(symtable, operator) } } end
 
     def require_runtime_library(symtable, filename)
-      require filename
+      require eval(symtable, filename)
     end
 
   end
