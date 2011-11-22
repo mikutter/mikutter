@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # hatsune lisp is moest language
 
-require 'miku'
-require 'error'
+require_relative 'miku'
+require_relative 'error'
 require 'stringio'
 
 module MIKU
@@ -156,7 +156,7 @@ module MIKU
     elsif(val.is_a?(List))
       val.unparse
     elsif(val.is_a?(String))
-      '"' + val.melt.gsub("\n", '\\n').gsub('"', '\\"') + '"'
+      '"' + val.dup.gsub("\n", '\\n').gsub('"', '\\"') + '"'
     elsif(val.respond_to?(:unparse))
       val.unparse
     else

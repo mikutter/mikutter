@@ -17,7 +17,6 @@ require 'monitor'
 require "open-uri"
 
 $atomic = Monitor.new
-$debug_avail_level = 2
 
 # 基本的な単位であり、数学的にも重要なマジックナンバーで、至るところで使われる。
 # これが言語仕様に含まれていないRubyは正直気が狂っていると思う。
@@ -168,18 +167,18 @@ def where_should_insert_it(insertion, src, order)
 
 # 一般メッセージを表示する。
 def notice(msg)
-  log "notice", msg if $debug_avail_level >= 3
+  log "notice", msg if Mopt.error_level >= 3
 end
 
 # 警告メッセージを表示する。
 def warn(msg)
-  log "warning", msg if $debug_avail_level >= 2
+  log "warning", msg if Mopt.error_level >= 2
 end
 
 # エラーメッセージを表示する。
 def error(msg)
-  log "error", msg if $debug_avail_level >= 1
-  abort if $debug_avail_level >= 4
+  log "error", msg if Mopt.error_level >= 1
+  abort if Mopt.error_level >= 4
 end
 
 # 引数のチェックをすべてパスした場合のみブロックを実行する
@@ -275,7 +274,7 @@ def caller_util_all
 # デバッグモードの場合、_obj_ が _type_ とis_a?関係にない場合、RuntimeErrorを発生させる。
 # _obj_ を返す。
 def assert_type(type, obj)
-  if $debug and not obj.is_a?(type) then
+  if Mopt.debug and not obj.is_a?(type)
     raise RuntimeError, "#{obj} should be type #{type}"
   end
   obj
@@ -285,7 +284,7 @@ end
 # RuntimeErrorを発生させる。
 # _obj_ を返す。
 def assert_hasmethods(obj, *methods)
-  if $debug then
+  if Mopt.debug
     methods.all?{ |m|
       raise RuntimeError, "#{obj.inspect} should have method #{m}" if not obj.methods.include? m
     }
@@ -334,20 +333,6 @@ def chi_fatal_alert(msg)
     dialog.destroy end
   puts msg.to_s
   abort end
-
-# エラーレベルを設定
-def seterrorlevel(lv = :error)
-  case(lv)
-  when :notice
-    $debug_avail_level = 3
-  when :warn
-    $debug_avail_level = 2
-  when :error
-    $debug_avail_level = 1
-  else
-    $debug_avail_level = lv
-  end
-end
 
 #ログファイルを取得設定
 def logfile(fn = nil)

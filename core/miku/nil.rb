@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-require 'atom'
-require 'list'
+require_relative 'atom'
+require_relative 'list'
 
 class NilClass
 

@@ -14,9 +14,7 @@ require 'thread'
 
 = Plugin プラグイン管理/イベント管理クラス
 
-CHIコアにプラグインを報告します。
-Plugin.create でPluginTagのインスタンスを作り、コアにプラグインを登録します。
-イベントリスナーの登録とイベントの発行については、Plugin::PluginTagを参照してください。
+Plugin.create で、コアにプラグインを登録します。
 
 == プラグインの実行順序
 

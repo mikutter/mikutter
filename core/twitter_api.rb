@@ -194,7 +194,7 @@ class TwitterAPI < Mutex
       limit, remain, reset = ip_api_remain(res)
       Plugin.call(:ipapiremain, remain, reset)
       if res.code == '400' or res.code == '401' or res.code == '403'
-        if $debug and res.code != '400'
+        if Mopt.debug and res.code != '400'
           Plugin.call(:update, nil, [Message.new(:message => "Request protected account without OAuth.\n#{path}\n#{options.inspect}", :system => true)]) end
         @@ip_limit_reset = reset
         return get_with_auth(path, raw_options) end
@@ -580,15 +580,15 @@ class TwitterAPI < Mutex
                list[:description] => [:respond_to?, :to_s],
                list[:user] => [:respond_to?, :[]]){
       post_with_auth("/#{list[:user][:idname]}/lists.#{FORMAT}",
-                     :name => list[:name].to_s.shrink(25),
-                     :description => list[:description].to_s.shrink(100),
+                     :name => list[:name].to_s[0, 25],
+                     :description => list[:description].to_s[0, 100],
                      :mode => (if list[:mode] then 'public' else 'private' end)) } end
 
   def update_list(list)
     type_check(list => UserList) do
       self.post_with_auth("/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}",
-                          :name => list[:name].to_s.shrink(25),
-                          :description => list[:description].to_s.shrink(100),
+                          :name => list[:name].to_s[0, 25],
+                          :description => list[:description].to_s[0, 100],
                           :mode => (if list[:mode] then 'public' else 'private' end)) end end
 
   def delete_list(list)

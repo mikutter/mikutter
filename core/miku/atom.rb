@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'node'
+require_relative 'node'
 
 module MIKU
   module Atom

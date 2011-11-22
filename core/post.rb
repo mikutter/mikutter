@@ -66,6 +66,7 @@ class Post
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
     @@services << self
+    user_initialize
   end
 
   def self.services_refresh
@@ -75,6 +76,7 @@ class Post
   # 存在するServiceオブジェクトをSetで返す。
   # つまり、投稿権限のある「自分」のアカウントを全て返す。
   def self.services
+    Post.services_refresh
     @@services.dup
   end
 
@@ -108,20 +110,6 @@ class Post
   # OAuth トークンを返す
   def request_oauth_token
     @twitter.request_oauth_token
-  end
-
-  def user_initialize
-    scaned = scan(:verify_credentials)
-    if scaned
-      @user_obj = scaned[0]
-      UserConfig[:verify_credentials] = {
-        :id => @user_obj[:id],
-        :idname => @user_obj[:idname],
-        :name => @user_obj[:name],
-        :profile_image_url => @user_obj[:profile_image_url] }
-    else
-      @user_obj = User.generate(UserConfig[:verify_credentials]) end
-    @user_obj
   end
 
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
@@ -299,6 +287,20 @@ class Post
     "#<Post #{idname}>" end
 
   private
+
+  def user_initialize
+    scaned = scan(:verify_credentials)
+    if scaned
+      @user_obj = scaned[0]
+      UserConfig[:verify_credentials] = {
+        :id => @user_obj[:id],
+        :idname => @user_obj[:idname],
+        :name => @user_obj[:name],
+        :profile_image_url => @user_obj[:profile_image_url] }
+    else
+      @user_obj = User.generate(UserConfig[:verify_credentials]) end
+    @user_obj
+  end
 
   def try_post(message, api)
     UserConfig[:message_retry_limit].times{ |count|

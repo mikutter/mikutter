@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ruby
 
-require 'array'
+require_relative 'array'
 
 def yamlisp(node)
   if(node.is_a? YamLisp::Node) then
