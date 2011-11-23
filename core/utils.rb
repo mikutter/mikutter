@@ -362,9 +362,9 @@ end
 # 共通のMutexで処理を保護して実行する。
 # atomicブロックで囲まれたコードは、別々のスレッドで同時に実行されない。
 def atomic
-  if Thread.current == Thread.main
-    # raise 'Atomic Mutex dont have to block main thread'
-  end
+  # if Thread.current == Thread.main
+  #    raise 'Atomic Mutex dont have to block main thread'
+  # end
   $atomic.synchronize{ yield }
 end
 
