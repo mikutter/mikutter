@@ -25,13 +25,8 @@ end
 # >> 
 # >> # Running tests:
 # >> 
-# >> .E
+# >> ..
 # >> 
-# >> Finished tests in 0.178780s, 11.1869 tests/s, 5.5935 assertions/s.
+# >> Finished tests in 0.003461s, 577.8730 tests/s, 577.8730 assertions/s.
 # >> 
-# >>   1) Error:
-# >> test_shrink_too_long_url_only(TC_Utils):
-# >> SystemStackError: stack level too deep
-# >>     /home/toshi/Documents/hobby/scripts/mikutter/trunk/core/lib/lazy.rb:30
-# >> 
-# >> 2 tests, 1 assertions, 0 failures, 1 errors, 0 skips
+# >> 2 tests, 2 assertions, 0 failures, 0 errors, 0 skips
