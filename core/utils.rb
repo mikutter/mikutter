@@ -732,12 +732,12 @@ class String
     o_match = uni_char && match(uni_char)
     if o_match
       pure_matched = lazy{ o_match.pre_match + o_match[0] }
-      sh_post = lazy{ o_match.post_match.shrink(count - pure_matched.size, uni_char, separator) }
-      sh_head = lazy{ o_match.pre_match[0, count-separator.size-o_match[0].size] }
+      sh_post = lazy{ o_match.post_match.shrink([count - pure_matched.size, 0].max, uni_char, separator) }
+      sh_head = lazy{ o_match.pre_match[0, [0, count-separator.size-o_match[0].size].max] }
       if pure_matched.size <= count
         pure_matched + sh_post
       elsif not sh_head.nil?
-        sh_head + separator + o_match[0] + sh_post
+        (sh_head.empty? ? '' : sh_head + separator) + o_match[0] + sh_post
       else
         o_match[0].shrink(count, uni_char, separator)
       end
