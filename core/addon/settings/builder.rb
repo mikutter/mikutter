@@ -117,6 +117,23 @@ class Plugin::Setting < Gtk::VBox
     container
   end
 
+  # 一行テキストボックス(非表示)
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  def inputpass(label, config)
+    container = Gtk::HBox.new(false, 0)
+    input = Gtk::Entry.new
+    input.visibility = false
+    input.text = Listener[config].get
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    input.signal_connect('changed'){ |widget|
+      Listener[config].set widget.text }
+    closeup container
+    container
+  end
+
   # 設定のグループ。関連の強い設定をカテゴライズできる。
   # ==== Args
   # [title] ラベル

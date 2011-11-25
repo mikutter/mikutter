@@ -69,13 +69,10 @@ module Gtk
       @post.signal_connect('key_press_event'){ |widget, event|
         Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       @post.ssc('key_release_event'){ |textview, event|
-        widget_send.sensitive = postable?
-        widget_tool.sensitive = destructible? || posting?
+        refresh_buttons(false)
         false }
       @post.ssc('paste-clipboard'){ |this|
-        Delayer.new{
-          widget_send.sensitive = postable?
-          widget_tool.sensitive = destructible? || posting? }
+        Delayer.new{ refresh_buttons(false) }
         false }
       @post.signal_connect_after('focus_out_event', &method(:focus_out_event))
       @post end
@@ -116,6 +113,15 @@ module Gtk
           destroy if destructible? end
         false }
       @tool end
+
+    # 各ボタンのクリック可否状態を更新する
+    def refresh_buttons(refresh_brothers = true)
+      if refresh_brothers and @options.has_key?(:postboxstorage)
+        @options[:postboxstorage].children.each{ |brother|
+          brother.refresh_buttons(false) }
+      else
+        widget_send.sensitive = postable?
+        widget_tool.sensitive = destructible? || posting? end end
 
     # 現在メッセージの投稿中なら真を返す
     def posting?
@@ -197,9 +203,8 @@ module Gtk
         (retweet? ? @watch.service : @watch) end end
 
     def post_is_empty?
-      frozen? and widget_post.buffer.text == "" or
-        (defined?(@watch[:user]) and
-         widget_post.buffer.text == "@#{@watch[:user][:idname]} ") end
+      widget_post.buffer.text.empty? or
+        (defined?(@watch[:user]) ? widget_post.buffer.text == "@#{@watch[:user][:idname]} " : false) end
 
     def brothers
       if(@options[:postboxstorage])

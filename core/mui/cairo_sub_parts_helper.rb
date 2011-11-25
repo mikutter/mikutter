@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 miquire :lib, 'uithreadonly'
+miquire :core, 'userconfig'
 
 module Gdk::SubPartsHelper
 

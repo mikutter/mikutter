@@ -5,6 +5,7 @@
 miquire :core, 'configloader'
 miquire :core, 'environment'
 miquire :core, 'delayer'
+miquire :mui
 
 require 'monitor'
 require 'set'
