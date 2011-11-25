@@ -21,12 +21,3 @@ class TC_Utils < Test::Unit::TestCase
   end
 
 end
-# >> Run options: 
-# >> 
-# >> # Running tests:
-# >> 
-# >> ..
-# >> 
-# >> Finished tests in 0.003461s, 577.8730 tests/s, 577.8730 assertions/s.
-# >> 
-# >> 2 tests, 2 assertions, 0 failures, 0 errors, 0 skips

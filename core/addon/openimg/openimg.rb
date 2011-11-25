@@ -156,6 +156,11 @@ Module.new do
     end
   }
 
+  Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
+    url = MessageConverters.expand_url_one(shrinked_url)
+    Delayer.new(Delayer::NORMAL) { display(url, cancel) }
+  }
+
   if $0 == __FILE__
     $debug = true
     seterrorlevel(:notice)
