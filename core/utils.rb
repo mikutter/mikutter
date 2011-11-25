@@ -345,9 +345,9 @@ end
 # 共通のMutexで処理を保護して実行する。
 # atomicブロックで囲まれたコードは、別々のスレッドで同時に実行されない。
 def atomic
-  if Thread.current == Thread.main
-    # raise 'Atomic Mutex dont have to block main thread'
-  end
+  # if Thread.current == Thread.main
+  #    raise 'Atomic Mutex dont have to block main thread'
+  # end
   $atomic.synchronize{ yield }
 end
 
@@ -731,7 +731,7 @@ class String
   def shrink(count, uni_char=nil, separator=' ')
     o_match = uni_char && match(uni_char)
     if o_match
-      pure_matched = lazy{ o_match.pre_match + o_match[0] }
+      pure_matched = o_match.pre_match + o_match[0]
       sh_post = lazy{ o_match.post_match.shrink([count - pure_matched.size, 0].max, uni_char, separator) }
       sh_head = lazy{ o_match.pre_match[0, [0, count-separator.size-o_match[0].size].max] }
       if pure_matched.size <= count
