@@ -12,6 +12,9 @@ miquire :mui, 'pseudo_message_widget'
 miquire :mui, 'postbox'
 miquire :mui, 'inner_tl'
 
+miquire :core, 'message'
+miquire :core, 'user'
+
 =begin rdoc
   タイムラインのGtkウィジェット。
 =end

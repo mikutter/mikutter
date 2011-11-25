@@ -69,16 +69,15 @@ class Plugin
       @pane = Gtk::HBox.new(true, 0)
       sidebar = Gtk::VBox.new(false, 0)
       @prompt = Gtk::VBox.new(false, 0)
-      mumbles = Gtk::VBox.new(false, 0)
-      postbox = Gtk::PostBox.new(watch, :postboxstorage => mumbles, :delegate_other => true)
-      mumbles.pack_start(postbox)
+      postbox = Gtk::PostBox.new(watch, :postboxstorage => postboxes, :delegate_other => true)
+      postboxes.pack_start(postbox)
       @window.set_focus(postbox.post)
       UserConfig[:tab_order] = UserConfig[:tab_order].select{ |n| not n.empty? }
       UserConfig[:tab_order].size.times{ |cnt|
         @pane.pack_end(self.books(cnt)) }
       main.pack_start(@paneshell.pack_end(@pane)).closeup(sidebar)
       newpane
-      @window.add(container.closeup(mumbles).pack_start(main).closeup(@prompt).closeup(statusbar))
+      @window.add(container.closeup(postboxes).pack_start(main).closeup(@prompt).closeup(statusbar))
       set_icon
       @window.signal_connect(:key_press_event){ |widget, event|
         Plugin.call(:keypress, Gtk.keyname([event.keyval ,event.state]))
@@ -91,6 +90,10 @@ class Plugin
       }
       @window.show_all
     end
+
+    # メインのツイートのpostboxを格納するVBoxを返す
+    def postboxes
+      @postboxes ||= Gtk::VBox.new(false, 0) end
 
     def set_icon
       @window.icon = Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get('icon.png')), 256, 256)
@@ -336,6 +339,7 @@ end
 gui = Plugin::GUI.new
 plugin = Plugin::create(:gui)
 plugin.add_event(:boot, &gui.method(:onboot))
+plugin.add_event_filter(:main_postbox){ |postbox| [gui.postboxes] }
 
 # タブを登録
 # (Widget container, String label[, String iconpath])
