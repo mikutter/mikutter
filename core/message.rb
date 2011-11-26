@@ -69,9 +69,9 @@ class Message < Retriever::Model
     other[:replyto] = self
     other[:receiver] = self[:user]
     if self.service
-      self.service.post(other){|*a| yield *a }
+      self.service.post(other){|*a| yield *a if block_given? }
     elsif self.receive_message
-      self.receive_message.post(other){|*a| yield *a }
+      self.receive_message.post(other){|*a| yield *a if block_given? }
     end
   end
 

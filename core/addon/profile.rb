@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'skin'
-miquire :addon, 'addon'
-miquire :addon, 'settings'
-
 Module.new do
 
   @tabclass = Class.new(Addon.gen_tabclass){

@@ -1,9 +1,5 @@
 # -*- coding:utf-8 -*-
 
-miquire :mui, 'skin'
-miquire :mui, 'timeline'
-miquire :addon, 'addon'
-
 Module.new do
 
   plugin = Plugin::create(:search)

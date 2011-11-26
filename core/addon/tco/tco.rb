@@ -2,8 +2,6 @@
 # エンティティで展開しきれなかった t.co で短縮されたURLを展開する。
 # http://www.gistlog.org/gist/1008272
 
-miquire :core, 'messageconverters'
-miquire :addon, 'addon'
 require 'uri'
 require 'net/http'
 

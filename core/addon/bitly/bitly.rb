@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'messageconverters'
-miquire :addon, 'addon'
-miquire :addon, 'settings'
-miquire :core, 'userconfig'
-miquire :lib, "json"
-miquire :lib, "timelimitedqueue"
-
 class Bitly < MessageConverters
   USER = 'mikutter'
   APIKEY = 'R_70170ccac1099f3ae1818af3fa7bb311'

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :addon, 'addon'
-miquire :core, 'userconfig'
-miquire :mui, 'skin'
-miquire :mui, 'mtk'
-
 require File.expand_path File.join(File.dirname(__FILE__), 'builder')
 require File.expand_path File.join(File.dirname(__FILE__), 'basic_settings')
 

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'skin'
-miquire :addon, 'addon'
-
 require 'set'
 
 Module.new do

@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-miquire :addon, 'addon'
-miquire :addon, 'settings'
-miquire :core, 'environment'
-miquire :core, 'post'
 
 Module.new do
 

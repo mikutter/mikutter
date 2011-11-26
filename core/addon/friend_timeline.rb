@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :addon, 'addon'
-miquire :mui, 'skin'
-miquire :mui, 'timeline'
-
 Module.new do
   main = Gtk::TimeLine.new()
 
