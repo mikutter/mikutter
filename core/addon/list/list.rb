@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
 # 公式リスト
 
-miquire :addon, 'addon'
-miquire :mui, 'listlist'
 require File.expand_path File.join(File.dirname(__FILE__), 'liststream')
 
 require 'set'

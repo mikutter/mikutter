@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-miquire :addon, 'addon'
-miquire :core, 'environment'
-miquire :addon, 'settings'
 
 Plugin::create(:set_view) do
   settings("表示") do

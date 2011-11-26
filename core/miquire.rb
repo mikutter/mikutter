@@ -43,16 +43,18 @@ module Miquire
     #     + b.rb
     #     ` c.rb
     #  a.rbとb.rbが読み込まれる(c.rbやREADMEは読み込まれない)
-    def miquire(kind, file=nil)
+    def miquire(kind, *files)
       kind = kind.to_sym
-      if file
+      if files.empty?
+        miquire_all_files(kind)
+      else
         if kind == :lib
           Dir.chdir(PATH_KIND_CONVERTER[kind]){
-            miquire_original_require file.to_s }
+            files.each{ |file|
+              miquire_original_require file.to_s } }
         else
-          file_or_directory_require PATH_KIND_CONVERTER[kind] + file.to_s end
-      else
-        miquire_all_files(kind) end end
+          files.each{ |file|
+            file_or_directory_require PATH_KIND_CONVERTER[kind] + file.to_s } end end end
 
     # miquireと同じだが、全てのファイルが対象になる
     def miquire_all_files(kind)

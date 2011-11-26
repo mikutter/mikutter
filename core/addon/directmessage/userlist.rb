@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'userlist'
-
 # 最後にやりとりしたDMの日時でソートする機能のついたUserlist
 module Plugin::DirectMessage
   class UserList < Gtk::UserList

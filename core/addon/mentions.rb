@@ -3,10 +3,6 @@
 #
 # Reply display/post support
 
-miquire :addon, 'addon'
-miquire :mui, 'skin'
-miquire :mui, 'timeline'
-
 Module.new do
   main = Gtk::TimeLine.new()
   image = Gtk::Image.new(Gdk::Pixbuf.new(MUI::Skin.get("reply.png"), 24, 24))

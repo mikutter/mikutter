@@ -7,16 +7,6 @@ $openimg = true # !> redefine call_routine
 require 'gtk2'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'utils'))
 
-miquire :core, 'plugin'
-miquire :core, 'delayer'
-miquire :core, 'userconfig'
-miquire :core, 'message'
-miquire :mui, 'webicon'
-miquire :mui, 'intelligent_textview' # !> ambiguous first argument; put parentheses or even spaces
-miquire :mui, 'timeline'
-miquire :lib, 'piapro' # !> `*' interpreted as argument prefix
-miquire :lib, 'json'
-
  # !> ambiguous first argument; put parentheses or even spaces
 Module.new do
   DEFAULT_SIZE = [640, 480].freeze
