@@ -41,12 +41,17 @@ def boot!(profile)
   if profile
     require 'ruby-prof'
     begin
+      notice 'start profiling'
       RubyProf.start
       Gtk.main
     ensure
       result = RubyProf.stop
       printer = RubyProf::CallTreePrinter.new(result)
-      printer.print(File.open(File.join(File.expand_path(Environment::TMPDIR), 'profile-'+Time.new.strftime('%Y-%m-%d-%H%M%S')+'.out'), 'w'), {}) end
+      profile_out = File.join(File.expand_path(Environment::TMPDIR), 'profile-'+Time.new.strftime('%Y-%m-%d-%H%M%S')+'.out')
+      notice "profile: writing to #{profile_out}"
+      printer.print(File.open(profile_out, 'w'), {})
+      notice "profile: done."
+    end
   else
     Gtk.main end end
 
