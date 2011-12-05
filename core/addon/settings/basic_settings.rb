@@ -32,10 +32,10 @@ Plugin::create(:basic_settings) do
     end
 
     settings('イベントの発生頻度(ミリ秒単位)') do
-      adjustment('タイムラインとリプライとリツイート', :update_queue_delay, 1, 1000)
-      adjustment('ふぁぼられ', :favorite_queue_delay, 1, 1000)
-      adjustment('フォロワー', :follow_queue_delay, 1, 1000)
-      adjustment('ダイレクトメッセージ', :direct_message_queue_delay, 1, 1000)
+      adjustment('タイムラインとリプライとリツイート', :update_queue_delay, 100, 10000)
+      adjustment('ふぁぼられ', :favorite_queue_delay, 100, 10000)
+      adjustment('フォロワー', :follow_queue_delay, 100, 10000)
+      adjustment('ダイレクトメッセージ', :direct_message_queue_delay, 100, 10000)
     end
 
     settings 'リアルタイム更新' do
