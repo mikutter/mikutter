@@ -387,7 +387,8 @@ class Plugin
   # - Proc &place 設定画面を作る無名関数
   def settings(name, &place)
     Plugin.call(:settings, name, place)
-  end
+    filter_defined_settings do |tabs|
+      [tabs.melt << [name, place]] end end
 
   private
 

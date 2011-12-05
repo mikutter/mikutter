@@ -72,6 +72,9 @@ class UserConfig
     # タブの並び順
     :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
 
+    # 設定タブの並び順
+    :tab_order_in_settings => ["基本設定", "表示", "入力", "通知", "抽出タブ", "リスト", "ショートカットキー", "アカウント情報", "プロキシ"],
+
     # タブの位置 [上,下,左,右]
     :tab_position => 3,
 
