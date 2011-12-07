@@ -50,27 +50,36 @@ class UserList < Retriever::Model
       member.any?{ |m| m.id == user.to_i } end end
 
   def add_member(user)
-    if user.is_a? User
-      member.add(user)
-    elsif user.is_a? Integer
-      member.add(lazy{ User.findbyid(user) })
-    elsif user.is_a? Enumerable
-      user.map(&method(:add_member))
-    else
-      raise ArgumentError.new('UserList member must be User') end
-    self.class.store_datum(self)
+    member_update_transaction do
+      if user.is_a? User
+        member.add(user)
+      elsif user.is_a? Integer
+        member.add(lazy{ User.findbyid(user) })
+      elsif user.is_a? Enumerable
+        user.map(&method(:add_member))
+      else
+        raise ArgumentError.new('UserList member must be User') end end
     self end
 
   def remove_member(user)
-    if user.is_a? User
-      member.delete(user)
-    elsif user.is_a? Integer
-      member.delete(User.findbyid(user))
-    elsif user.is_a? Enumerable
-      user.map(&remove_member)
-    else
-      raise ArgumentError.new('UserList member must be User') end
-    self.class.store_datum(self)
+    member_update_transaction do
+      if user.is_a? User
+        member.delete(user)
+      elsif user.is_a? Integer
+        member.delete(User.findbyid(user))
+      elsif user.is_a? Enumerable
+        user.map(&remove_member)
+      else
+        raise ArgumentError.new('UserList member must be User') end end
     self end
+
+  private
+  def member_update_transaction
+    before = member.size
+    result = yield
+    if before != member.size
+      Plugin.call(:list_member_changed, self)
+      self.class.store_datum(self) end
+    result end
 
 end

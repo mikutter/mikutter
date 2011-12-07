@@ -183,7 +183,7 @@ class Message < Retriever::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    match = self[:message].to_s.to_enum(:each_matches, /@([a-zA-Z0-9_]+)/).map{ |m| m[1] } end
+    self[:message].to_s.to_enum(:each_matches, /@([a-zA-Z0-9_]+)/).map{ |m| m[1] } end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?

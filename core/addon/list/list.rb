@@ -26,13 +26,18 @@ Module.new do
     # [messages]
     #   Message の配列。
     #   このリストのメンバーにないUserのMessageが含まれている場合、そのUserをリストに加入させる
-    def update_member_messages!(messages)
-      messages.each{ |m|
-        if list.member?(m[:user])
-          idnames = m.receive_user_screen_names
-          if m.retweet? or idnames.empty?
-            list.add_member(m[:user]) end end }
+   def update_member_messages!(messages)
+     messages.each{ |m|
+       list.add_member(m[:user]) if not list.member?(m[:user]) }
       update(messages, false) end
+    # def update_member_messages!(messages)
+    #   members_messages = []
+    #   messages.each{ |m|
+    #     if list.member?(m[:user])
+    #       members_messages << m
+    #     elsif !m.retweet? and m.receive_user_screen_names.empty?
+    #       list.add_member(m[:user]) end }
+    #   update(members_messages, false) end
 
     # リストのTLに、 _messages_ を入れる。
     # ==== Args
@@ -41,8 +46,11 @@ Module.new do
     def update(messages, filtering = true)
       if(filtering)
         super(messages.select{ |m|
-                idnames = lazy{ m.receive_user_screen_names }
-                list.member?(m[:user]) or list.member.any?{ |user| idnames.include?(user[:idname]) } })
+                idnames = m.receive_user_screen_names
+                if idnames.empty?
+                  list.member?(m[:user])
+                else
+                  list.member?(m[:user]) and list.member.any?{ |user| idnames.include?(user[:idname]) } end })
       else
         super(messages)
       end
@@ -51,6 +59,8 @@ Module.new do
     def suffix
       '(List)' end
 
+    # REST APIで、リストの最新のツイートを取得する。
+    # また、ここに出現したユーザは、全てリストのメンバーであるとみなされ、リストに追加される。
     def rewind(use_cache=false)
       @service.call_api(:list_statuses,
                         :id => list[:id],
@@ -70,7 +80,7 @@ Module.new do
 
     @plugin.add_event(:period){ |service|
       @count += 1
-      if(@count >= UserConfig[:retrieve_interval_search])
+      if(@count >= UserConfig[:retrieve_interval_list_timeline] || 60)
         update
         @count = 0 end }
 

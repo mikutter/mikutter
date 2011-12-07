@@ -65,6 +65,10 @@ messageの内容が変わったときに呼ばれる。
 === list_destroy(Post service, Array ulist)
 リストが削除されると、それを引数に呼ばれる。
 
+=== list_member_changed(UserList list)
+リストにメンバーの追加・削除があれば呼び出される。
+ただし、実際に追加・削除がされたのではなく、mikutterが初めて掌握しただけでもこれが呼び出される。
+
 === mui_tab_regist(Gtk::Widget container, String label, String image=nil)
 ウィンドウにタブを追加する。 _label_ はウィンドウ内での識別名にも使われるので一意であること。
 _image_ は画像への相対パスかURLで、通常は #MUI::Skin.get の戻り値を使う。
