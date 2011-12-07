@@ -12,24 +12,34 @@ Plugin::create(:liststream) do
       else
         notice 'list stream: disable'
         thread.kill if thread.is_a? Thread
-        thread = nil
-      end
-    end
-  }
+        thread = nil end end }
 
-  def self.start
+  on_list_member_changed do |userlist|
+    if UserConfig[:list_realtime_rewind]
+      thread.kill rescue nil if thread
+      thread = start end end
+
+  # 表示対象のListのうち、いずれかに所属するUserを含んだEnumerableを返す。
+  # 呼ぶたびにフィルタを利用するので負荷が高いため、注意する。
+  def member_anything
+    Plugin.filtering(:displayable_lists, Set.new).first.inject(Set.new) { |member, list|
+      if list
+        member + list[:member]
+      else
+        member end } end
+
+  # _member_anything_ のうち、自分がフォローしているユーザを除くUserを含んだEnumerableを返す。
+  def member_anything_and_not_following
+    member_anything - Plugin.filtering(:followings, Set.new).first end
+
+  def start
     service = Post.services.first
     Thread.new{
       loop{
         sleep(3)
         notice 'list stream: connect'
         begin
-          member = Plugin.filtering(:displayable_lists, []).first.inject(Set.new){ |member, list|
-            if list
-              member + list[:member]
-            else
-              member end }
-          not_followings = member - Plugin.filtering(:followings, []).first
+          not_followings = member_anything_and_not_following
           if not_followings.empty?
             sleep(60)
           else

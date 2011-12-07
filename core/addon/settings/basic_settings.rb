@@ -13,6 +13,9 @@ Plugin::create(:basic_settings) do
       adjustment('保存した検索', :retrieve_interval_search, 1, 60*24).
         tooltip('保存した検索を確認しに行く間隔')
 
+      adjustment('リストのタイムライン', :retrieve_interval_list_timeline, 1, 60*24).
+        tooltip('表示中のリストのタイムラインを確認しに行く間隔')
+
       adjustment('フォロー', :retrieve_interval_followings, 1, 60*24).
         tooltip('フォロー一覧を確認しに行く間隔。mikutterを使わずにフォローした場合、この時に同期される')
 

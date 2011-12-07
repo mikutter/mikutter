@@ -27,6 +27,7 @@ class UserConfig
     :retrieve_interval_followings => 60,  # followを更新する間隔(int)
     :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
     :retrieve_interval_direct_messages => 20,  # DirectMessageを更新する間隔(int)
+    :retrieve_interval_list_timeline => 60,    # リストの更新間隔(int)
 
     :retrieve_count_friendtl => 20,   # TLを取得する数(int)
     :retrieve_count_mention => 20,    # Replyを取得する数(int)
