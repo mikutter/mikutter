@@ -80,7 +80,7 @@ Module.new do
 
     @plugin.add_event(:period){ |service|
       @count += 1
-      if(@count >= UserConfig[:retrieve_interval_list_timeline] || 60)
+      if(@count >= (UserConfig[:retrieve_interval_list_timeline] || 60))
         update
         @count = 0 end }
 
