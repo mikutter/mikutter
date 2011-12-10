@@ -175,19 +175,44 @@ class Gtk::Dialog
   end
 end
 
-# _url_ を設定されているブラウザで開く
-def Gtk::openurl(url)
-  if UserConfig[:url_open_specified_command]
-    bg_system(UserConfig[:url_open_command], url)
-  elsif(defined? Win32API) then
-    shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-    shellExecuteA.call(0, 'open', url, 0, 0, 1)
-  else
-    if command_exist?('xdg-open')
-      command = 'xdg-open'
-    elsif command_exist?('open')
-      command = 'open'
-    else
-      command = '/etc/alternatives/x-www-browser' end
-    bg_system(command, url) end end
+module Gtk
+  # _url_ を設定されているブラウザで開く
+  class << self
+    def openurl(url)
+      command = nil
+      if UserConfig[:url_open_specified_command]
+        command = UserConfig[:url_open_command]
+        bg_system(command, url)
+      elsif(defined? Win32API) then
+        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
+        shellExecuteA.call(0, 'open', url, 0, 0, 1)
+      else
+        command = Gtk::url_open_command
+        if(command)
+          bg_system(command, url)
+        else
+          Plugin.call(:update, nil, [Message.new(:message => "この環境で、URLを開くためのコマンドが判別できませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
+                                                 :system => true)]) end end
+    rescue => e
+      Plugin.call(:update, nil, [Message.new(:message => "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
+                                             :system => true)]) end
 
+    # URLを開くことができるコマンドを返す。
+    def url_open_command
+      openable_commands = %w{xdg-open open /etc/alternatives/x-www-browser}
+      wellknown_browsers = %w{firefox chrome opera}
+      catch(:urlopen) do
+        openable_commands.each{ |o|
+          if command_exist?(o)
+            command = o
+            throw :urlopen end }
+        wellknown_browsers.each{ |o|
+          if command_exist?(o)
+            Plugin.call(:update, nil, [Message.new(:message => "この環境で、URLを開くためのコマンドが判別できなかったので、\"#{command}\"を使用します。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
+                                                   :system => true)])
+            command = o
+            throw :urlopen end } end
+      command end
+    memoize :url_open_command
+  end
+end
