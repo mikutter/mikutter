@@ -1,23 +1,10 @@
 # -*- coding: utf-8 -*-
-# notify-sendコマンドで通知を表示する
+# notify-sendコマンド又はruby-libnotifyで通知を表示する。
 
-Module.new do
-
-  if command_exist? 'notify-send'
-    # 起動にやたら時間がかかることがあるので、SerialThreadで処理する
-    Plugin::create(:libnotify).add_event(:popup_notify){ |user, text, &stop|
-      SerialThread.new{
-        command = ["notify-send"]
-        if(text.is_a? Message)
-          command << '--category=system'
-          text = text.to_s
-        end
-        command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
-        if user
-          command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
-          command << "@#{user[:idname]} (#{user[:name]})" end
-        command << text
-        bg_system(*command) }
-      stop.call } end
-
+if require_if_exist('RNotify') and defined?(Notify) and Notify.init("mikutter") # ruby-libnotifyがつかえる場合
+  notice 'notify: use rnotify'
+  require File.expand_path File.join(File.dirname(__FILE__), 'rnotify')
+elsif command_exist? 'notify-send' # notify-sendコマンドが有る場合
+  notice 'notify: use notify-send'
+  require File.expand_path File.join(File.dirname(__FILE__), 'notify-send')
 end
