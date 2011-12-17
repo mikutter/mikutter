@@ -157,10 +157,10 @@ Module.new do
                  :name => 'リンクを開く',
                  :condition => lambda{ |opt|
                    opt.message.entity.to_a.any? {|u|
-                     u[:face][0,4] == "http" } },
+                     u[:slug] == :urls } },
                  :exec => lambda{ |opt|
                    opt.message.entity.to_a.each {|u|
-                     Gtk::openurl(u[:url]) if u[:face][0,4] == "http" }},
+                     Gtk::openurl(u[:url]) if u[:slug] == :urls } },
                  :visible => true,
                  :role => ROLE_MESSAGE )
 end
