@@ -4,6 +4,7 @@ miquire :core, 'userconfig'
 
 require 'gtk2'
 require 'monitor'
+require_if_exist 'Win32API'
 
 class GLib::Instantiatable
   # signal_connectと同じだが、イベントが呼ばれるたびにselfが削除されたGLib Objectでない場合のみブロックを実行する点が異なる。
