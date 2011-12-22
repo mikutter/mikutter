@@ -344,12 +344,13 @@ class Message < Retriever::Model
 
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(@retweets or []).map{ |x| x.modified }].select(&ret_nth).max
+    @value[:modified] ||= [self[:created], *(defined?(@retweets) ? @retweets : []).map{ |x| x.modified }].select(&ret_nth).max
   end
 
   private
 
   def add_retweet_in_this_thread(child)
+    @retweets = [] if not defined? @retweets
     @retweets << child
     set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 

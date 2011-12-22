@@ -3,6 +3,10 @@ require_if_exist 'continuation'
 module Gdk
   module TextSelector
 
+    def initialize(*args)
+      @textselector_pressing = @textselect_start = @textselect_end = nil
+      super end
+
     def textselector_range
       if(@textselect_start and @textselect_end and @textselect_start != @textselect_end)
         first, last = [@textselect_start, @textselect_end].sort

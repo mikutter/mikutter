@@ -260,7 +260,7 @@ module Retriever
           if required and not result
             raise InvalidTypeError, 'it is required value, but returned nil from cast function' end
           result
-        rescue InvalidTypeError=>e
+        rescue InvalidTypeError
           raise InvalidTypeError, "#{value.inspect} is not #{type}" end
       elsif type.is_a?(Array)
         if value.respond_to?(:map)
@@ -339,7 +339,7 @@ module Retriever
     end
 
     def time
-      @time or 0.0
+      defined?(@time) ? @time : 0.0
     end
 
     def inspect
@@ -348,9 +348,9 @@ module Retriever
   end
 
   @@cast = {
-    :int => lambda{ |v| begin v.to_i; rescue NoMethodError=>e then raise InvalidTypeError end },
+    :int => lambda{ |v| begin v.to_i; rescue NoMethodError then raise InvalidTypeError end },
     :bool => lambda{ |v| !!(v and not v == 'false') },
-    :string => lambda{ |v| begin v.to_s; rescue NoMethodError=>e then raise InvalidTypeError end },
+    :string => lambda{ |v| begin v.to_s; rescue NoMethodError then raise InvalidTypeError end },
     :time => lambda{ |v|
       if not v then
         nil

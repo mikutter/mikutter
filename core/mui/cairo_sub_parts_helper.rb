@@ -3,6 +3,10 @@ miquire :lib, 'uithreadonly'
 
 module Gdk::SubPartsHelper
 
+  def initialize(*args)
+    @subparts_height = nil
+    super end
+
   # 今サポートされている全てのSubPartsを配列で返す
   # ==== Return
   # Subpartsクラスの配列
