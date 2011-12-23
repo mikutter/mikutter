@@ -28,6 +28,7 @@ miquire :boot, 'check_config_permission'
 miquire :core, 'post'
 miquire :boot, 'load_plugin'
 
+
 notice "fire boot event"
 Plugin.call(:boot, Post.primary_service)
 
