@@ -144,11 +144,13 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def inmemory2pixbuf(image_data, rect)
+    rect = rect.dup
     loader = Gdk::PixbufLoader.new
-    loader.set_size(rect.width, rect.height)
+    # loader.set_size(rect.width, rect.height) if rect
     loader.write image_data
     loader.close
-    loader.pixbuf end
+    pb = loader.pixbuf
+    pb.scale(*calc_fitclop(pb, rect)) end
 
   def local_path_files_add(path)
     atomic{
@@ -156,6 +158,14 @@ module Gdk::WebImageLoader
         @local_path_files = Set.new
         at_exit{ FileUtils.rm(@local_path_files.to_a) } end }
     @local_path_files << path
+  end
+
+  def calc_fitclop(src, dst)
+    if (dst.width * src.height) > (dst.height * src.width)
+      return src.width * dst.height / src.height, dst.height
+    else
+      return dst.width, src.height * dst.width / src.width
+    end
   end
 
 end
