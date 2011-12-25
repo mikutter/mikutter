@@ -33,7 +33,9 @@ module Gdk::WebImageLoader
       else
         notfound_pixbuf(rect.width, rect.height) end
     else
-      via_internet(url, rect, &load_callback) end end
+      via_internet(url, rect, &load_callback) end
+  rescue Gdk::PixbufError
+    notfound_pixbuf(rect) end
 
   # _url_ が指している画像を任意のサイズにリサイズして、その画像のパスを返す。
   # このメソッドは画像のダウンロードが発生すると処理をブロッキングする。
@@ -135,7 +137,9 @@ module Gdk::WebImageLoader
         WebIconThread.new(&load_proc)
         loading_pixbuf(rect)
       else
-        load_proc.call end end end
+        load_proc.call end end
+  rescue Gdk::PixbufError
+    notfound_pixbuf(rect) end
 
   # メモリ上の画像データをPixbufにロードする
   # ==== Args
@@ -150,7 +154,9 @@ module Gdk::WebImageLoader
     loader.write image_data
     loader.close
     pb = loader.pixbuf
-    pb.scale(*calc_fitclop(pb, rect)) end
+    pb.scale(*calc_fitclop(pb, rect))
+  rescue Gdk::PixbufError
+    notfound_pixbuf(rect) end
 
   def local_path_files_add(path)
     atomic{
