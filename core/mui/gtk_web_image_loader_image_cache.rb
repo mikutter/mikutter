@@ -3,7 +3,7 @@
 # プラグインフィルタによるキャッシュ機能
 # 画像のローカルパスの問い合わせ
 
-miquire :mui, 'web_image_loader', 'web_image_loader_image_cache_raw'
+miquire :mui, 'web_image_loader', 'web_image_loader_image_cache_raw', 'web_image_loader_image_cache_pixbuf'
 miquire :lib, 'weakstorage'
 
 module Gdk::WebImageLoader
@@ -12,6 +12,7 @@ module Gdk::WebImageLoader
 
     def clear
       Raw.clear
+      Pixbuf.clear
       @cache_mutex = nil
     end
 

@@ -26,6 +26,9 @@ module Gdk::WebImageLoader
   # Pixbuf
   def pixbuf(url, rect, height = nil, &load_callback)
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
+    pixbuf = ImageCache::Pixbuf.load(url, rect)
+    if(pixbuf)
+      return pixbuf end
     if(is_local_path?(url))
       url = File.expand_path(url)
       if(FileTest.exist?(url))
@@ -101,7 +104,7 @@ module Gdk::WebImageLoader
   def via_internet(url, rect, &load_callback) # :yield: pixbuf, exception, url
     raw = ImageCache::Raw.load(url)
     if raw
-      inmemory2pixbuf(raw, rect)
+      ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
     else
       pixbuf = nil
       exception = false
@@ -109,7 +112,7 @@ module Gdk::WebImageLoader
         ImageCache.synchronize(url) {
           forerunner_result = ImageCache::Raw.load(url)
           if(forerunner_result)
-            pixbuf = inmemory2pixbuf(forerunner_result, rect)
+            pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(forerunner_result, rect))
             if load_callback
               Delayer.new { load_callback.call(*[pixbuf, true, url][0..load_callback.arity]) }
               forerunner_result
@@ -120,7 +123,7 @@ module Gdk::WebImageLoader
               res = Net::HTTP.get_response(URI.parse(url))
               if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
                 raw = res.body.to_s
-                pixbuf = inmemory2pixbuf(raw, rect)
+                pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
               else
                 exception = true
                 pixbuf = notfound_pixbuf(rect) end
