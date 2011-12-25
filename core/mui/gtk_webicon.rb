@@ -30,12 +30,11 @@ module Gtk
         else
           super(Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height)) end
       else
-        super(Gdk::WebImageLoader.loading_pixbuf(rect.width, rect.height))
-        Gdk::WebImageLoader.pixbuf(url, rect.width, rect.height) { |pixbuf, success|
-          unless destroyed?
-            self.pixbuf = pixbuf
-            self.changed
-            self.notify_observers end } end end
+        super(Gdk::WebImageLoader.pixbuf(url, rect.width, rect.height) { |pixbuf, success|
+                unless destroyed?
+                  self.pixbuf = pixbuf
+                  self.changed
+                  self.notify_observers end }) end end
 
   end
 end
