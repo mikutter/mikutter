@@ -65,15 +65,13 @@ class Gtk::TimeLine
 
   # ある条件を満たしたらInnerTLを捨てて、全く同じ内容の新しいInnerTLにすげ替えるためのイベントを定義する。
   def refresh_timer
-    Gtk.timeout_add(60000) {
-      if(@tl.destroyed?)
-        false
-      else
-        window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
-        @tl.hp -= 1 if not window_active
-        refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.hp <= (window_active ? -HYDE : 0)
-        true end }
-  end
+    Reserver.new(60) {
+      Delayer.new {
+        if !@tl.destroyed?
+          window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
+          @tl.hp -= 1 if not window_active
+          refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.hp <= (window_active ? -HYDE : 0)
+          refresh_timer end } } end
 
   def init_tl
     @tl.postbox = postbox
