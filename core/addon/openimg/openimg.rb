@@ -52,9 +52,6 @@ Module.new do
             eventbox.signal_connect("expose_event"){ |ev, event|
               move(w)
               false } # !> method redefined; discarding old width=
-            eventbox.signal_connect(:destroy){
-              Gtk::WebIcon.remove_cache(url.to_s)
-              false }
             eventbox.signal_connect(:"size-allocate"){
               if w.window and size != w.window.geometry[2,2]
                 size = changesize(eventbox, w, url.to_s) end }

@@ -11,7 +11,7 @@ Plugin::create(:libnotify) do
       end
       command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
       if user
-        command << "-i" << Gtk::WebIcon.local_path(user[:profile_image_url])
+        command << "-i" << Gdk::WebImageLoader.local_path(user[:profile_image_url])
         command << "@#{user[:idname]} (#{user[:name]})" end
       command << text
       bg_system(*command) }

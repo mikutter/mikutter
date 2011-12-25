@@ -14,7 +14,7 @@ Plugin::create(:libnotify) do
     end
 
     if user
-      icon = Gtk::WebIcon.local_path(user[:profile_image_url])
+      icon = Gtk::WebImageLoader.local_path(user[:profile_image_url])
       title = "@#{user[:idname]} (#{user[:name]})"
     end
 

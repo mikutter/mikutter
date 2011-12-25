@@ -14,7 +14,7 @@ module Plugin::DirectMessage
         remove_if_exists_all([user])
       elsif not @users.include?(user)
         iter = @ul.prepend
-        iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
+        iter[0] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
           iter[0] = pixbuf }
         iter[1] = user[:idname]
         iter[2] = user[:name]
@@ -26,7 +26,7 @@ module Plugin::DirectMessage
     def modify_date(user)
       @ul.each { |model, path, iter|
         if iter[4] == user[:id]
-          iter[0] = Gtk::WebIcon.get_icon_pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
+          iter[0] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
             iter[0] = pixbuf }
           iter[1] = user[:idname]
           iter[2] = user[:name]
