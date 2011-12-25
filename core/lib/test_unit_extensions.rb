@@ -21,3 +21,17 @@ module Test::Unit
 
   end
 end
+
+module Mopt
+  extend Mopt
+
+  @opts = {
+    debug: true,
+    error_level: 3 }
+
+  def method_missing(key)
+    scope = class << self; self end
+    scope.__send__(:define_method, key){ @opts[key.to_sym] }
+    @opts[key.to_sym] end
+
+end
