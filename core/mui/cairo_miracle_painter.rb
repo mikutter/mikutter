@@ -308,7 +308,7 @@ class Gdk::MiraclePainter < GLib::Object
 
   # アイコンのpixbufを返す
   def main_icon
-    @main_icon ||= Gtk::WebIcon.get_icon_pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
+    @main_icon ||= Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
       if not destroyed?
         @main_icon = pixbuf
         on_modify end } end

@@ -84,7 +84,7 @@ module Plugin::DirectMessage
           @dm_store[user[:id]].each { |dm|
             iter = model.append
             iter[DirectMessage::C_CREATED] = Time.parse(dm[:created_at]).to_i
-            iter[DirectMessage::C_ICON] = Gtk::WebIcon.get_icon_pixbuf(dm[:sender][:profile_image_url], 16, 16)
+            iter[DirectMessage::C_ICON] = Gdk::WebImageLoader.pixbuf(dm[:sender][:profile_image_url], 16, 16)
             iter[DirectMessage::C_TEXT] = dm[:text]
             iter[DirectMessage::C_RAW] = dm } end end
 
@@ -94,7 +94,7 @@ module Plugin::DirectMessage
             if user[:id].to_i == dm[:sender][:id].to_i or user[:id].to_i == dm[:recipient][:id].to_i
               iter = model.append
               iter[DirectMessage::C_CREATED] = Time.parse(dm[:created_at]).to_i
-              iter[DirectMessage::C_ICON] = Gtk::WebIcon.get_icon_pixbuf(dm[:sender][:profile_image_url], 16, 16)
+              iter[DirectMessage::C_ICON] = Gdk::WebImageLoader.pixbuf(dm[:sender][:profile_image_url], 16, 16)
               iter[DirectMessage::C_TEXT] = dm[:text]
               iter[DirectMessage::C_RAW] = dm end } end end
 
