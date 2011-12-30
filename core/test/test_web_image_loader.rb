@@ -13,9 +13,14 @@ require 'lib/test_unit_extensions'
 miquire :mui, 'web_image_loader'
 miquire :core, 'delayer'
 
+Plugin = Class.new
+
 class TC_GtkWebImageLoader < Test::Unit::TestCase
   def setup
     Gdk::WebImageLoader::ImageCache.clear
+    urls = ['http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png', 'http://internal.server.error/', 'http://notfound/']
+    urls.each{ |u|
+      Plugin.stubs(:filtering).with(:image_cache, u, nil).returns([u, nil]) }
   end
 
   must "not found" do
@@ -53,8 +58,15 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     while not Delayer.empty? do Delayer.run end
     assert_equal(true, Delayer.empty?)
     assert_equal(0, Delayer.size)
-    assert_equal(false, response[1])
-    response[0].save('test/result.png', 'png')
+    assert_equal(nil, response[1])
+    # response[0].save('test/result.png', 'png')
+
+    # もう一回ロードしてみる
+    response2 = nil
+    pb = Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
+      response2 = [pixbuf, success]
+    }
+    assert_equal(response[0], pb)
   end
 
   must "successfully load local image" do
@@ -96,6 +108,22 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), r)
       assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), r) }
     assert_equal(1, access_count)
+  end
+
+  must "get raw data success" do
+    url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
+    http_raw = File.open('test/icon_test.png'){ |io| io.read }.force_encoding('ASCII-8BIT').freeze
+    raw = http_raw[http_raw.index("\211PNG".force_encoding('ASCII-8BIT')), http_raw.size]
+    WebMock.stub_request(:get, url).to_return(http_raw)
+    response = nil
+    Gdk::WebImageLoader.get_raw_data(url){ |data, success, url|
+      response = [data, success]
+    }
+    (Thread.list - [Thread.current]).each &:join
+    while not Delayer.empty? do Delayer.run end
+    assert_equal(true, Delayer.empty?)
+    assert_equal(0, Delayer.size)
+    assert_equal(raw, response[0])
   end
 
   must "local path" do
