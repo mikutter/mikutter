@@ -27,8 +27,7 @@ module Gdk::WebImageLoader
   def pixbuf(url, rect, height = nil, &load_callback)
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
     pixbuf = ImageCache::Pixbuf.load(url, rect)
-    if(pixbuf)
-      return pixbuf end
+    return pixbuf if pixbuf
     if(is_local_path?(url))
       url = File.expand_path(url)
       if(FileTest.exist?(url))
@@ -57,6 +56,52 @@ module Gdk::WebImageLoader
       pb.save(filename, 'png') if not FileTest.exist?(filename)
       local_path_files_add(filename)
       filename end end
+
+  # urlが指している画像のデータを返す。
+  # ==== Args
+  # [url] 画像のURL
+  # ==== Return
+  # キャッシュがあればロード後のデータを即座に返す。
+  # ブロックが指定されれば、キャッシュがない時は :wait を返して、ロードが完了したらブロックを呼び出す。
+  # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのデータを返す。
+  def get_raw_data(url, &load_callback) # :yield: pixbuf, exception, url
+    raw = ImageCache::Raw.load(url)
+    if raw
+      raw
+    else
+      exception = nil
+      load_proc = lambda {
+        ImageCache.synchronize(url) {
+          forerunner_result = ImageCache::Raw.load(url)
+          if(forerunner_result)
+            raw = forerunner_result
+            if load_callback
+              load_callback.call(*[forerunner_result, nil, url][0..load_callback.arity])
+              forerunner_result
+            else
+              forerunner_result end
+          else
+            begin
+              res = Net::HTTP.get_response(URI.parse(url))
+              if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
+                raw = res.body.to_s
+              else
+                exception = true end
+            rescue Timeout::Error, StandardError => e
+              exception = e end
+            ImageCache::Raw.save(url, raw)
+            if load_callback
+              load_callback.call(*[raw, exception, url][0..load_callback.arity])
+              raw
+            else
+              raw end end } }
+      if load_callback
+        WebIconThread.new(&load_proc)
+        :wait
+      else
+        load_proc.call end end
+  rescue Gdk::PixbufError
+    nil end
 
   # _url_ が、インターネット上のリソースを指しているか、ローカルのファイルを指しているかを返す
   # ==== Args
@@ -102,45 +147,25 @@ module Gdk::WebImageLoader
   # ロード中のPixbufか、キャッシュがあればロード後のPixbufを即座に返す
   # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのPixbufを返す
   def via_internet(url, rect, &load_callback) # :yield: pixbuf, exception, url
-    raw = ImageCache::Raw.load(url)
-    if raw
-      ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
-    else
-      pixbuf = nil
-      exception = false
-      load_proc = lambda {
-        ImageCache.synchronize(url) {
-          forerunner_result = ImageCache::Raw.load(url)
-          if(forerunner_result)
-            pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(forerunner_result, rect))
-            if load_callback
-              Delayer.new { load_callback.call(*[pixbuf, true, url][0..load_callback.arity]) }
-              forerunner_result
-            else
-              pixbuf end
-          else
-            begin
-              res = Net::HTTP.get_response(URI.parse(url))
-              if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-                raw = res.body.to_s
-                pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
-              else
-                exception = true
-                pixbuf = notfound_pixbuf(rect) end
-            rescue Timeout::Error, StandardError => e
-              exception = e
-              pixbuf = notfound_pixbuf(rect) end
-            ImageCache::Raw.save(url, raw)
-            if load_callback
-              Delayer.new { load_callback.call(*[pixbuf, exception, url][0..load_callback.arity]) }
-              raw
-            else
-              pixbuf end end } }
-      if load_callback
-        WebIconThread.new(&load_proc)
-        loading_pixbuf(rect)
+    if block_given?
+      raw = get_raw_data(url){ |raw, exception|
+        pixbuf = notfound_pixbuf(rect)
+        begin
+          pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect, true)) if raw
+        rescue Gdk::PixbufError => e
+          exception = e
+        end
+        Delayer.new{ load_callback.call(pixbuf, exception, url) } }
+      if raw.is_a?(String)
+        ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
       else
-        load_proc.call end end
+        loading_pixbuf(rect) end
+    else
+      raw = get_raw_data(url)
+      if raw
+        ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
+      else
+        notfound_pixbuf(rect) end end
   rescue Gdk::PixbufError
     notfound_pixbuf(rect) end
 
@@ -148,9 +173,13 @@ module Gdk::WebImageLoader
   # ==== Args
   # [image_data] メモリ上の画像データ
   # [rect] サイズ(Gdk::Rectangle)
+  # [raise_exception] 真PixbufError例外を投げる(default: false)
+  # ==== Exceptions
+  # Gdk::PixbufError例外が発生したら、notfound_pixbufを返します。
+  # ただし、 _raise_exception_ が真なら例外を投げます。
   # ==== Return
   # Pixbuf
-  def inmemory2pixbuf(image_data, rect)
+  def inmemory2pixbuf(image_data, rect, raise_exception = false)
     rect = rect.dup
     loader = Gdk::PixbufLoader.new
     # loader.set_size(rect.width, rect.height) if rect
@@ -158,8 +187,11 @@ module Gdk::WebImageLoader
     loader.close
     pb = loader.pixbuf
     pb.scale(*calc_fitclop(pb, rect))
-  rescue Gdk::PixbufError
-    notfound_pixbuf(rect) end
+  rescue Gdk::PixbufError => e
+    if raise_exception
+      raise e
+    else
+      notfound_pixbuf(rect) end end
 
   def local_path_files_add(path)
     atomic{
