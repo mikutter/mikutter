@@ -4,7 +4,7 @@ require 'set'
 
 Plugin.create :image_file_cache do
 
-  # 32回TLに出現したユーザはキャッシュに登録する
+  # appear_limit 回TLに出現したユーザはキャッシュに登録する
   # (30分ツイートしなければカウンタはリセット)
   onappear do |messages|
     messages.each { |message|
@@ -12,7 +12,7 @@ Plugin.create :image_file_cache do
       if not j_include?(image_url)
         appear_counter[image_url] ||= 0
         appear_counter[image_url] += 1
-        cache_it(image_url) if(appear_counter[image_url] > 32) end } end
+        cache_it(image_url) if(appear_counter[image_url] > appear_limit) end } end
 
   # キャッシュがあれば画像を返す
   filter_image_cache do |url, image, &stop|
@@ -34,6 +34,10 @@ Plugin.create :image_file_cache do
 
   def appear_counter
     @appear_counter ||= TimeLimitedStorage.new end
+
+  # キャッシュする出現回数のしきい値を返す
+  def appear_limit
+    UserConfig[:image_file_cache_appear_limit] || 32 end
 
   # キャッシュの有効期限を秒単位で返す
   def cache_expire

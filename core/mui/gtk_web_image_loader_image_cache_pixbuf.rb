@@ -6,6 +6,7 @@ module Gdk::WebImageLoader
   module ImageCache
     module Pixbuf
       extend Pixbuf
+      extend MonitorMixin
 
       # URLに対する画像のPixbufが残っている場合、それを返す
       # ==== Args
@@ -14,9 +15,8 @@ module Gdk::WebImageLoader
       # ==== Return
       # キャッシュがあれば、画像の生データ(String)、見つからなければnil
       def load(url, rect)
-        Gdk::WebImageLoader::ImageCache.synchronize(url) { # 今丁度別のスレッドで取ってきてる最中かもしれないから必要
-          if(defined?(storage[url][rect.width][rect.height]))
-            storage[url][rect.width][rect.height] end } end
+        if(defined?(storage[url][rect.width][rect.height]))
+          storage[url][rect.width][rect.height] end end
 
       # _url_ のリクエストの結果が _raw_ であるということを登録する
       # _raw_ が偽の場合は何もしない（キャッシュされない）
@@ -28,7 +28,7 @@ module Gdk::WebImageLoader
       # _raw_ の値
       def save(url, rect, pixbuf)
         return pixbuf if not pixbuf
-        Gdk::WebImageLoader::ImageCache.synchronize(url) {
+        synchronize {
           storage[url] ||= {}
           storage[url][rect.width] ||= {}
           storage[url][rect.width][rect.height] = pixbuf.freeze }
