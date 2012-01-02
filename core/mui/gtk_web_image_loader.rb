@@ -11,8 +11,10 @@ require 'thread'
 module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
 
-  WebIconThread = SerialThreadGroup.new # Gtk::WebIcon::WebIconThread
-  WebIconThread.max_threads = 16
+  WebImageThread = Hash.new { |h, k|
+    stg = SerialThreadGroup.new
+    stg.max_threads = 1
+    h[k] = stg }
 
   # URLから画像をダウンロードして、その内容を持ったGdk::Pixbufのインスタンスを返す
   # ==== Args
@@ -26,16 +28,19 @@ module Gdk::WebImageLoader
   # Pixbuf
   def pixbuf(url, rect, height = nil, &load_callback)
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-    pixbuf = ImageCache::Pixbuf.load(url, rect)
-    return pixbuf if pixbuf
-    if(is_local_path?(url))
-      url = File.expand_path(url)
-      if(FileTest.exist?(url))
-        Gdk::Pixbuf.new(url, rect.width, rect.height)
-      else
-        notfound_pixbuf(rect.width, rect.height) end
+    if Gdk::WebImageLoader::ImageCache.locking?(url)
+      downloading_anotherthread_case(url, rect, &load_callback)
     else
-      via_internet(url, rect, &load_callback) end
+      pixbuf = ImageCache::Pixbuf.load(url, rect)
+      return pixbuf if pixbuf
+      if(is_local_path?(url))
+        url = File.expand_path(url)
+        if(FileTest.exist?(url))
+          Gdk::Pixbuf.new(url, rect.width, rect.height)
+        else
+          notfound_pixbuf(rect) end
+      else
+        via_internet(url, rect, &load_callback) end end
   rescue Gdk::PixbufError
     notfound_pixbuf(rect) end
 
@@ -81,8 +86,9 @@ module Gdk::WebImageLoader
             else
               forerunner_result end
           else
+            no_mainthread
             begin
-              res = Net::HTTP.get_response(URI.parse(url))
+              res = get_icon_via_http(url)
               if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
                 raw = res.body.to_s
               else
@@ -96,7 +102,7 @@ module Gdk::WebImageLoader
             else
               raw end end } }
       if load_callback
-        WebIconThread.new(&load_proc)
+        web_image_thread(url, &load_proc)
         :wait
       else
         load_proc.call end end
@@ -118,10 +124,13 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def loading_pixbuf(rect, height = nil)
-    rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("loading.png")), rect.width, rect.height).freeze
-  end
-  memoize :loading_pixbuf
+    if height
+      _loading_pixbuf(rect, height)
+    else
+      _loading_pixbuf(rect.width, rect.height) end end
+  def _loading_pixbuf(width, height)
+    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("loading.png")), width, height).freeze end
+  memoize :_loading_pixbuf
 
   # 画像が見つからない場合のPixbufを返す
   # ==== Args
@@ -130,12 +139,27 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def notfound_pixbuf(rect, height = nil)
-    rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("notfound.png")), rect.width, rect.height).freeze
+    if height
+      _notfound_pixbuf(rect, height)
+    else
+      _notfound_pixbuf(rect.width, rect.height) end end
+  def _notfound_pixbuf(width, height)
+    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("notfound.png")), width, height).freeze
   end
-  memoize :notfound_pixbuf
+  memoize :_notfound_pixbuf
 
   private
+
+  # _url_ のホスト名１つにつき同時に指定された数だけブロックを実行する
+  # ==== Args
+  # [url] URL
+  # [&proc] 実行するブロック
+  def web_image_thread(url, &proc)
+    uri = URI.parse(url)
+    if uri.host
+      WebImageThread[uri.host].new(&proc)
+    else
+      raise 'ホスト名が設定されていません' end end
 
   # urlが指している画像を引っ張ってきてPixbufを返す。
   # 画像をダウンロードする場合は、読み込み中の画像を返して、ロードが終わったらブロックを実行する
@@ -192,6 +216,44 @@ module Gdk::WebImageLoader
       raise e
     else
       notfound_pixbuf(rect) end end
+
+  # Gdk::WebImageLoader.pixbuf が呼ばれた時に、他のスレッドでそのURLの画像を
+  # ダウンロード中だった場合の処理
+  # ==== Args
+  # Gdk::WebImageLoader.pixbuf を参照
+  # ==== Return
+  # Pixbuf
+  def downloading_anotherthread_case(url, rect, &load_callback)
+    if(load_callback)
+      web_image_thread(url) {
+        pixbuf = ImageCache::Pixbuf.load(url, rect)
+        Delayer.new{ load_callback.call(pixbuf) } }
+      loading_pixbuf(rect)
+    else
+      ImageCache::Pixbuf.load(url, rect) end
+  rescue Gdk::PixbufError
+    notfound_pixbuf(rect) end
+
+  def gen_http_obj(host, port)
+    http = Net::HTTP.new(host, port)
+    http.open_timeout=5
+    http.read_timeout=30
+    notice "open connection for #{host}"
+    http.start end
+  memoize :gen_http_obj
+
+  def get_icon_via_http(url)
+    uri = URI.parse(url)
+    request = Net::HTTP::Get.new(uri.request_uri)
+    request['Connection'] = 'Keep-Alive'
+    http = gen_http_obj(uri.host, uri.port)
+    http.request(request)
+  rescue EOFError => e
+    http.finish
+    http.start
+    notice "reopen connection for #{uri.host}"
+    http.request(request)
+  end
 
   def local_path_files_add(path)
     atomic{

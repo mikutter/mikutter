@@ -52,8 +52,12 @@ module Gtk
         remove_if_exists_all([user])
       elsif not @users.include?(user)
         iter = @ul.prepend
-        iter[0] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
-          iter[0] = pixbuf }
+        begin
+          timeout(10){
+            iter[0] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
+              iter[0] = pixbuf } }
+        rescue TimeoutError
+          iter[0] = Gdk::WebImageLoader.notfound_pixbuf(24, 24) end
         iter[1] = user[:idname]
         iter[2] = user[:name]
         iter[3] = user

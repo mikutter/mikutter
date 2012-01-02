@@ -13,11 +13,7 @@ module Gdk::WebImageLoader
       # ==== Return
       # キャッシュがあれば、画像の生データ(String)、見つからなければnil
       def load(url)
-        raw = Gdk::WebImageLoader::ImageCache.synchronize(url) { storage[url] }
-        if(raw)
-          raw
-        else
-          load_by_filter(url) end end
+        storage[url] || load_by_filter(url) end
 
       # _url_ のリクエストの結果が _raw_ であるということを登録する
       # _raw_ が偽の場合は何もしない（キャッシュされない）

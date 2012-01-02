@@ -117,8 +117,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     WebMock.stub_request(:get, url).to_return(http_raw)
     response = nil
     Gdk::WebImageLoader.get_raw_data(url){ |data, success, url|
-      response = [data, success]
-    }
+      response = [data, success] }
     (Thread.list - [Thread.current]).each &:join
     while not Delayer.empty? do Delayer.run end
     assert_equal(true, Delayer.empty?)

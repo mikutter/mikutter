@@ -22,8 +22,25 @@ module Gdk::WebImageLoader
     # ==== Return
     # ブロックの実行結果
     def synchronize(url)
+      no_mainthread
       atomic { @cache_mutex ||= Hash.new{ |h, k| h[k] = Monitor.new } }
       cur = atomic { @cache_mutex[url] }.synchronize{
         yield } end
+
+    # _url_ に対するMonitorがロックされているなら真を返す
+    # ==== Args
+    # [url] URL
+    # ==== Return
+    # 他のスレッドにロックされているなら真。
+    # ロックされていても、自分がロックを持っている場合は偽。
+    def locking?(url)
+      atomic { @cache_mutex ||= Hash.new{ |h, k| h[k] = Monitor.new } }
+      mon = atomic { @cache_mutex[url] }
+      if mon.mon_try_enter
+        mon.mon_exit
+        false
+      else
+        true end end
+
   end
 end
