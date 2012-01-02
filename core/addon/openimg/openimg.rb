@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 # Preview Image
 
-
-unless $openimg # !> global variable `$openimg' not initialized
-$openimg = true # !> redefine call_routine
 require 'gtk2'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'utils'))
 
  # !> ambiguous first argument; put parentheses or even spaces
 Module.new do
@@ -17,13 +13,21 @@ Module.new do
     @position = window.position.freeze end
  # !> instance variable @timelines not initialized
   def self.changesize(eb, w, url)
-    eb.remove(w.children.first)
+    eb.remove(eb.children.first)
     @size = w.window.geometry[2,2].freeze
     eb.add(Gtk::WebIcon.new(url, *@size).show_all) # !> statement not reached
     @size end # !> redefine get_active_mumbles
 
+  def self.redraw(eb, pb)
+    ew, eh = eb.window.geometry[2,2]
+    return if(ew == 0 or eh == 0)
+    pb = pb.dup
+    pb = pb.scale(*Gdk::WebImageLoader.calc_fitclop(pb, Gdk::Rectangle.new(0, 0, ew, eh)))
+    eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
+
   def self.display(url, cancel = nil)
     w = Gtk::Window.new.set_title("（読み込み中）") # !> method redefined; discarding old inspect
+    w.set_size_request(320, 240)
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
     eventbox = Gtk::EventBox.new
@@ -40,6 +44,18 @@ Module.new do
             else
               w.set_title("URLの取得に失敗") end end }
       else
+        pixbuf = Gdk::WebImageLoader.loading_pixbuf(*@size)
+        raw = Gdk::WebImageLoader.get_raw_data(url){ |data|
+          loader = Gdk::PixbufLoader.new
+          loader.write data
+          loader.close
+          pixbuf = loader.pixbuf
+          eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) }
+        if raw != :wait
+          loader = Gdk::PixbufLoader.new
+          loader.write data
+          loader.close
+          pixbuf = loader.pixbuf end
         Delayer.new{
           unless w.destroyed?
             w.set_title(url.to_s)
@@ -50,12 +66,15 @@ Module.new do
               end
               false }
             eventbox.signal_connect("expose_event"){ |ev, event|
+              redraw(eventbox, pixbuf)
               move(w)
-              false } # !> method redefined; discarding old width=
+              true } # !> method redefined; discarding old width=
             eventbox.signal_connect(:"size-allocate"){
               if w.window and size != w.window.geometry[2,2]
-                size = changesize(eventbox, w, url.to_s) end }
-            eventbox.add(Gtk::WebIcon.new(url.to_s, *DEFAULT_SIZE).show_all) end } end }
+                redraw(eventbox, pixbuf)
+                size = w.window.geometry[2,2] end }
+            redraw(eventbox, pixbuf)
+            eventbox end } end }
     w.show_all end
  # !> `*' interpreted as argument prefix
   def self.get_tag_by_attributes(tag)
@@ -148,20 +167,4 @@ Module.new do
     Delayer.new(Delayer::NORMAL) { display(url, cancel) }
   }
 
-  if $0 == __FILE__
-    $debug = true
-    seterrorlevel(:notice)
-    w = Gtk::Window.new
-    w.signal_connect(:destroy){ Gtk::main_quit }
-    w.show_all
-    url = 'http://twitpic.com/68us87'
-    # url = 'http://twitpic.com/5yd5nj'
-    Gtk::IntelligentTextview.openurl(url)
-    Gtk.timeout_add(1000){
-      Delayer.run
-      true
-    }
-    Gtk::main
-  end
-end
 end

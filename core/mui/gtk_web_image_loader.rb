@@ -148,6 +148,18 @@ module Gdk::WebImageLoader
   end
   memoize :_notfound_pixbuf
 
+  # _src_ が _rect_ にアスペクト比を維持した状態で内接するように縮小した場合のサイズを返す
+  # ==== Args
+  # [src] 元の寸法(Gtk::Rectangle)
+  # [dst] 収めたい枠の寸法(Gtk::Rectangle)
+  # ==== Return
+  # Pixbuf
+  def calc_fitclop(src, dst)
+    if (dst.width * src.height) > (dst.height * src.width)
+      return src.width * dst.height / src.height, dst.height
+    else
+      return dst.width, src.height * dst.width / src.width end end
+
   private
 
   # _url_ のホスト名１つにつき同時に指定された数だけブロックを実行する
@@ -262,14 +274,5 @@ module Gdk::WebImageLoader
         at_exit{ FileUtils.rm(@local_path_files.to_a) } end }
     @local_path_files << path
   end
-
-  def calc_fitclop(src, dst)
-    if (dst.width * src.height) > (dst.height * src.width)
-      return src.width * dst.height / src.height, dst.height
-    else
-      return dst.width, src.height * dst.width / src.width
-    end
-  end
-
 end
 
