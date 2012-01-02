@@ -111,13 +111,14 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   end
 
   must "get raw data success" do
-    url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
-    http_raw = File.open('test/icon_test.png'){ |io| io.read }.force_encoding('ASCII-8BIT').freeze
-    raw = http_raw[http_raw.index("\211PNG".force_encoding('ASCII-8BIT')), http_raw.size]
-    WebMock.stub_request(:get, url).to_return(http_raw)
-    response = nil
-    Gdk::WebImageLoader.get_raw_data(url){ |data, success, url|
-      response = [data, success] }
+    raw = response = nil
+    Thread.new {
+      url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
+      http_raw = File.open('test/icon_test.png'){ |io| io.read }.force_encoding('ASCII-8BIT').freeze
+      raw = http_raw[http_raw.index("\211PNG".force_encoding('ASCII-8BIT')), http_raw.size]
+      WebMock.stub_request(:get, url).to_return(http_raw)
+      Gdk::WebImageLoader.get_raw_data(url){ |data, success, url|
+        response = [data, success] } }.join
     (Thread.list - [Thread.current]).each &:join
     while not Delayer.empty? do Delayer.run end
     assert_equal(true, Delayer.empty?)
@@ -126,9 +127,13 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   end
 
   must "local path" do
+    localpath = nil
     url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
-    WebMock.stub_request(:get, url).to_return(File.open('test/icon_test.png'){ |io| io.read })
-    assert_equal("/home/toshi/.mikutter/tmp/e9183b9265dcf0728fceceb07444e8c1.png.png", Gdk::WebImageLoader.local_path(url))
+    Thread.new {
+      WebMock.stub_request(:get, url).to_return(File.open('test/icon_test.png'){ |io| io.read })
+      localpath = Gdk::WebImageLoader.local_path(url)
+    }.join
+    assert_equal("/home/toshi/.mikutter/tmp/e9183b9265dcf0728fceceb07444e8c1.png.png", localpath)
   end
 
   must "is local path" do
