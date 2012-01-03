@@ -187,16 +187,13 @@ end
 # ==== Return
 # インタプリタから復帰したら(インタプリタが起動されたら)true、
 # デバッグモードではない、pryがインストールされていない等、起動に失敗したらfalse
-# ==== Exception
-# インタプリタの起動に失敗し、かつ _exception_ が渡されていたらそれを raise する。
 def into_debug_mode(exception = nil)
   if Mopt.debug and not Mopt.testing
     require_if_exist 'pry'
     if binding.respond_to?(:pry)
       log "error", exception if exception
       binding.pry
-      return true end end
-  raise exception if exception end
+      return true end end end
 
 # 引数のチェックをすべてパスした場合のみブロックを実行する
 # チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。
