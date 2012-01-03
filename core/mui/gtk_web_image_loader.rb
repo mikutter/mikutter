@@ -2,7 +2,7 @@
 # 画像のURLを受け取って、Gtk::Pixbufを返す
 
 miquire :mui, 'skin', 'web_image_loader_image_cache'
-miquire :lib, 'memoize'
+miquire :lib, 'memoize', 'addressable/uri'
 miquire :core, 'serialthread'
 require 'net/http'
 require 'uri'
@@ -44,8 +44,10 @@ module Gdk::WebImageLoader
   rescue Gdk::PixbufError
     notfound_pixbuf(rect)
   rescue => e
-    into_debug_mode(e)
-    notfound_pixbuf(rect) end
+    if into_debug_mode(e)
+      raise e
+    else
+      notfound_pixbuf(rect) end end
 
   # _url_ が指している画像を任意のサイズにリサイズして、その画像のパスを返す。
   # このメソッドは画像のダウンロードが発生すると処理をブロッキングする。
@@ -170,7 +172,7 @@ module Gdk::WebImageLoader
   # [url] URL
   # [&proc] 実行するブロック
   def web_image_thread(url, &proc)
-    uri = URI.parse(url)
+    uri = Addressable::URI.parse(url)
     if uri.host
       WebImageThread[uri.host].new(&proc)
     else
@@ -258,7 +260,7 @@ module Gdk::WebImageLoader
   memoize :gen_http_obj
 
   def get_icon_via_http(url)
-    uri = URI.parse(url)
+    uri = Addressable::URI.parse(url)
     request = Net::HTTP::Get.new(uri.request_uri)
     request['Connection'] = 'Keep-Alive'
     http = gen_http_obj(uri.host, uri.port)
