@@ -181,6 +181,23 @@ def error(msg)
   abort if Mopt.error_level >= 4
 end
 
+# --debug オプション付きで起動されている場合、インタプリタに入る。
+# ==== Args
+# [exception] 原因となった例外
+# ==== Return
+# インタプリタから復帰したら(インタプリタが起動されたら)true、
+# デバッグモードではない、pryがインストールされていない等、起動に失敗したらfalse
+# ==== Exception
+# インタプリタの起動に失敗し、かつ _exception_ が渡されていたらそれを raise する。
+def into_debug_mode(exception = nil)
+  if Mopt.debug and not Mopt.testing
+    require_if_exist 'pry'
+    if binding.respond_to?(:pry)
+      log "error", exception if exception
+      binding.pry
+      return true end end
+  raise exception if exception end
+
 # 引数のチェックをすべてパスした場合のみブロックを実行する
 # チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。
 # チェックはassocできる配列か、Hashで定義する。

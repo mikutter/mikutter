@@ -18,7 +18,10 @@ Plugin = Class.new
 class TC_GtkWebImageLoader < Test::Unit::TestCase
   def setup
     Gdk::WebImageLoader::ImageCache.clear
-    urls = ['http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png', 'http://internal.server.error/', 'http://notfound/']
+    urls = ['http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png',
+            'http://a0.twimg.com/profile_images/1522298893/みくかわいい.png',
+            'http://internal.server.error/',
+            'http://notfound/']
     urls.each{ |u|
       Plugin.stubs(:filtering).with(:image_cache, u, nil).returns([u, nil]) }
   end
@@ -67,6 +70,22 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       response2 = [pixbuf, success]
     }
     assert_equal(response[0], pb)
+  end
+
+  must "load by url included japanese" do
+    # URI::InvalidURIError
+    # url = 'http://a1.twimg.com/profile_images/80925056/クリップボード01_normal.jpg'
+    url = 'http://a0.twimg.com/profile_images/1522298893/みくかわいい.png'
+    WebMock.stub_request(:get, url).to_return(File.open('test/icon_test.png'){ |io| io.read })
+    response = nil
+    Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
+      response = [pixbuf, success]
+    }
+    (Thread.list - [Thread.current]).each &:join
+    while not Delayer.empty? do Delayer.run end
+    assert_equal(true, Delayer.empty?)
+    assert_equal(0, Delayer.size)
+    assert_equal(nil, response[1])
   end
 
   must "successfully load local image" do

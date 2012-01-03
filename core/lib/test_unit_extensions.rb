@@ -27,6 +27,7 @@ module Mopt
 
   @opts = {
     debug: true,
+    testing: true,
     error_level: 3 }
 
   def method_missing(key)

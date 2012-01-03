@@ -42,6 +42,9 @@ module Gdk::WebImageLoader
       else
         via_internet(url, rect, &load_callback) end end
   rescue Gdk::PixbufError
+    notfound_pixbuf(rect)
+  rescue => e
+    into_debug_mode(e)
     notfound_pixbuf(rect) end
 
   # _url_ が指している画像を任意のサイズにリサイズして、その画像のパスを返す。

@@ -53,8 +53,9 @@ def boot!(profile)
       notice "profile: done."
     end
   else
-    Gtk.main end end
-
+    Gtk.main end
+rescue => e
+  into_debug_mode(e) end
 
 begin
   errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
