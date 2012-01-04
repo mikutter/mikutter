@@ -184,16 +184,30 @@ end
 # --debug オプション付きで起動されている場合、インタプリタに入る。
 # ==== Args
 # [exception] 原因となった例外
+# [binding] インタプリタを実行するスコープ
 # ==== Return
 # インタプリタから復帰したら(インタプリタが起動されたら)true、
 # デバッグモードではない、pryがインストールされていない等、起動に失敗したらfalse
-def into_debug_mode(exception = nil)
+def into_debug_mode(exception = nil, bind = binding)
   if Mopt.debug and not Mopt.testing
     require_if_exist 'pry'
     if binding.respond_to?(:pry)
       log "error", exception if exception
-      binding.pry
+      begin
+        $into_debug_mode = Set.new
+        bind.pry
+      ensure
+        threads = $into_debug_mode
+        $into_debug_mode = false
+        threads.each &:wakeup end
       return true end end end
+$into_debug_mode = false
+
+# 他のスレッドでinto_debug_modeが呼ばれているなら、それが終わるまでカレントスレッドをスリープさせる
+def debugging_wait
+  if $into_debug_mode
+    $into_debug_mode << Thread.current
+    Thread.stop end end
 
 # 引数のチェックをすべてパスした場合のみブロックを実行する
 # チェックに引っかかった項目があればwarnを出力してブロックは実行せずにnilを返す。

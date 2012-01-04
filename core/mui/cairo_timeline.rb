@@ -219,19 +219,17 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
     # @tl.add_iter(iter)
-    sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
+    sid = miracle_painter.ssc(:modified, @tl, &(@mp_modifier ||= method(:mp_modifier)))
     @remover_queue.push(message) if @tl.realized?
     self
   end
 
-  def gen_mp_modifier(message)
-    lambda{ |mb|
-      @tl.model.each{ |model, path, iter|
-        if iter[0].to_i == message[:id]
-          @tl.queue_draw
-          break end }
-      false }
-  end
+  def mp_modifier(miracle_painter)
+    @tl.model.each{ |model, path, iter|
+      if iter[0].to_i == miracle_painter.message[:id]
+        @tl.queue_draw
+        break end }
+    false end
 
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
   # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。

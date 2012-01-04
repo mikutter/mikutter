@@ -26,7 +26,7 @@ class Gdk::MiraclePainter < GLib::Object
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
-  include PseudoSignalHandler
+  # include PseudoSignalHandler
   include Gdk::MarkupGenerator
   include UiThreadOnly
 
