@@ -48,6 +48,7 @@ class Delayer
   # 0.1秒以内に実行が終わらなければ、残りは保留してとりあえず処理を戻す。
   def self.run
     return if @frozen
+    debugging_wait
     begin
       @busy = true
     st = Process.times.utime

@@ -50,6 +50,7 @@ class SerialThreadGroup
         while proc = timeout(1){ @queue.pop }
           proc.call
           break if flush
+          debugging_wait
           Thread.pass end
       rescue TimeoutError => e
         ;
