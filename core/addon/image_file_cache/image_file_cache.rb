@@ -66,6 +66,7 @@ Plugin.create :image_file_cache do
     atomic {
       j_data = at(:journaling_data)
       if j_data and j_data.include?(url)
+        j_data = j_data.melt
         j_data.delete(url)
         store(:journaling_data, j_data) end } end
 
