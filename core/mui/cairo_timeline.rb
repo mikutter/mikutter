@@ -173,7 +173,7 @@ class Gtk::TimeLine
   def remove_if_exists_all(messages)
     messages.each{ |message|
       path = @tl.get_path_by_message(message)
-      @tl.model.remove(@tl.model.get_iter(path)) if path } end
+      tl_model_remove(@tl.model.get_iter(path)) if path } end
 
   # TL上のつぶやきの数を返す
   def size
@@ -242,7 +242,16 @@ class Gtk::TimeLine
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
               @tl.hp -= 1
-              @tl.model.remove(iter) } end end } } end
+              tl_model_remove(iter) } end end } } end
+
+  # _iter_ を削除する。このメソッドを通さないと、Gdk::MiraclePainterに
+  # destroyイベントが発生しない。
+  # ==== Args
+  # [iter] 削除するレコード(Gtk::TreeIter)
+  def tl_model_remove(iter)
+    iter[InnerTL::MIRACLE_PAINTER].destroy
+    @tl.model.remove(iter)
+  end
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
   def emit_expose_miraclepainter

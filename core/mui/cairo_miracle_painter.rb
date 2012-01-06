@@ -16,7 +16,7 @@ miquire :lib, 'uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
-class Gdk::MiraclePainter < GLib::Object
+class Gdk::MiraclePainter < Gtk::Object
 
   type_register
   signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil)
@@ -228,8 +228,6 @@ class Gdk::MiraclePainter < GLib::Object
       true end end
 
   def destroy
-    def self.destroyed?
-      true end
     def self.tree
       raise DestroyedError.new end
     def self.to_message
@@ -241,11 +239,10 @@ class Gdk::MiraclePainter < GLib::Object
       instance_variable_set(v, nil) }
 
     @tree = nil
+    signal_emit('destroy')
+    super
     freeze
   end
-
-  def destroyed?
-    false end
 
   private
 
