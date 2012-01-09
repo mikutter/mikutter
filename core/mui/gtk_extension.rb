@@ -203,6 +203,11 @@ module Gtk
       openable_commands = %w{xdg-open open /etc/alternatives/x-www-browser}
       wellknown_browsers = %w{firefox chromium opera}
       command = nil
+      command = nil
+      command = nil
+      command = nil
+      command = nil
+      command = nil
       catch(:urlopen) do
         openable_commands.each{ |o|
           if command_exist?(o)

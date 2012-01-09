@@ -106,7 +106,7 @@ class User < Retriever::Model
       m = /のふぁぼられ\((\d+)\)/.match(io.read)
       return @value[:favouritesby_count] = m[1].to_i
     }
-    rescue => e
+    rescue
       nil end end
 
   # ユーザが今までにお気に入りにしたメッセージ数の概算を返す
@@ -117,7 +117,7 @@ class User < Retriever::Model
         m = /のふぁぼり\((\d+)\)/.match(io.read)
       return @value[:favourites_count] = m[1].to_i
     }
-    rescue => e
+    rescue
       nil end end
 
 
