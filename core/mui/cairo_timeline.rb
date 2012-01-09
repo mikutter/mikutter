@@ -168,7 +168,7 @@ class Gtk::TimeLine
   def remove_if_exists_all(messages)
     messages.each{ |message|
       path = @tl.get_path_by_message(message)
-      @tl.model.remove(@tl.model.get_iter(path)) if path } end
+      tl_model_remove(@tl.model.get_iter(path)) if path } end
 
   # TL上のつぶやきの数を返す
   def size
@@ -214,19 +214,17 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
     # @tl.add_iter(iter)
-    sid = miracle_painter.ssc(:modified, @tl, &gen_mp_modifier(message))
+    sid = miracle_painter.ssc(:modified, @tl, &(@mp_modifier ||= method(:mp_modifier)))
     @remover_queue.push(message) if @tl.realized?
     self
   end
 
-  def gen_mp_modifier(message)
-    lambda{ |mb|
-      @tl.model.each{ |model, path, iter|
-        if iter[0].to_i == message[:id]
-          @tl.queue_draw
-          break end }
-      false }
-  end
+  def mp_modifier(miracle_painter)
+    @tl.model.each{ |model, path, iter|
+      if iter[0].to_i == miracle_painter.message[:id]
+        @tl.queue_draw
+        break end }
+    false end
 
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
   # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。
@@ -239,7 +237,16 @@ class Gtk::TimeLine
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
               @tl.hp -= 1
-              @tl.model.remove(iter) } end end } } end
+              tl_model_remove(iter) } end end } } end
+
+  # _iter_ を削除する。このメソッドを通さないと、Gdk::MiraclePainterに
+  # destroyイベントが発生しない。
+  # ==== Args
+  # [iter] 削除するレコード(Gtk::TreeIter)
+  def tl_model_remove(iter)
+    iter[InnerTL::MIRACLE_PAINTER].destroy
+    @tl.model.remove(iter)
+  end
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
   def emit_expose_miraclepainter
