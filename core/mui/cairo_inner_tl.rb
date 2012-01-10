@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+require 'bsearch'
 
 miquire :mui, 'timeline'
-miquire :lib, 'ruby-bsearch-1.5/bsearch'
 miquire :lib, 'uithreadonly'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
