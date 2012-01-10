@@ -46,11 +46,12 @@ Module.new do
       else
         pixbuf = Gdk::WebImageLoader.loading_pixbuf(*@size)
         raw = Gdk::WebImageLoader.get_raw_data(url){ |data|
-          loader = Gdk::PixbufLoader.new
-          loader.write data
-          loader.close
-          pixbuf = loader.pixbuf
-          eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) }
+          if not eventbox.destroyed?
+            loader = Gdk::PixbufLoader.new
+            loader.write data
+            loader.close
+            pixbuf = loader.pixbuf
+            eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) end }
         if raw != :wait
           loader = Gdk::PixbufLoader.new
           loader.write data
