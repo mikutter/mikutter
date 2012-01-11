@@ -55,13 +55,17 @@ class Post
       token = secret = nil
     end
     @twitter = Twitter.new(token, secret) {
-      token, secret = self.class.auth_confirm_func.call(self)
-      if token
-        UserConfig[:twitter_token] = token
-        UserConfig[:twitter_secret] = secret
-        UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION end
-      @user_idname = nil
-      [token, secret] }
+      if(UserConfig[:twitter_token] and UserConfig[:twitter_secret])
+        Plugin.call(:update, nil, [Message.new(:message => "OAuth トークンが無効になりました。\n設定→アカウント情報　で、トークンを更新してください。", :system => true)])
+        [UserConfig[:twitter_token], UserConfig[:twitter_secret]]
+      else
+        token, secret = self.class.auth_confirm_func.call(self)
+        if token
+          UserConfig[:twitter_token] = token
+          UserConfig[:twitter_secret] = secret
+          UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION end
+        @user_idname = nil
+        [token, secret] end }
     notice caller(1).first
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
