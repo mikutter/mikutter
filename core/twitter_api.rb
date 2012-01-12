@@ -264,11 +264,13 @@ class TwitterAPI < Mutex
         Plugin.call(:apiremain, remain, reset)
       rescue => e; end
       if res.is_a?(Net::HTTPResponse)
-        if(res.code == '200')
+        code = res.code
+        if(code == '200')
           cacheing(path, res.body) if options.has_key?(:cache)
-        elsif(res.code == '401')
+        elsif(code == '401')
           begin
-            return res if(JSON.parse(res.body)["error"] == "Not authorized")
+            error_message = (JSON.parse(res.body)["error"] rescue nil)
+            return res if(error_message == "Not authorized")
           rescue JSON::ParserError
           end
           if @fail_trap
