@@ -54,7 +54,7 @@ Module.new do
             eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) end }
         if raw != :wait
           loader = Gdk::PixbufLoader.new
-          loader.write data
+          loader.write raw
           loader.close
           pixbuf = loader.pixbuf end
         Delayer.new{
