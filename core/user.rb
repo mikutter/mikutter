@@ -70,6 +70,7 @@ class User < Retriever::Model
 
   @@superof_new_ifnecessary = method(:new_ifnecessary)
   def self.new_ifnecessary(args)
+    return args if args.is_a? User
     type_check(args => Hash){
       if args[:idname]
         result = self.findbyidname(args[:idname])

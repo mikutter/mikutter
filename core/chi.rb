@@ -10,7 +10,7 @@ require 'webrick' # require to daemon
 def boot()
   logfile(Environment::TMPDIR + Environment::ACRO)
   argument_parser()
-  Post.new(true)
+  Service.new(true)
   if(already_exists_another_instance?) then
     error('Already exist another instance')
     exit!

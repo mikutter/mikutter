@@ -51,16 +51,24 @@ Module.new do
       events = Set.new
       service = nil
       thread = Thread.new{
+        begin
         sleep(1) while not service
         loop{
           sleep((UserConfig[:"#{event_name}_queue_delay"] || 100).to_f / 1000)
           Thread.stop if events.empty?
-          yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze }) } }
+          yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze }) }
+        rescue => e
+          error e
+          abort end }
       define_method("event_#{event_name}"){ |json|
         type_strict json => tcor(Array, Hash)
         service ||= @service
         lock.synchronize{ events << json }
-        thread.wakeup } end
+        if thread.alive?
+          thread.wakeup
+        else
+          error "event_#{event_name}: event processing thread was dead."
+          abort end } end
 
     def start
       unless @thread and @thread.alive?
@@ -104,16 +112,14 @@ Module.new do
     define_together_event(:update) do |service, data|
       events = Hash.new{ |h, k| h[k] = Set.new }
       data.each{ |datum|
-        pack_message_event(service.__send__(:parse_json, datum, :streaming_status), events) }
+        pack_message_event(MikuTwitter::ApiCallSupport::Request::Parser.message(datum.symbolize), events) }
       trigger_event(service, events) end
 
-    def self.pack_message_event(messages, buffer=Hash.new)
-      if(messages.is_a? Enumerable)
-        messages.each{ |msg|
-          type_strict msg => Message
-          buffer[:update] << msg
-          buffer[:mention] << msg if msg.to_me?
-          buffer[:mypost] << msg if msg.from_me? } end
+    def self.pack_message_event(msg, buffer=Hash.new)
+      type_strict msg => Message
+      buffer[:update] << msg
+      buffer[:mention] << msg if msg.to_me?
+      buffer[:mypost] << msg if msg.from_me?
       buffer end
 
     def self.trigger_event(service, events)
@@ -121,23 +127,23 @@ Module.new do
         Plugin.call(event_name, service, data) } end
 
     define_together_event(:direct_message) do |service, data|
-      trigger_event(service, :direct_messages => service.__send__(:parse_json, data.to_a, :direct_messages)) end
+      trigger_event(service, :direct_messages => data.map{ |datum| datum.symbolize }) end
 
     define_event(:favorite) do |service, json|
-      by = service.__send__(:parse_json, json['source'], :user_show)
-      to = service.__send__(:parse_json, json['target_object'], :status_show)
-      if(by.respond_to?(:first) and to.respond_to?(:first) and to.first.respond_to?(:add_favorited_by))
-        to.first.add_favorited_by(by.first, Time.parse(json['created_at'])) end end
+      by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
+      to = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      if(to.respond_to?(:add_favorited_by))
+        to.add_favorited_by(by, Time.parse(json['created_at'])) end end
 
     define_event(:unfavorite) do |service, json|
-      by = service.__send__(:parse_json, json['source'], :user_show)
-      to = service.__send__(:parse_json, json['target_object'], :status_show)
-      if(by.respond_to?(:first) and to.respond_to?(:first) and to.first.respond_to?(:remove_favorited_by))
-        to.first.remove_favorited_by(by.first) end end
+      by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
+      to = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      if(to.respond_to?(:remove_favorited_by))
+        to.remove_favorited_by(by) end end
 
     define_event(:follow) do |service, json|
-      source = service.__send__(:parse_json, json['source'], :user_show).first
-      target = service.__send__(:parse_json, json['target'], :user_show).first
+      source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
+      target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
       if(target.is_me?)
         Plugin.call(:followers_created, service, [source])
       elsif(source.is_me?)

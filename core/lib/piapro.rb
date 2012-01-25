@@ -30,7 +30,7 @@ class PIAPRO
       # https.verify_mode  = OpenSSL::SSL::VERIFY_PEER
       # https.verify_depth = 5
       https.start {|session|
-        post_login = Net::HTTP::Post.new("/login/")
+        post_login = Net::HTTP::Service.new("/login/")
         post_login["User-Agent"] = USER_AGENT
         post_login["Referer"]    = REFERER
         post_login.set_form_data(

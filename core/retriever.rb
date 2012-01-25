@@ -69,6 +69,12 @@ module Retriever
       @value[:id]
     end
 
+    def eql?(other)
+      other.is_a?(self.class) and other.id == self.id end
+
+    def hash
+      self.id.to_i end
+
     def <=>(other)
       if other.is_a?(Retriever)
         id - other.id
@@ -198,12 +204,8 @@ module Retriever
       elsif result.is_a? Hash
         @findbyid[id] = self.new_ifnecessary(result) end
     rescue => e
-      p({
-        model: self,
-        id: id,
-        count: count })
-      raise e
-    end
+      error e
+      abort end
 
     def self.findbyid_ary(ids, count=-1)
       result = []
@@ -221,7 +223,7 @@ module Retriever
             remain -= detection.map{ |x| x[:id].to_i }
             throw :found if ids.empty? end } }
       self.retrievers_reorder
-      result.sort_by{ |user| ids.index(user[:id].to_i) } end
+      result.sort_by{ |user| ids.index(user[:id].to_i) || 1.0/0 } end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
@@ -321,6 +323,11 @@ module Retriever
       nil
     end
 
+    # 取得できたらそのRetrieverのインスタンスをキーにして実行されるDeferredを返す
+    def idof(id)
+      Thread.new{ findbyid(id) } end
+    alias [] idof
+
     # keyがvalueのオブジェクトを配列で返す。
     # マッチしない場合は空の配列を返す。Arrayオブジェクト以外は返してはならない。
     def selectby(key, value)
@@ -394,7 +401,8 @@ module Retriever
       if id.is_a? Array or id.is_a? Set
         id.map{ |i| @storage[i.to_i] }
       else
-        @storage[id.to_i] end end
+        @storage[id.to_i] end
+    end
 
     # def selectby(key, value)
     #   if key == :replyto

@@ -15,6 +15,8 @@ miquire :mui, 'inner_tl'
 miquire :core, 'message'
 miquire :core, 'user'
 
+miquire :lib, 'reserver'
+
 =begin rdoc
   タイムラインのGtkウィジェット。
 =end

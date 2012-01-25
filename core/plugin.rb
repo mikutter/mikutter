@@ -31,21 +31,21 @@ Plugin.create で、コアにプラグインを登録します。
 
  以下に、監視できる主なイベントを示す。
 
-=== boot(Post service)
+=== boot(Service service)
 起動時に、どのイベントよりも先に一度だけ呼ばれる。
 
-=== period(Post service)
+=== period(Service service)
 毎分呼ばれる。必ず60秒ごとになる保証はない。
 
-=== update(Post service, Array messages)
+=== update(Service service, Array messages)
 フレンドタイムラインが更新されたら呼ばれる。ひとつのつぶやきはかならず１度しか引数に取られず、
 _messages_ には同時に複数の Message のインスタンスが渡される(ただし、削除された場合は削除フラグを
 立てて同じつぶやきが流れる)。
 
-=== mention(Post service, Array messages)
+=== mention(Service service, Array messages)
 updateと同じ。ただし、自分宛のリプライが来たときに呼ばれる点が異なる。
 
-=== posted(Post service, Array messages)
+=== posted(Service service, Array messages)
 自分が投稿したメッセージ。
 
 === appear(Array messages)
@@ -55,14 +55,14 @@ updateと同じ。ただし、タイムライン、検索結果、リスト等�
 messageの内容が変わったときに呼ばれる。
 おもに、ふぁぼられ数やRT数が変わったときに呼ばれる。
 
-=== list_data(Post service, Array ulist)
+=== list_data(Service service, Array ulist)
 フォローしているリスト一覧に変更があれば呼ばれる。なお、このイベントにリスナーを登録すると、すぐに
 現在フォローしているリスト一覧を引数にコールバックが呼ばれる。
 
-=== list_created(Post service, Array ulist)
+=== list_created(Service service, Array ulist)
 新しくリストが作成されると、それを引数に呼ばれる。
 
-=== list_destroy(Post service, Array ulist)
+=== list_destroy(Service service, Array ulist)
 リストが削除されると、それを引数に呼ばれる。
 
 === list_member_changed(UserList list)
@@ -101,13 +101,13 @@ _text_ に渡される。エラーメッセージが得られなかった場合�
 === retweet(Array messages)
 リツイートを受信したときに呼ばれる
 
-=== favorite(Post service, User user, Message message)
+=== favorite(Service service, User user, Message message)
 _user_ が _message_ をお気に入りに追加した時に呼ばれる。
 
-=== unfavorite(Post service, User user, Message message)
+=== unfavorite(Service service, User user, Message message)
 _user_ が _message_ をお気に入りから外した時に呼ばれる。
 
-=== after_event(Post service)
+=== after_event(Service service)
 periodなど、毎分実行されるイベントのクロールが終わった後に呼び出される。
 
 === play_sound(String filename)
@@ -408,12 +408,16 @@ Module.new do
        messages.select{ |m|
          appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] } end
 
-  def self.never_message_filter(event_name, *other)
-    Plugin.create(:core).add_event_filter(event_name, &gen_never_message_filter)
-    never_message_filter(*other) unless other.empty?
+  def self.never_message_filter(event_name, &filter_func)
+    Plugin.create(:core).add_event_filter(event_name, &(filter_func || gen_never_message_filter))
   end
 
-  never_message_filter(:update, :mention)
+  never_message_filter :update
+  never_message_filter :mention
+  appeared = Set.new
+  never_message_filter(:appear){ |messages|
+    [messages.select{ |m|
+       appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] }
 
   Plugin.create(:core).add_event(:appear){ |messages|
     retweets = messages.select(&:retweet?)

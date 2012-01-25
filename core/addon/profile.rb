@@ -19,11 +19,12 @@ Module.new do
         unless timeline.destroyed?
           msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
           timeline.add(msgs) if not msgs.empty? end }
-      @service.call_api(:user_timeline, :user_id => user[:id],
-                        :no_auto_since_id => true,
-                        :count => 20){ |tl|
-        Delayer.new{
-          timeline.add(tl) unless timeline.destroyed? } if tl }
+      @service.user_timeline(user_id: user[:id], include_rts: 1, count: 20).next{ |tl|
+        timeline.add(tl) if not(timeline.destroyed?) and tl
+      }.trap{ |e|
+        error e
+        Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね", :system => true)])
+      }
       @service.call_api(:list_user_followers, :user => user[:id]){ |res|
         if not(@notebook.destroyed?) and res
           followed_list_ids = res.map{|list| list['id'].to_i}
@@ -75,17 +76,14 @@ Module.new do
       if user[:idname] == @service.user
         relationbox.add(Gtk::Label.new('それはあなたです！'))
       else
-        @service.call_api(:friendship,
-                          :target_screen_name => user[:idname],
-                          :source_screen_name => @service.user){ |res|
-          if(res)
-            res = res.first
-            Delayer.new{
-              unless(relationbox.destroyed?)
-                relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
-                                                   if res[:followed_by] then 'す' else 'せん' end)).
-                  closeup(followbutton(res[:user], res[:following])).
-                  closeup(mutebutton(res[:user])).show_all end } end } end
+        @service.friendship(target_id: user[:id], source_id: @service.user_obj[:id]).next{ |rel|
+          if rel
+            unless(relationbox.destroyed?)
+              relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
+                                                 if rel[:followed_by] then 'す' else 'せん' end)).
+                closeup(followbutton(rel[:user], rel[:following])).
+                closeup(mutebutton(rel[:user])).show_all end end }
+      end
       relationbox end
 
     def profile
@@ -269,10 +267,11 @@ Module.new do
                     :user => user,
                     :icon => user[:profile_image_url])
     else
-      Thread.new{
-        retr = service.scan(:user_show, :screen_name => user[:idname],
-                             :no_auto_since_id => true)
-        Delayer.new{ makescreen(retr.first, service) } if retr }
+      service.user_show(id: user[:id]).next{ |new_user|
+        makescreen(new_user, service) if new_user.is_a? User }.trap{ |e|
+        Plugin.call(:update, nil, [Message.new(:message => "ユーザの情報が取得できませんでした", :system => true)])
+        error e
+        abort }
     end end
 
   boot
