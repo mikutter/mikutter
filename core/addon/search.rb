@@ -13,13 +13,11 @@ Module.new do
   savebtn = Gtk::Button.new('保存')
 
   searchbtn.signal_connect('clicked'){ |elm|
-    Gtk::Lock.synchronize{
-      elm.sensitive = querybox.sensitive = false
-      main.clear
-      service.search(querybox.text, :rpp => 100){ |res|
-        Gtk::Lock.synchronize{
-          main.add(res) if res.is_a? Array
-          elm.sensitive = querybox.sensitive = true } } } }
+    elm.sensitive = querybox.sensitive = false
+    main.clear
+    service.search(q: querybox.text, rpp: 100).next{ |res|
+      main.add(res) if res.is_a? Array
+      elm.sensitive = querybox.sensitive = true } }
 
   savebtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{
@@ -59,9 +57,11 @@ Module.new do
       '(Saved Search)' end
 
     def search(use_cache=false)
-      @service.search(@options[:query], :rpp => 100, :cache => use_cache){ |res|
-        Gtk::Lock.synchronize{
-          update(res) if res.is_a? Array } }
+      @service.search(q: @options[:query], rpp: 100, cache: use_cache).next{ |res|
+        update(res) if res.is_a? Array
+      }.trap{ |e|
+        error e
+      }
       self end }
 
   def self.boot
@@ -81,43 +81,29 @@ Module.new do
       add_tab(id, query, query) } end
 
   def self.update(use_cache=false)
-    @service.call_api(:saved_searches, :cache => use_cache){ |res|
+    @service.saved_searches(cache: use_cache).next{ |res|
       if res
         remove_unmarked{
           res.each{ |record|
             add_tab(record[:id], URI.decode(record[:query]), URI.decode(record[:name])) } } end }
-    # Thread.new{
-    #   Delayer.new(Delayer::NORMAL, searches(use_cache)){ |found|
-    #     remove_unmarked{
-    #       found.each{ |record|
-    #         add_tab(record['id'], record['query'], record['name']) } } } }
   end
 
   def self.remove_unmarked
-    Gtk::Lock.synchronize{
-      @tab.tabs.each{ |tab|
-        tab.mark = false }
-      yield
-      @tab.tabs.each{ |tab|
-        tab.remove if not tab.mark } } end
-
-  def self.searches(use_cache)
-    found = @service.scan(:saved_searches, :cache => use_cache)
-    return found if(found)
-    [] end
+    @tab.tabs.each{ |tab|
+      tab.mark = false }
+    yield
+    @tab.tabs.each{ |tab|
+      tab.remove if not tab.mark } end
 
   def self.add_tab(id, query, name)
     tab = @tab.tabs.find{ |tab| tab.name == name }
     if tab
       tab.search.mark = true
+      tab.search(:keep)
     else
-      Gtk::Lock.synchronize{
-        @tab.new(name, @service,
-                 :id => id,
-                 :query => query,
-                 :icon => MUI::Skin.get("savedsearch.png")).search(true) } end end
+      @tab.new(name, @service,
+               :id => id,
+               :query => query,
+               :icon => MUI::Skin.get("savedsearch.png")).search(true) end end
   boot
 end
-
-# Plugin::Ring.push Addon::Search.new,[:boot]
-# Plugin::Ring.push Addon::SavedSearch.new,[:period, :boot, :plugincall]

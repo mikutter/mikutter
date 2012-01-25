@@ -14,8 +14,7 @@ Module.new do
       super(*args)
       if list.member.empty?
         @service.list_members( :id => list[:id],
-                               :cache => true,
-                               :user => @service.user){ |users| list.add_member(users) if users } end end
+                               :cache => true){ |users| list.add_member(users) if users } end end
 
     def list
       @options[:list] end
@@ -30,14 +29,6 @@ Module.new do
      messages.each{ |m|
        list.add_member(m[:user]) if not list.member?(m[:user]) }
       update(messages, false) end
-    # def update_member_messages!(messages)
-    #   members_messages = []
-    #   messages.each{ |m|
-    #     if list.member?(m[:user])
-    #       members_messages << m
-    #     elsif !m.retweet? and m.receive_user_screen_names.empty?
-    #       list.add_member(m[:user]) end }
-    #   update(members_messages, false) end
 
     # リストのTLに、 _messages_ を入れる。
     # ==== Args
@@ -62,13 +53,12 @@ Module.new do
     # REST APIで、リストの最新のツイートを取得する。
     # また、ここに出現したユーザは、全てリストのメンバーであるとみなされ、リストに追加される。
     def rewind(use_cache=false)
-      @service.call_api(:list_statuses,
-                        :id => list[:id],
-                        :mode => list[:mode] ? 'public' : 'private',
-                        :cache => use_cache,
-                        :user => list[:user][:idname]){ |res|
-        Gtk::Lock.synchronize{
-          update_member_messages!(res) if res.is_a? Array } }
+      @service.list_statuses(:id => list[:id],
+                             :cache => use_cache).next{ |res|
+        update_member_messages!(res) if res.is_a? Array
+      }.trap{ |e|
+        error e
+      }
       self end }
 
   def self.boot
@@ -113,25 +103,21 @@ Module.new do
   end
 
   def self.update(get_cache = false)
-    param = {:cache => false, :user => @service.user}
-    @service.call_api(:lists, param){ |lists|
+    param = {:cache => false, :user => @service.user_obj}
+    @service.lists(param).next{ |lists|
       if lists
-        lists = lists.melt
-        @service.call_api(:list_subscriptions, param){ |subscriptions|
-          if subscriptions
-            lists.concat(subscriptions)
-            set_available_lists(lists)
-            remove_unmarked{
-              lists.each{ |list|
-                add_tab(list) } } end } end } end
+        set_available_lists(lists)
+        remove_unmarked{
+          lists.each{ |list|
+            add_tab(list) } } end }
+  end
 
   def self.update_member
     displayable_lists.each{ |list_id|
       list = list_detail(list)
       if list
         @service.list_members( :id => list_id,
-                               :cache => :keep,
-                               :user => @service.user){ |users| list[:member] = users if users } end }
+                               :cache => :keep){ |users| list[:member] = users if users } end }
   end
 
   def self.remove_unmarked

@@ -145,11 +145,11 @@ module Addon
     # *tl* 現在フォーカスされているタイムライン(Gtk::TimeLine::InnerTL)
     # *active_mumble* 選択されているメッセージ（代表一つ）(Message)
     # *miracle_painter* _active_mumble_ のレンダー(Gdk::MiraclePainter)
-    # *postbox* 現在フォーカスされているPostBox(Gtk::PostBox)
+    # *postbox* 現在フォーカスされているServiceBox(Gtk::ServiceBox)
     # *roles* 実行してもよいコマンドのロールのリスト
     def self.tampr(defaults={})
       t, a, m, p, r = tampr = _tampr(defaults)
-      type_strict t => (t and Gtk::TimeLine::InnerTL), a => (a and Message), m => (m and Gdk::MiraclePainter), p => (p and Gtk::PostBox), r => (r and Set)
+      type_strict t => (t and Gtk::TimeLine::InnerTL), a => (a and Message), m => (m and Gdk::MiraclePainter), p => (p and Gtk::ServiceBox), r => (r and Set)
       tampr
     end
 
@@ -159,8 +159,8 @@ module Addon
       tl = defaults[:tl] || Gtk::TimeLine::InnerTL.current_tl
       active_mumble = defaults[:message] || Gtk::TimeLine.get_active_mumbles.to_a.first
       miracle_painter = defaults[:miracle_painter] || ((active_mumble and tl) ? tl.cell_renderer_message.miracle_painter(active_mumble) : false)
-      postbox = defaults[:postbox] || (focus ? focus.get_ancestor(Gtk::PostBox) : false)
-      postbox = false if not postbox.is_a?(Gtk::PostBox)
+      postbox = defaults[:postbox] || (focus ? focus.get_ancestor(Gtk::ServiceBox) : false)
+      postbox = false if not postbox.is_a?(Gtk::ServiceBox)
       [tl, active_mumble, miracle_painter, postbox, get_valid_roles(focus, tl, active_mumble, miracle_painter, postbox)].freeze
     end
 

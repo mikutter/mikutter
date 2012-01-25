@@ -33,7 +33,7 @@ Plugin::create(:liststream) do
     member_anything - Plugin.filtering(:followings, Set.new).first end
 
   def start
-    service = Post.services.first
+    service = Service.services.first
     Thread.new{
       loop{
         sleep(3)
@@ -43,11 +43,14 @@ Plugin::create(:liststream) do
           if not_followings.empty?
             sleep(60)
           else
-            service.streaming(:filter_stream, :follow => not_followings.map(&:id).join(',')){ |json|
-              json.strip!
-              case json
-              when /^\{.*\}$/
-                service.__send__(:parse_json, json, :streaming_status) rescue nil end } end
+            timeout(3600) {
+              notice "followings #{not_followings.size} people"
+              service.streaming(:filter_stream, :follow => not_followings.to_a[0, 5000].map(&:id).join(',')){ |json|
+                json.strip!
+                case json
+                when /^\{.*\}$/
+                  MikuTwitter::ApiCallSupport::Request::Parser.message(JSON.parse(json).symbolize) rescue nil
+                end } } end
         rescue TimeoutError => e
         rescue => e
           warn e end

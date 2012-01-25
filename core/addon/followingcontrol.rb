@@ -23,27 +23,28 @@ Module.new do
       relations = userlist.to_a
       c = count.call
       if (c % UserConfig[retrieve_interval]) == 0
-        service.__send__(api, UserConfig[retrieve_count], -1, (c==0 ? true : :keep)){ |users|
+        service.__send__(api, cache: (c==0 ? true : :keep)).next{ |users|
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users, users) unless relations.empty?
-          users
-        } end } end
+          users } end } end
 
   def self.set_event(api, title)
     userlist = Gtk::UserList.new.show_all
     proc = gen_relationship(api, userlist)
     Plugin.call(:mui_tab_regist, userlist, title, MUI::Skin.get("#{api}.png"))
     Plugin.create(:following_control).add_event(:period){ |service|
-      Thread.new{
-        res = proc.call(service)
-        if(bool res)
-          Delayer.new{ userlist.add(res).show_all } end }
+      promise = proc.call(service)
+      if promise
+        promise.next{ |res|
+          if res
+            userlist.add(res).show_all end }.trap{ |e|
+          error e } end
     }
     Plugin.create(:following_control).add_event("#{api}_created".to_sym){ |service, users|
       userlist.add(users).show_all }
     Plugin.create(:following_control).add_event("#{api}_destroy".to_sym){ |service, users|
       userlist.remove_if_exists_all(users) }
-    userlist.double_clicked = open_user(Post.services.first) end
+    userlist.double_clicked = open_user(Service.services.first) end
 
   Delayer.new{
     set_event(:followings, 'Followings')

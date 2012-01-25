@@ -69,7 +69,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
       message = message[1] if(message.is_a?(Gtk::TreeIter))
       type_strict message => Message
-      postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+      postbox.closeup(pb = Gtk::ServiceBox.new(message, options).show_all)
       pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
       ctl.selection.unselect_all end

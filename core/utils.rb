@@ -251,7 +251,9 @@ def tcor(*types)
 # type_checkの戻り値を返す
 def type_strict(args, &proc)
   result = type_check(args, &proc)
-  raise ArgumentError.new if not result
+  if not result
+    into_debug_mode(binding)
+    raise ArgumentError.new end
   result end
 
 # blockの評価結果がチェックをパスしなかった場合にabortする
