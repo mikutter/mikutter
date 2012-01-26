@@ -15,7 +15,7 @@ module Plugin::DirectMessage
     end
 
     def on_deleted(iter)
-      Post.primary_service.destroy_direct_message :id => iter[C_RAW][:id]
+      Service.primary_service.destroy_direct_message :id => iter[C_RAW][:id]
     end
 
     def column_schemer

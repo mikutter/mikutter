@@ -4,12 +4,12 @@ Module.new do
 
   def self.boot
     plugin = Plugin::create(:friend_timeline)
-    Post.auth_confirm_func = method(:popup)
+    MikuTwitter::AuthenticationFailedAction.regist &method(:popup)
     plugin.add_event(:boot){ |service|
       Plugin.call(:setting_tab_regist, main_for_tab(service), 'アカウント情報') }
   end
 
-  def self.popup(watch)
+  def self.popup(watch, method = nil, url = nil, options = nil, res = nil)
     if(Thread.main == Thread.current)
       _popup(watch)
     else
@@ -21,6 +21,8 @@ Module.new do
       }
       while(!input)
         sleep(1) end
+      if result
+        UserConfig[:twitter_token], UserConfig[:twitter_secret] = *result end
       return result
     end
   end

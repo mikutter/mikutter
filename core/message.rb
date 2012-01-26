@@ -27,7 +27,7 @@ class Message < Retriever::Model
   # reciver | recive user(User)
   # replyto | source message(Message or mixed(Status ID))
   # retweet | retweet to this message(Message or StatusID)
-  # post    | post object(Post)
+  # post    | post object(Service)
   # image   | image(URL or Image object)
   # xml     | source xml text
 
@@ -148,7 +148,9 @@ class Message < Retriever::Model
     if self[:post]
       self[:post]
     elsif self.receive_message
-      @value[:post] = self.receive_message.service end end
+      @value[:post] = self.receive_message.service
+    else
+    Service.primary end end
 
   # この投稿を宛てられたユーザを返す
   def receiver
@@ -254,7 +256,7 @@ class Message < Retriever::Model
     @favorited ||= Plugin.filtering(:favorited_by, self, Set.new())[1] end
 
   # この投稿を「自分」がふぁぼっていれば真
-  def favorited_by_me?(me = Post.services)
+  def favorited_by_me?(me = Service.services)
     not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
   end
 
@@ -268,7 +270,7 @@ class Message < Retriever::Model
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
 
   # この投稿を「自分」がリツイートしていれば真
-  def retweeted_by_me?(me = Post.services)
+  def retweeted_by_me?(me = Service.services)
     not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
   end
 
@@ -350,6 +352,7 @@ class Message < Retriever::Model
   private
 
   def add_retweet_in_this_thread(child)
+    type_strict child => Message
     @retweets = [] if not defined? @retweets
     @retweets << child
     set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end

@@ -17,24 +17,17 @@ module Plugin::DirectMessage
     onboot do
       @userlist = UserList.new.show_all
       @userlist.double_clicked = lambda{ |user|
-        Plugin.call(:show_profile, Post.primary_service, user) }
+        Plugin.call(:show_profile, Service.primary_service, user) }
       Delayer.new{
         Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("underconstruction.png"))
       }
     end
 
     onperiod do
-      service = Post.primary_service
+      service = Service.primary_service
       if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
-        Thread.new{
-          threads = [ call_api(service, :direct_messages),
-                      call_api(service, :sent_direct_messages) ]
-          result = threads.inject([]){ |dms, thread|
-            result = thread.value
-            if result
-              dms + result
-            else
-              dms end }
+        Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
+          result = dm + sent
           Plugin.call(:direct_messages, service, result) if result and not result.empty? } end end
 
     filter_direct_messages do |service, dms|
@@ -42,7 +35,7 @@ module Plugin::DirectMessage
         result = []
         @dm_lock.synchronize do
           dms.sort_by{ |s| Time.parse(s[:created_at]) rescue Time.now }.each { |dm|
-            if add_dm(dm, User.generate(dm[:sender])) and add_dm(dm, User.generate(dm[:recipient]))
+            if add_dm(dm, dm[:sender]) and add_dm(dm, dm[:recipient])
               result << dm end } end
         [service, result]
       else
@@ -112,7 +105,7 @@ module Plugin::DirectMessage
         detach(:direct_message, event)
       }
       mumbles = Gtk::VBox.new(false, 0)
-      postbox = Gtk::PostBox.new(Sender.new(Post.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
+      postbox = Gtk::ServiceBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
       mumbles.pack_start(postbox)
       container.closeup(mumbles).add(Gtk::HBox.new.add(tl).closeup(scrollbar))
       container

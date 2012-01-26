@@ -25,7 +25,7 @@ require File.expand_path('boot/option')
 require File.expand_path('utils')
 
 miquire :boot, 'check_config_permission'
-miquire :core, 'post'
+miquire :core, 'service'
 miquire :boot, 'load_plugin'
 
 
