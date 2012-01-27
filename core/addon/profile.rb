@@ -206,7 +206,7 @@ Module.new do
             user = service.scan(:user_show,
                                 :no_auto_since_id => false,
                                 :screen_name => idname)
-            Delayer.new{ makescreen(user.first, service) } if user } end } }
+            Delayer.new{ makescreen(user, service) } if user } end } }
     plugin.add_event_filter(:show_filter){ |messages|
       muted_users = UserConfig[:muted_users]
       if muted_users
@@ -267,11 +267,12 @@ Module.new do
                     :user => user,
                     :icon => user[:profile_image_url])
     else
-      service.user_show(id: user[:id]).next{ |new_user|
+      p user
+      service.user_show(id: user[:id], cache: :keep).next{ |new_user|
+        raise "inexact user data" if not new_user[:exact]
         makescreen(new_user, service) if new_user.is_a? User }.trap{ |e|
         Plugin.call(:update, nil, [Message.new(:message => "ユーザの情報が取得できませんでした", :system => true)])
-        error e
-        abort }
+        error e }
     end end
 
   boot
