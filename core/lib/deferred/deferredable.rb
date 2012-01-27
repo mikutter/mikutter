@@ -52,7 +52,7 @@ module Deferredable
           Delayer.new{ @next.call(n_value) }
         else
           regist_next_call(:ok, n_value) end end
-    rescue => e
+    rescue Exception => e
       if defined?(@next)
         Delayer.new{ @next.fail(e) }
       else
