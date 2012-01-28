@@ -7,7 +7,10 @@ Module.new do
   def self.boot
     plugin = Plugin::create(:bugreport)
     plugin.add_event(:boot){ |service|
-      popup if File.size? File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')) } end
+      begin
+        popup if crashed_exception.is_a? Exception
+      rescue => e
+        error e end } end
 
   private
 
@@ -34,7 +37,8 @@ Module.new do
         if response == Gtk::Dialog::RESPONSE_OK
           send
         else
-          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) end
+          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
+          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil end
         quit.call }
       dialog.signal_connect("destroy") {
         false
@@ -66,20 +70,23 @@ Module.new do
   def self.send
     Thread.new{
       begin
+        exception = crashed_exception
+        m = exception.backtrace.first.match(/(.+?):(\d+)/)
+        crashed_file, crashed_line = m[1], m[2]
         Net::HTTP.start('mikutter.hachune.net'){ |http|
-          param = encode_parameters({ 'backtrace' => backtrace,
+          param = encode_parameters({ 'backtrace' => JSON.generate(exception.backtrace),
                                       'svn' => revision,
                                       'file' => crashed_file,
                                       'line' => crashed_line,
+                                      'exception_class' => exception.class,
                                       'ruby_version' => RUBY_VERSION,
                                       'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
                                       'platform' => RUBY_PLATFORM,
-                                      'url' => 'bugreport',
+                                      'url' => 'exception',
                                       'version' => Environment::VERSION })
           http.post('/', param) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))) rescue nil
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue nil
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
       rescue TimeoutError, StandardError => e
@@ -94,15 +101,12 @@ Module.new do
       '' end end
 
   def self.backtrace
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
+    "#{crashed_exception.class} #{crashed_exception.to_s}\n" +
+      crashed_exception.backtrace.join("\n")
   end
 
-  def self.crashed_line
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))).to_i rescue 0
-  end
-
-  def self.crashed_file
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue '-'
+  def self.crashed_exception
+    @crashed_exception ||= object_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
   end
 
   def self.encode_parameters(params, delimiter = '&', quote = nil)

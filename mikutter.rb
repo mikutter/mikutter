@@ -31,8 +31,14 @@ miquire :boot, 'load_plugin'
 notice "fire boot event"
 Plugin.call(:boot, Post.primary_service)
 
+delayer_exception = nil
 Gtk.timeout_add(100){
-  Delayer.run
+  begin
+    Delayer.run
+  rescue => e
+    delayer_exception = e
+    Gtk.main_quit
+  end
   true }
 
 # イベントの待受を開始する。
@@ -56,7 +62,11 @@ def boot!(profile)
     Gtk.main end
 rescue => e
   into_debug_mode(e)
-  raise e end
+  raise e
+rescue Exception => e
+  notice e.class
+  raise e
+end
 
 begin
   errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
@@ -67,12 +77,12 @@ begin
       super(string)
       self.fsync rescue nil end end
   boot!(Mopt.profile)
+  if(delayer_exception)
+    object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), delayer_exception) end
 rescue Interrupt => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
 rescue Exception => e
-  m = e.backtrace.first.match(/(.+?):(\d+)/)
-  file_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_file'), m[1])
-  file_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_line'), m[2])
+  object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), e)
   raise e
 end
