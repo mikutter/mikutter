@@ -144,6 +144,10 @@ module MikuTwitter::ApiCallSupport
         result end
 
       def user(u)
+        if u.is_a? Array
+          p u
+          abort
+        end
         cnv = u.convert_key(:screen_name =>:idname, :url => :url)
         cnv[:created] = Time.parse(u[:created_at])
         cnv[:detail] = u[:description]

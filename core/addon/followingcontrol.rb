@@ -26,7 +26,11 @@ Module.new do
         service.__send__(api, cache: (c==0 ? true : :keep)).next{ |users|
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users, users) unless relations.empty?
-          users } end } end
+          users
+        }.trap{ |e|
+          error e
+        }
+      end } end
 
   def self.set_event(api, title)
     userlist = Gtk::UserList.new.show_all
