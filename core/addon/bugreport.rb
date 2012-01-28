@@ -74,17 +74,21 @@ Module.new do
         m = exception.backtrace.first.match(/(.+?):(\d+)/)
         crashed_file, crashed_line = m[1], m[2]
         Net::HTTP.start('mikutter.hachune.net'){ |http|
-          param = encode_parameters({ 'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
-                                      'svn' => revision,
-                                      'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
-                                      'line' => crashed_line,
-                                      'exception_class' => exception.class,
-                                      'ruby_version' => RUBY_VERSION,
-                                      'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
-                                      'platform' => RUBY_PLATFORM,
-                                      'url' => 'exception',
-                                      'version' => Environment::VERSION })
-          http.post('/', param) }
+          param = {
+            'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
+            'svn' => revision,
+            'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
+            'line' => crashed_line,
+            'exception_class' => exception.class,
+            'ruby_version' => RUBY_VERSION,
+            'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
+            'platform' => RUBY_PLATFORM,
+            'url' => 'exception',
+            'version' => Environment::VERSION }
+          console = mikutter_error
+          param['stderr'] = console if console
+          eparam = encode_parameters(param)
+          http.post('/', eparam) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
@@ -99,6 +103,11 @@ Module.new do
       open('|env LANG=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
     rescue
       '' end end
+
+  def self.mikutter_error
+    name = File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))
+    if FileTest.exist?(name)
+      file_get_contents(name) end end
 
   def self.backtrace
     "#{crashed_exception.class} #{crashed_exception.to_s}\n" +
