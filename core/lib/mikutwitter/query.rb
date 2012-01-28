@@ -5,6 +5,7 @@ require "mikutwitter/connect"
 require "mikutwitter/unauthorized"
 require "mikutwitter/utils"
 require "mikutwitter/cache"
+require "mikutwitter/error"
 require "deferred"
 require "monitor"
 
@@ -49,9 +50,9 @@ module MikuTwitter::Query
   #   API引数。ただし、以下のキーは特別扱いされ、API引数からは除外される
   #   :head :: HTTPリクエストヘッダ（Hash）
   # ==== Return
-  # API戻り値(JSON)
+  # API戻り値(HTTPResponse)
   # ==== Exceptions
-  # TimeoutError
+  # TimeoutError, MikuTwitter::Error
   def query!(api, options = {})
     type_strict options => Hash
     method = get_api_property(api, options, method_of_api) || :get
@@ -59,7 +60,11 @@ module MikuTwitter::Query
             "http://#{options[:host]}/#{api}.json"
           else
             "#{@base_path}/#{api}.json" end
-    res = _query!(api, options, method, url) end
+    res = _query!(api, options, method, url)
+    if('2' == res.code[0])
+      res
+    else
+      raise MikuTwitter::Error.new("#{res.code} #{res.to_s}", res) end end
 
   private
 
@@ -82,16 +87,18 @@ module MikuTwitter::Query
   def fire_request_event(api, url, options, method)
     serial = query_serial_number
     start_time = Time.new
+    output_url = url
+    # output_url += get_args(options) if(:get == method)
     Plugin.call(:query_start,
                 :serial     => serial,
                 :method     => method,
                 :path       => api,
                 :options    => options,
                 :start_time => start_time)
-    notice "access(#{serial}): #{url}"
+    notice "access(#{serial}): #{output_url}"
     res = yield
   ensure
-    notice "quit(#{serial.to_s}): #{url} (#{(Time.new - start_time).to_s}s)" rescue nil
+    notice "quit(#{serial.to_s}): #{output_url} (#{(Time.new - start_time).to_s}s)" rescue nil
     Plugin.call(:query_end,
                 :serial     => serial,
                 :method     => method,
