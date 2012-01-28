@@ -2,7 +2,11 @@
     "twitpic": {
         "url": "^http://twitpic\\.com/[a-zA-Z0-9]+",
         "attribute": {
-            "id": "photo-display"
+            "tag": "img",
+            "src": {
+                "json_class": "Regexp",
+                "data": "^http://.*?\\.twitpicproxy\\.com/photos/(?:large|full)/.*"
+            }
         }
     },
     "yfrog": {
