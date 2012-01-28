@@ -9,4 +9,6 @@ Plugin.create(:api_request_file_cache) do
       gc }
   end
 
+  Reserver.new(3600){ gc }
+
 end

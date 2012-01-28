@@ -66,12 +66,17 @@ module MikuTwitter::Cache
 
   def self.garbage_collect
     begin
-      delete_files = Dir.glob("#{Environment::CACHE}**#{File::Separator}*").select(&method(:is_tooold))
-      File.delete(*delete_files)
+      delete_files = Dir.glob(File.expand_path("#{Environment::CACHE}**#{File::Separator}*")).select(&method(:is_tooold))
+      FileUtils.rm_rf(delete_files)
       delete_files
     rescue => e
       error e end end
 
+  # キャッシュファイル _file_ が期限切れの場合真を返す。
+  # ==== Args
+  # [file] ファイル名
+  # ==== Return
+  # 削除すべきなら真
   def self.is_tooold(file)
     Time.now - File.mtime(file) > CACHE_EXPIRE end
 
