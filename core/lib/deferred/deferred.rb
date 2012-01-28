@@ -8,6 +8,23 @@ class Deferred
   end
 
   class << self
+    # 実行中のDeferredを失敗させる。raiseと違って、Exception以外のオブジェクトをtrap()に渡すことができる。
+    # Deferredのnextとtrapの中でだけ呼び出すことができる。
+    # ==== Args
+    # [value] trap()に渡す値
+    # ==== Throw
+    # :__deferredable_fail をthrowする
+    def fail(value)
+      throw(:__deferredable_fail, value) end
+
+    # 複数のdeferredを引数に取って、それら全ての実行が終了したら、
+    # その結果を引数の順番通りに格納したArrayを引数に呼ばれるDeferredを返す。
+    # 引数のDeferredが一つでも失敗するとこのメソッドの返すDeferredも失敗する。
+    # ==== Args
+    # [defer] 終了を待つDeferredオブジェクト
+    # [*follow] 他のDeferredオブジェクト
+    # ==== Return
+    # Deferred
     def when(defer = nil, *follow)
       return deferred{ [] } if defer.nil?
       defer.next{ |res|
