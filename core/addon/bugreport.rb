@@ -74,9 +74,9 @@ Module.new do
         m = exception.backtrace.first.match(/(.+?):(\d+)/)
         crashed_file, crashed_line = m[1], m[2]
         Net::HTTP.start('mikutter.hachune.net'){ |http|
-          param = encode_parameters({ 'backtrace' => JSON.generate(exception.backtrace),
+          param = encode_parameters({ 'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
                                       'svn' => revision,
-                                      'file' => crashed_file,
+                                      'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
                                       'line' => crashed_line,
                                       'exception_class' => exception.class,
                                       'ruby_version' => RUBY_VERSION,
@@ -102,7 +102,7 @@ Module.new do
 
   def self.backtrace
     "#{crashed_exception.class} #{crashed_exception.to_s}\n" +
-      crashed_exception.backtrace.join("\n")
+      crashed_exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }.join("\n")
   end
 
   def self.crashed_exception
