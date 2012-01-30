@@ -7,7 +7,10 @@ Module.new do
   def self.boot
     plugin = Plugin::create(:bugreport)
     plugin.add_event(:boot){ |service|
-      popup if File.size? File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')) } end
+      begin
+        popup if crashed_exception.is_a? Exception
+      rescue => e
+        error e end } end
 
   private
 
@@ -34,7 +37,8 @@ Module.new do
         if response == Gtk::Dialog::RESPONSE_OK
           send
         else
-          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) end
+          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
+          File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil end
         quit.call }
       dialog.signal_connect("destroy") {
         false
@@ -66,20 +70,27 @@ Module.new do
   def self.send
     Thread.new{
       begin
+        exception = crashed_exception
+        m = exception.backtrace.first.match(/(.+?):(\d+)/)
+        crashed_file, crashed_line = m[1], m[2]
         Net::HTTP.start('mikutter.hachune.net'){ |http|
-          param = encode_parameters({ 'backtrace' => backtrace,
-                                      'svn' => revision,
-                                      'file' => crashed_file,
-                                      'line' => crashed_line,
-                                      'ruby_version' => RUBY_VERSION,
-                                      'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
-                                      'platform' => RUBY_PLATFORM,
-                                      'url' => 'bugreport',
-                                      'version' => Environment::VERSION })
-          http.post('/', param) }
+          param = {
+            'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
+            'svn' => revision,
+            'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
+            'line' => crashed_line,
+            'exception_class' => exception.class,
+            'ruby_version' => RUBY_VERSION,
+            'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
+            'platform' => RUBY_PLATFORM,
+            'url' => 'exception',
+            'version' => Environment::VERSION }
+          console = mikutter_error
+          param['stderr'] = console if console
+          eparam = encode_parameters(param)
+          http.post('/', eparam) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))) rescue nil
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue nil
+        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
         Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
                                                :system => true)])
       rescue TimeoutError, StandardError => e
@@ -93,16 +104,18 @@ Module.new do
     rescue
       '' end end
 
+  def self.mikutter_error
+    name = File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))
+    if FileTest.exist?(name)
+      file_get_contents(name) end end
+
   def self.backtrace
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error')))
+    "#{crashed_exception.class} #{crashed_exception.to_s}\n" +
+      crashed_exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }.join("\n")
   end
 
-  def self.crashed_line
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_line'))).to_i rescue 0
-  end
-
-  def self.crashed_file
-    file_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_file'))) rescue '-'
+  def self.crashed_exception
+    @crashed_exception ||= object_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
   end
 
   def self.encode_parameters(params, delimiter = '&', quote = nil)

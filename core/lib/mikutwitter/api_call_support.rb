@@ -134,7 +134,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
-        message = Message.new_ifnecessary(cnv)
+        message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
         message_appear([message]) if appear
         message end
 
@@ -144,6 +144,10 @@ module MikuTwitter::ApiCallSupport
         result end
 
       def user(u)
+        if u.is_a? Array
+          p u
+          abort
+        end
         cnv = u.convert_key(:screen_name =>:idname, :url => :url)
         cnv[:created] = Time.parse(u[:created_at])
         cnv[:detail] = u[:description]
@@ -155,14 +159,14 @@ module MikuTwitter::ApiCallSupport
         cnv[:verified] = u[:verified]
         cnv[:following] = u[:following]
         cnv[:exact] = [:created_at, :description, :protected, :followers_count, :friends_count, :verified].all?{|k|u.has_key?(k)}
-        User.new_ifnecessary(cnv) end
+        cnv[:exact] ? User.rewind(cnv) : User.new_ifnecessary(cnv) end
 
       def list(list)
         cnv = list.dup
         cnv[:mode] = list[:mode] == 'public'
         cnv[:user] = user(list[:user])
         cnv[:exact] = true
-        UserList.new_ifnecessary(cnv)
+        cnv[:exact] ? UserList.rewind(cnv) : UserList.new_ifnecessary(cnv)
       end
 
       def direct_message(dm)

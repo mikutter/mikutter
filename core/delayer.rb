@@ -33,11 +33,11 @@ class Delayer
   def run
     return if @status != :wait
     @status = :run
-    now = caller.size
     begin
       @routine.call(*@args)
     rescue Exception => e
-      $@ = e.backtrace[0, now] + @backtrace
+      now = caller.size + 1     # @routine.callのぶんスタックが１つ多い
+      $@ = e.backtrace[0, e.backtrace.size - now] + @backtrace
       raise e
     end
     @routine = nil

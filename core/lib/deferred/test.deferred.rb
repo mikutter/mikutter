@@ -66,6 +66,22 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     assert_equal("#<RuntimeError: mikutan peropero>", ans.inspect)
   end
 
+  def test_fail
+    ans = 0
+    Deferred.new.next{
+      10
+    }.next{
+      Deferred.fail 'mikutan peropero'
+    }.next{ |x|
+      ans = x + 2
+    }.trap{ |e|
+      ans = e
+    }
+    wait_all_tasks
+    assert_kind_of(String, ans)
+    assert_equal("mikutan peropero", ans)
+  end
+
   def test_thread
     ans = 0 # !> method redefined; discarding old _execute
     Thread.new{

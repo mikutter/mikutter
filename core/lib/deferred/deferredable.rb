@@ -29,34 +29,37 @@ module Deferredable
     @callback ||= {
       :backtrace => {},
       :ok => lambda{ |x| x },
-      :ng => lambda{ |x| raise x } } end
+      :ng => Deferred.method(:fail) } end
 
   private
 
   def _call(stat = :ok, value = nil)
     begin
-      n_value = _execute(stat, value)
-      if n_value.is_a? Deferredable
-        n_value.next{ |result|
-          if defined?(@next)
-            @next.call(result)
+      catch(:__deferredable_success) {
+        failed = catch(:__deferredable_fail) {
+          n_value = _execute(stat, value)
+          if n_value.is_a? Deferredable
+            n_value.next{ |result|
+              if defined?(@next)
+                @next.call(result)
+              else
+                @next end
+            }.trap{ |exception|
+              if defined?(@next)
+                @next.fail(exception)
+              else
+                @next end }
           else
-            @next end
-        }.trap{ |exception|
-          if defined?(@next)
-            @next.fail(exception)
-          else
-            @next end }
-      else
-        if defined?(@next)
-          Delayer.new{ @next.call(n_value) }
-        else
-          regist_next_call(:ok, n_value) end end
-    rescue => e
-      if defined?(@next)
-        Delayer.new{ @next.fail(e) }
-      else
-        regist_next_call(:ng, e) end end end
+            if defined?(@next)
+              Delayer.new{ @next.call(n_value) }
+            else
+              regist_next_call(:ok, n_value) end end
+          throw :__deferredable_success
+        }
+        _fail_action(failed)
+      }
+    rescue Exception => e
+      _fail_action(e) end end
 
   def _execute(stat, value)
     callback[stat].call(value) end
@@ -75,5 +78,12 @@ module Deferredable
   def regist_next_call(stat, value)
     @next_call_stat, @next_call_value = stat, value
     self end
+
+  def _fail_action(e)
+    if defined?(@next)
+      Delayer.new{ @next.fail(e) }
+    else
+      regist_next_call(:ng, e) end
+  end
 
 end

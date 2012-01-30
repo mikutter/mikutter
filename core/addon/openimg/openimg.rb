@@ -47,12 +47,18 @@ Module.new do
         pixbuf = Gdk::WebImageLoader.loading_pixbuf(*@size)
         raw = Gdk::WebImageLoader.get_raw_data(url){ |data|
           if not eventbox.destroyed?
-            loader = Gdk::PixbufLoader.new
-            loader.write data
-            loader.close
-            pixbuf = loader.pixbuf
+            if data
+              begin
+                loader = Gdk::PixbufLoader.new
+                loader.write data
+                loader.close
+                pixbuf = loader.pixbuf
+              rescue => e
+                pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
+            else
+              pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
             eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) end }
-        if raw != :wait
+        if raw and raw != :wait
           loader = Gdk::PixbufLoader.new
           loader.write raw
           loader.close

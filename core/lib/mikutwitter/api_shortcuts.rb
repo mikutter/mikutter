@@ -239,7 +239,7 @@ module MikuTwitter::APIShortcuts
       promise.next{ |users|
         if(users.size != ids.size)
           Deferred.when(*(ids - users.map{ |u| u[:id] }).each_slice(100).map{ |segment|
-                          user_lookup(id: segment.join(',')) }).next{ |res|
+                          user_lookup(id: segment.join(',')).trap{ |e| warn e; [] } }).next{ |res|
             res.inject(users){ |a, b| a + b } }
         else
           users end } } end
