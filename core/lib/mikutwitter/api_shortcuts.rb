@@ -142,11 +142,23 @@ module MikuTwitter::APIShortcuts
     (self/"favorites/destroy"/id).message end
 
   def follow(user)
-    post_with_auth("/friendships/create/#{user[:id]}.#{FORMAT}")
+    user_id = user[:id]
+    if user.is_a? Hash
+      args = user.dup
+      args.delete(:id)
+    else
+      args = {} end
+    (self/"friendships/create"/user_id).user(args)
   end
 
   def unfollow(user)
-    post_with_auth("/friendships/destroy/#{user[:id]}.#{FORMAT}")
+    user_id = user[:id]
+    if user.is_a? Hash
+      args = user.dup
+      args.delete(:id)
+    else
+      args = {} end
+    (self/"friendships/destroy"/user_id).user(args)
   end
 
   # list = {
