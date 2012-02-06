@@ -22,7 +22,7 @@ Module.new do
   savebtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{
       query = querybox.text
-      service.search_create(query){ |stat, message|
+      service.search_create(query: query){ |stat, message|
         if(stat == :success)
           Plugin.call(:saved_search_regist, message['id'], query) end
       } } }
@@ -48,7 +48,7 @@ Module.new do
       super
       del = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       del.signal_connect('clicked'){ |e|
-        @service.search_destroy(@options[:id]){ |event, dummy|
+        @service.search_destroy(id: @options[:id]){ |event, dummy|
           remove if event == :success } }
       @header.closeup(del)
     end
