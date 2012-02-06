@@ -9,8 +9,8 @@ platforms :ruby_19 do
   gem 'memoize'
   gem 'ruby-hmac'
   gem 'httpclient'
-end
-group :test do
-  gem 'mocha'
-  gem 'rspec', :require => 'spec'
+  group :test do
+    gem 'mocha'
+    gem 'rspec', :require => 'spec'
+  end
 end
