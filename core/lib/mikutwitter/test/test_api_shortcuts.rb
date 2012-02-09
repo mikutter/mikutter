@@ -122,6 +122,17 @@ class TC_mikutwitter_api_call_support < Test::Unit::TestCase
     assert_equal("netbsd-japanese", result[0][:slug])
   end
 
+  must "list user followers" do
+    result = nil
+    stub_request(:get, "http://api.twitter.com/1/lists/memberships.json?user_id=80739771").
+      to_return(file_get_contents(File.join(DIR, 'list_memberships.json')))
+    @m.list_user_followers(user_id: 80739771).next{ |res|
+      result = res
+    }.trap{ |err| p err; pp err.backtrace }
+    wait_all_tasks
+    assert_equal ["Tech", "IT・Web", "teokure", "toshi_a", "toshi_a_icon_club", "toshi", "a", "ComputerHumanoidInterface"], result.map{ |l| l[:name] }
+  end
+
   must "list_subscriptions" do
     result = nil
     stub_request(:get, "http://api.twitter.com/1/lists/subscriptions.json?count=1000&user_id=15926668").
