@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'gtk2'
+
 =begin rdoc
   アイコン上にボタンを表示するためのモジュールを返す。
 schemerはHashで、 _:x_count_ と _:y_count_ に、縦横いくつのボタンを表示するかを決めることができる

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'gtk2'
+require 'cairo'
 
 class Gtk::TimeLine < Gtk::VBox
 end
