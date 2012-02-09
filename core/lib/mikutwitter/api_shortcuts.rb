@@ -122,15 +122,15 @@ module MikuTwitter::APIShortcuts
     args.delete(:id)
     (self/"statuses/destroy"/id).message(args) end
 
-  def send(args = {})
-    args = {
-      :text => URI.encode(text, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n),
-      :user => user[:id] }
-    post_with_auth('/direct_messages/new.' + FORMAT, args, head)
+  def send_direct_message(args = {})
+    (self/"direct_messages/new").direct_message(args)
   end
 
-  def destroy_direct_message(msg)
-    delete_with_auth("/directmessages/destroy/#{msg[:id]}.#{FORMAT}", head)
+  def destroy_direct_message(args)
+    id = args[:id]
+    args = args.dup
+    args.delete(:id)
+    (self/"direct_messages/destroy"/id).direct_message(args)
   end
 
   def favorite(args = {})
