@@ -2,6 +2,9 @@
 miquire :lib, 'uithreadonly'
 miquire :core, 'userconfig'
 
+require 'gtk2'
+require 'cairo'
+
 module Gdk::SubPartsHelper
 
   def initialize(*args)

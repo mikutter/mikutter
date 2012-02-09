@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'gtk2'
+
 # Messageをレンダリングする際の、各パーツの座標の取得設定のためのモジュール
 module Gdk::Coordinate
   attr_accessor :width, :color, :icon_width, :icon_height, :icon_margin
