@@ -88,8 +88,8 @@ module MikuTwitter::APIShortcuts
     cursor_pager(self/'lists/members', :paged_users, :users, args) end
 
   def list_user_followers(args=nil)
-    args[:list_id] = args[:id] if args[:id]
-    cursor_pager(self/'lists/memberships', :paged_users, :users, args) end
+    args[:user_id] = args[:id] if args[:id]
+    cursor_pager(self/'lists/memberships', :paged_lists, :lists, args) end
 
   defshortcut :list_statuses, "lists/statuses", :messages, id: :list_id
 
