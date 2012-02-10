@@ -25,7 +25,7 @@ Module.new do
         error e
         Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね", :system => true)])
       }
-      @service.call_api(:list_user_followers, :user => user[:id]){ |res|
+      @service.call_api(:list_user_followers, user_id: user[:id], filter_to_owned_lists: 1){ |res|
         if not(@notebook.destroyed?) and res
           followed_list_ids = res.map{|list| list['id'].to_i}
           locked = {}
