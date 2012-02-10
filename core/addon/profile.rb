@@ -43,7 +43,7 @@ Module.new do
                 when :exit
                   locked[iter[1]] = false
                 end } end }
-          @list.set_auto_get{ |list|
+          @list.set_auto_get(true){ |list|
             followed_list_ids.include?(list['id'].to_i) }
           @notebook.append_page(@list.show_all,
                                 Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) end }

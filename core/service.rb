@@ -24,9 +24,10 @@ class Service
 
   # 存在するServiceオブジェクトをSetで返す。
   # つまり、投稿権限のある「自分」のアカウントを全て返す。
-  def self.services
+  def self.all
     Service.services_refresh
     @@services.dup end
+  class << self; alias services all end
 
   def self.primary
     services.first end
