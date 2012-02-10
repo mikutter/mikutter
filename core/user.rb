@@ -124,7 +124,6 @@ class User < Retriever::Model
     rescue
       nil end end
 
-
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'
   end

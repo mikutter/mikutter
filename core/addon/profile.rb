@@ -35,14 +35,16 @@ Module.new do
               flag = iter[0] # = !iter[0]
               @service.__send__(flag ? :delete_list_member : :add_list_member,
                                 :list_id => iter[2]['id'],
-                                :idname => @service.user,
-                                :id => user[:id]){ |e, m|
-                case(e)
-                when :success
-                  iter[0] = !flag if not(@list.destroyed?)
-                when :exit
-                  locked[iter[1]] = false
-                end } end }
+                                :user_id => user[:id]).next{ |result|
+                iter[0] = !flag if not(@list.destroyed?)
+                locked[iter[1]] = false
+              }.trap{ |e|
+                error_code = if e.respond_to? :code then e.code else e.class.to_s end
+                Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} をリスト #{iter[2]['name']} に追加できませんでした (#{error_code})", :system => true)])
+                error e
+                locked[iter[1]] = false
+              }
+            end }
           @list.set_auto_get(true){ |list|
             followed_list_ids.include?(list['id'].to_i) }
           @notebook.append_page(@list.show_all,
