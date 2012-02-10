@@ -39,8 +39,7 @@ class Gtk::ListList < Gtk::ScrolledWindow
   def set_auto_get(own = false, &proc)
     plugin = Plugin::create(:listlist)
     create = plugin.add_event :list_create, &plugin.fetch_event(:list_data){ |service, lists|
-      lists = lists.select{ |list| p list[:user]; list[:user].is_me? } if own
-      p lists
+      lists = lists.select{ |list| list[:user].is_me? } if own
       lists.each{ |list|
         iter = @model.append
         iter[0] = proc.call(list)
