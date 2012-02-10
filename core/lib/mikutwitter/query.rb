@@ -75,7 +75,6 @@ module MikuTwitter::Query
       cache(api, url, options, method) {
         retry_if_fail{
           fire_request_event(api, url, options, method) {
-            p "force_oauth #{api}" if force_oauth
             if force_oauth or get_api_property(api, options, necessary_oauth)
               query_with_oauth!(method, url, options)
             else
