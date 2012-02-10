@@ -89,7 +89,9 @@ module MikuTwitter::APIShortcuts
 
   def list_user_followers(args=nil)
     args[:user_id] = args[:id] if args[:id]
-    cursor_pager(self/'lists/memberships', :paged_lists, :lists, args) end
+    request = self/'lists/memberships'
+    request.force_oauth = true if(args[:filter_to_owned_lists])
+    cursor_pager(request, :paged_lists, :lists, args) end
 
   defshortcut :list_statuses, "lists/statuses", :messages, id: :list_id
 

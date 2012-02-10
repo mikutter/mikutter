@@ -35,10 +35,10 @@ module MikuTwitter::Query
   # MikuTwitter::Query#query! と同じ
   # ==== Return
   # Deferredのインスタンス
-  def api(api, options = {})
+  def api(api, options = {}, force_oauth = false)
     type_strict options => Hash
     promise = Thread.new do
-      query!(api, options) end
+      query!(api, options, force_oauth) end
     promise.abort_on_exception = false
     promise end
 
@@ -49,18 +49,19 @@ module MikuTwitter::Query
   # [options]
   #   API引数。ただし、以下のキーは特別扱いされ、API引数からは除外される
   #   :head :: HTTPリクエストヘッダ（Hash）
+  # [force_oauth] 真なら自動判別せずに必ずOAuthを使う
   # ==== Return
   # API戻り値(HTTPResponse)
   # ==== Exceptions
   # TimeoutError, MikuTwitter::Error
-  def query!(api, options = {})
+  def query!(api, options = {}, force_oauth = false)
     type_strict options => Hash
     method = get_api_property(api, options, method_of_api) || :get
     url = if options[:host]
             "http://#{options[:host]}/#{api}.json"
           else
             "#{@base_path}/#{api}.json" end
-    res = _query!(api, options, method, url)
+    res = _query!(api, options, method, url, force_oauth)
     if('2' == res.code[0])
       res
     else
@@ -69,12 +70,13 @@ module MikuTwitter::Query
   private
 
   # query! の本質的な部分。単純に query_with_oauth! か query_without_oauth! のどちらかを呼び出す
-  def _query!(api, options, method, url)
+  def _query!(api, options, method, url, force_oauth)
     MikuTwitter::Query.api_lock(url + get_args(options)) {
       cache(api, url, options, method) {
         retry_if_fail{
           fire_request_event(api, url, options, method) {
-            if get_api_property(api, options, necessary_oauth)
+            p "force_oauth #{api}" if force_oauth
+            if force_oauth or get_api_property(api, options, necessary_oauth)
               query_with_oauth!(method, url, options)
             else
               res = query_without_oauth!(method, url, options)
