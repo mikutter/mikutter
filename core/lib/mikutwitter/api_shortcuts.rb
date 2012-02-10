@@ -170,24 +170,17 @@ module MikuTwitter::APIShortcuts
   #   :public => boolean
   # }
   def add_list(list)
-    type_check(list[:name] => [:respond_to?, :to_s],
-               list[:description] => [:respond_to?, :to_s],
-               list[:user] => [:respond_to?, :[]]){
-      post_with_auth("/#{list[:user][:idname]}/lists.#{FORMAT}",
-                     :name => list[:name].to_s[0, 25],
-                     :description => list[:description].to_s[0, 100],
-                     :mode => (if list[:mode] then 'public' else 'private' end)) } end
+    (self/"lists/create").list( name: list[:name].to_s[0, 25],
+                                        description: list[:description].to_s[0, 100],
+                                        mode: (list[:mode] ? 'public' : 'private')) end
 
   def update_list(list)
-    type_check(list => UserList) do
-      self.post_with_auth("/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}",
-                          :name => list[:name].to_s[0, 25],
-                          :description => list[:description].to_s[0, 100],
-                          :mode => (if list[:mode] then 'public' else 'private' end)) end end
+    (self/"lists/update").list( list_id: list[:id],
+                                name: list[:name].to_s[0, 25],
+                                description: list[:description].to_s[0, 100],
+                                mode: (list[:mode] ? 'public' : 'private')) end
 
-  def delete_list(list)
-    query_with_auth(:delete, "/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}")
-  end
+  defshortcut :delete_list, "lists/destroy", :list, id: :list_id
 
   defshortcut :add_list_member, "lists/members/create", :list
 
