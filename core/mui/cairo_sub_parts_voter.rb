@@ -99,6 +99,17 @@ class Gdk::SubPartsVoter < Gdk::SubParts
         self end end end
   alias << add
 
+  def delete(user)
+    if UserConfig[:"#{name}_by_anyone_show_timeline"]
+      if not @votes.include?(user)
+        before_height = height
+        @votes.delete(user)
+        if(before_height == height)
+          helper.on_modify
+        else
+          helper.reset_height end
+        self end end end
+
   def name
     raise end
 
