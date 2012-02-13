@@ -25,39 +25,34 @@ class GLib::Instantiatable
           proc.call(*args) end } end end
   alias ssc safety_signal_connect
 
+  alias signal_connect_unrecording signal_connect
+  def signal_connect(name, *other_args, &proc)
+    signal_connect_unrecording(name, *other_args, &__track(&proc))
+  end
+
+  private
+  def __track(&proc)
+    lambda{ |*args|
+      begin
+        proc.call(*args)
+      rescue Exception => e
+        Gtk.exception = e
+        into_debug_mode(e, proc.binding)
+        raise e end
+    }
+  end
+
 end
 
 class Gtk::Object
-  if false
-    @@instance_list = {}
-    @@new = method(:new)
-
-    def self.new(*args)
-      this = super
-      @@instance_list[this]= caller(1)
-      this.signal_connect('destroy'){
-        @@instance_list.delete(this) }
-      this end
-
-    def self.main_quit
-      leaks = Hash.new(0)
-      @@instance_list.each{ |obj, stack|
-        if not( if obj.respond_to?(:parent) then obj.parent else obj.destroyed? end )
-          leak = "leak Gtk Object: #{obj.class}\n" + stack.map{ |x| "    from #{x}" }.join("\n")
-          leaks[leak] += 1 end }
-      File.open("/tmp/mikutter_gtk_memoryleak.#{Time.now.to_i}", 'w'){ |os|
-        leaks.to_a.sort{ |a, b| b[1] <=> a[1] }.each{ |pair|
-          leak, times = *pair
-          os.puts "#{times} times " if times > 1
-          os.puts leak
-          os.puts }
-      }
-      Gtk.main_quit end
-  else
-    def self.main_quit
-      Gtk.main_quit end end end
+  def self.main_quit
+    Gtk.main_quit end end
 
 module Gtk
+  class << self
+    attr_accessor :exception
+  end
+
   def self.keyname(key)
     type_strict key => Array
     if key.empty? or key[0] == 0 or not key.all?(&ret_nth)
@@ -202,11 +197,6 @@ module Gtk
     def url_open_command
       openable_commands = %w{xdg-open open /etc/alternatives/x-www-browser}
       wellknown_browsers = %w{firefox chromium opera}
-      command = nil
-      command = nil
-      command = nil
-      command = nil
-      command = nil
       command = nil
       catch(:urlopen) do
         openable_commands.each{ |o|
