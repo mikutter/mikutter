@@ -21,10 +21,7 @@ Module.new do
           timeline.add(msgs) if not msgs.empty? end }
       @service.user_timeline(user_id: user[:id], include_rts: 1, count: 20).next{ |tl|
         timeline.add(tl) if not(timeline.destroyed?) and tl
-      }.trap{ |e|
-        error e
-        Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね", :system => true)])
-      }
+      }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
       @service.call_api(:list_user_followers, user_id: user[:id], filter_to_owned_lists: 1){ |res|
         if not(@notebook.destroyed?) and res
           followed_list_ids = res.map{|list| list['id'].to_i}
@@ -38,13 +35,9 @@ Module.new do
                                 :user_id => user[:id]).next{ |result|
                 iter[0] = !flag if not(@list.destroyed?)
                 locked[iter[1]] = false
-              }.trap{ |e|
-                error_code = if e.respond_to? :code then e.code else e.class.to_s end
-                Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} をリスト #{iter[2]['name']} に追加できませんでした (#{error_code})", :system => true)])
-                error e
+              }.terminate{ |e|
                 locked[iter[1]] = false
-              }
-            end }
+                "@#{user[:idname]} をリスト #{iter[2]['name']} に追加できませんでした" } end }
           @list.set_auto_get(true){ |list|
             followed_list_ids.include?(list['id'].to_i) }
           @notebook.append_page(@list.show_all,
@@ -84,7 +77,7 @@ Module.new do
               relationbox.closeup(Gtk::Label.new("#{user[:idname]}はあなたをフォローしていま" +
                                                  if rel[:followed_by] then 'す' else 'せん' end)).
                 closeup(followbutton(rel[:user], rel[:following])).
-                closeup(mutebutton(rel[:user])).show_all end end }
+                closeup(mutebutton(rel[:user])).show_all end end }.terminate
       end
       relationbox end
 
@@ -269,12 +262,9 @@ Module.new do
                     :user => user,
                     :icon => user[:profile_image_url])
     else
-      p user
       service.user_show(id: user[:id], cache: :keep).next{ |new_user|
         raise "inexact user data" if not new_user[:exact]
-        makescreen(new_user, service) if new_user.is_a? User }.trap{ |e|
-        Plugin.call(:update, nil, [Message.new(:message => "ユーザの情報が取得できませんでした", :system => true)])
-        error e }
+        makescreen(new_user, service) if new_user.is_a? User }.terminate("@#{user[:idname]}の情報が取得できませんでした")
     end end
 
   boot

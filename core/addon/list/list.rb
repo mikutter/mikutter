@@ -56,9 +56,7 @@ Module.new do
       @service.list_statuses(:id => list[:id],
                              :cache => use_cache).next{ |res|
         update_member_messages!(res) if res.is_a? Array
-      }.trap{ |e|
-        error e
-      }
+      }.terminate
       self end }
 
   def self.boot
@@ -109,7 +107,7 @@ Module.new do
         set_available_lists(lists)
         remove_unmarked{
           lists.each{ |list|
-            add_tab(list) } } end }
+            add_tab(list) } } end }.terminate
   end
 
   def self.update_member

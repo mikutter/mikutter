@@ -27,9 +27,7 @@ Module.new do
           users = users.select(&ret_nth).reverse!.freeze
           boot_event(api, service, users - relations, relations - users, users) unless relations.empty?
           users
-        }.trap{ |e|
-          error e
-        }
+        }.terminate
       end } end
 
   def self.set_event(api, title)
@@ -41,8 +39,7 @@ Module.new do
       if promise
         promise.next{ |res|
           if res
-            userlist.add(res).show_all end }.trap{ |e|
-          error e } end
+            userlist.add(res).show_all end }.terminate end
     }
     Plugin.create(:following_control).add_event("#{api}_created".to_sym){ |service, users|
       userlist.add(users).show_all }
