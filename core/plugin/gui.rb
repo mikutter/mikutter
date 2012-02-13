@@ -69,7 +69,7 @@ class Plugin
       @pane = Gtk::HBox.new(true, 0)
       sidebar = Gtk::VBox.new(false, 0)
       @prompt = Gtk::VBox.new(false, 0)
-      postbox = Gtk::ServiceBox.new(watch, :postboxstorage => postboxes, :delegate_other => true)
+      postbox = Gtk::PostBox.new(watch, :postboxstorage => postboxes, :delegate_other => true)
       postboxes.pack_start(postbox)
       @window.set_focus(postbox.post)
       UserConfig[:tab_order] = UserConfig[:tab_order].select{ |n| not n.empty? }
@@ -217,7 +217,7 @@ class Plugin
         toolbar = Gtk::Toolbar.new
         toolbar.append('つぶやく', nil, nil,
                        Gtk::Image.new(Gdk::Pixbuf.new('data/icon.png', 24, 24))){
-          container = Gtk::ServiceBox.new(watch)
+          container = Gtk::PostBox.new(watch)
           posts.pack_start(container)
           posts.show_all
           @window.set_focus(container.post)
@@ -304,7 +304,7 @@ class Plugin
 
   end
 
-  class ExecuteBox < Gtk::ServiceBox
+  class ExecuteBox < Gtk::PostBox
     def add_footer?
       false end end
 

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 =begin
-= Gtk::ServiceBox
+= Gtk::PostBox
 つぶやき入力ボックス。
 =end
 
@@ -10,14 +10,14 @@ miquire :mui, 'miracle_painter'
 miquire :mui, 'intelligent_textview'
 
 module Gtk
-  class ServiceBox < Gtk::EventBox
+  class PostBox < Gtk::EventBox
 
     attr_accessor :return_to_top
 
     @@ringlock = Mutex.new
     @@postboxes = []
 
-    # 既存のGtk::ServiceBoxのインスタンスを返す
+    # 既存のGtk::PostBoxのインスタンスを返す
     def self.list
       return @@postboxes
     end
@@ -127,7 +127,7 @@ module Gtk
     def posting?
       !!@posting end
 
-    # このServiceBoxにフォーカスを合わせる
+    # このPostBoxにフォーカスを合わせる
     def active
       get_ancestor(Gtk::Window).set_focus(widget_post) if(get_ancestor(Gtk::Window)) end
 
@@ -152,12 +152,12 @@ module Gtk
     def postable?
       not(widget_post.buffer.text.empty?) and (/[^\s]/ === widget_post.buffer.text) end
 
-    # 新しいServiceBoxを作り、そちらにフォーカスを回す
+    # 新しいPostBoxを作り、そちらにフォーカスを回す
     def before_post
       if(@options[:postboxstorage])
         return false if delegate
         if not @options[:delegated_by]
-          postbox = Gtk::ServiceBox.new(@watch, @options)
+          postbox = Gtk::PostBox.new(@watch, @options)
           @options[:postboxstorage].
             pack_start(postbox).
             show_all.
@@ -193,7 +193,7 @@ module Gtk
         options = @options.clone
         options[:delegate_other] = false
         options[:delegated_by] = self
-        @options[:postboxstorage].pack_start(Gtk::ServiceBox.new(@watch, options)).show_all
+        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
         true end end
 
     def service
