@@ -4,6 +4,8 @@ require 'set'
 
 Plugin.create :image_file_cache do
 
+  CacheWriteThread = SerialThreadGroup.new
+
   # appear_limit 回TLに出現したユーザはキャッシュに登録する
   # (30分ツイートしなければカウンタはリセット)
   onappear do |messages|
@@ -72,11 +74,14 @@ Plugin.create :image_file_cache do
 
   def cache_it(image_url)
     notice "cache image to #{get_local_image_name(image_url)}"
-    j_set(image_url)
-    SerialThread.new {
-      image_dir = get_local_dir_name(image_url)
-      FileUtils.mkdir_p(image_dir)
-      file_put_contents(get_local_image_name(image_url), Gdk::WebImageLoader.get_raw_data(image_url)) } end
+    CacheWriteThread.new {
+      raw = Gdk::WebImageLoader.get_raw_data(image_url)
+      if(raw)
+        notice "broken image. cache failed"
+        j_set(image_url)
+        image_dir = get_local_dir_name(image_url)
+        FileUtils.mkdir_p(image_dir)
+        file_put_contents(get_local_image_name(image_url), raw) end } end
 
   def get_local_image_name(image_url)
     image_name = Digest::MD5.hexdigest(image_url)

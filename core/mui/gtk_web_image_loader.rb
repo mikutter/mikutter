@@ -76,7 +76,7 @@ module Gdk::WebImageLoader
   # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのデータを返す。
   def get_raw_data(url, &load_callback) # :yield: pixbuf, exception, url
     raw = ImageCache::Raw.load(url)
-    if raw
+    if raw and not raw.empty?
       raw
     else
       exception = nil
