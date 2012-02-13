@@ -118,11 +118,12 @@ module MikuTwitter::APIShortcuts
     id = args[:id]
     (self/"statuses/retweet"/id).message end
 
-  def destroy(msg)
+  def destroy(args)
     id = args[:id]
-    args = args.dup
-    args.delete(:id)
-    (self/"statuses/destroy"/id).message(args) end
+    (self/"statuses/destroy"/id).message.next{ |message|
+      message[:rule] = :destroy
+      Plugin.call(:destroyed, [message])
+    } end
 
   def send_direct_message(args = {})
     (self/"direct_messages/new").direct_message(args)
