@@ -105,7 +105,7 @@ module Plugin::DirectMessage
         detach(:direct_message, event)
       }
       mumbles = Gtk::VBox.new(false, 0)
-      postbox = Gtk::ServiceBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
+      postbox = Gtk::PostBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
       mumbles.pack_start(postbox)
       container.closeup(mumbles).add(Gtk::HBox.new.add(tl).closeup(scrollbar))
       container
