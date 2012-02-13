@@ -25,6 +25,14 @@ module Deferredable
     _call(:ng, exception)
   end
 
+  # この一連のDeferredをこれ以上実行しない
+  def cancel
+    @callback = {
+      :backtrace => {},
+      :ok => lambda{ |x| x },
+      :ng => Deferred.method(:fail) }
+  end
+
   def callback
     @callback ||= {
       :backtrace => {},

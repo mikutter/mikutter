@@ -9,7 +9,7 @@ module Plugin::DirectMessage
     end
 
     def post(args)
-      @service.send_direct_message({:message => args[:message], :user => @user}, &Proc.new)
+      @service.send_direct_message({:text => args[:message], :user => @user}, &Proc.new)
     end
   end
 

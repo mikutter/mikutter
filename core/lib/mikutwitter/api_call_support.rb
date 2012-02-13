@@ -23,6 +23,11 @@ module MikuTwitter::ApiCallSupport
   class Request
     attr_reader :api, :twitter
 
+    # このリクエストにOAuthを使用することを強制する。
+    # OAuthなしでも使えるが、OAuthトークンを用いてリクエストした時に
+    # 追加の情報が得られ、それが欲しい場合に使う
+    attr_accessor :force_oauth
+
     # - 複数の同種のオブジェクトが配列で返ってくることを想定したパーサ
     # - オブジェクトが一つだけ返ってくることを想定したパーサ
     # - 同種のオブジェクトが大量に返ってくるが、cursorを使ってページが分かれているデータ用のパーサ
@@ -49,10 +54,12 @@ module MikuTwitter::ApiCallSupport
           node } } end
 
     def initialize(api, twitter)
-      @api, @twitter = api, twitter end
+      @api, @twitter, @force_oauth = api, twitter, false end
 
     def /(nex)
-      Request.new("#{@api}/#{nex}", twitter) end
+      result = Request.new("#{@api}/#{nex}", twitter)
+      result.force_oauth = force_oauth
+      result end
 
     # APIリクエストを実際に発行する
     # ==== Args
@@ -61,7 +68,7 @@ module MikuTwitter::ApiCallSupport
     # Deferredのインスタンス
     def json(options)
       type_strict options => Hash
-      twitter.api(api, options).next{ |res|
+      twitter.api(api, options, force_oauth).next{ |res|
         JSON.parse(res.body).symbolize } end
 
     defparser :user

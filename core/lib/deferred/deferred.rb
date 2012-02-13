@@ -7,6 +7,11 @@ class Deferred
     @follow = follow
   end
 
+  alias :deferredable_cancel :cancel
+  def cancel
+    deferredable_cancel
+    @follow.cancel if @follow.is_a? Deferredable end
+
   class << self
     # 実行中のDeferredを失敗させる。raiseと違って、Exception以外のオブジェクトをtrap()に渡すことができる。
     # Deferredのnextとtrapの中でだけ呼び出すことができる。
@@ -52,6 +57,12 @@ class Thread
       end
     }
   end
+
+  alias :deferredable_cancel :cancel
+  def cancel
+    deferredable_cancel
+    kill end
+
 end
 
 module Enumerable

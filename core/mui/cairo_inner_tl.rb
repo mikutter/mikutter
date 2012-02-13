@@ -3,6 +3,7 @@ require 'bsearch'
 
 miquire :mui, 'timeline'
 miquire :lib, 'uithreadonly'
+require 'gtk2'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
 

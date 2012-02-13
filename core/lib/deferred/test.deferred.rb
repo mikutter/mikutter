@@ -172,6 +172,18 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     assert_equal [1, 2, 3], result
   end
 
+  def test_cancel
+    ans = 0
+    Thread.new{
+      sleep(10)
+      39
+    }.next{ |x|
+      ans = x
+    }.cancel
+    wait_all_tasks
+    assert_equal(0, ans)
+  end
+
   # def test_aeach
   #   a = 0
   #   (1..1000000).aeach{

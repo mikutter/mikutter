@@ -25,7 +25,7 @@ Module.new do
         error e
         Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね", :system => true)])
       }
-      @service.call_api(:list_user_followers, :user => user[:id]){ |res|
+      @service.call_api(:list_user_followers, user_id: user[:id], filter_to_owned_lists: 1){ |res|
         if not(@notebook.destroyed?) and res
           followed_list_ids = res.map{|list| list['id'].to_i}
           locked = {}
@@ -35,15 +35,17 @@ Module.new do
               flag = iter[0] # = !iter[0]
               @service.__send__(flag ? :delete_list_member : :add_list_member,
                                 :list_id => iter[2]['id'],
-                                :idname => @service.user,
-                                :id => user[:id]){ |e, m|
-                case(e)
-                when :success
-                  iter[0] = !flag if not(@list.destroyed?)
-                when :exit
-                  locked[iter[1]] = false
-                end } end }
-          @list.set_auto_get{ |list|
+                                :user_id => user[:id]).next{ |result|
+                iter[0] = !flag if not(@list.destroyed?)
+                locked[iter[1]] = false
+              }.trap{ |e|
+                error_code = if e.respond_to? :code then e.code else e.class.to_s end
+                Plugin.call(:update, nil, [Message.new(:message => "@#{user[:idname]} をリスト #{iter[2]['name']} に追加できませんでした (#{error_code})", :system => true)])
+                error e
+                locked[iter[1]] = false
+              }
+            end }
+          @list.set_auto_get(true){ |list|
             followed_list_ids.include?(list['id'].to_i) }
           @notebook.append_page(@list.show_all,
                                 Gtk::WebIcon.new(MUI::Skin.get("list.png"), 16, 16).show_all) end }

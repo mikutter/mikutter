@@ -179,7 +179,7 @@ Module.new do
       remove_tab(list_detail(id)) end end
 
   def self.delete_list(list_id, view)
-    @service.delete_list(list_detail(list_id)){ |event, list|
+    @service.delete_list(list_id: list_id){ |event, list|
       notice [event, list].inspect
       if event == :success
         notice :success

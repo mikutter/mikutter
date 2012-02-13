@@ -88,8 +88,10 @@ module MikuTwitter::APIShortcuts
     cursor_pager(self/'lists/members', :paged_users, :users, args) end
 
   def list_user_followers(args=nil)
-    args[:list_id] = args[:id] if args[:id]
-    cursor_pager(self/'lists/memberships', :paged_users, :users, args) end
+    args[:user_id] = args[:id] if args[:id]
+    request = self/'lists/memberships'
+    request.force_oauth = true if(args[:filter_to_owned_lists])
+    cursor_pager(request, :paged_lists, :lists, args) end
 
   defshortcut :list_statuses, "lists/statuses", :messages, id: :list_id
 
@@ -122,15 +124,15 @@ module MikuTwitter::APIShortcuts
     args.delete(:id)
     (self/"statuses/destroy"/id).message(args) end
 
-  def send(args = {})
-    args = {
-      :text => URI.encode(text, /[^a-zA-Z0-9\'\.\-\*\(\)\_]/n),
-      :user => user[:id] }
-    post_with_auth('/direct_messages/new.' + FORMAT, args, head)
+  def send_direct_message(args = {})
+    (self/"direct_messages/new").direct_message(args)
   end
 
-  def destroy_direct_message(msg)
-    delete_with_auth("/directmessages/destroy/#{msg[:id]}.#{FORMAT}", head)
+  def destroy_direct_message(args)
+    id = args[:id]
+    args = args.dup
+    args.delete(:id)
+    (self/"direct_messages/destroy"/id).direct_message(args)
   end
 
   def favorite(args = {})
@@ -168,24 +170,17 @@ module MikuTwitter::APIShortcuts
   #   :public => boolean
   # }
   def add_list(list)
-    type_check(list[:name] => [:respond_to?, :to_s],
-               list[:description] => [:respond_to?, :to_s],
-               list[:user] => [:respond_to?, :[]]){
-      post_with_auth("/#{list[:user][:idname]}/lists.#{FORMAT}",
-                     :name => list[:name].to_s[0, 25],
-                     :description => list[:description].to_s[0, 100],
-                     :mode => (if list[:mode] then 'public' else 'private' end)) } end
+    (self/"lists/create").list( name: list[:name].to_s[0, 25],
+                                        description: list[:description].to_s[0, 100],
+                                        mode: (list[:mode] ? 'public' : 'private')) end
 
   def update_list(list)
-    type_check(list => UserList) do
-      self.post_with_auth("/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}",
-                          :name => list[:name].to_s[0, 25],
-                          :description => list[:description].to_s[0, 100],
-                          :mode => (if list[:mode] then 'public' else 'private' end)) end end
+    (self/"lists/update").list( list_id: list[:id],
+                                name: list[:name].to_s[0, 25],
+                                description: list[:description].to_s[0, 100],
+                                mode: (list[:mode] ? 'public' : 'private')) end
 
-  def delete_list(list)
-    query_with_auth(:delete, "/#{list[:user][:idname]}/lists/#{list[:id]}.#{FORMAT}")
-  end
+  defshortcut :delete_list, "lists/destroy", :list, id: :list_id
 
   defshortcut :add_list_member, "lists/members/create", :list
 
