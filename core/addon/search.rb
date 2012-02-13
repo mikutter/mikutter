@@ -22,10 +22,9 @@ Module.new do
   savebtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{
       query = querybox.text
-      service.search_create(query: query){ |stat, message|
-        if(stat == :success)
-          Plugin.call(:saved_search_regist, message['id'], query) end
-      } } }
+      service.search_create(query: query).next{ |saved_search|
+        Plugin.call(:saved_search_regist, saved_search[:id], query)
+      }.terminate("検索キーワード「#{query}」を保存できませんでした。あとで試してみてください") } }
 
   querycont.closeup(Gtk::HBox.new(false, 0).pack_start(querybox).closeup(searchbtn))
   querycont.closeup(Gtk::HBox.new(false, 0).closeup(savebtn))
