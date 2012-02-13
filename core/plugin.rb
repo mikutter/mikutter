@@ -107,6 +107,12 @@ _user_ が _message_ をお気に入りに追加した時に呼ばれる。
 === unfavorite(Service service, User user, Message message)
 _user_ が _message_ をお気に入りから外した時に呼ばれる。
 
+=== before_favorite(Service service, User user, Message message)
+mikutterを操作してお気に入りに追加する操作をした時に、APIを叩く前に呼ばれる。
+
+=== fail_favorite(Service service, User user, Message message)
+before_favoriteイベントを発生させてからAPIを叩いて、リクエストが失敗した時に呼ばれる。
+
 === after_event(Service service)
 periodなど、毎分実行されるイベントのクロールが終わった後に呼び出される。
 
