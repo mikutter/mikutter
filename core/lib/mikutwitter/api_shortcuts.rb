@@ -110,8 +110,7 @@ module MikuTwitter::APIShortcuts
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
-    (self/'statuses/update').message(data)
-  end
+    (self/'statuses/update').message(data) end
   alias post update
 
   def retweet(args = {})
@@ -120,10 +119,7 @@ module MikuTwitter::APIShortcuts
 
   def destroy(args)
     id = args[:id]
-    (self/"statuses/destroy"/id).message.next{ |message|
-      message[:rule] = :destroy
-      Plugin.call(:destroyed, [message])
-    } end
+    (self/"statuses/destroy"/id).message end
 
   def send_direct_message(args = {})
     (self/"direct_messages/new").direct_message(args)
