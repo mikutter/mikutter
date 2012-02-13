@@ -78,7 +78,9 @@ class Service
     no_mainthread
     wait = Queue.new
     __send__(kind, args).next{ |res|
-      wait.push res }
+      wait.push res
+    }.terminate.trap{ |e|
+      wait.push nil }
     wait.pop end
 
   # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。
@@ -137,6 +139,7 @@ class Service
   define_postal :update_list
   define_postal :send_direct_message
   define_postal :destroy_direct_message
+  define_postal :destroy
   alias post update
 
   define_postal(:favorite) { |parent, service, message, fav = true|
