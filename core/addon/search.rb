@@ -5,6 +5,7 @@ Module.new do
   plugin = Plugin::create(:search)
 
   main = Gtk::TimeLine.new()
+  main.force_retrieve_in_reply_to = false
   service = nil
 
   querybox = Gtk::Entry.new()
@@ -45,6 +46,7 @@ Module.new do
   @tab = Class.new(Addon.gen_tabclass){
     def on_create(*args)
       super
+      timeline.force_retrieve_in_reply_to = false
       del = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       del.signal_connect('clicked'){ |e|
         @service.search_destroy(id: @options[:id]){ |event, dummy|
