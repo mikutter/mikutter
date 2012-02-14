@@ -118,19 +118,6 @@ module MikuTwitter::ApiCallSupport
     module Parser
       extend Parser
 
-      def message_appear(messages)
-        (@appeared_messages_mutex ||= Mutex.new).synchronize{
-          @appeared_messages ||= Set.new
-          result = messages.select{ |m|
-            if @appeared_messages.include?(m[:id])
-              false
-            else
-              @appeared_messages << m[:id] end }
-          Plugin.call(:appear, result) if not result.empty? }
-      rescue => e
-        into_debug_mode e, binding
-      end
-
       def message(msg, appear = true)
         cnv = msg.convert_key(:text => :message,
                               :in_reply_to_user_id => :receiver,
@@ -142,12 +129,10 @@ module MikuTwitter::ApiCallSupport
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
         message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
-        message_appear([message]) if appear
         message end
 
       def messages(msgs)
         result = msgs.map{ |msg| message(msg, false) }
-        message_appear(result)
         result end
 
       def user(u)
