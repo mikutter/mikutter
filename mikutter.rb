@@ -65,6 +65,7 @@ rescue => e
   into_debug_mode(e)
   raise e
 rescue Exception => e
+  e = Gtk.exception if Gtk.exception
   notice e.class
   raise e
 end
@@ -80,7 +81,7 @@ begin
   boot!(Mopt.profile)
   if(delayer_exception)
     object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), delayer_exception) end
-rescue Interrupt => e
+rescue Interrupt, SystemExit => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
 rescue Exception => e

@@ -325,6 +325,7 @@ end
 # エラーログに記録する。
 # 内部処理用。外部からは呼び出さないこと。
 def log(prefix, object)
+  debugging_wait
   begin
     msg = "#{prefix}: #{caller_util}: #{object}"
     msg += "\nfrom " + object.backtrace.join("\nfrom ") if object.is_a? Exception

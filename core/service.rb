@@ -78,7 +78,9 @@ class Service
     no_mainthread
     wait = Queue.new
     __send__(kind, args).next{ |res|
-      wait.push res }
+      wait.push res
+    }.terminate.trap{ |e|
+      wait.push nil }
     wait.pop end
 
   # scanと同じだが、別スレッドで問い合わせをするのでブロッキングしない。
@@ -124,8 +126,18 @@ class Service
       define_method(method){ |options, &callback| function.call(twitter.method(twitter_method), options, &callback) } end
   end
 
-  define_postal :update
-  define_postal :retweet
+  define_postal(:update){ |parent, service, options|
+    parent.call(options).next{ |message|
+      notice 'event fire :posted and :update by statuses/update'
+      Plugin.call(:posted, service, [message])
+      Plugin.call(:update, service, [message])
+      message } }
+  define_postal(:retweet){ |parent, service, options|
+    parent.call(options).next{ |message|
+      notice 'event fire :posted and :update by statuses/retweet'
+      Plugin.call(:posted, service, [message])
+      Plugin.call(:update, service, [message])
+      message } }
   define_postal :search_create
   define_postal :search_destroy
   define_postal :follow
@@ -137,13 +149,25 @@ class Service
   define_postal :update_list
   define_postal :send_direct_message
   define_postal :destroy_direct_message
+  define_postal(:destroy){ |parent, service, options|
+    parent.call(options).next{ |message|
+      message[:rule] = :destroy
+      Plugin.call(:destroyed, [message])
+      message } }
   alias post update
 
   define_postal(:favorite) { |parent, service, message, fav = true|
     if fav
-      parent.call(message)
-    else
-      service.unfavorite(message) end }
+      Plugin.call(:before_favorite, service, service.user_obj, message)
+      parent.call(message).next{ |message|
+        Plugin.call(:favorite, service, service.user_obj, message)
+        message
+      }.trap{ |e|
+        Plugin.call(:fail_favorite, service, service.user_obj, message)
+        Deferred.fail(e) } else
+      service.unfavorite(message).next{ |message|
+        Plugin.call(:unfavorite, service, service.user_obj, message)
+        message } end }
 
   define_postal :unfavorite
 

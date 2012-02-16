@@ -19,9 +19,22 @@ class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
     :favorited end
 
   Delayer.new{
-    Plugin.create(:core).add_event(:favorite){ |service, user, message|
-      Gdk::MiraclePainter.findbymessage(message).each{ |mp|
-        mp.subparts.find{ |sp| sp.class == Gdk::SubPartsFavorite }.add(user)
-        mp.on_modify } } }
+    Plugin.create(:core) do
+      onfavorite do |service, user, message|
+        Gdk::MiraclePainter.findbymessage(message).each{ |mp|
+          mp.subparts.find{ |sp| sp.class == Gdk::SubPartsFavorite }.add(user) }
+      end
+
+      on_before_favorite do |service, user, message|
+        Gdk::MiraclePainter.findbymessage(message).each{ |mp|
+          mp.subparts.find{ |sp| sp.class == Gdk::SubPartsFavorite }.add(user) }
+      end
+
+      on_fail_favorite do |service, user, message|
+        Gdk::MiraclePainter.findbymessage(message).each{ |mp|
+          mp.subparts.find{ |sp| sp.class == Gdk::SubPartsFavorite }.delete(user) }
+      end
+    end
+  }
 
 end

@@ -5,6 +5,7 @@ Module.new do
   plugin = Plugin::create(:search)
 
   main = Gtk::TimeLine.new()
+  main.force_retrieve_in_reply_to = false
   service = nil
 
   querybox = Gtk::Entry.new()
@@ -17,15 +18,14 @@ Module.new do
     main.clear
     service.search(q: querybox.text, rpp: 100).next{ |res|
       main.add(res) if res.is_a? Array
-      elm.sensitive = querybox.sensitive = true } }
+      elm.sensitive = querybox.sensitive = true }.terminate }
 
   savebtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{
       query = querybox.text
-      service.search_create(query: query){ |stat, message|
-        if(stat == :success)
-          Plugin.call(:saved_search_regist, message['id'], query) end
-      } } }
+      service.search_create(query: query).next{ |saved_search|
+        Plugin.call(:saved_search_regist, saved_search[:id], query)
+      }.terminate("検索キーワード「#{query}」を保存できませんでした。あとで試してみてください") } }
 
   querycont.closeup(Gtk::HBox.new(false, 0).pack_start(querybox).closeup(searchbtn))
   querycont.closeup(Gtk::HBox.new(false, 0).closeup(savebtn))
@@ -46,6 +46,7 @@ Module.new do
   @tab = Class.new(Addon.gen_tabclass){
     def on_create(*args)
       super
+      timeline.force_retrieve_in_reply_to = false
       del = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
       del.signal_connect('clicked'){ |e|
         @service.search_destroy(id: @options[:id]){ |event, dummy|
@@ -59,9 +60,7 @@ Module.new do
     def search(use_cache=false)
       @service.search(q: @options[:query], rpp: 100, cache: use_cache).next{ |res|
         update(res) if res.is_a? Array
-      }.trap{ |e|
-        error e
-      }
+      }.terminate
       self end }
 
   def self.boot
@@ -85,7 +84,7 @@ Module.new do
       if res
         remove_unmarked{
           res.each{ |record|
-            add_tab(record[:id], URI.decode(record[:query]), URI.decode(record[:name])) } } end }
+            add_tab(record[:id], URI.decode(record[:query]), URI.decode(record[:name])) } } end }.terminate
   end
 
   def self.remove_unmarked

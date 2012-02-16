@@ -15,6 +15,8 @@ require 'delegate'
 =end
 class Message < Retriever::Model
   @@system_id = 0
+  @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
+    Plugin.call(:appear, messages) }
 
   # args format
   # key     | value(class)
@@ -44,6 +46,11 @@ class Message < Retriever::Model
                [:modified, :time],        # updated time
              ]
 
+  # appearイベント
+  def self.appear(message) # :nodoc:
+    @@appear_queue.push(message)
+  end
+
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
   # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
@@ -57,6 +64,7 @@ class Message < Retriever::Model
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
     @entity = Entity.new(self)
+    Message.appear(self)
   end
 
   # 投稿主のidnameを返す
@@ -206,6 +214,9 @@ class Message < Retriever::Model
   # Messageのインスタンスかnilを返す。
   def receive_message(force_retrieve=false)
     replyto_source(force_retrieve) or retweet_source(force_retrieve) end
+
+  def receive_message_d(force_retrieve=false)
+    Thread.new{ receive_message(force_retrieve) } end
 
   def self.define_source_getter(key, condition=ret_nth, &onfound)
     define_method("#{key}_source"){ |*args|

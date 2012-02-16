@@ -28,7 +28,7 @@ module Plugin::DirectMessage
       if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
         Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
           result = dm + sent
-          Plugin.call(:direct_messages, service, result) if result and not result.empty? } end end
+          Plugin.call(:direct_messages, service, result) if result and not result.empty? }.terminate end end
 
     filter_direct_messages do |service, dms|
       if defined? dms.sort_by
@@ -105,7 +105,7 @@ module Plugin::DirectMessage
         detach(:direct_message, event)
       }
       mumbles = Gtk::VBox.new(false, 0)
-      postbox = Gtk::ServiceBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
+      postbox = Gtk::PostBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
       mumbles.pack_start(postbox)
       container.closeup(mumbles).add(Gtk::HBox.new.add(tl).closeup(scrollbar))
       container

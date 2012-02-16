@@ -39,6 +39,29 @@ module Deferredable
       :ok => lambda{ |x| x },
       :ng => Deferred.method(:fail) } end
 
+  # エラーをキャッチして、うまい具合にmikutterに表示する。
+  # このあとにdeferredをくっつけることもできるが、基本的にはdeferredチェインの終了の時に使う。
+  # なお、terminateは受け取ったエラーを再度発生させるので、terminateでエラーを処理した後に特別なエラー処理を挟むこともできる
+  # ==== Args
+  # [message] 表示用エラーメッセージ。偽ならエラーはユーザに表示しない（コンソールのみ）
+  # [&message_generator] エラーを引数に呼ばれる。 _message_ を返す
+  # ==== Return
+  # Deferred
+  def terminate(message = nil, &message_generator)
+    self.trap{ |e|
+      begin
+        notice e
+        message = message_generator.call(e) if message_generator
+        if(message)
+          if(e.is_a?(Net::HTTPResponse))
+            Plugin.call(:update, nil, [Message.new(:message => "#{message} (#{e.code} #{e.body})", :system => true)])
+          else
+            e = 'error' if not e.respond_to?(:to_s)
+            Plugin.call(:update, nil, [Message.new(:message => "#{message} (#{e})", :system => true)]) end end
+      rescue Exception => inner_error
+        error inner_error end
+      Deferred.fail(e) } end
+
   private
 
   def _call(stat = :ok, value = nil)
