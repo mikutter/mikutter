@@ -8,7 +8,6 @@ require "mikutwitter/cache"
 require "mikutwitter/error"
 require "deferred"
 require "monitor"
-require "set"
 
 # TwitterAPIを叩く機能
 module MikuTwitter::Query
@@ -21,7 +20,7 @@ module MikuTwitter::Query
   include MikuTwitter::Cache
 
   def initialize(*a, &b)
-    @unretriable_uri = Set.new
+    @unretriable_uri = TimeLimitedStorage.new
     super(*a, &b) end
 
   # 同じURLに対して同時にリクエストを送らないように、APIのURL毎にユニークなロックを取得する
@@ -76,7 +75,7 @@ module MikuTwitter::Query
     query_uri = (url + get_args(options)).freeze
     MikuTwitter::Query.api_lock(query_uri) {
       cache(api, url, options, method) {
-        retry_if_fail(query_uri){
+        retry_if_fail(method, query_uri){
           fire_request_event(api, url, options, method) {
             if force_oauth or get_api_property(api, options, necessary_oauth)
               query_with_oauth!(method, url, options)
@@ -112,16 +111,14 @@ module MikuTwitter::Query
                 :end_time   => Time.new.freeze,
                 :res        => res) end
 
-  def retry_if_fail(uri)
-    return nil if @unretriable_uri
+  def retry_if_fail(method, uri)
+    return @unretriable_uri[uri] if :get == method and @unretriable_uri[uri]
     res = nil
     ((UserConfig[:message_retry_limit] rescue nil) || 10).times{
       begin
         res = yield
         if res and '5' != res.code[0]
-          if('4' == res.code[0])
-            @unretriable_uri << uri
-          end
+          @unretriable_uri[uri] = res if(:get == method and '4' == res.code[0])
           return res end
       rescue Net::HTTPExceptions => e
         res = e

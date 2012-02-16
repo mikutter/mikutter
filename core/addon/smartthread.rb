@@ -61,8 +61,11 @@ Module.new do
   }
 
   plugin.add_event(:appear){ |messages|
-    tabclass.tabs.each{ |tab|
-      rel = messages.select{ |message| message.receive_message and
-        tab.timeline.any?{ |m| m[:id].to_i == message.receive_message(true)[:id].to_i } }
-      tab.timeline.add(rel) if not rel.empty? } }
+    if not tabclass.tabs.empty?
+      tabclass.tabs.each{ |tab|
+        rel = messages.select{ |message|
+          message.has_receive_message? and tab.timeline.any?{ |m|
+            r = message.receive_message(false)
+            r and m[:id] == r[:id] } }
+        tab.timeline.add(rel) if not rel.empty? } end }
 end
