@@ -13,6 +13,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
   def initialize(*args)
     super
     @icon_width, @icon_height, @margin = 24, 24, 2
+    @message_got = false
     if message and not helper.visible?
       sid = helper.ssc(:expose_event, helper){
         helper.on_modify
@@ -42,6 +43,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
       if @before_height and @before_height != height
         helper.reset_height end
       @before_height = height end
+    return @message if @message_got
     if(helper.to_message.has_receive_message?)
       @message ||= lambda{
         result = helper.to_message.receive_message
@@ -49,6 +51,7 @@ class Gdk::ReplyViewer < Gdk::SubParts
           parent_message = helper.to_message
           before_height = height
           Thread.new{
+            @message_got = true
             @message = parent_message.receive_message(true)
             Delayer.new{
               if not helper.destroyed?

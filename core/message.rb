@@ -16,10 +16,7 @@ require 'delegate'
 class Message < Retriever::Model
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
-    Plugin.call(:appear, messages.select{ |m|
-                  if not @@appear_fired.include?(m[:id])
-                    @@appear_fired << m[:id] end }) }
-  @@appear_fired = Set.new
+    Plugin.call(:appear, messages) }
 
   # args format
   # key     | value(class)
@@ -217,6 +214,9 @@ class Message < Retriever::Model
   # Messageのインスタンスかnilを返す。
   def receive_message(force_retrieve=false)
     replyto_source(force_retrieve) or retweet_source(force_retrieve) end
+
+  def receive_message_d(force_retrieve=false)
+    Thread.new{ receive_message(force_retrieve) } end
 
   def self.define_source_getter(key, condition=ret_nth, &onfound)
     define_method("#{key}_source"){ |*args|
