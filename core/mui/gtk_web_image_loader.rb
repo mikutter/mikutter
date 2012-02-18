@@ -27,7 +27,7 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def pixbuf(url, rect, height = nil, &load_callback)
-    url.freeze
+    url = Plugin.filtering(:web_image_loader_url_filter, url.freeze)[0].freeze
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
     if Gdk::WebImageLoader::ImageCache.locking?(url)
       downloading_anotherthread_case(url, rect, &load_callback)
