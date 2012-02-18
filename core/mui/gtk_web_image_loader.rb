@@ -74,7 +74,7 @@ module Gdk::WebImageLoader
   # キャッシュがあればロード後のデータを即座に返す。
   # ブロックが指定されれば、キャッシュがない時は :wait を返して、ロードが完了したらブロックを呼び出す。
   # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのデータを返す。
-  def get_raw_data(url, &load_callback) # :yield: pixbuf, exception, url
+  def get_raw_data(url, &load_callback) # :yield: raw, exception, url
     raw = ImageCache::Raw.load(url)
     if raw and not raw.empty?
       raw
@@ -113,6 +113,27 @@ module Gdk::WebImageLoader
         load_proc.call end end
   rescue Gdk::PixbufError
     nil end
+
+  # get_raw_dataのdeferred版
+  def get_raw_data_d(url)
+    promise = Deferred.new
+    Thread.new {
+      result = get_raw_data(url){ |raw, e, url|
+        begin
+          if e
+            promise.fail(e)
+          elsif raw and not raw.empty?
+            promise.call(raw)
+          else
+            promise.fail(raw) end
+        rescue Exception => e
+          promise.fail(e) end }
+      if result
+        if :wait != result
+          promise.call(result) end
+      else
+        promise.fail(result) end }
+    promise end
 
   # _url_ が、インターネット上のリソースを指しているか、ローカルのファイルを指しているかを返す
   # ==== Args
