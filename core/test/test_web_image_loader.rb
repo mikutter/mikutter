@@ -89,12 +89,12 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   end
 
   must "successfully load local image" do
-    url = 'test/result.png'
+    url = 'skin/data/icon.png'
     response = Gdk::WebImageLoader.pixbuf(url, 48, 48)
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
-    assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), response)
-    assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), response)
+    assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), response, "ローカル画像は絶対にロード中のイメージは返ってこない")
+    assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), response, "画像が見つからない")
   end
 
   must "local file not found" do
