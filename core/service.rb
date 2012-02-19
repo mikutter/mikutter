@@ -112,7 +112,8 @@ class Service
         }.trap{ |exception|
           callback.call(:err, exception)
           callback.call(:fail, exception)
-          exception
+          callback.call(:exit, nil)
+          Deferred.fail(exception)
         }.next{ |val|
           callback.call(:exit, nil)
           val }

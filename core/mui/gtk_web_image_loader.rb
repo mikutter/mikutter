@@ -27,6 +27,7 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def pixbuf(url, rect, height = nil, &load_callback)
+    url = Plugin.filtering(:web_image_loader_url_filter, url.freeze)[0].freeze
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
     if Gdk::WebImageLoader::ImageCache.locking?(url)
       downloading_anotherthread_case(url, rect, &load_callback)
@@ -59,6 +60,7 @@ module Gdk::WebImageLoader
   # ==== Return
   # 画像のパス
   def local_path(url, width = 48, height = width)
+    url.freeze
     ext = (File.extname(url).split("?", 2)[0] or File.extname(url))
     filename = File.expand_path(File.join(Environment::TMPDIR, Digest::MD5.hexdigest(url + "#{width}x#{height}") + ext + '.png'))
     pb = pixbuf(url, width, height)
@@ -74,7 +76,8 @@ module Gdk::WebImageLoader
   # キャッシュがあればロード後のデータを即座に返す。
   # ブロックが指定されれば、キャッシュがない時は :wait を返して、ロードが完了したらブロックを呼び出す。
   # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのデータを返す。
-  def get_raw_data(url, &load_callback) # :yield: pixbuf, exception, url
+  def get_raw_data(url, &load_callback) # :yield: raw, exception, url
+    url.freeze
     raw = ImageCache::Raw.load(url)
     if raw and not raw.empty?
       raw
@@ -113,6 +116,28 @@ module Gdk::WebImageLoader
         load_proc.call end end
   rescue Gdk::PixbufError
     nil end
+
+  # get_raw_dataのdeferred版
+  def get_raw_data_d(url)
+    url.freeze
+    promise = Deferred.new
+    Thread.new {
+      result = get_raw_data(url){ |raw, e, url|
+        begin
+          if e
+            promise.fail(e)
+          elsif raw and not raw.empty?
+            promise.call(raw)
+          else
+            promise.fail(raw) end
+        rescue Exception => e
+          promise.fail(e) end }
+      if result
+        if :wait != result
+          promise.call(result) end
+      else
+        promise.fail(result) end }
+    promise end
 
   # _url_ が、インターネット上のリソースを指しているか、ローカルのファイルを指しているかを返す
   # ==== Args
@@ -188,6 +213,7 @@ module Gdk::WebImageLoader
   # ロード中のPixbufか、キャッシュがあればロード後のPixbufを即座に返す
   # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのPixbufを返す
   def via_internet(url, rect, &load_callback) # :yield: pixbuf, exception, url
+    url.freeze
     if block_given?
       raw = get_raw_data(url){ |raw, exception|
         pixbuf = notfound_pixbuf(rect)
@@ -241,6 +267,7 @@ module Gdk::WebImageLoader
   # ==== Return
   # Pixbuf
   def downloading_anotherthread_case(url, rect, &load_callback)
+    url.freeze
     if(load_callback)
       web_image_thread(url) {
         pixbuf = ImageCache::Pixbuf.load(url, rect)
