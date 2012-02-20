@@ -38,6 +38,7 @@ class Service
   def initialize
     token, secret = UserConfig[:twitter_token], UserConfig[:twitter_secret]
     if UserConfig[:twitter_authenticate_revision] != Environment::TWITTER_AUTHENTICATE_REVISION
+      notice "current authentication token revision #{UserConfig[:twitter_authenticate_revision]}. but required #{Environment::TWITTER_AUTHENTICATE_REVISION}"
       token = secret = nil
     end
     @twitter = MikuTwitter.new
