@@ -21,14 +21,15 @@ Module.new do
       }
       while(!input)
         sleep(1) end
+      notice "twitter token: #{result.inspect}"
       if result
-        UserConfig[:twitter_token], UserConfig[:twitter_secret] = *result end
+        UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
+        UserConfig[:twitter_token], UserConfig[:twitter_secret] = result end
       return result
     end
   end
 
   def self._popup(watch)
-    notice 'pass'
     result = [nil]
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
@@ -52,6 +53,8 @@ Module.new do
         begin
           access_token = request_token.get_access_token(:oauth_token => request_token.token,
                                                         :oauth_verifier => key.text)
+          UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
+          UserConfig[:twitter_token], UserConfig[:twitter_secret] = access_token.token, access_token.secret
           result = [access_token.token, access_token.secret]
           quit.call
         rescue => e
@@ -80,6 +83,7 @@ Module.new do
     decide.signal_connect("clicked"){
       token, secret = popup(watch)
       if token
+        UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
         UserConfig[:twitter_token] = token
         UserConfig[:twitter_secret] = secret end }
     Gtk::VBox.new(false, 0).closeup(attention).closeup(decide)
