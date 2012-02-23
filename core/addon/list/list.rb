@@ -13,10 +13,11 @@ Module.new do
     def initialize(*args)
       super(*args)
       if list.member.empty?
-        @service.list_members( :id => list[:id],
-                               :cache => true).next{ |users|
+        @service.list_members( list_id: list[:id],
+                               public: list[:public],
+                               cache: true).next{ |users|
           list.add_member(users) if users
-        }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のユーザの取得に失敗しました") end end
+        }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のメンバーの取得に失敗しました") end end
 
     def list
       @options[:list] end
@@ -116,10 +117,11 @@ Module.new do
     Thread.new do
       Plugin.filtering(:displayable_lists, Set.new).first.each{ |list|
         if list
-          @service.list_members( :id => list[:id],
-                                 :cache => :keep).next{ |users|
+          @service.list_members( list_id: list[:id],
+                                 public: list[:public],
+                                 cache: :keep).next{ |users|
             list[:member] = users if users
-          }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のユーザの取得に失敗しました") end } end end
+          }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のメンバーの取得に失敗しました") end } end end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{
