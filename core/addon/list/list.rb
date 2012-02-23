@@ -111,12 +111,13 @@ Module.new do
   end
 
   def self.update_member
-    displayable_lists.each{ |list_id|
-      list = list_detail(list)
-      if list
-        @service.list_members( :id => list_id,
-                               :cache => :keep){ |users| list[:member] = users if users } end }
-  end
+    Thread.new do
+      Plugin.filtering(:displayable_lists, Set.new).first.each{ |list|
+        if list
+          @service.list_members( :id => list[:id],
+                                 :cache => :keep).next{ |users|
+            list[:member] = users if users
+          }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のユーザの取得に失敗しました") end } end end
 
   def self.remove_unmarked
     Gtk::Lock.synchronize{

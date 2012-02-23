@@ -75,9 +75,9 @@ class UserList < Retriever::Model
 
   private
   def member_update_transaction
-    before = member.size
+    before = member.dup
     result = yield
-    if before != member.size
+    if before != member
       Plugin.call(:list_member_changed, self)
       self.class.store_datum(self) end
     result end
