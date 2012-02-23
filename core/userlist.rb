@@ -54,9 +54,11 @@ class UserList < Retriever::Model
       if user.is_a? User
         member.add(user)
       elsif user.is_a? Integer
-        member.add(lazy{ User.findbyid(user) })
+        Thread.new {
+          user = User.findbyid(user)
+          member.add(user) }
       elsif user.is_a? Enumerable
-        user.map(&method(:add_member))
+        user.each(&method(:add_member))
       else
         raise ArgumentError.new('UserList member must be User') end end
     self end

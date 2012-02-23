@@ -225,6 +225,7 @@ module MikuTwitter::APIShortcuts
   # ==== Return
   # Deferred (nextの引数に、全ページの結果をすべて連結した配列)
   def cursor_pager(api, parser, key, args)
+    require_if_exist 'pry'
     api.__send__(parser, args).next{ |res|
       if res[:next_cursor] == 0
         res[key]
