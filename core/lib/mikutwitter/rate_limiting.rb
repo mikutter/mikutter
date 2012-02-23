@@ -14,12 +14,15 @@ module MikuTwitter::RateLimiting
   # APIリクエスト制限の残数を返す(OAuthトークン毎)
   # _response_ にHTTPRequestを設定すると、その数が設定される
   def api_remain(response = nil)
-    if response and response['X-RateLimit-Reset'] then
+    if response and response['X-RateLimit-Reset']
       time = Time.at(response['X-RateLimit-Reset'].to_i)
+      if (!defined?(@api_remain[2])) or time !=  @api_remain[2]
+        notice "event reserved :before_exit_api_section at #{time}"
+        Reserver.new(time - 60){ Plugin.call(:before_exit_api_section) } rescue nil end
       @api_remain = [ response['X-RateLimit-Limit'].to_i,
                       response['X-RateLimit-Remaining'].to_i,
                       time ]
-      Reserver.new(time - 60){ Plugin.call(:before_exit_api_section) } rescue nil end
+    end
     return *@api_remain end
 
   # APIリクエスト制限の残数を返す(IPアドレス毎)
