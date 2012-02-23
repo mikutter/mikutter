@@ -14,7 +14,9 @@ Module.new do
       super(*args)
       if list.member.empty?
         @service.list_members( :id => list[:id],
-                               :cache => true){ |users| list.add_member(users) if users } end end
+                               :cache => true).next{ |users|
+          list.add_member(users) if users
+        }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のユーザの取得に失敗しました") end end
 
     def list
       @options[:list] end
