@@ -24,6 +24,8 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
             'http://notfound/']
     urls.each{ |u|
       Plugin.stubs(:filtering).with(:image_cache, u, nil).returns([u, nil]) }
+    urls.each{ |u|
+      Plugin.stubs(:filtering).with(:web_image_loader_url_filter, u, nil).returns([u, nil]) }
   end
 
   must "not found" do
@@ -90,6 +92,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   must "successfully load local image" do
     url = 'skin/data/icon.png'
+    Plugin.stubs(:filtering).with(:web_image_loader_url_filter, url).returns([url])
     response = Gdk::WebImageLoader.pixbuf(url, 48, 48)
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
@@ -98,6 +101,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   end
 
   must "local file not found" do
+    Plugin.stubs(:filtering).with(:web_image_loader_url_filter, 'notfound-file').returns(['notfound-file'])
     response = Gdk::WebImageLoader.pixbuf('notfound-file', 48, 48)
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
