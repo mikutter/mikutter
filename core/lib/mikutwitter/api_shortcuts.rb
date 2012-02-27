@@ -83,17 +83,24 @@ module MikuTwitter::APIShortcuts
     args[:user_id] = args[:user][:id] if args[:user]
     cursor_pager(self/'lists/subscriptions', :paged_lists, :lists, {count: 1000}.merge(args)) end
 
-  def list_members(args=nil)
+  def list_members(args = {})
     args[:list_id] = args[:id] if args[:id]
-    cursor_pager(self/'lists/members', :paged_users, :users, args) end
+    request = self/'lists/members'
+    request.force_oauth = !args[:public]
+    cursor_pager(request, :paged_users, :users, args) end
 
-  def list_user_followers(args=nil)
+  def list_user_followers(args = {})
     args[:user_id] = args[:id] if args[:id]
     request = self/'lists/memberships'
-    request.force_oauth = true if(args[:filter_to_owned_lists])
+    request.force_oauth = args[:filter_to_owned_lists] || !args[:public]
     cursor_pager(request, :paged_lists, :lists, args) end
 
-  defshortcut :list_statuses, "lists/statuses", :messages, id: :list_id
+  def list_statuses(args = {})
+    args[:list_id] = args[:id] if args[:id]
+    request = self/"lists/statuses"
+    request.force_oauth = !args[:public]
+    request.messages(args)
+  end
 
   defshortcut :rate_limit_status, "account/rate_limit_status", :json
 
@@ -225,6 +232,7 @@ module MikuTwitter::APIShortcuts
   # ==== Return
   # Deferred (nextの引数に、全ページの結果をすべて連結した配列)
   def cursor_pager(api, parser, key, args)
+    require_if_exist 'pry'
     api.__send__(parser, args).next{ |res|
       if res[:next_cursor] == 0
         res[key]
