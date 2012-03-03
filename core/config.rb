@@ -42,7 +42,7 @@ module CHIConfig
   REVISION = 697
 
   # このソフトのバージョン。
-  VERSION = [0,1,0, ((/Last Changed Rev\s*:\s*(\d+)/.match(`sh -c 'LC_ALL=C svn info ../'`)[1] || REVISION).to_i rescue REVISION)]
+  VERSION = [0,1,1, ((/Last Changed Rev\s*:\s*(\d+)/.match(`sh -c 'LC_ALL=C svn info ../'`)[1] || REVISION).to_i rescue REVISION)]
 
 end
 
