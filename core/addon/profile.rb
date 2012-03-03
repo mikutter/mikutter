@@ -19,7 +19,7 @@ Module.new do
         unless timeline.destroyed?
           msgs = res.select{ |msg| msg[:user][:id] == user[:id] }
           timeline.add(msgs) if not msgs.empty? end }
-      @service.user_timeline(user_id: user[:id], include_rts: 1, count: 20).next{ |tl|
+      @service.user_timeline(user_id: user[:id], include_rts: 1, count: 200).next{ |tl|
         timeline.add(tl) if not(timeline.destroyed?) and tl
       }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
       @service.call_api(:list_user_followers, user_id: user[:id], filter_to_owned_lists: 1){ |res|
