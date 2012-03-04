@@ -104,7 +104,7 @@ module Gtk
       @tool.ssc('event'){
         @tool.sensitive = destructible? || posting?
         false }
-      @tool.ssc('button_release_event'){
+      @tool.ssc('clicked'){
         if posting?
           @posting.cancel
           @tool.sensitive = destructible? || posting?
