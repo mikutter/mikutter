@@ -109,7 +109,7 @@ Module.new do
           @service.method(new ? :follow : :unfollow).call(user){ |event, msg|
             case event
             when :exit
-              Plugin::call(new ? :followings_created : :followings_destroy, @service, [user])
+              Plugin.call(new ? :followings_created : :followings_destroy, @service, [user])
               following = new
               Delayer.new{
                 unless widget.destroyed?

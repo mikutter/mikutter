@@ -59,7 +59,7 @@ Plugin.create :activity do
   on_modify_activity do |plugin, kind, description, icon, date, service|
     iter = activity_view.model.prepend
     if icon.is_a? String
-      iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(icon, 16, 16){ |loaded_icon|
+      iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(icon, 24, 24){ |loaded_icon|
         iter[ActivityView::ICON] = loaded_icon }
     else
       iter[ActivityView::ICON] = icon end
@@ -90,6 +90,10 @@ Plugin.create :activity do
 
   on_list_member_removed do |service, user, list, source_user|
     activity :list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました", user[:profile_image_url], Time.new, service
+  end
+
+  on_follow do |by, to|
+    activity :follow, "@#{by[:idname]}が@#{to[:idname]}をﾌｮﾛｰしました", (to.is_me? ? by : to)[:profile_image_url]
   end
 
 end
