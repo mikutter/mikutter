@@ -19,7 +19,7 @@ module Plugin::DirectMessage
       @userlist.double_clicked = lambda{ |user|
         Plugin.call(:show_profile, Service.primary_service, user) }
       Delayer.new{
-        Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("underconstruction.png"))
+        Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("directmessage.png"))
       }
     end
 
@@ -50,7 +50,7 @@ module Plugin::DirectMessage
     end
 
     filter_profile_tab do |notebook, user|
-      notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("underconstruction.png"), 16, 16).show_all)
+      notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("directmessage.png"), 16, 16).show_all)
       [notebook, user]
     end
 
