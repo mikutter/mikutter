@@ -69,6 +69,10 @@ messageの内容が変わったときに呼ばれる。
 リストにメンバーの追加・削除があれば呼び出される。
 ただし、実際に追加・削除がされたのではなく、mikutterが初めて掌握しただけでもこれが呼び出される。
 
+=== list_member_added(User target_user, UserList list, User source_user)
+_source_user_ が、 _target_user_ をリスト _list_ に追加した時に呼ばれる。
+自分がリストにユーザを追加した時や、人のリストに自分が追加されたときにも呼ばれる可能性がある。
+
 === mui_tab_regist(Gtk::Widget container, String label, String image=nil)
 ウィンドウにタブを追加する。 _label_ はウィンドウ内での識別名にも使われるので一意であること。
 _image_ は画像への相対パスかURLで、通常は #MUI::Skin.get の戻り値を使う。

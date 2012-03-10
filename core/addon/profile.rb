@@ -30,11 +30,18 @@ Module.new do
             if not locked[iter[1]]
               locked[iter[1]] = true
               flag = iter[0] # = !iter[0]
+              list = iter[2]
               @service.__send__(flag ? :delete_list_member : :add_list_member,
-                                :list_id => iter[2]['id'],
+                                :list_id => list['id'],
                                 :user_id => user[:id]).next{ |result|
                 iter[0] = !flag if not(@list.destroyed?)
                 locked[iter[1]] = false
+                if flag
+                  list.remove_member(user)
+                  Plugin.call(:list_member_removed, @service, user, list, @service.user_obj)
+                else
+                  list.add_member(user)
+                  Plugin.call(:list_member_added, @service, user, list, @service.user_obj) end
               }.terminate{ |e|
                 locked[iter[1]] = false
                 "@#{user[:idname]} をリスト #{iter[2]['name']} に追加できませんでした" } end }

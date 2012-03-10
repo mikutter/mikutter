@@ -84,6 +84,13 @@ Plugin.create :activity do
       activity :retweet, retweet.to_s, retweet.user[:profile_image_url], retweet[:created], Service.primary }
   end
 
+  on_list_member_added do |service, user, list, source_user|
+    activity :list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました", user[:profile_image_url], Time.new, service
+  end
+
+  on_list_member_removed do |service, user, list, source_user|
+    activity :list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました", user[:profile_image_url], Time.new, service
+  end
 
 end
 
