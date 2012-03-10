@@ -64,7 +64,7 @@ Plugin.create :activity do
     else
       iter[ActivityView::ICON] = icon end
     iter[ActivityView::KIND] = kind.to_s
-    iter[ActivityView::DESCRIPTION] = description
+    iter[ActivityView::DESCRIPTION] = description.tr("\n", "")
     iter[ActivityView::DATE] = date.to_s
     iter[ActivityView::PLUGIN] = plugin
     iter[ActivityView::ID] = 0
