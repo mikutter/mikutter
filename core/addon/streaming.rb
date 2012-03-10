@@ -98,6 +98,7 @@ Module.new do
           if Mopt.debug
             Plugin.call(:update, nil, [Message.new(:message => YAML.dump(json),
                                                    :system => true)]) end
+
         when !json.has_key?('event')
           # thread_storage(:update).push(json)
           event_update(json)
@@ -148,6 +149,22 @@ Module.new do
         Plugin.call(:followers_created, service, [source])
       elsif(source.is_me?)
         Plugin.call(:followings_created, service, [target]) end end
+
+    define_event(:list_member_added) do |service, json|
+      target_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize) # リストに追加されたユーザ
+      list = MikuTwitter::ApiCallSupport::Request::Parser.list(json['target_object'].symbolize) # リスト
+      source_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize) # 追加したユーザ
+      list.add_member(target_user)
+      Plugin.call(:list_member_added, service, target_user, list, source_user)
+    end
+
+    define_event(:list_member_removed) do |service, json|
+      target_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize) # リストに追加されたユーザ
+      list = MikuTwitter::ApiCallSupport::Request::Parser.list(json['target_object'].symbolize) # リスト
+      source_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize) # 追加したユーザ
+      list.remove_member(target_user)
+      Plugin.call(:list_member_removed, service, target_user, list, source_user)
+    end
 
     def start_streaming(&proc)
       begin
