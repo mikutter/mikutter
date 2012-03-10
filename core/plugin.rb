@@ -55,6 +55,15 @@ updateと同じ。ただし、タイムライン、検索結果、リスト等�
 messageの内容が変わったときに呼ばれる。
 おもに、ふぁぼられ数やRT数が変わったときに呼ばれる。
 
+=== followings_created(Service service, Array users)
+_service_ フォロイーが増えた時に呼ばれる。_users_ は増えたフォロイー(User)の配列
+
+=== followers_created(Service service, Array users)
+_service_ のフォロワーが増えた時に呼ばれる。_users_ は増えたフォロワー(User)の配列
+
+=== follow(User by, User to)
+ユーザ _by_ がユーザ _to_ をフォローした時に呼ばれる
+
 === list_data(Service service, Array ulist)
 フォローしているリスト一覧に変更があれば呼ばれる。なお、このイベントにリスナーを登録すると、すぐに
 現在フォローしているリスト一覧を引数にコールバックが呼ばれる。
@@ -457,6 +466,16 @@ Module.new do
       unfavorites[user[:id]] << message[:id]
       [service, user, message]
     end
+
+    # followers_createdイベントが発生したら、followイベントも発生させる
+    on_followers_created do |service, users|
+      users.each{ |user|
+        Plugin.call(:follow, user, service.user_obj) } end
+
+    # followings_createdイベントが発生したら、followイベントも発生させる
+    on_followings_created do |service, users|
+      users.each{ |user|
+        Plugin.call(:follow, service.user_obj, user) } end
 
   end
 
