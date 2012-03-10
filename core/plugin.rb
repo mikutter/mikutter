@@ -55,6 +55,15 @@ updateと同じ。ただし、タイムライン、検索結果、リスト等�
 messageの内容が変わったときに呼ばれる。
 おもに、ふぁぼられ数やRT数が変わったときに呼ばれる。
 
+=== followings_created(Service service, Array users)
+_service_ フォロイーが増えた時に呼ばれる。_users_ は増えたフォロイー(User)の配列
+
+=== followers_created(Service service, Array users)
+_service_ のフォロワーが増えた時に呼ばれる。_users_ は増えたフォロワー(User)の配列
+
+=== follow(User by, User to)
+ユーザ _by_ がユーザ _to_ をフォローした時に呼ばれる
+
 === list_data(Service service, Array ulist)
 フォローしているリスト一覧に変更があれば呼ばれる。なお、このイベントにリスナーを登録すると、すぐに
 現在フォローしているリスト一覧を引数にコールバックが呼ばれる。
@@ -68,6 +77,10 @@ messageの内容が変わったときに呼ばれる。
 === list_member_changed(UserList list)
 リストにメンバーの追加・削除があれば呼び出される。
 ただし、実際に追加・削除がされたのではなく、mikutterが初めて掌握しただけでもこれが呼び出される。
+
+=== list_member_added(User target_user, UserList list, User source_user)
+_source_user_ が、 _target_user_ をリスト _list_ に追加した時に呼ばれる。
+自分がリストにユーザを追加した時や、人のリストに自分が追加されたときにも呼ばれる可能性がある。
 
 === mui_tab_regist(Gtk::Widget container, String label, String image=nil)
 ウィンドウにタブを追加する。 _label_ はウィンドウ内での識別名にも使われるので一意であること。
@@ -212,6 +225,11 @@ class Plugin
       deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
       deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
 
+    # フィルタ内部で使う。フィルタの実行をキャンセルする。Plugin#filtering はfalseを返し、
+    # イベントのフィルタの場合は、そのイベントの実行自体をキャンセルする
+    def filter_cancel!
+      throw :filter_exit, false end
+
     # フィルタ関数を用いて引数をフィルタリングする
     def filtering(event_name, *args)
       length = args.size
@@ -229,7 +247,8 @@ class Plugin
     # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
     def call(event_name, *args)
       Delayer.new{
-        plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
+        filtered = filtering(event_name, *args)
+        plugin_callback_loop(@@event, event_name, :proc, *filtered) if filtered } end
 
     # イベントが追加されたときに呼ばれるフックを呼ぶ。
     # _callback_ には、登録されたイベントのProcオブジェクトを渡す
@@ -425,10 +444,40 @@ Module.new do
     [messages.select{ |m|
        appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] }
 
-  Plugin.create(:core).add_event(:appear){ |messages|
-    retweets = messages.select(&:retweet?)
-    if not(retweets.empty?)
-      Plugin.call(:retweet, retweets) end }
+  Plugin.create(:core) do
+    favorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
+    unfavorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
+
+    onappear do |messages|
+      retweets = messages.select(&:retweet?)
+      if not(retweets.empty?)
+        Plugin.call(:retweet, retweets) end end
+
+    # 同じツイートに対するfavoriteイベントは一度しか発生させない
+    filter_favorite do |service, user, message|
+      Plugin.filter_cancel! if favorites[user[:id]].include? message[:id]
+      favorites[user[:id]] << message[:id]
+      [service, user, message]
+    end
+
+    # 同じツイートに対するunfavoriteイベントは一度しか発生させない
+    filter_unfavorite do |service, user, message|
+      Plugin.filter_cancel! if unfavorites[user[:id]].include? message[:id]
+      unfavorites[user[:id]] << message[:id]
+      [service, user, message]
+    end
+
+    # followers_createdイベントが発生したら、followイベントも発生させる
+    on_followers_created do |service, users|
+      users.each{ |user|
+        Plugin.call(:follow, user, service.user_obj) } end
+
+    # followings_createdイベントが発生したら、followイベントも発生させる
+    on_followings_created do |service, users|
+      users.each{ |user|
+        Plugin.call(:follow, service.user_obj, user) } end
+
+  end
 
 end
 
