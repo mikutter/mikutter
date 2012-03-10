@@ -216,6 +216,11 @@ class Plugin
       deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
       deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
 
+    # フィルタ内部で使う。フィルタの実行をキャンセルする。Plugin#filtering はfalseを返し、
+    # イベントのフィルタの場合は、そのイベントの実行自体をキャンセルする
+    def filter_cancel!
+      throw :filter_exit, false end
+
     # フィルタ関数を用いて引数をフィルタリングする
     def filtering(event_name, *args)
       length = args.size
@@ -233,7 +238,8 @@ class Plugin
     # 実際には、これが呼ばれたあと、することがなくなってから呼ばれるので注意。
     def call(event_name, *args)
       Delayer.new{
-        plugin_callback_loop(@@event, event_name, :proc, *filtering(event_name, *args)) } end
+        filtered = filtering(event_name, *args)
+        plugin_callback_loop(@@event, event_name, :proc, *filtered) if filtered } end
 
     # イベントが追加されたときに呼ばれるフックを呼ぶ。
     # _callback_ には、登録されたイベントのProcオブジェクトを渡す
@@ -429,10 +435,30 @@ Module.new do
     [messages.select{ |m|
        appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] }
 
-  Plugin.create(:core).add_event(:appear){ |messages|
-    retweets = messages.select(&:retweet?)
-    if not(retweets.empty?)
-      Plugin.call(:retweet, retweets) end }
+  Plugin.create(:core) do
+    favorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
+    unfavorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
+
+    onappear do |messages|
+      retweets = messages.select(&:retweet?)
+      if not(retweets.empty?)
+        Plugin.call(:retweet, retweets) end end
+
+    # 同じツイートに対するfavoriteイベントは一度しか発生させない
+    filter_favorite do |service, user, message|
+      Plugin.filter_cancel! if favorites[user[:id]].include? message[:id]
+      favorites[user[:id]] << message[:id]
+      [service, user, message]
+    end
+
+    # 同じツイートに対するunfavoriteイベントは一度しか発生させない
+    filter_unfavorite do |service, user, message|
+      Plugin.filter_cancel! if unfavorites[user[:id]].include? message[:id]
+      unfavorites[user[:id]] << message[:id]
+      [service, user, message]
+    end
+
+  end
 
 end
 
