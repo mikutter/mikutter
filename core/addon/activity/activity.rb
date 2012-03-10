@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+# 通知管理プラグイン
 
+miquire :mui, 'tree_view_pretty_scroll'
 module Plugin::Activity
   # アクティビティを更新する。
-  # _icon_ は省略することができる
   # ==== Args
   # [kind] Symbol イベントの種類
   # [description] 本文
@@ -22,6 +23,8 @@ end
 
 Plugin.create :activity do
   class ActivityView < Gtk::CRUD
+    include Gtk::TreeViewPrettyScroll
+
     ICON = 0
     KIND = 1
     DESCRIPTION = 2
@@ -47,8 +50,10 @@ Plugin.create :activity do
   end
 
   activity_view = ActivityView.new
+  activity_scrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
+  activity_shell = Gtk::HBox.new.pack_start(activity_view, activity_view).closeup(activity_scrollbar)
   Delayer.new do
-    Plugin.call(:mui_tab_regist, activity_view, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
+    Plugin.call(:mui_tab_regist, activity_shell, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
   end
 
   on_modify_activity do |plugin, kind, description, icon, date, service|
@@ -67,17 +72,18 @@ Plugin.create :activity do
   end
 
   on_favorite do |service, user, message|
-    activity :favorite, "#{user[:idname]}★#{message.user[:idname]}: #{message.to_s}", user[:profile_image_url], Time.new, service
+    activity :favorite, "#{message.user[:idname]}: #{message.to_s}", user[:profile_image_url], Time.new, service
+  end
+
+  on_unfavorite do |service, user, message|
+    activity :unfavorite, "#{message.user[:idname]}: #{message.to_s}", user[:profile_image_url], Time.new, service
   end
 
   on_retweet do |retweets|
     retweets.each { |retweet|
-      activity :retweet, "#{retweet.user[:idname]}#{retweet.to_s}", retweet.user[:profile_image_url], retweet[:created], Service.primary }
+      activity :retweet, retweet.to_s, retweet.user[:profile_image_url], retweet[:created], Service.primary }
   end
 
-  on_rewindstatus do |mes|
-    activity :status, mes
-  end
 
 end
 
