@@ -80,7 +80,7 @@ begin
       self.fsync rescue nil end end
   boot!(Mopt.profile)
   if(delayer_exception)
-    object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), delayer_exception) end
+    raise delayer_exception end
 rescue Interrupt, SystemExit => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
