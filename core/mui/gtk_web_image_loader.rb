@@ -11,10 +11,8 @@ require 'thread'
 module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
 
-  WebImageThread = Hash.new { |h, k|
-    stg = SerialThreadGroup.new
-    stg.max_threads = 1
-    h[k] = stg }
+  WebImageThread = SerialThreadGroup.new
+  WebImageThread.max_threads = 16
 
   # URLから画像をダウンロードして、その内容を持ったGdk::Pixbufのインスタンスを返す
   # ==== Args
@@ -83,39 +81,43 @@ module Gdk::WebImageLoader
       raw
     else
       exception = nil
-      load_proc = lambda {
-        ImageCache.synchronize(url) {
-          forerunner_result = ImageCache::Raw.load(url)
-          if(forerunner_result)
-            raw = forerunner_result
-            if load_callback
-              load_callback.call(*[forerunner_result, nil, url][0..load_callback.arity])
-              forerunner_result
-            else
-              forerunner_result end
-          else
-            no_mainthread
-            begin
-              res = get_icon_via_http(url)
-              if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-                raw = res.body.to_s
-              else
-                exception = true end
-            rescue Timeout::Error, StandardError => e
-              exception = e end
-            ImageCache::Raw.save(url, raw)
-            if load_callback
-              load_callback.call(*[raw, exception, url][0..load_callback.arity])
-              raw
-            else
-              raw end end } }
       if load_callback
-        web_image_thread(url, &load_proc)
+        web_image_thread(url){
+          get_raw_data_load_proc(url, &load_callback) }
         :wait
       else
-        load_proc.call end end
+        get_raw_data_load_proc(url, &load_callback) end end
   rescue Gdk::PixbufError
     nil end
+
+  # get_raw_dataの内部関数。
+  # HTTPコネクションを張り、 _url_ をダウンロードしてjpegとかpngとかの情報をそのまま返す。
+  def get_raw_data_load_proc(url, &load_callback)
+    ImageCache.synchronize(url) {
+      forerunner_result = ImageCache::Raw.load(url)
+      if(forerunner_result)
+        raw = forerunner_result
+        if load_callback
+          load_callback.call(*[forerunner_result, nil, url][0..load_callback.arity])
+          forerunner_result
+        else
+          forerunner_result end
+      else
+        no_mainthread
+        begin
+          res = get_icon_via_http(url)
+          if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
+            raw = res.body.to_s
+          else
+            exception = true end
+        rescue Timeout::Error, StandardError => e
+          exception = e end
+        ImageCache::Raw.save(url, raw)
+        if load_callback
+          load_callback.call(*[raw, exception, url][0..load_callback.arity])
+          raw
+        else
+          raw end end } end
 
   # get_raw_dataのdeferred版
   def get_raw_data_d(url)
@@ -197,11 +199,7 @@ module Gdk::WebImageLoader
   # [url] URL
   # [&proc] 実行するブロック
   def web_image_thread(url, &proc)
-    uri = Addressable::URI.parse(url)
-    if uri.host
-      WebImageThread[uri.host].new(&proc)
-    else
-      raise 'ホスト名が設定されていません' end end
+    WebImageThread.new(&proc) end
 
   # urlが指している画像を引っ張ってきてPixbufを返す。
   # 画像をダウンロードする場合は、読み込み中の画像を返して、ロードが終わったらブロックを実行する
@@ -278,26 +276,40 @@ module Gdk::WebImageLoader
   rescue Gdk::PixbufError
     notfound_pixbuf(rect) end
 
-  def gen_http_obj(host, port)
-    http = Net::HTTP.new(host, port)
-    http.open_timeout=5
-    http.read_timeout=30
-    notice "open connection for #{host}"
-    http.start end
-  memoize :gen_http_obj
+  def http(host, port)
+    result = nil
+    atomic{
+      @http_pool = Hash.new{|h, k|h[k] = {} } if not defined? @http_pool
+      if not @http_pool[host][port]
+        pool = []
+        @http_pool[host][port] = Queue.new
+        4.times { |index|
+          http = Net::HTTP.new(host, port)
+          http.open_timeout=5
+          http.read_timeout=30
+          pool << http
+          @http_pool[host][port].push(pool) } end }
+    pool = @http_pool[host][port].pop
+    http = pool.pop
+    result = yield(http)
+  ensure
+    pool.push(http) if defined? http
+    @http_pool[host][port].push(pool) if defined? pool
+    result
+  end
 
   def get_icon_via_http(url)
     uri = Addressable::URI.parse(url)
     request = Net::HTTP::Get.new(uri.request_uri)
     request['Connection'] = 'Keep-Alive'
-    http = gen_http_obj(uri.host, uri.port)
-    http.request(request)
-  rescue EOFError => e
-    http.finish
-    http.start
-    notice "reopen connection for #{uri.host}"
-    http.request(request)
-  end
+    http(uri.host, uri.port) do |http|
+      begin
+        http.request(request)
+      rescue EOFError => e
+        http.finish
+        http.start
+        notice "open connection for #{uri.host}"
+        http.request(request) end end end
 
   def local_path_files_add(path)
     atomic{
