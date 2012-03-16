@@ -133,6 +133,40 @@ class Plugin::Setting < Gtk::VBox
     container
   end
 
+  # 複数テキストボックス
+  # 任意個の項目を入力させて、配列で受け取る。
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  def multi(label, config)
+    settings(label) do
+      container, box = Gtk::HBox.new(false, 0), Gtk::VBox.new(false, 0)
+      input_ary = []
+      btn_add = Gtk::Button.new(Gtk::Stock::ADD)
+      array_converter = lambda {
+        c = Listener[config].get || []
+        (c.is_a?(Array) ? c : [c]).select(&ret_nth) }
+      add_button = lambda { |content|
+        input = Gtk::Entry.new
+        input.text = content.to_s
+        input.ssc(:changed) { |w|
+          Listener[config].set w.parent.children.map(&:text).select(&ret_nth) }
+        input.ssc('focus_out_event'){ |w|
+          w.parent.remove(w) if w.text.empty?
+          false }
+        box.closeup input
+        input }
+      input_ary = array_converter.call.each(&add_button)
+      btn_add.ssc(:clicked) { |w|
+        w.get_ancestor(Gtk::Window).set_focus(add_button.call("").show)
+        false }
+      container.pack_start(box, true, true, 0)
+      container.pack_start(Gtk::Alignment.new(1.0, 1.0, 0, 0).add(btn_add), false, true, 0)
+      closeup container
+      container
+    end
+  end
+
   # 設定のグループ。関連の強い設定をカテゴライズできる。
   # ==== Args
   # [title] ラベル
