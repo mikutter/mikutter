@@ -62,10 +62,9 @@ class Delayer
               @@routines[cnt].delete(routine)
               routine.run
               if (r_end = Process.times.utime - r_start) > 0.1
-                open(File.expand_path(File.join(Environment::LOGDIR, "delayer.late.log")), "a"){ |io|
-                  bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
-                  bt = routine.backtrace.first if not bt
-                  io.puts("#{r_end},#{bt.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')}") }
+                bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
+                bt = routine.backtrace.first if not bt
+                Plugin.call(:processtime, :delayer, "#{"%.2f" % r_end},#{bt.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')}")
               end
             else
               routine.run end
