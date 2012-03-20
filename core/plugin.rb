@@ -262,9 +262,7 @@ class Plugin
           r_start = Process.times.utime
           result = proc.call(*args){ throw(:plugin_exit) }
           if (r_end = Process.times.utime - r_start) > 0.1
-            open(File.expand_path(File.join(Environment::LOGDIR, "plugin.late.log")), "a"){ |io|
-              notice "#{r_end},#{tag.name},#{event_name},#{kind}"
-              io.puts("#{r_end},#{tag.name},#{event_name},#{kind}") } end
+            Plugin.call(:processtime, :plugin, "#{"%.2f" % r_end},#{tag.name},#{event_name},#{kind}") end
           result
         else
           proc.call(*args){ throw(:plugin_exit) } end } end
