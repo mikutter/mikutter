@@ -38,7 +38,8 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # @@miracle_painters = Hash.new
 
-  # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す
+  # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す。
+  # ログ数によってはかなり重い処理なので注意
   def self.findbymessage(message)
     type_strict message => :to_message
     message = message.to_message
@@ -47,7 +48,18 @@ class Gdk::MiraclePainter < Gtk::Object
       found = tl.get_record_by_message(message)
       result << found.miracle_painter if found }
     result.freeze
-    # @@miracle_painters[message.to_message[:id].to_i] || EMPTY
+  end
+
+  # findbymessage のdeferred版。
+  def self.findbymessage_d(message)
+    type_strict message => :to_message
+    message = message.to_message
+    result = Set.new
+    Gtk::TimeLine.timelines.deach{ |tl|
+      found = tl.get_record_by_message(message)
+      result << found.miracle_painter if found
+    }.next{
+      result.freeze }
   end
 
   def initialize(message, *coodinate)

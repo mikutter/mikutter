@@ -87,10 +87,12 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     Thread.new{
       39
     }.next{ |x|
-      ans = x # !> method redefined; discarding old _post
+      x + 1 # !> method redefined; discarding old _post
+    }.next{ |x|
+      ans = x
     }
     wait_all_tasks
-    assert_equal(39, ans)
+    assert_equal(40, ans)
   end
 
   def test_thread_error
@@ -184,18 +186,16 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     assert_equal(0, ans)
   end
 
-  # def test_aeach
-  #   a = 0
-  #   (1..1000000).aeach{
-  #     Time.new
-  #     a += 1
-  #   }
-  #   Delayer.run
-  #   assert_equal(1000000, a)
-  # end
+  def test_deach
+    a = 0
+    (1..100000).deach{
+      a += 1
+    }
+    wait_all_tasks
+    assert_equal(100000, a)
+  end
 
 end
-
 
 # >> Loaded suite -
 # >> Started

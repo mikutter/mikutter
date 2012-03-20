@@ -20,14 +20,14 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
 
   Delayer.new{
     Plugin.create(:core).add_event(:retweet){ |retweets|
-        retweets.each{ |retweet|
-        Delayer.new{
-          Gdk::MiraclePainter.findbymessage(retweet.retweet_source(true)).each{ |mp|
+      retweets.deach{ |retweet|
+        Gdk::MiraclePainter.findbymessage_d(retweet.retweet_source(true)).next{ |mps|
+          mps.deach{ |mp|
             if not mp.destroyed?
               begin
                 mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.add(retweet[:user])
                 mp.on_modify
               rescue Gtk::MiraclePainter::DestroyedError
-                nil end end } } } } }
+                nil end end } }.terminate("retweet error") } } }
 
 end
