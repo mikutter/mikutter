@@ -9,7 +9,7 @@ Plugin.create :image_file_cache do
   # appear_limit 回TLに出現したユーザはキャッシュに登録する
   # (30分ツイートしなければカウンタはリセット)
   onappear do |messages|
-    messages.each { |message|
+    messages.deach { |message|
       image_url = message.user[:profile_image_url]
       if not j_include?(image_url)
         appear_counter[image_url] ||= 0

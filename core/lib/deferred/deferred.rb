@@ -5,6 +5,7 @@ class Deferred
 
   def initialize(follow = nil)
     @follow = follow
+    @backtrace = caller if Mopt.debug
   end
 
   alias :deferredable_cancel :cancel
@@ -66,22 +67,18 @@ class Thread
 end
 
 module Enumerable
-  def aeach(&proc)
-    start_time = 0
-    ary = to_a
-    limit = ary.size
-    index = 0
-    peace = lambda{
-      start_time = Time.new.to_f
-      while(index >= limit)
-        if (Time.new.to_f - start_time) >= 0.01
-          peace.call
-          break deferred{ peace.call }
-        else
-          result = proc.call(ary[index])
-          index += 1
-          result end end }
-    deferred{ peace.call }
+  # 遅延each。あとで実行されるし、あんまりループに時間がかかるようなら一旦ループを終了する
+  def deach(&proc)
+    iteratee = to_a
+    iteratee = dup if equal?(iteratee)
+    deferred{
+      result = nil
+      while not iteratee.empty?
+        item = iteratee.shift
+        proc.call(item)
+        if Delayer.time_limit?
+          break result = iteratee.deach(&proc) end end
+      result }
   end
 end
 

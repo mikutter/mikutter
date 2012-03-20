@@ -95,13 +95,13 @@ Module.new do
 
     def hook_plugin(event)
       Plugin.create(:extract).add_event(event){ |service, messages|
-        tabclass.tabs.each{ |tab| tab.__send__("event_#{event}", messages) } }
+        tabclass.tabs.deach{ |tab| tab.__send__("event_#{event}", messages) } }
     end
 
     def boot_plugin
       [:update,:mention,:posted].each{ |event| hook_plugin(event) }
       Plugin.create(:extract).add_event(:appear){ |messages|
-        tabclass.tabs.each{ |tab| tab.__send__("event_appear", messages) } }
+        tabclass.tabs.deach{ |tab| tab.__send__("event_appear", messages) } }
     end
 
     def tabclass

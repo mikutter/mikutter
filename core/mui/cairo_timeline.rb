@@ -140,7 +140,7 @@ class Gtk::TimeLine
     remove_if_exists_all(removes)
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)
-    appends.sort_by{ |m| -(m.modified.to_i) }.each(&method(:block_add))
+    appends.sort_by{ |m| -(m.modified.to_i) }.deach(&method(:block_add))
   end
 
   # リツイートを追加する。 _messages_ には Message の配列を指定し、それらはretweetでなければならない
@@ -199,7 +199,7 @@ class Gtk::TimeLine
         when message[:rule] == :destroy
           remove_if_exists_all([message])
         when message.retweet?
-          add_retweets([messages])
+          add_retweets([message])
         else
           _add(message) end end end
     self end

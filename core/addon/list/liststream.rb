@@ -33,7 +33,7 @@ Plugin::create(:liststream) do
     member_anything - Plugin.filtering(:followings, Set.new).first end
 
   def start
-    service = Service.services.first
+    service = Service.primary
     Thread.new{
       loop{
         sleep(3)

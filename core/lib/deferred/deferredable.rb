@@ -2,6 +2,9 @@
 
 # なんでもDeferred
 module Deferredable
+
+  attr_reader :backtrace
+
   # このDeferredが成功した場合の処理を追加する。
   # 新しいDeferredのインスタンスを返す
   def next(&proc)
@@ -82,7 +85,11 @@ module Deferredable
                 @next end }
           else
             if defined?(@next)
-              Delayer.new{ @next.call(n_value) }
+              if Mopt.debug
+                this = self
+                Delayer.new{ @next.call(n_value) }.instance_eval{ @backtrace = this.backtrace }
+              else
+                Delayer.new{ @next.call(n_value) } end
             else
               regist_next_call(:ok, n_value) end end
           throw :__deferredable_success
