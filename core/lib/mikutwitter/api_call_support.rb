@@ -45,13 +45,15 @@ module MikuTwitter::ApiCallSupport
 
       define_method(uni){ |options = {}|
         type_strict options => Hash
-        json(defaults.merge(options)).next(&parser) }
+        json(defaults.merge(options)).next{ |node|
+          Thread.new{ parser.call(node) } } }
 
       define_method(:"paged_#{multi}"){ |options|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node = {}|
-          node[multi] = node[multi].map(&parser)
-          node } } end
+          Thread.new {
+            node[multi] = node[multi].map(&parser)
+            node } } } end
 
     def initialize(api, twitter)
       @api, @twitter, @force_oauth = api, twitter, false end
