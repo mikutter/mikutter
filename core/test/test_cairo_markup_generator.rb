@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
 require 'mocha'
-$cairo = true
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
-# require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
-miquire :mui, 'markup_generator'
 miquire :lib, 'test_unit_extensions'
+miquire :mui, 'markup_generator'
 
 $debug = true
-seterrorlevel(:notice)
 $logfile = nil
 $daemon = false
  # !> assigned but unused variable - type

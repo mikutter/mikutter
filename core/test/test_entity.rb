@@ -5,11 +5,11 @@ require 'rubygems'
 require 'mocha'
 require 'pp'
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
+miquire :lib, 'test_unit_extensions'
 miquire :core, 'entity'
 miquire :core, 'userconfig'
 
 $debug = true
-seterrorlevel(:notice)
 $logfile = nil
 $daemon = false
  # !> ambiguous first argument; put parentheses or even spaces
