@@ -51,17 +51,29 @@ class Delayer
     debugging_wait
     begin
       @busy = true
-    st = Process.times.utime
+    @st = Process.times.utime
     3.times{ |cnt|
       procs = []
       if not @@routines[cnt].empty? then
         procs = @@routines[cnt].clone
         procs.each{ |routine|
-          @@routines[cnt].delete(routine)
-          routine.run
-          return if ((Process.times.utime - st) > 0.1) } end }
+            if Mopt.debug
+              r_start = Process.times.utime
+              @@routines[cnt].delete(routine)
+              routine.run
+              if (r_end = Process.times.utime - r_start) > 0.1
+                bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
+                bt = routine.backtrace.first if not bt
+                Plugin.call(:processtime, :delayer, "#{"%.2f" % r_end},#{bt.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')}")
+              end
+            else
+              routine.run end
+            return if time_limit? } end }
     ensure
       @busy = false end end
+
+  def self.time_limit?
+    (Process.times.utime - @st) > 0.02 end
 
   # Delayerのタスクを消化中ならtrueを返す
   def self.busy?
