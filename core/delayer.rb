@@ -57,9 +57,9 @@ class Delayer
       if not @@routines[cnt].empty? then
         procs = @@routines[cnt].clone
         procs.each{ |routine|
+            @@routines[cnt].delete(routine)
             if Mopt.debug
               r_start = Process.times.utime
-              @@routines[cnt].delete(routine)
               routine.run
               if (r_end = Process.times.utime - r_start) > 0.1
                 bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
