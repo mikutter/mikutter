@@ -5,9 +5,7 @@ require 'mocha'
 require 'webmock'
 require 'gtk2'
 
-Dir.chdir(File.join(File.dirname($0), '../'))
-$LOAD_PATH.push '.'
-require 'utils'
+require File.expand_path(File.dirname(__FILE__) + '/../utils')
 
 require 'lib/test_unit_extensions'
 miquire :mui, 'web_image_loader'

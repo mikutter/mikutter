@@ -4,9 +4,9 @@ require 'rubygems'
 require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'messageconverters'
+miquire :lib, 'weakstorage'
 
 $debug = true
-seterrorlevel(:notice)
 $logfile = nil
 $daemon = false
 
