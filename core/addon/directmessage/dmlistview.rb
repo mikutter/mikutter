@@ -34,8 +34,7 @@ module Plugin::DirectMessage
            renderer = Gtk::CellRendererText.new
            Delayer.new{
              if not destroyed?
-               width = get_cell_area(nil, get_column(C_TEXT)).width
-               renderer.set_property "wrap-width", width
+               renderer.set_property "wrap-width", 10
                renderer.set_property "wrap-mode", Pango::WRAP_CHAR end }
            renderer } },
        {:type => Integer},
