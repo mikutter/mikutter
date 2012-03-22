@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ／(^o^)＼
-require File.expand_path('utils')
+require File.expand_path(File.dirname(__FILE__+'/utils'))
 miquire :core, 'environment', 'serialthread'
 miquire :mui, 'skin', 'web_image_loader'
 

@@ -10,7 +10,10 @@ platforms :ruby_19 do
   gem 'ruby-hmac'
   gem 'httpclient'
   group :test do
+    gem 'rake'
+    gem 'watch'
     gem 'mocha'
+    gem 'webmock'
     gem 'rspec', :require => 'spec'
   end
 end
