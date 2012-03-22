@@ -4,7 +4,7 @@ require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'message'
-miquire :core, 'post'
+miquire :core, 'service'
 
 $debug = false
 # seterrorlevel(:notice)

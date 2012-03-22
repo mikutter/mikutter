@@ -41,17 +41,19 @@ module MikuTwitter::ApiCallSupport
       define_method(multi){ |options = {}|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node|
-          node.map(&parser) } }
+          Thread.new{ node.map(&parser) } } }
 
       define_method(uni){ |options = {}|
         type_strict options => Hash
-        json(defaults.merge(options)).next(&parser) }
+        json(defaults.merge(options)).next{ |node|
+          Thread.new{ parser.call(node) } } }
 
       define_method(:"paged_#{multi}"){ |options|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node = {}|
-          node[multi] = node[multi].map(&parser)
-          node } } end
+          Thread.new {
+            node[multi] = node[multi].map(&parser)
+            node } } } end
 
     def initialize(api, twitter)
       @api, @twitter, @force_oauth = api, twitter, false end
@@ -69,7 +71,7 @@ module MikuTwitter::ApiCallSupport
     def json(options)
       type_strict options => Hash
       twitter.api(api, options, force_oauth).next{ |res|
-        JSON.parse(res.body).symbolize } end
+        Thread.new{ JSON.parse(res.body).symbolize } } end
 
     defparser :user
     defparser :message, :messages, include_entities: 1
@@ -79,7 +81,7 @@ module MikuTwitter::ApiCallSupport
 
     def messages(options = {})
       type_strict options => Hash
-      json({include_entities: 1}.merge(options)).next(&Parser.method(:messages)) end
+      json({include_entities: 1}.merge(options)).next{ |m| Thread.new{ Parser.messages m } } end
 
     def friendship(options = {})
       type_strict options => Hash
@@ -93,23 +95,23 @@ module MikuTwitter::ApiCallSupport
     def search(options = {})
       type_strict options => Hash
       json(options).next{ |res|
-        res[:results].map{ |msg|
-          cnv = msg.convert_key(:text => :message,
-                                :to_user_id => :receiver,
-                                :in_reply_to_status_id => :replyto)
-          user = {
-            id: msg[:from_user_id],
-            idname: msg[:from_user],
-            name: msg[:from_user_name],
-            profile_image_url: msg[:profile_image_url]
-          }
-          cnv[:user] = Message::MessageUser.new(User.new_ifnecessary(user), user)
-          if cnv[:source].is_a?(String) and
-              cnv[:source].gsub(/&\w+?;/){ |m| HTML_ATTR_UNESCAPE_HASH[m] }.match(/^<a\s+.*>(.*?)<\/a>$/)
-            cnv[:source] = $1 end
-          cnv[:created] = (Time.parse(msg[:created_at]) rescue Time.now)
-          Message.new_ifnecessary(cnv)
-        } } end
+        Thread.new {
+          res[:results].map{ |msg|
+            cnv = msg.convert_key(:text => :message,
+                                  :to_user_id => :receiver,
+                                  :in_reply_to_status_id => :replyto)
+            user = {
+              id: msg[:from_user_id],
+              idname: msg[:from_user],
+              name: msg[:from_user_name],
+              profile_image_url: msg[:profile_image_url]
+            }
+            cnv[:user] = Message::MessageUser.new(User.new_ifnecessary(user), user)
+            if cnv[:source].is_a?(String) and
+                cnv[:source].gsub(/&\w+?;/){ |m| HTML_ATTR_UNESCAPE_HASH[m] }.match(/^<a\s+.*>(.*?)<\/a>$/)
+              cnv[:source] = $1 end
+            cnv[:created] = (Time.parse(msg[:created_at]) rescue Time.now)
+            Message.new_ifnecessary(cnv) } } } end
 
       def inspect
         "#<#{MikuTwitter::ApiCallSupport::Request}: #{@api}>"

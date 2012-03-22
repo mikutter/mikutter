@@ -2,6 +2,7 @@
 
 # なんでもDeferred
 module Deferredable
+
   # このDeferredが成功した場合の処理を追加する。
   # 新しいDeferredのインスタンスを返す
   def next(&proc)
@@ -93,7 +94,16 @@ module Deferredable
       _fail_action(e) end end
 
   def _execute(stat, value)
-    callback[stat].call(value) end
+    if Mopt.debug
+      r_start = Process.times.utime
+      result = callback[stat].call(value)
+      if (r_end = Process.times.utime - r_start) > 0.1
+        pos = callback[:backtrace][stat].find{|x|not x.include? "deferred"}
+        pos = callback[:backtrace][stat].first if not pos
+        Plugin.call(:processtime, :deferred, "#{"%.2f" % r_end},#{pos}") end
+      result
+    else
+      callback[stat].call(value) end end
 
   def _post(kind, &proc)
     @next = Deferred.new(self)

@@ -258,7 +258,14 @@ class Plugin
     # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
     def plugin_callback_loop(ary, event_name, kind, *args)
       plugin_loop(ary, event_name, kind){ |tag, proc|
-        proc.call(*args){ throw(:plugin_exit) } } end
+        if Mopt.debug
+          r_start = Process.times.utime
+          result = proc.call(*args){ throw(:plugin_exit) }
+          if (r_end = Process.times.utime - r_start) > 0.1
+            Plugin.call(:processtime, :plugin, "#{"%.2f" % r_end},#{tag.name},#{event_name},#{kind}") end
+          result
+        else
+          proc.call(*args){ throw(:plugin_exit) } end } end
 
     # _ary_ [ _event\_name_ ] に登録されているプラグイン一つひとつを引数に _proc_ を繰り返し呼ぶ。
     # _proc_ のシグニチャは以下の通り。
@@ -285,7 +292,8 @@ class Plugin
 
     # ブロックの実行時間を記録しながら実行
     def call_routine(plugintag, event_name, kind)
-      catch(:plugin_exit){ yield } end
+      catch(:plugin_exit){ yield }
+    end
 
     # 登録済みプラグインの一覧を返す。
     # 返すHashは以下のような構造。
