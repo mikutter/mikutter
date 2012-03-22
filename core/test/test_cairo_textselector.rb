@@ -2,10 +2,10 @@
 require 'test/unit'
 $cairo = true
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
+miquire :lib, 'test_unit_extensions'
 miquire :mui, 'textselector'
 
 $debug = true # !> instance variable @textselect_start not initialized
-seterrorlevel(:notice)
 $logfile = nil
 $daemon = false
 
