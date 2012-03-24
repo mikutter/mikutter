@@ -56,8 +56,9 @@ class Gdk::MiraclePainter < Gtk::Object
     message = message.to_message
     result = Set.new
     Gtk::TimeLine.timelines.deach{ |tl|
-      found = tl.get_record_by_message(message)
-      result << found.miracle_painter if found
+      if not tl.destroyed?
+        found = tl.get_record_by_message(message)
+        result << found.miracle_painter if found end
     }.next{
       result.freeze }
   end
