@@ -150,21 +150,19 @@ class TC_mikutwitter_api_call_support < Test::Unit::TestCase
   must "list_member" do
     result = nil
     stub_request(:get, "http://api.twitter.com/1/lists/members.json?id=55073842&list_id=55073842").
-      with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
       to_return(:status => 200, :body => file_get_contents(File.join(DIR, 'list_member.json')), :headers => {})
 
-    stub_request(:get, "http://api.twitter.com/1/lists/members.json?id=55073842&list_id=55073842&cursor=1380555359495881433").
-      with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
+    stub_request(:get, "http://api.twitter.com/1/lists/members.json?cursor=1380555359495881433&id=55073842&list_id=55073842").
       to_return(:status => 200, :body => file_get_contents(File.join(DIR, 'list_member_1380555359495881433.json')), :headers => {})
 
-    stub_request(:get, "http://api.twitter.com/1/lists/members.json?id=55073842&list_id=55073842&cursor=1380555797979069262").
-      with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
+    stub_request(:get, "http://api.twitter.com/1/lists/members.json?cursor=1380555797979069262&id=55073842&list_id=55073842").
       to_return(:status => 200, :body => file_get_contents(File.join(DIR, 'list_member_1380555797979069262.json')), :headers => {})
 
     @m.list_members(id: 55073842).next{ |res|
       result = res
     }.trap{ |err| p err; pp err.backtrace }
     wait_all_tasks
+    assert_instance_of Array, result
     assert_equal Set.new([134431872, 69505027, 114994247, 5161091, 6257722, 14299185, 146056548, 252004214, 227687955, 14864316, 103841612, 19049499, 91345106, 134185304, 15926668, 163062925, 86049415, 16331137, 165318039, 120019687, 227349581, 82888635, 80739771, 99320137, 52049454, 81564754, 84863232, 90394630, 242296876, 294635954, 99262813, 353583238, 82103990, 100811022, 358852188, 66159300, 363044279, 96564598, 84843705, 14157458, 369015960, 83307042, 14656104, 112705330, 309133958, 271931846, 41118154, 328464796, 369097215, 374288046, 268897524, 315872815, 318855175, 16668263, 376964790, 334723728]),
     Set.new(result.map{ |u| u[:id] })
   end
