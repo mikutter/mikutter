@@ -142,8 +142,22 @@ end
 Plugin.create :activity do
   settings "アクティビティ" do
     settings "表示しないイベントの「種類」" do
-      multi "自分に関係ない種類を除外", :activity_mute_kind_related
-      multi "以下の種類を除外", :activity_mute_kind
+      multiselect("自分に関係ない種類を除外", :activity_mute_kind_related) do
+        option "retweet", "リツイート"
+        option "favorite", "ふぁぼ"
+        option "follow", "フォロー"
+        option "list_member_added", "リストに追加"
+        option "list_member_removed", "リストから削除"
+      end
+
+      multiselect("以下の種類を除外", :activity_mute_kind) do
+        option "retweet", "リツイート"
+        option "favorite", "ふぁぼ"
+        option "follow", "フォロー"
+        option "list_member_added", "リストに追加"
+        option "list_member_removed", "リストから削除"
+      end
+
     end
   end
 end
