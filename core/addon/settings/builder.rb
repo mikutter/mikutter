@@ -247,6 +247,20 @@ class Plugin::Setting < Gtk::VBox
     closeup container = builder.build(label, config)
     container end
 
+  # 要素を複数個選択させる
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  # [default]
+  #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
+  #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
+  # [&block] 内容
+  def multiselect(label, config, default = {})
+    builder = Plugin::Setting::MultiSelect.new(default)
+    builder.instance_eval(&Proc.new) if block_given?
+    closeup container = builder.build(label, config)
+    container end
+
   private
   def about_converter
     Hash.new(ret_nth).merge!( :logo => lambda{ |value| Gtk::WebIcon.new(value).pixbuf rescue nil } ) end
@@ -270,4 +284,5 @@ class Plugin::Setting < Gtk::VBox
 end
 
 require File.expand_path File.join(File.dirname(__FILE__), 'select')
+require File.expand_path File.join(File.dirname(__FILE__), 'multiselect')
 require File.expand_path File.join(File.dirname(__FILE__), 'listener')
