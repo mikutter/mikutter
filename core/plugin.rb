@@ -222,8 +222,23 @@ class Plugin
       callback end
 
     def detach(event_name, event)
-      deleter = lambda{|events| events[event_name.to_sym].reject!{ |e| e[1] == event } }
+      deleter = lambda{ |events|
+        events[event_name.to_sym].reject!{ |e| e[1] == event } }
       deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
+
+    # プラグインをアンインストールする
+    # ==== Args
+    # [name] プラグイン名(Symbol)
+    def uninstall(name)
+      name = name.to_sym
+      plugin = Plugin.create(name)
+      [@@event, @@event_filter, @@add_event_hook].each{ |event_ring|
+        event_ring.dup.each{ |event_name, events|
+          event_ring[event_name] = events.reject{ |e|
+            e[0].to_sym == name } } }
+      plugin.execute_unload_hook
+      @@plugins.delete(plugin)
+    end
 
     # フィルタ内部で使う。フィルタの実行をキャンセルする。Plugin#filtering はfalseを返し、
     # イベントのフィルタの場合は、そのイベントの実行自体をキャンセルする
@@ -350,16 +365,20 @@ class Plugin
   @@plugins = [] # plugin
 
   attr_reader :name
-  alias to_s name
 
   def initialize(name = :anonymous)
     @name = name
     active!
     regist end
 
+  def create(name)
+    new(name) end
 
-    def create(name)
-      new(name) end
+  def to_s
+    @name.to_s end
+
+  def to_sym
+    @name.to_sym end
 
   # イベント _event_name_ を監視するイベントリスナーを追加する。
   def add_event(event_name, &callback)
@@ -406,6 +425,14 @@ class Plugin
 
   def active?
     @status == :active end
+
+  # プラグインが Plugin.uninstall される時に呼ばれるブロックを登録する。
+  def onunload
+    @unload_hook ||= []
+    @unload_hook.push(Proc.new) end
+
+  def execute_unload_hook
+    @unload_hook.each{ |unload| unload.call } if(defined?(@unload_hook)) end
 
   def method_missing(method, *args, &proc)
     case method.to_s
