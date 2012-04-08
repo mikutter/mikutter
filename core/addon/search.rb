@@ -13,6 +13,9 @@ Module.new do
   searchbtn = Gtk::Button.new('検索')
   savebtn = Gtk::Button.new('保存')
 
+  querybox.signal_connect('activate'){ |elm|
+    searchbtn.clicked }
+
   searchbtn.signal_connect('clicked'){ |elm|
     elm.sensitive = querybox.sensitive = false
     main.clear
