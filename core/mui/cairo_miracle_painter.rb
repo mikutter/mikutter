@@ -117,9 +117,8 @@ class Gdk::MiraclePainter < Gtk::Object
           l = message.links.segment_by_index(index)
           l[:callback].call(l) if l end end
     when 3
-      menu_pop(e)
-    end
-  end
+      @tree.get_ancestor(Gtk::Window).set_focus(@tree)
+      menu_pop(e) end end
 
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
