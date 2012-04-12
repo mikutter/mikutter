@@ -65,6 +65,8 @@ Plugin.create(:activity) do
     end
   end
 
+  BOOT_TIME = Time.new.freeze
+
   # そのイベントをミュートするかどうかを返す(trueなら表示しない)
   def mute?(params)
     mute_kind = UserConfig[:activity_mute_kind]
@@ -186,6 +188,19 @@ Plugin.create(:activity) do
              icon: (to.is_me? ? by : to)[:profile_image_url])
   end
 
+  on_direct_messages do |service, dms|
+    dms.each{ |dm|
+      date = Time.parse(dm[:created_at])
+      if date > BOOT_TIME
+        first_line = dm[:sender].is_me? ? "ダイレクトメッセージを送信しました" : "ダイレクトメッセージを受信しました"
+        activity(:dm, "D #{dm[:recipient][:idname]} #{dm[:text]}",
+                 description: ("#{first_line}\n" +
+                               "@#{dm[:sender][:idname]}: D #{dm[:recipient][:idname]} #{dm[:text]}"),
+                 icon: dm[:sender][:profile_image_url],
+                 service: service,
+                 date: date) end }
+  end
+
   onunload do
     Addon.remove_tab 'アクティビティ'
   end
@@ -198,6 +213,7 @@ Plugin.create(:activity) do
         option "follow", "フォロー"
         option "list_member_added", "リストに追加"
         option "list_member_removed", "リストから削除"
+        option "dm", "ダイレクトメッセージ"
         option "system", "システムメッセージ"
         option "error", "エラー"
       end
@@ -208,6 +224,7 @@ Plugin.create(:activity) do
         option "follow", "フォロー"
         option "list_member_added", "リストに追加"
         option "list_member_removed", "リストから削除"
+        option "dm", "ダイレクトメッセージ"
         option "system", "システムメッセージ"
         option "error", "エラー"
       end
@@ -219,6 +236,7 @@ Plugin.create(:activity) do
       option "follow", "フォロー"
       option "list_member_added", "リストに追加"
       option "list_member_removed", "リストから削除"
+      option "dm", "ダイレクトメッセージ"
       option "system", "システムメッセージ"
       option "error", "エラー"
     end
