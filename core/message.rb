@@ -225,7 +225,9 @@ class Message < Retriever::Model
         result = get(key, (force_retrieve ? -1 : 1))
         if result.is_a?(Message)
           onfound.call(self, result)
-          result end end } end
+          result end end }
+    define_method("#{key}_source_d"){ |*args|
+      Thread.new{ __send__("#{key}_source", *args) } } end
 
   # Message#receive_message と同じ。ただし、リプライ元のみをさがす。
   define_source_getter(:replyto, /@[a-zA-Z0-9_]/){ |this, result|

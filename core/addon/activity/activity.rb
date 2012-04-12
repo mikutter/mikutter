@@ -6,42 +6,45 @@ module Plugin::Activity
   # アクティビティを更新する。
   # ==== Args
   # [kind] Symbol イベントの種類
-  # [description] 本文
+  # [title] タイトル
   # [args] その他オプション。主に以下の値
   #   icon :: String|Gdk::Pixbuf アイコン
   #   date :: Time イベントの発生した時刻
   #   service :: Service 関係するServiceオブジェクト
   #   related :: 自分に関係するかどうかのフラグ
-  def activity(kind, description, args = {})
+  def activity(kind, title, args = {})
     Plugin.call(:modify_activity,
                 { plugin: self,
                   kind: kind,
-                  description: description }.merge(args))
+                  title: title,
+                  description: title }.merge(args))
   end
 end
 
 class Plugin
   include Plugin::Activity
 
-  def self.activity(kind, description, args = {})
+  def self.activity(kind, title, args = {})
     Plugin.call(:modify_activity,
                 { plugin: nil,
                   kind: kind,
-                  description: description }.merge(args))
+                  title: title,
+                  description: title }.merge(args))
   end
 end
 
-Plugin.create :activity do
+Plugin.create(:activity) do
   class ActivityView < Gtk::CRUD
     include Gtk::TreeViewPrettyScroll
 
     ICON = 0
     KIND = 1
-    DESCRIPTION = 2
+    TITLE = 2
     DATE = 3
     PLUGIN = 4
     ID = 5
     SERVICE = 6
+    EVENT = 7
 
     def initialize
       super()
@@ -51,11 +54,12 @@ Plugin.create :activity do
     def column_schemer
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'}, # ICON
        {:kind => :text, :type => String, :label => '種類'},        # KIND
-       {:kind => :text, :type => String, :label => '説明'},        # DESCRIPTION
+       {:kind => :text, :type => String, :label => '説明'},        # TITLE
        {:kind => :text, :type => String, :label => '時刻'},        # DATE
        {:type => Plugin},                                          # PLUGIN
        {:type => Integer},                                         # ID
-       {:type => Service} ].freeze                                 # SERVICE
+       {:type => Service},                                         # SERVICE
+       {:type => Hash} ].freeze                                    # EVENT
     end
   end
 
@@ -71,13 +75,23 @@ Plugin.create :activity do
 
   activity_view = ActivityView.new
   activity_scrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
-  activity_shell = Gtk::HBox.new.pack_start(activity_view, activity_view).closeup(activity_scrollbar)
+  activity_shell = Gtk::HBox.new.pack_start(activity_view, true).closeup(activity_scrollbar)
+  activity_description = Gtk::IntelligentTextview.new
+  activity_container = Gtk::VBox.new.pack_start(activity_shell).closeup(activity_description)
   Delayer.new do
-    Plugin.call(:mui_tab_regist, activity_shell, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
+    Plugin.call(:mui_tab_regist, activity_container, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
   end
 
+  activity_view.ssc("cursor-changed") { |this|
+    iter = this.selection.selected
+    if iter
+      activity_description.rewind(iter[ActivityView::EVENT][:description])
+    end
+    false
+  }
+
   # アクティビティ更新を受け取った時の処理
-  # plugin, kind, description, icon, date, service
+  # plugin, kind, title, icon, date, service
   on_modify_activity do |params|
     if not mute?(params)
       iter = activity_view.model.prepend
@@ -87,11 +101,12 @@ Plugin.create :activity do
       else
         iter[ActivityView::ICON] = params[:icon] end
       iter[ActivityView::KIND] = params[:kind].to_s
-      iter[ActivityView::DESCRIPTION] = params[:description].tr("\n", "")
+      iter[ActivityView::TITLE] = params[:title].tr("\n", "")
       iter[ActivityView::DATE] = params[:date].to_s
       iter[ActivityView::PLUGIN] = params[:plugin]
       iter[ActivityView::ID] = 0
       iter[ActivityView::SERVICE] = params[:service]
+      iter[ActivityView::EVENT] = params
       if (UserConfig[:activity_show_timeline] || []).include?(params[:kind].to_s)
         Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
       end
@@ -100,6 +115,9 @@ Plugin.create :activity do
 
   on_favorite do |service, user, message|
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
+             description:("@#{user[:idname]} がふぁぼふぁぼしました\n"+
+                          "@#{message.user[:idname]}: #{message.to_s}\n"+
+                          "https://twitter.com/#!/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -107,6 +125,9 @@ Plugin.create :activity do
 
   on_unfavorite do |service, user, message|
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
+             description:("@#{user[:idname]} があんふぁぼしました\n"+
+                          "@#{message.user[:idname]}: #{message.to_s}\n"+
+                          "https://twitter.com/#!/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -114,21 +135,22 @@ Plugin.create :activity do
 
   on_retweet do |retweets|
     retweets.each { |retweet|
-      related = lazy{
-        if retweet.user.is_me?
-          true
-        else
-          retweet_source = retweet.retweet_source(false)
-          retweet_source && retweet_source.user.is_me? end }
-      activity(:retweet, retweet.to_s,
-               icon: retweet.user[:profile_image_url],
-               date: retweet[:created],
-               related: related,
-               service: Service.primary) }
+      retweet.retweet_source_d.next{ |source|
+        activity(:retweet, retweet.to_s,
+                 description:("@#{retweet.user[:idname]} がリツイートしました\n"+
+                              "@#{source.user[:idname]}: #{source.to_s}\n"+
+                              "https://twitter.com/#!/#{source.user[:idname]}/statuses/#{source[:id]}"),
+                 icon: retweet.user[:profile_image_url],
+                 date: retweet[:created],
+                 related: (retweet.user.is_me? || source && source.user.is_me?),
+                 service: Service.primary) }.terminate('リツイートソースが取得できませんでした') }
   end
 
   on_list_member_added do |service, user, list, source_user|
     activity(:list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました",
+             description:("@#{user[:idname]} が #{list[:full_name]} に追加されました\n"+
+                          "#{list[:description]} (by @#{list.user[:idname]})\n"+
+                          "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
              icon: user[:profile_image_url],
              related: user.is_me? || source_user.is_me?,
              service: service)
@@ -136,6 +158,9 @@ Plugin.create :activity do
 
   on_list_member_removed do |service, user, list, source_user|
     activity(:list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました",
+             description:("@#{user[:idname]} が #{list[:full_name]} から削除されました\n"+
+                          "#{list[:description]} (by @#{list.user[:idname]})\n"+
+                          "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
              icon: user[:profile_image_url],
              related: user.is_me? || source_user.is_me?,
              service: service)
