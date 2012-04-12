@@ -22,6 +22,13 @@ end
 
 class Plugin
   include Plugin::Activity
+
+  def self.activity(kind, description, args = {})
+    Plugin.call(:modify_activity,
+                { plugin: Plugin.create(:core),
+                  kind: kind,
+                  description: description }.merge(args))
+  end
 end
 
 Plugin.create :activity do
@@ -137,9 +144,10 @@ Plugin.create :activity do
              icon: (to.is_me? ? by : to)[:profile_image_url])
   end
 
-end
+  onunload do
+    Addon.remove_tab 'アクティビティ'
+  end
 
-Plugin.create :activity do
   settings "アクティビティ" do
     settings "表示しないイベントの「種類」" do
       multiselect("自分に関係ない種類を除外", :activity_mute_kind_related) do
@@ -148,6 +156,8 @@ Plugin.create :activity do
         option "follow", "フォロー"
         option "list_member_added", "リストに追加"
         option "list_member_removed", "リストから削除"
+        option "system", "システムメッセージ"
+        option "error", "エラー"
       end
 
       multiselect("以下の種類を除外", :activity_mute_kind) do
@@ -156,6 +166,8 @@ Plugin.create :activity do
         option "follow", "フォロー"
         option "list_member_added", "リストに追加"
         option "list_member_removed", "リストから削除"
+        option "system", "システムメッセージ"
+        option "error", "エラー"
       end
 
     end
