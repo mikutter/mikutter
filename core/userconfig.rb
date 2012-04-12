@@ -113,7 +113,10 @@ class UserConfig
                                   'delete_favorite',
                                   'delete'],
 
-    :subparts_order => ["Gdk::ReplyViewer", "Gdk::SubPartsFavorite", "Gdk::SubPartsRetweet"]
+    :subparts_order => ["Gdk::ReplyViewer", "Gdk::SubPartsFavorite", "Gdk::SubPartsRetweet"],
+
+    :activity_mute_kind => ["error"],
+    :activity_show_timeline => ["system"]
 
   }
 

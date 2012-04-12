@@ -25,7 +25,7 @@ class Plugin
 
   def self.activity(kind, description, args = {})
     Plugin.call(:modify_activity,
-                { plugin: Plugin.create(:core),
+                { plugin: nil,
                   kind: kind,
                   description: description }.merge(args))
   end
@@ -92,6 +92,9 @@ Plugin.create :activity do
       iter[ActivityView::PLUGIN] = params[:plugin]
       iter[ActivityView::ID] = 0
       iter[ActivityView::SERVICE] = params[:service]
+      if (UserConfig[:activity_show_timeline] || []).include?(params[:kind].to_s)
+        Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
+      end
     end
   end
 
@@ -149,8 +152,8 @@ Plugin.create :activity do
   end
 
   settings "アクティビティ" do
-    settings "表示しないイベントの「種類」" do
-      multiselect("自分に関係ない種類を除外", :activity_mute_kind_related) do
+    settings "表示しないイベント" do
+      multiselect("以下の自分に関係ないイベント", :activity_mute_kind_related) do
         option "retweet", "リツイート"
         option "favorite", "ふぁぼ"
         option "follow", "フォロー"
@@ -160,7 +163,7 @@ Plugin.create :activity do
         option "error", "エラー"
       end
 
-      multiselect("以下の種類を除外", :activity_mute_kind) do
+      multiselect("以下の全てのイベント", :activity_mute_kind) do
         option "retweet", "リツイート"
         option "favorite", "ふぁぼ"
         option "follow", "フォロー"
@@ -169,7 +172,17 @@ Plugin.create :activity do
         option "system", "システムメッセージ"
         option "error", "エラー"
       end
-
     end
+
+    multiselect("タイムラインに表示", :activity_show_timeline) do
+      option "retweet", "リツイート"
+      option "favorite", "ふぁぼ"
+      option "follow", "フォロー"
+      option "list_member_added", "リストに追加"
+      option "list_member_removed", "リストから削除"
+      option "system", "システムメッセージ"
+      option "error", "エラー"
+    end
+
   end
 end
