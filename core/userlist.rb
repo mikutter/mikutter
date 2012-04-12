@@ -39,6 +39,12 @@ class UserList < Retriever::Model
     super(value)
   end
 
+  # リストを所有しているユーザを返す
+  # ==== Return
+  # リストの所有者(User)
+  def user
+    self[:user] end
+
   def member
     atomic{ self[:member] = Set.new } if not self[:member]
     self[:member] end
