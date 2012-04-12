@@ -127,7 +127,8 @@ Module.new do
         Plugin.call(event_name, service, data) } end
 
     define_together_event(:direct_message) do |service, data|
-      trigger_event(service, :direct_messages => data.map{ |datum| datum.symbolize }) end
+      trigger_event(service, :direct_messages => data.map{ |datum|
+                      MikuTwitter::ApiCallSupport::Request::Parser.direct_message(datum.symbolize) }) end
 
     define_event(:favorite) do |service, json|
       by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
