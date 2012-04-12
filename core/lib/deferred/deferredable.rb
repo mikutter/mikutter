@@ -55,10 +55,10 @@ module Deferredable
         message = message_generator.call(e) if message_generator
         if(message)
           if(e.is_a?(Net::HTTPResponse))
-            Plugin.call(:update, nil, [Message.new(:message => "#{message} (#{e.code} #{e.body})", :system => true)])
+            Plugin.activity :error, "#{message} (#{e.code} #{e.body})"
           else
             e = 'error' if not e.respond_to?(:to_s)
-            Plugin.call(:update, nil, [Message.new(:message => "#{message} (#{e})", :system => true)]) end end
+            Plugin.activity :error, "#{message} (#{e})", exception: e end end
       rescue Exception => inner_error
         error inner_error end
       Deferred.fail(e) } end

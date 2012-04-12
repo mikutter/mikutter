@@ -187,11 +187,9 @@ module Gtk
         if(command)
           bg_system(command, url)
         else
-          Plugin.call(:update, nil, [Message.new(:message => "この環境で、URLを開くためのコマンドが判別できませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
-                                                 :system => true)]) end end
+          Plugin.activity :system, "この環境で、URLを開くためのコマンドが判別できませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。" end end
     rescue => e
-      Plugin.call(:update, nil, [Message.new(:message => "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
-                                             :system => true)]) end
+      Plugin.activity :system, "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。" end
 
     # URLを開くことができるコマンドを返す。
     def url_open_command
@@ -205,8 +203,7 @@ module Gtk
             throw :urlopen end }
         wellknown_browsers.each{ |o|
           if command_exist?(o)
-            Plugin.call(:update, nil, [Message.new(:message => "この環境で、URLを開くためのコマンドが判別できなかったので、\"#{command}\"を使用します。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。",
-                                                   :system => true)])
+            Plugin.activity :system, "この環境で、URLを開くためのコマンドが判別できなかったので、\"#{command}\"を使用します。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。"
             command = o
             throw :urlopen end } end
       command end

@@ -51,7 +51,7 @@ class Plugin
     def version_check(name, require, now)
       if((now <=> require) < 0)
         if Mopt.skip_version_check
-          Plugin.call(:update, nil, [Message.new(:message => "#{name}のバージョンが古すぎます(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n問題が起こるかもしれません。更新してください。", :system => true)])
+          Plugin.activity :system, "#{name}のバージョンが古すぎます(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n問題が起こるかもしれません。更新してください。"
         else
           chi_fatal_alert("#{name}のバージョンが古すぎます"+
                           "(#{require.join('.')}以降が必要、現在#{now.join('.')})。\n"+
@@ -350,8 +350,7 @@ plugin.add_event(:mui_tab_remove, &gui.method(:remove_tab))
 plugin.add_event(:mui_tab_active, &gui.method(:on_mui_tab_active))
 
 plugin.add_event(:apilimit, &tclambda(Time){ |time|
-                   Plugin.call(:update, nil, [Message.new(:message => "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。",
-                                                          :system => true)])
+                   Plugin.activity :system, "Twitter APIの制限数を超えたので、#{time.strftime('%H:%M')}までアクセスが制限されました。この間、タイムラインの更新などが出来ません。"
                    gui.statusbar.push(gui.statusbar.get_context_id('system'), "Twitter APIの制限数を超えました。#{time.strftime('%H:%M')}に復活します") })
 
 plugin.add_event(:apifail){ |errmes|
