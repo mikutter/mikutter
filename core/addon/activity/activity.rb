@@ -78,12 +78,19 @@ Plugin.create(:activity) do
   activity_view = ActivityView.new
   activity_vscrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
   activity_hscrollbar = Gtk::HScrollbar.new(activity_view.hadjustment)
-  activity_shell = Gtk::Table.new(2, 2).
-    attach(activity_view, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-    attach(activity_vscrollbar, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL).
-    attach(activity_hscrollbar, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
+  activity_shell = Gtk::Table.new(2, 2)
   activity_description = Gtk::IntelligentTextview.new
-  activity_container = Gtk::VBox.new.pack_start(activity_shell).closeup(activity_description)
+  activity_status = Gtk::Label.new
+  activity_container = Gtk::VBox.new
+
+  activity_container.
+    pack_start(activity_shell.
+               attach(activity_view, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
+               attach(activity_vscrollbar, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL).
+               attach(activity_hscrollbar, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)).
+    closeup(activity_description).
+    closeup(activity_status.right)
+
   Delayer.new do
     Plugin.call(:mui_tab_regist, activity_container, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
   end
@@ -92,6 +99,7 @@ Plugin.create(:activity) do
     iter = this.selection.selected
     if iter
       activity_description.rewind(iter[ActivityView::EVENT][:description])
+      activity_status.set_text(iter[ActivityView::DATE])
     end
     false
   }
@@ -108,7 +116,7 @@ Plugin.create(:activity) do
         iter[ActivityView::ICON] = params[:icon] end
       iter[ActivityView::KIND] = params[:kind].to_s
       iter[ActivityView::TITLE] = params[:title].tr("\n", "")
-      iter[ActivityView::DATE] = params[:date].to_s
+      iter[ActivityView::DATE] = params[:date].strftime('%Y/%m/%d %H:%M:%S')
       iter[ActivityView::PLUGIN] = params[:plugin]
       iter[ActivityView::ID] = 0
       iter[ActivityView::SERVICE] = params[:service]
