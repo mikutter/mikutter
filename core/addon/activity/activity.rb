@@ -17,6 +17,7 @@ module Plugin::Activity
                 { plugin: self,
                   kind: kind,
                   title: title,
+                  date: Time.new,
                   description: title }.merge(args))
   end
 end
@@ -29,6 +30,7 @@ class Plugin
                 { plugin: nil,
                   kind: kind,
                   title: title,
+                  date: Time.new,
                   description: title }.merge(args))
   end
 end
