@@ -99,7 +99,7 @@ Module.new do
 
   def self.revision
     begin
-      open('|env LANG=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
+      open('|env LC_ALL=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
     rescue
       '' end end
 
