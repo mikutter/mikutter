@@ -86,7 +86,7 @@ def gen_counter(count=0, increment=1)
 
 # ファイルの内容を文字列に読み込む
 def file_get_contents(fn)
-  open(fn, 'r'){ |input|
+  open(fn, 'r:utf-8'){ |input|
     input.read
   }
 end

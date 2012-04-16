@@ -49,15 +49,14 @@ class Gtk::IntelligentTextview < Gtk::TextView
   #       open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
   #       break end } } end
 
-  def initialize(msg, default_fonts = {}, *args)
-    assert_type(String, msg)
+  def initialize(msg = nil, default_fonts = {}, *args)
     @fonts = default_fonts
     @get_background = lambda{ parent.style.bg(Gtk::STATE_NORMAL) }
     super(*args)
     self.editable = false
     self.cursor_visible = false
     self.wrap_mode = Gtk::TextTag::WRAP_CHAR
-    gen_body(msg)
+    gen_body(msg) if msg
   end
 
   # TODO プライベートにする
@@ -73,6 +72,16 @@ class Gtk::IntelligentTextview < Gtk::TextView
     queue_draw
     false end
 
+  # 新しいテキスト _msg_ に内容を差し替える。
+  # ==== Args
+  # [msg] 表示する文字列
+  # ==== Return
+  # self
+  def rewind(msg)
+    set_buffer(Gtk::TextBuffer.new)
+    gen_body(msg)
+  end
+
   private
 
   def fonts2tags(fonts)
@@ -85,13 +94,12 @@ class Gtk::IntelligentTextview < Gtk::TextView
 
   def gen_body(msg, fonts={})
     tags = fonts2tags(fonts)
-    Gtk::Lock.synchronize{
-      tag_shell = buffer.create_tag('shell', fonts2tags(fonts))
-      buffer.insert(buffer.start_iter, msg, 'shell')
-      apply_links
-      apply_inner_widget
-      set_events(tag_shell)
-      self }
+    tag_shell = buffer.create_tag('shell', fonts2tags(fonts))
+    buffer.insert(buffer.start_iter, msg, 'shell')
+    apply_links
+    apply_inner_widget
+    set_events(tag_shell)
+    self
   end
 
 

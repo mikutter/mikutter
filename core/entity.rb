@@ -14,6 +14,7 @@ class Message::Entity
   def self.addlinkrule(slug, regexp=nil, &callback)
     slug = slug.to_sym
     @@linkrule[slug] = { :slug => slug, :regexp => regexp, :callback => callback }.freeze
+    Gtk::IntelligentTextview.addlinkrule(regexp, lambda{ |seg, tv| callback.call(face: seg, url: seg, textview: tv) }) if regexp
     self end
 
   def self.filter(slug, &filter)

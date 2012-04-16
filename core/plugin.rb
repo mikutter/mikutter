@@ -342,8 +342,7 @@ class Plugin
       if abort_on_exception?
         abort
       else
-        Plugin.call(:update, nil, [Message.new(:message => "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}",
-                                               :system => true)])
+        Plugin.activity :system, "プラグイン #{plugintag} が#{event_kind} #{event_name} 処理中にクラッシュしました。プラグインの動作を停止します。\n#{e.to_s}"
         plugintag.stop! end end
 
     alias :newSAyTof :new

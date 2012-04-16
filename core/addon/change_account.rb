@@ -34,7 +34,7 @@ Module.new do
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
     dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
-    container, key, request_token = main(watch)
+    container, key, request_token = main(watch, dialog)
     dialog.set_size_request(600, 400)
     dialog.window_position = Gtk::Window::POS_CENTER
     dialog.vbox.pack_start(container, true, true, 30)
@@ -89,7 +89,7 @@ Module.new do
     Gtk::VBox.new(false, 0).closeup(attention).closeup(decide)
   end
 
-  def self.main(watch)
+  def self.main(watch, dialog)
     goaisatsu = Gtk::VBox.new(false, 0)
     box = Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
@@ -97,16 +97,18 @@ Module.new do
 #       w.add(Gtk::Mumble.new(Message.new(:message => hello(url), :system => true))).show_all
 #     }
     goaisatsu.add(Gtk::IntelligentTextview.new(hello(request_token.authorize_url)))
-    user, key_input = gen_input('暗証番号', true)
+    user, key_input = gen_input('暗証番号', dialog, true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token
   end
 
-  def self.gen_input(label, visibility=true, default="")
+  def self.gen_input(label, dialog, visibility=true, default="")
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.text = default
     input.visibility = visibility
+    input.signal_connect('activate') { |elm|
+      dialog.response(Gtk::Dialog::RESPONSE_OK) }
     container.pack_start(Gtk::Label.new(label), false, true, 0)
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     return container, input

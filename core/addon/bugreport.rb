@@ -91,16 +91,15 @@ Module.new do
           http.post('/', eparam) }
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
-        Plugin.call(:update, nil, [Message.new(:message => "エラー報告を送信しました。ありがとう♡",
-                                               :system => true)])
+        Plugin.activity :system, "エラー報告を送信しました。ありがとう♡"
       rescue TimeoutError, StandardError => e
-        Plugin.call(:update, nil, [Message.new(:message => "#{e.to_s}ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww",
-                                               :system => true)])
+        Plugin.activity :system, "ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww"
+        Plugin.activity :error, e.to_s, exception: e
       end } end
 
   def self.revision
     begin
-      open('|env LANG=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
+      open('|env LC_ALL=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
     rescue
       '' end end
 
