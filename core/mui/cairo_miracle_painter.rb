@@ -32,6 +32,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
+  WHITE = [65536, 65536, 65536].freeze
 
   attr_reader :message, :p_message, :tree
   alias :to_message :message
@@ -324,13 +325,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 背景色を返す
   def get_backgroundcolor
-    color = if(message.from_me?)
-              UserConfig[:mumble_self_bg]
-            elsif(message.to_me?)
-              UserConfig[:mumble_reply_bg]
-            else
-              UserConfig[:mumble_basic_bg] end
-    color.map{ |c| c.to_f / 65536 } end
+    color = Plugin.filtering(:message_background_color, message, WHITE).last
+    if color.is_a? Array and 3 == color.size
+      color.map{ |c| c.to_f / 65536 }
+    else
+      WHITE end end
 
   # Graphic Context にパーツを描画
   def render_to_context(context)
