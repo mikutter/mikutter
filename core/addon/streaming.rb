@@ -47,28 +47,15 @@ Module.new do
 
     def self.define_together_event(event_name)
       type_strict event_name => tcor(Symbol, String)
-      lock = Mutex.new
-      events = Set.new
-      service = nil
-      thread = Thread.new{
-        begin
-        sleep(1) while not service
-        loop{
-          sleep((UserConfig[:"#{event_name}_queue_delay"] || 100).to_f / 1000)
-          Thread.stop if events.empty?
-          yield(service, lock.synchronize{ data = events; events = Set.new; data.freeze }) }
-        rescue => e
-          error e
-          Plugin.activity :error, e.to_s, :exception => e end }
+      speed_key = "#{event_name}_queue_delay".to_sym
+      queue = TimeLimitedQueue.new(HYDE, (UserConfig[speed_key] || 100).to_f / 1000) { |data|
+        yield @service, data }
+      UserConfig.connect(speed_key) { |key, val|
+        notice "change #{key} #{val}"
+        queue.expire = (val || 100).to_f / 1000 }
       define_method("event_#{event_name}"){ |json|
         type_strict json => tcor(Array, Hash)
-        service ||= @service
-        lock.synchronize{ events << json }
-        if thread.alive?
-          thread.wakeup
-        else
-          error "event_#{event_name}: event processing thread was dead."
-          thread.join end } end
+        queue.push json } end
 
     def start
       unless @thread and @thread.alive?
