@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 
 Plugin::create(:set_view) do
+
+  filter_message_background_color do |message, color|
+    color = if(message.from_me?)
+              UserConfig[:mumble_self_bg]
+            elsif(message.to_me?)
+              UserConfig[:mumble_reply_bg]
+            else
+              UserConfig[:mumble_basic_bg] end
+    [message, color]
+  end
+
   settings("表示") do
     settings('フォント') do
       fontcolor 'デフォルトのフォント', :mumble_basic_font, :mumble_basic_color

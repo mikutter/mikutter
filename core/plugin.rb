@@ -180,6 +180,10 @@ _users_ は、お気に入りに入れているユーザの集合。
 === show_filter(Enumerable messages)
 _messages_ から、表示してはいけないものを取り除く
 
+=== message_background_color(Message message, Array color)
+_message_ のツイートの背景色を変更する。 _color_ は現在の色。
+_color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
 =end
 
 class Plugin
