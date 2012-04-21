@@ -306,10 +306,7 @@ class Gdk::MiraclePainter < Gtk::Object
     attr_list, text = Pango.parse_markup(Pango.escape(hms))
     layout = context.create_pango_layout
     layout.attributes = attr_list
-    color = Plugin.filtering(:message_header_right_font_color, message, nil).last
-    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
     font = Plugin.filtering(:message_header_right_font, message, nil).last
-    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
     layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout.alignment = Pango::ALIGN_RIGHT
@@ -375,6 +372,8 @@ class Gdk::MiraclePainter < Gtk::Object
       hl_layout = header_left(context)
       context.show_pango_layout(hl_layout)
       hr_layout = header_right(context)
+      hr_color = Plugin.filtering(:message_header_right_font_color, message, nil).last
+      hr_color = BLACK if not(hr_color and hr_color.is_a? Array and 3 == hr_color.size)
 
       context.save{
         context.translate(pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), 0)
@@ -387,7 +386,7 @@ class Gdk::MiraclePainter < Gtk::Object
           context.rectangle(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, hr_layout.size[1] / Pango::SCALE)
           context.set_source(grad)
           context.fill() end
-
+        context.set_source_rgb(*hr_color.map{ |c| c.to_f / 65536 })
         context.show_pango_layout(hr_layout) } }
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)
