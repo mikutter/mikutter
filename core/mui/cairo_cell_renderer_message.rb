@@ -95,6 +95,18 @@ module Gtk
           if click_start.size == 2 and click_start.all?{|x| x.respond_to? :-} and (column == armed_column) and (click_start[0] - cell_x).abs <= 4 and (click_start[1] - cell_y).abs <= 4
             signal_emit("click", e, path, column, cell_x, cell_y) end
           armed_column = nil end }
+
+      last_selected = Set.new(tree.selection.to_enum(:selected_each).map{ |m, p, i| i[3] }).freeze
+      tree.selection.ssc("changed") { |this|
+        now_selecting = Set.new(this.to_enum(:selected_each).map{ |m, p, i| i[3] }).freeze
+        new_selected = now_selecting - last_selected
+        unselected = last_selected - now_selecting
+        notice "now: #{now_selecting.size} last: #{last_selected.size}"
+        new_selected.each(&:on_selected)
+        unselected.each(&:on_unselected)
+        last_selected = now_selecting
+        false }
+
       event_hooks end
 
     # Messageに関連付けられた Gdk::MiraclePainter を取得する

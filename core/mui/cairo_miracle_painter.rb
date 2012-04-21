@@ -10,7 +10,6 @@ miquire :mui, 'sub_parts_helper'
 miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
-miquire :mui, 'pseudo_signal_handler'
 miquire :mui, 'markup_generator'
 miquire :lib, 'uithreadonly'
 
@@ -26,7 +25,6 @@ class Gdk::MiraclePainter < Gtk::Object
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
-  # include PseudoSignalHandler
   include Gdk::MarkupGenerator
   include UiThreadOnly
 
@@ -35,7 +33,7 @@ class Gdk::MiraclePainter < Gtk::Object
   WHITE = [65536, 65536, 65536].freeze
   BLACK = [0, 0, 0].freeze
 
-  attr_reader :message, :p_message, :tree
+  attr_reader :message, :p_message, :tree, :selected
   alias :to_message :message
 
   # @@miracle_painters = Hash.new
@@ -69,6 +67,7 @@ class Gdk::MiraclePainter < Gtk::Object
     type_strict message => :to_message
     @p_message = message
     @message = message.to_message
+    @selected = false
     type_strict @message => Message
     super()
     coordinator(*coodinate)
@@ -134,6 +133,16 @@ class Gdk::MiraclePainter < Gtk::Object
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       menu_pop(e) end end
+
+  def on_selected
+    if not frozen?
+      @selected = true
+      on_modify end end
+
+  def on_unselected
+    if not frozen?
+      @selected = false
+      on_modify end end
 
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
@@ -334,7 +343,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 背景色を返す
   def get_backgroundcolor
-    color = Plugin.filtering(:message_background_color, message, nil).last
+    color = Plugin.filtering(:message_background_color, self, nil).last
     if color.is_a? Array and 3 == color.size
       color.map{ |c| c.to_f / 65536 }
     else
