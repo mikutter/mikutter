@@ -4,9 +4,11 @@ Plugin::create(:set_view) do
 
   filter_message_background_color do |message, color|
     if !color
-      color = if(message.from_me?)
+      color = if(message.selected)
+                UserConfig[:mumble_selected_bg]
+              elsif(message.to_message.from_me?)
                 UserConfig[:mumble_self_bg]
-              elsif(message.to_me?)
+              elsif(message.to_message.to_me?)
                 UserConfig[:mumble_reply_bg]
               else
                 UserConfig[:mumble_basic_bg] end end
@@ -43,6 +45,7 @@ Plugin::create(:set_view) do
       color 'つぶやき', :mumble_basic_bg
       color '自分宛', :mumble_reply_bg
       color '自分のつぶやき', :mumble_self_bg
+      color '選択中', :mumble_selected_bg
     end
 
     settings('Mentions') do
