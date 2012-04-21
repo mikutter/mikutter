@@ -33,6 +33,7 @@ class Gdk::MiraclePainter < Gtk::Object
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
   WHITE = [65536, 65536, 65536].freeze
+  BLACK = [0, 0, 0].freeze
 
   attr_reader :message, :p_message, :tree
   alias :to_message :message
@@ -273,17 +274,24 @@ class Gdk::MiraclePainter < Gtk::Object
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list if attr_list
     layout.wrap = Pango::WRAP_CHAR
-    context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    color = Plugin.filtering(:message_font_color, message, nil).last
+    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
+    font = Plugin.filtering(:message_font, message, nil).last
+    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
     attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    color = Plugin.filtering(:message_header_left_font_color, message, nil).last
+    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
+    font = Plugin.filtering(:message_header_left_font, message, nil).last
     layout = context.create_pango_layout
     layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout end
 
@@ -295,10 +303,14 @@ class Gdk::MiraclePainter < Gtk::Object
           else
             message[:created].strftime('%Y/%m/%d %H:%M:%S')
           end
-    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(hms)}</span>")
+    attr_list, text = Pango.parse_markup(Pango.escape(hms))
     layout = context.create_pango_layout
     layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    color = Plugin.filtering(:message_header_right_font_color, message, nil).last
+    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
+    font = Plugin.filtering(:message_header_right_font, message, nil).last
+    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
@@ -325,7 +337,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 背景色を返す
   def get_backgroundcolor
-    color = Plugin.filtering(:message_background_color, message, WHITE).last
+    color = Plugin.filtering(:message_background_color, message, nil).last
     if color.is_a? Array and 3 == color.size
       color.map{ |c| c.to_f / 65536 }
     else
@@ -361,8 +373,8 @@ class Gdk::MiraclePainter < Gtk::Object
       context.translate(pos.header_text.x, pos.header_text.y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(context)
-      hr_layout = header_right(context)
       context.show_pango_layout(hl_layout)
+      hr_layout = header_right(context)
 
       context.save{
         context.translate(pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), 0)

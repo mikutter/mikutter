@@ -3,19 +3,40 @@
 Plugin::create(:set_view) do
 
   filter_message_background_color do |message, color|
-    color = if(message.from_me?)
-              UserConfig[:mumble_self_bg]
-            elsif(message.to_me?)
-              UserConfig[:mumble_reply_bg]
-            else
-              UserConfig[:mumble_basic_bg] end
+    if !color
+      color = if(message.from_me?)
+                UserConfig[:mumble_self_bg]
+              elsif(message.to_me?)
+                UserConfig[:mumble_reply_bg]
+              else
+                UserConfig[:mumble_basic_bg] end end
     [message, color]
   end
 
+  filter_message_font do |message, font|
+    [message, font || UserConfig[:mumble_basic_font]] end
+
+  filter_message_font_color do |message, color|
+    [message, color || UserConfig[:mumble_basic_color]] end
+
+  filter_message_header_left_font do |message, font|
+    [message, font || UserConfig[:mumble_basic_left_font]] end
+
+  filter_message_header_left_font_color do |message, color|
+    [message, color || UserConfig[:mumble_basic_left_color]] end
+
+  filter_message_header_right_font do |message, font|
+    [message, font || UserConfig[:mumble_basic_right_font]] end
+
+  filter_message_header_right_font_color do |message, color|
+    [message, color || UserConfig[:mumble_basic_right_color]] end
+
   settings("表示") do
     settings('フォント') do
-      fontcolor 'デフォルトのフォント', :mumble_basic_font, :mumble_basic_color
-      fontcolor'リプライ元のフォント', :mumble_reply_font, :mumble_reply_color
+      fontcolor 'デフォルト', :mumble_basic_font, :mumble_basic_color
+      fontcolor'リプライ元', :mumble_reply_font, :mumble_reply_color
+      fontcolor'ヘッダ（左）', :mumble_basic_left_font, :mumble_basic_left_color
+      fontcolor'ヘッダ（右）', :mumble_basic_right_font, :mumble_basic_right_color
     end
 
     settings('背景色') do
