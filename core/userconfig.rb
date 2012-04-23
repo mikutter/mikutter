@@ -95,6 +95,10 @@ class UserConfig
     :mumble_basic_color => [0, 0, 0],
     :mumble_reply_font => 'Sans 8',
     :mumble_reply_color => [255*0x66, 255*0x66, 255*0x66],
+    :mumble_basic_left_font => 'Sans 10',
+    :mumble_basic_left_color => [0, 0, 0],
+    :mumble_basic_right_font => 'Sans 10',
+    :mumble_basic_right_color => [255*0x99, 255*0x99, 255*0x99],
 
     :mumble_basic_bg => [65535, 65535, 65535],
     :mumble_reply_bg => [65535, 255*222, 255*222],

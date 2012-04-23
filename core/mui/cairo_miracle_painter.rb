@@ -10,7 +10,6 @@ miquire :mui, 'sub_parts_helper'
 miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
-miquire :mui, 'pseudo_signal_handler'
 miquire :mui, 'markup_generator'
 miquire :lib, 'uithreadonly'
 
@@ -26,14 +25,15 @@ class Gdk::MiraclePainter < Gtk::Object
   include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
-  # include PseudoSignalHandler
   include Gdk::MarkupGenerator
   include UiThreadOnly
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
+  WHITE = [65536, 65536, 65536].freeze
+  BLACK = [0, 0, 0].freeze
 
-  attr_reader :message, :p_message, :tree
+  attr_reader :message, :p_message, :tree, :selected
   alias :to_message :message
 
   # @@miracle_painters = Hash.new
@@ -67,6 +67,7 @@ class Gdk::MiraclePainter < Gtk::Object
     type_strict message => :to_message
     @p_message = message
     @message = message.to_message
+    @selected = false
     type_strict @message => Message
     super()
     coordinator(*coodinate)
@@ -132,6 +133,16 @@ class Gdk::MiraclePainter < Gtk::Object
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       menu_pop(e) end end
+
+  def on_selected
+    if not frozen?
+      @selected = true
+      on_modify end end
+
+  def on_unselected
+    if not frozen?
+      @selected = false
+      on_modify end end
 
   # 座標 ( _x_ , _y_ ) にマウスオーバーイベントを発生させる
   def point_moved(x, y)
@@ -272,17 +283,24 @@ class Gdk::MiraclePainter < Gtk::Object
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list if attr_list
     layout.wrap = Pango::WRAP_CHAR
-    context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    color = Plugin.filtering(:message_font_color, message, nil).last
+    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
+    font = Plugin.filtering(:message_font, message, nil).last
+    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
     attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    color = Plugin.filtering(:message_header_left_font_color, message, nil).last
+    color = BLACK if not(color and color.is_a? Array and 3 == color.size)
+    font = Plugin.filtering(:message_header_left_font, message, nil).last
     layout = context.create_pango_layout
     layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout end
 
@@ -294,10 +312,11 @@ class Gdk::MiraclePainter < Gtk::Object
           else
             message[:created].strftime('%Y/%m/%d %H:%M:%S')
           end
-    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(hms)}</span>")
+    attr_list, text = Pango.parse_markup(Pango.escape(hms))
     layout = context.create_pango_layout
     layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    font = Plugin.filtering(:message_header_right_font, message, nil).last
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
@@ -324,13 +343,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 背景色を返す
   def get_backgroundcolor
-    color = if(message.from_me?)
-              UserConfig[:mumble_self_bg]
-            elsif(message.to_me?)
-              UserConfig[:mumble_reply_bg]
-            else
-              UserConfig[:mumble_basic_bg] end
-    color.map{ |c| c.to_f / 65536 } end
+    color = Plugin.filtering(:message_background_color, self, nil).last
+    if color.is_a? Array and 3 == color.size
+      color.map{ |c| c.to_f / 65536 }
+    else
+      WHITE end end
 
   # Graphic Context にパーツを描画
   def render_to_context(context)
@@ -362,8 +379,10 @@ class Gdk::MiraclePainter < Gtk::Object
       context.translate(pos.header_text.x, pos.header_text.y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(context)
-      hr_layout = header_right(context)
       context.show_pango_layout(hl_layout)
+      hr_layout = header_right(context)
+      hr_color = Plugin.filtering(:message_header_right_font_color, message, nil).last
+      hr_color = BLACK if not(hr_color and hr_color.is_a? Array and 3 == hr_color.size)
 
       context.save{
         context.translate(pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), 0)
@@ -376,7 +395,7 @@ class Gdk::MiraclePainter < Gtk::Object
           context.rectangle(-20, 0, hr_layout.size[0] / Pango::SCALE + 20, hr_layout.size[1] / Pango::SCALE)
           context.set_source(grad)
           context.fill() end
-
+        context.set_source_rgb(*hr_color.map{ |c| c.to_f / 65536 })
         context.show_pango_layout(hr_layout) } }
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)

@@ -180,6 +180,10 @@ _users_ は、お気に入りに入れているユーザの集合。
 === show_filter(Enumerable messages)
 _messages_ から、表示してはいけないものを取り除く
 
+=== message_background_color(Message message, Array color)
+_message_ のツイートの背景色を変更する。 _color_ は現在の色。
+_color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
 =end
 
 class Plugin
@@ -435,11 +439,11 @@ class Plugin
 
   def method_missing(method, *args, &proc)
     case method.to_s
-    when /on_?(.+)/
+    when /^on_?(.+)$/
       add_event($1, &proc)
-    when /filter_?(.+)/
+    when /^filter_?(.+)$/
       add_event_filter($1, &proc)
-    when /hook_?(.+)/
+    when /^hook_?(.+)$/
       add_event_hook($1, &proc)
     else
       super end end
