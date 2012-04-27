@@ -220,6 +220,7 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
     # @tl.add_iter(iter)
+    @tl.set_id_dict(iter)
     sid = miracle_painter.ssc(:modified, @tl, &(@mp_modifier ||= method(:mp_modifier)))
     @remover_queue.push(message) if @tl.realized?
     self
