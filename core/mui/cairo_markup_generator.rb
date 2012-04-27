@@ -45,7 +45,7 @@ module Gdk::MarkupGenerator
     message.links.to_a.reverse_each{ |l|
       escape_range = l[:range].last ... terminate
       splited[escape_range] = splited[escape_range].gsub(ESCAPE_KEYS, &ESCAPE_KV)
-      splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
+      splited[l[:range]] = '<span underline="single">'+"#{Pango.escape(l[:face])}</span>"
       terminate = l[:range].first
     }
     splited[0...terminate] = splited[0...terminate].gsub(ESCAPE_KEYS, &ESCAPE_KV) if terminate != 0
