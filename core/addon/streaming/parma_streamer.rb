@@ -10,32 +10,60 @@ module ::Plugin::Streaming
     def initialize(service)
       @service = service
       @thread = Thread.new(&method(:mainloop))
-    end
+      @fail_count = 0
+      @wait_time = 0 end
 
     def mainloop
       loop do
-        sleep 3
         begin
           notice "ParmaStreamer start"
-          streamer = Plugin::Streaming::Streamer.new(@service)
+          streamer = Plugin::Streaming::Streamer.new(@service){
+            @fail_count = 0
+            @wait_time = 0
+          }
           result = streamer.thread.join
         rescue => e
           notice "ParmaStreamer caught exception"
           notice e
           notice "redume..."
+          if(e.is_a? Net::HTTPError)
+            http_error
+          else
+            tcp_error end
         else
           notice "ParmaStreamer exit"
-          into_debug_mode nil, binding if not result.is_a? Thread
           notice result
+          tcp_error
         ensure
           streamer.kill if streamer
         end
+        notice "retry wait #{@wait_time}, fail_count #{@fail_count}"
+        sleep @wait_time
       end
     end
 
     def kill
       @thread.kill
     end
+
+    private
+
+    def tcperror
+      @fail_count += 1
+      if 1 < @fail_count
+        @wait_time += 0.25
+        if @wait_time > 16
+          @wait_time = 16 end end end
+
+    def httperror
+      @fail_count += 1
+      if 1 < @fail_count
+        if 2 == @fail_count
+          @wait_time = 10
+        else
+          @wait_time *= 2
+        if @wait_time > 240
+          @wait_time = 240 end end end end
 
   end
 end

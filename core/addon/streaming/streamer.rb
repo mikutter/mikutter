@@ -15,42 +15,44 @@ module ::Plugin::Streaming
       if many
         define_method("event_#{name}"){ |json|
           @queue[name] ||= TimeLimitedQueue.new(HYDE, everytime{ (UserConfig[speed_key] || 100).to_f / 1000 }, &proc)
+          @threads[name] ||= @queue[name].thread
           @queue[name].push json }
       else
         define_method("_event_#{name}", &proc)
         define_method("event_#{name}"){ |json|
-          _queue = Queue.new
-          @queue[name] ||= Thread.new{
+          @queue[name] ||= _queue = Queue.new
+          @threads[name] ||= Thread.new{
             loop{
               sleep((UserConfig[speed_key] || 100).to_f / 1000)
-              __send__("_event_#{name}", _queue.pop) } }
-          _queue.push json } end end
+              __send__("_event_#{name}", @queue[name].pop) } }
+          @queue[name].push json } end end
 
     # ==== Args
     # [service] 接続するService
-    def initialize(service)
+    # [on_connect] 接続されたら呼ばれる
+    def initialize(service, &on_connect)
       @service = service
       @thread = Thread.new(&method(:mainloop))
+      @on_connect = on_connect
+      @threads = {}
       @queue = {} end
 
     def mainloop
-      notice service.streaming{ |q|
+       notice service.streaming{ |q|
         if q and not q.empty?
           parsed = JSON.parse(q) rescue nil
           event_factory parsed if parsed end }
     rescue => e
-      into_debug_mode e, binding
       notice e
       raise e end
 
     # UserStreamを終了する
     def kill
       @thread.kill
-      @queue.each{ |event, queue|
-        if queue.is_a? Thread
-          queue.kill
-        else
-          queue.thread.kill end } end
+      @threads.each{ |event, thread|
+        thread.kill }
+      @threads.clear
+      @queue.clear end
 
     private
 
@@ -61,6 +63,9 @@ module ::Plugin::Streaming
       json.freeze
       case
       when json['friends']
+        if @on_connect
+          @on_connect.call(json)
+          @on_connect = nil end
       when respond_to?("event_#{json['event']}")
         __send__(:"event_#{json['event']}", json)
       when json['direct_message']
