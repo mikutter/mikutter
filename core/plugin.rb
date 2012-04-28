@@ -180,9 +180,30 @@ _users_ は、お気に入りに入れているユーザの集合。
 === show_filter(Enumerable messages)
 _messages_ から、表示してはいけないものを取り除く
 
-=== message_background_color(Message message, Array color)
-_message_ のツイートの背景色を変更する。 _color_ は現在の色。
+=== message_background_color(Gdk::MiraclePainter miracle_painter, Array color)
+_miracle_painter_ のツイートの背景色を変更する。 _color_ は現在の色又はnil。
 _color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
+=== message_font_color(Gdk::MiraclePainter miracle_painter, Array color)
+_miracle_painter_ のツイート本文の文字色を変更する。 _color_ は現在の色又はnil。
+_color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
+=== message_header_left_font_color(Gdk::MiraclePainter miracle_painter, Array color)
+_miracle_painter_ のツイート本文の文字色を変更する。 _color_ は現在の色又はnil。
+_color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
+=== message_header_right_font_color(Gdk::MiraclePainter miracle_painter, Array color)
+_miracle_painter_ のツイート本文の文字色を変更する。 _color_ は現在の色又はnil。
+_color_ は、0-65535までのRGB値でを含む三要素の配列([65535, 65535, 65535] 等)。
+
+=== message_font(Gdk::MiraclePainter miracle_painter, String font)
+_miracle_painter_ のツイート本文のフォントを変更する。 _font_ は現在のフォント又はnil。
+
+=== message_header_left_font(Gdk::MiraclePainter miracle_painter, String font)
+_miracle_painter_ のツイート本文のフォントを変更する。 _font_ は現在のフォント又はnil。
+
+=== message_header_right_font(Gdk::MiraclePainter miracle_painter, String font)
+_miracle_painter_ のツイート本文のフォントを変更する。 _font_ は現在のフォント又はnil。
 
 =end
 

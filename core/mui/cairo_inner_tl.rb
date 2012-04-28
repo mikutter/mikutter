@@ -31,6 +31,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     @force_retrieve_in_reply_to = :auto
     @hp = 252
     @@current_tl ||= self
+    @id_dict = {} # message_id: iter
     self.name = 'timeline'
     set_headers_visible(false)
     set_enable_search(false)
@@ -129,6 +130,21 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     else
       @force_retrieve_in_reply_to end end
 
+  # IDとGtk::TreeIterの対を登録する
+  # ==== Args
+  # [id] メッセージID
+  # [iter] Gtk::TreeIter
+  # ==== Return
+  # self
+  def set_id_dict(iter)
+    id = iter[MESSAGE_ID].to_i
+    if not @id_dict.has_key?(id)
+      @id_dict[id] = iter
+      iter[MIRACLE_PAINTER].ssc(:destroy) {
+        @id_dict.delete(id)
+        false } end
+    self end
+
   private
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
@@ -138,7 +154,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # _message_ から [model, path, iter] の配列を返す。見つからなかった場合は空の配列を返す。
   def get_path_and_iter_by_message(message)
     id = message[:id].to_i
-    found = model.to_enum(:each).find{ |mpi| mpi[2][0].to_i == id }
-    found || [] end
+    if @id_dict[id]
+      [model, @id_dict[id].path, @id_dict[id]]
+    else
+      [] end end
 
 end
