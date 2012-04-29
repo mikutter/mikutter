@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'thread'
-#require File.expand_path File.join(File.dirname(__FILE__), 'streamer_error')
+require File.expand_path File.join(File.dirname(__FILE__), 'streamer_error')
 
 module ::Plugin::Streaming
   class Streamer
@@ -103,7 +103,8 @@ module ::Plugin::Streaming
       when Mopt.debug
         Plugin.activity :system, YAML.dump(json)
       else
-        p json end end
+        if Mopt.debug
+          Plugin.activity :system, "unsupported event:\n" + YAML.dump(json) end end end
 
     defevent(:update, true) do |data|
       events = {update: [], mention: [], mypost: []}
