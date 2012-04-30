@@ -3,6 +3,8 @@
 
 Plugin::create(:liststream) do
   thread = nil
+  @fail_count = @wait_time = 0
+
   Delayer.new {
     thread = start if UserConfig[:list_realtime_rewind]
     UserConfig.connect(:list_realtime_rewind) do |key, new_val, before_val, id|
@@ -34,28 +36,60 @@ Plugin::create(:liststream) do
 
   def start
     service = Service.primary
+    @fail_count = 0
+    @wait_time = 0
     Thread.new{
       loop{
-        sleep(3)
         notice 'list stream: connect'
         begin
           not_followings = member_anything_and_not_following
           if not_followings.empty?
             sleep(60)
           else
-            timeout(3600) {
-              notice "followings #{not_followings.size} people"
-              service.streaming(:filter_stream, :follow => not_followings.to_a[0, 5000].map(&:id).join(',')){ |json|
-                json.strip!
-                case json
-                when /^\{.*\}$/
-                  MikuTwitter::ApiCallSupport::Request::Parser.message(JSON.parse(json).symbolize) rescue nil
-                end } } end
-        rescue TimeoutError => e
-        rescue => e
+            notice "followings #{not_followings.size} people"
+            r = service.streaming(:filter_stream, :follow => not_followings.to_a[0, 5000].map(&:id).join(',')){ |json|
+              json.strip!
+              case json
+              when /^\{.*\}$/
+                if @fail_count != 0
+                  @fail_count = 0
+                  @wait_time = 0 end
+                MikuTwitter::ApiCallSupport::Request::Parser.message(JSON.parse(json).symbolize) rescue nil
+              end }
+            raise r if r.is_a? Exception
+            notice "list stream: disconnected #{r}"
+          if r.is_a? Net::HTTPResponse
+            httperror
+          else
+            tcperror end
+          end
+        rescue Net::HTTPError => e
+          notice "list stream: disconnected: #{e.code} #{e.body}"
+          httperror
+          warn e
+        rescue Exception => e
+          notice "list stream: disconnected: exception #{e}"
+          tcperror
           warn e end
-        notice 'list stream: disconnected' } }
+        notice "retry wait #{@wait_time}, fail_count #{@fail_count}"
+        sleep @wait_time } }
   end
 
+  def tcperror
+    @fail_count += 1
+    if 1 < @fail_count
+      @wait_time += 0.25
+      if @wait_time > 16
+        @wait_time = 16 end end end
+
+  def httperror
+    @fail_count += 1
+    if 1 < @fail_count
+      if 2 == @fail_count
+        @wait_time = 10
+      else
+        @wait_time *= 2
+        if @wait_time > 240
+          @wait_time = 240 end end end end
 end
 

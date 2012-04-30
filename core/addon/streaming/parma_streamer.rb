@@ -22,18 +22,23 @@ module ::Plugin::Streaming
             @wait_time = 0
           }
           result = streamer.thread.join
-        rescue => e
+        rescue Net::HTTPError => e
           notice "ParmaStreamer caught exception"
           notice e
           notice "redume..."
-          if(e.is_a? Net::HTTPError)
-            http_error
-          else
-            tcp_error end
+          httperror
+        rescue Exception => e
+          notice "ParmaStreamer caught exception"
+          notice e
+          notice "redume..."
+          tcperror
         else
           notice "ParmaStreamer exit"
           notice result
-          tcp_error
+          if result.is_a? Net::HTTPResponse
+            httperror
+          else
+            tcperror end
         ensure
           streamer.kill if streamer
         end
