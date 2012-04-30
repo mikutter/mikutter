@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'thread'
+require File.expand_path File.join(File.dirname(__FILE__), 'streamer_error')
 
 module ::Plugin::Streaming
   class Streamer
@@ -12,20 +13,27 @@ module ::Plugin::Streaming
     # [&proc] イベントを受け取るオブジェクト。
     def self.defevent(name, many=false, &proc)
       speed_key = "#{name}_queue_delay".to_sym
+      define_method("_event_#{name}", &proc)
       if many
         define_method("event_#{name}"){ |json|
-          @queue[name] ||= TimeLimitedQueue.new(HYDE, everytime{ (UserConfig[speed_key] || 100).to_f / 1000 }, &proc)
-          @threads[name] ||= @queue[name].thread
+          @queue[name] ||= TimeLimitedQueue.new(HYDE, everytime{ (UserConfig[speed_key] || 100).to_f / 1000 }){ |data|
+            begin
+              __send__("_event_#{name}", data)
+            rescue Exception => e
+              warn e end }
+          @threads[name] ||= everytime{ @queue[name].thread }
           @queue[name].push json }
       else
-        define_method("_event_#{name}", &proc)
         define_method("event_#{name}"){ |json|
           @queue[name] ||= _queue = Queue.new
           @threads[name] ||= Thread.new{
             loop{
-              sleep((UserConfig[speed_key] || 100).to_f / 1000)
-              __send__("_event_#{name}", @queue[name].pop) } }
-          @queue[name].push json } end end
+              begin
+                sleep((UserConfig[speed_key] || 100).to_f / 1000)
+                __send__("_event_#{name}", @queue[name].pop)
+              rescue Exception => e
+                warn e end } }
+          queue_push(name, json) } end end
 
     # ==== Args
     # [service] 接続するService
@@ -38,7 +46,7 @@ module ::Plugin::Streaming
       @queue = {} end
 
     def mainloop
-       notice service.streaming{ |q|
+      service.streaming{ |q|
         if q and not q.empty?
           parsed = JSON.parse(q) rescue nil
           event_factory parsed if parsed end }
@@ -55,6 +63,23 @@ module ::Plugin::Streaming
       @queue.clear end
 
     private
+
+    # イベント _name_ のキューに値 _data_ を追加する。
+    # ==== Args
+    # [name] イベント名
+    # [data] キューに入れる値
+    # ==== Exception
+    # キューを処理するスレッドが正常終了している場合、 Plugin::Streaming::StreamerError を発生させる。
+    # 異常終了している場合は、その例外をそのまま発生させる。
+    def queue_push(name, data)
+      if @threads[name] && @threads[name]
+        if @threads[name].alive?
+          @queue[name].push data
+        else
+          if @threads[name].status.nil?
+            @queue[name].thread.status.join
+          else
+            raise Plugin::Streaming::StreamerError, "event '#{name}' thread is dead." end end end end
 
     # UserStreamで流れてきた情報を処理する
     # ==== Args
@@ -78,7 +103,8 @@ module ::Plugin::Streaming
       when Mopt.debug
         Plugin.activity :system, YAML.dump(json)
       else
-        p json end end
+        if Mopt.debug
+          Plugin.activity :system, "unsupported event:\n" + YAML.dump(json) end end end
 
     defevent(:update, true) do |data|
       events = {update: [], mention: [], mypost: []}
