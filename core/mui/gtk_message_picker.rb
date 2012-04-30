@@ -76,7 +76,6 @@ class Gtk::MessagePicker < Gtk::EventBox
     @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
     if(@not)
       @to_a = [:not, @to_a].freeze end
-    p @to_a
     @to_a end
 
   def gen_add_button
