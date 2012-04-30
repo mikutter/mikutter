@@ -76,6 +76,7 @@ class Gtk::MessagePicker < Gtk::EventBox
     @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
     if(@not)
       @to_a = [:not, @to_a].freeze end
+    p @to_a
     @to_a end
 
   def gen_add_button
@@ -113,7 +114,8 @@ class Gtk::MessagePicker < Gtk::EventBox
                                @subject.to_s },
                              nil,
                              'user' => 'ユーザ名',
-                             'body' => '本文'))
+                             'body' => '本文',
+                             'source' => 'Twitterクライアント'))
       closeup(Mtk::chooseone(lambda{ |new|
                                unless new === nil
                                  @condition = new.to_sym
@@ -122,8 +124,8 @@ class Gtk::MessagePicker < Gtk::EventBox
                              nil,
                              '==' => '＝',
                              '!=' => '≠',
-                             'include?' => '⊇',
-                             'match_regexp' => '〜'))
+                             'include?' => '含む',
+                             'match_regexp' => '正規表現'))
       add(Mtk::input(lambda{ |new|
                        unless new === nil
                          @expr = new.freeze
