@@ -116,7 +116,8 @@ Module.new do
               update(messages.select{ |message|
                        st = MIKU::SymbolTable.new(nil,
                                                   :user => MIKU::Cons.new(message.idname, nil),
-                                                  :body => MIKU::Cons.new(message.to_show, nil),
+                                                  :body => MIKU::Cons.new(message.to_s, nil),
+                                                  :source => MIKU::Cons.new(message[:source], nil),
                                                   :message => MIKU::Cons.new(message, nil))
                        miku(options[:sexp], st) }) end } end
 
