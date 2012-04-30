@@ -219,6 +219,7 @@ module MikuTwitter::APIShortcuts
     parsed_url = Addressable::URI.parse(url)
     stream_access_token = access_token("#{parsed_url.scheme}://#{parsed_url.host}")
     http = stream_access_token.consumer.http
+    http.ssl_version = 'TLSv1'
     consumer = stream_access_token.consumer
     request = consumer.create_signed_request(:post,
                                              parsed_url.path,
