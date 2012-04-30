@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 require "mikutwitter/basic"
+require 'addressable/uri'
+
 module MikuTwitter::APIShortcuts
 
   def self.defshortcut(method_name, api, parser, key_convert = {}, defaults = {})
@@ -194,33 +196,44 @@ module MikuTwitter::APIShortcuts
   # Streaming API関連
   #
 
-  def userstream
+  def userstream(params={}, &chunk)
     begin
-      access_token.get('https://userstream.twitter.com/2/user.json',
-                       'Host' => 'userstream.twitter.com',
-                       'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
-        res.read_body(&Proc.new) }
+      stream("https://userstream.twitter.com/2/user.json", params, &chunk)
     rescue Exception => evar
       warn evar end end
 
-  def filter_stream(params={})
+  def filter_stream(params={}, &chunk)
     begin
-      callback = Proc.new
-      buf = ""
-      access_token.post('https://stream.twitter.com/1/statuses/filter.json',
-                        params,
-                        'Host' => 'stream.twitter.com',
-                        'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"){ |res|
-        res.read_body{ |chunk|
-          if chunk[-1] == "\n"
-            callback.call(buf + chunk)
-            buf.clear
-          else
-            buf << chunk end } }
+      stream("https://stream.twitter.com/1/statuses/filter.json", params, &chunk)
     rescue Exception => evar
       warn evar end end
 
   private
+
+  # Streaming APIに接続して、_chunk_ に流れてきたデータを一つづつ文字列で渡して呼び出す
+  # ==== Args
+  # [url] 接続するURL
+  # [params] POSTパラメータ
+  # [&chunk] データを受け取るコールバック
+  def stream(url, params, &chunk)
+    parsed_url = Addressable::URI.parse(url)
+    stream_access_token = access_token("#{parsed_url.scheme}://#{parsed_url.host}")
+    http = stream_access_token.consumer.http
+    consumer = stream_access_token.consumer
+    request = consumer.create_signed_request(:post,
+                                             parsed_url.path,
+                                             stream_access_token,
+                                             {},
+                                             params,
+                                             { 'Host' => parsed_url.host,
+                                               'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"})
+    http.request(request){ |res|
+      notice "response #{url} #{res}"
+      if res.code == '200'
+        res.read_body(&chunk)
+      elsif res.is_a? Exception
+        raise res end }
+  end
 
   # APIの戻り値に、 next_cursor とかがついてて、二ページ目以降の取得がやたら面倒な
   # APIを、全部まとめて取得する。

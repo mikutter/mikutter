@@ -9,10 +9,11 @@ module OAuth::RequestProxy
       OAuth::RequestProxy.available_proxies[klass] = self
     end
 
-    attr_accessor :request, :options
+    attr_accessor :request, :options, :unsigned_parameters
 
     def initialize(request, options = {})
       @request = request
+      @unsigned_parameters = (options[:unsigned_parameters] || []).map {|param| param.to_s}
       @options = options
     end
 
@@ -32,7 +33,7 @@ module OAuth::RequestProxy
 
     def oauth_signature
       # TODO can this be nil?
-      parameters['oauth_signature'] || ""
+      [parameters['oauth_signature']].flatten.first || ""
     end
 
     def oauth_signature_method
@@ -75,7 +76,7 @@ module OAuth::RequestProxy
     end
 
     def parameters_for_signature
-      parameters.reject { |k,v| k == "oauth_signature" }
+      parameters.reject { |k,v| k == "oauth_signature" || unsigned_parameters.include?(k)}
     end
 
     def oauth_parameters
@@ -139,6 +140,14 @@ module OAuth::RequestProxy
 
       realm = "realm=\"#{options[:realm]}\", " if options[:realm]
       "OAuth #{realm}#{header_params_str}"
+    end
+
+    def query_string_blank?
+      if uri = request.request_uri
+        uri.split('?', 2)[1].nil?
+      else
+        request.query_string.blank?
+      end
     end
 
   protected
