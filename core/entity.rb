@@ -60,9 +60,12 @@ class Message::Entity
     type_strict message => Message
     @message = message
     @generate_thread = Thread.new {
-      @generate_value = _generate_value || []
-      def self.generate_value
-        @generate_value end
+      begin
+        timeout(10, TimeoutError) {
+          @generate_value = _generate_value || [] }
+      rescue TimeoutError => e
+        error "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})"
+        raise RuntimeError, "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})" end
       @generate_thread = nil } end
 
   def each
@@ -129,7 +132,7 @@ class Message::Entity
   memoize :segment_text
 
   def generate_value
-    @generate_thread.join
+    @generate_thread.join if @generate_thread
     @generate_value end
 
   def _generate_value

@@ -34,8 +34,9 @@ module OAuth::RequestProxy
 
       unless options[:clobber_request]
         params << header_params.to_query
-        params << request.query_string unless request.query_string.blank?
-        if request.post? && request.content_type == Mime::Type.lookup("application/x-www-form-urlencoded")
+        params << request.query_string unless query_string_blank?
+
+        if request.post? && request.content_type.to_s.downcase.start_with?("application/x-www-form-urlencoded")
           params << request.raw_post
         end
       end

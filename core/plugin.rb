@@ -461,9 +461,15 @@ class Plugin
   def method_missing(method, *args, &proc)
     case method.to_s
     when /^on_?(.+)$/
+<<<<<<< HEAD
       add_event($1, &proc)
     when /^filter_?(.+)$/
       add_event_filter($1, &proc)
+=======
+       add_event($1, &proc)
+    when /^filter_?(.+)$/
+       add_event_filter($1, &proc)
+>>>>>>> remotes/0.1
     when /^hook_?(.+)$/
       add_event_hook($1, &proc)
     else
