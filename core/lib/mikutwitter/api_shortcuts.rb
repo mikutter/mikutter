@@ -199,14 +199,16 @@ module MikuTwitter::APIShortcuts
   def userstream(params={}, &chunk)
     begin
       stream("https://userstream.twitter.com/2/user.json", params, &chunk)
-    rescue Exception => evar
-      warn evar end end
+    rescue Exception => e
+      warn e
+      raise e end end
 
   def filter_stream(params={}, &chunk)
     begin
       stream("https://stream.twitter.com/1/statuses/filter.json", params, &chunk)
-    rescue Exception => evar
-      warn evar end end
+    rescue Exception => e
+      warn e
+      raise e end end
 
   private
 
@@ -229,12 +231,9 @@ module MikuTwitter::APIShortcuts
                                              { 'Host' => parsed_url.host,
                                                'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"})
     http.request(request){ |res|
-      notice "response #{url} #{res}"
+      notice "response #{url} #{res.code} #{res}"
       if res.code == '200'
-        res.read_body(&chunk)
-      elsif res.is_a? Exception
-        raise res end }
-  end
+        res.read_body(&chunk) end } end
 
   # APIの戻り値に、 next_cursor とかがついてて、二ページ目以降の取得がやたら面倒な
   # APIを、全部まとめて取得する。
