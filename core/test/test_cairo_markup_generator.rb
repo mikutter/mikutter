@@ -57,23 +57,14 @@ class TC_MarkupGenerator < Test::Unit::TestCase
     mg.message.stubs(:to_show => text,
                      :links => [{:slug=>:user_mentions, :range=>0...5, :face=>"@null", :from=>:_generate_value, :url=>"@null"},
                                 {:slug=>:urls, :range=>8...28, :face=>"http://google.com", :from=>:_generate_value, :url=>"http://t.co/SP1shjLy"}])
-    assert_equal('<span underline="single" underline_color="#000000">@null</span> &gt; <span underline="single" underline_color="#000000">http://google.com</span> {mktr', mg.styled_main_text)
+    assert_equal('<span underline="single">@null</span> &gt; <span underline="single">http://google.com</span> {mktr', mg.styled_main_text)
 
     text = '12345 > http://t.co/SP1shjLy {mktr'
     mg = @klass.new(mock())
     mg.message.stubs(:to_show => text,
                      :links => [{:slug=>:urls, :range=>8...28, :face=>"http://google.com", :from=>:_generate_value, :url=>"http://t.co/SP1shjLy"}])
-    assert_equal('12345 &gt; <span underline="single" underline_color="#000000">http://google.com</span> {mktr', mg.styled_main_text)
+    assert_equal('12345 &gt; <span underline="single">http://google.com</span> {mktr', mg.styled_main_text)
 
   end
 
 end
-# >> Run options: 
-# >> 
-# >> # Running tests:
-# >> 
-# >> ...
-# >> 
-# >> Finished tests in 0.002114s, 1419.3276 tests/s, 6623.5286 assertions/s.
-# >> 
-# >> 3 tests, 14 assertions, 0 failures, 0 errors, 0 skips
