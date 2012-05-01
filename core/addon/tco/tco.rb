@@ -24,7 +24,7 @@ class TCo < MessageConverters
     type_strict url => :to_s
     hash = Hash.new
     begin
-      res = Net::HTTP.get_response(URI.parse(url.to_s))
+      res = timeout(5){ Net::HTTP.get_response(URI.parse(url.to_s)) }
       if res.is_a?(Net::HTTPRedirection)
         res["location"]
       else

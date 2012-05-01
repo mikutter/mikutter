@@ -60,8 +60,7 @@ class Message::Entity
     @message = message
     @generate_thread = Thread.new {
       begin
-        timeout(10, TimeoutError) {
-          @generate_value = _generate_value || [] }
+        @generate_value = _generate_value || []
       rescue TimeoutError => e
         error "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})"
         raise RuntimeError, "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})" end
