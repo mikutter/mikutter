@@ -114,11 +114,14 @@ Module.new do
           define_method("event_#{event}"){ |messages|
             if options[:sources] and options[:sources].include?(event.to_s) and (not destroyed?)
               update(messages.select{ |message|
-                       st = MIKU::SymbolTable.new(nil,
-                                                  :user => MIKU::Cons.new(message.idname, nil),
-                                                  :body => MIKU::Cons.new(message.to_show, nil),
-                                                  :message => MIKU::Cons.new(message, nil))
-                       miku(options[:sexp], st) }) end } end
+                       message = message.retweet_source if message.retweet_source
+                       if message.is_a? Message
+                         st = MIKU::SymbolTable.new(nil,
+                                                    :user => MIKU::Cons.new(message.idname, nil),
+                                                    :body => MIKU::Cons.new(message.to_s, nil),
+                                                    :source => MIKU::Cons.new(message[:source], nil),
+                                                    :message => MIKU::Cons.new(message, nil))
+                         miku(options[:sexp], st) end }) end } end
 
         [:appear,:update,:mention,:posted].each{ |event| define_event_hook(event) }
 
@@ -134,3 +137,4 @@ Module.new do
   boot
 
 end
+

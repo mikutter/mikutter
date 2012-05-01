@@ -8,13 +8,11 @@ class Message::Entity
 
   attr_reader :message
 
-  @@linkrule = {}
-  @@filter = Hash.new(ret_nth)
-
   def self.addlinkrule(slug, regexp=nil, &callback)
     slug = slug.to_sym
     @@linkrule[slug] = { :slug => slug, :regexp => regexp, :callback => callback }.freeze
-    Gtk::IntelligentTextview.addlinkrule(regexp, lambda{ |seg, tv| callback.call(face: seg, url: seg, textview: tv) }) if regexp
+    Plugin.call(:entity_linkrule_added, @@linkrule[slug])
+    # Gtk::IntelligentTextview.addlinkrule(regexp, lambda{ |seg, tv| callback.call(face: seg, url: seg, textview: tv) }) if regexp
     self end
 
   def self.filter(slug, &filter)
@@ -26,43 +24,49 @@ class Message::Entity
       result }
     self end
 
-  filter(:urls){ |segment|
-    segment[:face] ||= segment[:url]
-    if UserConfig[:shrinkurl_expand]
-      url = segment[:expanded_url] || segment[:url]
-      if MessageConverters.shrinked_url? url
-        segment[:face] = MessageConverters.expand_url([url])[url]
-      elsif segment[:expanded_url]
-        begin
-          normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
-          segment[:face] = normalized[2, normalized.size]
-        rescue => e
-          error e
-          segment[:face] = segment[:display_url] end end end
-    segment }
+  def self.refresh
+    @@linkrule = {}
+    @@filter = Hash.new(ret_nth)
+    filter(:urls){ |segment|
+      segment[:face] ||= segment[:url]
+      if UserConfig[:shrinkurl_expand]
+        url = segment[:expanded_url] || segment[:url]
+        if MessageConverters.shrinked_url? url
+          segment[:face] = MessageConverters.expand_url([url])[url]
+        elsif segment[:expanded_url]
+          begin
+            normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
+            segment[:face] = normalized[2, normalized.size]
+          rescue => e
+            error e
+            segment[:face] = segment[:display_url] end end end
+      segment }
 
-  filter(:media){ |segment|
-    segment[:face] = segment[:display_url]
-    segment[:url] = segment[:media_url]
-    segment }
+    filter(:media){ |segment|
+      segment[:face] = segment[:display_url]
+      segment[:url] = segment[:media_url]
+      segment }
 
-  filter(:hashtags){ |segment|
-    segment[:face] ||= "#"+segment[:text]
-    segment[:url] ||= "#"+segment[:text]
-    segment }
+    filter(:hashtags){ |segment|
+      segment[:face] ||= "#"+segment[:text]
+      segment[:url] ||= "#"+segment[:text]
+      segment }
 
-  filter(:user_mentions){ |segment|
-    segment[:face] ||= "@"+segment[:screen_name]
-    segment[:url] ||= "@"+segment[:screen_name]
-    segment }
+    filter(:user_mentions){ |segment|
+      segment[:face] ||= "@"+segment[:screen_name]
+      segment[:url] ||= "@"+segment[:screen_name]
+      segment }
+  end
 
   def initialize(message)
     type_strict message => Message
     @message = message
     @generate_thread = Thread.new {
-      @generate_value = _generate_value || []
-      def self.generate_value
-        @generate_value end
+      begin
+        @generate_value = _generate_value || []
+      rescue TimeoutError => e
+        error "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})"
+        raise RuntimeError, "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})" end
       @generate_thread = nil } end
 
   def each
@@ -129,7 +133,7 @@ class Message::Entity
   memoize :segment_text
 
   def generate_value
-    @generate_thread.join
+    @generate_thread.join if @generate_thread
     @generate_value end
 
   def _generate_value
@@ -182,5 +186,7 @@ class Message::Entity
 
   class InvalidEntityError < Message::MessageError
   end
+
+  refresh
 
 end

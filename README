@@ -20,11 +20,7 @@ file:core/skin/data/icon.png
 - httpclient
 
 * OS/ディストリ別インストール方法
-** Ubuntu 11.04以前のインストール方法
-   自分で必要なライブラリをインストールする必要があります。
-   0.0.3系なら、aptで全てのパッケージを揃えることができます。
-
-** Ubuntu 11.10でのインストール方法
+** Ubuntu 12.04でのインストール方法
    1. aptでインストール
       1. まず、パッケージをすべて最新にします
          : $ sudo apt-get update
@@ -34,8 +30,8 @@ file:core/skin/data/icon.png
    2. バージョンの確認
       以下のコマンドを実行してください。
       : $ ruby -v
-      ubuntu 11.10 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。
-      そのため、上記コマンドでruby 1.9.2 以前のバージョンが表示されたら、以下のようなコマンドで起動しなければいけません。
+      ubuntu 12.04 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。
+      そのため、上記コマンドでruby 1.9.3 以前のバージョンが表示されたら、以下のようなコマンドで起動しなければいけません。
       : $ ruby1.9.1 mikutter.rb
       [[common settings][共通の設定]]へ
 
@@ -43,11 +39,17 @@ file:core/skin/data/icon.png
    基本的には、その他のディストリでは、同等のライブラリが配布されていたらそれを使ってください。
    また、ディストリによってはmikutterが公式リポジトリに含まれていることがあります。
 
-** Macでのインストール方法
+** Mac OS X
    [[http://sites.google.com/site/yorufukurou/]]
 
-** Windowsでのインストール方法
+** Windows
    [[http://janetter.net/jp/]]
+
+** iOS端末(iPhone等)
+   http://tapbots.com/software/tweetbot/
+
+** Android
+   http://shootingstar067.com/
 
 ** 共通の設定 # <<common settings>>
    1. ruby mikutter.rb で起動できます。

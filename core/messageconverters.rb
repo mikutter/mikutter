@@ -103,7 +103,7 @@ class MessageConverters
       return expand_by_cache[url] if expand_by_cache[url]
       lock(url) do
         if recur < 4 and shrinked_url?(url)
-          expanded = Plugin.filtering(:expand_url, url).first.freeze
+          expanded = timeout(5){ Plugin.filtering(:expand_url, url).first.freeze }
           if(expanded == url)
             url
           else
@@ -111,7 +111,11 @@ class MessageConverters
             cache(url, result)
             result end
         else
-          url end end end
+          url end end
+    rescue TimeoutError => e
+      notice "url expand failed: timeout #{url}"
+      cache(url, url)
+      url end
 
     def shrinkable_url_regexp
       URI.regexp(['http','https']) end

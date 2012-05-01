@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'extension'
-miquire :mui, 'contextmenu'
+miquire :mui, 'extension', 'contextmenu'
+miquire :core, 'plugin'
 miquire :miku, 'miku'
 
 require 'gtk2'
@@ -163,4 +163,10 @@ class Gtk::IntelligentTextview < Gtk::TextView
         if widget
           self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))
           offset += 1 end } } end
+end
+
+Plugin.create :gtk_intelligent_textview do
+  on_entity_linkrule_added do |rule|
+    Gtk::IntelligentTextview.addlinkrule(rule[:regexp], lambda{ |seg, tv| rule[:callback].call(face: seg, url: seg, textview: tv) }) if rule[:regexp]
+  end
 end

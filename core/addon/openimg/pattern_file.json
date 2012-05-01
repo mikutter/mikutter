@@ -70,9 +70,15 @@
         }
     },
     "Instagram": {
-        "url": "^http://instagr.am/p/[a-zA-Z0-9_]+",
+        "url": "^http://instagr\\.am/p/[a-zA-Z0-9_]+",
         "attribute": {
             "class": "photo"
         }
-    }
+    },
+	"img.ly": {
+		"url": "^http://img\\.ly/[a-zA-Z0-9_]+",
+		"attribute": {
+			"id": "the-image"
+		}
+	}
 }

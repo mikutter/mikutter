@@ -3,19 +3,18 @@ module OAuth
   class AccessToken < ConsumerToken
     # The less intrusive way. Otherwise, if we are to do it correctly inside consumer,
     # we need to restructure and touch more methods: request(), sign!(), etc.
-    def request(http_method, path, *arguments, &block)
+    def request(http_method, path, *arguments)
       request_uri = URI.parse(path)
       site_uri = consumer.uri
       is_service_uri_different = (request_uri.absolute? && request_uri != site_uri)
-      consumer.uri(request_uri) if is_service_uri_different
-      if block_given?
-        return super(http_method, path, *arguments, &block)
-      else
+      begin
+        consumer.uri(request_uri) if is_service_uri_different
         @response = super(http_method, path, *arguments)
+      ensure
+        # NOTE: reset for wholesomeness? meaning that we admit only AccessToken service calls may use different URIs?
+        # so reset in case consumer is still used for other token-management tasks subsequently?
+        consumer.uri(site_uri) if is_service_uri_different
       end
-      # NOTE: reset for wholesomeness? meaning that we admit only AccessToken service calls may use different URIs?
-      # so reset in case consumer is still used for other token-management tasks subsequently?
-      consumer.uri(site_uri) if is_service_uri_different
       @response
     end
 
@@ -24,8 +23,8 @@ module OAuth
     #   @response = @token.get('/people')
     #   @response = @token.get('/people', { 'Accept'=>'application/xml' })
     #
-    def get(path, headers = {}, &block)
-      request(:get, path, headers, &block)
+    def get(path, headers = {})
+      request(:get, path, headers)
     end
 
     # Make a regular HEAD request using AccessToken
@@ -44,8 +43,8 @@ module OAuth
     #   @response = @token.post('/people', nil, {'Accept' => 'application/xml' })
     #   @response = @token.post('/people', @person.to_xml, { 'Accept'=>'application/xml', 'Content-Type' => 'application/xml' })
     #
-    def post(path, body = '', headers = {}, &block)
-      request(:post, path, body, headers, &block)
+    def post(path, body = '', headers = {})
+      request(:post, path, body, headers)
     end
 
     # Make a regular PUT request using AccessToken
@@ -56,8 +55,8 @@ module OAuth
     #   @response = @token.put('/people/123', nil, { 'Accept' => 'application/xml' })
     #   @response = @token.put('/people/123', @person.to_xml, { 'Accept' => 'application/xml', 'Content-Type' => 'application/xml' })
     #
-    def put(path, body = '', headers = {}, &block)
-      request(:put, path, body, headers, &block)
+    def put(path, body = '', headers = {})
+      request(:put, path, body, headers)
     end
 
     # Make a regular DELETE request using AccessToken
@@ -65,8 +64,8 @@ module OAuth
     #   @response = @token.delete('/people/123')
     #   @response = @token.delete('/people/123', { 'Accept' => 'application/xml' })
     #
-    def delete(path, headers = {}, &block)
-      request(:delete, path, headers, &block)
+    def delete(path, headers = {})
+      request(:delete, path, headers)
     end
   end
 end

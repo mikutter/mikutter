@@ -3,13 +3,6 @@
 #
 
 miquire :core, 'configloader', 'environment', 'delayer'
-miquire :mui,
-'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
-'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
-'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
-'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
-'pseudo_signal_handler', 'selectbox', 'skin', 'timeline_utils', 'userlist', 'webicon'
-
 require 'monitor'
 require 'set'
 require 'thread'
@@ -461,9 +454,9 @@ class Plugin
   def method_missing(method, *args, &proc)
     case method.to_s
     when /^on_?(.+)$/
-      add_event($1, &proc)
+       add_event($1, &proc)
     when /^filter_?(.+)$/
-      add_event_filter($1, &proc)
+       add_event_filter($1, &proc)
     when /^hook_?(.+)$/
       add_event_hook($1, &proc)
     else
@@ -540,3 +533,9 @@ Module.new do
 
 end
 
+miquire :mui,
+'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
+'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
+'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
+'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
+'pseudo_signal_handler', 'selectbox', 'skin', 'timeline_utils', 'userlist', 'webicon'

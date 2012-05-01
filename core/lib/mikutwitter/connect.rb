@@ -16,12 +16,12 @@ module MikuTwitter::Connect
     super(*a, &b)
   end
 
-  def consumer
+  def consumer(url=oauth_url)
     OAuth::Consumer.new(consumer_key, consumer_secret,
-                        :site => oauth_url) end
+                        :site => url) end
 
-  def access_token
-    OAuth::AccessToken.new(consumer, a_token, a_secret) end
+  def access_token(url=@oauth_url)
+    OAuth::AccessToken.new(consumer(url), a_token, a_secret) end
 
   def request_oauth_token
     consumer.get_request_token end

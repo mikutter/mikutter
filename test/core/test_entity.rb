@@ -9,22 +9,11 @@ require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :core, 'entity'
 miquire :core, 'userconfig'
 
-$debug = true
-seterrorlevel(:notice)
-$logfile = nil
-$daemon = false
- # !> ambiguous first argument; put parentheses or even spaces
-Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment| }
-Message::Entity.addlinkrule(:media){ |segment| } # !> discarding old diag
-Message::Entity.addlinkrule(:hashtags, /(#|＃)([a-zA-Z0-9_]+)/){ |segment|}
-Message::Entity.addlinkrule(:user_mentions, /(@|＠|〄)[a-zA-Z0-9_]+/){ |segment| } # !> ambiguous first argument; put parentheses or even spaces
-
-
 class Plugin
 end
 
 class String
-  def inspect # !> method redefined; discarding old inspect
+  def inspect
     to_s
   end
 end
@@ -33,7 +22,7 @@ module Pango
   ESCAPE_RULE = {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}.freeze
   class << self
 
-    # テキストをPango.parse_markupで安全にパースできるようにエスケープする。 # !> method redefined; discarding old inspect
+    # テキストをPango.parse_markupで安全にパースできるようにエスケープする。
     def escape(text)
       text.gsub(/[<>&]/){|m| Pango::ESCAPE_RULE[m] } end end end
 
@@ -65,31 +54,40 @@ class TC_Message < Test::Unit::TestCase
                 :url=>"http://bit.ly/3YP9Hq" },
               { :expanded_url=>nil,
                 :indices=>[68, 88],
-                :url=>"http://bit.ly/1tmPYb" } ] } # !> instance variable @busy not initialized
+                :url=>"http://bit.ly/1tmPYb" } ] }
 
   THE_TWEET3 = 'RT @toshi_a: おいmikutterが変態ツイッタークライアントだという風説が'
   THE_ENTITY3 = {}
- # !> `*' interpreted as argument prefix
+
   def setup
-  end # !> `*' interpreted as argument prefix
+    Plugin.stubs(:call).returns(true)
+    Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment| }
+    Message::Entity.addlinkrule(:media){ |segment| }
+    Message::Entity.addlinkrule(:hashtags, /(#|＃)([a-zA-Z0-9_]+)/){ |segment|}
+    Message::Entity.addlinkrule(:user_mentions, /(@|＠|〄)[a-zA-Z0-9_]+/){ |segment| }
+  end
+
+  def teardown
+    Message::Entity.refresh
+  end
 
   def test_1
     mes = stub
     mes.stubs(:to_show).returns(THE_TWEET)
     mes.stubs(:[]).with(:entities).returns(THE_ENTITY)
     mes.stubs(:is_a?).with(Message).returns(true)
- # !> `*' interpreted as argument prefix
+
     entity = Message::Entity.new(mes)
 
     assert_equal("変な意味じゃなくてね。RT @kouichi_0308: アレでソレですか…(´･ω･｀)ｼｭﾝ… RT @nene_loveplus: 昔から一緒にいるフォロワーさんは色々アレでソレでちょっと困っちゃうわね…。", entity.to_s)
 
-    splited = mes.to_show.split(//u).map{ |s| Pango::ESCAPE_RULE[s] || s } # !> `*' interpreted as argument prefix
+    splited = mes.to_show.split(//u).map{ |s| Pango::ESCAPE_RULE[s] || s }
     entity.reverse_each{ |l|
       splited[l[:range]] = '<span underline="single" underline_color="#000000">'+"#{Pango.escape(l[:face])}</span>"
     }
     splited
   end
- # !> `&' interpreted as argument prefix
+
 
   def test_2
     mes = stub
@@ -120,7 +118,7 @@ class TC_Message < Test::Unit::TestCase
     mes.stubs(:[]).with(:entities).returns(THE_ENTITY3)
     mes.stubs(:is_a?).with(Message).returns(true)
     entity = Message::Entity.new(mes)
-    assert_kind_of(String, entity.to_s) # !> method redefined; discarding old categories_for
+    assert_kind_of(String, entity.to_s)
     assert_equal("RT @toshi_a: \343\201\212\343\201\204mikutter\343\201\214\345\244\211\346\205\213\343\203\204\343\202\244\343\203\203\343\202\277\343\203\274\343\202\257\343\203\251\343\202\244\343\202\242\343\203\263\343\203\210\343\201\240\343\201\250\343\201\204\343\201\206\351\242\250\350\252\254\343\201\214", entity.to_s.inspect)
   end
 

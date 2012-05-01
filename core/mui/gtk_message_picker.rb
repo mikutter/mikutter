@@ -9,11 +9,9 @@ miquire :mui, 'webicon'
 miquire :miku, 'miku'
 
 class Gtk::MessagePicker < Gtk::EventBox
-  attr_reader :to_a
 
   def initialize(conditions, &block)
     conditions = [] unless conditions.is_a? MIKU::List
-    @to_a = conditions.freeze
     super()
     @not = (conditions.respond_to?(:car) and (conditions.car == :not))
     if(@not)
@@ -27,6 +25,7 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
     add(Gtk::Frame.new.set_border_width(8).set_label_widget(option_widgets).add(shell))
+    p "#{self}: #{to_a}"
   end
 
   def function(new = @function)
@@ -65,18 +64,17 @@ class Gtk::MessagePicker < Gtk::EventBox
       pack.add(Gtk::MessagePicker::PickCondition.new(expr, &method(:call))) end
     @container.closeup(pack) end
 
+  def to_a
+    result = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
+    if(@not)
+      result = [:not, result].freeze end
+    result end
+
   private
 
   def call
-    recalc_to_a
     if @changed_hook
       @changed_hook.call end end
-
-  def recalc_to_a
-    @to_a = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
-    if(@not)
-      @to_a = [:not, @to_a].freeze end
-    @to_a end
 
   def gen_add_button
     container = Gtk::HBox.new
@@ -113,7 +111,8 @@ class Gtk::MessagePicker < Gtk::EventBox
                                @subject.to_s },
                              nil,
                              'user' => 'ユーザ名',
-                             'body' => '本文'))
+                             'body' => '本文',
+                             'source' => 'Twitterクライアント'))
       closeup(Mtk::chooseone(lambda{ |new|
                                unless new === nil
                                  @condition = new.to_sym
@@ -122,8 +121,8 @@ class Gtk::MessagePicker < Gtk::EventBox
                              nil,
                              '==' => '＝',
                              '!=' => '≠',
-                             'include?' => '⊇',
-                             'match_regexp' => '〜'))
+                             'include?' => '含む',
+                             'match_regexp' => '正規表現'))
       add(Mtk::input(lambda{ |new|
                        unless new === nil
                          @expr = new.freeze
