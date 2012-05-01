@@ -21,7 +21,7 @@ module ::Plugin::Streaming
             @fail_count = 0
             @wait_time = 0
           }
-          result = streamer.thread.join
+          result = streamer.thread.value
         rescue Net::HTTPError => e
           notice "ParmaStreamer caught exception"
           notice e
