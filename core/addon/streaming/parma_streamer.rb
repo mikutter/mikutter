@@ -10,6 +10,7 @@ module ::Plugin::Streaming
     def initialize(service)
       @service = service
       @thread = Thread.new(&method(:mainloop))
+      @fail = MikuTwitter::StreamingFailedActions.new('UserStream', Plugin.create(:streaming))
       @fail_count = 0
       @wait_time = 0 end
 
@@ -18,6 +19,7 @@ module ::Plugin::Streaming
         begin
           notice "ParmaStreamer start"
           streamer = Plugin::Streaming::Streamer.new(@service){
+            @fail.success
             @fail_count = 0
             @wait_time = 0
           }
@@ -26,7 +28,7 @@ module ::Plugin::Streaming
           notice "ParmaStreamer caught exception"
           notice e
           notice "redume..."
-          httperror
+          httperror e
         rescue Exception => e
           notice "ParmaStreamer caught exception"
           notice e
@@ -36,7 +38,7 @@ module ::Plugin::Streaming
           notice "ParmaStreamer exit"
           notice result
           if result.is_a? Net::HTTPResponse
-            httperror
+            httperror e
           else
             tcperror end
         ensure
@@ -53,14 +55,16 @@ module ::Plugin::Streaming
 
     private
 
-    def tcperror
+    def tcperror(e)
+      @fail.notify(e)
       @fail_count += 1
       if 1 < @fail_count
         @wait_time += 0.25
         if @wait_time > 16
           @wait_time = 16 end end end
 
-    def httperror
+    def httperror(e)
+      @fail.notify(e)
       @fail_count += 1
       if 1 < @fail_count
         if 2 == @fail_count
