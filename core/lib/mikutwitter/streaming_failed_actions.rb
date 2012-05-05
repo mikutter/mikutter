@@ -3,12 +3,13 @@ require "mikutwitter/basic"
 
 class MikuTwitter::StreamingFailedActions
 
-  attr_reader :last_code
+  attr_reader :last_code, :wait_time, :fail_count
 
   def initialize(name, plugin)
     @name = name
     @plugin = plugin
     @last_code = '200'
+    @wait_time = @fail_count = 0
   end
 
   def notify(e)
@@ -37,7 +38,10 @@ class MikuTwitter::StreamingFailedActions
           flying_whale e
         end
       end
+      httperror
       @last_code = e.code
+    elsif e.is_a? Exception
+      tcperror
     end
   end
 
@@ -53,8 +57,9 @@ class MikuTwitter::StreamingFailedActions
     elsif @last_code == '420'
       desc = "規制解除されたみたいですね。よかったですね。" end
     if @last_code != '200'
-      @plugin.activity(:error, title,
+      @plugin.activity(:status, title,
                        description: title + "\n" + desc) end
+    @wait_time = @fail_count = 0
     @last_code = "200"
   end
 
@@ -65,7 +70,7 @@ class MikuTwitter::StreamingFailedActions
   # [e] レスポンス(Net::HTTPResponse)
   def client_bug(e)
     title = "#{@name}: 切断されました。再接続します"
-    @plugin.activity(:error, title,
+    @plugin.activity(:status, title,
                      description: "#{title}\n接続できませんでした(#{get_error_str(e)})") end
 
   # 規制された時の処理
@@ -73,7 +78,7 @@ class MikuTwitter::StreamingFailedActions
   # [e] レスポンス(Net::HTTPResponse)
   def rate_limit(e)
     title = "#{@name}: API実行回数制限を超えました。しばらくしてから自動的に再接続します。"
-    @plugin.activity(:error, title,
+    @plugin.activity(:status, title,
                      description: "#{title}\n複数のTwitterクライアントを起動している場合は、それらを終了してください。\n(#{get_error_str(e)})") end
 
   # サーバエラー・過負荷時の処理
@@ -81,9 +86,11 @@ class MikuTwitter::StreamingFailedActions
   # [e] レスポンス(Net::HTTPResponse)
   def flying_whale(e)
     title = "#{@name}: 切断されました。しばらくしてから自動的に再接続します。"
-    @plugin.activity(:error, title,
+    @plugin.activity(:status, title,
                      description: "#{title}\nTwitterサーバが応答しません。また何かあったのでしょう(#{get_error_str(e)})。\n"+
                      "Twitterサーバの情報は以下のWebページで確認することができます。\nhttps://dev.twitter.com/status") end
+
+  private
 
   def get_error_str(e)
     result = ""
@@ -92,4 +99,20 @@ class MikuTwitter::StreamingFailedActions
     return e.to_s if result.empty?
     result end
 
+  def tcperror
+    @fail_count += 1
+    if 1 < @fail_count
+      @wait_time += 0.25
+      if @wait_time > 16
+        @wait_time = 16 end end end
+
+  def httperror
+    @fail_count += 1
+    if 1 < @fail_count
+      if 2 == @fail_count
+        @wait_time = 10
+      else
+        @wait_time *= 2
+        if @wait_time > 240
+          @wait_time = 240 end end end end
 end

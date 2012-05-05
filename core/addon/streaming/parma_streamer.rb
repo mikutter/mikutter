@@ -10,9 +10,7 @@ module ::Plugin::Streaming
     def initialize(service)
       @service = service
       @thread = Thread.new(&method(:mainloop))
-      @fail = MikuTwitter::StreamingFailedActions.new('UserStream', Plugin.create(:streaming))
-      @fail_count = 0
-      @wait_time = 0 end
+      @fail = MikuTwitter::StreamingFailedActions.new('UserStream', Plugin.create(:streaming)) end
 
     def mainloop
       loop do
@@ -20,59 +18,33 @@ module ::Plugin::Streaming
           notice "ParmaStreamer start"
           streamer = Plugin::Streaming::Streamer.new(@service){
             @fail.success
-            @fail_count = 0
-            @wait_time = 0
           }
           result = streamer.thread.value
         rescue Net::HTTPError => e
           notice "ParmaStreamer caught exception"
           notice e
           notice "redume..."
-          httperror e
+          @fail.notify(e)
         rescue Exception => e
           notice "ParmaStreamer caught exception"
           notice e
           notice "redume..."
-          tcperror
+          @fail.notify(e)
         else
           notice "ParmaStreamer exit"
           notice result
-          if result.is_a? Net::HTTPResponse
-            httperror e
-          else
-            tcperror end
+          @fail.notify(result)
         ensure
           streamer.kill if streamer
         end
-        notice "retry wait #{@wait_time}, fail_count #{@fail_count}"
-        sleep @wait_time
+        notice "retry wait #{@fail.wait_time}, fail_count #{@fail.fail_count}"
+        sleep @fail.wait_time
       end
     end
 
     def kill
       @thread.kill
     end
-
-    private
-
-    def tcperror(e)
-      @fail.notify(e)
-      @fail_count += 1
-      if 1 < @fail_count
-        @wait_time += 0.25
-        if @wait_time > 16
-          @wait_time = 16 end end end
-
-    def httperror(e)
-      @fail.notify(e)
-      @fail_count += 1
-      if 1 < @fail_count
-        if 2 == @fail_count
-          @wait_time = 10
-        else
-          @wait_time *= 2
-        if @wait_time > 240
-          @wait_time = 240 end end end end
 
   end
 end

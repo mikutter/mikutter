@@ -36,8 +36,7 @@ Plugin::create(:liststream) do
 
   def start
     service = Service.primary
-    @fail_count = 0
-    @wait_time = 0
+    @success_flag = false
     @fail = MikuTwitter::StreamingFailedActions.new("List Stream", self)
     Thread.new{
       loop{
@@ -52,48 +51,30 @@ Plugin::create(:liststream) do
               json.strip!
               case json
               when /^\{.*\}$/
-                if @fail_count != 0
+                if @success_flag
                   @fail.success
-                  @fail_count = 0
-                  @wait_time = 0 end
+                  @success_flag = true end
                 MikuTwitter::ApiCallSupport::Request::Parser.message(JSON.parse(json).symbolize) rescue nil
               end }
             raise r if r.is_a? Exception
             notice "list stream: disconnected #{r}"
-          if r.is_a? Net::HTTPResponse
-            httperror r
-          else
-            tcperror r end
+            streamerror r
           end
         rescue Net::HTTPError => e
           notice "list stream: disconnected: #{e.code} #{e.body}"
-          httperror e
+          streamerror e
           warn e
         rescue Exception => e
           notice "list stream: disconnected: exception #{e}"
-          tcperror e
+          streamerror e
           warn e end
-        notice "retry wait #{@wait_time}, fail_count #{@fail_count}"
-        sleep @wait_time } }
+        notice "retry wait #{@fail.wait_time}, fail_count #{@fail.fail_count}"
+        sleep @fail.wait_time } }
   end
 
-  def tcperror(e)
-    @fail.notify(e)
-    @fail_count += 1
-    if 1 < @fail_count
-      @wait_time += 0.25
-      if @wait_time > 16
-        @wait_time = 16 end end end
+  def streamerror(e)
+    @success_flag = false
+    @fail.notify(e) end
 
-  def httperror(e)
-    @fail.notify(e)
-    @fail_count += 1
-    if 1 < @fail_count
-      if 2 == @fail_count
-        @wait_time = 10
-      else
-        @wait_time *= 2
-        if @wait_time > 240
-          @wait_time = 240 end end end end
 end
 
