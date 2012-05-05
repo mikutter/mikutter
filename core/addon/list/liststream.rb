@@ -38,6 +38,7 @@ Plugin::create(:liststream) do
     service = Service.primary
     @fail_count = 0
     @wait_time = 0
+    @fail = MikuTwitter::StreamingFailedActions.new("List Stream", self)
     Thread.new{
       loop{
         notice 'list stream: connect'
@@ -52,6 +53,7 @@ Plugin::create(:liststream) do
               case json
               when /^\{.*\}$/
                 if @fail_count != 0
+                  @fail.success
                   @fail_count = 0
                   @wait_time = 0 end
                 MikuTwitter::ApiCallSupport::Request::Parser.message(JSON.parse(json).symbolize) rescue nil
@@ -59,30 +61,32 @@ Plugin::create(:liststream) do
             raise r if r.is_a? Exception
             notice "list stream: disconnected #{r}"
           if r.is_a? Net::HTTPResponse
-            httperror
+            httperror r
           else
-            tcperror end
+            tcperror r end
           end
         rescue Net::HTTPError => e
           notice "list stream: disconnected: #{e.code} #{e.body}"
-          httperror
+          httperror e
           warn e
         rescue Exception => e
           notice "list stream: disconnected: exception #{e}"
-          tcperror
+          tcperror e
           warn e end
         notice "retry wait #{@wait_time}, fail_count #{@fail_count}"
         sleep @wait_time } }
   end
 
-  def tcperror
+  def tcperror(e)
+    @fail.notify(e)
     @fail_count += 1
     if 1 < @fail_count
       @wait_time += 0.25
       if @wait_time > 16
         @wait_time = 16 end end end
 
-  def httperror
+  def httperror(e)
+    @fail.notify(e)
     @fail_count += 1
     if 1 < @fail_count
       if 2 == @fail_count
