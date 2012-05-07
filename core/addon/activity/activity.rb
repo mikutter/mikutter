@@ -2,6 +2,9 @@
 # 通知管理プラグイン
 
 miquire :mui, 'tree_view_pretty_scroll'
+
+require "set"
+
 module Plugin::Activity
   # アクティビティを更新する。
   # ==== Args
@@ -76,6 +79,25 @@ Plugin.create(:activity) do
     if mute_kind_related
       return true if mute_kind_related.include?(params[:kind].to_s) and !params[:related] end
     false end
+
+  # このIDの組み合わせが出現したことがないなら真
+  # ==== Args
+  # [event] イベント名
+  # [ids] ID
+  # ==== Return
+  # 初めて表示するキーなら真
+ def show_once(event, *ids)
+   @show_once ||= Hash.new{ |h, k| h[k] = [] }
+   result = []
+   ids.each_with_index{ |id, index|
+     storage = @show_once[event][index] ||= Set.new
+     if storage.include? id
+       result << true
+     else
+       storage << id
+       result << false end }
+   notice "#{event}: #{ids.inspect} -> #{result.inspect} #{not result.all?(&ret_nth)}"
+   not result.all?(&ret_nth) end
 
   activity_view = ActivityView.new
   activity_vscrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
@@ -163,29 +185,32 @@ Plugin.create(:activity) do
   end
 
   on_list_member_added do |service, user, list, source_user|
-    activity(:list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました",
-             description:("@#{user[:idname]} が #{list[:full_name]} に追加されました\n"+
-                          "#{list[:description]} (by @#{list.user[:idname]})\n"+
-                          "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
-             icon: user[:profile_image_url],
-             related: user.is_me? || source_user.is_me?,
-             service: service)
+    if show_once(:list_member_added, user[:id], list[:id])
+      activity(:list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました",
+               description:("@#{user[:idname]} が #{list[:full_name]} に追加されました\n"+
+                            "#{list[:description]} (by @#{list.user[:idname]})\n"+
+                            "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
+               icon: user[:profile_image_url],
+               related: user.is_me? || source_user.is_me?,
+               service: service) end
   end
 
   on_list_member_removed do |service, user, list, source_user|
-    activity(:list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました",
-             description:("@#{user[:idname]} が #{list[:full_name]} から削除されました\n"+
-                          "#{list[:description]} (by @#{list.user[:idname]})\n"+
-                          "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
-             icon: user[:profile_image_url],
-             related: user.is_me? || source_user.is_me?,
-             service: service)
+    if show_once(:list_member_removed, user[:id], list[:id])
+      activity(:list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました",
+               description:("@#{user[:idname]} が #{list[:full_name]} から削除されました\n"+
+                            "#{list[:description]} (by @#{list.user[:idname]})\n"+
+                            "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
+               icon: user[:profile_image_url],
+               related: user.is_me? || source_user.is_me?,
+               service: service) end
   end
 
   on_follow do |by, to|
-    activity(:follow, "@#{by[:idname]}が@#{to[:idname]}をﾌｮﾛｰしました",
-             related: by.is_me? || to.is_me?,
-             icon: (to.is_me? ? by : to)[:profile_image_url])
+    if show_once(:follow, by[:id], to[:id])
+      activity(:follow, "@#{by[:idname]}が@#{to[:idname]}をﾌｮﾛｰしました",
+               related: by.is_me? || to.is_me?,
+               icon: (to.is_me? ? by : to)[:profile_image_url]) end
   end
 
   on_direct_messages do |service, dms|
