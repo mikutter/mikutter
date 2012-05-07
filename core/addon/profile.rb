@@ -212,7 +212,8 @@ Module.new do
     plugin.add_event_filter(:show_filter){ |messages|
       muted_users = UserConfig[:muted_users]
       if muted_users
-        [messages.select{ |m| not muted_users.include?(m.idname) }]
+        [messages.select{ |m|
+           !(muted_users.include?(m.idname) || m.retweet_source && muted_users.include?(m.retweet_source.idname)) }]
       else
         [messages] end } end
 
