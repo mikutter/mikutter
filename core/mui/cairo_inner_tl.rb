@@ -140,7 +140,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     id = iter[MESSAGE_ID].to_i
     if not @id_dict.has_key?(id)
       @id_dict[id] = iter
-      iter[MIRACLE_PAINTER].ssc(:destroy) {
+      iter[MIRACLE_PAINTER].signal_connect(:destroy) {
         @id_dict.delete(id)
         false } end
     self end
