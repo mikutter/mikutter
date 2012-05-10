@@ -155,7 +155,12 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def get_path_and_iter_by_message(message)
     id = message[:id].to_i
     if @id_dict[id]
-      [model, @id_dict[id].path, @id_dict[id]]
+      if @id_dict[id][MIRACLE_PAINTER].destroyed?
+        warn "destroyed miracle painter in cache (##{id})"
+        @id_dict.delete(id)
+        []
+      else
+        [model, @id_dict[id].path, @id_dict[id]] end
     else
       [] end end
 
