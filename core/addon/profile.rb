@@ -211,9 +211,8 @@ Module.new do
             Delayer.new{ makescreen(user, service) } if user } end } }
     plugin.add_event_filter(:show_filter){ |messages|
       muted_users = UserConfig[:muted_users]
-      if muted_users
-        [messages.select{ |m|
-           !(muted_users.include?(m.idname) || m.retweet_source && muted_users.include?(m.retweet_source.idname)) }]
+      if muted_users && !muted_users.empty?
+        [messages.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? }]
       else
         [messages] end } end
 

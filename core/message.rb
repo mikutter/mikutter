@@ -31,7 +31,6 @@ class Message < Retriever::Model
   # retweet | retweet to this message(Message or StatusID)
   # post    | post object(Service)
   # image   | image(URL or Image object)
-  # xml     | source xml text
 
   self.keys = [[:id, :int, true],         # ID
                [:message, :string, true], # Message description
