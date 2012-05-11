@@ -9,11 +9,11 @@ $LOAD_PATH.push(File.expand_path(File.join(File.dirname($0), '../..')))
 #   def initialize(&proc)
 #     @@chain << proc
 #   end
-#  # !> discarding old deferred
+# 
 #   def self.run
 #     while cb = @@chain.shift
 #       (Thread.list - [Thread.main]).each{ |t| t.join }
-#       cb.call # !> method redefined; discarding old trap
+#       cb.call
 #     end
 #   end
 
@@ -28,18 +28,18 @@ require 'utils'
 miquire :core, 'delayer'
 miquire :lib, 'deferred', 'test_unit_extensions'
 
-class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old fail
+class TC_Deferred < Test::Unit::TestCase
   def setup()
   end
 
   def wait_all_tasks
     while !Delayer.empty? or !(Thread.list - [Thread.current]).empty?
       Delayer.run
-      (Thread.list - [Thread.current]).each &:join
+      (Thread.list - [Thread.current]).each &:join # !> `&' interpreted as argument prefix
     end
   end
 
-  def test_serial_execute # !> method redefined; discarding old callback
+  def test_serial_execute
     ans = 0
     Deferred.new.next{
       10
@@ -62,11 +62,11 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
       ans = e
     }
     wait_all_tasks
-    assert_kind_of(RuntimeError, ans)
+    assert_kind_of(RuntimeError, ans) # !> shadowing outer local variable - bt
     assert_equal("#<RuntimeError: mikutan peropero>", ans.inspect)
   end
 
-  def test_fail
+  def test_fail # !> shadowing outer local variable - args
     ans = 0
     Deferred.new.next{
       10
@@ -75,7 +75,7 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     }.next{ |x|
       ans = x + 2
     }.trap{ |e|
-      ans = e
+      ans = e # !> instance variable @next not initialized
     }
     wait_all_tasks
     assert_kind_of(String, ans)
@@ -83,11 +83,11 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
   end
 
   def test_thread
-    ans = 0 # !> method redefined; discarding old _execute
+    ans = 0
     Thread.new{
       39
     }.next{ |x|
-      x + 1 # !> method redefined; discarding old _post
+      x + 1
     }.next{ |x|
       ans = x
     }
@@ -102,13 +102,13 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     }.next{ |x|
       ans = x
     }.trap{ |x|
-      ans = x
+      ans = x # !> ambiguous first argument; put parentheses or even spaces
     }
     wait_all_tasks
     assert_kind_of(RuntimeError, ans)
   end
 
-  def test_thread_error_receive
+  def test_thread_error_receive # !> `&' interpreted as argument prefix
     ans = 0
     deferred{
       Thread.new{
@@ -116,7 +116,7 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
       }.next{ |x|
         Thread.new{
           raise
-        }.next{ |x|
+        }.next{ |x| # !> shadowing outer local variable - x
           ans = x
         }
       }
@@ -195,21 +195,29 @@ class TC_Deferred < Test::Unit::TestCase # !> method redefined; discarding old f
     assert_equal(100000, a)
   end
 
+  def test_system_success
+    result = nil
+    Deferred.system("ruby", "-e", "exit").next{ |v| result = v }
+    wait_all_tasks
+    assert_equal(true, result) # !> `&' interpreted as argument prefix
+  end
+
+  def test_system_fail
+    result = 0
+    Deferred.system("ruby", "-e", "abort").trap{ |v| result = v }
+    wait_all_tasks
+    assert_kind_of(Process::Status, result)
+    assert_equal(256, result.to_i)
+  end
+
 end
 
-# >> Loaded suite -
-# >> Started
-# >> F.F....
-# >> Finished in 0.210219 seconds.
+# >> Run options: 
 # >> 
-# >>   1) Failure:
-# >> test_aeach(TC_Deferred) [-:121]:
-# >> <1000000> expected but was
-# >> <0>.
+# >> # Running tests:
 # >> 
-# >>   2) Failure:
-# >> test_lator(TC_Deferred) [-:111]:
-# >> <[1, 2, 3]> expected but was
-# >> <[1]>.
+# >> .............
 # >> 
-# >> 7 tests, 8 assertions, 2 failures, 0 errors
+# >> Finished tests in 0.296070s, 43.9085 tests/s, 54.0412 assertions/s.
+# >> 
+# >> 13 tests, 16 assertions, 0 failures, 0 errors, 0 skips
