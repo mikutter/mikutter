@@ -56,15 +56,11 @@ class Gtk::TimeLine
   def refresh
     scroll = @tl.vadjustment.value
     oldtl = @tl
-    @tl = InnerTL.new
+    @tl = InnerTL.new(oldtl)
     remove(@shell)
     @shell = init_tl
     @tl.vadjustment.value = scroll
     pack_start(@shell.show_all)
-    oldtl.model.each{ |model, path, iter|
-      iter[InnerTL::MIRACLE_PAINTER].destroy
-      _add(iter[InnerTL::MESSAGE])
-    }
     @exposing_miraclepainter = []
     oldtl.destroy if not oldtl.destroyed?
   end
@@ -219,19 +215,10 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
-    # @tl.add_iter(iter)
     @tl.set_id_dict(iter)
-    sid = miracle_painter.ssc(:modified, @tl, &(@mp_modifier ||= method(:mp_modifier)))
     @remover_queue.push(message) if @tl.realized?
     self
   end
-
-  def mp_modifier(miracle_painter)
-    @tl.model.each{ |model, path, iter|
-      if iter[0].to_i == miracle_painter.message[:id]
-        @tl.queue_draw
-        break end }
-    false end
 
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
   # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。
