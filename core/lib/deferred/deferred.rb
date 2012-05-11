@@ -39,6 +39,24 @@ class Deferred
         }
       }
     end
+
+    # Kernel#systemを呼び出して、コマンドが成功たら成功するDeferredを返す。
+    # 失敗した場合、trap{}ブロックには $? の値(Process::Status)か、例外が発生した場合それが渡される
+    # ==== Args
+    # [*args] Kernel#system の引数
+    # ==== Return
+    # Deferred
+    def system(*args)
+      promise = Deferred.new
+      Thread.new{
+        if Kernel.system(*args)
+          promise.call(true)
+        else
+          promise.fail($?) end
+      }.trap{ |e|
+        promise.fail(e) }
+      promise
+    end
   end
 
 end
