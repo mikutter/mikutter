@@ -42,7 +42,7 @@ class UserConfig
 
     # User Stream
     :realtime_rewind => true,
-    :list_realtime_rewind => true,
+    :filter_realtime_rewind => true,
 
     # デフォルトのフッダ
     :footer => "",

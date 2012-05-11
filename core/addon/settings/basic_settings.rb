@@ -42,10 +42,10 @@ Plugin::create(:basic_settings) do
     end
 
     settings 'リアルタイム更新' do
-      boolean('ホームタイムライン', :realtime_rewind).
+      boolean('ホームタイムライン(UserStream)', :realtime_rewind).
         tooltip 'Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります'
-      boolean('リスト', :list_realtime_rewind).
-        tooltip 'Twitter の Streaming APIを用いて、リアルタイムにリストの更新を受け取ります'
+      boolean('リスト(Streaming API)', :filter_realtime_rewind).
+        tooltip 'Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります'
     end
 
     boolean 'リプライ元をサーバに問い合わせて取得する', :retrieve_force_mumbleparent
@@ -55,7 +55,7 @@ Plugin::create(:basic_settings) do
     about "#{Environment::NAME} について", {
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,
-      :copyright => '2009-2011 Toshiaki Asai',
+      :copyright => '2009-2012 Toshiaki Asai',
       :comments => "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 圧倒的なかわいさではないか我がミクは
