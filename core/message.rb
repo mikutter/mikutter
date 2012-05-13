@@ -315,7 +315,7 @@ class Message < Retriever::Model
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show
-    body.gsub(/&(gt|lt|quot);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"'}[$1] }.freeze end
+    body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
   memoize :to_show
 
   # :nodoc:
