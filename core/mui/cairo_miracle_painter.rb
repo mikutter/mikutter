@@ -63,6 +63,14 @@ class Gdk::MiraclePainter < Gtk::Object
       result.freeze }
   end
 
+  def self.mp_modifier
+    @mp_modifier ||= lambda { |miracle_painter|
+      miracle_painter.tree.model.each{ |model, path, iter|
+        if iter[0].to_i == miracle_painter.message[:id]
+          miracle_painter.tree.queue_draw
+          break end }
+      false } end
+
   def initialize(message, *coodinate)
     type_strict message => :to_message
     @p_message = message
@@ -71,7 +79,7 @@ class Gdk::MiraclePainter < Gtk::Object
     type_strict @message => Message
     super()
     coordinator(*coodinate)
-    # (@@miracle_painters[@message[:id].to_i] ||= WeakSet.new(Gdk::MiraclePainter)) << self
+    ssc(:modified, &Gdk::MiraclePainter.mp_modifier)
   end
 
   signal_new(:click, GLib::Signal::RUN_FIRST, nil, nil,

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require File.expand_path File.join(File.dirname(__FILE__), 'parma_streamer')
+require File.expand_path File.join(File.dirname(__FILE__), 'filter')
 
 Plugin.create :streaming do
   streamer = UserConfig[:realtime_rewind] && Plugin::Streaming::ParmaStreamer.new(Service.primary)

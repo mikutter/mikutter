@@ -21,7 +21,10 @@ Module.new do
     main.clear
     service.search(q: querybox.text, rpp: 100).next{ |res|
       main.add(res) if res.is_a? Array
-      elm.sensitive = querybox.sensitive = true }.terminate }
+      elm.sensitive = querybox.sensitive = true
+    }.trap{ |e|
+      main.add(Message.new(message: "検索中にエラーが発生しました (#{e.to_s})", system: true))
+      elm.sensitive = querybox.sensitive = true } }
 
   savebtn.signal_connect('clicked'){ |elm|
     Gtk::Lock.synchronize{

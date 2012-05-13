@@ -46,8 +46,7 @@ class UserList < Retriever::Model
     self[:user] end
 
   def member
-    atomic{ self[:member] = Set.new } if not self[:member]
-    self[:member] end
+    self[:member] ||= Set.new end
 
   def member?(user)
     if user.is_a? User
@@ -58,11 +57,11 @@ class UserList < Retriever::Model
   def add_member(user)
     member_update_transaction do
       if user.is_a? User
-        member.add(user)
+        member << user
       elsif user.is_a? Integer
         Thread.new {
           user = User.findbyid(user)
-          member.add(user) }
+          member << user }
       elsif user.is_a? Enumerable
         user.each(&method(:add_member))
       else

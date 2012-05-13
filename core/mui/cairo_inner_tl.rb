@@ -26,8 +26,10 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     ctl if(ctl.is_a?(Gtk::TimeLine::InnerTL) and not ctl.destroyed?)
   end
 
-  def initialize
-    super
+  # ==== Args
+  # [from] 設定値を引き継ぐ元のInnerTL
+  def initialize(from = nil)
+    super()
     @force_retrieve_in_reply_to = :auto
     @hp = 252
     @@current_tl ||= self
@@ -38,10 +40,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     last_geo = nil
     selection.mode = Gtk::SELECTION_MULTIPLE
     get_column(0).set_sizing(Gtk::TreeViewColumn::AUTOSIZE)
-    signal_connect(:focus_in_event){
-      @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
-      @@current_tl = self
-      false } end
+    extend(from) if from
+    set_events end
 
   def cell_renderer_message
     @cell_renderer_message ||= Gtk::CellRendererMessage.new()
@@ -140,12 +140,35 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     id = iter[MESSAGE_ID].to_i
     if not @id_dict.has_key?(id)
       @id_dict[id] = iter
-      iter[MIRACLE_PAINTER].ssc(:destroy) {
+      iter[MIRACLE_PAINTER].signal_connect(:destroy) {
         @id_dict.delete(id)
         false } end
     self end
 
   private
+
+  # self に _from_ の内容をコピーする
+  # ==== Args
+  # [from] InnerTL
+  # ==== Return
+  # self
+  def extend(from)
+    @force_retrieve_in_reply_to = from.instance_eval{ @force_retrieve_in_reply_to }
+    from.model.each{ |from_model, from_path, from_iter|
+      iter = model.append
+      iter[MESSAGE_ID] = from_iter[MESSAGE_ID]
+      iter[MESSAGE] = from_iter[MESSAGE]
+      iter[CREATED] = from_iter[CREATED]
+      iter[MIRACLE_PAINTER] = from_iter[MIRACLE_PAINTER].set_tree(self)
+      set_id_dict(iter) }
+    self
+  end
+
+  def set_events
+    signal_connect(:focus_in_event){
+      @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
+      @@current_tl = self
+      false } end
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
   def get_iter_by_message(message)
@@ -155,7 +178,12 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def get_path_and_iter_by_message(message)
     id = message[:id].to_i
     if @id_dict[id]
-      [model, @id_dict[id].path, @id_dict[id]]
+      if @id_dict[id][MIRACLE_PAINTER].destroyed?
+        warn "destroyed miracle painter in cache (##{id})"
+        @id_dict.delete(id)
+        []
+      else
+        [model, @id_dict[id].path, @id_dict[id]] end
     else
       [] end end
 
