@@ -81,7 +81,9 @@ module Gtk
     def widget_remain
       return @remain if defined?(@remain)
       @remain = Gtk::Label.new('---')
-      Delayer.new{ @remain.set_text(remain_charcount.to_s) }
+      Delayer.new{
+        if not @remain.destroyed?
+          @remain.set_text(remain_charcount.to_s) end }
       widget_post.ssc('key_release_event'){ |textview, event|
         @remain.set_text(remain_charcount.to_s) }
       widget_post.ssc('paste-clipboard'){ |this|
@@ -263,8 +265,9 @@ module Gtk
         true end end
 
     def remain_charcount
-      footer = if add_footer? then UserConfig[:footer].size else 0 end
-      140 - widget_post.buffer.text.size - footer end
+      if not widget_post.destroyed?
+        footer = if add_footer? then UserConfig[:footer].size else 0 end
+        140 - widget_post.buffer.text.size - footer end end
 
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|
