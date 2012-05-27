@@ -12,6 +12,8 @@ class Plugin::GUI::Tab
   include Plugin::GUI::HierarchyChild
   include Plugin::GUI::HierarchyParent
 
+  attr_reader :icon
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
@@ -43,5 +45,11 @@ class Plugin::GUI::Tab
     timeline.instance_eval &proc if proc
     timeline
   end
+
+  def set_icon(new)
+    if @icon != new
+      @icon = new
+      Plugin.call(:gui_tab_change_icon, self) end
+    self end
 
 end
