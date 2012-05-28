@@ -49,31 +49,7 @@ class Gtk::TimeLine
     super
     @tl = InnerTL.new
     closeup(postbox).pack_start(init_tl)
-    refresh_timer
   end
-
-  # InnerTLをすげ替える。
-  def refresh
-    scroll = @tl.vadjustment.value
-    oldtl = @tl
-    @tl = InnerTL.new(oldtl)
-    remove(@shell)
-    @shell = init_tl
-    @tl.vadjustment.value = scroll
-    pack_start(@shell.show_all)
-    @exposing_miraclepainter = []
-    oldtl.destroy if not oldtl.destroyed?
-  end
-
-  # ある条件を満たしたらInnerTLを捨てて、全く同じ内容の新しいInnerTLにすげ替えるためのイベントを定義する。
-  def refresh_timer
-    Reserver.new(60) {
-      Delayer.new {
-        if !@tl.destroyed?
-          window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
-          @tl.hp -= 1 if not window_active
-          refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.hp <= (window_active ? -HYDE : 0)
-          refresh_timer end } } end
 
   def init_tl
     @tl.postbox = postbox
