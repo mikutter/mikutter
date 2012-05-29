@@ -19,6 +19,7 @@ class Plugin::GUI::Tab
     super
     position = Plugin::GUI.get_tab_order(slug)
     if position
+      p position
       window_slug, pane_slug, order = position
       Plugin::GUI::Pane.instance(pane_slug) << self
     else
