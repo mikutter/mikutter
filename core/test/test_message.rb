@@ -14,7 +14,7 @@ Plugin = Class.new do
   def self.filtering(*args)
     args[1, args.size] end
 end
-# (replace-regexp "^\s*\"\\(.*\\)\":\\(.*\\),$" "\\1: \\2,")
+
 class TC_Message < Test::Unit::TestCase
   def setup
     user_obj = {
