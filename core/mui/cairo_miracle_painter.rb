@@ -72,7 +72,6 @@ class Gdk::MiraclePainter < Gtk::Object
             break end } end
       false } end
 
-
   def initialize(message, *coodinate)
     type_strict message => :to_message
     @p_message = message
