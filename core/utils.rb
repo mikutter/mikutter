@@ -230,7 +230,7 @@ def type_check(args, &proc)
       val.__send__(*check)
     elsif check.is_a? Symbol
       val.respond_to?(check)
-    elsif check.is_a? Class
+    elsif check.is_a?(Class) or check.is_a?(Module)
       val.is_a?(check) end }
   error = args.find{ |a| not(check_function.call(*a)) }
   if(error)
