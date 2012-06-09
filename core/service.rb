@@ -184,32 +184,33 @@ class Service
   private
 
   def user_initialize
-    res = twitter.query!('account/verify_credentials', cache: :keep)
-    if('200' == res.code)
-      scaned = MikuTwitter::ApiCallSupport::Request::Parser.user(JSON.parse(res.body).symbolize)
-      if scaned
-        @user_obj = scaned
-        UserConfig[:verify_credentials] = {
-          :id => @user_obj[:id],
-          :idname => @user_obj[:idname],
-          :name => @user_obj[:name],
-          :profile_image_url => @user_obj[:profile_image_url] }
-      else
-        @user_obj = User.generate(UserConfig[:verify_credentials]) end
+    res = twitter.query!('account/verify_credentials', cache: true)
+    begin
+      if '200' == res.code
+        scaned = MikuTwitter::ApiCallSupport::Request::Parser.user(JSON.parse(res.body).symbolize)
+        if scaned
+          @user_obj = scaned
+          UserConfig[:verify_credentials] = {
+            :id => @user_obj[:id],
+            :idname => @user_obj[:idname],
+            :name => @user_obj[:name],
+            :profile_image_url => @user_obj[:profile_image_url] }
+          return @user_obj end end
+    rescue => e
+      warn e end
+    if UserConfig[:verify_credentials]
+      @user_obj = User.new_ifnecessary(UserConfig[:verify_credentials])
+    elsif '400' == res.code
+      chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。規制されてるんじゃないですかね。\n" +
+        "ニコ動とか見て、規制が解除されるまで適当に時間を潰してください。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n" +
+        "\n\n--\n\n" +
+        "#{res.code} #{res.body}"
     else
-      if('400' == res.code)
-        chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。規制されてるんじゃないですかね。\n" +
-          "ニコ動とか見て、規制が解除されるまで適当に時間を潰してください。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n" +
-          "\n\n--\n\n" +
-          "#{res.code} #{res.body}"
-      else
-        chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。電車が止まってるから会社行けないみたいなかんじで起動できません。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
-          "Twitterサーバの情況を調べる→ https://dev.twitter.com/status\n"+
-          "Twitterサーバの情況を調べたくない→ http://www.nicovideo.jp/vocaloid\n\n--\n\n" +
-          "#{res.code} #{res.body}"
-      end
+      chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。電車が止まってるから会社行けないみたいなかんじで起動できません。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
+        "Twitterサーバの情況を調べる→ https://dev.twitter.com/status\n"+
+        "Twitterサーバの情況を調べたくない→ http://www.nicovideo.jp/vocaloid\n\n--\n\n" +
+        "#{res.code} #{res.body}"
     end
-    @user_obj
   end
 
   # :enddoc:
