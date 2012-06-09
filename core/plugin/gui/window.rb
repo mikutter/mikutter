@@ -3,11 +3,15 @@
 
 require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
 require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_parent')
+require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 
 class Plugin::GUI::Window
 
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyParent
+  include Plugin::GUI::Widget
+
+  role :window
 
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
@@ -18,5 +22,4 @@ class Plugin::GUI::Window
   def self.active
     instance(:default, "デフォルト")
   end
-
 end

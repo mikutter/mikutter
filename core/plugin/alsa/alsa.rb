@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # aplayコマンドで音を鳴らす
 
-Module.new do
+Plugin.create :alsa do
 
-  if command_exist? "aplay"
-    Plugin::create(:alsa).add_event(:play_sound){ |filename, &stop|
+  on_play_sound do |filename, &stop|
+    if command_exist? "aplay"
       SerialThread.new {
         bg_system("aplay","-q", filename) if FileTest.exist?(filename) }
-      stop.call } end
+      stop.call end end
 
 end

@@ -36,8 +36,6 @@ module Plugin::GUI::Cuscadable
     values[index] end
 
   module ExtendedCuscadable
-    # アクティブなインスタンス
-    attr_reader :active
 
     # タブ _slug_ に対するインターフェイスを作成。
     # _slug_ に対応するタブがない場合は作成する。
@@ -58,7 +56,6 @@ module Plugin::GUI::Cuscadable
     # self
     def regist(tab)
       cuscaded[tab.slug] ||= tab
-      @active ||= tab
       self end
 
     # インスタンスの一覧を取得する
