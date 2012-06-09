@@ -17,7 +17,13 @@ end
 
 class TC_Message < Test::Unit::TestCase
   def setup
-    @service ||= Post.new
+    user_obj = {
+      id: 164348251,
+      name: "mikutter_bot",
+      idname: "mikutter_bot" }
+    user = User.new_ifnecessary( user_obj )
+    Service.any_instance.stubs(:user_initialize).returns(user)
+    @service ||= Service.new
   end # !> ambiguous first argument; put parentheses or even spaces
 
   must "hierarchy check" do

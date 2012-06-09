@@ -65,10 +65,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   def self.mp_modifier
     @mp_modifier ||= lambda { |miracle_painter|
-      miracle_painter.tree.model.each{ |model, path, iter|
-        if iter[0].to_i == miracle_painter.message[:id]
-          miracle_painter.tree.queue_draw
-          break end }
+      if (not miracle_painter.destroyed?) and (not miracle_painter.tree.destroyed?)
+        miracle_painter.tree.model.each{ |model, path, iter|
+          if iter[0].to_i == miracle_painter.message[:id]
+            miracle_painter.tree.queue_draw
+            break end } end
       false } end
 
   def initialize(message, *coodinate)
