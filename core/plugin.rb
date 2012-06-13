@@ -214,7 +214,7 @@ class Plugin
     def event_wrap(&callback)
       lambda{ |*args|
         begin
-          callback.call(*args, &@plugin_exit)
+          callback.call(*args, &@@plugin_exit)
         rescue Exception => e
           into_debug_mode(e, binding)
           raise e end } end
@@ -222,7 +222,7 @@ class Plugin
     def filter_wrap(&callback)
       lambda{ |*args|
         begin
-          callback.call(*args, &@filter_exit)
+          callback.call(*args, &@@filter_exit)
         rescue Exception => e
           into_debug_mode(e, binding)
           raise e end } end
@@ -233,8 +233,8 @@ class Plugin
     @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
     @@add_event_hook = gen_event_ring
     @@event_filter   = gen_event_ring
-    @plugin_exit = lambda{ throw(:plugin_exit) }
-    @filter_exit = lambda{ |result| throw(:filter_exit, result) }
+    @@plugin_exit = lambda{ throw(:plugin_exit) }
+    @@filter_exit = lambda{ |result| throw(:filter_exit, result) }
 
     # イベントリスナーを追加する。
     def add_event(event_name, tag, &callback)
