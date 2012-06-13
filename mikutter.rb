@@ -37,6 +37,7 @@ Gtk.timeout_add(100){
     Delayer.run
   rescue => e
     delayer_exception = e
+    into_debug_mode(e)
     Gtk.main_quit
   end
   true }
