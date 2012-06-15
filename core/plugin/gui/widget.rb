@@ -32,6 +32,7 @@ module Plugin::GUI::Widget
       elsif respond_to? :parent_class and parent_class
         parent_class.find_role_ancestor(find) end end
 
+
   end
 
   def inspect

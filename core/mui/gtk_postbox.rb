@@ -67,7 +67,7 @@ module Gtk
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
       @post.signal_connect('key_press_event'){ |widget, event|
-        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
+        Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       @post.ssc('key_release_event'){ |textview, event|
         refresh_buttons(false)
         false }

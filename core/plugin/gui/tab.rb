@@ -23,7 +23,6 @@ class Plugin::GUI::Tab
     super
     position = Plugin::GUI.get_tab_order(slug)
     if position
-      p position
       window_slug, pane_slug, order = position
       Plugin::GUI::Pane.instance(pane_slug) << self
     else
@@ -43,7 +42,7 @@ class Plugin::GUI::Tab
   # [slug] タイムラインスラッグ
   # [&proc] 処理
   # ==== Return
-  # self
+  # 新しく作成したタイムライン
   def timeline(slug, &proc)
     timeline = Plugin::GUI::Timeline.instance(slug)
     self << timeline

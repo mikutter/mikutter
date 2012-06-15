@@ -10,6 +10,7 @@ Plugin.create :gtk do
   @panes_by_slug = {}                    # slug => Gtk::NoteBook
   @tabs_by_slug = {}                     # slug => Gtk::EventBox
   @timelines_by_slug = {}                # slug => Gtk::TimeLine
+  @postboxes_by_slug = {}                # slug => Gtk::Postbox
 
   TABPOS = [Gtk::POS_TOP, Gtk::POS_BOTTOM, Gtk::POS_LEFT, Gtk::POS_RIGHT]
 
@@ -30,6 +31,10 @@ Plugin.create :gtk do
       Gtk::Object.main_quit
       # Gtk.main_quit
       false }
+    window.ssc(:focus_in_event) {
+      i_window.active!
+      false
+    }
     window.show_all
   end
 
@@ -64,6 +69,10 @@ Plugin.create :gtk do
     tab = Gtk::EventBox.new.tooltip(i_tab.name)
     @tabs_by_slug[i_tab.slug] = tab
     tab_update_icon(i_tab)
+    tab.ssc(:focus_in_event) {
+      i_tab.active!
+      false
+    }
     tab.show_all
   end
 
@@ -73,6 +82,9 @@ Plugin.create :gtk do
     notice "create timeline #{i_timeline.slug.inspect}"
     timeline = Gtk::TimeLine.new
     @timelines_by_slug[i_timeline.slug] = timeline
+    timeline.tl.ssc(:focus_in_event) {
+      i_timeline.active!
+      false }
     timeline.show_all
   end
 
@@ -98,12 +110,19 @@ Plugin.create :gtk do
     widgetof(i_timeline).add(messages)
   end
 
+  on_gui_postbox_join_widget do |i_postbox|
+    notice "create postbox #{i_postbox.slug.inspect}"
+    postbox = @postboxes_by_slug[i_postbox.slug] = widgetof(i_postbox.parent).add_postbox(i_postbox)
+    postbox.post.ssc(:focus_in_event) {
+      i_postbox.active!
+      false }
+  end
+
   on_gui_tab_change_icon do |i_tab|
     tab_update_icon(i_tab) end
 
   on_gui_contextmenu do |event, contextmenu|
-    Gtk::ContextMenu.new(*contextmenu).popup(widgetof(event.widget), event)
-  end
+    Gtk::ContextMenu.new(*contextmenu).popup(widgetof(event.widget), event) end
 
   filter_gui_timeline_selected_messages do |i_timeline, messages|
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
@@ -142,7 +161,9 @@ Plugin.create :gtk do
                  elsif cuscadable.is_a? Plugin::GUI::Tab
                    @tabs_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::Timeline
-                   @timelines_by_slug end
+                   @timelines_by_slug
+                 elsif cuscadable.is_a? Plugin::GUI::Postbox
+                   @postboxes_by_slug end
     collection[cuscadable.slug]
   end
 
