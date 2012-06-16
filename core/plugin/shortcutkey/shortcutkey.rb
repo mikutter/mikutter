@@ -72,7 +72,7 @@ Plugin.create :shortcutkey do
     container = ShortcutKeyListView.new
     Plugin.call(:setting_tab_regist, container, 'ショートカットキー') }
 
-  on_keypress do |key, widget|
+  filter_keypress do |key, widget, executed|
     type_strict key => String, widget => Plugin::GUI::Widget
     notice "key pressed #{key} #{widget.inspect}"
     keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
@@ -85,8 +85,8 @@ Plugin.create :shortcutkey do
         if cmd and widget.class.find_role_ancestor(cmd[:role])
           if cmd[:condition] === event
             notice "command executed :#{behavior[:slug]}"
+            executed = true
             cmd[:exec].call(event) end end end }
-
-  end
+    [key, widget, executed] end
 
 end

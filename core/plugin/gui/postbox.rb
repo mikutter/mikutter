@@ -43,6 +43,21 @@ class Plugin::GUI::Postbox
     __set_parent_postbox__(parent)
   end
 
+  # このPostboxの内容を投稿する
+  # ==== Return
+  # self
+  def post_it!
+    Plugin.call(:gui_postbox_post, self)
+    self end
+
+  # このPostboxがユーザの入力を受け付けているなら真。
+  # 偽を返すPostboxは、投稿処理中か、投稿が完了して破棄されたもの
+  # ==== Return
+  # 編集中なら真
+  def editable?
+    editable = Plugin.filtering(:gui_postbox_input_editable, self, false)
+    editable.last if editable end
+
 end
 
 class Plugin::GUI::Window
