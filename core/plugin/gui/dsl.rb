@@ -3,6 +3,7 @@
 
 class Plugin
   module GUI
+    Event = Struct.new(:event, :widget, :messages)
     class << self
       def ui_setting
         {                           # windows
@@ -30,8 +31,7 @@ class Plugin
       # [key] 押されたキーの名前
       # [widget] キーが押されたウィジェット
       def keypress(key, widget)
-        notice "key pressed #{key} #{widget.inspect}"
-      end
+        Plugin.call(:keypress, key, widget) end
 
     end
   end

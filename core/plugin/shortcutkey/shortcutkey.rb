@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 
-Module.new do
-
+Plugin.create :shortcutkey do
   class ShortcutKeyListView < Gtk::CRUD
 
     COLUMN_KEYBIND = 0
@@ -73,11 +72,21 @@ Module.new do
     container = ShortcutKeyListView.new
     Plugin.call(:setting_tab_regist, container, 'ショートカットキー') }
 
-  plugin = Plugin::create(:shortcutkey)
-  plugin.add_event(:keypress){ |key|
-    tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr
-    type_check(tl => (tl and Gtk::TimeLine::InnerTL), active_mumble => (active_mumble and Message), miracle_painter => (miracle_painter and Gdk::MiraclePainter), postbox => (postbox and Gtk::PostBox)){
-      if not(valid_roles.include?(:postbox))
-        Addon::Command.call_keypress_event(key, :tl => tl, :message => active_mumble, :miracle_painter => miracle_painter, :postbox => postbox) end } }
+  on_keypress do |key, widget|
+    type_strict key => String, widget => Plugin::GUI::Widget
+    notice "key pressed #{key} #{widget.inspect}"
+    keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
+    commands = lazy{ Plugin.filtering(:command, Hash.new).first }
+    timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
+    event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
+    keybinds.values.each{ |behavior|
+      if behavior[:key] == key
+        cmd = commands[behavior[:slug]]
+        if cmd and widget.class.find_role_ancestor(cmd[:role])
+          if cmd[:condition] === event
+            notice "command executed :#{behavior[:slug]}"
+            cmd[:exec].call(event) end end end }
+
+  end
 
 end
