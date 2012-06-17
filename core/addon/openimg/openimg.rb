@@ -117,7 +117,8 @@ Module.new do
     res = dom = nil
     begin
       uri = URI.parse(url)
-      res = Net::HTTP.new(uri.host).get(uri.path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
+      path = uri.path + (uri.query ? "?"+uri.query : "")
+      res = Net::HTTP.new(uri.host).get(path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
         address = get_tagattr(res.body, element_rule)
         case address

@@ -97,5 +97,15 @@
 		"attribute": {
 			"id": "fullsize"
 		}
+	},
+	"jigokuno.com": {
+		"url": "^http://jigokuno\\.com/\\?eid=\\d+$",
+		"attribute": {
+			"src": {
+				"json_class": "Regexp",
+				"data": "^http://(?:img\\.jigokuno\\.com|jigokuno\\.img\\.jugem\\.jp)/\\d{8}_\\d{7}.gif"
+			},
+			"class": "pict"
+		}
 	}
 }
