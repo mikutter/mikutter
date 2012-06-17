@@ -23,7 +23,7 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
       retweets.deach{ |retweet|
         Gdk::MiraclePainter.findbymessage_d(retweet.retweet_source(true)).next{ |mps|
           mps.deach{ |mp|
-            if not mp.destroyed?
+            if not mp.destroyed? and mp.subparts
               begin
                 mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.add(retweet[:user])
                 mp.on_modify
