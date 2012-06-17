@@ -80,5 +80,16 @@
 		"attribute": {
 			"id": "the-image"
 		}
-	}
+	},
+	"via me": {
+        "url": "^http://via\\.me/-[a-zA-Z0-9]+",
+	 "attribute": { 
+	     "tag": "meta",
+            "attribute": "content",
+            "content": {
+                "json_class": "Regexp",
+                "data": "^http://s3\\.amazonaws\\.com/com\\.clixtr\\.picbounce/photos/[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+/s600x600\\.jpg"
+				}
+			}
+ 		}
 }
