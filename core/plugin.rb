@@ -211,15 +211,34 @@ class Plugin
         proc.call end
     }
 
+    def event_wrap(&callback)
+      lambda{ |*args|
+        begin
+          callback.call(*args, &@@plugin_exit)
+        rescue Exception => e
+          into_debug_mode(e, binding)
+          raise e end } end
+
+    def filter_wrap(&callback)
+      lambda{ |*args|
+        begin
+          callback.call(*args, &@@filter_exit)
+        rescue Exception => e
+          into_debug_mode(e, binding)
+          raise e end } end
+
     def self.gen_event_ring
       Hash.new{ |hash, key| hash[key] = [] }
     end
     @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
     @@add_event_hook = gen_event_ring
     @@event_filter   = gen_event_ring
+    @@plugin_exit = lambda{ throw(:plugin_exit) }
+    @@filter_exit = lambda{ |result| throw(:filter_exit, result) }
 
     # イベントリスナーを追加する。
     def add_event(event_name, tag, &callback)
+      callback = event_wrap(&callback)
       @@event[event_name.to_sym] << [tag, callback]
       call_add_event_hook(event_name, callback)
       callback end
@@ -228,6 +247,7 @@ class Plugin
     # フィルタは、イベントリスナーと同じ引数で呼ばれるし、引数の数と同じ数の値を
     # 返さなければいけない。
     def add_event_filter(event_name, tag, &callback)
+      callback = filter_wrap(&callback)
       @@event_filter[event_name.to_sym] << [tag, callback]
       callback end
 
@@ -271,7 +291,7 @@ class Plugin
           result = store
           plugintag, proc = *plugin
           boot_plugin(plugintag, event_name, :filter, false){
-            result = proc.call(*store){ |result| throw(:filter_exit, result) }
+            result = proc.call(*store)
             if length != result.size
               raise "filter changes arguments length (#{length} to #{result.size})" end
             result } } } end
@@ -293,7 +313,7 @@ class Plugin
       plugin_loop(ary, event_name, kind){ |tag, proc|
         if Mopt.debug
           r_start = Process.times.utime
-          result = proc.call(*args){ throw(:plugin_exit) }
+          result = proc.call(*args)
           if (r_end = Process.times.utime - r_start) > 0.1
             Plugin.call(:processtime, :plugin, "#{"%.2f" % r_end},#{tag.name},#{event_name},#{kind}") end
           result

@@ -80,5 +80,32 @@
 		"attribute": {
 			"id": "the-image"
 		}
+	},
+	"via me": {
+		"url": "^http://via\\.me/-[a-zA-Z0-9]+",
+	 	"attribute": { 
+			"tag": "meta",
+			"attribute": "content",
+			"content": {
+				"json_class": "Regexp",
+				"data": "^http://s3\\.amazonaws\\.com/com\\.clixtr\\.picbounce/photos/[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+/s600x600\\.jpg"
+			}
+		}
+ 	},
+	"twitgoo": {
+		"url": "^http://twitgoo\\.com/[a-zA-Z0-9]+",
+		"attribute": {
+			"id": "fullsize"
+		}
+	},
+	"jigokuno.com": {
+		"url": "^http://jigokuno\\.com/\\?eid=\\d+$",
+		"attribute": {
+			"src": {
+				"json_class": "Regexp",
+				"data": "^http://(?:img\\.jigokuno\\.com|jigokuno\\.img\\.jugem\\.jp)/\\d{8}_\\d{7}.gif"
+			},
+			"class": "pict"
+		}
 	}
 }

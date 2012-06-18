@@ -10,7 +10,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   include UiThreadOnly
 
   attr_writer :force_retrieve_in_reply_to
-  attr_accessor :postbox, :hp
+  attr_accessor :postbox, :correct_counter
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -31,7 +31,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def initialize(from = nil)
     super()
     @force_retrieve_in_reply_to = :auto
-    @hp = 252
+    @correct_counter = 256
     @@current_tl ||= self
     @id_dict = {} # message_id: iter
     self.name = 'timeline'
@@ -151,6 +151,12 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         false } end
     self end
 
+
+  # 別の InnerTL が自分をextend()した時に呼ばれる
+  def extended
+    if @destroy_child_miraclepainters and signal_handler_is_connected?(@destroy_child_miraclepainters)
+      signal_handler_disconnect(@destroy_child_miraclepainters) end end
+
   private
 
   # self に _from_ の内容をコピーする
@@ -160,6 +166,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # self
   def extend(from)
     @force_retrieve_in_reply_to = from.instance_eval{ @force_retrieve_in_reply_to }
+    from.extended
     from.model.each{ |from_model, from_path, from_iter|
       iter = model.append
       iter[MESSAGE_ID] = from_iter[MESSAGE_ID]
@@ -171,6 +178,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   end
 
   def set_events
+    @destroy_child_miraclepainters = signal_connect(:destroy) {
+      notice "destroy child miracle painters"
+      model.each{ |m, p, iter|
+        iter[MIRACLE_PAINTER].destroy }
+    }
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
