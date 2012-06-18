@@ -117,13 +117,28 @@ Module.new do
     res = dom = nil
     begin
       uri = URI.parse(url)
-      res = Net::HTTP.new(uri.host).get(uri.path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
+      path = uri.path + (uri.query ? "?"+uri.query : "")
+      res = Net::HTTP.new(uri.host).get(path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
       if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-        result = get_tagattr(res.body, element_rule)
-        unless result.match(/^https?:/)
-          result = "http:"+result end
+        address = get_tagattr(res.body, element_rule)
+        case address
+        when /^https?:/
+          # Complete URL
+          result = address
+        when /^\/\//
+          # No scheme
+          result = "http:" + address
+        when /^\//
+          # Absolute path
+          result = uri.dup
+          result.path = address
+        else
+          # Relative path
+          result = uri.dup
+          result.merge!(address)
+        end
         notice result.inspect
-        result
+        result.to_s
       else
         warn "#{res.code} failed"
         nil end
