@@ -10,6 +10,13 @@ Plugin.create :command do
   #                :visible => true,
   #                :role => ROLE_MESSAGE_SELECTED )
 
+  command(:copy_selected_region,
+          name: 'コピー',
+          condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
+          visible: true,
+          role: :timeline) do |opt|
+    Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
+
   command(:copy_description,
           name: '本文をコピー',
           condition: lambda{ |opt| opt.messages.size == 1 },
@@ -54,7 +61,7 @@ Plugin.create :command do
           name: 'リツイートをキャンセル',
           condition: lambda{ |opt|
             opt.messages.all? { |m|
-              m.retweetable? and not m.retweeted_by_me? } },
+              m.retweetable? and m.retweeted_by_me? } },
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each { |m|
@@ -89,14 +96,14 @@ Plugin.create :command do
   command(:select_prev,
           name: '一つ上のメッセージを選択',
           condition: ret_nth,
-          visible: true,
+          visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :prev) end
 
   command(:select_next,
           name: '一つ下のメッセージを選択',
           condition: ret_nth,
-          visible: true,
+          visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :next) end
 
@@ -107,14 +114,12 @@ Plugin.create :command do
           role: :postbox) do |opt|
     opt.widget.post_it! end
 
-  # define_command(:google_search,
-  #                :name => 'ggrks',
-  #                :condition => lambda{ |m| true },
-  #                :exec => lambda{ |opt|
-  #                  kamiya_google_search_word = opt.message.entity.to_s[opt.miraclepainter.textselector_range]
-  #                  Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(kamiya_google_search_word).to_s) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGE_SELECTED )
+  command(:google_search,
+          name: 'ggrks',
+          condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
+          visible: true,
+          role: :timeline) do |opt|
+    Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
 
   command(:open_link,
           name: 'リンクを開く',

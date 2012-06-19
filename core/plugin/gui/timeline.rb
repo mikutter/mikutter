@@ -61,4 +61,15 @@ class Plugin::GUI::Timeline
     postbox
   end
 
+  # このタイムライン内の _message_ の部分文字列が選択されている場合それを返す。
+  # 何も選択されていない場合はnilを返す
+  # ==== Args
+  # [message] 調べるMessageのインスタンス
+  # ==== Return
+  # 選択されたテキスト
+  def selected_text(message)
+    type_strict message => Message
+    result = Plugin.filtering(:gui_timeline_selected_text, self, message, nil)
+    result.last if result end
+
 end
