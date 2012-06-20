@@ -171,15 +171,13 @@ Plugin.create :gtk do
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
 
   filter_gui_timeline_selected_text do |i_timeline, message, text|
-    begin
-      timeline = widgetof(i_timeline)
-      break [i_timeline, message, text] if not timeline
-      record = timeline.get_record_by_message(message)
-      break [i_timeline, message, text] if not record
-      range = record.miracle_painter.textselector_range
-      break [i_timeline, message, text] if not range
-      [i_timeline, message, message.entity.to_s[range]]
-    end
+    timeline = widgetof(i_timeline)
+    next [i_timeline, message, text] if not timeline
+    record = timeline.get_record_by_message(message)
+    next [i_timeline, message, text] if not record
+    range = record.miracle_painter.textselector_range
+    next [i_timeline, message, text] if not range
+    [i_timeline, message, message.entity.to_s[range]]
   end
 
   # タブ _tab_ に _widget_ を入れる
