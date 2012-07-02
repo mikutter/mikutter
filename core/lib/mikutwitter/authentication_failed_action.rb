@@ -38,11 +38,15 @@ module MikuTwitter::AuthenticationFailedAction
   # [options] APIの引数
   # [res] API問い合わせの結果(Net::HTTPResponse)
   def authentication_failed_action(method, url, options, res)
-    result = MikuTwitter::AuthenticationFailedAction.lock.synchronize{
-      MikuTwitter::AuthenticationFailedAction.get.call(self, method, url, options, res) }
-    if(result and 2 == result.size)
-      self.a_token, self.a_secret = *result
-      return *result end end
+    failed_token, failed_secret = self.a_token, self.a_secret
+    MikuTwitter::AuthenticationFailedAction.lock.synchronize{
+      if failed_token == self.a_token and failed_secret == self.a_secret
+        result = MikuTwitter::AuthenticationFailedAction.get.call(self, method, url, options, res)
+        if(result and 2 == result.size)
+          self.a_token, self.a_secret = *result
+          return *result end
+      else
+        return self.a_token, self.a_secret end } end
 
 end
 
