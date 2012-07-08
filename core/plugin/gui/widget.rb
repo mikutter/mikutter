@@ -39,4 +39,8 @@ module Plugin::GUI::Widget
     "#<#{self.class.to_s}(role=#{self.class.role},slug=#{slug})>"
   end
 
+  def to_s
+    inspect
+  end
+
 end

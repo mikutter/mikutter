@@ -122,4 +122,23 @@ Plugin.create :command do
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
       Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
+
+  command(:new_pane,
+          name: '新規ペインに移動',
+          condition: lambda{ |opt|
+            pane = opt.widget.parent
+            notice "pane: #{pane}"
+            pane.is_a?(Plugin::GUI::Pane) and pane.children.size != 1 },
+          visible: true,
+          role: :tab) do |opt|
+    tab = opt.widget.is_a?(Plugin::GUI::Tab) ? opt.widget : opt.widget.ancestor_of(Plugin::GUI::Tab)
+    window = tab.ancestor_of(Plugin::GUI::Window)
+    if window
+      pane = Plugin::GUI::Pane.instance
+      pane << tab
+      window << pane
+    else
+      error "window not found."
+    end
+  end
 end

@@ -6,6 +6,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'window')
 require File.expand_path File.join(File.dirname(__FILE__), 'pane')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab')
 require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_child_widget')
 require File.expand_path File.join(File.dirname(__FILE__), 'postbox')
 require File.expand_path File.join(File.dirname(__FILE__), 'command')
 
