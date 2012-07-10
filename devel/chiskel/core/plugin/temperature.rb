@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 #
 # Temperature
 #
@@ -17,7 +18,7 @@ if(command_exist?('sensors'))
       graph_reset end
 
     def self.getconfig
-      config = FileTest.exist? (CONFIGFILE) ? confload(CONFIGFILE) : {}
+      config = FileTest.exist?(CONFIGFILE) ? confload(CONFIGFILE) : {}
       @identity = config.fetch(:identity, 'C')
       @critical = config.fetch(:critical, 70)
       @max_temp = config.fetch(:max_temp, 100)
