@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 
-Module.new do
+Plugin.create :change_account do
 
-  def self.boot
-    plugin = Plugin::create(:friend_timeline)
-    MikuTwitter::AuthenticationFailedAction.regist &method(:popup)
-    plugin.add_event(:boot){ |service|
-      Plugin.call(:setting_tab_regist, main_for_tab(service), 'アカウント情報') }
-  end
-
-  def self.popup(watch, method = nil, url = nil, options = nil, res = nil)
+  def popup(watch, method = nil, url = nil, options = nil, res = nil)
     if(Thread.main == Thread.current)
       _popup(watch)
     else
@@ -29,7 +22,7 @@ Module.new do
     end
   end
 
-  def self._popup(watch)
+  def _popup(watch)
     result = [nil]
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
@@ -76,33 +69,17 @@ Module.new do
     return *result
   end
 
-  def self.main_for_tab(watch)
-    decide = Gtk::Button.new('変更')
-    attention = Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
-    attention.wrap = true
-    decide.signal_connect("clicked"){
-      token, secret = popup(watch)
-      if token
-        UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
-        UserConfig[:twitter_token] = token
-        UserConfig[:twitter_secret] = secret end }
-    Gtk::VBox.new(false, 0).closeup(attention).closeup(decide)
-  end
-
-  def self.main(watch, dialog)
+  def main(watch, dialog)
     goaisatsu = Gtk::VBox.new(false, 0)
     box = Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
-#     Delayer.new(Delayer::NORMAL, goaisatsu, request_token.authorize_url){ |w, url|
-#       w.add(Gtk::Mumble.new(Message.new(:message => hello(url), :system => true))).show_all
-#     }
     goaisatsu.add(Gtk::IntelligentTextview.new(hello(request_token.authorize_url)))
     user, key_input = gen_input('暗証番号', dialog, true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token
   end
 
-  def self.gen_input(label, dialog, visibility=true, default="")
+  def gen_input(label, dialog, visibility=true, default="")
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.text = default
@@ -114,7 +91,7 @@ Module.new do
     return container, input
   end
 
-  def self.hello(url)
+  def hello(url)
     "マスターったら、ツイッターまでみっくみくね！\n\n"+
     "ログインの手順:\n下のリンクをクリックして、ユーザ名などを入れてから許可するボタンを"+
       "押してください(クリックしても開かなかったら、アドレスバーにコピペだ！)。\n"+
@@ -122,7 +99,23 @@ Module.new do
       'すると、みっくみくにされます。'
   end
 
-  boot
+  on_reauthentication_dialog do |service|
+    token, secret = popup(service)
+    if token
+      UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
+      UserConfig[:twitter_token] = token
+      UserConfig[:twitter_secret] = secret end
+  end
+
+  MikuTwitter::AuthenticationFailedAction.regist &method(:popup)
+  settings 'アカウント情報' do
+    closeup attention = Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
+    closeup decide = Gtk::Button.new('変更')
+    attention.wrap = true
+    decide.signal_connect("clicked"){
+      Plugin.call(:reauthentication_dialog, Service.primary) }
+  end
+
 end
 
 #Plugin::Ring.push Addon::ChangeAccount.new,[:boot]
