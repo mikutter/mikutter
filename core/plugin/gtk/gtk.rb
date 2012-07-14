@@ -75,6 +75,9 @@ Plugin.create :gtk do
       false }
     pane.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane) }
+    pane.ssc(:destroy){
+      Plugin.call(:gui_destroy, i_pane)
+      false }
     pane.show_all
   end
 
@@ -97,6 +100,9 @@ Plugin.create :gtk do
         Plugin::GUI::Command.menu_pop(i_tab)
       end
     }
+    tab.ssc(:destroy){
+      Plugin.call(:gui_destroy, i_tab)
+      false }
     tab.show_all
     if @tabs_promise[i_tab.slug]
       @tabs_promise[i_tab.slug].call(tab)
@@ -110,9 +116,13 @@ Plugin.create :gtk do
     @timelines_by_slug[i_timeline.slug] = timeline
     timeline.tl.ssc(:focus_in_event) {
       i_timeline.active!
+      notice Plugin::GUI::Window.active.active_chain
       false }
     timeline.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline) }
+    timeline.ssc(:destroy){
+      Plugin.call(:gui_destroy, i_timeline)
+      false }
     timeline.show_all
   end
 
@@ -171,6 +181,9 @@ Plugin.create :gtk do
       false }
     postbox.post.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_postbox) }
+    postbox.post.ssc(:destroy){
+      Plugin.call(:gui_destroy, i_postbox)
+      false }
   end
 
   on_gui_tab_change_icon do |i_tab|
@@ -200,6 +213,12 @@ Plugin.create :gtk do
     postbox = widgetof(i_postbox)
     if postbox
       postbox.post_it end end
+
+  on_gui_destroy do |i_widget|
+    widget = widgetof(i_widget)
+    if widget and not widget.destroyed?
+      widget.parent.remove(widget)
+      widget.destroy end end
 
   # 互換性のため
   on_mui_tab_regist do |container, name, icon|
@@ -240,6 +259,12 @@ Plugin.create :gtk do
     next [i_timeline, message, text] if not range
     [i_timeline, message, message.entity.to_s[range]]
   end
+
+  filter_gui_destroyed do |i_widget|
+    if i_widget.is_a? Plugin::GUI::Widget
+      [widgetof(i_widget).destroyed?]
+    else
+      [i_widget] end end
 
   # タブ _tab_ に _widget_ を入れる
   # ==== Args

@@ -140,8 +140,10 @@ class Gdk::MiraclePainter < Gtk::Object
           l = message.links.segment_by_index(index)
           l[:callback].call(l) if l end end
     when 3
+      notice "pass"
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
-      Plugin::GUI::Command.menu_pop end end
+      Plugin::GUI::Command.menu_pop
+    end end
 
   def on_selected
     if not frozen?
