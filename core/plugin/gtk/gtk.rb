@@ -10,6 +10,8 @@ Plugin.create :gtk do
   @panes_by_slug = {}                    # slug => Gtk::NoteBook
   @tabs_by_slug = {}                     # slug => Gtk::EventBox
   @timelines_by_slug = {}                # slug => Gtk::TimeLine
+  @profiles_by_slug = {}                    # slug => Gtk::NoteBook
+  @profiletabs_by_slug = {}                     # slug => Gtk::EventBox
   @tabchildwidget_by_slug = {}           # slug => Gtk::TabChildWidget
   @postboxes_by_slug = {}                # slug => Gtk::Postbox
   @tabs_promise = {}                     # slug => Deferred
@@ -45,9 +47,8 @@ Plugin.create :gtk do
   # ペイン作成。
   # ペインはGtk::NoteBook
   on_pane_created do |i_pane|
-    notice "create pane #{i_pane.slug.inspect}"
-    pane = Gtk::Notebook.new.set_tab_pos(TABPOS[UserConfig[:tab_position]]).set_tab_border(0).set_group_id(0).set_scrollable(true)
-    @panes_by_slug[i_pane.slug] = pane
+    pane = create_pane(i_pane)
+    pane.set_tab_pos(TABPOS[UserConfig[:tab_position]]).set_tab_border(0).set_group_id(0).set_scrollable(true)
     tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
       notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) }
@@ -73,26 +74,40 @@ Plugin.create :gtk do
           # UserConfig[:tab_order] = books_labels
         end }
       false }
-    pane.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane) }
-    pane.ssc(:destroy){
-      Plugin.call(:gui_destroy, i_pane)
-      false }
-    pane.show_all
   end
 
   # タブ作成。
   # タブには実体が無いので、タブのアイコンのところをGtk::EventBoxにしておいて、それを実体ということにしておく
   on_tab_created do |i_tab|
+    tab = create_tab(i_tab)
+    if @tabs_promise[i_tab.slug]
+      @tabs_promise[i_tab.slug].call(tab)
+      @tabs_promise.delete(i_tab.slug) end end
+
+  on_profile_created do |i_profile|
+    create_pane(i_profile) end
+
+  on_profiletab_created do |i_profiletab|
+    create_tab(i_profiletab) end
+
+  # タブを作成する
+  # ==== Args
+  # [i_tab] タブ
+  # ==== Return
+  # Tab(Gtk::EventBox)
+  def create_tab(i_tab)
     notice "create tab #{i_tab.slug.inspect}"
     tab = Gtk::EventBox.new.tooltip(i_tab.name)
-    @tabs_by_slug[i_tab.slug] = tab
+    if i_tab.is_a? Plugin::GUI::Tab
+      @tabs_by_slug[i_tab.slug] = tab
+    elsif i_tab.is_a? Plugin::GUI::ProfileTab
+      @profiletabs_by_slug[i_tab.slug] = tab end
     tab_update_icon(i_tab)
     tab.ssc(:focus_in_event) {
       i_tab.active!
       false
     }
-    tab.ssc('key_press_event'){ |widget, event|
+    tab.ssc(:key_press_event){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
     tab.ssc(:button_press_event) { |this, e|
       notice "tab press: pass"
@@ -103,10 +118,7 @@ Plugin.create :gtk do
     tab.ssc(:destroy){
       Plugin.call(:gui_destroy, i_tab)
       false }
-    tab.show_all
-    if @tabs_promise[i_tab.slug]
-      @tabs_promise[i_tab.slug].call(tab)
-      @tabs_promise.delete(i_tab.slug) end end
+    tab.show_all end
 
   # タイムライン作成。
   # Gtk::TimeLine
@@ -165,12 +177,13 @@ Plugin.create :gtk do
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
-    widget_join_tab(i_tab, widgetof(i_timeline))
-  end
+    widget_join_tab(i_tab, widgetof(i_timeline)) end
+
+  on_gui_profile_join_tab do |i_profile, i_tab|
+    widget_join_tab(i_tab, widgetof(i_profile)) end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
-    widgetof(i_timeline).add(messages)
-  end
+    widgetof(i_timeline).add(messages) end
 
   on_gui_postbox_join_widget do |i_postbox|
     notice "create postbox #{i_postbox.slug.inspect}"
@@ -228,14 +241,16 @@ Plugin.create :gtk do
     @tabchildwidget_by_slug[i_container.slug] = container
     i_tab << i_container
     @tabs_promise[i_tab.slug] = (@tabs_promise[i_tab.slug] || Deferred.new).next{ |tab|
-      widget_join_tab(i_tab, container.show_all) }
-  end
+      widget_join_tab(i_tab, container.show_all) } end
 
   # Gtkオブジェクトをタブに入れる
   on_gui_nativewidget_join_tab do |i_tab, container|
     notice "nativewidget: #{container} => #{i_tab}"
-    widget_join_tab(i_tab, container.show_all)
-  end
+    widget_join_tab(i_tab, container.show_all) end
+
+  on_gui_nativewidget_join_profiletab do |i_profiletab, container|
+    notice "nativewidget: #{container} => #{i_profiletab}"
+    widget_join_tab(i_profiletab, container.show_all) end
 
   on_gui_window_rewindstatus do |i_window, text, expire|
     statusbar = @windows_by_slug[:default].statusbar
@@ -244,9 +259,7 @@ Plugin.create :gtk do
     if expire != 0
       Reserver.new(expire){
         if not statusbar.destroyed?
-          statusbar.remove(cid, mid) end }
-    end
-  end
+          statusbar.remove(cid, mid) end } end end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
@@ -271,21 +284,31 @@ Plugin.create :gtk do
     else
       [i_widget] end end
 
+  filter_gui_get_gtk_widget do |i_widget|
+    [widgetof(i_widget)] end
+
   # タブ _tab_ に _widget_ を入れる
   # ==== Args
   # [i_tab] タブ
   # [widget] Gtkウィジェット
   def widget_join_tab(i_tab, widget)
-    return false if not widgetof(i_tab)
+    return false if not(widgetof(i_tab))
     i_pane = i_tab.parent
     pane = widgetof(i_pane)
-    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
-    pane.insert_page_menu(index, widget, widgetof(i_tab))
-    pane.set_tab_reorderable(widget, true).set_tab_detachable(widget, true)
+    container_index = i_pane.children.find_index{ |child| child.slug == i_tab.slug }
+    if container_index
+      container = pane.get_nth_page(container_index)
+      if container
+        return container.pack_start(widget, i_tab.pack_rule.shift) end end
+      container = Gtk::VBox.new(false, 0).show_all
+      container.pack_start(widget, i_tab.pack_rule.shift)
+      index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
+      pane.insert_page_menu(index, container, widgetof(i_tab))
+      pane.set_tab_reorderable(widget, true).set_tab_detachable(widget, true)
     true end
 
   def tab_update_icon(i_tab)
-    type_strict i_tab => Plugin::GUI::Tab
+    type_strict i_tab => Plugin::GUI::TabLike
     tab = widgetof(i_tab)
     tab.remove(tab.child) if tab.child
     if i_tab.icon.is_a?(String)
@@ -304,6 +327,25 @@ Plugin.create :gtk do
       { size: size,
         position: [Gdk.screen_width - size[0], Gdk.screen_height/2 - size[1]/2] } end end
 
+  # ペインを作成
+  # ==== Args
+  # [i_pane] ペイン
+  # ==== Return
+  # ペイン(Gtk::Notebook)
+  def create_pane(i_pane)
+    notice "create pane #{i_pane.slug.inspect}"
+    pane = Gtk::Notebook.new
+    if i_pane.is_a? Plugin::GUI::Pane
+      @panes_by_slug[i_pane.slug] = pane
+    elsif i_pane.is_a? Plugin::GUI::Profile
+      @profiles_by_slug[i_pane.slug] = pane end
+    pane.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane) }
+    pane.ssc(:destroy){
+      Plugin.call(:gui_destroy, i_pane)
+      false }
+    pane.show_all end
+
   # _cuscadable_ に対応するGtkオブジェクトを返す
   # ==== Args
   # [cuscadable] ウィンドウ、ペイン、タブ、タイムライン等
@@ -317,6 +359,10 @@ Plugin.create :gtk do
                    @panes_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::Tab
                    @tabs_by_slug
+                 elsif cuscadable.is_a? Plugin::GUI::Profile
+                   @profiles_by_slug
+                 elsif cuscadable.is_a? Plugin::GUI::ProfileTab
+                   @profiletabs_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::Timeline
                    @timelines_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::TabChildWidget
@@ -337,6 +383,8 @@ Plugin.create :gtk do
      [@windows_by_slug, Plugin::GUI::Window],
      [@panes_by_slug, Plugin::GUI::Pane],
      [@tabs_by_slug, Plugin::GUI::Tab],
+     [@panes_by_slug, Plugin::GUI::Profile],
+     [@tabs_by_slug, Plugin::GUI::ProfileTab],
      [@timelines_by_slug, Plugin::GUI::Timeline],
      [@tabchildwidget_by_slug, Plugin::GUI::TabChildWidget],
      [@postboxes_by_slug, Plugin::GUI::Postbox] ].each{ |collection, klass|
