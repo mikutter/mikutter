@@ -231,6 +231,12 @@ Plugin.create :gtk do
       widget_join_tab(i_tab, container.show_all) }
   end
 
+  # Gtkオブジェクトをタブに入れる
+  on_gui_nativewidget_join_tab do |i_tab, container|
+    notice "nativewidget: #{container} => #{i_tab}"
+    widget_join_tab(i_tab, container.show_all)
+  end
+
   on_gui_window_rewindstatus do |i_window, text, expire|
     statusbar = @windows_by_slug[:default].statusbar
     cid = statusbar.get_context_id("system")
