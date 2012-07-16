@@ -23,10 +23,40 @@ Plugin.create :profile do
     # set_icon user[:profile_image_url]
     bio = Gtk::IntelligentTextview.new(user[:detail])
     bio.get_background = method(:background_color)
+    ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
     Gtk::VBox.new.
       closeup(bio).
-      closeup(relation_bar(user))
+      closeup(Gtk::Label.new("Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n").left).
+      closeup(relation_bar(user)).
+      closeup(mutebutton(user))
   end
+
+  def mutebutton(user)
+    changer = lambda{ |new, widget|
+      if new === nil
+        UserConfig[:muted_users] and UserConfig[:muted_users].include?(user.idname)
+      elsif new
+        add_muted_user(user)
+      else
+        remove_muted_user(user)
+      end
+    }
+    btn = Mtk::boolean(changer, 'ミュート')
+  end
+
+  def add_muted_user(user)
+    type_strict user => User
+    atomic{
+      muted = (UserConfig[:muted_users] ||= []).melt
+      muted << user.idname
+      UserConfig[:muted_users] = muted } end
+
+  def remove_muted_user(user)
+    type_strict user => User
+    atomic{
+      muted = (UserConfig[:muted_users] ||= []).melt
+      muted.delete(user.idname)
+      UserConfig[:muted_users] = muted } end
 
   # フォロー関係を表示する
   # ==== Args
@@ -125,7 +155,7 @@ Plugin.create :profile do
     Gtk::HBox.new(false, 16).closeup(Gtk::Label.new.set_markup("<b>#{Pango.escape(user[:idname])}</b>")).closeup(Gtk::Label.new(user[:name]))
   end
 
-  # プロフィールの上のoところの格子になってる奴をかえす
+  # プロフィールの上のところの格子になってる奴をかえす
   # ==== Args
   # [user] 表示するUser
   # ==== Return
@@ -141,11 +171,11 @@ Plugin.create :profile do
     }.terminate("ふぁぼが取得できませんでした").trap{
       w_faved.text = '-' }
     Gtk::Table.new(2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_tweets).closeup(Gtk::Label.new("tweets")), 0, 1, 0, 1).
-      attach(Gtk::HBox.new(false, 4).add(w_favs).closeup(Gtk::Label.new("favs")), 0, 1, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_faved).closeup(Gtk::Label.new("faved")), 1, 2, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_followings).closeup(Gtk::Label.new("followings")), 0, 1, 2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_followers).closeup(Gtk::Label.new("followers")), 1, 2, 2, 3).
+      attach(Gtk::HBox.new(false, 4).add(w_tweets).closeup(Gtk::Label.new("tweets").right), 0, 1, 0, 1).
+      attach(Gtk::HBox.new(false, 4).add(w_favs).closeup(Gtk::Label.new("favs").right), 0, 1, 1, 2).
+      attach(Gtk::HBox.new(false, 4).add(w_faved).closeup(Gtk::Label.new("faved").right), 1, 2, 1, 2).
+      attach(Gtk::HBox.new(false, 4).add(w_followings).closeup(Gtk::Label.new("followings").right), 0, 1, 2, 3).
+      attach(Gtk::HBox.new(false, 4).add(w_followers).closeup(Gtk::Label.new("followers").right), 1, 2, 2, 3).
       set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)
