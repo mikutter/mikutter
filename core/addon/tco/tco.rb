@@ -30,6 +30,7 @@ class TCo < MessageConverters
       else
         url.to_s end
     rescue Exception => e
+      warn e
       url.to_s
     end
   end
