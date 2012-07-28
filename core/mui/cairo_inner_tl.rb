@@ -10,7 +10,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   include UiThreadOnly
 
   attr_writer :force_retrieve_in_reply_to
-  attr_accessor :postbox, :correct_counter
+  attr_accessor :postbox, :collect_counter
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -31,7 +31,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def initialize(from = nil)
     super()
     @force_retrieve_in_reply_to = :auto
-    @correct_counter = 256
+    @collect_counter = 256
     @@current_tl ||= self
     @id_dict = {} # message_id: iter
     self.name = 'timeline'
@@ -115,6 +115,15 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       iter[column] = value
       value end end
 
+  # タイムラインの内容を全て削除する
+  # ==== Return
+  # self
+  def clear
+    deleted = @id_dict
+    @id_dict = {}
+    deleted.values.each{ |iter| iter[MIRACLE_PAINTER].destroy }
+    model.clear end
+
   # _path_ からレコードを取得する。なければnilを返す。
   def get_record(path)
     iter = model.get_iter(path)
@@ -146,8 +155,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     id = iter[MESSAGE_ID].to_i
     if not @id_dict.has_key?(id)
       @id_dict[id] = iter
+      iters = @id_dict
       iter[MIRACLE_PAINTER].signal_connect(:destroy) {
-        @id_dict.delete(id)
+        iters.delete(id)
         false } end
     self end
 

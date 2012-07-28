@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 # -*- coding: utf-8 -*-
 
 =begin rdoc
@@ -33,8 +34,17 @@ FileUtils.rm_rf File.join(DEST, 'core', 'plugin', 'gui.rb')
 FileUtils.rm_rf Dir.glob(File.join(DEST, 'core', 'addon', '*'))
 FileUtils.cp_r Dir.glob(File.join(BASE, 'chiskel', '*')), DEST
 
+LOAD_PLUGIN = File.join(DEST, 'core', 'boot', 'load_plugin.rb')
+File.open(LOAD_PLUGIN){|f|
+  f = f.read
+  File.open(LOAD_PLUGIN, 'w'){|w|
+    f.each_line{|l| w.puts(l.gsub(/miquire :addon, 'addon'/, ''))}
+  }  
+}
+
+
 Dir.chdir(File.join(DEST, 'core'))
-require 'config'
+require './config'
 Dir.chdir(BASE)
 
 open(File.join(DEST, "core/config.rb"), 'w'){ |out|
@@ -45,3 +55,4 @@ open(File.join(DEST, "core/config.rb"), 'w'){ |out|
                 "  #{name} = #{value.inspect}"
               },
               'end'].join("\n")) }
+

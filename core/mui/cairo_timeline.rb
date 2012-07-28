@@ -72,8 +72,8 @@ class Gtk::TimeLine
       Delayer.new {
         if !@tl.destroyed?
           window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
-          @tl.correct_counter -= 1 if not window_active
-          refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.correct_counter <= (window_active ? -HYDE : 0)
+          @tl.collect_counter -= 1 if not window_active
+          refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.collect_counter <= (window_active ? -HYDE : 0)
           refresh_timer end } } end
 
   def init_tl
@@ -128,7 +128,7 @@ class Gtk::TimeLine
 
   # TLのログを全て消去する
   def clear
-    @tl.model.clear
+    @tl.clear
     self end
 
   # 新しいものから順番にpackしていく。
@@ -231,7 +231,7 @@ class Gtk::TimeLine
           remove_count = size - timeline_max
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
-              @tl.correct_counter -= 1
+              @tl.collect_counter -= 1
               tl_model_remove(iter) } end end } } end
 
   # _iter_ を削除する。このメソッドを通さないと、Gdk::MiraclePainterに
