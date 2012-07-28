@@ -8,6 +8,7 @@ require 'uri'
 class MessageConverters
 
   class << self
+    ExpandExpire = Class.new(TimeoutError)
 
     attr_hash_accessor :expand_by_cache, :shrink_by_cache
 
@@ -103,7 +104,7 @@ class MessageConverters
       return expand_by_cache[url] if expand_by_cache[url]
       lock(url) do
         if recur < 4 and shrinked_url?(url)
-          expanded = timeout(5){ Plugin.filtering(:expand_url, url).first.freeze }
+          expanded = timeout(5, ExpandExpire){ Plugin.filtering(:expand_url, url).first.freeze }
           if(expanded == url)
             url
           else
@@ -112,7 +113,7 @@ class MessageConverters
             result end
         else
           url end end
-    rescue TimeoutError => e
+    rescue ExpandExpire => e
       notice "url expand failed: timeout #{url}"
       cache(url, url)
       url end
