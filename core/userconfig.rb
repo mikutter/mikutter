@@ -147,7 +147,7 @@ class UserConfig
                    nil end
           lambda{ proc.call(key, val, before_val, id) } if proc } end }
     if watchers.is_a? Enumerable
-      watchers.each{ |w| w.call } end
+      watchers.each{ |w| w.call if w } end
     UserConfig.instance.store(key, val)
   end
 
