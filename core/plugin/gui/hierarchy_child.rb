@@ -18,6 +18,7 @@ module Plugin::GUI::HierarchyChild
   # self
   def set_parent(parent)
     type_strict parent => @parent_class
+    @parent.remove(self) if @parent
     @parent = parent end
 
   def active_class_of(klass)

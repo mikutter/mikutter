@@ -56,4 +56,14 @@ module Plugin::GUI::Widget
     inspect
   end
 
+  # 自分以下の子を、{slug: {slug: ...}}形式の連想配列で返す
+  # ==== Return
+  # 親子関係の連想配列
+  def to_hash
+    if is_a? Plugin::GUI::HierarchyParent
+      result = {}
+      children.each{ |child|
+        result[child.slug] = child.to_hash }
+      result end end
+
 end
