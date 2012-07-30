@@ -37,6 +37,8 @@ class Reserver < Delegator
     @proc end
 
   class << self
+    WakeUp = Class.new(TimeoutError)
+
     def regist(new)
       atomic do
         (@recervers ||= SortedSet.new) << new
@@ -54,8 +56,8 @@ class Reserver < Delegator
                 @recervers.delete recerver
                 Thread.new(&recerver)
               else
-                timeout(1 + sleep_time / 2){ Thread.stop } end
-            rescue TimeoutError
+                timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
+            rescue WakeUp
               ;
             rescue Exception => e
               warn e end end end end end
