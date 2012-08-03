@@ -6,12 +6,7 @@ class Plugin
     Event = Struct.new(:event, :widget, :messages)
     class << self
       def ui_setting
-        {                           # windows
-          default: {                # panes
-            default: [ :home_timeline ] # tabs
-          }
-        }
-      end
+        UserConfig[:ui_tab_order] || {default: {default: []}} end
 
       # 設定されているタブの位置を返す
       # ==== Args
@@ -22,8 +17,7 @@ class Plugin
       def get_tab_order(find_slug)
         ui_setting.each{ |window_slug, panes|
           panes.each{ |pane_slug, tabs|
-            tabs.each_with_index{ |tab_slug, index|
-              return [window_slug, pane_slug, index] if tab_slug == find_slug } } }
+            return [window_slug, pane_slug, tabs] if tabs.include?(find_slug) } }
         nil end
 
       # キー _key_ がウィジェット _widget_ の上で押された時に呼び出す
