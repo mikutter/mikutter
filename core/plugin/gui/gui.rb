@@ -19,6 +19,7 @@ Plugin.create :gui do
     window << Plugin::GUI::Postbox.instance
     panes.each { |pane_slug, tabs|
       pane = Plugin::GUI::Pane.instance(pane_slug)
+      
       window << pane
     }
   }
