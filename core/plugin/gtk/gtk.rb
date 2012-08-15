@@ -63,11 +63,9 @@ Plugin.create :gtk do
       notice "on_pane_created: page_added: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent)
       i_tab = tabcontainer.i_tab
-      notice "on_pane_created: i_tab.parent:#{i_tab.parent.inspect} == i_pane:#{i_pane.inspect}"
       next false if i_tab.parent == i_pane
       notice "on_pane_created: reparent"
       i_pane << i_tab
-      notice "on_pane_created: i_tab.parent:#{i_tab.parent.inspect} == i_pane:#{i_pane.inspect}"
       false }
     # 子が無くなった時 : このpaneを削除
     pane.signal_connect(:page_removed){
@@ -77,7 +75,8 @@ Plugin.create :gtk do
           if pane.children.empty? and pane.parent
             UserConfig.disconnect(tab_position_hook_id)
             pane_order_delete(i_pane)
-            pane.parent.remove(pane) end end }
+            pane.parent.remove(pane)
+            window_order_save_request(i_pane.parent) end end }
       false }
   end
 
@@ -387,6 +386,7 @@ Plugin.create :gtk do
     notice "window_order_save_request: #{i_window.inspect}"
     Delayer.new do
       ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
+      panes_order = {}
       i_window.children.each{ |i_pane|
         if i_pane.is_a? Plugin::GUI::Pane
           tab_order = []
@@ -395,7 +395,8 @@ Plugin.create :gtk do
             i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
             tab_order << i_widget.slug if i_widget }
           ui_tab_order[i_window.slug] = (ui_tab_order[i_window.slug] || {}).melt
-          ui_tab_order[i_window.slug][i_pane.slug] = tab_order end }
+          panes_order[i_pane.slug] = tab_order end }
+      ui_tab_order[i_window.slug] = panes_order
       UserConfig[:ui_tab_order] = ui_tab_order
     end
   end
