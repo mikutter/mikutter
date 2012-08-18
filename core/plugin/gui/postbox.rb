@@ -64,5 +64,4 @@ class Plugin::GUI::Window
   include Plugin::GUI::Postbox::PostboxParent end
 
 class Plugin::GUI::Timeline
-  include Plugin::GUI::HierarchyParent
   include Plugin::GUI::Postbox::PostboxParent end

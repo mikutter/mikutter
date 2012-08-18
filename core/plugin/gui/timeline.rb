@@ -10,6 +10,7 @@ class Plugin::GUI::Timeline
 
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyChild
+  include Plugin::GUI::HierarchyParent
   include Plugin::GUI::Widget
 
   role :timeline
