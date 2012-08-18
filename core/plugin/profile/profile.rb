@@ -26,7 +26,7 @@ Plugin.create :profile do
       shrink
       nativewidget container
       expand
-      profile slug end
+      profile nil end
     Plugin.call(:profiletab, i_profile, user)
   end
 
