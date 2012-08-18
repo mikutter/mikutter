@@ -35,17 +35,21 @@ module Plugin::GUI::Widget
 
   end
 
-  # このウィジェットを破棄する
+  # ツールキット上で、このウィジェットを破棄する。
+  # 親からは自動的に切り離される。
   # ==== Return
   # self
   def destroy
-    Plugin.call(:gui_destroy, self)
+    Plugin.call(:gui_destroy, self) if not destroyed?
+    @destroy = true
     self end
 
-  # ウィジェットが削除されているかどうかを調べる
+  # ツールキット上で、ウィジェットが削除されているかどうかを調べる。
+  # 削除待ちの場合も真を返す。
   # ==== Return
   # 削除されているなら真
-  def destroyed?(args)
+  def destroyed?
+    return true if defined?(@destroy) and @destroy
     Plugin.filtering(:gui_destroyed, self).first end
 
   def inspect

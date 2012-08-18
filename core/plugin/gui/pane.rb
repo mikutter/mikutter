@@ -19,7 +19,7 @@ class Plugin::GUI::Pane
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
-    # Plugin::GUI::Window.add_default << self
+    @@default ||= self
     Plugin.call(:pane_created, self)
   end
 
@@ -29,8 +29,12 @@ class Plugin::GUI::Pane
     __set_parent_pane__(parent)
   end
 
+  def active!
+    @@default = self
+    super end
+
   def self.active
-    instance(:default, "デフォルト")
+    @@default ||= instance(:default, "デフォルト")
   end
 
 end
