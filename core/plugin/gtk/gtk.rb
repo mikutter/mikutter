@@ -30,7 +30,26 @@ Plugin.create :gtk do
     geometry = get_window_geometry(i_window.slug)
     window.set_default_size(*geometry[:size])
     window.move(*geometry[:position])
-    window.signal_connect("destroy"){
+    window.ssc(:event){ |window, event|
+      if event.is_a? Gdk::EventConfigure
+        geometry = (UserConfig[:windows_geometry]).melt
+        size = window.window.geometry[2,2]
+        position = window.position
+        modified = false
+        if defined?(geometry[i_window.slug]) and geometry[i_window.slug].is_a? Hash
+          geometry[i_window.slug] = geometry[i_window.slug].melt
+          if geometry[i_window.slug][:size] != size
+            modified = geometry[i_window.slug][:size] = size end
+          if geometry[i_window.slug][:position] != position
+            modified = geometry[i_window.slug][:position] = position end
+        else
+          modified = geometry[i_window.slug] = {
+            size: size,
+            position: position } end
+        if modified
+          UserConfig[:windows_geometry] = geometry end end
+      false }
+    window.ssc("destroy"){
       Delayer.freeze
       window.destroy
       Gtk::Object.main_quit
@@ -368,8 +387,8 @@ Plugin.create :gtk do
 
   def get_window_geometry(slug)
     type_strict slug => Symbol
-    geo = at(:windows_geometry, {})
-    if geo[slug]
+    geo = UserConfig[:windows_geometry]
+    if defined? geo[slug]
       geo[slug]
     else
       size = [Gdk.screen_width/3, Gdk.screen_height*4/5]
