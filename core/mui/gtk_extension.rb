@@ -10,6 +10,7 @@ class GLib::Instantiatable
   # signal_connectと同じだが、イベントが呼ばれるたびにselfが削除されたGLib Objectでない場合のみブロックを実行する点が異なる。
   # また、relatedの中に既に削除されたGLib objectがあれば、ブロックを実行せずにシグナルをselfから切り離す。
   def safety_signal_connect(signal, *related, &proc)
+    type_strict proc => :call
     related.each{ |gobj|
       raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
     if related
@@ -32,10 +33,14 @@ class GLib::Instantiatable
 
   private
   def __track(&proc)
+    type_strict proc => :call
+    trace = caller
     lambda{ |*args|
+      trash_size = caller.size
       begin
         proc.call(*args)
       rescue Exception => e
+        error "event hook crashed.\n" + trace.join("\n")
         Gtk.exception = e
         into_debug_mode(e, proc.binding)
         raise e end
@@ -169,6 +174,19 @@ class Gtk::Dialog
       res == Gtk::Dialog::RESPONSE_YES
     }
   end
+end
+
+class Gtk::Notebook
+  # ラベルウィジェットが何番目のタブかを返す
+  # ==== Args
+  # [label] ラベルウィジェット
+  # ==== Return
+  # インデックス(見つからない場合nil)
+  def get_tab_pos_by_tab(label)
+    n_pages.times { |page_num|
+      if(get_tab_label(get_nth_page(page_num)) == label)
+        return page_num end }
+    nil end
 end
 
 module Gtk

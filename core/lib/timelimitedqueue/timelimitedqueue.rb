@@ -12,6 +12,7 @@ require 'timeout'
 class TimeLimitedQueue < Queue
 
   TLQGroup = ThreadGroup.new
+  WaitingExpire = Class.new(TimeoutError)
 
   # 一度にキューを処理する上限を取得設定する
   attr_accessor :max
@@ -59,8 +60,8 @@ class TimeLimitedQueue < Queue
           if @stock.size > max
             throw :write end
           begin
-            timeout(expire){ @stock << (pop) }
-          rescue Timeout::Error
+            timeout(expire, WaitingExpire){ @stock << (pop) }
+          rescue WaitingExpire
             throw :write end } }
       callback if not @stock.empty?
       break if empty? end

@@ -26,8 +26,8 @@ module Gtk::TimeLineUtils
         Set.new end
 
       alias :old_new_Ak6FV :new
-      def new
-        result = old_new_Ak6FV
+      def new(*args)
+        result = old_new_Ak6FV(*args)
         @timelines = MIKU::Cons.new(result, @timelines || nil).freeze
         result end
 

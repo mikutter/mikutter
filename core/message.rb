@@ -8,6 +8,7 @@ miquire :core, 'messageconverters'
 
 require 'net/http'
 require 'delegate'
+require 'typed-array'
 
 =begin
 = Message
@@ -93,9 +94,13 @@ class Message < Retriever::Model
       self.service.destroy(self){|*a| yield *a if block_given? } if self.service end end
 
   # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
-  def favorite(fav)
+  def favorite(fav = true)
     if favoritable?
       self.service.favorite(self, fav) end end
+
+  # お気に入りから削除する
+  def unfavorite
+    favorite(false) end
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
@@ -259,9 +264,23 @@ class Message < Retriever::Model
   def ancestor(force_retrieve=false)
     ancestors(force_retrieve).last end
 
+  # このMessageが属する親子ツリーに属する全てのMessageを含むSetを返す
+  # ==== Args
+  # [force_retrieve] 外部サーバに問い合わせる場合真
+  # ==== Return
+  # 関係する全てのツイート(Set)
+  def around(force_retrieve = false)
+    ancestor(force_retrieve).children_all end
+
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
     @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_statuses end
+
+  # childrenを再帰的に遡り全てのMessageを返す
+  # ==== Return
+  # このMessageの子全てをSetにまとめたもの
+  def children_all
+    children.inject(Messages.new([self])){ |result, item| result.concat item.children_all } end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -440,6 +459,9 @@ class Message < Retriever::Model
 
   end
 
+end
+
+class Messages < TypedArray(Message)
 end
 
 miquire :core, 'entity'

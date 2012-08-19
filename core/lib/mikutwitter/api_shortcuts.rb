@@ -233,7 +233,8 @@ module MikuTwitter::APIShortcuts
     http.request(request){ |res|
       notice "response #{url} #{res.code} #{res}"
       if res.code == '200'
-        res.read_body(&chunk) end } end
+        res.read_body(&chunk)
+      end } end
 
   # APIの戻り値に、 next_cursor とかがついてて、二ページ目以降の取得がやたら面倒な
   # APIを、全部まとめて取得する。

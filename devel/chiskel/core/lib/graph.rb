@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 # graph
 # draw graph
 

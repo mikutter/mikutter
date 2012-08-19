@@ -66,8 +66,6 @@ module Gtk
       post_set_default_text(@post)
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
-      @post.signal_connect('key_press_event'){ |widget, event|
-        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       @post.ssc('key_release_event'){ |textview, event|
         refresh_buttons(false)
         false }
@@ -81,7 +79,9 @@ module Gtk
     def widget_remain
       return @remain if defined?(@remain)
       @remain = Gtk::Label.new('---')
-      Delayer.new{ @remain.set_text(remain_charcount.to_s) }
+      Delayer.new{
+        if not @remain.destroyed?
+          @remain.set_text(remain_charcount.to_s) end }
       widget_post.ssc('key_release_event'){ |textview, event|
         @remain.set_text(remain_charcount.to_s) }
       widget_post.ssc('paste-clipboard'){ |this|
@@ -146,6 +146,15 @@ module Gtk
             Delayer.new{ end_post }
           when :success
             Delayer.new{ destroy } end } end end
+
+    def destroy
+      @@ringlock.synchronize{
+        if not(destroyed?) and not(frozen?) and parent
+          parent.remove(self)
+          @@postboxes.delete(self)
+          super
+          on_delete
+          self.freeze end } end
 
     private
 
@@ -229,15 +238,6 @@ module Gtk
         destroy
         true end end
 
-    def destroy
-      @@ringlock.synchronize{
-        if not(destroyed?) and not(frozen?) and parent
-          parent.remove(self)
-          @@postboxes.delete(self)
-          super
-          on_delete
-          self.freeze end } end
-
     def on_delete
       if(block_given?)
         @on_delete = Proc.new
@@ -263,8 +263,9 @@ module Gtk
         true end end
 
     def remain_charcount
-      footer = if add_footer? then UserConfig[:footer].size else 0 end
-      140 - widget_post.buffer.text.size - footer end
+      if not widget_post.destroyed?
+        footer = if add_footer? then UserConfig[:footer].size else 0 end
+        140 - widget_post.buffer.text.size - footer end end
 
     def focus_out_event(widget, event=nil)
       Delayer.new(Delayer::NORMAL, @options){ |options|

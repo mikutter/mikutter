@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 =begin rdoc
 = mikutter - the moest twitter client
-Copyright (C) 2009-2010 Toshiaki Asai
+Copyright (C) 2009-2012 Toshiaki Asai
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 
@@ -37,6 +37,7 @@ Gtk.timeout_add(100){
     Delayer.run
   rescue => e
     delayer_exception = e
+    into_debug_mode(e)
     Gtk.main_quit
   end
   true }

@@ -193,15 +193,17 @@ def into_debug_mode(exception = nil, bind = binding)
     require_if_exist 'pry'
     if binding.respond_to?(:pry)
       log "error", exception if exception
-      begin
-        $into_debug_mode = Set.new
-        bind.pry
-      ensure
-        threads = $into_debug_mode
-        $into_debug_mode = false
-        threads.each &:wakeup end
+      $into_debug_mode_lock.synchronize {
+        begin
+          $into_debug_mode = Set.new
+          bind.pry
+        ensure
+          threads = $into_debug_mode
+          $into_debug_mode = false
+          threads.each &:wakeup end }
       return true end end end
 $into_debug_mode = false
+$into_debug_mode_lock = Monitor.new
 
 # 他のスレッドでinto_debug_modeが呼ばれているなら、それが終わるまでカレントスレッドをスリープさせる
 def debugging_wait
@@ -230,7 +232,7 @@ def type_check(args, &proc)
       val.__send__(*check)
     elsif check.is_a? Symbol
       val.respond_to?(check)
-    elsif check.is_a? Class
+    elsif check.is_a?(Class) or check.is_a?(Module)
       val.is_a?(check) end }
   error = args.find{ |a| not(check_function.call(*a)) }
   if(error)

@@ -10,7 +10,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   include UiThreadOnly
 
   attr_writer :force_retrieve_in_reply_to
-  attr_accessor :postbox, :hp
+  attr_accessor :postbox, :collect_counter, :imaginary
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -31,7 +31,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def initialize(from = nil)
     super()
     @force_retrieve_in_reply_to = :auto
-    @hp = 252
+    @collect_counter = 256
     @@current_tl ||= self
     @id_dict = {} # message_id: iter
     self.name = 'timeline'
@@ -67,15 +67,21 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def reply(message, options = {})
     ctl = Gtk::TimeLine::InnerTL.current_tl
+    pb = nil
     if(ctl)
       message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
       message = message[1] if(message.is_a?(Gtk::TreeIter))
       type_strict message => Message
-      postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+      pb = Gtk::PostBox.new(message, options).show_all
+      postbox.closeup(pb)
       pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
       ctl.selection.unselect_all end
-    self end
+    pb end
+
+  def add_postbox(i_postbox)
+    reply(i_postbox.poster || Service.primary, i_postbox.options)
+  end
 
   def get_active_messages
     get_active_iterators.map{ |iter| iter[1] } end
@@ -109,6 +115,15 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       iter[column] = value
       value end end
 
+  # タイムラインの内容を全て削除する
+  # ==== Return
+  # self
+  def clear
+    deleted = @id_dict
+    @id_dict = {}
+    deleted.values.each{ |iter| iter[MIRACLE_PAINTER].destroy }
+    model.clear end
+
   # _path_ からレコードを取得する。なければnilを返す。
   def get_record(path)
     iter = model.get_iter(path)
@@ -140,10 +155,17 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     id = iter[MESSAGE_ID].to_i
     if not @id_dict.has_key?(id)
       @id_dict[id] = iter
+      iters = @id_dict
       iter[MIRACLE_PAINTER].signal_connect(:destroy) {
-        @id_dict.delete(id)
+        iters.delete(id)
         false } end
     self end
+
+
+  # 別の InnerTL が自分をextend()した時に呼ばれる
+  def extended
+    if @destroy_child_miraclepainters and signal_handler_is_connected?(@destroy_child_miraclepainters)
+      signal_handler_disconnect(@destroy_child_miraclepainters) end end
 
   private
 
@@ -154,6 +176,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # self
   def extend(from)
     @force_retrieve_in_reply_to = from.instance_eval{ @force_retrieve_in_reply_to }
+    @imaginary = from.imaginary
+    from.extended
     from.model.each{ |from_model, from_path, from_iter|
       iter = model.append
       iter[MESSAGE_ID] = from_iter[MESSAGE_ID]
@@ -165,9 +189,15 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   end
 
   def set_events
+    @destroy_child_miraclepainters = signal_connect(:destroy) {
+      notice "destroy child miracle painters"
+      model.each{ |m, p, iter|
+        iter[MIRACLE_PAINTER].destroy }
+    }
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
+      
       false } end
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
