@@ -45,9 +45,10 @@ class Gtk::TimeLine
     else
       [] end end
 
-  def initialize
-    super
+  def initialize(imaginary)
+    super()
     @tl = InnerTL.new
+    @tl.imaginary = imaginary
     closeup(postbox).pack_start(init_tl)
     refresh_timer
   end

@@ -140,7 +140,6 @@ class Gdk::MiraclePainter < Gtk::Object
           l = message.links.segment_by_index(index)
           l[:callback].call(l) if l and l[:callback] end end
     when 3
-      notice "pass"
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       Plugin::GUI::Command.menu_pop
     end end
@@ -186,10 +185,10 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   def iob_reply_clicked
-    @tree.reply(message) end
+    @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    @tree.reply(message, :retweet => true)
+    @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked
