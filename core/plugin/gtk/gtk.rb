@@ -32,7 +32,7 @@ Plugin.create :gtk do
     window.move(*geometry[:position])
     window.ssc(:event){ |window, event|
       if event.is_a? Gdk::EventConfigure
-        geometry = (UserConfig[:windows_geometry]).melt
+        geometry = (UserConfig[:windows_geometry] || {}).melt
         size = window.window.geometry[2,2]
         position = window.position
         modified = false
