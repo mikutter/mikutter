@@ -16,17 +16,12 @@ class Plugin::GUI::ProfileTab
 
   role :profiletab
 
+  set_parent_event :gui_profiletab_join_profile
+
   attr_reader :user
 
   def initialize(slug, name)
     super
     Plugin.call(:profiletab_created, self)
   end
-
-  alias __set_parent_profiletab__ set_parent
-  def set_parent(pane)
-    Plugin.call(:gui_profiletab_join_profile, self, pane)
-    __set_parent_profiletab__(pane)
-  end
-
 end

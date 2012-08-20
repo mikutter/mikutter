@@ -16,17 +16,13 @@ class Plugin::GUI::Pane
 
   role :pane
 
+  set_parent_event :gui_pane_join_window
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
     @@default ||= self
     Plugin.call(:pane_created, self)
-  end
-
-  alias __set_parent_pane__ set_parent
-  def set_parent(parent)
-    Plugin.call(:gui_pane_join_window, self, parent)
-    __set_parent_pane__(parent)
   end
 
   def active!

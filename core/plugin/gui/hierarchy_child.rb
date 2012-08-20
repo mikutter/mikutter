@@ -21,6 +21,8 @@ module Plugin::GUI::HierarchyChild
     return self if @parent == parent
     @parent.remove(self) if @parent
     @parent = parent
+    if self.class.set_parent_event
+      Plugin.call(self.class.set_parent_event, self, parent) end
     self end
 
   def active_class_of(klass)
@@ -49,6 +51,13 @@ module Plugin::GUI::HierarchyChild
   module Extended
     attr_reader :parent_class
 
+    # set_parentが呼ばれた時に発生させるイベントを設定する
+    def set_parent_event(event = nil)
+      if event
+        @set_parent_event = event
+      else
+        @set_parent_event end end
+
     # 親クラスを設定する。親にはこのクラスのインスタンス以外認めない
     # ==== Args
     # [klass] 親クラス
@@ -68,6 +77,8 @@ module Plugin::GUI::HierarchyChild
     def active
       widget = ancestor.active
       widget.active_class_of(self) if widget end
+
   end
 
 end
+

@@ -16,16 +16,11 @@ class Plugin::GUI::Profile
 
   role :profile
 
+  set_parent_event :gui_profile_join_tab
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
     Plugin.call(:profile_created, self)
   end
-
-  alias __set_parent_pane__ set_parent
-  def set_parent(parent)
-    Plugin.call(:gui_profile_join_tab, self, parent)
-    __set_parent_pane__(parent)
-  end
-
 end
