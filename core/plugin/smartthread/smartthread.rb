@@ -35,6 +35,7 @@ Plugin.create :smartthread do
       timeline slug end
     @timelines[slug] = opt.messages.map(&:ancestor).uniq
     timeline(slug) << opt.messages.map(&:around).flatten
+    timeline(slug).active!
   }
 
   onappear do |messages|
