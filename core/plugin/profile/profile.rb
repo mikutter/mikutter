@@ -103,7 +103,8 @@ Plugin.create :profile do
   # ==== Return
   # リレーションバーのウィジェット(Gtk::VBox)
   def relation_bar(user)
-    icon_size = Gdk::Rectangle.new(0, 0, 16, 16)
+    icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
+    arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = Gtk::VBox.new(false, 4)
     Service.all.each{ |me|
       following = followed = nil
@@ -119,7 +120,7 @@ Plugin.create :profile do
           following = new
           if not w_eventbox_image_following.children.empty?
             w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
-          w_eventbox_image_following.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), icon_size).show_all)
+          w_eventbox_image_following.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
           w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
           followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
       # フォローされている状態の更新
@@ -128,17 +129,18 @@ Plugin.create :profile do
           followed = new
           if not w_eventbox_image_followed.children.empty?
             w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
-          w_eventbox_image_followed.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), icon_size).show_all)
+          w_eventbox_image_followed.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
           w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
 
-      container.closeup(Gtk::HBox.new(false, icon_size.width).
+      container.closeup(Gtk::HBox.new(false, icon_size.width/2).
                         closeup(Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size)).
-                        closeup(Gtk::HBox.new.
-                                closeup(w_eventbox_image_following).
-                                closeup(w_following_label)).
-                        closeup(Gtk::HBox.new.
+                        closeup(Gtk::VBox.new.
+                                closeup(Gtk::HBox.new.
+                                        closeup(w_eventbox_image_following).
+                                        closeup(w_following_label)).
+                                closeup(Gtk::HBox.new.
                                 closeup(w_eventbox_image_followed).
-                                closeup(w_followed_label)).
+                                closeup(w_followed_label))).
                         closeup(Gtk::WebIcon.new(user[:profile_image_url], icon_size)).
                         closeup(followbutton))
       Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
