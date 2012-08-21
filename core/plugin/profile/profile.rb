@@ -4,7 +4,7 @@ Plugin.create :profile do
   UserConfig[:profile_show_tweet_once] ||= 20
   @counter = gen_counter
   plugin = self
-  timeline_storage = {}                # {slug: {timeline, user}}
+  timeline_storage = {}                # {slug: user}
 
   Message::Entity.addlinkrule(:user_mentions, /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )[a-zA-Z0-9_]+/){ |segment|
     idname = segment[:url].match(/^(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )?(.+)$/)[1]
@@ -29,6 +29,7 @@ Plugin.create :profile do
       profile nil end
     Plugin.call(:profiletab, i_profile, user)
     i_profile.active!
+    Plugin.call(:filter_stream_reconnect_request)
   end
 
   profiletab :usertimeline, "最近のツイート" do
@@ -37,7 +38,7 @@ Plugin.create :profile do
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
-    timeline_storage[i_timeline.slug] = {timeline: i_timeline, user: user}.freeze end
+    timeline_storage[i_timeline.slug] = user end
 
   profiletab :aboutuser, "ユーザについて" do
     set_icon user[:profile_image_url]
@@ -51,9 +52,12 @@ Plugin.create :profile do
     nativewidget container.show_all end
 
   on_appear do |messages|
-    timeline_storage.dup.deach{ |tl|
+    timeline_storage.dup.deach{ |slug, user|
       messages.each{ |message|
-        tl.timeline << message if message.user == tl.user } } end
+        timeline(slug) << message if message.user == user } } end
+
+  filter_filter_stream_follow do |users|
+    [users.merge(timeline_storage.values)] end
 
   on_gui_destroy do |widget|
     if widget.is_a? Plugin::GUI::Timeline

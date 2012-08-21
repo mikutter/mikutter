@@ -5,6 +5,7 @@ require 'set'
 Plugin.create :streaming do
   thread = nil
   @fail_count = @wait_time = 0
+  reconnect_request_flag = false
 
   Delayer.new {
     thread = start if UserConfig[:filter_realtime_rewind]
@@ -21,6 +22,13 @@ Plugin.create :streaming do
     if UserConfig[:filter_realtime_rewind]
       thread.kill rescue nil if thread
       thread = start end end
+
+  on_filter_stream_reconnect_request do
+    if not reconnect_request_flag
+      reconnect_request_flag = true
+      Reserver.new(30) {
+        reconnect_request_flag = false
+        Plugin.call(:filter_stream_force_retry) } end end
 
   def start
     service = Service.primary
