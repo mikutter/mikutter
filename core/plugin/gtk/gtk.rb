@@ -65,6 +65,11 @@ Plugin.create :gtk do
     window.show_all
   end
 
+  on_gui_window_change_icon do |i_window, icon|
+    window = widgetof(i_window)
+    if window
+      window.icon = Gdk::Pixbuf.new(icon, 256, 256) end end
+
   # ペイン作成。
   # ペインはGtk::NoteBook
   on_pane_created do |i_pane|
