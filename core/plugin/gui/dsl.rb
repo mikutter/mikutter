@@ -40,8 +40,11 @@ class Plugin
   # [&proc] メインの定義部分
   # ==== Return
   # procの戻り値
-  def tab(slug, name, &proc)
-    Plugin::GUI::Tab.instance(slug, name).instance_eval(&proc) end
+  def tab(slug, name=nil, &proc)
+    if proc
+      Plugin::GUI::Tab.instance(slug, name).instance_eval(&proc)
+    else
+      Plugin::GUI::Tab.instance(slug) end end
 
   # _slug_ に対応するタイムラインを返す
   # ==== Args

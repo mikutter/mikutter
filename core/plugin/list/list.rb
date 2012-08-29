@@ -32,20 +32,16 @@ Plugin.create :list do
 
   # 設定のGtkウィジェット
   def setting_container
-    container = Gtk::ListList.new
-    container.updated{ |iter|
-      notice [iter[0], iter[2]]
-      list_set_visibility!(iter[2], iter[0]) }
-    container.signal_connect('button_release_event'){ |widget, event|
-      if (event.button == 3)
-        menu_pop(container)
-        true end }
-    notice "available_list: #{available_lists.map{|x|x[:full_name]}}"
+    container = Tab.new
+    container.plugin = self
     available_lists.each{ |list|
       iter = container.model.append
-      iter[0] = list_visible?(list)
-      iter[1] = list[:full_name]
-      iter[2] = list }
+      iter[Tab::VISIBILITY] = list_visible?(list)
+      iter[Tab::SLUG] = list[:full_name]
+      iter[Tab::LIST] = list
+      iter[Tab::NAME] = list[:name]
+      iter[Tab::DESCRIPTION] = list[:description]
+      iter[Tab::PUBLICITY] = list[:public] }
     container.show_all end
 
   # _service_ が作成した全てのリストを取得する
@@ -211,7 +207,69 @@ Plugin.create :list do
       tab(slug).destroy end
     self end
 
-  fetch_list_of_service(Service.primary, true)
+  fetch_list_of_service(Service.primary, :keep)
 
   class IDs < TypedArray(Integer); end
+
+  class Tab < Gtk::ListList
+    attr_accessor :plugin
+
+    VISIBILITY = 0
+    SLUG = 1
+    LIST = 2
+    NAME = 3
+    DESCRIPTION = 4
+    PUBLICITY = 5
+
+    def initialize
+      super
+      dialog_title = "リスト"
+      signal_connect(:button_release_event){ |widget, event|
+        if (event.button == 3)
+          # menu_pop()
+          true end }
+    end
+
+    def column_schemer
+      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
+       {:kind => :text, :type => String, :label => 'リスト名'},
+       {:type => UserList},
+       {:type => String, :widget => :input, :label => 'リストの名前'},
+       {:type => String, :widget => :input, :label => 'リスト説明'},
+       {:type => TrueClass, :widget => :boolean, :label => '公開'},
+      ].freeze
+    end
+
+    def on_created(iter)
+      iter[SLUG] = "@#{Service.primary.user}/#{iter[NAME]}"
+      Service.primary.add_list(user: Service.primary.user_obj,
+                               mode: iter[PUBLICITY],
+                               name: iter[NAME],
+                               description: iter[DESCRIPTION]){ |event, list|
+        if not(destroyed?) and event == :success and list
+          iter[LIST] = list
+          iter[SLUG] = list[:full_name]
+          list_set_visibility!(list, iter[VISIBILITY]) end } end
+
+    def on_updated(iter)
+      list = iter[LIST]
+      if list
+        plugin.list_set_visibility!(list, iter[VISIBILITY])
+        if list[:name] != iter[NAME] || list[:description] != iter[DESCRIPTION] || list[:public] != iter[PUBLICITY]
+          Service.primary.update_list(id: list[:id],
+                               name: iter[NAME],
+                               description: iter[DESCRIPTION],
+                               mode: iter[PUBLICITY]){ |event, list|
+            if not(destroyed?) and event == :success and list
+              iter[SLUG] = list[:full_name] end } end end end
+
+    def on_deleted(iter)
+      list = iter[LIST]
+      if list
+        Service.primary.delete_list(list_id: list[:id]){ |event, list|
+          if event == :success
+            notice :success
+            model.remove(iter) end } end end
+
+  end
 end

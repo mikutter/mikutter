@@ -6,7 +6,7 @@ miquire :mui, 'contextmenu'
 
 # CRUDなリストビューを簡単に実現するためのクラス
 class Gtk::CRUD < Gtk::TreeView
-  attr_accessor :creatable, :updatable, :deletable
+  attr_accessor :creatable, :updatable, :deletable, :dialog_title
   type_register
 
   def initialize
@@ -49,7 +49,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def set_columns
     column_schemer.each_with_index{ |scheme, index|
-      if(scheme[:label])
+      if(scheme[:label] and scheme[:kind])
         col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
         col.resizable = scheme[:resizable]
         append_column(col)
@@ -135,7 +135,7 @@ class Gtk::CRUD < Gtk::TreeView
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
     input = gen_popup_window_widget(defaults)
-    Mtk.dialog('リストを作成', input[:widget], self, &input[:result]) end
+    Mtk.dialog(dialog_title || "", input[:widget], self, &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new
