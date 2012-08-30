@@ -28,7 +28,6 @@ Plugin.create :profile do
       expand
       profile nil end
     Plugin.call(:profiletab, i_profile, user)
-    i_profile.active!
     Plugin.call(:filter_stream_reconnect_request)
   end
 
@@ -38,7 +37,8 @@ Plugin.create :profile do
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
-    timeline_storage[i_timeline.slug] = user end
+    timeline_storage[i_timeline.slug] = user
+    i_timeline.active! end
 
   profiletab :aboutuser, "ユーザについて" do
     set_icon user[:profile_image_url]

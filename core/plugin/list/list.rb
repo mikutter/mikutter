@@ -10,7 +10,7 @@ Plugin.create :list do
     pack_start(this.setting_container, true)
   end
 
-  profiletab :profile_list, "リスト" do
+  profiletab :list, "リスト" do
     set_icon MUI::Skin.get("list.png")
     bio = Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
