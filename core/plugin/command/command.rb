@@ -169,6 +169,22 @@ Plugin.create :command do
     focus_move_widget(opt.widget, -1)
   end
 
+  command(:focus_right_pane,
+          name: '右のペインを選択',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :pane) do |opt|
+    focus_move_widget(opt.widget, -1)
+  end
+
+  command(:focus_left_pane,
+          name: '左のペインを選択',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :pane) do |opt|
+    focus_move_widget(opt.widget, 1)
+  end
+
   def focus_move_widget(widget, distance)
     type_strict widget => Plugin::GUI::HierarchyParent
     type_strict widget => Plugin::GUI::HierarchyChild

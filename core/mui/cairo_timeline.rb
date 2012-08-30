@@ -178,6 +178,11 @@ class Gtk::TimeLine
   def size
     @tl.model.to_enum(:each).inject(0){ |i, r| i + 1 } end
 
+  # このタイムラインをアクティブにする
+  def active
+    get_ancestor(Gtk::Window).set_focus(@tl)
+  end
+
   # このTLが既に削除されているなら真
   def destroyed?
     @tl.destroyed? or @tl.model.destroyed? end
