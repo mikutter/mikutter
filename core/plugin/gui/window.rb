@@ -23,7 +23,7 @@ class Plugin::GUI::Window
   end
 
   # self がアクティブになったことを報告する
-  def active!
+  def active!(just_this=true)
     @@active = self
   end
 

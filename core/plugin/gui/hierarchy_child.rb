@@ -42,10 +42,12 @@ module Plugin::GUI::HierarchyChild
       @parent end end
 
   # 親を再帰的に辿り、selfをアクティブに設定する
+  # ==== Args
+  # [just_this] 再帰的に呼び出されたのではなく、直接これをアクティブに指定されたなら真
   # ==== Return
   # self
-  def active!
-    @parent.set_active_child(self).active!
+  def active!(just_this=true)
+    @parent.set_active_child(self).active!(false)
     self end
 
   module Extended

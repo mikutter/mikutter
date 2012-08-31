@@ -81,7 +81,7 @@ Plugin.create :shortcutkey do
       if behavior[:key] == key
         cmd = commands[behavior[:slug]]
         if cmd and widget.class.find_role_ancestor(cmd[:role])
-          if cmd[:condition] === event
+          if (:timeline == cmd[:role] ? !event.messages.empty? : true) and cmd[:condition] === event
             notice "command executed :#{behavior[:slug]}"
             executed = true
             cmd[:exec].call(event) end end end }
