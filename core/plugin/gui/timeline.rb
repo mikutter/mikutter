@@ -17,7 +17,7 @@ class Plugin::GUI::Timeline
 
   set_parent_event :gui_timeline_join_tab
 
-  def initialize(slug, name)
+  def initialize(*args)
     super
     Plugin.call(:timeline_created, self)
   end

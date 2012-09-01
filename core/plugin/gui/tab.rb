@@ -21,7 +21,7 @@ class Plugin::GUI::Tab
   set_parent_event :gui_tab_join_pane
 
   # instanceから呼ばれる。勝手に作成しないこと
-  def initialize(slug, name)
+  def initialize(*args)
     super
     position = Plugin::GUI.get_tab_order(slug)
     if position

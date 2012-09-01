@@ -19,7 +19,7 @@ class Plugin::GUI::Pane
   set_parent_event :gui_pane_join_window
 
   # instanceから呼ばれる。勝手に作成しないこと
-  def initialize(slug, name)
+  def initialize(*args)
     super
     @@default ||= self
     Plugin.call(:pane_created, self)
