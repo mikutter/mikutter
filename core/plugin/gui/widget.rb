@@ -31,8 +31,6 @@ module Plugin::GUI::Widget
         self
       elsif respond_to? :parent_class and parent_class
         parent_class.find_role_ancestor(find) end end
-
-
   end
 
   # ツールキット上で、このウィジェットを破棄する。
@@ -41,6 +39,7 @@ module Plugin::GUI::Widget
   # self
   def destroy
     Plugin.call(:gui_destroy, self) if not destroyed?
+    self.class.cuscaded.delete(slug)
     @destroy = true
     if @unload_hook and self.plugin
       plugin = Plugin.instance(self.plugin)

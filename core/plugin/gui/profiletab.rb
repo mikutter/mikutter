@@ -21,7 +21,7 @@ class Plugin::GUI::ProfileTab
   attr_reader :user
   attr_accessor :profile_slug
 
-  def initialize(slug, name)
+  def initialize(*args)
     super
     Plugin.call(:profiletab_created, self)
   end

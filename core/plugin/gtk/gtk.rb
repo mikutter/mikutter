@@ -258,6 +258,11 @@ Plugin.create :gtk do
     if widget
       Gtk::ContextMenu.new(*contextmenu).popup(widget, event) end end
 
+  on_gui_timeline_clear do |i_timeline|
+    timeline = widgetof(i_timeline)
+    if timeline
+      timeline.clear end end
+
   on_gui_timeline_move_cursor_to do |i_timeline, message|
     tl = widgetof(i_timeline)
     if tl
