@@ -267,6 +267,7 @@ Plugin.create :gtk do
     tl = widgetof(i_timeline)
     if tl
       path, column = tl.cursor
+      notice "path: #{path}, column: #{column}"
       if path and column
         case message
         when :prev

@@ -9,7 +9,7 @@ module Plugin::GUI
         labels = []
         contextmenu = []
         timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
-        event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
+        event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : [])
         notice "command widget: #{widget} #{timeline}"
         Plugin.filtering(:command, Hash.new).first.values.each{ |record|
           if(record[:visible] and widget.class.find_role_ancestor(record[:role]))
