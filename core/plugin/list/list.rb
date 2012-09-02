@@ -217,7 +217,7 @@ Plugin.create :list do
     return self if timelines.has_key? slug
     timelines[slug] = list
     tab(slug, list[:full_name]) do
-      #set_icon
+      set_icon MUI::Skin.get("list.png")
       timeline slug end
     list_modify_member(list, true)
     self end
