@@ -34,6 +34,10 @@ class Plugin::GUI::Timeline
   def clear
     Plugin.call(:gui_timeline_clear, self) end
 
+  # タイムラインの一番上にスクロール
+  def scroll_to_top
+    Plugin.call(:gui_timeline_scroll_to_top, self) end
+
   # このタイムラインをアクティブにする。また、子のPostboxは非アクティブにする
   # ==== Return
   # self

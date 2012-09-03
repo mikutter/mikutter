@@ -96,8 +96,9 @@ module ::Plugin::Streaming
       when json['direct_message']
         event_direct_message(json['direct_message'])
       when json['delete']
-        if Mopt.debug
-          Plugin.activity :system, YAML.dump(json) end
+        # if Mopt.debug
+        #   Plugin.activity :system, YAML.dump(json)
+        # end
       when !json.has_key?('event')
         event_update(json)
       when Mopt.debug
