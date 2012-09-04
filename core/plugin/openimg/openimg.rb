@@ -109,16 +109,16 @@ Plugin.create :openimg do
     notice 'not matched'
     nil end
 
-  def imgurlresolver(url, element_rule, &block)
-    if block != nil
-      return block.call(url)
-    end
+  def imgurlresolver(url, element_rule, limit=5, &block)
+    return nil if limit <= 0
+    return block.call(url) if block != nil
     res = dom = nil
     begin
       uri = URI.parse(url)
       path = uri.path + (uri.query ? "?"+uri.query : "")
       res = Net::HTTP.new(uri.host).get(path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
-      if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
+      case(res)
+      when Net::HTTPSuccess
         address = get_tagattr(res.body, element_rule)
         case address
         when /^https?:/
@@ -138,6 +138,8 @@ Plugin.create :openimg do
         end
         notice result.inspect
         result.to_s
+      when Net::HTTPRedirection
+        return imgurlresolver(res['Location'], element_rule, limit - 1, &block)
       else
         warn "#{res.code} failed"
         nil end
