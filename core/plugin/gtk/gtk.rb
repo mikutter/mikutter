@@ -276,13 +276,16 @@ Plugin.create :gtk do
       notice "path: #{path}, column: #{column}"
       if path and column
         case message
-        when :first
         when :prev
           path.prev!
           tl.set_cursor(path, column, false)
         when :next
           path.next!
-          tl.set_cursor(path, column, false) end end end end
+          tl.set_cursor(path, column, false)
+        else
+          if message.is_a? Integer
+            path, = *tl.get_path(0, message)
+              tl.set_cursor(path, column, false) if path end end end end end
 
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
@@ -364,6 +367,16 @@ Plugin.create :gtk do
       [i_postbox, postbox && postbox.post.editable?]
     else
       [i_postbox, editable] end end
+
+  filter_gui_timeline_cursor_position do |i_timeline, y|
+    timeline = widgetof(i_timeline)
+    if timeline
+      path, column = *timeline.cursor
+      if path
+        rect = timeline.get_cell_area(path, column)
+        next [i_timeline, rect.y + (rect.height / 2).to_i] end
+    end
+    [i_timeline, y] end
 
   filter_gui_timeline_selected_messages do |i_timeline, messages|
     timeline = widgetof(i_timeline)
