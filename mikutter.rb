@@ -12,7 +12,12 @@ You should have received a copy of the GNU General Public License along with thi
 
 =end
 
-Dir.chdir(File.join(File.dirname($0), 'core'))
+if File.symlink?($0)
+  Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
+else
+  Dir.chdir(File.join(File.dirname($0), 'core'))
+end
+
 Thread.abort_on_exception = true
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
 
