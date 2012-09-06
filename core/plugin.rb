@@ -357,13 +357,13 @@ class Plugin
         hash[key] = Hash.new{ |hash, key|
           hash[key] = [] } }
       @@event.each_pair{ |event, pair|
-        result[pair[0]][event] << proc }
+        result[pair[0]][event] << pair[1] }
       result
     end
 
     # 登録済みプラグイン名を一次元配列で返す
     def plugin_list
-      Plugin.plugins end
+      @@event.map{ |event, pair| pair[0] }.uniq end
 
     # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
     # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
@@ -380,16 +380,39 @@ class Plugin
 
     alias :newSAyTof :new
     def new(name)
+      type_strict name => Symbol
       plugin = @@plugins.find{ |p| p.name == name }
-      if plugin
-        plugin
-      else
+      if not plugin
         plugin = newSAyTof(name) end
       if block_given?
         catch(:plugin_define_exit) {
           plugin.instance_eval(&Proc.new) } end
+      if defined?(@load_hook[name]) and @load_hook[name]
+        notice "load hook for #{name} found. execute."
+        @load_hook[name].each &:call
+        @load_hook.delete(name) end
       plugin end
     alias :create :new
+
+    def load_file(file, spec)
+      type_strict file => String, spec => Hash
+      still_not_load = lazy{ (spec[:depends] - plugin_list).map(&:to_sym) }
+      if spec[:depends] and not still_not_load.empty?
+        still_not_load.each{ |depend|
+          Plugin.load_hook(depend){
+            still_not_load.delete(depend)
+            if still_not_load.empty?
+              Plugin.create(spec[:slug].to_sym){ @spec = spec }
+              require file end } }
+      else
+        Plugin.create(spec[:slug].to_sym){ @spec = spec }
+        require file end end
+
+    def load_hook(slug, &callback)
+      type_strict slug => Symbol, callback => Proc
+      @load_hook ||= {}
+      @load_hook[slug] ||= []
+      @load_hook[slug] << callback end
 
     # すでに有るプラグインを名前から探して返す。 Plugin.create とちがってない場合は作成せずにnilを返す
     # ==== Args
@@ -405,7 +428,7 @@ class Plugin
 
   @@plugins = [] # plugin
 
-  attr_reader :name
+  attr_reader :name, :spec
 
   def initialize(name = :anonymous)
     @name = name
