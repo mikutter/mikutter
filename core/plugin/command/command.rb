@@ -226,7 +226,6 @@ Plugin.create :command do
       term = term.active_chain.last if term.respond_to? :active_chain
       term.active! if term
       notice "activate #{term} #{widget.class} #{term.class}"
-      notice "check #{widget.active_child} #{term.active_child}"
       src_tl = widget.active_chain.last
       if widget.is_a?(Plugin::GUI::Pane) and src_tl and term
         notice "pass"
