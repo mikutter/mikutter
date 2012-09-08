@@ -58,10 +58,16 @@ module Plugin::GUI::HierarchyParent
   def children
     @children ||= [] end
 
-  def set_active_child(child)
+  # 子 _child_ をアクティブに設定する
+  # ==== Args
+  # [child] アクティブにする子
+  # [by_toolkit] UIツールキットの入力でアクティブになった場合真
+  # ==== Return
+  # self
+  def set_active_child(child, by_toolkit=false)
     type_strict child => tcor(Plugin::GUI::HierarchyChild, NilClass)
     @active_child = child
-    Plugin.call(:gui_child_activated, self, child) if child
+    Plugin.call(:gui_child_activated, self, child, by_toolkit) if child
     notice "active child set #{self.inspect} => #{child.inspect}"
     self end
 
