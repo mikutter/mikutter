@@ -15,7 +15,7 @@ class Gtk::MikutterWindow < Gtk::Window
   end
 
   def add_postbox(i_postbox)
-    postbox = Gtk::PostBox.new(i_postbox.poster || Service.primary, (i_postbox.options||{}).merge(:postboxstorage => @postboxes, :delegate_other => true))
+    postbox = Gtk::PostBox.new(i_postbox.poster || Service.primary, {postboxstorage: @postboxes, delegate_other: true}.merge(i_postbox.options||{}))
     @postboxes.pack_start(postbox)
     set_focus(postbox.post)
     postbox.show_all end
