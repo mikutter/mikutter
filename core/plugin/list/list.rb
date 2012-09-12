@@ -135,6 +135,9 @@ Plugin.create :list do
     visible_lists = at(:visible_lists, [])
     if visible_lists.include?(list[:id])
       store(:visible_lists, visible_lists - [list[:id]]) end
+    visible_list_obj = at(:visible_list_obj, {}).melt
+    visible_list_obj.delete(list[:id])
+    store(:visible_list_obj, visible_list_obj)
     self end
 
   # _list_ の表示可否状態を _visibility_ にして、実際に表示/非表示を切り替える
@@ -220,6 +223,10 @@ Plugin.create :list do
       set_icon MUI::Skin.get("list.png")
       timeline slug end
     list_modify_member(list, true)
+    visible_list_obj = at(:visible_list_obj, {}).melt
+    visible_list_obj[list[:id]] = list.to_hash
+    visible_list_obj[list[:id]][:user] = list[:user].to_hash
+    store(:visible_list_obj, visible_list_obj)
     self end
 
   # _list_ のためのタブを閉じる。タブがない場合は何もしない。
@@ -237,6 +244,15 @@ Plugin.create :list do
     self end
 
   fetch_list_of_service(Service.primary, :keep)
+
+  at(:visible_list_obj, {}).values.each{ |list|
+    begin
+      list = UserList.new_ifnecessary(list)
+      list[:user] = User.new_ifnecessary(list[:user])
+      tab_open(list)
+    rescue => e
+      error "list redume failed"
+      error e end }
 
   class IDs < TypedArray(Integer); end
 
