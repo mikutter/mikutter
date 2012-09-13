@@ -39,7 +39,10 @@ Plugin.create :console do
           widget_result.buffer.insert(iter, e.backtrace.join("\n") + "\n", "backtrace")
         end
         Delayer.new {
-          widget_result.scroll_to_iter(iter, 0.0, false, 0, 1.0) } end }
+          widget_result.scroll_to_iter(iter, 0.0, false, 0, 1.0) }
+        true
+      else
+        false end }
 
     tab(:console, "コンソール") do
       # set_icon
