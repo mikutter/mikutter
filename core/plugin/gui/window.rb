@@ -16,10 +16,17 @@ class Plugin::GUI::Window
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
+    @@active ||= self
     Plugin.call(:window_created, self)
   end
 
-  def self.active
-    instance(:default, "デフォルト")
+  # self がアクティブになったことを報告する
+  def active!
+    @@active = self
   end
+
+  def self.active
+    @@active ||= instance(:default, "デフォルト")
+  end
+
 end

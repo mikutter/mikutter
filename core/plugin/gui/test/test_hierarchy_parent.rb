@@ -14,10 +14,10 @@ class TC_PluginGUIHierarchyParent < Test::Unit::TestCase
   def setup
     @kparent = Class.new{
       include Plugin::GUI::HierarchyParent
-      class << self # !> instance variable @parent_class not initialized
+      class << self
         attr_accessor :active end }
 
-    @kchild = Class.new{
+    @kchild = Class.new{ # !> instance variable @parent_class not initialized
       include Plugin::GUI::HierarchyParent
       include Plugin::GUI::HierarchyChild }
     @kchild.set_parent_class @kparent
@@ -55,6 +55,6 @@ end
 # >> 
 # >> ..
 # >> 
-# >> Finished tests in 0.000899s, 2224.5753 tests/s, 6673.7260 assertions/s.
+# >> Finished tests in 0.000810s, 2470.4076 tests/s, 7411.2228 assertions/s.
 # >> 
 # >> 2 tests, 6 assertions, 0 failures, 0 errors, 0 skips
