@@ -141,4 +141,15 @@ Plugin.create :command do
       error "window not found."
     end
   end
+
+  command(:close,
+          name: 'タブを閉じる',
+          condition: lambda{ |opt|
+            notice "tab close: #{opt.widget} deletable = #{opt.widget.deletable.inspect}"
+            opt.widget.deletable },
+          visible: true,
+          role: :tab) do |opt|
+    opt.widget.destroy
+  end
+
 end

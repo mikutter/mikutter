@@ -3,6 +3,7 @@
 module Plugin::GUI::TabLike
 
   attr_reader :icon
+  attr_accessor :deletable
 
   def initialize(*args)
     @expand = true
@@ -70,6 +71,10 @@ module Plugin::GUI::TabLike
     if @icon != new
       @icon = new
       Plugin.call(:gui_tab_change_icon, self) end
+    self end
+
+  def set_deletable(new)
+    @deletable = new
     self end
 
 end
