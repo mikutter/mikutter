@@ -37,7 +37,7 @@ Plugin.create :gui do
     Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 30)
   end
 
-  on_ipremain do |remain, time|
+  on_ipapiremain do |remain, time|
     api_limit[:ip_remain] = remain
     api_limit[:ip_time] = time.strftime('%H:%M') if time
     Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 30)
