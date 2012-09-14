@@ -19,7 +19,7 @@ class Plugin::GUI::Profile
   set_parent_event :gui_profile_join_tab
 
   # instanceから呼ばれる。勝手に作成しないこと
-  def initialize(slug, name)
+  def initialize(*args)
     super
     Plugin.call(:profile_created, self)
   end
