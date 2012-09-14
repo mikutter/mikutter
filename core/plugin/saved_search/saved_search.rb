@@ -23,24 +23,29 @@ Plugin.create :saved_search do
   # ==== Args
   # [saved_search] saved search
   def add_tab(saved_search)
+    type_strict saved_search => SavedSearch
     notice "add: #{saved_search.query}"
     tab(saved_search.slug, saved_search.name) do
       set_icon MUI::Skin.get("savedsearch.png")
       timeline saved_search.slug end
     rewind_timeline(saved_search)
+    register_cache(saved_search)
     timelines[saved_search.id] = saved_search end
 
   # idに対応するタブを削除
   # ==== Args
   # [id] saved search の ID
   def delete_tab(id)
+    type_strict saved_search => Integer
     saved_search = timelines[id]
-    tab(saved_search.slug).destroy if saved_search.slug end
+    tab(saved_search.slug).destroy if saved_search.slug
+    delete_cache(id) end
 
   # タイムラインを更新する
   # ==== Args
   # [saved_search] saved search
   def rewind_timeline(saved_search)
+    type_strict saved_search => SavedSearch
     Service.primary.search(q: saved_search.query, rpp: 100).next{ |res|
       timeline(saved_search.slug) << res if res.is_a? Array
     }.trap{ |e|
@@ -59,9 +64,40 @@ Plugin.create :saved_search do
           saved_searches[record[:id]] = SavedSearch.new(record[:id], URI.decode(record[:query]), URI.decode(record[:name]), "savedsearch_#{record[:id]}".to_sym) }
         new_ids, old_ids = saved_searches.keys, timelines.keys
         (new_ids - old_ids).each{ |id| add_tab(saved_searches[id]) }
-        (old_ids - new_ids).each{ |id| delete_tab(id) } end }.terminate
-  end
+        (old_ids - new_ids).each{ |id| delete_tab(id) } end }.terminate end
+
+  # 保存した検索の情報をキャッシュに登録する
+  # ==== Args
+  # [saved_search] 保存した検索
+  def register_cache(saved_search)
+    type_strict saved_search => SavedSearch
+    cache = at(:cache, {}).melt
+    cache[saved_search.id] = {
+      id: saved_search.id,
+      query: saved_search.query,
+      name: saved_search.name,
+      slug: saved_search.slug }
+    store(:cache, cache) end
+
+  # 保存した検索の情報をキャッシュから削除
+  # ==== Args
+  # [id] 削除するID
+  def delete_cache(id)
+    cache = at(:cache, {}).melt
+    cache.delete(id)
+    store(:cache, cache) end
+
+  at(:cache, {}).values.each{ |s|
+    add_tab(SavedSearch.new(s[:id], URI.decode(s[:query]), URI.decode(s[:name]), s[:slug])) }
 
   refresh(true)
 
 end
+
+
+
+
+
+
+
+
