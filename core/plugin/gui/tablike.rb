@@ -30,6 +30,12 @@ module Plugin::GUI::TabLike
   def pack_rule
     @pack_rule ||= [] end
 
+  def add_child(*args)
+    result = super(*args)
+    pack_rule.push(expand?)
+    result end
+  alias << add_child
+
   # タイムラインを作成してこの中に入れる
   # ==== Args
   # [slug] タイムラインスラッグ
@@ -39,7 +45,6 @@ module Plugin::GUI::TabLike
   def timeline(slug, &proc)
     timeline = Plugin::GUI::Timeline.instance(slug)
     self << timeline
-    pack_rule.push(expand?)
     timeline.instance_eval &proc if proc
     timeline end
 

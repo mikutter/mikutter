@@ -202,7 +202,8 @@ Plugin.create :gtk do
     widget_join_tab(i_tab, widgetof(i_profile)) end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
-    widgetof(i_timeline).add(messages) end
+    gtk_timeline = widgetof(i_timeline)
+    gtk_timeline.add(messages) if gtk_timeline and not gtk_timeline.destroyed? end
 
   on_gui_postbox_join_widget do |i_postbox|
     notice "create postbox #{i_postbox.slug.inspect}"
@@ -262,7 +263,7 @@ Plugin.create :gtk do
   on_mui_tab_regist do |container, name, icon|
     slug = name.to_sym
     i_tab = Plugin::GUI::Tab.instance(slug, name)
-    i_tab.set_icon(icon)
+    i_tab.set_icon(icon).expand
     i_container = Plugin::GUI::TabChildWidget.instance
     @tabchildwidget_by_slug[i_container.slug] = container
     i_tab << i_container
