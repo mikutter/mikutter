@@ -20,6 +20,12 @@ class Gtk::MikutterWindow < Gtk::Window
     set_focus(postbox.post)
     postbox.show_all end
 
+  # def set_focus(widget)
+  #   if widget.is_a? Gtk::TimeLine
+      
+  #   end
+  # end
+
   private
 
   # ステータスバーを返す
