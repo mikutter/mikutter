@@ -49,7 +49,7 @@ Plugin.create :console do
         false end }
 
     tab(:console, "コンソール") do
-      # set_icon
+      set_icon MUI::Skin.get('console.png')
       set_deletable true
       nativewidget Gtk::Table.new(2, 3).
         attach(widget_result, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
