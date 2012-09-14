@@ -163,6 +163,17 @@ Plugin.create :gtk do
       widget_join_tab(i_tab, container.show_all) }
   end
 
+  on_gui_window_rewindstatus do |i_window, text, expire|
+    statusbar = @windows_by_slug[:default].statusbar
+    cid = statusbar.get_context_id("system")
+    mid = statusbar.push(cid, text)
+    if expire != 0
+      Reserver.new(expire){
+        if not statusbar.destroyed?
+          statusbar.remove(cid, mid) end }
+    end
+  end
+
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
     [i_postbox, postbox && postbox.post.editable?] end
