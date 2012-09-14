@@ -39,13 +39,15 @@ Plugin.create :console do
           widget_result.buffer.insert(iter, e.backtrace.join("\n") + "\n", "backtrace")
         end
         Delayer.new {
-          widget_result.scroll_to_iter(iter, 0.0, false, 0, 1.0) }
+          if not widget_result.destroyed?
+            widget_result.scroll_to_iter(iter, 0.0, false, 0, 1.0) end }
         true
       else
         false end }
 
     tab(:console, "コンソール") do
       # set_icon
+      set_deletable true
       nativewidget Gtk::Table.new(2, 3).
         attach(widget_result, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
         attach(scroll_result_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
