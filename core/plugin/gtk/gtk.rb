@@ -10,6 +10,7 @@ Plugin.create :gtk do
   @panes_by_slug = {}                    # slug => Gtk::NoteBook
   @tabs_by_slug = {}                     # slug => Gtk::EventBox
   @timelines_by_slug = {}                # slug => Gtk::TimeLine
+  @tabchildwidget_by_slug = {}           # slug => Gtk::TabChildWidget
   @postboxes_by_slug = {}                # slug => Gtk::Postbox
   @tabs_promise = {}                     # slug => Deferred
 
@@ -53,6 +54,16 @@ Plugin.create :gtk do
     pane.signal_connect('page-reordered'){
       # UserConfig[:tab_order] = books_labels
       false }
+    pane.signal_connect('page-added'){ |this, widget|
+      # notice "#{args.inspect}"
+      notice "gtk:page-added: "
+      i_widget = find_slug_by_gtkwidget(widget)
+      next false unless i_widget
+      i_tab = i_widget.parent
+      next false unless i_tab and i_tab.parent != i_pane
+      i_pane << i_tab
+      false }
+    # 子が無くなった時 : このpaneを削除
     pane.signal_connect('page-removed'){
       Delayer.new{
         unless pane.destroyed?
@@ -80,6 +91,12 @@ Plugin.create :gtk do
     }
     tab.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
+    tab.ssc(:button_press_event) { |this, e|
+      notice "tab press: pass"
+      if e.button == 3
+        Plugin::GUI::Command.menu_pop(i_tab)
+      end
+    }
     tab.show_all
     if @tabs_promise[i_tab.slug]
       @tabs_promise[i_tab.slug].call(tab)
@@ -101,10 +118,41 @@ Plugin.create :gtk do
 
   on_gui_pane_join_window do |i_pane, i_window|
     puts "gui_pane_join_window #{i_pane.slug.inspect}, #{i_window.slug.inspect}"
-    widgetof(i_window).panes.pack_end(widgetof(i_pane), false).show_all
+    window = widgetof(i_window)
+    pane = widgetof(i_pane)
+    if pane.parent
+      if pane.parent != window.panes
+        notice "pane parent already exists. removing"
+        pane.parent.remove(pane)
+        notice "packing"
+        window.panes.pack_end(pane, false).show_all
+        notice "done" end
+    else
+      notice "pane doesn't have a parent"
+      window.panes.pack_end(pane, false).show_all
+    end
   end
 
   on_gui_tab_join_pane do |i_tab, i_pane|
+    notice "gui_tab_join_pane(#{i_tab}, #{i_pane})"
+    i_widget = i_tab.children.first
+    notice "#{i_tab} children #{i_tab.children}"
+    next if not i_widget
+    widget = widgetof(i_widget)
+    notice "widget: #{widget}"
+    next if not widget
+    tab = widgetof(i_tab)
+    pane = widgetof(i_pane)
+    old_pane = widget.parent
+    notice "pane: #{pane}, old_pane: #{old_pane}"
+    if pane and old_pane and pane != old_pane
+      notice "#{widget} removes by #{old_pane}"
+      old_pane.remove_page(old_pane.page_num(widget))
+      if tab.parent
+        notice "#{tab} removes by #{tab.parent}"
+        tab.parent.remove(tab) end
+      notice "#{widget} pack to #{tab}"
+      widget_join_tab(i_tab, widget) end
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
@@ -112,7 +160,6 @@ Plugin.create :gtk do
   end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
-    notice "gui_timeline_add_messages: update :#{i_timeline.slug} #{messages.is_a?(Array) ? messages.size : 1} message(s)."
     widgetof(i_timeline).add(messages)
   end
 
@@ -159,6 +206,9 @@ Plugin.create :gtk do
     slug = name.to_sym
     i_tab = Plugin::GUI::Tab.instance(slug, name)
     i_tab.set_icon(icon)
+    i_container = Plugin::GUI::TabChildWidget.instance
+    @tabchildwidget_by_slug[i_container.slug] = container
+    i_tab << i_container
     @tabs_promise[i_tab.slug] = (@tabs_promise[i_tab.slug] || Deferred.new).next{ |tab|
       widget_join_tab(i_tab, container.show_all) }
   end
@@ -239,10 +289,31 @@ Plugin.create :gtk do
                    @tabs_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::Timeline
                    @timelines_by_slug
+                 elsif cuscadable.is_a? Plugin::GUI::TabChildWidget
+                   @tabchildwidget_by_slug
                  elsif cuscadable.is_a? Plugin::GUI::Postbox
                    @postboxes_by_slug end
     collection[cuscadable.slug]
   end
 
+  # Gtkオブジェクト _widget_ に対応するウィジェットのオブジェクトを返す
+  # ==== Args
+  # [widget] Gtkウィジェット
+  # ==== Return
+  # _widget_ に対応するウィジェットオブジェクトまたは偽
+  def find_slug_by_gtkwidget(widget)
+    type_strict widget => Gtk::Widget
+    [
+     [@windows_by_slug, Plugin::GUI::Window],
+     [@panes_by_slug, Plugin::GUI::Pane],
+     [@tabs_by_slug, Plugin::GUI::Tab],
+     [@timelines_by_slug, Plugin::GUI::Timeline],
+     [@tabchildwidget_by_slug, Plugin::GUI::TabChildWidget],
+     [@postboxes_by_slug, Plugin::GUI::Postbox] ].each{ |collection, klass|
+      slug, node = *collection.find{ |slug, node|
+        node == widget }
+      if slug
+        return klass.instance(slug) end }
+    false end
 end
 
