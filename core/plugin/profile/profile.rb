@@ -114,19 +114,19 @@ Plugin.create :profile do
       w_eventbox_image_following = Gtk::EventBox.new
       w_eventbox_image_followed = Gtk::EventBox.new
       relation = if me.user_obj == user
-                   Gtk::Label.new("それはあなたです！").middle
+                   Gtk::Label.new("それはあなたです！")
                  else
                    Gtk::HBox.new.
                      closeup(w_eventbox_image_following).
                      closeup(w_following_label) end
       relation_container = Gtk::HBox.new(false, icon_size.width/2)
-      relation_container.closeup(Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size))
+      relation_container.closeup(Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
       relation_container.closeup(Gtk::VBox.new.
                                  closeup(relation).
                                  closeup(Gtk::HBox.new.
                                          closeup(w_eventbox_image_followed).
                                          closeup(w_followed_label)))
-      relation_container.closeup(Gtk::WebIcon.new(user[:profile_image_url], icon_size))
+      relation_container.closeup(Gtk::WebIcon.new(user[:profile_image_url], icon_size).tooltip("#{user.idname}(#{user[:name]})"))
       if me.user_obj != user
         followbutton = Gtk::Button.new
         followbutton.sensitive = false
