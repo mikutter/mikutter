@@ -2,21 +2,28 @@
 # タブとかペインみたいにたくさん作れるパーツ
 
 module Plugin::GUI::Cuscadable
-  attr_reader :slug, :name
+  attr_reader :slug, :name, :plugin
 
   class << self
     def included(klass)
       klass.instance_eval{
         private
         alias new_cuscadable new
-        def new(slug, name)
-          type_strict slug => Symbol, name => String
-          new_cuscadable(slug, name) end }
+        def new(slug, name, plugin)
+          type_strict slug => Symbol, name => String, plugin => tcor(NilClass, Symbol)
+          new_cuscadable(slug, name, plugin) end }
       klass.extend ExtendedCuscadable end end
 
-  def initialize(slug, name)
-    @slug = slug
-    @name = name.freeze
+  def initialize(slug, name, plugin_name)
+    @slug, @name, @plugin = slug, name.freeze, plugin_name
+    @unload_hook = nil
+    if plugin_name
+      plugin = Plugin.instance(plugin_name)
+      if plugin
+        notice "attach unload hook. plugin:#{plugin}, widget: #{self}"
+        @unload_hook = plugin.onunload{
+          notice "widget destroy triggered off detach plugin #{@plugin}. widget: #{self}"
+          destroy } end end
     self.class.regist(self) end
 
   # 次のインスタンスを返す。このインスタンスが最後だった場合は最初に戻る
@@ -42,7 +49,8 @@ module Plugin::GUI::Cuscadable
     # ==== Args
     # [slug] スラッグ(Symbol)
     # [name] タブのラベル(String)
-    def instance(slug = nil, name = slug)
+    # [plugin] タブを作成したプラグイン
+    def instance(slug = nil, name=slug, plugin=nil)
       if not slug
         slug = "__#{self.to_s}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
         return instance if cuscaded.has_key? slug end
@@ -50,7 +58,7 @@ module Plugin::GUI::Cuscadable
       if cuscaded.has_key? slug
         cuscaded[slug]
       else
-        new(slug, name.to_s) end end
+        new(slug, name.to_s, plugin) end end
 
     # 新しく作成したタブを新規登録する
     # ==== Args

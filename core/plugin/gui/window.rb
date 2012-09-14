@@ -16,7 +16,7 @@ class Plugin::GUI::Window
   attr_reader :icon
 
   # instanceから呼ばれる。勝手に作成しないこと
-  def initialize(slug, name)
+  def initialize(*args)
     super
     @@active ||= self
     Plugin.call(:window_created, self)

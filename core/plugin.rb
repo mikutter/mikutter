@@ -338,13 +338,6 @@ class Plugin
         else
           call_routine(plugintag, event_name, kind, &routine) end end end
 
-    # プラグインタグをなければ作成して返す。
-    # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
-
-    def plugins
-      @@plugins
-    end
-
     # ブロックの実行時間を記録しながら実行
     def call_routine(plugintag, event_name, kind)
       catch(:plugin_exit){ yield }
@@ -397,6 +390,15 @@ class Plugin
           plugin.instance_eval(&Proc.new) } end
       plugin end
     alias :create :new
+
+    # すでに有るプラグインを名前から探して返す。 Plugin.create とちがってない場合は作成せずにnilを返す
+    # ==== Args
+    # [name] プラグイン名
+    # ==== Return
+    # プラグインオブジェクトか、見つからなければnil
+    def instance(name)
+      @@plugins.find{ |p| p.name == name } end
+
   end
 
   include ConfigLoader
@@ -444,8 +446,11 @@ class Plugin
   # イベントの監視をやめる。引数 _event_ には、add_event, add_event_filter, add_event_hook の
   # いずれかの戻り値を与える。
   def detach(event_name, event)
-    Plugin.detach(event_name, event)
-  end
+    if :unload == event_name
+      if defined? @unload_hook
+        @unload_hook.reject!{ |h| h == event } end
+    else
+      Plugin.detach(event_name, event) end end
 
   def at(key, ifnone=nil)
     super("#{@name}_#{key}".to_sym, ifnone) end
@@ -469,6 +474,7 @@ class Plugin
   def onunload
     @unload_hook ||= []
     @unload_hook.push(Proc.new) end
+  alias :on_unload :onunload
 
   def execute_unload_hook
     @unload_hook.each{ |unload| unload.call } if(defined?(@unload_hook)) end

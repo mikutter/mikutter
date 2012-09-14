@@ -42,9 +42,9 @@ class Plugin
   # procの戻り値
   def tab(slug, name=nil, &proc)
     if proc
-      Plugin::GUI::Tab.instance(slug, name).instance_eval(&proc)
+      Plugin::GUI::Tab.instance(slug, name, self.name).instance_eval(&proc)
     else
-      Plugin::GUI::Tab.instance(slug) end end
+      Plugin::GUI::Tab.instance(slug, name, self.name) end end
 
   # _slug_ に対応するタイムラインを返す
   # ==== Args
@@ -67,9 +67,3 @@ class Plugin
       i_profiletab.instance_eval(&proc) end
   end
 end
-
-
-
-
-
-

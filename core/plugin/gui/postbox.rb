@@ -32,7 +32,7 @@ class Plugin::GUI::Postbox
       self if role == find end
   end
 
-  def initialize(slug, name)
+  def initialize(*args)
     super
     options = {}
     Plugin.call(:postbox_created, self) end

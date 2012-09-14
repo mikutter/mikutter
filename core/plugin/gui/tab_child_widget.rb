@@ -14,7 +14,7 @@ class Plugin::GUI::TabChildWidget
   
   role :tabchildwidget
 
-  def initialize(slug, name)
+  def initialize(*args)
     super
     Plugin.call(:tabchildwidget_created, self)
   end
