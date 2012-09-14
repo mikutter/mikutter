@@ -7,20 +7,28 @@ require File.expand_path File.join(File.dirname(__FILE__), 'dmlistview')
 module Plugin::DirectMessage
   Plugin.create(:directmessage) do
 
+    def userlist
+      @userlist ||= UserList.new end
+
     # user_id => [Direct Message...]
     @dm_store = Hash.new{|h, k|
       Plugin.call(:direct_message_add_user, k)
       h[k] = [] }
     @dm_lock = Mutex.new
     @counter = gen_counter
+    userlist.double_clicked = lambda{ |user|
+      Plugin.call(:show_profile, Service.primary_service, user) }
 
-    onboot do
-      @userlist = UserList.new.show_all
-      @userlist.double_clicked = lambda{ |user|
-        Plugin.call(:show_profile, Service.primary_service, user) }
-      Delayer.new{
-        Plugin.call(:mui_tab_regist, @userlist, 'Direct Message', MUI::Skin.get("directmessage.png"))
-      }
+    list = userlist
+    tab(:directmessage, "DM") do
+      set_icon MUI::Skin.get("directmessage.png")
+      expand
+      nativewidget list
+    end
+
+    profiletab(:directmessage, "DM") do
+      set_icon MUI::Skin.get("directmessage.png")
+      nativewidget Plugin.create(:directmessage).dm_list_widget(user)
     end
 
     onperiod do
@@ -45,13 +53,8 @@ module Plugin::DirectMessage
       user = User.findbyid(user_id)
       if user.is_a? User
         user[:last_dm_date] ||= 0
-        @userlist.block_add(user)
+        userlist.block_add(user)
       end
-    end
-
-    filter_profile_tab do |notebook, user|
-      notebook.append_page(dm_list_widget(user), Gtk::WebIcon.new(MUI::Skin.get("directmessage.png"), 16, 16).show_all)
-      [notebook, user]
     end
 
     def call_api(service, api)
@@ -62,7 +65,7 @@ module Plugin::DirectMessage
         created_at = Time.parse(dm[:created_at]).to_i
         if user[:last_dm_date] and user[:last_dm_date] < created_at
           user[:last_dm_date] = created_at
-          Delayer.new{ @userlist.modify_date(user) } end
+          Delayer.new{ userlist.modify_date(user) } end
         @dm_store[user[:id]] << dm end
     end
 

@@ -1,0 +1,6 @@
+name: "Direct Message"
+slug: "directmessage"
+depends:
+  - gui
+version:
+  "1.1"
