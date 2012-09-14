@@ -12,10 +12,14 @@ Plugin.create :smartthread do
   # [slug] タイムラインスラッグ
   # [messages] 入れるMessageの配列
   def scan(slug, messages)
-    messages.each{ |message|
-      message.each_ancestors { |cur|
-        if @timelines[slug].include? cur
-          timeline(slug) << message end } } end
+    seeds = @timelines[slug]
+    i_timeline = timeline(slug)
+    if i_timeline and seeds
+      SerialThread.new do
+        messages.each{ |message|
+          message.each_ancestors { |cur|
+            if seeds.include? cur
+              i_timeline << message end } } end end end
 
   command(:smartthread,
           name: '会話スレッドを表示',
