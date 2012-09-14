@@ -266,12 +266,14 @@ Plugin.create :gtk do
       widget_join_tab(i_tab, container.show_all) } end
 
   # Gtkオブジェクトをタブに入れる
-  on_gui_nativewidget_join_tab do |i_tab, container|
+  on_gui_nativewidget_join_tab do |i_tab, i_container, container|
     notice "nativewidget: #{container} => #{i_tab}"
+    @tabchildwidget_by_slug[i_container.slug] = container
     widget_join_tab(i_tab, container.show_all) end
 
-  on_gui_nativewidget_join_profiletab do |i_profiletab, container|
+  on_gui_nativewidget_join_profiletab do |i_profiletab, i_container, container|
     notice "nativewidget: #{container} => #{i_profiletab}"
+    @tabchildwidget_by_slug[i_container.slug] = container
     widget_join_tab(i_profiletab, container.show_all) end
 
   on_gui_window_rewindstatus do |i_window, text, expire|
@@ -323,7 +325,7 @@ Plugin.create :gtk do
     if container_index
       container = pane.get_nth_page(container_index)
       if container
-        return container.pack_start(widget, i_tab.pack_rule.shift) end end
+        return container.pack_start(widget, i_tab.pack_rule[container.children.size]) end end
     if tab.parent
       raise Plugin::Gtk::GtkError, "Gtk Widget #{widgetof(i_tab).inspect} of Tab(#{i_tab.slug.inspect}) has parent Gtk Widget #{tab.parent.inspect}" end
     container = Gtk::VBox.new(false, 0).show_all
