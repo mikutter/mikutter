@@ -128,6 +128,9 @@ Plugin.create :gtk do
     postbox.post.ssc(:focus_in_event) {
       i_postbox.active!
       false }
+    postbox.post.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_postbox)
+      false }
   end
 
   on_gui_tab_change_icon do |i_tab|

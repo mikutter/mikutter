@@ -66,9 +66,6 @@ module Gtk
       post_set_default_text(@post)
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
-      @post.signal_connect('key_press_event'){ |widget, event|
-        Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), self)
-        false }
       @post.ssc('key_release_event'){ |textview, event|
         refresh_buttons(false)
         false }
