@@ -29,10 +29,7 @@ class Gdk::SubPartsVoter < Gdk::SubParts
           if(x >= @icon_ofst)
             user = @votes[(x - @icon_ofst) / icon_width]
             if user
-              commands = Plugin.filtering(:command, Hash.new).first
-              command = commands[:show_profile]
-              if command
-                command[:exec][user] end end end end end
+              Plugin.call(:show_profile, Service.primary, user) end end end end
       false }
     last_motion_user = nil
     usertip = Gtk::Tooltips.new
