@@ -2,6 +2,10 @@
 
 Plugin.create :command do
 
+  on_gui_child_activated do |i_window, i_pane|
+    if i_window.is_a?(Plugin::GUI::Window) and i_pane.is_a?(Plugin::GUI::Pane)
+      last_active_pane[i_window.slug] = i_pane end end
+
   command(:copy_selected_region,
           name: 'コピー',
           condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
@@ -187,12 +191,23 @@ Plugin.create :command do
 
   command(:focus_to_postbox,
           name: '投稿ボックスにフォーカス',
-          condition: lambda{ |opt| not opt.widget.is_a? Plugin::GUI::Postbox },
+          condition: lambda{ |opt|
+            if opt.widget.respond_to? :active_chain
+              not opt.widget.active_chain.last.is_a? Plugin::GUI::Postbox
+            else
+              opt.widget.is_a? Plugin::GUI::Postbox end },
           visible: false,
           role: :window) do |opt|
     focus_move_to_nearest_postbox(opt.widget.active_chain.last)
   end
 
+  command(:focus_to_tab,
+          name: 'タブにフォーカス',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :postbox) do |opt|
+    focus_move_to_latest_widget(opt.widget)
+  end
 
   # フォーカスを _widget_ から _distance_ に移動する
   # ==== Args
@@ -226,5 +241,19 @@ Plugin.create :command do
         return postbox.active! end end
     if widget.is_a? Plugin::GUI::HierarchyChild
       focus_move_to_nearest_postbox(widget.parent) end end
+
+  # 最後にアクティブだったペインにフォーカスを与える。
+  # 親タイムラインがあれば、それにフォーカスを与える。
+  # ==== Args
+  # [postbox] 基準となるウィジェット
+  def focus_move_to_latest_widget(postbox)
+    if postbox.parent.is_a? Plugin::GUI::Window
+      pane = last_active_pane[postbox.parent.slug]
+      pane.active! if pane
+    else
+      postbox.parent.active! end end
+
+  def last_active_pane
+    @last_active_pane ||= {} end
 
 end
