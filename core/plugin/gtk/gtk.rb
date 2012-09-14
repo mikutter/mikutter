@@ -81,14 +81,14 @@ Plugin.create :gtk do
       if i_tab
         i_pane.reorder_child(i_tab, index) end
       false }
-    pane.signal_connect(:page_added){ |this, tabcontainer|
+    pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
       next false if i_tab.parent == i_pane
       notice "on_pane_created: reparent"
-      i_pane << i_tab
+      i_pane.add_child(i_tab, index)
       false }
     # 子が無くなった時 : このpaneを削除
     pane.signal_connect(:page_removed){
