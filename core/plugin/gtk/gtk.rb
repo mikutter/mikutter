@@ -178,7 +178,6 @@ Plugin.create :gtk do
     notice "pane: #{pane}, old_pane: #{old_pane}"
     if pane and old_pane and pane != old_pane
       notice "#{widget} removes by #{old_pane}"
-      old_pane.remove_page(old_pane.page_num(widget))
       if tab.parent
         page_num = tab.parent.get_tab_pos_by_tab(tab)
         if page_num
