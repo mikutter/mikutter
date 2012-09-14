@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'timeline'
+miquire :mui, 'timeline', 'tree_view_pretty_scroll'
 miquire :lib, 'ruby-bsearch-1.5/bsearch'
 miquire :lib, 'uithreadonly'
 require 'gtk2'
@@ -8,6 +8,7 @@ require 'gtk2'
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   include UiThreadOnly
+  include Gtk::TreeViewPrettyScroll
 
   attr_writer :force_retrieve_in_reply_to
   attr_accessor :postbox, :collect_counter, :imaginary
