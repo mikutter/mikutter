@@ -34,7 +34,7 @@ class Gtk::MikutterWindow < Gtk::Window
   def create_statusbar
     statusbar = Gtk::Statusbar.new
     notice "statusbar: context id: #{statusbar.get_context_id("system")}"
-    statusbar.push(statusbar.get_context_id("system"), "Twitterに新しい視野を、mikutter。")
+    statusbar.push(statusbar.get_context_id("system"), "mikutterの誕生以来、最も大きな驚きを")
     status_button = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get("settings.png"), 16, 16))
     status_button.relief = Gtk::RELIEF_NONE
     status_button.ssc(:clicked) {
