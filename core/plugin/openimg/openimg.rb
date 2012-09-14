@@ -3,30 +3,29 @@
 
 require 'gtk2'
 
- # !> ambiguous first argument; put parentheses or even spaces
-Module.new do
+Plugin.create :openimg do
   DEFAULT_SIZE = [640, 480].freeze
   @size = DEFAULT_SIZE
   @position = [Gdk.screen_width/2 - @size[0]/2, Gdk.screen_height/2 - @size[1]/2].freeze
 
-  def self.move(window)
+  def move(window)
     @position = window.position.freeze end
- # !> instance variable @timelines not initialized
-  def self.changesize(eb, w, url)
+
+  def changesize(eb, w, url)
     eb.remove(eb.children.first)
     @size = w.window.geometry[2,2].freeze
-    eb.add(Gtk::WebIcon.new(url, *@size).show_all) # !> statement not reached
-    @size end # !> redefine get_active_mumbles
+    eb.add(Gtk::WebIcon.new(url, *@size).show_all)
+    @size end
 
-  def self.redraw(eb, pb)
+  def redraw(eb, pb)
     ew, eh = eb.window.geometry[2,2]
     return if(ew == 0 or eh == 0)
     pb = pb.dup
     pb = pb.scale(*Gdk::WebImageLoader.calc_fitclop(pb, Gdk::Rectangle.new(0, 0, ew, eh)))
     eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
 
-  def self.display(url, cancel = nil)
-    w = Gtk::Window.new.set_title("（読み込み中）") # !> method redefined; discarding old inspect
+  def display(url, cancel = nil)
+    w = Gtk::Window.new.set_title("（読み込み中）")
     w.set_size_request(320, 240)
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
@@ -75,7 +74,7 @@ Module.new do
             eventbox.signal_connect("expose_event"){ |ev, event|
               redraw(eventbox, pixbuf)
               move(w)
-              true } # !> method redefined; discarding old width=
+              true }
             eventbox.signal_connect(:"size-allocate"){
               if w.window and size != w.window.geometry[2,2]
                 redraw(eventbox, pixbuf)
@@ -83,26 +82,26 @@ Module.new do
             redraw(eventbox, pixbuf)
             eventbox end } end }
     w.show_all end
- # !> `*' interpreted as argument prefix
-  def self.get_tag_by_attributes(tag)
-    attribute = {} # !> `*' interpreted as argument prefix
+
+  def get_tag_by_attributes(tag)
+    attribute = {}
     tag.each_matches(/([a-zA-Z0-9]+?)=(['"])(.*?)\2/){ |pair, pos|
       key, val = pair[1], pair[3]
       attribute[key] = val }
     attribute.freeze end
 
-  def self.get_tagattr(dom, element_rule)
-    element_rule = element_rule.melt # !> `*' interpreted as argument prefix
+  def get_tagattr(dom, element_rule)
+    element_rule = element_rule.melt
     tag_name = element_rule['tag'] or 'img'
     attr_name = element_rule.has_key?('attribute') ? element_rule['attribute'] : 'src'
     element_rule.delete('tag')
     element_rule.delete('attribute')
-    if dom # !> `*' interpreted as argument prefix
+    if dom
       attribute = {}
-      catch(:imgtag_match){ # !> global variable `$quiet' not initialized
+      catch(:imgtag_match){
         dom.gsub("\n", ' ').each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
           attr = get_tag_by_attributes(str.to_s)
-          if element_rule.all?{ |k, v| v === attr[k] } # !> `&' interpreted as argument prefix
+          if element_rule.all?{ |k, v| v === attr[k] }
             attribute = attr.freeze
             throw :imgtag_match end } }
       unless attribute.empty?
@@ -148,9 +147,9 @@ Module.new do
       warn e
       nil end end
 
-  def self.addsupport(cond, element_rule = {}, &block)
+  def addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
-    if block == nil # !> method redefined; discarding old filter_stream
+    if block == nil
       Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
