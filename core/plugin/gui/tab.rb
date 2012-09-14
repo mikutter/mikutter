@@ -18,6 +18,8 @@ class Plugin::GUI::Tab
 
   role :tab
 
+  set_parent_event :gui_tab_join_pane
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
@@ -31,11 +33,5 @@ class Plugin::GUI::Tab
       Plugin::GUI::Pane.add_default << self
     end
     Plugin.call(:tab_created, self)
-  end
-
-  alias __set_parent_tab__ set_parent
-  def set_parent(pane)
-    Plugin.call(:gui_tab_join_pane, self, pane)
-    __set_parent_tab__(pane)
   end
 end

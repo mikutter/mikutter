@@ -15,15 +15,11 @@ class Plugin::GUI::Timeline
 
   role :timeline
 
+  set_parent_event :gui_timeline_join_tab
+
   def initialize(slug, name)
     super
     Plugin.call(:timeline_created, self)
-  end
-
-  alias __set_parent_timeline__ set_parent
-  def set_parent(tab)
-    Plugin.call(:gui_timeline_join_tab, self, tab)
-    __set_parent_timeline__(tab)
   end
 
   def <<(messages)
