@@ -61,7 +61,7 @@ module Plugin::GUI::HierarchyParent
   def set_active_child(child)
     type_strict child => tcor(Plugin::GUI::HierarchyChild, NilClass)
     @active_child = child
-    Plugin.call(:gui_child_activated, self, child)
+    Plugin.call(:gui_child_activated, self, child) if child
     notice "active child set #{self.inspect} => #{child.inspect}"
     self end
 

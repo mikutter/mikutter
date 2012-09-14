@@ -153,4 +153,34 @@ Plugin.create :command do
     opt.widget.destroy
   end
 
+  command(:focus_right_tab,
+          name: '右のタブを選択',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :tab) do |opt|
+    tab = opt.widget
+    children = tab.parent.children
+    index = children.index(tab)
+    if children.size <= (index+1)
+      # next pane
+    else
+      children[index + 1].children[0].active!
+    end
+  end
+
+  command(:focus_left_tab,
+          name: '左のタブを選択',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :tab) do |opt|
+    tab = opt.widget
+    children = tab.parent.children
+    index = children.index(tab)
+    if 0 > (index-1)
+      # prev pane
+    else
+      children[index - 1].children[0].active!
+    end
+  end
+
 end
