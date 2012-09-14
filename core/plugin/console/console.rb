@@ -6,6 +6,9 @@ Plugin.create :console do
           condition: lambda{ |opt| true },
           visible: true,
           role: :pane) do |opt|
+    if Plugin::GUI::Tab.cuscaded.has_key?(:console)
+      Plugin::GUI::Tab.instance(:console).active!
+      next end
     widget_result = Gtk::TextView.new
     scroll_result_v, scroll_result_h = gen_scrollbars(widget_result)
     widget_input = Gtk::TextView.new
