@@ -11,6 +11,7 @@ Plugin.create :gtk do
   @tabs_by_slug = {}                     # slug => Gtk::EventBox
   @timelines_by_slug = {}                # slug => Gtk::TimeLine
   @postboxes_by_slug = {}                # slug => Gtk::Postbox
+  @tabs_promise = {}                     # slug => Deferred
 
   TABPOS = [Gtk::POS_TOP, Gtk::POS_BOTTOM, Gtk::POS_LEFT, Gtk::POS_RIGHT]
 
@@ -80,7 +81,9 @@ Plugin.create :gtk do
     tab.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
     tab.show_all
-  end
+    if @tabs_promise[i_tab.slug]
+      @tabs_promise[i_tab.slug].call(tab)
+      @tabs_promise.delete(i_tab.slug) end end
 
   # タイムライン作成。
   # Gtk::TimeLine
@@ -105,12 +108,7 @@ Plugin.create :gtk do
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
-    i_pane = i_tab.parent
-    pane = widgetof(i_pane)
-    timeline = widgetof(i_timeline)
-    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
-    pane.insert_page_menu(index, timeline, widgetof(i_tab))
-    pane.set_tab_reorderable(timeline, true).set_tab_detachable(timeline, true)
+    widget_join_tab(i_tab, widgetof(i_timeline))
   end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
@@ -156,6 +154,15 @@ Plugin.create :gtk do
     if postbox
       postbox.post_it end end
 
+  # 互換性のため
+  on_mui_tab_regist do |container, name, icon|
+    slug = name.to_sym
+    i_tab = Plugin::GUI::Tab.instance(slug, name)
+    i_tab.set_icon(icon)
+    @tabs_promise[i_tab.slug] = (@tabs_promise[i_tab.slug] || Deferred.new).next{ |tab|
+      widget_join_tab(i_tab, container.show_all) }
+  end
+
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
     [i_postbox, postbox && postbox.post.editable?] end
@@ -164,7 +171,7 @@ Plugin.create :gtk do
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
 
   filter_gui_timeline_selected_text do |i_timeline, message, text|
-    catch(:tl_select_break) do
+    begin
       timeline = widgetof(i_timeline)
       break [i_timeline, message, text] if not timeline
       record = timeline.get_record_by_message(message)
@@ -174,6 +181,19 @@ Plugin.create :gtk do
       [i_timeline, message, message.entity.to_s[range]]
     end
   end
+
+  # タブ _tab_ に _widget_ を入れる
+  # ==== Args
+  # [i_tab] タブ
+  # [widget] Gtkウィジェット
+  def widget_join_tab(i_tab, widget)
+    return false if not widgetof(i_tab)
+    i_pane = i_tab.parent
+    pane = widgetof(i_pane)
+    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
+    pane.insert_page_menu(index, widget, widgetof(i_tab))
+    pane.set_tab_reorderable(widget, true).set_tab_detachable(widget, true)
+    true end
 
   def tab_update_icon(i_tab)
     type_strict i_tab => Plugin::GUI::Tab
