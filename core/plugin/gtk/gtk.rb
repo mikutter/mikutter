@@ -312,6 +312,7 @@ Plugin.create :gtk do
     statusbar = @windows_by_slug[:default].statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
+    notice "rewind statusbar to #{text}, #{expire.inspect}, #{cid}"
     if expire != 0
       Reserver.new(expire){
         if not statusbar.destroyed?

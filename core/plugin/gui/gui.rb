@@ -25,7 +25,7 @@ Plugin.create :gui do
 
   # 互換性のため。ステータスバーの更新。gtk等ツールキットプラグインで定義されているgui_window_rewindstatusを呼ぶこと
   on_rewindstatus do |text|
-    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), text, 60)
+    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), text, 10)
   end
 
   api_limit = {:ip_remain => '-', :ip_time => '-', :auth_remain => '-', :auth_time => '-'}
@@ -33,13 +33,13 @@ Plugin.create :gui do
   on_apiremain do |remain, time|
     api_limit[:auth_remain] = remain
     api_limit[:auth_time] = time.strftime('%H:%M') if time
-    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 60)
+    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 30)
   end
 
   on_ipremain do |remain, time|
     api_limit[:ip_remain] = remain
     api_limit[:ip_time] = time.strftime('%H:%M') if time
-    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 60)
+    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 30)
   end
 
   on_gui_destroy do |widget|
