@@ -34,7 +34,7 @@ class Plugin::GUI::Postbox
 
   def initialize(*args)
     super
-    options = {}
+    @options = {}
     Plugin.call(:postbox_created, self) end
 
   alias __set_parent_postbox__ set_parent
