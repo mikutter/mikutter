@@ -13,12 +13,10 @@ You should have received a copy of the GNU General Public License along with thi
 =end
 
 if File.symlink?($0)
-  dir = File.readlink($0)
+  Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
 else
-  dir = $0
+  Dir.chdir(File.join(File.dirname($0), 'core'))
 end
-
-Dir.chdir(File.join(File.dirname(dir), 'core'))
 
 Thread.abort_on_exception = true
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
