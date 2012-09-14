@@ -324,7 +324,8 @@ Plugin.create :gtk do
       pane = widgetof(i_pane)
       tab = widgetof(i_tab)
       if pane and tab
-        pane.page = pane.get_tab_pos_by_tab(tab) end end end
+        pagenum = pane.get_tab_pos_by_tab(tab)
+        pane.page = pagenum if pagenum end end end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
