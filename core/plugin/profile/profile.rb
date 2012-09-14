@@ -6,6 +6,18 @@ Plugin.create :profile do
   plugin = self
   timeline_storage = {}                # {slug: {timeline, user}}
 
+  Message::Entity.addlinkrule(:user_mentions, /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )[a-zA-Z0-9_]+/){ |segment|
+    idname = segment[:url].match(/^(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )?(.+)$/)[1]
+    user = User.findbyidname(idname)
+    if user
+      Plugin.call(:show_profile, Service.primary, user)
+    else
+      Thread.new{
+        user = service.scan(:user_show,
+                            :no_auto_since_id => false,
+                            :screen_name => idname)
+        Plugin.call(:show_profile, Service.primary, user) if user } end }
+
   on_show_profile do |service, user|
     container = profile_head(user)
     i_profile = tab nil, "#{user[:name]} のプロフィール}" do
