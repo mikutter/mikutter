@@ -116,7 +116,6 @@ Plugin.create :gtk do
     @timelines_by_slug[i_timeline.slug] = timeline
     timeline.tl.ssc(:focus_in_event) {
       i_timeline.active!
-      notice Plugin::GUI::Window.active.active_chain
       false }
     timeline.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline) }
