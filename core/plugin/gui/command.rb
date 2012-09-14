@@ -9,8 +9,9 @@ module Plugin::GUI
         widget = get_active_widget
         labels = []
         contextmenu = []
-        timeline = widget.active_class_of(Timeline)
-        event = Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
+        timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
+        event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : [])
+        notice "command widget: #{widget} #{timeline}"
         Plugin.filtering(:command, Hash.new).first.values.each{ |record|
           if(record[:visible] and widget.class.find_role_ancestor(record[:role]))
             index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])

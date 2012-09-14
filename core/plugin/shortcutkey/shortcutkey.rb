@@ -76,12 +76,12 @@ Plugin.create :shortcutkey do
     keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
     commands = lazy{ Plugin.filtering(:command, Hash.new).first }
     timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
-    event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
+    event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : [])
     keybinds.values.each{ |behavior|
       if behavior[:key] == key
         cmd = commands[behavior[:slug]]
         if cmd and widget.class.find_role_ancestor(cmd[:role])
-          if (:timeline == cmd[:role] ? !event.messages.empty? : true) and cmd[:condition] === event
+          if cmd[:condition] === event
             notice "command executed :#{behavior[:slug]}"
             executed = true
             cmd[:exec].call(event) end end end }
