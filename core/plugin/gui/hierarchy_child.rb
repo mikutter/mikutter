@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ウィンドウパーツ階層構造の子
 
-class Plugin::GUI::HierarchyChild
+module Plugin::GUI::HierarchyChild
   class << self
     def included(klass)
       klass.extend(Extended)
@@ -18,7 +18,7 @@ class Plugin::GUI::HierarchyChild
   def set_parent(parent)
     @parent = parent end
 
-  class Extended
+  module Extended
   end
 
 end

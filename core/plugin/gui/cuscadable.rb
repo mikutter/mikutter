@@ -1,28 +1,40 @@
 # -*- coding: utf-8 -*-
 # タブとかペインみたいにたくさん作れるパーツ
 
-class Plugin::GUI::Cuscadable
+module Plugin::GUI::Cuscadable
   attr_reader :slug, :name
 
   class << self
     def included(klass)
+      klass.instance_eval{
+        private
+        alias new_cuscadable new
+        def new(slug, name)
+          new_cuscadable(slug, name) end }
       klass.extend ExtendedCuscadable end end
 
   def initialize(slug, name)
-    super
     @slug = slug
     @name = name.freeze
     self.class.regist(self) end
 
   # 次のインスタンスを返す。このインスタンスが最後だった場合は最初に戻る
   def next
-    values = self.class.cuscade.values
+    values = self.class.cuscaded.values
     instance, index = values.each_with_index.find{ |instance, index| self.equal?(instance) }
     index += 1
     index -= values.size if index >= values.size
     values[index] end
 
-  class ExtendedCuscadable
+  # 前のインスタンスを返す。このインスタンスが最初だった場合は最後に戻る
+  def prev
+    values = self.class.cuscaded.values
+    instance, index = values.each_with_index.find{ |instance, index| self.equal?(instance) }
+    index -= 1
+    index += values.size if index < 0
+    values[index] end
+
+  module ExtendedCuscadable
     # アクティブなインスタンス
     attr_reader :active
 
@@ -32,10 +44,10 @@ class Plugin::GUI::Cuscadable
     # [slug] スラッグ(Symbol)
     # [name] タブのラベル(String)
     def instance(slug, name = slug.to_s)
-      if cuscade.has_key? slug
-        cuscade[slug]
+      if cuscaded.has_key? slug
+        cuscaded[slug]
       else
-        self.new(slug, name) end end
+        new(slug, name) end end
 
     # 新しく作成したタブを新規登録する
     # ==== Args
