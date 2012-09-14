@@ -138,7 +138,7 @@ class Gdk::MiraclePainter < Gtk::Object
         index = main_pos_to_index(x, y)
         if index
           l = message.links.segment_by_index(index)
-          l[:callback].call(l) if l end end
+          l[:callback].call(l) if l and l[:callback] end end
     when 3
       notice "pass"
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
