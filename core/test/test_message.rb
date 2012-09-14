@@ -30,11 +30,11 @@ class TC_Message < Test::Unit::TestCase
   must "hierarchy check" do
     toshi = User.new_ifnecessary(:id => 123456, :idname => 'toshi_a', :name => 'toshi')
     miku = User.new_ifnecessary(:id => 393939, :idname => 'ha2ne39', :name => 'miku')
-    c1 = Message.new_ifnecessary(:id => 11, :message => '@ha2ne39 hey, miku!', :user => toshi, :created => Time.now)
-    c2 = Message.new_ifnecessary(:id => 12, :message => '@toshi_a hi master, how r u?', :user => miku, :replyto =>c1, :created => Time.now)
-    c3 = Message.new_ifnecessary(:id => 13, :message => '@toshi_a i happy. because u r cute!', :user => toshi, :replyto =>c2, :created => Time.now)
-    c4 = Message.new_ifnecessary(:id => 14, :message => '@ha2ne39...baka///', :user => miku, :replyto =>c3, :created => Time.now)
-    c5 = Message.new_ifnecessary(:id => 15, :message => '@toshi_a inhibit ashamed words!', :user => miku, :replyto =>c3, :created => Time.now)
+    c1 = Message.new_ifnecessary(:id => 11, :message => '@ha2ne39 みくちゃああああああああああああん', :user => toshi, :created => Time.now)
+    c2 = Message.new_ifnecessary(:id => 12, :message => '@toshi_a なに', :user => miku, :replyto =>c1, :created => Time.now)
+    c3 = Message.new_ifnecessary(:id => 13, :message => '@ha2ne39 ぺろぺろぺろぺろ（＾ω＾）', :user => toshi, :replyto =>c2, :created => Time.now)
+    c4 = Message.new_ifnecessary(:id => 14, :message => '@toshi_a 垢消せ', :user => miku, :replyto =>c3, :created => Time.now)
+    c5 = Message.new_ifnecessary(:id => 15, :message => '@toshi_a キモい', :user => miku, :replyto =>c3, :created => Time.now)
     assert_equal(c1, c2.receive_message)
     assert_kind_of(Message, c2.receive_message)
     assert_kind_of(Message, c1) # !> method redefined; discarding old inspect
@@ -50,6 +50,20 @@ class TC_Message < Test::Unit::TestCase
     assert c3children.include?(c5)
     assert !c3children.include?(c2)
     assert_equal c4.receive_message, c3
+  end
+
+  must "around check" do
+    toshi = User.new_ifnecessary(:id => 123456, :idname => 'toshi_a', :name => 'toshi')
+    miku = User.new_ifnecessary(:id => 393939, :idname => 'ha2ne39', :name => 'miku')
+    c1 = Message.new_ifnecessary(:id => 21, :message => 'おはよう', :user => toshi, :created => Time.now)
+    c2 = Message.new_ifnecessary(:id => 22, :message => '@toshi_a おはよう', :user => miku, :replyto =>c1, :created => Time.now)
+    c3 = Message.new_ifnecessary(:id => 23, :message => '@ha2ne39 ぺろぺろぺろぺろ（＾ω＾）', :user => toshi, :replyto =>c2, :created => Time.now)
+    c4 = Message.new_ifnecessary(:id => 24, :message => '@toshi_a おはよう', :user => toshi, :replyto =>c1, :created => Time.now)
+    c1.children << c2
+    c2.children << c3
+    c1.children << c4
+    assert_equal [21, 22, 23, 24], c2.around.map(&:id).sort
+    assert_equal [22, 23], c2.children_all.map(&:id).sort
   end
 
   must "receive user detect" do
