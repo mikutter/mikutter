@@ -185,6 +185,19 @@ Plugin.create :command do
     focus_move_widget(opt.widget, 1)
   end
 
+  command(:focus_to_postbox,
+          name: '投稿ボックスにフォーカス',
+          condition: lambda{ |opt| not opt.widget.is_a? Plugin::GUI::Postbox },
+          visible: false,
+          role: :window) do |opt|
+    focus_move_to_nearest_postbox(opt.widget.active_chain.last)
+  end
+
+
+  # フォーカスを _widget_ から _distance_ に移動する
+  # ==== Args
+  # [widget] 起点となるウィジェット
+  # [distance] 移動距離
   def focus_move_widget(widget, distance)
     type_strict widget => Plugin::GUI::HierarchyParent
     type_strict widget => Plugin::GUI::HierarchyChild
@@ -200,5 +213,18 @@ Plugin.create :command do
       notice "activate #{term}"
     end
   end
+
+  # 一番近い postbox にフォーカスを与える
+  # ==== Args
+  # [widget] 基準となるウィジェット
+  def focus_move_to_nearest_postbox(widget)
+    notice "called: given widget #{widget.inspect}"
+    if widget.is_a? Plugin::GUI::HierarchyParent
+      postbox = widget.children.find{ |w| w.is_a? Plugin::GUI::Postbox }
+      notice "found postbox: #{postbox.inspect}"
+      if postbox
+        return postbox.active! end end
+    if widget.is_a? Plugin::GUI::HierarchyChild
+      focus_move_to_nearest_postbox(widget.parent) end end
 
 end

@@ -33,9 +33,8 @@ class Plugin::GUI::Timeline
   # このタイムラインをアクティブにする。また、子のPostboxは非アクティブにする
   # ==== Return
   # self
-  def active!
-    @active_child = false
-    set_active_child(nil)
+  def active!(just_this=true)
+    set_active_child(nil) if just_this
     super end
 
   # 選択されているMessageを返す

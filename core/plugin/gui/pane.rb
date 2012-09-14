@@ -25,7 +25,7 @@ class Plugin::GUI::Pane
     Plugin.call(:pane_created, self)
   end
 
-  def active!
+  def active!(just_this=true)
     @@default = self
     super end
 
