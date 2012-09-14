@@ -1,0 +1,7 @@
+name: "mikutter Ruby Console"
+slug: "console"
+depends:
+  - gui
+  - gtk
+version:
+  "1.0"
