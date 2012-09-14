@@ -43,8 +43,10 @@ module Plugin::GUI::HierarchyParent
     @children ||= [] end
 
   def set_active_child(child)
-    type_strict child => Plugin::GUI::HierarchyChild
-    @active_child = child end
+    type_strict child => tcor(Plugin::GUI::HierarchyChild, NilClass)
+    @active_child = child
+    notice "active child set #{self.inspect} => #{child.inspect}"
+    self end
 
   # このインスタンス以下の、アクティブな祖先のリストを返す。
   # ==== Return
