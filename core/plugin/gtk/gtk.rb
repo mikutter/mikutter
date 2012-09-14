@@ -340,14 +340,10 @@ Plugin.create :gtk do
       widget = widgetof(i_child.respond_to?(:active_chain) ? i_child.active_chain.last : i_child)
       if window and widget
         notice "ACTIVATE! #{window} => #{widget}"
-        window.set_focus(widget) end end end
-    # else #if i_parent.is_a?(Plugin::GUI::Window)
-    #   child = widgetof(i_child)
-    #   if child and (i_child.respond_to?(:active_child) ? !i_child.active_child : true)
-    #     if child.respond_to? :active
-    #       child.active
-    #     else
-    #       child.get_ancestor(Gtk::Window).set_focus(child) end end end end
+        if widget.respond_to? :active
+          widget.active
+        else
+          window.set_focus(widget) end end end end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
