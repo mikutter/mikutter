@@ -49,7 +49,9 @@ Plugin.create :profile do
           name: lambda { |opt|
             if defined? opt.messages.first and opt.messages.first.repliable?
               u = opt.messages.first.user
-              "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__') end },
+              "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__')
+            else
+             "ユーザについて" end },
           condition: lambda{ |opt| opt.messages.first.repliable? },
           visible: true,
           role: :timeline) do |opt|

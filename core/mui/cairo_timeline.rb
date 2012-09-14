@@ -133,7 +133,7 @@ class Gtk::TimeLine
 
   # 新しいものから順番にpackしていく。
   def block_add_all(messages)
-    removes, appends = *messages.partition{ |m| p m[:rule] == :destroy }
+    removes, appends = *messages.partition{ |m| m[:rule] == :destroy }
     remove_if_exists_all(removes)
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)

@@ -15,15 +15,17 @@ module Plugin::GUI::HierarchyParent
   # 子を追加する
   # ==== Args
   # [child] 子のインスタンス
+  # [index] 挿入するインデックス
   # ==== Return
   # self
-  def <<(child)
+  def add_child(child, index=children.size)
     type_strict child => Plugin::GUI::HierarchyChild
-    children << child
+    return self if child.parent == self
+    children.insert(index, child)
     child.set_parent(self)
     @active_child ||= child
     self end
-  alias add_child <<
+  alias << add_child
 
   # 子を削除する
   # ==== Args

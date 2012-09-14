@@ -53,27 +53,27 @@ Plugin.create :gtk do
     tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
       notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) }
-    pane.signal_connect('page-reordered'){
-      # UserConfig[:tab_order] = books_labels
+    pane.ssc(:page_reordered){ |this|
+      pane_contents_recalc(i_pane)
       false }
-    pane.signal_connect('page-added'){ |this, widget|
-      # notice "#{args.inspect}"
-      notice "gtk:page-added: "
-      i_widget = find_slug_by_gtkwidget(widget)
+    pane.signal_connect(:page_added){ |this, widget|
+      i_widget = find_implement_widget_by_gtkwidget(widget)
       next false unless i_widget
       i_tab = i_widget.parent
       next false unless i_tab and i_tab.parent != i_pane
       i_pane << i_tab
+      pane_contents_recalc(i_pane)
       false }
     # 子が無くなった時 : このpaneを削除
-    pane.signal_connect('page-removed'){
+    # また、無くなった子を順序リストから削除
+    pane.signal_connect(:page_removed){
       Delayer.new{
         unless pane.destroyed?
           if pane.children.empty? and pane.parent
             UserConfig.disconnect(tab_position_hook_id)
-            pane.parent.remove(pane) end
-          # UserConfig[:tab_order] = books_labels
-        end }
+            pane_order_delete(i_pane)
+            pane.parent.remove(pane) end end }
+      pane_contents_recalc(i_pane)
       false }
   end
 
@@ -189,7 +189,7 @@ Plugin.create :gtk do
         w_child.parent.remove(w_child)
         widget_join_tab(i_tab, w_child) }
       tab.show_all end
-  end
+    pane_contents_recalc(i_pane) end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
     widget_join_tab(i_tab, widgetof(i_timeline)) end
@@ -374,6 +374,34 @@ Plugin.create :gtk do
       false }
     pane.show_all end
 
+  # ペイン内のタブの現在の順序を設定に保存する
+  # ==== Args
+  # [i_pane] ペイン
+  def pane_contents_recalc(i_pane)
+    atomic do
+      tab_order = []
+      pane = widgetof(i_pane)
+      i_window = i_pane.parent
+      type_strict i_pane => Plugin::GUI::Pane, i_window => Plugin::GUI::Window, pane => Gtk::Notebook
+      pane.n_pages.times{ |page_num|
+        i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
+        tab_order << i_widget.slug if i_widget }
+      ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
+      ui_tab_order[i_window.slug] = (ui_tab_order[i_window.slug] || {}).melt
+      ui_tab_order[i_window.slug][i_pane.slug] = tab_order
+      UserConfig[:ui_tab_order] = ui_tab_order end
+  end
+
+  # ペインを順序リストから削除する
+  # ==== Args
+  # [i_pane] ペイン
+  def pane_order_delete(i_pane)
+    order = UserConfig[:ui_tab_order].melt
+    i_window = i_pane.parent
+    order[i_window.slug] = order[i_window.slug].melt
+    order[i_window.slug].delete(i_pane.slug)
+    UserConfig[:ui_tab_order] = order end
+
   # _cuscadable_ に対応するGtkオブジェクトを返す
   # ==== Args
   # [cuscadable] ウィンドウ、ペイン、タブ、タイムライン等
@@ -405,7 +433,7 @@ Plugin.create :gtk do
   # [widget] Gtkウィジェット
   # ==== Return
   # _widget_ に対応するウィジェットオブジェクトまたは偽
-  def find_slug_by_gtkwidget(widget)
+  def find_implement_widget_by_gtkwidget(widget)
     type_strict widget => Gtk::Widget
     [
      [@windows_by_slug, Plugin::GUI::Window],
