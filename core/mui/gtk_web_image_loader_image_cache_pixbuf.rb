@@ -28,6 +28,7 @@ module Gdk::WebImageLoader
       # _raw_ の値
       def save(url, rect, pixbuf)
         return pixbuf if not pixbuf
+        return pixbuf if not @storage
         synchronize {
           storage[url] ||= {}
           storage[url][rect.width] ||= {}
