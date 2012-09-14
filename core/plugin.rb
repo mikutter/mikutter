@@ -58,8 +58,7 @@ _service_ のフォロワーが増えた時に呼ばれる。_users_ は増え�
 ユーザ _by_ がユーザ _to_ をフォローした時に呼ばれる
 
 === list_data(Service service, Array ulist)
-フォローしているリスト一覧に変更があれば呼ばれる。なお、このイベントにリスナーを登録すると、すぐに
-現在フォローしているリスト一覧を引数にコールバックが呼ばれる。
+フォローしているリスト一覧に変更があれば呼ばれる。現在フォローしている全てのリストが渡される
 
 === list_created(Service service, Array ulist)
 新しくリストが作成されると、それを引数に呼ばれる。
@@ -172,6 +171,9 @@ _users_ は、お気に入りに入れているユーザの集合。
 
 === show_filter(Enumerable messages)
 _messages_ から、表示してはいけないものを取り除く
+
+=== following_lists(Enumerable lists)
+_lists_ に、フォローしているリストを入れて返す
 
 === message_background_color(Gdk::MiraclePainter miracle_painter, Array color)
 _miracle_painter_ のツイートの背景色を変更する。 _color_ は現在の色又はnil。
