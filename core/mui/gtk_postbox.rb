@@ -172,6 +172,8 @@ module Gtk
             show_all.
             get_ancestor(Gtk::Window).
             set_focus(postbox.widget_post) end end
+      if @options[:before_post_hook]
+        @options[:before_post_hook].call(self) end
       true end
 
     def start_post

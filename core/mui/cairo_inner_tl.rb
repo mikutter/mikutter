@@ -69,6 +69,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     ctl = Gtk::TimeLine::InnerTL.current_tl
     pb = nil
     if(ctl)
+      options = options.dup
+      options[:before_post_hook] = lambda{ |this|
+        get_ancestor(Gtk::Window).set_focus(self) }
       message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
       message = message[1] if(message.is_a?(Gtk::TreeIter))
       type_strict message => Message
