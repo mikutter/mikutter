@@ -74,7 +74,7 @@ Plugin.create :gtk do
         pane.parent.remove(pane)
         UserConfig.disconnect(tab_position_hook_id)
         pane_order_delete(i_pane)
-        pane.destroy end
+        i_pane.destroy end
       false }
   end
 
@@ -260,7 +260,7 @@ Plugin.create :gtk do
               pane.remove_page(pagenum)
               break end } end
       else
-        widget.parent.remove(widget)
+        widget.parent.remove(widget) if widget.parent
         widget.destroy end end end
 
   # 互換性のため
