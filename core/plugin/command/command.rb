@@ -225,9 +225,24 @@ Plugin.create :command do
       term = children[index + distance]
       term = term.active_chain.last if term.respond_to? :active_chain
       term.active! if term
-      notice "activate #{term}"
-    end
-  end
+      notice "activate #{term} #{widget.class} #{term.class}"
+      notice "check #{widget.active_child} #{term.active_child}"
+      src_tl = widget.active_chain.last
+      if widget.is_a?(Plugin::GUI::Pane) and src_tl and term
+        notice "pass"
+        slide_timeline_focus(src_tl, term) end end end
+
+  # タイムライン _src_ で選択されているディスプレイ上のy座標が同じ _dest_ のツイートに
+  # フォーカスを移動する
+  # ==== Args
+  # [src] フォーカスを取得するタイムライン
+  # [dest] フォーカスを設定するタイムライン
+  def slide_timeline_focus(src, dest)
+    type_strict src => Plugin::GUI::Timeline, dest => Plugin::GUI::Timeline
+    y = Plugin.filtering(:gui_timeline_cursor_position, src, nil).last
+    notice "y = #{y}"
+    if y
+      Plugin.call(:gui_timeline_move_cursor_to, dest, y) end end
 
   # 一番近い postbox にフォーカスを与える
   # ==== Args
