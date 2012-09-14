@@ -50,6 +50,15 @@ class Plugin::GUI::Tab
     timeline
   end
 
+  # UIツールキットのウィジェット(Gtk等)をタブに入れる
+  # ==== Args
+  # [widget] ウィジェット
+  # ==== Return
+  # self
+  def nativewidget(widget)
+    Plugin.call(:gui_nativewidget_join_tab, self, widget)
+    self end
+
   def set_icon(new)
     if @icon != new
       @icon = new
