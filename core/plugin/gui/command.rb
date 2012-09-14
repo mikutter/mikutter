@@ -2,11 +2,10 @@
 
 module Plugin::GUI
   class Command
-    Event = Struct.new(:event, :widget, :messages)
 
     class << self
-      def menu_pop
-        widget = get_active_widget
+      def menu_pop(widget = get_active_widget)
+        type_strict widget => Plugin::GUI::Widget
         labels = []
         contextmenu = []
         timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)

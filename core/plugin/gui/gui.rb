@@ -8,6 +8,8 @@ require File.expand_path File.join(File.dirname(__FILE__), 'tab')
 require File.expand_path File.join(File.dirname(__FILE__), 'profile')
 require File.expand_path File.join(File.dirname(__FILE__), 'profiletab')
 require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_child_widget')
+require File.expand_path File.join(File.dirname(__FILE__), 'postbox')
 require File.expand_path File.join(File.dirname(__FILE__), 'command')
 
 Plugin.create :gui do

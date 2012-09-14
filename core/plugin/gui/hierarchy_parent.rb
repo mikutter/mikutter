@@ -82,7 +82,7 @@ module Plugin::GUI::HierarchyParent
     else
       [] end end
 
-  # active_ancestor が返すインスタンスのうち、最初に _klass_ とis_a関係にあるものを返す。
+  # active_chain が返すインスタンスのうち、最初に _klass_ とis_a関係にあるものを返す。
   # ==== Args
   # [klass] クラス
   # ==== Return
