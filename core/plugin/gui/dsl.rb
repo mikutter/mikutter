@@ -24,6 +24,15 @@ class Plugin
             tabs.each_with_index{ |tab_slug, index|
               return [window_slug, pane_slug, index] if tab_slug == find_slug } } }
         nil end
+
+      # キー _key_ がウィジェット _widget_ の上で押された時に呼び出す
+      # ==== Args
+      # [key] 押されたキーの名前
+      # [widget] キーが押されたウィジェット
+      def keypress(key, widget)
+        notice "key pressed #{key} #{widget.inspect}"
+      end
+
     end
   end
 

@@ -35,6 +35,9 @@ Plugin.create :gtk do
       i_window.active!
       false
     }
+    window.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_window)
+      false }
     window.show_all
   end
 
@@ -59,6 +62,9 @@ Plugin.create :gtk do
           # UserConfig[:tab_order] = books_labels
         end }
       false }
+    pane.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane)
+      false }
     pane.show_all
   end
 
@@ -73,6 +79,9 @@ Plugin.create :gtk do
       i_tab.active!
       false
     }
+    tab.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab)
+      false }
     tab.show_all
   end
 
@@ -84,6 +93,9 @@ Plugin.create :gtk do
     @timelines_by_slug[i_timeline.slug] = timeline
     timeline.tl.ssc(:focus_in_event) {
       i_timeline.active!
+      false }
+    timeline.ssc('key_press_event'){ |widget, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline)
       false }
     timeline.show_all
   end
