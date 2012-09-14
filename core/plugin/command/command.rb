@@ -158,14 +158,7 @@ Plugin.create :command do
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
-    tab = opt.widget
-    children = tab.parent.children
-    index = children.index(tab)
-    if children.size <= (index+1)
-      # next pane
-    else
-      children[index + 1].children[0].active!
-    end
+    focus_move_widget(opt.widget, 1)
   end
 
   command(:focus_left_tab,
@@ -173,13 +166,22 @@ Plugin.create :command do
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
-    tab = opt.widget
-    children = tab.parent.children
-    index = children.index(tab)
-    if 0 > (index-1)
-      # prev pane
+    focus_move_widget(opt.widget, -1)
+  end
+
+  def focus_move_widget(widget, distance)
+    type_strict widget => Plugin::GUI::HierarchyParent
+    type_strict widget => Plugin::GUI::HierarchyChild
+    children = widget.parent.children.select{ |w| w.is_a? widget.class }
+    index = children.index(widget)
+    if distance > 0 ? (children.size <= (index+distance)) : (0 > (index+distance))
+      notice "terminate #{widget}"
+      yield(widget, distance) if block_given?
     else
-      children[index - 1].children[0].active!
+      term = children[index + distance]
+      term = term.active_chain.last if term.respond_to? :active_chain
+      term.active! if term
+      notice "activate #{term}"
     end
   end
 
