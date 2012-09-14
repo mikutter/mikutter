@@ -63,7 +63,7 @@ class Plugin
   # [title] タブのタイトル
   def profiletab(slug, title, &proc)
     on_profiletab do |i_profile, user|
-      i_profiletab = Plugin::GUI::ProfileTab.instance(slug)
+      i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
       i_profile << i_profiletab
       i_profiletab.instance_eval{ @user = user }
       i_profiletab.instance_eval(&proc) end

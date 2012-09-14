@@ -126,9 +126,17 @@ Plugin.create :gtk do
     notice "create timeline #{i_timeline.slug.inspect}"
     timeline = Gtk::TimeLine.new
     @timelines_by_slug[i_timeline.slug] = timeline
-    timeline.tl.ssc(:focus_in_event) {
+    focus_in_event = lambda { |this, event|
+      #notice "active set to #{i_timeline}"
       i_timeline.active!
       false }
+    destroy_event = lambda{ |this|
+      if not(timeline.tl.destroyed?) and this != timeline.tl
+        timeline.tl.ssc(:focus_in_event, &focus_in_event)
+        timeline.tl.ssc(:destroy, &destroy_event) end
+      false }
+    timeline.tl.ssc(:focus_in_event, &focus_in_event)
+    timeline.tl.ssc(:destroy, &destroy_event)
     timeline.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline) }
     timeline.ssc(:destroy){
@@ -170,14 +178,11 @@ Plugin.create :gtk do
       notice "#{widget} removes by #{old_pane}"
       old_pane.remove_page(old_pane.page_num(widget))
       if tab.parent
-        catch(:tab_deleted) do
-          tab.parent.n_pages.times { |page_num|
-            if(tab.parent.get_tab_label(tab.parent.get_nth_page(page_num)) == tab)
-              notice "#{tab} removes by #{tab.parent} (page #{page_num})"
-              tab.parent.remove_page(page_num)
-              throw :tab_deleted end }
-          raise Plugin::Gtk::GtkError, "#{tab} not found in #{tab.parent}" end
-      end
+        page_num = tab.parent.get_tab_pos_by_tab(tab)
+        if page_num
+          tab.parent.remove_page(page_num)
+        else
+          raise Plugin::Gtk::GtkError, "#{tab} not found in #{tab.parent}" end end
       notice "#{widget} pack to #{tab}"
       i_tab.children.each{ |i_child|
         w_child = widgetof(i_child)
@@ -313,7 +318,8 @@ Plugin.create :gtk do
     i_pane = i_tab.parent
     pane = widgetof(i_pane)
     tab = widgetof(i_tab)
-    container_index = i_pane.children.find_index{ |child| child.slug == i_tab.slug }
+    notice "widget_join_tab: #{widget} join #{i_tab}"
+    container_index = pane.get_tab_pos_by_tab(tab)
     if container_index
       container = pane.get_nth_page(container_index)
       if container

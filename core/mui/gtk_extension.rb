@@ -171,6 +171,19 @@ class Gtk::Dialog
   end
 end
 
+class Gtk::Notebook
+  # ラベルウィジェットが何番目のタブかを返す
+  # ==== Args
+  # [label] ラベルウィジェット
+  # ==== Return
+  # インデックス(見つからない場合nil)
+  def get_tab_pos_by_tab(label)
+    n_pages.times { |page_num|
+      if(get_tab_label(get_nth_page(page_num)) == label)
+        return page_num end }
+    nil end
+end
+
 module Gtk
   # _url_ を設定されているブラウザで開く
   class << self
