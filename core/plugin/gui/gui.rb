@@ -2,8 +2,11 @@
 # mikutterにGUIをつけるプラグイン
 
 require File.expand_path File.join(File.dirname(__FILE__), 'dsl')
+require File.expand_path File.join(File.dirname(__FILE__), 'window')
+require File.expand_path File.join(File.dirname(__FILE__), 'pane')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab')
 require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
+require File.expand_path File.join(File.dirname(__FILE__), 'command')
 
 Plugin.create :gui do
 

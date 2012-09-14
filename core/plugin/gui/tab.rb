@@ -5,12 +5,16 @@ require File.expand_path File.join(File.dirname(__FILE__), 'pane')
 require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
 require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
 require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_parent')
+require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 
 class Plugin::GUI::Tab
 
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyChild
   include Plugin::GUI::HierarchyParent
+  include Plugin::GUI::Widget
+
+  role :tab
 
   attr_reader :icon
 

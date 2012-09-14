@@ -6,6 +6,7 @@ class Plugin
 require 'test/unit'
 require File.expand_path(File.dirname(__FILE__) + '/../../../lib/test_unit_extensions')
 require File.expand_path(File.dirname(__FILE__) + '/../cuscadable')
+require File.expand_path(File.dirname(__FILE__) + '/../../../utils')
 
 class TC_PluginGUICuscadable < Test::Unit::TestCase
 

@@ -89,8 +89,6 @@ Plugin.create :gtk do
     pane = widgetof(i_pane)
     timeline = widgetof(i_timeline)
     index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
-    p i_pane.children.map(&:slug)
-    puts "index is #{index}"
     pane.insert_page_menu(index, timeline, widgetof(i_tab))
     pane.set_tab_reorderable(timeline, true).set_tab_detachable(timeline, true)
   end
@@ -102,6 +100,13 @@ Plugin.create :gtk do
 
   on_gui_tab_change_icon do |i_tab|
     tab_update_icon(i_tab) end
+
+  on_gui_contextmenu do |event, contextmenu|
+    Gtk::ContextMenu.new(*contextmenu).popup(widgetof(event.widget), event)
+  end
+
+  filter_gui_timeline_selected_messages do |i_timeline, messages|
+    [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
 
   def tab_update_icon(i_tab)
     type_strict i_tab => Plugin::GUI::Tab

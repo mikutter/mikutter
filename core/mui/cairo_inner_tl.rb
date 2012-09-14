@@ -190,6 +190,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
+      
       false } end
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
