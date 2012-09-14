@@ -107,7 +107,8 @@ class Gtk::TimeLine
     @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
-    @tl.vadjustment.ssc(:value_changed){ |this|
+    @scroll_to_zero_hook = lambda{ |*args|
+      notice "scroll to zero hook"
       emit_expose_miraclepainter
       if(scroll_to_zero? and not(scroll_to_top_anime))
         scroll_to_top_anime = true
@@ -117,8 +118,11 @@ class Gtk::TimeLine
         Gtk.timeout_add(FRAME_MS){
           scroll_to_top_anime = if scroll_to_top_anime_id == my_id and not(@tl.destroyed?)
             @tl.vadjustment.value -= (@tl.vadjustment.value / 2) + 1
-            @tl.vadjustment.value > 0.0 end } end
+            @tl.vadjustment.value > 0.0 end
+          scroll_to_top_anime } end
       false }
+    @tl.vadjustment.ssc(:value_changed, &@scroll_to_zero_hook)
+
     init_remover
     @shell = Gtk::HBox.new.pack_start(@tl).closeup(scrollbar) end
 
@@ -182,6 +186,10 @@ class Gtk::TimeLine
   def active
     get_ancestor(Gtk::Window).set_focus(@tl)
   end
+
+  def scroll_to_zero_lator!
+    @scroll_to_zero_lator = true
+    @scroll_to_zero_hook.call end
 
   # このTLが既に削除されているなら真
   def destroyed?
@@ -264,9 +272,6 @@ class Gtk::TimeLine
 
   def postbox
     @postbox ||= Gtk::VBox.new end
-
-  def scroll_to_zero_lator!
-    @scroll_to_zero_lator = true end
 
   def scroll_to_zero?
     result = (defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator)
