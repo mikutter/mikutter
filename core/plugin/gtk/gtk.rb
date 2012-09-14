@@ -386,7 +386,6 @@ Plugin.create :gtk do
     type_strict i_window => Plugin::GUI::Window
     notice "window_order_save_request: #{i_window.inspect}"
     Delayer.new do
-      ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
       panes_order = {}
       i_window.children.each{ |i_pane|
         if i_pane.is_a? Plugin::GUI::Pane
@@ -395,8 +394,10 @@ Plugin.create :gtk do
           pane.n_pages.times{ |page_num|
             i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
             tab_order << i_widget.slug if i_widget }
-          ui_tab_order[i_window.slug] = (ui_tab_order[i_window.slug] || {}).melt
-          panes_order[i_pane.slug] = tab_order end }
+          panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
+      require "pp"
+      pp panes_order
+      ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
       ui_tab_order[i_window.slug] = panes_order
       UserConfig[:ui_tab_order] = ui_tab_order
     end
