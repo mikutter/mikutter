@@ -15,9 +15,10 @@ Plugin.create :gui do
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug)
     window << Plugin::GUI::Postbox.instance
+    if panes.empty?
+      panes = { default: [] } end
     panes.each { |pane_slug, tabs|
       pane = Plugin::GUI::Pane.instance(pane_slug)
-      
       window << pane
     }
   }
