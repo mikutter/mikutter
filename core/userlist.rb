@@ -90,3 +90,6 @@ class UserList < Retriever::Model
     result end
 
 end
+
+class UserLists < TypedArray(UserList)
+end
