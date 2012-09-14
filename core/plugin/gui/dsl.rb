@@ -57,4 +57,15 @@ class Plugin
   def timeline(slug)
     Plugin::GUI::Timeline.instance(slug) end
 
+  # プロフィールタブを定義する
+  # ==== Args
+  # [slug] タブスラッグ
+  # [title] タブのタイトル
+  def profiletab(slug, title, &proc)
+    on_profiletab do |i_profile, user|
+      i_profiletab = Plugin::GUI::ProfileTab.instance(slug)
+      i_profile << i_profiletab
+      i_profiletab.instance_eval{ @user = user }
+      i_profiletab.instance_eval(&proc) end
+  end
 end
