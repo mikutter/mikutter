@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require File.expand_path File.join(File.dirname(__FILE__), 'conditions')
+
 Plugin.create :command do
 
   on_gui_child_activated do |i_window, i_pane|
@@ -8,21 +10,21 @@ Plugin.create :command do
 
   command(:copy_selected_region,
           name: 'コピー',
-          condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
+          condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           role: :timeline) do |opt|
     Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
 
   command(:copy_description,
           name: '本文をコピー',
-          condition: lambda{ |opt| opt.messages.size == 1 },
+          condition: Plugin::Command[:HasOneMessage],
           visible: true,
           role: :timeline) do |opt|
     Gtk::Clipboard.copy(opt.messages.first.to_show) end
 
   command(:reply,
           name: '返信',
-          condition: lambda{ |opt| opt.messages.all? &:repliable? },
+          condition: Plugin::Command[:CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
     opt.widget.create_reply_postbox(opt.messages.first.message,
@@ -30,7 +32,7 @@ Plugin.create :command do
 
   command(:reply_all,
           name: '全員に返信',
-          condition: lambda{ |opt| opt.messages.all? &:repliable? },
+          condition: Plugin::Command[:CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
     opt.widget.create_reply_postbox(opt.messages.first.message,
@@ -39,25 +41,21 @@ Plugin.create :command do
 
   command(:legacy_retweet,
           name: '引用',
-          condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.repliable? },
+          condition: Plugin::Command[:HasOneMessage, :CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
     opt.widget.create_reply_postbox(opt.messages.first.message, retweet: true) end
 
   command(:retweet,
           name: 'リツイート',
-          condition: lambda{ |opt|
-            opt.messages.all? { |m|
-              m.retweetable? and not m.retweeted_by_me? } },
+          condition: Plugin::Command[:CanReTweetAll],
           visible: true,
           role: :timeline) do |opt|
     opt.messages.select{ |x| not x.from_me? }.each(&:retweet) end
 
   command(:delete_retweet,
           name: 'リツイートをキャンセル',
-          condition: lambda{ |opt|
-            opt.messages.all? { |m|
-              m.retweetable? and m.retweeted_by_me? } },
+          condition: Plugin::Command[:IsReTweetedAll],
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each { |m|
@@ -66,24 +64,21 @@ Plugin.create :command do
 
   command(:favorite,
           name: 'ふぁぼふぁぼする',
-          condition: lambda{ |opt|
-            opt.messages.all?{ |m| m.favoritable? and not m.favorited_by_me? } },
+          condition: Plugin::Command[:CanFavoriteAll],
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each(&:favorite) end
 
   command(:delete_favorite,
           name: 'あんふぁぼ',
-          condition: lambda{ |opt|
-            opt.messages.all?(&:favorited_by_me?) },
+          condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 
   command(:delete,
           name: '削除',
-          condition: lambda{ |opt|
-            opt.messages.all?(&:from_me?) },
+          condition: Plugin::Command[:IsMyMessageAll],
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each { |m|
@@ -105,23 +100,22 @@ Plugin.create :command do
 
   command(:post_it,
           name: '投稿する',
-          condition: lambda{ |opt| opt.widget.editable? },
+          condition: Plugin::Command[:Editable],
           visible: false,
           role: :postbox) do |opt|
     opt.widget.post_it! end
 
   command(:google_search,
           name: 'ggrks',
-          condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
+          condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           role: :timeline) do |opt|
     Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
 
   command(:open_link,
           name: 'リンクを開く',
-          condition: lambda{ |opt|
-            opt.messages.size == 1 && opt.messages[0].entity.to_a.any? {|u|
-              u[:slug] == :urls } },
+          condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
+            opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
@@ -150,7 +144,6 @@ Plugin.create :command do
   command(:close,
           name: 'タブを閉じる',
           condition: lambda{ |opt|
-            notice "tab close: #{opt.widget} deletable = #{opt.widget.deletable.inspect}"
             opt.widget.deletable },
           visible: true,
           role: :tab) do |opt|
