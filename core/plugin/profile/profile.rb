@@ -8,13 +8,13 @@ Plugin.create :profile do
 
   on_show_profile do |service, user|
     container = profile_head(user)
-    i_profile = nil
-    i_tab = tab nil, "#{user[:name]} のプロフィール}" do
+    i_profile = tab nil, "#{user[:name]} のプロフィール}" do
       set_icon user[:profile_image_url]
+      set_deletable true
       shrink
       nativewidget container
       expand
-      i_profile = profile slug end
+      profile slug end
     Plugin.call(:profiletab, i_profile, user)
   end
 

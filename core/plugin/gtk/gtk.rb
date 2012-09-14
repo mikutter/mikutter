@@ -48,7 +48,8 @@ Plugin.create :gtk do
   # ペインはGtk::NoteBook
   on_pane_created do |i_pane|
     pane = create_pane(i_pane)
-    pane.set_tab_pos(TABPOS[UserConfig[:tab_position]]).set_tab_border(0).set_group_id(0).set_scrollable(true)
+    pane.set_tab_border(0).set_group_id(0).set_scrollable(true)
+    pane.set_tab_pos(TABPOS[UserConfig[:tab_position]])
     tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
       notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) }
@@ -112,9 +113,8 @@ Plugin.create :gtk do
     tab.ssc(:button_press_event) { |this, e|
       notice "tab press: pass"
       if e.button == 3
-        Plugin::GUI::Command.menu_pop(i_tab)
-      end
-    }
+        Plugin::GUI::Command.menu_pop(i_tab) end
+      false }
     tab.ssc(:destroy){
       Plugin.call(:gui_destroy, i_tab)
       false }
@@ -164,7 +164,7 @@ Plugin.create :gtk do
     next if not widget
     tab = widgetof(i_tab)
     pane = widgetof(i_pane)
-    old_pane = widget.parent
+    old_pane = widget.get_ancestor(Gtk::Notebook)
     notice "pane: #{pane}, old_pane: #{old_pane}"
     if pane and old_pane and pane != old_pane
       notice "#{widget} removes by #{old_pane}"
@@ -173,7 +173,11 @@ Plugin.create :gtk do
         notice "#{tab} removes by #{tab.parent}"
         tab.parent.remove(tab) end
       notice "#{widget} pack to #{tab}"
-      widget_join_tab(i_tab, widget) end
+      i_tab.children.each{ |i_child|
+        w_child = widgetof(i_child)
+        w_child.parent.remove(w_child)
+        widget_join_tab(i_tab, w_child) }
+      tab.show_all end
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
@@ -229,8 +233,15 @@ Plugin.create :gtk do
   on_gui_destroy do |i_widget|
     widget = widgetof(i_widget)
     if widget and not widget.destroyed?
-      widget.parent.remove(widget)
-      widget.destroy end end
+      if i_widget.is_a? Plugin::GUI::Tab
+        pane = widgetof(i_widget.parent)
+        pane.n_pages.times{ |pagenum|
+          if widget == pane.get_tab_label(pane.get_nth_page(pagenum))
+            pane.remove_page(pagenum)
+            break end }
+      else
+        widget.parent.remove(widget)
+        widget.destroy end end end
 
   # 互換性のため
   on_mui_tab_regist do |container, name, icon|
@@ -304,7 +315,7 @@ Plugin.create :gtk do
       container.pack_start(widget, i_tab.pack_rule.shift)
       index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
       pane.insert_page_menu(index, container, widgetof(i_tab))
-      pane.set_tab_reorderable(widget, true).set_tab_detachable(widget, true)
+      pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
     true end
 
   def tab_update_icon(i_tab)
