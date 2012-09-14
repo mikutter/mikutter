@@ -24,7 +24,8 @@ class Plugin::GUI::Tab
     position = Plugin::GUI.get_tab_order(slug)
     if position
       window_slug, pane_slug, order = position
-      Plugin::GUI::Pane.instance(pane_slug) << self
+      pane = Plugin::GUI::Pane.instance(pane_slug)
+      pane.add_child(self, where_should_insert_it(slug, pane.children.map(&:slug), order))
     else
       Plugin::GUI::Pane.add_default << self
     end

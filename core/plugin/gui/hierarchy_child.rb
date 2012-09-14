@@ -18,8 +18,10 @@ module Plugin::GUI::HierarchyChild
   # self
   def set_parent(parent)
     type_strict parent => @parent_class
+    return self if @parent == parent
     @parent.remove(self) if @parent
-    @parent = parent end
+    @parent = parent
+    self end
 
   def active_class_of(klass)
     self if is_a? klass end
