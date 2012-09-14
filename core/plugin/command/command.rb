@@ -227,8 +227,7 @@ Plugin.create :command do
       term.active! if term
       notice "activate #{term} #{widget.class} #{term.class}"
       src_tl = widget.active_chain.last
-      if widget.is_a?(Plugin::GUI::Pane) and src_tl and term
-        notice "pass"
+      if widget.is_a?(Plugin::GUI::Pane) and src_tl.is_a?(Plugin::GUI::Timeline) and term.is_a?(Plugin::GUI::Timeline)
         slide_timeline_focus(src_tl, term) end end end
 
   # タイムライン _src_ で選択されているディスプレイ上のy座標が同じ _dest_ のツイートに
