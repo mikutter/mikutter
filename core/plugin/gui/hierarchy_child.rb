@@ -23,6 +23,13 @@ module Plugin::GUI::HierarchyChild
   def active_class_of(klass)
     self if is_a? klass end
 
+  # 親を再帰的に辿り、selfをアクティブに設定する
+  # ==== Return
+  # self
+  def active!
+    @parent.set_active_child(self).active!
+    self end
+
   module Extended
     attr_reader :parent_class
 

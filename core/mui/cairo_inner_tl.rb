@@ -67,15 +67,21 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def reply(message, options = {})
     ctl = Gtk::TimeLine::InnerTL.current_tl
+    pb = nil
     if(ctl)
       message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
       message = message[1] if(message.is_a?(Gtk::TreeIter))
       type_strict message => Message
-      postbox.closeup(pb = Gtk::PostBox.new(message, options).show_all)
+      pb = Gtk::PostBox.new(message, options).show_all
+      postbox.closeup(pb)
       pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
       ctl.selection.unselect_all end
-    self end
+    pb end
+
+  def add_postbox(i_postbox)
+    reply(i_postbox.poster || Service.primary, i_postbox.options)
+  end
 
   def get_active_messages
     get_active_iterators.map{ |iter| iter[1] } end

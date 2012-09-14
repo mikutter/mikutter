@@ -482,6 +482,17 @@ class Plugin
     else
       super end end
 
+  # mikutterコマンドを定義
+  # ==== Args
+  # [slug] コマンドスラッグ
+  # [options] コマンドオプション
+  # [&exec] コマンドの実行内容
+  def command(slug, options, &exec)
+    command = options.merge(slug: slug, exec: exec).freeze
+    add_event_filter(:command){ |menu|
+      menu[slug] = command
+      [menu] } end
+
   # 設定画面を作る
   # ==== Args
   # - String name タイトル

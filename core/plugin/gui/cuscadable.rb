@@ -42,12 +42,15 @@ module Plugin::GUI::Cuscadable
     # ==== Args
     # [slug] スラッグ(Symbol)
     # [name] タブのラベル(String)
-    def instance(slug, name = slug.to_s)
-      type_strict slug => Symbol, name => String
+    def instance(slug = nil, name = slug)
+      if not slug
+        slug = "__#{self.to_s}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+        return instance if cuscaded.has_key? slug end
+      type_strict slug => Symbol, name => :to_s
       if cuscaded.has_key? slug
         cuscaded[slug]
       else
-        new(slug, name) end end
+        new(slug, name.to_s) end end
 
     # 新しく作成したタブを新規登録する
     # ==== Args
