@@ -263,6 +263,12 @@ Plugin.create :gtk do
     if timeline
       timeline.clear end end
 
+  on_gui_timeline_scroll_to_top do |i_timeline|
+    notice "called"
+    timeline = widgetof(i_timeline)
+    if timeline
+      timeline.set_cursor_to_display_top end end
+
   on_gui_timeline_move_cursor_to do |i_timeline, message|
     tl = widgetof(i_timeline)
     if tl
@@ -270,6 +276,7 @@ Plugin.create :gtk do
       notice "path: #{path}, column: #{column}"
       if path and column
         case message
+        when :first
         when :prev
           path.prev!
           tl.set_cursor(path, column, false)

@@ -202,6 +202,13 @@ Plugin.create :command do
     focus_move_to_latest_widget(opt.widget)
   end
 
+  command(:timeline_scroll_to_top,
+          name: 'タイムラインの一番上にジャーンプ！',
+          condition: lambda{ |opt| true },
+          visible: false,
+          role: :timeline) do |opt|
+    opt.widget.scroll_to_top end
+
   # フォーカスを _widget_ から _distance_ に移動する
   # ==== Args
   # [widget] 起点となるウィジェット
