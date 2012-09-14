@@ -32,15 +32,10 @@ module Plugin::GUI::Widget
       elsif respond_to? :parent_class and parent_class
         parent_class.find_role_ancestor(find) end end
 
-
   end
 
   def inspect
     "#<#{self.class.to_s}(role=#{self.class.role},slug=#{slug})>"
-  end
-
-  def to_s
-    inspect
   end
 
 end

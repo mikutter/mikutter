@@ -23,26 +23,6 @@ module Plugin::GUI::HierarchyChild
   def active_class_of(klass)
     self if is_a? klass end
 
-  # 先祖のうち、 _klass_ と is_a? 関係にあるものを返す
-  # ==== Args
-  # [klass] 探すクラス
-  # ==== Return
-  # マッチしたウィジェットかfalse
-  def ancestor_of(klass)
-    if self.is_a? klass
-      self
-    elsif @parent.is_a? Plugin::GUI::HierarchyChild
-      @parent.ancestor_of(klass)
-    else @parent.is_a? klass
-      @parent end end
-
-  # 親を再帰的に辿り、selfをアクティブに設定する
-  # ==== Return
-  # self
-  def active!
-    @parent.set_active_child(self).active!
-    self end
-
   module Extended
     attr_reader :parent_class
 

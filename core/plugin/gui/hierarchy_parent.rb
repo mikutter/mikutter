@@ -33,9 +33,7 @@ module Plugin::GUI::HierarchyParent
 
   def set_active_child(child)
     type_strict child => Plugin::GUI::HierarchyChild
-    @active_child = child
-    notice "active child set #{self.inspect} => #{child.inspect}"
-    self end
+    @active_child = child end
 
   # このインスタンス以下の、アクティブな祖先のリストを返す。
   # ==== Return
@@ -48,7 +46,7 @@ module Plugin::GUI::HierarchyParent
     else
       [] end end
 
-  # active_chain が返すインスタンスのうち、最初に _klass_ とis_a関係にあるものを返す。
+  # active_ancestor が返すインスタンスのうち、最初に _klass_ とis_a関係にあるものを返す。
   # ==== Args
   # [klass] クラス
   # ==== Return

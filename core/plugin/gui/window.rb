@@ -28,5 +28,4 @@ class Plugin::GUI::Window
   def self.active
     @@active ||= instance(:default, "デフォルト")
   end
-
 end
