@@ -63,7 +63,9 @@ module Plugin::GUI::TabLike
   # ==== Return
   # self
   def nativewidget(widget)
-    Plugin.call("gui_nativewidget_join_#{self.class.role}".to_sym, self, widget)
+    i_container = Plugin::GUI::TabChildWidget.instance
+    self << i_container
+    Plugin.call("gui_nativewidget_join_#{self.class.role}".to_sym, self, i_container, widget)
     pack_rule.push(expand?)
     self end
 
