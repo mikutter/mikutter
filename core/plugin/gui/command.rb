@@ -2,15 +2,15 @@
 
 module Plugin::GUI
   class Command
+    Event = Struct.new(:event, :widget, :messages)
 
     class << self
-      def menu_pop(widget = get_active_widget)
-        type_strict widget => Plugin::GUI::Widget
+      def menu_pop
+        widget = get_active_widget
         labels = []
         contextmenu = []
-        timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
-        event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
-        notice "command widget: #{widget} #{timeline}"
+        timeline = widget.active_class_of(Timeline)
+        event = Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : nil)
         Plugin.filtering(:command, Hash.new).first.values.each{ |record|
           if(record[:visible] and widget.class.find_role_ancestor(record[:role]))
             index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])

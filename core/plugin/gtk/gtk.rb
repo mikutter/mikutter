@@ -156,7 +156,12 @@ Plugin.create :gtk do
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
-    widget_join_tab(i_tab, widgetof(i_timeline))
+    i_pane = i_tab.parent
+    pane = widgetof(i_pane)
+    timeline = widgetof(i_timeline)
+    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
+    pane.insert_page_menu(index, timeline, widgetof(i_tab))
+    pane.set_tab_reorderable(timeline, true).set_tab_detachable(timeline, true)
   end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
@@ -177,82 +182,11 @@ Plugin.create :gtk do
     tab_update_icon(i_tab) end
 
   on_gui_contextmenu do |event, contextmenu|
-    widget = widgetof(event.widget)
-    if not widget.destroyed?
-      Gtk::ContextMenu.new(*contextmenu).popup(widget, event) end end
-
-  on_gui_timeline_move_cursor_to do |i_timeline, message|
-    tl = widgetof(i_timeline)
-    path, column = tl.cursor
-    if path and column
-      case message
-      when :prev
-        path.prev!
-        tl.set_cursor(path, column, false)
-      when :next
-        path.next!
-        tl.set_cursor(path, column, false)
-      end
-    end
+    Gtk::ContextMenu.new(*contextmenu).popup(widgetof(event.widget), event)
   end
-
-  on_gui_postbox_post do |i_postbox|
-    postbox = widgetof(i_postbox)
-    if postbox
-      postbox.post_it end end
-
-  # 互換性のため
-  on_mui_tab_regist do |container, name, icon|
-    slug = name.to_sym
-    i_tab = Plugin::GUI::Tab.instance(slug, name)
-    i_tab.set_icon(icon)
-    i_container = Plugin::GUI::TabChildWidget.instance
-    @tabchildwidget_by_slug[i_container.slug] = container
-    i_tab << i_container
-    @tabs_promise[i_tab.slug] = (@tabs_promise[i_tab.slug] || Deferred.new).next{ |tab|
-      widget_join_tab(i_tab, container.show_all) }
-  end
-
-  on_gui_window_rewindstatus do |i_window, text, expire|
-    statusbar = @windows_by_slug[:default].statusbar
-    cid = statusbar.get_context_id("system")
-    mid = statusbar.push(cid, text)
-    if expire != 0
-      Reserver.new(expire){
-        if not statusbar.destroyed?
-          statusbar.remove(cid, mid) end }
-    end
-  end
-
-  filter_gui_postbox_input_editable do |i_postbox, editable|
-    postbox = widgetof(i_postbox)
-    [i_postbox, postbox && postbox.post.editable?] end
 
   filter_gui_timeline_selected_messages do |i_timeline, messages|
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
-
-  filter_gui_timeline_selected_text do |i_timeline, message, text|
-    timeline = widgetof(i_timeline)
-    next [i_timeline, message, text] if not timeline
-    record = timeline.get_record_by_message(message)
-    next [i_timeline, message, text] if not record
-    range = record.miracle_painter.textselector_range
-    next [i_timeline, message, text] if not range
-    [i_timeline, message, message.entity.to_s[range]]
-  end
-
-  # タブ _tab_ に _widget_ を入れる
-  # ==== Args
-  # [i_tab] タブ
-  # [widget] Gtkウィジェット
-  def widget_join_tab(i_tab, widget)
-    return false if not widgetof(i_tab)
-    i_pane = i_tab.parent
-    pane = widgetof(i_pane)
-    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
-    pane.insert_page_menu(index, widget, widgetof(i_tab))
-    pane.set_tab_reorderable(widget, true).set_tab_detachable(widget, true)
-    true end
 
   def tab_update_icon(i_tab)
     type_strict i_tab => Plugin::GUI::Tab
