@@ -30,6 +30,10 @@ class Plugin::GUI::Timeline
     raise e
   end
 
+  # タイムラインの中のツイートを全て削除する
+  def clear
+    Plugin.call(:gui_timeline_clear, self) end
+
   # このタイムラインをアクティブにする。また、子のPostboxは非アクティブにする
   # ==== Return
   # self
