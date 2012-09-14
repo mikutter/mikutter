@@ -108,7 +108,6 @@ class Gtk::TimeLine
       emit_expose_miraclepainter
       false }
     @scroll_to_zero_hook = lambda{ |*args|
-      notice "scroll to zero hook"
       emit_expose_miraclepainter
       if(scroll_to_zero? and not(scroll_to_top_anime))
         scroll_to_top_anime = true
