@@ -33,4 +33,10 @@ class Plugin::GUI::Pane
     @@default ||= instance(:default, "デフォルト")
   end
 
+  def add_child(child, index=children.size)
+    result = super(child, index)
+    if children[index+1] == @active_child
+      Delayer.new{ child.active! } end
+    result end
+
 end
