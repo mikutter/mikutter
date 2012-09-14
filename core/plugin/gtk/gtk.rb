@@ -326,7 +326,7 @@ Plugin.create :gtk do
 
   on_gui_child_activated do |i_parent, i_child|
     type_strict i_parent => Plugin::GUI::HierarchyParent, i_child => Plugin::GUI::HierarchyChild
-    if i_parent.is_a?(Plugin::GUI::Pane) and i_child.is_a?(Plugin::GUI::Tab)
+    if i_child.is_a?(Plugin::GUI::TabLike)
       i_pane = i_parent
       i_tab = i_child
       notice "gui_child_activated: tab active #{i_pane} => #{i_tab}"

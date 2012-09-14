@@ -70,8 +70,8 @@ class UserConfig
 
     :favorited_by_anyone_age => true,
 
-    # タブの並び順
-    :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
+    # プロフィールタブの並び順
+    :profile_tab_order => [:usertimeline, :aboutuser, :list],
 
     # 設定タブの並び順
     :tab_order_in_settings => ["基本設定", "表示", "入力", "通知", "抽出タブ", "リスト", "ショートカットキー", "アカウント情報", "プロキシ"],
@@ -80,7 +80,7 @@ class UserConfig
     :tab_position => 3,
 
     # 常にURLを短縮して投稿
-    :shrinkurl_always => true,
+    :shrinkurl_always => false,
 
     # 常にURLを展開して表示
     :shrinkurl_expand => true,

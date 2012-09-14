@@ -19,6 +19,7 @@ class Plugin::GUI::ProfileTab
   set_parent_event :gui_profiletab_join_profile
 
   attr_reader :user
+  attr_accessor :profile_slug
 
   def initialize(slug, name)
     super
