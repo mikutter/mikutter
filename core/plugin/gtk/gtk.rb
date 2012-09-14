@@ -143,7 +143,7 @@ Plugin.create :gtk do
   # Gtk::TimeLine
   on_timeline_created do |i_timeline|
     notice "create timeline #{i_timeline.slug.inspect}"
-    timeline = Gtk::TimeLine.new
+    timeline = Gtk::TimeLine.new(i_timeline)
     @timelines_by_slug[i_timeline.slug] = timeline
     focus_in_event = lambda { |this, event|
       #notice "active set to #{i_timeline}"

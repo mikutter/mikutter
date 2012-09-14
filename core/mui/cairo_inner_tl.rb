@@ -10,7 +10,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   include UiThreadOnly
 
   attr_writer :force_retrieve_in_reply_to
-  attr_accessor :postbox, :collect_counter
+  attr_accessor :postbox, :collect_counter, :imaginary
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -176,6 +176,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # self
   def extend(from)
     @force_retrieve_in_reply_to = from.instance_eval{ @force_retrieve_in_reply_to }
+    @imaginary = from.imaginary
     from.extended
     from.model.each{ |from_model, from_path, from_iter|
       iter = model.append
