@@ -17,10 +17,11 @@ class Delayer
           rescue => e
             into_debug_mode(e)
             Gtk.main_quit end
-          if Delayer.empty?
-            @idle_handler = nil
-            false
-          else
-            true end } } end
+          idle_handler_lock.synchronize {
+            if Delayer.empty?
+              @idle_handler = nil
+              false
+            else
+              true end } } } end
   end
 end
