@@ -7,7 +7,7 @@ Plugin.create(:settings) do
 
   def setting_window
     return @window if defined?(@window) and @window
-    @window = window = Gtk::Window.new
+    @window = window = Gtk::Window.new("設定")
     widgets_dict = {}
     menu = menu_widget(widgets_dict)
     settings = Gtk::VBox.new.set_no_show_all(true).show
@@ -17,8 +17,7 @@ Plugin.create(:settings) do
       iter[0] = title
       widgets_dict[title] = box = Plugin::Setting.new
       box.instance_eval(&definition)
-      settings.closeup(box)
-    }
+      settings.closeup(box) }
     window.ssc(:destroy) {
       @window = nil
       false }

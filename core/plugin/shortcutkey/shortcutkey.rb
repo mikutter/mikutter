@@ -68,10 +68,6 @@ Plugin.create :shortcutkey do
 
   end
 
-  Delayer.new{
-    container = ShortcutKeyListView.new
-    Plugin.call(:setting_tab_regist, container, 'ショートカットキー') }
-
   filter_keypress do |key, widget, executed|
     type_strict key => String, widget => Plugin::GUI::Widget
     notice "key pressed #{key} #{widget.inspect}"
@@ -88,5 +84,9 @@ Plugin.create :shortcutkey do
             executed = true
             cmd[:exec].call(event) end end end }
     [key, widget, executed] end
+
+  settings "ショートカットキー" do
+    pack_start(ShortcutKeyListView.new)
+  end
 
 end
