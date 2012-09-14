@@ -30,9 +30,9 @@ module Plugin::GUI::TabLike
   def pack_rule
     @pack_rule ||= [] end
 
-  def add_child(*args)
-    result = super(*args)
-    pack_rule.push(expand?)
+  def add_child(child, *args)
+    result = super(child, *args)
+    pack_rule[children.index(child)] = expand?
     result end
   alias << add_child
 

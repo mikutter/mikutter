@@ -19,7 +19,6 @@ class Plugin::GUI::Profile
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
-    # Plugin::GUI::Window.add_default << self
     Plugin.call(:profile_created, self)
   end
 
