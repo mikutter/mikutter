@@ -34,6 +34,19 @@ module Plugin::GUI::Widget
 
   end
 
+  # このウィジェットを破棄する
+  # ==== Return
+  # self
+  def destroy
+    Plugin.call(:gui_destroy, self)
+    self end
+
+  # ウィジェットが削除されているかどうかを調べる
+  # ==== Return
+  # 削除されているなら真
+  def destroyed?(args)
+    Plugin.filtering(:gui_destroyed, self).first end
+
   def inspect
     "#<#{self.class.to_s}(role=#{self.class.role},slug=#{slug})>"
   end

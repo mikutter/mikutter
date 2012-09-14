@@ -38,6 +38,11 @@ Plugin.create :gui do
     Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API auth#{api_limit[:auth_remain]}回くらい (#{api_limit[:auth_time]}まで) IP#{api_limit[:ip_remain]}回くらい (#{api_limit[:ip_time]}まで)", 60)
   end
 
+  on_gui_destroy do |widget|
+    if widget.respond_to?(:parent)
+      notice "destroy " + widget.to_s
+      widget.parent.remove(widget) end end
+
   filter_tabs do |set|
     [(set || {}).merge(Plugin::GUI::Tab.cuscaded)]
   end
