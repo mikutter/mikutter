@@ -11,7 +11,12 @@ class Plugin::GUI::Window
 
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
+    super
     Plugin.call(:window_created, self)
+  end
+
+  def self.active
+    instance(:default, "デフォルト")
   end
 
 end
