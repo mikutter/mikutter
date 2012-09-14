@@ -45,7 +45,30 @@ class Plugin::GUI::Timeline
   # ==== Return
   # 選択されているMessage
   def selected_messages
-    Plugin.call(:gui_timeline_selected_messages, self, [])
+    messages = Plugin.filtering(:gui_timeline_selected_messages, self, [])
+    messages[1] if messages.is_a? Array end
+
+  # _in_reply_to_message_ に対するリプライを入力するPostboxを作成してタイムライン上に表示する
+  # ==== Args
+  # [in_reply_to_message] リプライ先のツイート
+  # [options] Postboxのオプション
+  def create_reply_postbox(in_reply_to_message, options = {})
+    i_postbox = Plugin::GUI::Postbox.instance
+    i_postbox.options = options
+    i_postbox.poster = in_reply_to_message
+    self.add_child(i_postbox)
+  end
+
+  # Postboxを作成してこの中に入れる
+  # ==== Args
+  # [options] 設定値
+  # ==== Return
+  # 新しく作成したPostbox
+  def postbox(options = {})
+    postbox = Plugin::GUI::Postbox.instance
+    postbox.options = options
+    self << postbox
+    postbox
   end
 
 end
