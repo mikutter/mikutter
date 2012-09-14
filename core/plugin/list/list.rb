@@ -10,6 +10,13 @@ Plugin.create :list do
     pack_start(this.setting_container, true)
   end
 
+  profiletab :profile_list, "リスト" do
+    set_icon MUI::Skin.get("list.png")
+    bio = Gtk::IntelligentTextview.new(user[:detail])
+    ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
+    container = ProfileTab.new(Plugin.create(:list), user)
+    nativewidget container.show_all end
+
   on_period do |service|
     crawl_count += 1
     if crawl_count >= UserConfig[:retrieve_interval_list_timeline]
@@ -22,11 +29,27 @@ Plugin.create :list do
     timelines.values.each{ |list|
       list_modify_member(list) } end
 
+  # available_list の同期をとる。外的要因でリストが追加されたのを検出した場合。
+  on_list_created do |service, lists|
+    created = lists.reject{ |list| available_lists.include?(list) }
+    set_available_lists(available_lists + created) if not created.empty? end
+
+  # available_list の同期をとる。外的要因でリストが削除されたのを検出した場合。
+  on_list_destroy do |service, lists|
+    deleted = lists.select{ |list| available_lists.include?(list) }
+    set_available_lists(available_lists - deleted) if not deleted.empty? end
+
+  # フォローしているリストを返す
+  filter_following_lists do |lists|
+    [lists | available_lists] end
+
+  # リストのタイムラインをリアルタイム更新する
   on_appear do |messages|
     messages.each{ |message|
       timelines.each{ |slug, list|
         timeline(slug) << message if list.member.include? message.user } } end
 
+  # filter stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
     [timelines.values.inject(users){ |r, list| r.merge(list.member) }] end
 
@@ -139,19 +162,25 @@ Plugin.create :list do
     type_strict list => UserList
     visible_list_ids.include? list[:id] end
 
-  # 自分が作成したリストを返す
+  # 自分がフォローしているリストを返す
   # ==== Return
   # 自分が作成したリストの配列(TypedArray)
   def available_lists
     @available_lists ||= UserLists.new.freeze end
 
-  # 自分が作成したリストを新しく設定する
+  # 自分がフォローしているリストを新しく設定する
   # ==== Args
   # [newlist] 新しいリスト(Enumerable)
   # ==== Return
   # _newlist_
   def set_available_lists(newlist)
-    @available_lists = UserLists.new(newlist) end
+    created = newlist - available_lists
+    deleted = available_lists - newlist
+    Plugin.call(:list_created, Service.primary, created.freeze) if not created.empty?
+    Plugin.call(:list_destroy, Service.primary, deleted.freeze) if not deleted.empty?
+    @available_lists = UserLists.new(newlist).freeze
+    Plugin.call(:list_data, Service.primary, @available_lists) if not(created.empty? and deleted.empty?)
+    @available_lists end
 
   # このブロック中で _add_tab(list)_ を呼ばれなかったリストは、ブロックを出た時に全て削除される。
   # また、新たにマークを付けられたタブは、タブが作成される。
@@ -223,12 +252,7 @@ Plugin.create :list do
 
     def initialize
       super
-      dialog_title = "リスト"
-      signal_connect(:button_release_event){ |widget, event|
-        if (event.button == 3)
-          # menu_pop()
-          true end }
-    end
+      dialog_title = "リスト" end
 
     def column_schemer
       [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
@@ -246,10 +270,12 @@ Plugin.create :list do
                                mode: iter[PUBLICITY],
                                name: iter[NAME],
                                description: iter[DESCRIPTION]){ |event, list|
-        if not(destroyed?) and event == :success and list
-          iter[LIST] = list
-          iter[SLUG] = list[:full_name]
-          list_set_visibility!(list, iter[VISIBILITY]) end } end
+        if :success == event and list
+          Plugin.call(:list_created, Service.primary, UserLists.new([list]))
+          if not(destroyed?)
+            iter[LIST] = list
+            iter[SLUG] = list[:full_name]
+            list_set_visibility!(list, iter[VISIBILITY]) end end } end
 
     def on_updated(iter)
       list = iter[LIST]
@@ -268,8 +294,76 @@ Plugin.create :list do
       if list
         Service.primary.delete_list(list_id: list[:id]){ |event, list|
           if event == :success
-            notice :success
-            model.remove(iter) end } end end
+            Plugin.call(:list_destroy, Service.primary, UserLists.new([list]))
+            model.remove(iter) if not destroyed? end } end end
 
+  end
+
+  class ProfileTab < Gtk::ListList
+    MEMBER = 0
+    SLUG = 1
+    LIST = 2
+    SERVICE = 3
+
+    def initialize(plugin, dest)
+      type_strict plugin => Plugin, dest => User
+      @dest_user = dest
+      @locked = {}
+      super()
+      creatable = updatable = deletable = false
+      set_auto_getter(plugin, true) do |service, list, iter|
+        iter[MEMBER] = list.member?(@dest_user)
+        iter[SLUG] = list[:slug]
+        iter[LIST] = list
+        iter[SERVICE] = service end
+      toggled = get_column(0).cell_renderers[0]
+      toggled.activatable = false
+      Service.primary.list_user_followers(user_id: @dest_user[:id], filter_to_owned_lists: 1).next{ |res|
+        if res and not destroyed?
+          followed_list_ids = res.map{|list| list['id'].to_i}
+          model.each{ |m, path, iter|
+            if followed_list_ids.include? iter[LIST][:id]
+              iter[MEMBER] = true
+              iter[LIST].add_member(@dest_user) end }
+          toggled.activatable = true
+          queue_draw end
+      }.terminate("@#{@dest_user[:idname]} が入っているリストが取得できませんでした。雰囲気で適当に表示しておきますね").trap{ |e|
+        if not destroyed?
+          toggled.activatable = true
+          queue_draw end } end
+
+    def on_updated(iter)
+      if iter[LIST].member?(@dest_user) != iter[MEMBER]
+        if not @locked[iter[SLUG]]
+          @locked[iter[SLUG]] = true
+          flag, slug, list, service = iter[MEMBER], iter[SLUG], iter[LIST], iter[SERVICE]
+          service.__send__(flag ? :add_list_member : :delete_list_member,
+                            :list_id => list['id'],
+                            :user_id => @dest_user[:id]).next{ |result|
+            @locked[slug] = false
+            if flag
+              list.add_member(@dest_user)
+              Plugin.call(:list_member_added, service, @dest_user, list, service.user_obj)
+            else
+              list.remove_member(@dest_user)
+              Plugin.call(:list_member_removed, service, @dest_user, list, service.user_obj) end
+          }.terminate{ |e|
+            iter[MEMBER] = !flag if not destroyed?
+            @locked[iter[SLUG]] = false
+            "@#{@dest_user[:idname]} をリスト #{list[:full_name]} に追加できませんでした" } end
+      end
+    end
+
+    def column_schemer
+      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => 'リスト行き'},
+       {:kind => :text, :type => String, :label => 'リスト名'},
+       {:type => UserList},
+       {:type => Service}
+      ].freeze
+    end
+
+    # 右クリックメニューを禁止する
+    def menu_pop(widget, event)
+    end
   end
 end
