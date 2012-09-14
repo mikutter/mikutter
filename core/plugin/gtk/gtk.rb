@@ -73,9 +73,13 @@ Plugin.create :gtk do
     tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
       notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) unless pane.destroyed? }
-    pane.ssc(:page_reordered){ |this|
+    pane.ssc(:page_reordered){ |this, tabcontainer, index|
       notice "on_pane_created: page_reordered: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent) if i_pane.parent
+      i_tab = tabcontainer.i_tab
+      notice "tabcontainer #{tabcontainer} => #{i_tab.inspect}"
+      if i_tab
+        i_pane.reorder_child(i_tab, index) end
       false }
     pane.signal_connect(:page_added){ |this, tabcontainer|
       type_strict tabcontainer => Gtk::TabContainer

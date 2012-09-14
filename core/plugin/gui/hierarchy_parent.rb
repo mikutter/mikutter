@@ -27,6 +27,20 @@ module Plugin::GUI::HierarchyParent
     self end
   alias << add_child
 
+  # _child_ のn順番を変更する。 _new_index_ 以降はひとつづつシフトする
+  # ==== Args
+  # [child] 子
+  # [new_index] 新しく入れるインデックス
+  def reorder_child(child, new_index)
+    type_strict child => Plugin::GUI::HierarchyChild
+    if children.include?(child)
+      @children.delete(child)
+      @children.insert(new_index, child)
+      Plugin.call(:gui_child_reordered, self, child, new_index)
+    else
+      error "the widget #{child.inspect} is not child of #{self.inspect}" end
+    self end
+
   # 子を削除する
   # ==== Args
   # [child] 削除する子
