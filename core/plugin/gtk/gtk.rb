@@ -87,6 +87,11 @@ Plugin.create :gtk do
       if i_tab
         i_pane.reorder_child(i_tab, index) end
       false }
+    pane.ssc(:switch_page){ |this, page, pagenum|
+      if pagenum == pane.page
+        i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab)
+      else
+        notice "switch_page: pagenum(#{pagenum}) != pane.page(#{pane.page})" end }
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
@@ -156,8 +161,10 @@ Plugin.create :gtk do
     timeline = Gtk::TimeLine.new(i_timeline)
     @timelines_by_slug[i_timeline.slug] = timeline
     focus_in_event = lambda { |this, event|
-      #notice "active set to #{i_timeline}"
-      i_timeline.active!
+      if this.focus?
+        i_timeline.active!
+      else
+        notice "timeline_created: focus_in_event: event receive but not has focus #{i_timeline}" end
       false }
     destroy_event = lambda{ |this|
       if not(timeline.tl.destroyed?) and this != timeline.tl
@@ -350,16 +357,18 @@ Plugin.create :gtk do
       tab = widgetof(i_tab)
       if pane and tab
         pagenum = pane.get_tab_pos_by_tab(tab)
-        pane.page = pagenum if pagenum end
+        pane.page = pagenum if pagenum and pane.page != pagenum end
     elsif i_parent.is_a?(Plugin::GUI::Window)
-      window = widgetof(i_parent)
-      widget = widgetof(i_child.respond_to?(:active_chain) ? i_child.active_chain.last : i_child)
-      if window and widget
-        notice "ACTIVATE! #{window} => #{widget}"
-        if widget.respond_to? :active
-          widget.active
-        else
-          window.set_focus(widget) end end end end
+      i_term = i_child.respond_to?(:active_chain) ? i_child.active_chain.last : i_child
+      if i_term
+        window = widgetof(i_parent)
+        widget = widgetof(i_term)
+        if window and widget
+          notice "ACTIVATE! #{window} => #{widget}"
+          if widget.respond_to? :active
+            widget.active
+          else
+            window.set_focus(widget) end end end end end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
