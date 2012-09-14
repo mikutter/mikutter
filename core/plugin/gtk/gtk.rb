@@ -170,8 +170,14 @@ Plugin.create :gtk do
       notice "#{widget} removes by #{old_pane}"
       old_pane.remove_page(old_pane.page_num(widget))
       if tab.parent
-        notice "#{tab} removes by #{tab.parent}"
-        tab.parent.remove(tab) end
+        catch(:tab_deleted) do
+          tab.parent.n_pages.times { |page_num|
+            if(tab.parent.get_tab_label(tab.parent.get_nth_page(page_num)) == tab)
+              notice "#{tab} removes by #{tab.parent} (page #{page_num})"
+              tab.parent.remove_page(page_num)
+              throw :tab_deleted end }
+          raise Plugin::Gtk::GtkError, "#{tab} not found in #{tab.parent}" end
+      end
       notice "#{widget} pack to #{tab}"
       i_tab.children.each{ |i_child|
         w_child = widgetof(i_child)
@@ -306,16 +312,19 @@ Plugin.create :gtk do
     return false if not(widgetof(i_tab))
     i_pane = i_tab.parent
     pane = widgetof(i_pane)
+    tab = widgetof(i_tab)
     container_index = i_pane.children.find_index{ |child| child.slug == i_tab.slug }
     if container_index
       container = pane.get_nth_page(container_index)
       if container
         return container.pack_start(widget, i_tab.pack_rule.shift) end end
-      container = Gtk::VBox.new(false, 0).show_all
-      container.pack_start(widget, i_tab.pack_rule.shift)
-      index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
-      pane.insert_page_menu(index, container, widgetof(i_tab))
-      pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
+    if tab.parent
+      raise Plugin::Gtk::GtkError, "Gtk Widget #{widgetof(i_tab).inspect} of Tab(#{i_tab.slug.inspect}) has parent Gtk Widget #{tab.parent.inspect}" end
+    container = Gtk::VBox.new(false, 0).show_all
+    container.pack_start(widget, i_tab.pack_rule[container.children.size])
+    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
+    pane.insert_page_menu(index, container, tab)
+    pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
     true end
 
   def tab_update_icon(i_tab)
@@ -406,3 +415,6 @@ Plugin.create :gtk do
     false end
 end
 
+module Plugin::Gtk
+  class GtkError < Exception
+  end end

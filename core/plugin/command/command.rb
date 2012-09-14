@@ -132,6 +132,7 @@ Plugin.create :command do
           visible: true,
           role: :tab) do |opt|
     tab = opt.widget.is_a?(Plugin::GUI::Tab) ? opt.widget : opt.widget.ancestor_of(Plugin::GUI::Tab)
+    notice "new_pane: move tab :#{tab.slug}"
     window = tab.ancestor_of(Plugin::GUI::Window)
     if window
       pane = Plugin::GUI::Pane.instance
