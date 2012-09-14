@@ -40,6 +40,7 @@ Plugin.create :shortcutkey do
     def on_created(iter)
       bind = shortcutkeys
       name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      name = name.call(nil) if name.is_a? Proc
       iter[COLUMN_ID] = new_serial
       bind[iter[COLUMN_ID]] = {
         :key => iter[COLUMN_KEYBIND].to_s,
@@ -52,6 +53,7 @@ Plugin.create :shortcutkey do
     def on_updated(iter)
       bind = shortcutkeys
       name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      name = name.call(nil) if name.is_a? Proc
       bind[iter[COLUMN_ID].to_i] = {
         :key => iter[COLUMN_KEYBIND].to_s,
         :name => name,
