@@ -147,6 +147,15 @@ module Gtk
           when :success
             Delayer.new{ destroy } end } end end
 
+    def destroy
+      @@ringlock.synchronize{
+        if not(destroyed?) and not(frozen?) and parent
+          parent.remove(self)
+          @@postboxes.delete(self)
+          super
+          on_delete
+          self.freeze end } end
+
     private
 
     def postable?
@@ -228,15 +237,6 @@ module Gtk
       if(not(frozen?) and not([widget_post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?)
         destroy
         true end end
-
-    def destroy
-      @@ringlock.synchronize{
-        if not(destroyed?) and not(frozen?) and parent
-          parent.remove(self)
-          @@postboxes.delete(self)
-          super
-          on_delete
-          self.freeze end } end
 
     def on_delete
       if(block_given?)

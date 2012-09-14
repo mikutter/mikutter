@@ -25,6 +25,17 @@ module Plugin::GUI::HierarchyParent
     self end
   alias add_child <<
 
+  # 子を削除する
+  # ==== Args
+  # [child] 削除する子
+  # ==== Return
+  # self
+  def remove(child)
+    children.delete(child)
+    if @active_child == child
+      @active_child = nil end
+    self end
+
   # 子の配列を返す
   # ==== Return
   # 子の配列
