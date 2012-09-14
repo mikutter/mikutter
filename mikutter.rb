@@ -41,6 +41,7 @@ Plugin.call(:boot, Post.primary_service)
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
+  Gtk.init_add{ Gtk.quit_add(Gtk.main_level){ SerialThreadGroup.force_exit! } }
   if profile
     require 'ruby-prof'
     begin
