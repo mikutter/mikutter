@@ -43,11 +43,12 @@ Plugin.create :profile do
     set_icon user[:profile_image_url]
     bio = Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
-    nativewidget Gtk::VBox.new.
+    container = Gtk::VBox.new.
       closeup(bio).
       closeup(Gtk::Label.new("Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n").left).
-      closeup(plugin.relation_bar(user)).
-      closeup(plugin.mutebutton(user)).show_all end
+      closeup(plugin.relation_bar(user))
+    container.closeup(plugin.mutebutton(user)) if not user.is_me?
+    nativewidget container.show_all end
 
   on_appear do |messages|
     timeline_storage.dup.deach{ |tl|
@@ -112,63 +113,67 @@ Plugin.create :profile do
       w_followed_label = Gtk::Label.new("")
       w_eventbox_image_following = Gtk::EventBox.new
       w_eventbox_image_followed = Gtk::EventBox.new
-      followbutton = Gtk::Button.new
-      followbutton.sensitive = false
-      # フォローしている状態の更新
-      m_following_refresh = lambda { |new|
-        if not w_eventbox_image_following.destroyed?
-          following = new
-          if not w_eventbox_image_following.children.empty?
-            w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
-          w_eventbox_image_following.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
-          w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
-          followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
-      # フォローされている状態の更新
-      m_followed_refresh = lambda { |new|
-        if not w_eventbox_image_followed.destroyed?
-          followed = new
-          if not w_eventbox_image_followed.children.empty?
-            w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
-          w_eventbox_image_followed.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
-          w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
-
-      container.closeup(Gtk::HBox.new(false, icon_size.width/2).
-                        closeup(Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size)).
-                        closeup(Gtk::VBox.new.
-                                closeup(Gtk::HBox.new.
-                                        closeup(w_eventbox_image_following).
-                                        closeup(w_following_label)).
-                                closeup(Gtk::HBox.new.
-                                closeup(w_eventbox_image_followed).
-                                closeup(w_followed_label))).
-                        closeup(Gtk::WebIcon.new(user[:profile_image_url], icon_size)).
-                        closeup(followbutton))
-      Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
-        if rel and not(w_eventbox_image_following.destroyed?)
-          m_following_refresh.call(rel[:following])
-          m_followed_refresh.call(rel[:followed_by])
-          handler_followings_created = on_followings_created do |service, dst_users|
-            if service == me and dst_users.include?(user)
-              m_following_refresh.call(true) end end
-          handler_followings_destroy = on_followings_destroy do |service, dst_users|
-            if service == me and dst_users.include?(user)
-              m_following_refresh.call(false) end end
-          followbutton.ssc(:clicked){
-            followbutton.sensitive = false
-            event = following ? :followings_destroy : :followings_created
-            me.__send__(following ? :unfollow : :follow, user).next{ |msg|
-              Plugin.call(event, me, [user])
-              followbutton.sensitive = true unless followbutton.destroyed? }.
-            terminate.trap{
-              followbutton.sensitive = true unless followbutton.destroyed? }
-            true }
-          followbutton.signal_connect(:destroy){
-            detach(:followings_created, handler_followings_created)
-            detach(:followings_destroy, handler_followings_destroy)
-            false }
-          followbutton.sensitive = true end
-      }.terminate.trap{
-        w_following_label.text = "取得できませんでした" } }
+      relation = if me.user_obj == user
+                   Gtk::Label.new("それはあなたです！").middle
+                 else
+                   Gtk::HBox.new.
+                     closeup(w_eventbox_image_following).
+                     closeup(w_following_label) end
+      relation_container = Gtk::HBox.new(false, icon_size.width/2)
+      relation_container.closeup(Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size))
+      relation_container.closeup(Gtk::VBox.new.
+                                 closeup(relation).
+                                 closeup(Gtk::HBox.new.
+                                         closeup(w_eventbox_image_followed).
+                                         closeup(w_followed_label)))
+      relation_container.closeup(Gtk::WebIcon.new(user[:profile_image_url], icon_size))
+      if me.user_obj != user
+        followbutton = Gtk::Button.new
+        followbutton.sensitive = false
+        # フォローしている状態の更新
+        m_following_refresh = lambda { |new|
+          if not w_eventbox_image_following.destroyed?
+            following = new
+            if not w_eventbox_image_following.children.empty?
+              w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
+            w_eventbox_image_following.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
+            w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
+            followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
+        # フォローされている状態の更新
+        m_followed_refresh = lambda { |new|
+          if not w_eventbox_image_followed.destroyed?
+            followed = new
+            if not w_eventbox_image_followed.children.empty?
+              w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
+            w_eventbox_image_followed.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
+            w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
+        Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
+          if rel and not(w_eventbox_image_following.destroyed?)
+            m_following_refresh.call(rel[:following])
+            m_followed_refresh.call(rel[:followed_by])
+            handler_followings_created = on_followings_created do |service, dst_users|
+              if service == me and dst_users.include?(user)
+                m_following_refresh.call(true) end end
+            handler_followings_destroy = on_followings_destroy do |service, dst_users|
+              if service == me and dst_users.include?(user)
+                m_following_refresh.call(false) end end
+            followbutton.ssc(:clicked){
+              followbutton.sensitive = false
+              event = following ? :followings_destroy : :followings_created
+              me.__send__(following ? :unfollow : :follow, user).next{ |msg|
+                Plugin.call(event, me, [user])
+                followbutton.sensitive = true unless followbutton.destroyed? }.
+              terminate.trap{
+                followbutton.sensitive = true unless followbutton.destroyed? }
+              true }
+            followbutton.signal_connect(:destroy){
+              detach(:followings_created, handler_followings_created)
+              detach(:followings_destroy, handler_followings_destroy)
+              false }
+            followbutton.sensitive = true end
+        }.terminate.trap{
+          w_following_label.text = "取得できませんでした" } end
+      container.closeup(relation_container.closeup(followbutton)) }
     container end
 
   # ユーザのプロフィールのヘッダ部を返す
