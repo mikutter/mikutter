@@ -64,7 +64,7 @@ Plugin.create :list do
       iter[Tab::LIST] = list
       iter[Tab::NAME] = list[:name]
       iter[Tab::DESCRIPTION] = list[:description]
-      iter[Tab::PUBLICITY] = list[:public] }
+      iter[Tab::PUBLICITY] = list[:mode] }
     container.show_all end
 
   # _service_ が作成した全てのリストを取得する
@@ -92,7 +92,7 @@ Plugin.create :list do
   # deferred
   def list_modify_member(list, cache=:keep)
     Service.primary.list_members( list_id: list[:id],
-                                  public: list[:public],
+                                  mode: list[:mode],
                                   cache: cache).next{ |users|
       list.add_member(users) if users
       Service.primary.list_statuses(:id => list[:id],
@@ -281,7 +281,8 @@ Plugin.create :list do
       list = iter[LIST]
       if list
         plugin.list_set_visibility!(list, iter[VISIBILITY])
-        if list[:name] != iter[NAME] || list[:description] != iter[DESCRIPTION] || list[:public] != iter[PUBLICITY]
+        if list[:name] != iter[NAME] || list[:description] != iter[DESCRIPTION] || list[:mode] != iter[PUBLICITY]
+          notice "list updated. #{iter[NAME]} #{iter[DESCRIPTION]} #{iter[PUBLICITY]}"
           Service.primary.update_list(id: list[:id],
                                name: iter[NAME],
                                description: iter[DESCRIPTION],
