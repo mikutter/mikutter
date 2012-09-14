@@ -51,7 +51,7 @@ class Plugin::Setting < Gtk::VBox
   def adjustment(name, config, min, max)
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(name), false, true, 0)
-    adj = Gtk::Adjustment.new((Listener[config].get or min), min*1.0, max*1.0, 1.0, 5.0, 0.0)
+    adj = Gtk::Adjustment.new((Listener[config].get or min).to_f, min.to_f, max.to_f, 1.0, 5.0, 0.0)
     spinner = Gtk::SpinButton.new(adj, 0, 0)
     adj.signal_connect('value-changed'){ |widget, e|
       Listener[config].set widget.value.to_i
