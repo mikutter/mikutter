@@ -109,7 +109,7 @@ Plugin.create :openimg do
     notice 'not matched'
     nil end
 
-  def self.imgurlresolver(url, element_rule, limit=5, &block)
+  def imgurlresolver(url, element_rule, limit=5, &block)
     return nil if limit <= 0
     return block.call(url) if block != nil
     res = dom = nil
