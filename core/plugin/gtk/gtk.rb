@@ -36,8 +36,7 @@ Plugin.create :gtk do
       false
     }
     window.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_window)
-      false }
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_window) }
     window.show_all
   end
 
@@ -63,8 +62,7 @@ Plugin.create :gtk do
         end }
       false }
     pane.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane)
-      false }
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane) }
     pane.show_all
   end
 
@@ -80,8 +78,7 @@ Plugin.create :gtk do
       false
     }
     tab.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab)
-      false }
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
     tab.show_all
   end
 
@@ -95,8 +92,7 @@ Plugin.create :gtk do
       i_timeline.active!
       false }
     timeline.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline)
-      false }
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline) }
     timeline.show_all
   end
 
@@ -129,15 +125,40 @@ Plugin.create :gtk do
       i_postbox.active!
       false }
     postbox.post.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_postbox)
-      false }
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_postbox) }
   end
 
   on_gui_tab_change_icon do |i_tab|
     tab_update_icon(i_tab) end
 
   on_gui_contextmenu do |event, contextmenu|
-    Gtk::ContextMenu.new(*contextmenu).popup(widgetof(event.widget), event) end
+    widget = widgetof(event.widget)
+    if not widget.destroyed?
+      Gtk::ContextMenu.new(*contextmenu).popup(widget, event) end end
+
+  on_gui_timeline_move_cursor_to do |i_timeline, message|
+    tl = widgetof(i_timeline)
+    path, column = tl.cursor
+    if path and column
+      case message
+      when :prev
+        path.prev!
+        tl.set_cursor(path, column, false)
+      when :next
+        path.next!
+        tl.set_cursor(path, column, false)
+      end
+    end
+  end
+
+  on_gui_postbox_post do |i_postbox|
+    postbox = widgetof(i_postbox)
+    if postbox
+      postbox.post_it end end
+
+  filter_gui_postbox_input_editable do |i_postbox, editable|
+    postbox = widgetof(i_postbox)
+    [i_postbox, postbox && postbox.post.editable?] end
 
   filter_gui_timeline_selected_messages do |i_timeline, messages|
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
