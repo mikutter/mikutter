@@ -13,6 +13,8 @@ class Plugin::GUI::Window
 
   role :window
 
+  attr_reader :icon
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(slug, name)
     super
@@ -28,4 +30,10 @@ class Plugin::GUI::Window
   def self.active
     @@active ||= instance(:default, "デフォルト")
   end
+
+  def set_icon(icon)
+    @icon = icon
+    Plugin.call(:gui_window_change_icon, self, icon)
+  end
+
 end
