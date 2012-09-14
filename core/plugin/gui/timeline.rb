@@ -57,7 +57,7 @@ class Plugin::GUI::Timeline
     i_postbox = Plugin::GUI::Postbox.instance
     i_postbox.options = options
     i_postbox.poster = in_reply_to_message
-    self.add_child(i_postbox)
+    self << i_postbox
   end
 
   # Postboxを作成してこの中に入れる
