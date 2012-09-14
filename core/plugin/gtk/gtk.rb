@@ -332,6 +332,8 @@ Plugin.create :gtk do
     if tab.parent
       raise Plugin::Gtk::GtkError, "Gtk Widget #{widgetof(i_tab).inspect} of Tab(#{i_tab.slug.inspect}) has parent Gtk Widget #{tab.parent.inspect}" end
     container = Gtk::TabContainer.new(i_tab).show_all
+    container.ssc(:key_press_event){ |w, event|
+      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
     container.pack_start(widget, i_tab.pack_rule[container.children.size])
     index = i_pane.children.find_index{ |child| child.slug == i_tab.slug } || i_pane.children.size
     pane.insert_page_menu(index, container, tab)
