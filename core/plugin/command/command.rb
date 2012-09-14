@@ -2,14 +2,6 @@
 
 Plugin.create :command do
 
-  # define_command(:copy_selected_region,
-  #                :name => 'コピー',
-  #                :condition => lambda{ |m| true },
-  #                :exec => lambda{ |opt|
-  #                  Gtk::Clipboard.copy(opt.message.entity.to_s[opt.miraclepainter.textselector_range]) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGE_SELECTED )
-
   command(:copy_selected_region,
           name: 'コピー',
           condition: lambda{ |opt| opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
