@@ -57,7 +57,8 @@ class Plugin::GUI::Timeline
     i_postbox = Plugin::GUI::Postbox.instance
     i_postbox.options = options
     i_postbox.poster = in_reply_to_message
-    self << i_postbox
+    notice "created postbox: #{i_postbox.inspect}"
+    self.add_child i_postbox
   end
 
   # Postboxを作成してこの中に入れる
@@ -68,7 +69,7 @@ class Plugin::GUI::Timeline
   def postbox(options = {})
     postbox = Plugin::GUI::Postbox.instance
     postbox.options = options
-    self << postbox
+    self.add_child postbox
     postbox
   end
 
