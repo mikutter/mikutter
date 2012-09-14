@@ -9,4 +9,8 @@ class Gtk::TabContainer < Gtk::VBox
     @i_tab = tab
     super(false, 0)
   end
+
+  def to_sym
+    i_tab.slug end
+  alias slug to_sym
 end
