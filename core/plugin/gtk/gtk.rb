@@ -163,6 +163,18 @@ Plugin.create :gtk do
   filter_gui_timeline_selected_messages do |i_timeline, messages|
     [i_timeline, messages + widgetof(i_timeline).get_active_messages] end
 
+  filter_gui_timeline_selected_text do |i_timeline, message, text|
+    catch(:tl_select_break) do
+      timeline = widgetof(i_timeline)
+      break [i_timeline, message, text] if not timeline
+      record = timeline.get_record_by_message(message)
+      break [i_timeline, message, text] if not record
+      range = record.miracle_painter.textselector_range
+      break [i_timeline, message, text] if not range
+      [i_timeline, message, message.entity.to_s[range]]
+    end
+  end
+
   def tab_update_icon(i_tab)
     type_strict i_tab => Plugin::GUI::Tab
     tab = widgetof(i_tab)
