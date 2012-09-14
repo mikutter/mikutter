@@ -395,8 +395,6 @@ Plugin.create :gtk do
             i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
             tab_order << i_widget.slug if i_widget }
           panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
-      require "pp"
-      pp panes_order
       ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
       ui_tab_order[i_window.slug] = panes_order
       UserConfig[:ui_tab_order] = ui_tab_order
