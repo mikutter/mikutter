@@ -148,6 +148,9 @@ Plugin.create(:activity) do
       if (UserConfig[:activity_show_timeline] || []).include?(params[:kind].to_s)
         Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
       end
+      if (UserConfig[:activity_show_statusbar] || []).include?(params[:kind].to_s)
+        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{params[:kind]}: #{params[:title]}", 10)
+      end
     end
   end
 
@@ -266,5 +269,15 @@ Plugin.create(:activity) do
       option "error", "エラー"
     end
 
+    multiselect("ステータスバーに表示", :activity_show_statusbar) do
+      option "retweet", "リツイート"
+      option "favorite", "ふぁぼ"
+      option "follow", "フォロー"
+      option "list_member_added", "リストに追加"
+      option "list_member_removed", "リストから削除"
+      option "dm", "ダイレクトメッセージ"
+      option "system", "システムメッセージ"
+      option "error", "エラー"
+    end
   end
 end
