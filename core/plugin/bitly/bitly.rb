@@ -80,7 +80,10 @@ class Bitly < MessageConverters
       end
       @expand_queue.push(url) }
     timeout(5){ stopper.pop }
-  rescue Exception => e
+  rescue Timeout::ExitException => e
+    error e
+    url
+  rescue TimeoutError => e
     error e
     url end
 
