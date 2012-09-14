@@ -317,6 +317,14 @@ Plugin.create :gtk do
         if not statusbar.destroyed?
           statusbar.remove(cid, mid) end } end end
 
+  on_gui_child_activated do |i_pane, i_tab|
+    if i_pane.is_a?(Plugin::GUI::Pane) and i_tab.is_a?(Plugin::GUI::Tab)
+      notice "gui_child_activated: tab active #{i_pane} => #{i_tab}"
+      pane = widgetof(i_pane)
+      tab = widgetof(i_tab)
+      if pane and tab
+        pane.page = pane.get_tab_pos_by_tab(tab) end end end
+
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
     if postbox

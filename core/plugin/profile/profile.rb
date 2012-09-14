@@ -28,6 +28,7 @@ Plugin.create :profile do
       expand
       profile nil end
     Plugin.call(:profiletab, i_profile, user)
+    i_profile.active!
   end
 
   profiletab :usertimeline, "最近のツイート" do
