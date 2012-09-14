@@ -7,17 +7,6 @@ Plugin.create :streaming do
   @fail_count = @wait_time = 0
   reconnect_request_flag = false
 
-  Delayer.new {
-    thread = start if UserConfig[:filter_realtime_rewind]
-    UserConfig.connect(:filter_realtime_rewind) do |key, new_val, before_val, id|
-      if new_val
-        notice 'filter stream: enable'
-        thread = start unless thread.is_a? Thread
-      else
-        notice 'filter stream: disable'
-        thread.kill if thread.is_a? Thread
-        thread = nil end end }
-
   on_filter_stream_force_retry do
     if UserConfig[:filter_realtime_rewind]
       thread.kill rescue nil if thread
@@ -75,5 +64,16 @@ Plugin.create :streaming do
   def streamerror(e)
     @success_flag = false
     @fail.notify(e) end
+
+  Delayer.new {
+    thread = start if UserConfig[:filter_realtime_rewind]
+    UserConfig.connect(:filter_realtime_rewind) do |key, new_val, before_val, id|
+      if new_val
+        notice 'filter stream: enable'
+        thread = start unless thread.is_a? Thread
+      else
+        notice 'filter stream: disable'
+        thread.kill if thread.is_a? Thread
+        thread = nil end end }
 
 end

@@ -38,17 +38,6 @@ miquire :boot, 'load_plugin'
 notice "fire boot event"
 Plugin.call(:boot, Post.primary_service)
 
-delayer_exception = nil
-Gtk.timeout_add(100){
-  begin
-    Delayer.run
-  rescue => e
-    delayer_exception = e
-    into_debug_mode(e)
-    Gtk.main_quit
-  end
-  true }
-
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
@@ -86,8 +75,8 @@ begin
       super(string)
       self.fsync rescue nil end end
   boot!(Mopt.profile)
-  if(delayer_exception)
-    raise delayer_exception end
+  if(Delayer.exception)
+    raise Delayer.exception end
 rescue Interrupt, SystemExit => e
   File.delete(errfile) if File.exist?(errfile)
   raise e

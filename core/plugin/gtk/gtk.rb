@@ -5,6 +5,7 @@
 require "gtk2"
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
+require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 
 Plugin.create :gtk do
   @windows_by_slug = {}                  # slug => Gtk::MikutterWindow

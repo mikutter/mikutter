@@ -15,6 +15,68 @@ class Delayer
 
   attr_reader :backtrace, :status
 
+  class << self
+    attr_accessor :exception
+
+    # 登録されたDelayerオブジェクトをいくつか実行する。
+    # 0.1秒以内に実行が終わらなければ、残りは保留してとりあえず処理を戻す。
+    def run
+      return if @frozen
+      debugging_wait
+      begin
+        @busy = true
+        @st = Process.times.utime
+        3.times{ |cnt|
+          procs = []
+          if not @@routines[cnt].empty? then
+            procs = @@routines[cnt].clone
+            procs.each{ |routine|
+              @@routines[cnt].delete(routine)
+              if Mopt.debug
+                r_start = Process.times.utime
+                routine.run
+                if (r_end = Process.times.utime - r_start) > 0.1
+                  bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
+                  bt = routine.backtrace.first if not bt
+                  Plugin.call(:processtime, :delayer, "#{"%.2f" % r_end},#{bt.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')}")
+                end
+              else
+                routine.run end
+              return if time_limit? } end }
+      rescue => e
+        Delayer.exception = e
+        raise e
+      ensure
+        @busy = false end end
+
+
+    def time_limit?
+      (Process.times.utime - @st) > 0.02 end
+
+    # Delayerのタスクを消化中ならtrueを返す
+    def busy?
+      @busy end
+
+    # 仕事がなければtrue
+    def empty?
+      @@routines.all?{|r| r.empty? } end
+
+    # 残っているDelayerの数を返す
+    def size
+      @@routines.map{|r| r.size }.sum end
+
+    # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
+    # を実行せずにすぐにreturnするようになる。
+    def freeze
+      @frozen = true end
+
+    # freezeのはんたい
+    def melt
+      @frozen = false end
+
+    def on_regist(delayer)
+    end end
+
   # あとで実行するブロックを登録する。
   def initialize(prio = NORMAL, *args, &block)
     @routine = block
@@ -22,6 +84,7 @@ class Delayer
     @backtrace = caller
     @status = :wait
     regist(prio)
+    Delayer.on_regist(self)
   end
 
   # このDelayerを取り消す。処理が呼ばれる前に呼べば、処理をキャンセルできる
@@ -42,61 +105,6 @@ class Delayer
     end
     @routine = nil
     @status = nil
-  end
-
-  # 登録されたDelayerオブジェクトをいくつか実行する。
-  # 0.1秒以内に実行が終わらなければ、残りは保留してとりあえず処理を戻す。
-  def self.run
-    return if @frozen
-    debugging_wait
-    begin
-      @busy = true
-    @st = Process.times.utime
-    3.times{ |cnt|
-      procs = []
-      if not @@routines[cnt].empty? then
-        procs = @@routines[cnt].clone
-        procs.each{ |routine|
-            @@routines[cnt].delete(routine)
-            if Mopt.debug
-              r_start = Process.times.utime
-              routine.run
-              if (r_end = Process.times.utime - r_start) > 0.1
-                bt = routine.backtrace.find{ |bt| not bt.include?('delayer') }
-                bt = routine.backtrace.first if not bt
-                Plugin.call(:processtime, :delayer, "#{"%.2f" % r_end},#{bt.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')}")
-              end
-            else
-              routine.run end
-            return if time_limit? } end }
-    ensure
-      @busy = false end end
-
-  def self.time_limit?
-    (Process.times.utime - @st) > 0.02 end
-
-  # Delayerのタスクを消化中ならtrueを返す
-  def self.busy?
-    @busy end
-
-  # 仕事がなければtrue
-  def self.empty?
-    @@routines.all?{|r| r.empty? } end
-
-  # 残っているDelayerの数を返す
-  def self.size
-    @@routines.map{|r| r.size }.sum end
-
-
-  # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
-  # を実行せずにすぐにreturnするようになる。
-  def self.freeze
-    @frozen = true
-  end
-
-  # freezeのはんたい
-  def self.melt
-    @frozen = false
   end
 
   private
