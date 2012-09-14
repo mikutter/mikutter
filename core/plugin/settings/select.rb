@@ -3,7 +3,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'builder')
 
 class Plugin::Setting::Select
   def initialize(values = [])
-    @options = values.to_a end
+    @options = values.to_a.freeze end
 
   # セレクトボックスに要素を追加する
   # ==== Args
@@ -14,9 +14,11 @@ class Plugin::Setting::Select
     if block_given?
       widget = Plugin::Setting.new.set_border_width(4)
       widget.instance_eval(&Proc.new)
-      @options << [value, widget]
+      @options += [[value, label, widget].freeze]
     else
-      @options << [value, label] end end
+      @options += [[value, label].freeze] end
+    @options.freeze
+    self end
 
   # 項目として、ウィジェットを持っているかを返す。
   # ==== Return
@@ -48,18 +50,26 @@ class Plugin::Setting::Select
     options = @options
     box.instance_eval{
       first = true
-      options.each{ |value, face|
+      options.each{ |value, face, setting|
         radio = nil
-        if face.is_a? String
+        if (not setting) and face.is_a? String
           closeup radio = Gtk::RadioButton.new(group, face)
-        elsif face.is_a? Plugin::Setting
-          container = Gtk::HBox.new
-          radio = Gtk::RadioButton.new(group)
-          closeup container.closeup(radio).add(face)
+        elsif setting.is_a? Plugin::Setting
+          if face.is_a? String
+            container = Gtk::Table.new(2, 2)
+            radio = Gtk::RadioButton.new(group)
+            container.attach(radio, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL)
+            container.attach(Gtk::Label.new(face).left, 1, 2, 0, 1, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
+            container.attach(setting, 1, 2, 1, 2, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND)
+            closeup container
+          else
+            container = Gtk::HBox.new
+            radio = Gtk::RadioButton.new(group)
+            closeup container.closeup(radio).add(setting) end
         end
         radio.signal_connect('toggled'){ |widget|
           listener.set value if widget.active?
-          face.sensitive = widget.active? if face.is_a? Gtk::Widget }
+          setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
         radio.active = first || (listener.get == value)
         face.sensitive = radio.active? if face.is_a? Gtk::Widget
         first = false } }
