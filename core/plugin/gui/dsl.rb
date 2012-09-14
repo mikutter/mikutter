@@ -22,7 +22,8 @@ class Plugin
         ui_setting.each{ |window_slug, panes|
           panes.each{ |pane_slug, tabs|
             tabs.each_with_index{ |tab_slug, index|
-              return [window_slug, pane_slug, index] if tab_slug == find_slug } } } end
+              return [window_slug, pane_slug, index] if tab_slug == find_slug } } }
+        nil end
     end
   end
 

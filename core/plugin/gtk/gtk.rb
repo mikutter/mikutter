@@ -85,9 +85,12 @@ Plugin.create :gtk do
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
-    pane = widgetof(i_tab.parent)
+    i_pane = i_tab.parent
+    pane = widgetof(i_pane)
     timeline = widgetof(i_timeline)
-    index = 0
+    index = where_should_insert_it(i_tab.slug, i_pane.children.map(&:slug), [:home_timeline, :mentions])
+    p i_pane.children.map(&:slug)
+    puts "index is #{index}"
     pane.insert_page_menu(index, timeline, widgetof(i_tab))
     pane.set_tab_reorderable(timeline, true).set_tab_detachable(timeline, true)
   end

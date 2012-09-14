@@ -10,6 +10,7 @@ module Plugin::GUI::Cuscadable
         private
         alias new_cuscadable new
         def new(slug, name)
+          type_strict slug => Symbol, name => String
           new_cuscadable(slug, name) end }
       klass.extend ExtendedCuscadable end end
 
@@ -44,6 +45,7 @@ module Plugin::GUI::Cuscadable
     # [slug] スラッグ(Symbol)
     # [name] タブのラベル(String)
     def instance(slug, name = slug.to_s)
+      type_strict slug => Symbol, name => String
       if cuscaded.has_key? slug
         cuscaded[slug]
       else
