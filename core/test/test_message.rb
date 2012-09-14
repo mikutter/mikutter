@@ -11,6 +11,7 @@ $debug = false
 $logfile = nil
 $daemon = false
 Plugin = Class.new do
+  def self.call(*args); end
   def self.filtering(*args)
     args[1, args.size] end
 end

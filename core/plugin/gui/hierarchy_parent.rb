@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ウィンドウパーツ階層構造の親
-
-class Plugin::GUI::HierarchyParent
+# これをincludeするクラスは、クラスメソッドとしてactiveを実装している必要がある
+module Plugin::GUI::HierarchyParent
 
   class << self
     def included(klass)
@@ -25,7 +25,7 @@ class Plugin::GUI::HierarchyParent
   def children
     @children ||= [] end
 
-  class Extended
+  module Extended
     # 子を追加するデフォルトのインスタンスを返す
     def add_default
       active end
