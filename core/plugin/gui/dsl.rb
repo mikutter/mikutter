@@ -30,8 +30,11 @@ class Plugin
       # ==== Args
       # [key] 押されたキーの名前
       # [widget] キーが押されたウィジェット
+      # ==== Return
+      # 何かmikutterコマンドが実行されたなら真
       def keypress(key, widget)
-        Plugin.call(:keypress, key, widget) end
+        result = Plugin.filtering(:keypress, key, widget, false)
+        result && result.last end
 
     end
   end

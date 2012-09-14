@@ -93,9 +93,13 @@ class Message < Retriever::Model
       self.service.destroy(self){|*a| yield *a if block_given? } if self.service end end
 
   # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
-  def favorite(fav)
+  def favorite(fav = true)
     if favoritable?
       self.service.favorite(self, fav) end end
+
+  # お気に入りから削除する
+  def unfavorite
+    favorite(false) end
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?

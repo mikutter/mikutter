@@ -1,40 +1,6 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :command do
-  # class << self
-
-  #   # argsの例
-  #   # {
-  #   #   :condition => (===でPoseudoMessageのインスタンスかnilと比較される。このコマンドをつかえるならtrueを返す)
-  #   #   :exec => (実行内容。callメソッドが呼ばれる)
-  #   #   :name => コマンドの名前。文字列。
-  #   #   :description => コマンドの説明。
-  #   #   :visible => 真理値。コンテキストメニューに表示するかどうかのフラグ
-  #   #   :icon => アイコン。Gdk::Pixbufかファイル名をStringで
-  #   #   :role => 実行できる環境の配列。以下のうちの何れか1つ
-  #   #            :message           messageを右クリックしたとき(単数)
-  #   #            :messages          messageが選択された時(配列で複数個)
-  #   #            :message_select    messageのテキストが選択されたとき(単数)
-  #   #            :timeline          タイムラインを右クリックしたとき
-  #   #            :postbox           つぶやき入力ウィンドウ
-  #   # }
-  #   def define_command(slug, args)
-  #     type_strict args => Hash
-  #     args[:slug] = slug.to_sym
-  #     args.freeze
-  #     Plugin.create(:contextmenu).add_event_filter(:command){ |menu|
-  #       menu[slug] = args
-  #       [menu]
-  #     }
-  #   end
-
-  # end
-
-  # ROLE_MESSAGE = :message
-  # ROLE_MESSAGES = :messages
-  # ROLE_MESSAGE_SELECTED = :message_select
-  # ROLE_TIMELINE = :timeline
-  # ROLE_POSTBOX = :postbox
 
   # define_command(:copy_selected_region,
   #                :name => 'コピー',
@@ -44,13 +10,6 @@ Plugin.create :command do
   #                :visible => true,
   #                :role => ROLE_MESSAGE_SELECTED )
 
-  # define_command(:copy_description,
-  #                :name => '本文をコピー',
-  #                :condition => lambda{ |opt| Gtk::TimeLine.get_active_mumbles.size == 1 },
-  #                :exec => lambda{ |opt| Gtk::Clipboard.copy(opt.message.to_show) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGE )
-
   command(:copy_description,
           name: '本文をコピー',
           condition: lambda{ |opt| opt.messages.size == 1 },
@@ -58,104 +17,95 @@ Plugin.create :command do
           role: :timeline) do |opt|
     Gtk::Clipboard.copy(opt.messages.first.to_show) end
 
-  # define_command(:reply,
-  #                :name => '返信',
-  #                :condition => lambda{ |ms| ms.map(&:message).all? &:repliable? },
-  #                :exec => lambda{ |ms| ms.first.timeline.reply(ms.first.message, :subreplies => ms.map(&:message)) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
-
   command(:reply,
           name: '返信',
           condition: lambda{ |opt| opt.messages.all? &:repliable? },
           visible: true,
           role: :timeline) do |opt|
-    opt.widget.create_reply_postbox(opt.messages.first.message, :subreplies => opt.messages.map(&:message)) end
+    opt.widget.create_reply_postbox(opt.messages.first.message,
+                                    subreplies: opt.messages.map(&:message)) end
 
-  # define_command(:reply_all,
-  #                :name => '全員に返信',
-  #                :condition => lambda{ |ms| ms.map(&:message).all? &:repliable? },
-  #                :exec => lambda{ |ms|ms.first.timeline.reply(ms.first.message,
-  #                                                             :subreplies => ms.map{ |m| m.message.ancestors }.flatten,
-  #                                                             :exclude_myself => true) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:reply_all,
+          name: '全員に返信',
+          condition: lambda{ |opt| opt.messages.all? &:repliable? },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.widget.create_reply_postbox(opt.messages.first.message,
+                                    subreplies: opt.messages.map{ |m| m.message.ancestors }.flatten,
+                                    exclude_myself: true) end
 
-  # define_command(:legacy_retweet,
-  #                :name => '引用',
-  #                :condition => lambda{ |m| m.message.repliable? },
-  #                :exec => lambda{ |m| m.timeline.reply(m.message, :retweet => true) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGE )
+  command(:legacy_retweet,
+          name: '引用',
+          condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.repliable? },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.widget.create_reply_postbox(opt.messages.first.message, retweet: true) end
 
-  # define_command(:retweet,
-  #                :name => 'リツイート',
-  #                :condition => lambda{ |ms|
-  #                  ms.all?{ |m|
-  #                    m.message.retweetable? and not m.message.retweeted_by_me? } },
-  #                :exec => lambda{ |ms| ms.map(&:message).select{ |x| not x.from_me? }.each(&:retweet) },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:retweet,
+          name: 'リツイート',
+          condition: lambda{ |opt|
+            opt.messages.all? { |m|
+              m.retweetable? and not m.retweeted_by_me? } },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages.select{ |x| not x.from_me? }.each(&:retweet) end
 
-  # define_command(:delete_retweet,
-  #                :name => 'リツイートをキャンセル',
-  #                :condition => lambda{ |ms|
-  #                  ms.all?{ |e|
-  #                    e.message.retweetable? and e.message.retweeted_by_me? } },
-  #                :exec => lambda{ |ms|
-  #                  ms.each { |e|
-  #                    retweet = e.message.retweeted_statuses.find{ |x| x.from_me? }
-  #                    retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{e.message.to_show}") } },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:delete_retweet,
+          name: 'リツイートをキャンセル',
+          condition: lambda{ |opt|
+            opt.messages.all? { |m|
+              m.retweetable? and not m.retweeted_by_me? } },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages.each { |m|
+      retweet = m.retweeted_statuses.find(&:from_me?)
+      retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
 
-  # define_command(:favorite,
-  #                :name => 'ふぁぼふぁぼする',
-  #                :condition => lambda{ |ms| ms.map(&:message).all?{ |m| m.favoritable? and not m.favorited_by_me? } },
-  #                :exec => lambda{ |ms| ms.map(&:message).each{ |m| m.favorite(true)} },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:favorite,
+          name: 'ふぁぼふぁぼする',
+          condition: lambda{ |opt|
+            opt.messages.all?{ |m| m.favoritable? and not m.favorited_by_me? } },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages.each(&:favorite) end
 
-  # define_command(:delete_favorite,
-  #                :name => 'ふぁぼをキャンセル',
-  #                :condition => lambda{ |ms| ms.all?{ |m| m.message.favorited_by_me? } },
-  #                :exec => lambda{ |ms| ms.each{ |m| m.message.favorite(false)} },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:delete_favorite,
+          name: 'あんふぁぼ',
+          condition: lambda{ |opt|
+            opt.messages.all?(&:favorited_by_me?) },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages.each(&:unfavorite) end
 
-  # define_command(:delete,
-  #                :name => '削除',
-  #                :condition => lambda{ |ms| ms.all?{ |e| e.message.from_me? } },
-  #                :exec => lambda{ |ms|
-  #                  ms.each { |e|
-  #                    e.message.destroy if Gtk::Dialog.confirm("本当にこのつぶやきを削除しますか？\n\n#{e.message.to_show}") } },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGES )
+  command(:delete,
+          name: '削除',
+          condition: lambda{ |opt|
+            opt.messages.all?(&:from_me?) },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages.each { |m|
+      m.destroy if Gtk::Dialog.confirm("失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？\n\n#{m.to_show}") } end
 
-  # define_command(:select_prev,
-  #                :name => 'ひとつ上のつぶやきを選択',
-  #                :condition => lambda{ |tl| true },
-  #                :exec => lambda{ |tl|
-  #                  path, column = tl.cursor
-  #                  tl.set_cursor(path, column, false) if path and column and path.prev! },
-  #                :visible => false,
-  #                :role => ROLE_TIMELINE )
+  command(:select_prev,
+          name: '一つ上のメッセージを選択',
+          condition: ret_nth,
+          visible: true,
+          role: :timeline) do |opt|
+    Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :prev) end
 
-  # define_command(:select_next,
-  #                :name => 'ひとつ下のつぶやきを選択',
-  #                :condition => lambda{ |tl| true },
-  #                :exec => lambda{ |tl|
-  #                  path, column = tl.cursor
-  #                  tl.set_cursor(path, column, false) if path and column and path.next! },
-  #                :visible => false,
-  #                :role => ROLE_TIMELINE )
+  command(:select_next,
+          name: '一つ下のメッセージを選択',
+          condition: ret_nth,
+          visible: true,
+          role: :timeline) do |opt|
+    Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :next) end
 
-  # define_command(:post_it,
-  #                :name => '投稿する',
-  #                :condition => lambda{ |postbox| postbox.post.editable? },
-  #                :exec => :post_it.to_proc,
-  #                :visible => false,
-  #                :role => ROLE_POSTBOX )
+  command(:post_it,
+          name: '投稿する',
+          condition: lambda{ |opt| opt.widget.editable? },
+          visible: false,
+          role: :postbox) do |opt|
+    opt.widget.post_it! end
 
   # define_command(:google_search,
   #                :name => 'ggrks',
@@ -166,14 +116,13 @@ Plugin.create :command do
   #                :visible => true,
   #                :role => ROLE_MESSAGE_SELECTED )
 
-  # define_command(:open_link,
-  #                :name => 'リンクを開く',
-  #                :condition => lambda{ |opt|
-  #                  opt.message.entity.to_a.any? {|u|
-  #                    u[:slug] == :urls } },
-  #                :exec => lambda{ |opt|
-  #                  opt.message.entity.to_a.each {|u|
-  #                    Gtk::openurl(u[:url]) if u[:slug] == :urls } },
-  #                :visible => true,
-  #                :role => ROLE_MESSAGE )
+  command(:open_link,
+          name: 'リンクを開く',
+          condition: lambda{ |opt|
+            opt.messages.size == 1 && opt.messages[0].entity.to_a.any? {|u|
+              u[:slug] == :urls } },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages[0].entity.to_a.each {|u|
+      Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
 end
