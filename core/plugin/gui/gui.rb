@@ -13,7 +13,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'command')
 Plugin.create :gui do
 
   Plugin::GUI.ui_setting.each { |window_slug, panes|
-    window = Plugin::GUI::Window.instance(window_slug)
+    window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
     window << Plugin::GUI::Postbox.instance
     if panes.empty?
       panes = { default: [] } end
