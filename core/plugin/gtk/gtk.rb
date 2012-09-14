@@ -4,6 +4,7 @@
 
 require "gtk2"
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
 
 Plugin.create :gtk do
   @windows_by_slug = {}                  # slug => Gtk::MikutterWindow
@@ -54,18 +55,23 @@ Plugin.create :gtk do
       notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) unless pane.destroyed? }
     pane.ssc(:page_reordered){ |this|
+      notice "on_pane_created: page_reordered: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent)
       false }
-    pane.signal_connect(:page_added){ |this, widget|
+    pane.signal_connect(:page_added){ |this, tabcontainer|
+      type_strict tabcontainer => Gtk::TabContainer
+      notice "on_pane_created: page_added: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent)
-      i_widget = find_implement_widget_by_gtkwidget(widget)
-      next false unless i_widget
-      i_tab = i_widget.parent
-      next false unless i_tab and i_tab.parent != i_pane
+      i_tab = tabcontainer.i_tab
+      notice "on_pane_created: i_tab.parent:#{i_tab.parent.inspect} == i_pane:#{i_pane.inspect}"
+      next false if i_tab.parent == i_pane
+      notice "on_pane_created: reparent"
       i_pane << i_tab
+      notice "on_pane_created: i_tab.parent:#{i_tab.parent.inspect} == i_pane:#{i_pane.inspect}"
       false }
     # 子が無くなった時 : このpaneを削除
     pane.signal_connect(:page_removed){
+      notice "on_pane_created: page_removed: #{i_pane.inspect}"
       Delayer.new{
         unless pane.destroyed?
           if pane.children.empty? and pane.parent
@@ -326,7 +332,7 @@ Plugin.create :gtk do
         return container.pack_start(widget, i_tab.pack_rule[container.children.size]) end end
     if tab.parent
       raise Plugin::Gtk::GtkError, "Gtk Widget #{widgetof(i_tab).inspect} of Tab(#{i_tab.slug.inspect}) has parent Gtk Widget #{tab.parent.inspect}" end
-    container = Gtk::VBox.new(false, 0).show_all
+    container = Gtk::TabContainer.new(i_tab).show_all
     container.pack_start(widget, i_tab.pack_rule[container.children.size])
     index = i_pane.children.find_index{ |child| child.slug == i_tab.slug } || i_pane.children.size
     pane.insert_page_menu(index, container, tab)
