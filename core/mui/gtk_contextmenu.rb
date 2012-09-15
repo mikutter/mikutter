@@ -25,11 +25,15 @@ module Gtk
         if cond.call(*[optional, widget][0, (cond.arity == -1 ? 1 : cond.arity)])
           if label
             item = Gtk::MenuItem.new(if defined? label.call then label.call(*[optional, widget][0, label.arity]) else label end)
-            item.signal_connect('activate') { |w| proc.call(*[optional, widget][0...proc.arity]); false } if proc
+            if proc
+              item.ssc('activate') { |w|
+                proc.call(*[optional, widget][0...proc.arity])
+                false } end
             menu.append(item)
           else
             menu.append(Gtk::MenuItem.new) end end }
-      menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detached" }
-      menu.show_all.popup(nil, nil, 0, 0) end
+      if not menu.children.empty?
+        menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detached" }
+        menu.show_all.popup(nil, nil, 0, 0) end end
   end
 end

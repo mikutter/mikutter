@@ -58,8 +58,7 @@ _service_ のフォロワーが増えた時に呼ばれる。_users_ は増え�
 ユーザ _by_ がユーザ _to_ をフォローした時に呼ばれる
 
 === list_data(Service service, Array ulist)
-フォローしているリスト一覧に変更があれば呼ばれる。なお、このイベントにリスナーを登録すると、すぐに
-現在フォローしているリスト一覧を引数にコールバックが呼ばれる。
+フォローしているリスト一覧に変更があれば呼ばれる。現在フォローしている全てのリストが渡される
 
 === list_created(Service service, Array ulist)
 新しくリストが作成されると、それを引数に呼ばれる。
@@ -172,6 +171,9 @@ _users_ は、お気に入りに入れているユーザの集合。
 
 === show_filter(Enumerable messages)
 _messages_ から、表示してはいけないものを取り除く
+
+=== following_lists(Enumerable lists)
+_lists_ に、フォローしているリストを入れて返す
 
 === message_background_color(Gdk::MiraclePainter miracle_painter, Array color)
 _miracle_painter_ のツイートの背景色を変更する。 _color_ は現在の色又はnil。
@@ -336,13 +338,6 @@ class Plugin
         else
           call_routine(plugintag, event_name, kind, &routine) end end end
 
-    # プラグインタグをなければ作成して返す。
-    # ブロックを渡した場合、返されるPluginTagのコンテキストでブロックが実行される。
-
-    def plugins
-      @@plugins
-    end
-
     # ブロックの実行時間を記録しながら実行
     def call_routine(plugintag, event_name, kind)
       catch(:plugin_exit){ yield }
@@ -362,13 +357,13 @@ class Plugin
         hash[key] = Hash.new{ |hash, key|
           hash[key] = [] } }
       @@event.each_pair{ |event, pair|
-        result[pair[0]][event] << proc }
+        result[pair[0]][event] << pair[1] }
       result
     end
 
     # 登録済みプラグイン名を一次元配列で返す
     def plugin_list
-      Plugin.plugins end
+      @@event.map{ |event, pair| pair[0] }.uniq end
 
     # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
     # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
@@ -385,23 +380,55 @@ class Plugin
 
     alias :newSAyTof :new
     def new(name)
+      type_strict name => Symbol
       plugin = @@plugins.find{ |p| p.name == name }
-      if plugin
-        plugin
-      else
+      if not plugin
         plugin = newSAyTof(name) end
       if block_given?
         catch(:plugin_define_exit) {
           plugin.instance_eval(&Proc.new) } end
+      if defined?(@load_hook[name]) and @load_hook[name]
+        notice "load hook for #{name} found. execute."
+        @load_hook[name].each &:call
+        @load_hook.delete(name) end
       plugin end
     alias :create :new
+
+    def load_file(file, spec)
+      type_strict file => String, spec => Hash
+      still_not_load = lazy{ (spec[:depends] - plugin_list).map(&:to_sym) }
+      if spec[:depends] and not still_not_load.empty?
+        still_not_load.each{ |depend|
+          Plugin.load_hook(depend){
+            still_not_load.delete(depend)
+            if still_not_load.empty?
+              Plugin.create(spec[:slug].to_sym){ @spec = spec }
+              require file end } }
+      else
+        Plugin.create(spec[:slug].to_sym){ @spec = spec }
+        require file end end
+
+    def load_hook(slug, &callback)
+      type_strict slug => Symbol, callback => Proc
+      @load_hook ||= {}
+      @load_hook[slug] ||= []
+      @load_hook[slug] << callback end
+
+    # すでに有るプラグインを名前から探して返す。 Plugin.create とちがってない場合は作成せずにnilを返す
+    # ==== Args
+    # [name] プラグイン名
+    # ==== Return
+    # プラグインオブジェクトか、見つからなければnil
+    def instance(name)
+      @@plugins.find{ |p| p.name == name } end
+
   end
 
   include ConfigLoader
 
   @@plugins = [] # plugin
 
-  attr_reader :name
+  attr_reader :name, :spec
 
   def initialize(name = :anonymous)
     @name = name
@@ -442,8 +469,11 @@ class Plugin
   # イベントの監視をやめる。引数 _event_ には、add_event, add_event_filter, add_event_hook の
   # いずれかの戻り値を与える。
   def detach(event_name, event)
-    Plugin.detach(event_name, event)
-  end
+    if :unload == event_name
+      if defined? @unload_hook
+        @unload_hook.reject!{ |h| h == event } end
+    else
+      Plugin.detach(event_name, event) end end
 
   def at(key, ifnone=nil)
     super("#{@name}_#{key}".to_sym, ifnone) end
@@ -467,6 +497,7 @@ class Plugin
   def onunload
     @unload_hook ||= []
     @unload_hook.push(Proc.new) end
+  alias :on_unload :onunload
 
   def execute_unload_hook
     @unload_hook.each{ |unload| unload.call } if(defined?(@unload_hook)) end
@@ -482,14 +513,24 @@ class Plugin
     else
       super end end
 
+  # mikutterコマンドを定義
+  # ==== Args
+  # [slug] コマンドスラッグ
+  # [options] コマンドオプション
+  # [&exec] コマンドの実行内容
+  def command(slug, options, &exec)
+    command = options.merge(slug: slug, exec: exec).freeze
+    add_event_filter(:command){ |menu|
+      menu[slug] = command
+      [menu] } end
+
   # 設定画面を作る
   # ==== Args
   # - String name タイトル
   # - Proc &place 設定画面を作る無名関数
   def settings(name, &place)
-    Plugin.call(:settings, name, place)
     filter_defined_settings do |tabs|
-      [tabs.melt << [name, place]] end end
+      [tabs.melt << [name, place, @name]] end end
 
   private
 

@@ -66,8 +66,6 @@ module Gtk
       post_set_default_text(@post)
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
-      @post.signal_connect('key_press_event'){ |widget, event|
-        Addon::Command.call_keypress_event(Gtk::keyname([event.keyval ,event.state]), :postbox => self) }
       @post.ssc('key_release_event'){ |textview, event|
         refresh_buttons(false)
         false }
@@ -149,6 +147,15 @@ module Gtk
           when :success
             Delayer.new{ destroy } end } end end
 
+    def destroy
+      @@ringlock.synchronize{
+        if not(destroyed?) and not(frozen?) and parent
+          parent.remove(self)
+          @@postboxes.delete(self)
+          super
+          on_delete
+          self.freeze end } end
+
     private
 
     def postable?
@@ -165,6 +172,8 @@ module Gtk
             show_all.
             get_ancestor(Gtk::Window).
             set_focus(postbox.widget_post) end end
+      if @options[:before_post_hook]
+        @options[:before_post_hook].call(self) end
       true end
 
     def start_post
@@ -230,15 +239,6 @@ module Gtk
       if(not(frozen?) and not([widget_post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?)
         destroy
         true end end
-
-    def destroy
-      @@ringlock.synchronize{
-        if not(destroyed?) and not(frozen?) and parent
-          parent.remove(self)
-          @@postboxes.delete(self)
-          super
-          on_delete
-          self.freeze end } end
 
     def on_delete
       if(block_given?)

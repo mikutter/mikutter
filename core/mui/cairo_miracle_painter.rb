@@ -138,10 +138,11 @@ class Gdk::MiraclePainter < Gtk::Object
         index = main_pos_to_index(x, y)
         if index
           l = message.links.segment_by_index(index)
-          l[:callback].call(l) if l end end
+          l[:callback].call(l) if l and l[:callback] end end
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
-      menu_pop(e) end end
+      Plugin::GUI::Command.menu_pop
+    end end
 
   def on_selected
     if not frozen?
@@ -184,10 +185,10 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   def iob_reply_clicked
-    @tree.reply(message) end
+    @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    @tree.reply(message, :retweet => true)
+    @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked
@@ -195,22 +196,6 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   def iob_etc_clicked
-  end
-
-  def menu_pop(event)
-    tl, active_mumble, miracle_painter, postbox, valid_roles = Addon::Command.tampr(:message => message, :miracle_painter => self)
-    labels = []
-    contextmenu = []
-    Plugin.filtering(:command, Hash.new).first.values.each{ |record|
-      if(record[:visible] and Addon::Command::role_executable?(valid_roles, record[:role]))
-        index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])
-        labels.insert(index, record[:slug].to_s)
-        face = record[:show_face] || record[:name]
-        name = if defined? face.call then lambda{ |x| face.call(Addon::Command::role_argument(record[:role], x)) } else name = face end
-        contextmenu.insert(index, [name,
-                                   lambda{ |x| record[:condition] === Addon::Command::role_argument(record[:role], x) },
-                                   lambda{ |x| record[:exec].call(Addon::Command::role_argument(record[:role], x)) }]) end }
-    Gtk::ContextMenu.new(*contextmenu).popup(tl, Addon::Command.generate_options(tl, active_mumble, miracle_painter, postbox))
   end
 
   # つぶやきの左上座標から、クリックされた文字のインデックスを返す

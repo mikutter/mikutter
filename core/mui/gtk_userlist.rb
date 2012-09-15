@@ -25,6 +25,9 @@ module Gtk
       pack_start(@evbox).closeup(scrollbar).show_all
     end
 
+    def active
+      get_ancestor(Gtk::Window).set_focus(@treeview) end
+
     # Userクラスのインスタンスを引数に繰り返すイテレータ
     def each(&iter) # :yields: user
       @users.each(&iter)

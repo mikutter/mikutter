@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 =begin rdoc
 = mikutter - the moest twitter client
-Copyright (C) 2009-2010 Toshiaki Asai
+Copyright (C) 2009-2012 Toshiaki Asai
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 
@@ -13,12 +13,10 @@ You should have received a copy of the GNU General Public License along with thi
 =end
 
 if File.symlink?($0)
-  dir = File.readlink($0)
+  Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
 else
-  dir = $0
+  Dir.chdir(File.join(File.dirname($0), 'core'))
 end
-
-Dir.chdir(File.join(File.dirname(dir), 'core'))
 
 Thread.abort_on_exception = true
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
@@ -39,20 +37,10 @@ miquire :boot, 'load_plugin'
 notice "fire boot event"
 Plugin.call(:boot, Post.primary_service)
 
-delayer_exception = nil
-Gtk.timeout_add(100){
-  begin
-    Delayer.run
-  rescue => e
-    delayer_exception = e
-    into_debug_mode(e)
-    Gtk.main_quit
-  end
-  true }
-
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
+  Gtk.init_add{ Gtk.quit_add(Gtk.main_level){ SerialThreadGroup.force_exit! } }
   if profile
     require 'ruby-prof'
     begin
@@ -87,8 +75,8 @@ begin
       super(string)
       self.fsync rescue nil end end
   boot!(Mopt.profile)
-  if(delayer_exception)
-    raise delayer_exception end
+  if(Delayer.exception)
+    raise Delayer.exception end
 rescue Interrupt, SystemExit => e
   File.delete(errfile) if File.exist?(errfile)
   raise e

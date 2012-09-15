@@ -104,25 +104,14 @@ class User < Retriever::Model
 
   # ユーザのメッセージが今までお気に入りにされた回数を返す
   def count_favorite_by
-    return @value[:favouritesby_count] if @value.has_key?(:favouritesby_count)
-    begin
-    open("http://favotter.net/user.php?user=#{idname}"){ |io|
-      m = /のふぁぼられ\((\d+)\)/.match(io.read)
-      return @value[:favouritesby_count] = m[1].to_i
-    }
-    rescue
-      nil end end
+    Thread.new {
+      open("http://favstar.fm/users/#{idname}"){ |io|
+        m = io.read.match(/Favs Rec'd<\/td>\s*<td.*?>([0-9,]+)<\/td>/)
+        @value[:favouritesby_count] = m[1].gsub(",", "").to_i } } end
 
   # ユーザが今までにお気に入りにしたメッセージ数の概算を返す
   def count_favorite_given
-    return @value[:favourites_count] if @value.has_key?(:favourites_count)
-    begin
-      open("http://favotter.net/user/#{idname}&mode=fav"){ |io|
-        m = /のふぁぼり\((\d+)\)/.match(io.read)
-      return @value[:favourites_count] = m[1].to_i
-    }
-    rescue
-      nil end end
+    @value[:favourites_count] end
 
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'

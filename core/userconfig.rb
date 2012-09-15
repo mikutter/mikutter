@@ -70,8 +70,8 @@ class UserConfig
 
     :favorited_by_anyone_age => true,
 
-    # タブの並び順
-    :tab_order => [['Home Timeline', 'Replies', 'Search', 'Settings']],
+    # プロフィールタブの並び順
+    :profile_tab_order => [:usertimeline, :aboutuser, :list],
 
     # 設定タブの並び順
     :tab_order_in_settings => ["基本設定", "表示", "入力", "通知", "抽出タブ", "リスト", "ショートカットキー", "アカウント情報", "プロキシ"],
@@ -80,7 +80,7 @@ class UserConfig
     :tab_position => 3,
 
     # 常にURLを短縮して投稿
-    :shrinkurl_always => true,
+    :shrinkurl_always => false,
 
     # 常にURLを展開して表示
     :shrinkurl_expand => true,
@@ -147,7 +147,7 @@ class UserConfig
                    nil end
           lambda{ proc.call(key, val, before_val, id) } if proc } end }
     if watchers.is_a? Enumerable
-      watchers.each{ |w| w.call } end
+      watchers.each{ |w| w.call if w } end
     UserConfig.instance.store(key, val)
   end
 
@@ -170,4 +170,27 @@ class UserConfig
     }
   end
 
+  def self.setup
+    last_boot_version = UserConfig[:last_boot_version] || [0, 0, 0, 0]
+    if last_boot_version < Environment::VERSION.to_a
+      UserConfig[:last_boot_version] = Environment::VERSION.to_a
+      if last_boot_version == [0, 0, 0, 0]
+        key_add "Alt + x", "コンソールを開く", :console_open
+      end
+    end
+  end
+
+  def self.key_add(key, name, slug)
+    type_strict key => String, name => String, slug => Symbol
+    keys = UserConfig[:shortcutkey_keybinds].melt
+    keys[(keys.keys.max || 0)+1] = {
+      :key => key,
+      :name => name,
+      :slug => slug}
+    UserConfig[:shortcutkey_keybinds] = keys end
+
+  setup
+
 end
+
+
