@@ -42,14 +42,19 @@ Plugin.create :profile do
 
   profiletab :aboutuser, "ユーザについて" do
     set_icon user[:profile_image_url]
-    bio = Gtk::IntelligentTextview.new(user[:detail])
-    ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
+    bio = Gtk::IntelligentTextview.new("")
+    label_since = Gtk::Label.new
     container = Gtk::VBox.new.
       closeup(bio).
-      closeup(Gtk::Label.new("Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n").left).
+      closeup(label_since.left).
       closeup(plugin.relation_bar(user))
     container.closeup(plugin.mutebutton(user)) if not user.is_me?
-    nativewidget container.show_all end
+    nativewidget container.show_all
+    user_complete do
+      bio.rewind(user[:detail])
+      ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
+      label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n" end
+  end
 
   on_appear do |messages|
     timeline_storage.dup.deach{ |slug, user|

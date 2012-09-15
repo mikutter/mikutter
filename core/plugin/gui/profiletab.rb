@@ -25,4 +25,19 @@ class Plugin::GUI::ProfileTab
     super
     Plugin.call(:profiletab_created, self)
   end
+
+  # 完全なユーザ情報が取得できたらコールバックする
+  def user_complete(&callback)
+    type_strict user => User, callback => Proc
+    if user[:exact]
+      yield user
+    else
+      atomic {
+        if not(defined?(@user_promise) and @user_promise)
+          @user_promise = Service.primary.user_show(user_id: user[:id]).next{ |u|
+            @user_promise = false
+            u }.terminate("@#{user[:idname]} のユーザ情報が取得できませんでした") end
+        @user_promise = @user_promise.next{ |u| callback.call(u); u } } end
+  end
+
 end
