@@ -396,8 +396,10 @@ class Plugin
 
     def load_file(file, spec)
       type_strict file => String, spec => Hash
-      still_not_load = lazy{ (spec[:depends] - plugin_list).map(&:to_sym) }
-      if spec[:depends] and not still_not_load.empty?
+      still_not_load = lazy{ (spec[:depends][:plugin] - plugin_list).map(&:to_sym) }
+      if defined?(spec[:depends]) and spec[:depends].is_a? Array
+        spec[:depends] = { plugin: spec[:depends] } end
+      if defined?(spec[:depends][:plugin]) and not still_not_load.empty?
         still_not_load.each{ |depend|
           Plugin.load_hook(depend){
             still_not_load.delete(depend)

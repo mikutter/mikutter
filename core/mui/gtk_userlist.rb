@@ -26,7 +26,8 @@ module Gtk
     end
 
     def active
-      get_ancestor(Gtk::Window).set_focus(@treeview) end
+      window = get_ancestor(Gtk::Window)
+      window.set_focus(@treeview) if window and window.realized? end
 
     # Userクラスのインスタンスを引数に繰り返すイテレータ
     def each(&iter) # :yields: user

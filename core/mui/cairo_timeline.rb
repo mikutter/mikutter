@@ -42,7 +42,7 @@ class Gtk::TimeLine
     else
       [] end end
 
-  def initialize(imaginary)
+  def initialize(imaginary=nil)
     super()
     @tl = InnerTL.new
     @tl.imaginary = imaginary

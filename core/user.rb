@@ -106,7 +106,7 @@ class User < Retriever::Model
   def count_favorite_by
     Thread.new {
       open("http://favstar.fm/users/#{idname}"){ |io|
-        m = io.read.match(/Favs Rec'd<\/td>\s*<td.*?>([0-9,]+)<\/td>/)
+        m = io.read.match(/<div[\s]+class='fs-value'[\s]*>[\s]*([0-9,]+)[\s]*<\/div>[\s]*<div[\s]+class='fs-title'[\s]*>[\s]*Favs[\s]*Received[\s]*<\/div>/)
         @value[:favouritesby_count] = m[1].gsub(",", "").to_i } } end
 
   # ユーザが今までにお気に入りにしたメッセージ数の概算を返す
