@@ -12,7 +12,7 @@ Plugin.create :saved_search do
         rewind_timeline(saved_search) } end end
 
   on_saved_search_regist do |id, query|
-    add_tab(id, query, query)
+    add_tab(SavedSearch.new(id, query, query, ("savedsearch_" + id.to_s).to_sym))
   end
 
   # id => SavedSearch
