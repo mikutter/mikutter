@@ -78,6 +78,7 @@ Module.new do
             'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
             'line' => crashed_line,
             'exception_class' => exception.class,
+            'description' => exception.to_s,
             'ruby_version' => RUBY_VERSION,
             'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
             'platform' => RUBY_PLATFORM,
