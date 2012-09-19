@@ -6,9 +6,9 @@
 # users list
 
 require File.expand_path('utils')
-miquire :core, 'autotag'
-miquire :core, 'user'
-miquire :core, 'retriever'
+require 'typed-array'
+
+miquire :core, 'user', 'message', 'retriever'
 
 require 'set'
 
@@ -53,6 +53,16 @@ class UserList < Retriever::Model
       member.include?(user)
     else
       member.any?{ |m| m.id == user.to_i } end end
+
+  # リプライだった場合、投稿した人と宛先が一人でもリストメンバーだったら真。
+  # リプライではない場合は、 UserList.member?(message.user) と同じ
+  # ==== Args
+  # [message] 調べるMessage
+  # ==== Return
+  # リスト内のMessageなら真
+  def related?(message)
+    idnames = message.receive_user_screen_names
+    member?(message.user) && (idnames.empty? or member.any?{ |u| idnames.include?(u.idname) }) end
 
   def add_member(user)
     member_update_transaction do
