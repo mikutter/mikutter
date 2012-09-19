@@ -47,7 +47,8 @@ Plugin.create :list do
   on_appear do |messages|
     messages.each{ |message|
       timelines.each{ |slug, list|
-        timeline(slug) << message if list.member.include? message.user } } end
+        if list.related?(message)
+          timeline(slug) << message end } } end
 
   # filter stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
