@@ -49,7 +49,11 @@ Plugin.create :profile do
       closeup(label_since.left).
       closeup(plugin.relation_bar(user))
     container.closeup(plugin.mutebutton(user)) if not user.is_me?
-    nativewidget container.show_all
+    scrolledwindow = Gtk::ScrolledWindow.new
+    scrolledwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC)
+    scrolledwindow.add_with_viewport(container)
+    scrolledwindow.style = container.style
+    nativewidget scrolledwindow.show_all
     user_complete do
       bio.rewind(user[:detail])
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
@@ -145,6 +149,8 @@ Plugin.create :profile do
             following = new
             if not w_eventbox_image_following.children.empty?
               w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
+
+            w_eventbox_image_following.style = w_eventbox_image_following.parent.style
             w_eventbox_image_following.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
             w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
             followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
@@ -154,6 +160,7 @@ Plugin.create :profile do
             followed = new
             if not w_eventbox_image_followed.children.empty?
               w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
+            w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
             w_eventbox_image_followed.add(Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
         Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
@@ -199,7 +206,12 @@ Plugin.create :profile do
                  # closeup(toolbar).
                  add(Gtk::HBox.new(false, 16).
                      closeup(Gtk::WebIcon.new(user[:profile_image_url], 128, 128).top).
-                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user))))) end
+                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user))))) 
+    scrolledwindow = Gtk::ScrolledWindow.new
+    scrolledwindow.height_request = 128 + 24
+    scrolledwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER)
+    scrolledwindow.add_with_viewport(eventbox)
+  end
 
   # ユーザ名を表示する
   # ==== Args
