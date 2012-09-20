@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require File.expand_path File.join(File.dirname(__FILE__), 'console_control')
+
 Plugin.create :console do
   command(:console_open,
           name: 'コンソールを開く',
@@ -16,7 +18,8 @@ Plugin.create :console do
 
     widget_result.set_editable(false)
 
-    widget_input.set_size_request(0, 100)
+    widget_result.set_size_request(0, 50)
+    widget_input.set_size_request(0, 50)
 
     widget_result.buffer.insert(widget_result.buffer.start_iter, "mikutter console.\n下にRubyコードを入力して、Ctrl+Enterを押すと、ここに実行結果が表示されます\n")
 
@@ -51,15 +54,17 @@ Plugin.create :console do
     tab(:console, "コンソール") do
       set_icon MUI::Skin.get('console.png')
       set_deletable true
-      nativewidget Gtk::Table.new(2, 3).
-        attach(widget_result, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-        attach(scroll_result_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
-        attach(scroll_result_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL)
-      shrink
-      nativewidget Gtk::Table.new(2, 3).
-        attach(widget_input, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-        attach(scroll_input_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
-        attach(scroll_input_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL)
+      nativewidget Plugin::Console::ConsoleControl.new().
+        pack1(Gtk::Table.new(2, 3).
+              attach(widget_result, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
+              attach(scroll_result_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
+              attach(scroll_result_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL),
+              true, false).
+        pack2(Gtk::Table.new(2, 3).
+              attach(widget_input, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
+              attach(scroll_input_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
+              attach(scroll_input_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL),
+              false, false)
       active!
     end
   end
