@@ -18,6 +18,13 @@ Plugin.create :profile do
                             :screen_name => idname)
         Plugin.call(:show_profile, Service.primary, user) if user } end }
 
+  filter_show_filter do |messages|
+    muted_users = UserConfig[:muted_users]
+    if muted_users && !muted_users.empty?
+      [messages.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? }]
+    else
+      [messages] end end
+
   on_show_profile do |service, user|
     container = profile_head(user)
     i_profile = tab nil, "#{user[:name]} のプロフィール}" do
