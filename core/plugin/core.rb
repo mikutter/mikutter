@@ -9,9 +9,20 @@ Plugin.create :core do
         if not @appear_fired.include?(m[:id])
           @appear_fired << m[:id] end } ] end
 
+  # ふぁぼフラグがついているツイートは、ふぁぼったユーザリストに自分を含めておく
   filter_favorited_by do |message, set|
     if message[:favorited] and message.service
       set << message.service.user_obj end
     [message, set] end
+
+  # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
+  on_destroyed do |messages|
+    messages.each{ |message|
+      if message.retweet?
+        source = message.retweet_source(false)
+        if source
+          notice "retweet #{source[:id]} #{message.to_s}(##{message[:id]})"
+          Plugin.call(:retweet_destroyed, source, message.user, message[:id])
+          source.retweeted_statuses.delete(message) end end } end
 
 end
