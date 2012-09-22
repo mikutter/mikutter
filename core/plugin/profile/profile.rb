@@ -212,7 +212,7 @@ Plugin.create :profile do
     eventbox.add(Gtk::VBox.new(false, 0).
                  add(Gtk::HBox.new(false, 16).
                      closeup(Gtk::WebIcon.new(user.profile_image_url_large, 128, 128).top).
-                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user))))) 
+                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
     scrolledwindow = Gtk::ScrolledWindow.new
     scrolledwindow.height_request = 128 + 24
     scrolledwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER)
@@ -243,12 +243,17 @@ Plugin.create :profile do
       w_faved.text = favs.to_s
     }.terminate("ふぁぼが取得できませんでした").trap{
       w_faved.text = '-' }
-    Gtk::Table.new(2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_tweets).closeup(Gtk::Label.new("tweets").right), 0, 1, 0, 1).
-      attach(Gtk::HBox.new(false, 4).add(w_favs).closeup(Gtk::Label.new("favs").right), 0, 1, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_faved).closeup(Gtk::Label.new("faved").right), 1, 2, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_followings).closeup(Gtk::Label.new("followings").right), 0, 1, 2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_followers).closeup(Gtk::Label.new("followers").right), 1, 2, 2, 3).
+    Gtk::Table.new(2, 5).
+      attach(w_tweets.right, 0, 1, 0, 1).
+      attach(Gtk::Label.new("tweets").left, 1, 2, 0, 1).
+      attach(w_favs.right, 0, 1, 1, 2).
+      attach(Gtk::Label.new("favs").left, 1, 2, 1, 2).
+      attach(w_faved.right, 0, 1, 2, 3).
+      attach(Gtk::Label.new("faved").left, 1, 2, 2, 3).
+      attach(w_followings.right, 0, 1, 3, 4).
+      attach(Gtk::Label.new("followings").left, 1, 2, 3, 4).
+      attach(w_followers.right, 0, 1, 4, 5).
+      attach(Gtk::Label.new("favs").left, 1, 2, 4, 5).
       set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)
