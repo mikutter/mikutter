@@ -9,4 +9,9 @@ Plugin.create :core do
         if not @appear_fired.include?(m[:id])
           @appear_fired << m[:id] end } ] end
 
+  filter_favorited_by do |message, set|
+    if message[:favorited] and message.service
+      set << message.service.user_obj end
+    [message, set] end
+
 end
