@@ -225,7 +225,17 @@ Plugin.create :profile do
   # ==== Return
   # ユーザの名前の部分のGtkコンテナ
   def user_name(user)
-    Gtk::HBox.new(false, 16).closeup(Gtk::Label.new.set_markup("<b>#{Pango.escape(user[:idname])}</b>")).closeup(Gtk::Label.new(user[:name]))
+    w_screen_name = Gtk::Label.new.set_markup("<b><u><span foreground=\"#0000ff\">#{Pango.escape(user[:idname])}</span></u></b>")
+    w_ev = Gtk::EventBox.new
+    w_ev.modify_bg(Gtk::STATE_NORMAL, Gdk::Color.new(0xffff, 0xffff, 0xffff))
+    w_ev.ssc(:realize) {
+      w_ev.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false }
+    w_ev.ssc(:button_press_event) { |this, e|
+      if e.button == 1
+        Gtk.openurl("http://twitter.com/#{user[:idname]}")
+        true end }
+    Gtk::HBox.new(false, 16).closeup(w_ev.add(w_screen_name)).closeup(Gtk::Label.new(user[:name]))
   end
 
   # プロフィールの上のところの格子になってる奴をかえす
