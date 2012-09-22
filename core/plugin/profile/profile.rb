@@ -210,9 +210,8 @@ Plugin.create :profile do
       eventbox.style = background_color
       false }
     eventbox.add(Gtk::VBox.new(false, 0).
-                 # closeup(toolbar).
                  add(Gtk::HBox.new(false, 16).
-                     closeup(Gtk::WebIcon.new(user[:profile_image_url], 128, 128).top).
+                     closeup(Gtk::WebIcon.new(user.profile_image_url_large, 128, 128).top).
                      closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user))))) 
     scrolledwindow = Gtk::ScrolledWindow.new
     scrolledwindow.height_request = 128 + 24
