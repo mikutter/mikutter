@@ -62,7 +62,10 @@ Plugin.create :profile do
     scrolledwindow.style = container.style
     nativewidget scrolledwindow.show_all
     user_complete do
-      bio.rewind(user[:detail])
+      biotext = user[:detail]
+      if user[:url]
+        biotext += "\n\nWeb: " + user[:url] end
+      bio.rewind(biotext)
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
       label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n" end
   end
