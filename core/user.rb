@@ -58,6 +58,14 @@ class User < Retriever::Model
     self[:idname] end
   alias to_s idname
 
+  # 大きいサイズのアイコンのURLを返す
+  # ==== Return
+  # 元のサイズのアイコンのURL
+  def profile_image_url_large
+    url = self[:profile_image_url]
+    if url
+      url.gsub(/_normal(.[a-zA-Z0-9]+)$/, '\1') end end
+
   def follow
     if(@value[:post]) then
       @value[:post].follow(self)
