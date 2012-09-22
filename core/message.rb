@@ -104,11 +104,7 @@ class Message < Retriever::Model
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
-    if self[:favorited].is_a?(String) then
-      self[:favorited] = self[:favorited] == 'true'
-    else
-      self[:favorited] == true
-    end
+    favorited_by.include?(Service.primary.user_obj)
   end
 
   # 投稿がシステムメッセージだった場合にtrueを返す
@@ -299,6 +295,10 @@ class Message < Retriever::Model
   # この投稿に対するリツイートを返す
   def retweeted_statuses
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
+
+  # 選択されているユーザがこのツイートをリツイートしているなら真
+  def retweeted?
+    retweeted_by.include?(Service.primary.user_obj) end
 
   # この投稿を「自分」がリツイートしていれば真
   def retweeted_by_me?(me = Service.services)
