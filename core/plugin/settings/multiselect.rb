@@ -38,12 +38,14 @@ class Plugin::Setting::MultiSelect < Plugin::Setting::Select
           container = Gtk::HBox.new
           check = Gtk::CheckButton.new
           closeup container.closeup(check).add(face)
+        else
+          raise ArgumentError, "multiselect option value should be instance of String or Plugin::Setting. but #{face.class} given (#{face.inspect})"
         end
         check.signal_connect('toggled'){ |widget|
-        if widget.active?
-          listener.set((listener.get || []) + [value])
-        else
-          listener.set((listener.get || []) - [value]) end
+          if widget.active?
+            listener.set((listener.get || []) + [value])
+          else
+            listener.set((listener.get || []) - [value]) end
           face.sensitive = widget.active? if face.is_a? Gtk::Widget }
         check.active = (listener.get || []).include? value
         face.sensitive = check.active? if face.is_a? Gtk::Widget } }
@@ -52,10 +54,10 @@ class Plugin::Setting::MultiSelect < Plugin::Setting::Select
   # すべてテキストなら、コンボボックスで要素を描画する
   def build_combobox(listener)
     container = Gtk::VBox.new
-    sorted = @options.map{ |o| o.first }.sort_by(&:to_s).freeze
     state = listener.get || []
-    sorted.each{ |node|
-      check = Gtk::CheckButton.new(@options.assoc(node).last)
+    @options.each{ |pair|
+      node, value = *pair
+      check = Gtk::CheckButton.new(value)
       check.active = state.include?(node)
       check.signal_connect('toggled'){ |widget|
         if widget.active?
