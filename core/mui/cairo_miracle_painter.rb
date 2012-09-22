@@ -188,7 +188,8 @@ class Gdk::MiraclePainter < Gtk::Object
     @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    @tree.imaginary.create_reply_postbox(message, :retweet => true)
+    message.retweet
+    # @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked
