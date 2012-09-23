@@ -18,6 +18,13 @@ Plugin.create :profile do
                             :screen_name => idname)
         Plugin.call(:show_profile, Service.primary, user) if user } end }
 
+  filter_show_filter do |messages|
+    muted_users = UserConfig[:muted_users]
+    if muted_users && !muted_users.empty?
+      [messages.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? }]
+    else
+      [messages] end end
+
   on_show_profile do |service, user|
     container = profile_head(user)
     i_profile = tab nil, "#{user[:name]} のプロフィール}" do
@@ -55,7 +62,10 @@ Plugin.create :profile do
     scrolledwindow.style = container.style
     nativewidget scrolledwindow.show_all
     user_complete do
-      bio.rewind(user[:detail])
+      biotext = user[:detail]
+      if user[:url]
+        biotext += "\n\nWeb: " + user[:url] end
+      bio.rewind(biotext)
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
       label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n" end
   end
@@ -203,10 +213,9 @@ Plugin.create :profile do
       eventbox.style = background_color
       false }
     eventbox.add(Gtk::VBox.new(false, 0).
-                 # closeup(toolbar).
                  add(Gtk::HBox.new(false, 16).
-                     closeup(Gtk::WebIcon.new(user[:profile_image_url], 128, 128).top).
-                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user))))) 
+                     closeup(Gtk::WebIcon.new(user.profile_image_url_large, 128, 128).top).
+                     closeup(Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
     scrolledwindow = Gtk::ScrolledWindow.new
     scrolledwindow.height_request = 128 + 24
     scrolledwindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER)
@@ -219,7 +228,17 @@ Plugin.create :profile do
   # ==== Return
   # ユーザの名前の部分のGtkコンテナ
   def user_name(user)
-    Gtk::HBox.new(false, 16).closeup(Gtk::Label.new.set_markup("<b>#{Pango.escape(user[:idname])}</b>")).closeup(Gtk::Label.new(user[:name]))
+    w_screen_name = Gtk::Label.new.set_markup("<b><u><span foreground=\"#0000ff\">#{Pango.escape(user[:idname])}</span></u></b>")
+    w_ev = Gtk::EventBox.new
+    w_ev.modify_bg(Gtk::STATE_NORMAL, Gdk::Color.new(0xffff, 0xffff, 0xffff))
+    w_ev.ssc(:realize) {
+      w_ev.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false }
+    w_ev.ssc(:button_press_event) { |this, e|
+      if e.button == 1
+        Gtk.openurl("http://twitter.com/#{user[:idname]}")
+        true end }
+    Gtk::HBox.new(false, 16).closeup(w_ev.add(w_screen_name)).closeup(Gtk::Label.new(user[:name]))
   end
 
   # プロフィールの上のところの格子になってる奴をかえす
@@ -237,12 +256,17 @@ Plugin.create :profile do
       w_faved.text = favs.to_s
     }.terminate("ふぁぼが取得できませんでした").trap{
       w_faved.text = '-' }
-    Gtk::Table.new(2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_tweets).closeup(Gtk::Label.new("tweets").right), 0, 1, 0, 1).
-      attach(Gtk::HBox.new(false, 4).add(w_favs).closeup(Gtk::Label.new("favs").right), 0, 1, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_faved).closeup(Gtk::Label.new("faved").right), 1, 2, 1, 2).
-      attach(Gtk::HBox.new(false, 4).add(w_followings).closeup(Gtk::Label.new("followings").right), 0, 1, 2, 3).
-      attach(Gtk::HBox.new(false, 4).add(w_followers).closeup(Gtk::Label.new("followers").right), 1, 2, 2, 3).
+    Gtk::Table.new(2, 5).
+      attach(w_tweets.right, 0, 1, 0, 1).
+      attach(Gtk::Label.new("tweets").left, 1, 2, 0, 1).
+      attach(w_favs.right, 0, 1, 1, 2).
+      attach(Gtk::Label.new("favs").left, 1, 2, 1, 2).
+      attach(w_faved.right, 0, 1, 2, 3).
+      attach(Gtk::Label.new("faved").left, 1, 2, 2, 3).
+      attach(w_followings.right, 0, 1, 3, 4).
+      attach(Gtk::Label.new("followings").left, 1, 2, 3, 4).
+      attach(w_followers.right, 0, 1, 4, 5).
+      attach(Gtk::Label.new("favs").left, 1, 2, 4, 5).
       set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)

@@ -18,8 +18,8 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
   def name
     :retweeted end
 
-  Delayer.new{
-    Plugin.create(:core).add_event(:retweet){ |retweets|
+  Plugin.create(:core) do
+    on_retweet do |retweets|
       retweets.deach{ |retweet|
         Gdk::MiraclePainter.findbymessage_d(retweet.retweet_source(true)).next{ |mps|
           mps.deach{ |mp|
@@ -28,6 +28,21 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
                 mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.add(retweet[:user])
                 mp.on_modify
               rescue Gtk::MiraclePainter::DestroyedError
-                nil end end } }.terminate("retweet error") } } }
+                nil end end } }.terminate("retweet error") } end
+
+    on_retweet_destroyed do |source, user, retweet_id|
+      Gdk::MiraclePainter.findbymessage_d(source).next{ |mps|
+        mps.deach{ |mp|
+            if not mp.destroyed? and mp.subparts
+              begin
+                mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.delete(user)
+                mp.on_modify
+              rescue Gtk::MiraclePainter::DestroyedError
+                nil end end }.terminate("retweet destroy error")
+      }
+    end
+  end
 
 end
+
+
