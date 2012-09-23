@@ -11,27 +11,26 @@ module Gtk::TreeViewPrettyScroll
 
   def initialize(*a)
     super
-    @scroll_to_zero_lator = true
     scroll_to_top_animation = false # 自動スクロールアニメーション中なら真
     get_scroll_to_top_animation_id = 0
     scroll_to_top_animation_id = lambda{
-        scroll_to_top_animation = false if scroll_to_top_animation
+      scroll_to_top_animation = false if scroll_to_top_animation
       get_scroll_to_top_animation_id += 1 }
 
     ssc(:scroll_event){ |this, e|
       case e.direction
       when Gdk::EventScroll::UP
         this.vadjustment.value -= this.vadjustment.step_increment
-        @scroll_to_zero_lator = true if this.vadjustment.value == 0
         scroll_to_top_animation_id.call
       when Gdk::EventScroll::DOWN
-        @scroll_to_zero_lator = false if @scroll_to_zero_lator
+        @scroll_to_zero_lator = false if this.vadjustment.value == 0
         this.vadjustment.value += this.vadjustment.step_increment
         scroll_to_top_animation_id.call end
       false }
 
     vadjustment.ssc(:value_changed){ |this|
       if(scroll_to_zero? and not(scroll_to_top_animation))
+        @scroll_to_zero_lator = false
         my_id = scroll_to_top_animation_id.call
         scroll_to_top_animation = true
         Gtk.timeout_add(FRAME_MS){
@@ -47,6 +46,6 @@ module Gtk::TreeViewPrettyScroll
     @scroll_to_zero_lator = true end
 
   def scroll_to_zero?
-    @scroll_to_zero_lator end
+    defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator end
 
 end
