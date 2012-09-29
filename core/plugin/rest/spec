@@ -1,0 +1,9 @@
+---
+slug: :rest
+depends:
+  mikutter: '0.2'
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: REST
+description: REST APIを使って、タイムラインを定期的に更新する

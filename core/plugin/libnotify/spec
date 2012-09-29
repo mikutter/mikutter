@@ -1,0 +1,9 @@
+---
+slug: :libnotify
+depends:
+  mikutter: '0.2'
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: libnotify
+description: 通知をnotify-sendコマンドを使って行う。
