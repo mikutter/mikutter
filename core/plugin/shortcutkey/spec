@@ -1,0 +1,11 @@
+---
+slug: :shortcutkey
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+  - gtk
+version: '1.0'
+author: toshi_a
+name: Shortcutkey
+description: 特定のキーが押された時にmikutterコマンドを呼び出す

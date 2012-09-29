@@ -1,0 +1,9 @@
+---
+slug: :tco
+depends:
+  mikutter: '0.2'
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: t.co
+description: t.coで短縮されたURLを展開する。通常はTwitterのエンティティが使われるが、Twitterの不具合等でエンティティが欠落していても正しく表示できる

@@ -1,0 +1,10 @@
+---
+slug: :saved_search
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: 保存した検索
+description: Twitterの保存した検索機能のサポート
