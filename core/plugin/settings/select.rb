@@ -49,7 +49,6 @@ class Plugin::Setting::Select
 
     options = @options
     box.instance_eval{
-      first = true
       options.each{ |value, face, setting|
         radio = nil
         if (not setting) and face.is_a? String
@@ -70,9 +69,9 @@ class Plugin::Setting::Select
         radio.signal_connect('toggled'){ |widget|
           listener.set value if widget.active?
           setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
-        radio.active = first || (listener.get == value)
-        face.sensitive = radio.active? if face.is_a? Gtk::Widget
-        first = false } }
+        notice "#{listener.get.inspect} == #{value.inspect}"
+        radio.active = listener.get == value
+        face.sensitive = radio.active? if face.is_a? Gtk::Widget } }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する
