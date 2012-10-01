@@ -1,0 +1,10 @@
+---
+slug: :proxy
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+version: '1.0'
+author: toshi_a
+name: Proxy
+description: mikutterのリクエストを全て設定されたプロキシサーバ経由で行うようにする

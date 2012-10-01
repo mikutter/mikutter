@@ -1,7 +1,9 @@
-name: "mikutter Ruby Console"
-slug: "console"
+---
+name: mikutter Ruby Console
+slug: console
 depends:
+  plugin:
   - gui
   - gtk
-version:
-  "1.0"
+version: '1.0'
+description: Console

@@ -63,7 +63,7 @@ class Delayer
 
     # 残っているDelayerの数を返す
     def size
-      @@routines.map{|r| r.size }.sum end
+      @@routines.map(&:size).reduce(:+)end
 
     # このメソッドが呼ばれたら、以後 Delayer.run が呼ばれても、Delayerオブジェクト
     # を実行せずにすぐにreturnするようになる。

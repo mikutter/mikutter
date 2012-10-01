@@ -26,7 +26,7 @@ Plugin.create :gui do
     }
   }
 
-  # 互換性のため。ステータスバーの更新。gtk等ツールキットプラグインで定義されているgui_window_rewindstatusを呼ぶこと
+  # 互換性のため。ステータスバーの更新。ツールキットプラグインで定義されているgui_window_rewindstatusを呼ぶこと
   on_rewindstatus do |text|
     Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), text, 10)
   end
