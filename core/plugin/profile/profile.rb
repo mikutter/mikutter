@@ -266,7 +266,7 @@ Plugin.create :profile do
       attach(w_followings.right, 0, 1, 3, 4).
       attach(Gtk::Label.new("followings").left, 1, 2, 3, 4).
       attach(w_followers.right, 0, 1, 4, 5).
-      attach(Gtk::Label.new("favs").left, 1, 2, 4, 5).
+      attach(Gtk::Label.new("followers").left, 1, 2, 4, 5).
       set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)
