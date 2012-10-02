@@ -2,7 +2,8 @@
 slug: :aspectframe
 depends:
   mikutter: '0.2'
-  plugin: []
+  plugin:
+  - gtk
 version: '1.0'
 author: toshi_a
 name: Aspect Frame

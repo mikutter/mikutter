@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require File.expand_path File.join(File.dirname(__FILE__), 'builder')
 
-class Plugin::Setting::Select
+class Plugin::Settings::Select
   def initialize(values = [])
     @options = values.to_a.freeze end
 
@@ -9,10 +9,10 @@ class Plugin::Setting::Select
   # ==== Args
   # [value] 選択されたらセットされる値
   # [label] ラベル。 _&block_ がなければ使われる。文字列。
-  # [&block] Plugin::Setting のインスタンス内で評価され、そのインスタンスが内容として使われる
+  # [&block] Plugin::Settings のインスタンス内で評価され、そのインスタンスが内容として使われる
   def option(value, label = nil)
     if block_given?
-      widget = Plugin::Setting.new.set_border_width(4)
+      widget = Plugin::Settings.new.set_border_width(4)
       widget.instance_eval(&Proc.new)
       @options += [[value, label, widget].freeze]
     else
@@ -36,10 +36,10 @@ class Plugin::Setting::Select
     if has_widget?
       group = Gtk::Frame.new.set_border_width(8)
       group.set_label(label)
-      group.add(build_box(Plugin::Setting::Listener[config]))
+      group.add(build_box(Plugin::Settings::Listener[config]))
       group
     else
-      Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(build_combobox(Plugin::Setting::Listener[config])) end end
+      Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(build_combobox(Plugin::Settings::Listener[config])) end end
 
   private
 
@@ -53,7 +53,7 @@ class Plugin::Setting::Select
         radio = nil
         if (not setting) and face.is_a? String
           closeup radio = Gtk::RadioButton.new(group, face)
-        elsif setting.is_a? Plugin::Setting
+        elsif setting.is_a? Plugin::Settings
           if face.is_a? String
             container = Gtk::Table.new(2, 2)
             radio = Gtk::RadioButton.new(group)

@@ -19,7 +19,7 @@ Plugin.create(:settings) do
       iter = menu.model.append
       iter[0] = title
       iter[1] = (record_order.index(title) || record_order.size)
-      widgets_dict[title] = box = Plugin::Setting.new
+      widgets_dict[title] = box = Plugin::Settings.new
       box.instance_eval(&definition)
       settings.closeup(box) }
     window.ssc(:destroy) {

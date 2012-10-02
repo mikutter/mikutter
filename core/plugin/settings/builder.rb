@@ -13,13 +13,13 @@ require 'gtk2'
     end
   end
 
-settingsの中身は、 Plugin::Setting のインスタンスの中で実行される。
-つまり、 Plugin::Setting のインスタンスメソッドは、 _settings{}_ の中で実行できるメソッドと同じです。
+settingsの中身は、 Plugin::Settings のインスタンスの中で実行される。
+つまり、 Plugin::Settings のインスタンスメソッドは、 _settings{}_ の中で実行できるメソッドと同じです。
 例ではbooleanメソッドを呼び出して、真偽値を入力させるウィジェットを配置させるように定義している
 (チェックボックス)。明確にウィジェットを設定できるわけではなくて、値の意味を定義するだけなので、
 前後関係などに影響されてウィジェットが変わる場合があるかも。
 =end
-class Plugin::Setting < Gtk::VBox
+class Plugin::Settings < Gtk::VBox
 
   # 複数行テキスト
   # ==== Args
@@ -177,7 +177,7 @@ class Plugin::Setting < Gtk::VBox
       group.set_label_widget(title)
     else
       group.set_label(title) end
-    box = Plugin::Setting.new.set_border_width(4)
+    box = Plugin::Settings.new.set_border_width(4)
     box.instance_eval(&Proc.new)
     closeup group.add(box)
     group
@@ -242,7 +242,7 @@ class Plugin::Setting < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def select(label, config, default = {})
-    builder = Plugin::Setting::Select.new(default)
+    builder = Plugin::Settings::Select.new(default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container end
@@ -256,7 +256,7 @@ class Plugin::Setting < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def multiselect(label, config, default = {})
-    builder = Plugin::Setting::MultiSelect.new(default)
+    builder = Plugin::Settings::MultiSelect.new(default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container end
