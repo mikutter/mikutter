@@ -15,7 +15,8 @@ module Mopt
     @opts[key.to_sym] end
 
   OptionParser.new do |opt|
-
+    opt.banner = "Usage: mikutter.rb [options] [command]"
+    opt.separator "options are:"
     opt.on('--debug', 'Debug mode (for development)') { |v|
       @opts[:debug] = true
       @opts[:error_level] = v.is_a?(Integer) ? v : 3 }
@@ -35,8 +36,28 @@ module Mopt
       FileUtils.rm_rf(File.expand_path(Environment::CACHE))
       exit
     }
+    opt.on('-h', '--help', "Show this message"){
+      puts opt
+      puts "command are:"
+      puts "        generate [plugin_slug]       generate plugin template at ~/.mikutter/plugin/"
+      puts "        spec [directory]             generate plugin spec. ex) mikutter spec ~/.mikutter/plugin/test"
+      exit
+    }
 
     opt.parse!(ARGV)
+
+    if ARGV[0]
+      require File.expand_path('utils')
+      miquire :boot, 'check_config_permission'
+      file = File.expand_path("boot/shell/#{ARGV[0]}.rb")
+      if FileTest.exist?(file)
+        require file
+      else
+        puts "no such command: #{ARGV[0]}"
+      end
+      exit
+    end
+
   end
 
 end
