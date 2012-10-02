@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-class Plugin::Setting::Listener
+class Plugin::Settings::Listener
   def self.[](symbol)
-    return symbol if(symbol.is_a? Plugin::Setting::Listener)
-    Plugin::Setting::Listener.new( :get => lambda{ UserConfig[symbol] },
+    return symbol if(symbol.is_a? Plugin::Settings::Listener)
+    Plugin::Settings::Listener.new( :get => lambda{ UserConfig[symbol] },
                                    :set => lambda{ |val| UserConfig[symbol] = val }) end
 
   # ==== Args
