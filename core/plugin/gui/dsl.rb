@@ -6,7 +6,7 @@ class Plugin
     Event = Struct.new(:event, :widget, :messages)
     class << self
       def ui_setting
-        UserConfig[:ui_tab_order] || {default: {default: []}} end
+        UserConfig[:ui_tab_order] || {default: {default: [:home_timeline, :mentions, :アクティビティ, :directmessage, :search, :Followings, :Followers]}} end
 
       # 設定されているタブの位置を返す
       # ==== Args
