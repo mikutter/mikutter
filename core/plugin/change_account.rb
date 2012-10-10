@@ -4,7 +4,7 @@ Plugin.create :change_account do
 
   def popup(watch, method = nil, url = nil, options = nil, res = nil)
     if(Thread.main == Thread.current)
-      _popup(watch)
+      Delayer.event_lock{ _popup(watch) }
     else
       input = false
       result = nil
@@ -18,9 +18,7 @@ Plugin.create :change_account do
       if result
         UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
         UserConfig[:twitter_token], UserConfig[:twitter_secret] = result end
-      return result
-    end
-  end
+      result end end
 
   def _popup(watch)
     result = [nil]
@@ -64,10 +62,8 @@ Plugin.create :change_account do
     if(alert_thread)
       Thread.stop
     else
-      Gtk::main
-    end
-    return *result
-  end
+      Gtk::main end
+    result end
 
   def main(watch, dialog)
     goaisatsu = Gtk::VBox.new(false, 0)

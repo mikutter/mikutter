@@ -244,7 +244,8 @@ Plugin.create :list do
       tab(slug).destroy end
     self end
 
-  fetch_list_of_service(Service.primary, true)
+  Delayer.new{
+    fetch_list_of_service(Service.primary, true) }
 
   at(:visible_list_obj, {}).values.each{ |list|
     begin

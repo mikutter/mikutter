@@ -3,7 +3,9 @@ require File.expand_path File.join(File.dirname(__FILE__), 'parma_streamer')
 require File.expand_path File.join(File.dirname(__FILE__), 'filter')
 
 Plugin.create :streaming do
-  streamer = UserConfig[:realtime_rewind] && Plugin::Streaming::ParmaStreamer.new(Service.primary)
+  streamer = nil
+  Delayer.new {
+    streamer = UserConfig[:realtime_rewind] && Plugin::Streaming::ParmaStreamer.new(Service.primary) }
 
   rewind_switch_change_hook = UserConfig.connect(:realtime_rewind){ |key, new_val, before_val, id|
     if new_val

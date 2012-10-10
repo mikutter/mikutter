@@ -104,7 +104,7 @@ Plugin.create :saved_search do
   at(:cache, {}).values.each{ |s|
     add_tab(SavedSearch.new(s[:id], URI.decode(s[:query]), URI.decode(s[:name]), s[:slug])) }
 
-  refresh(true)
+  Delayer.new{ refresh(true) }
 
 end
 
