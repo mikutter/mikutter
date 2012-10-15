@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :search do
-  querybox = Gtk::Entry.new()
-  querycont = Gtk::VBox.new(false, 0)
-  searchbtn = Gtk::Button.new('検索')
-  savebtn = Gtk::Button.new('保存')
+  querybox = ::Gtk::Entry.new()
+  querycont = ::Gtk::VBox.new(false, 0)
+  searchbtn = ::Gtk::Button.new('検索')
+  savebtn = ::Gtk::Button.new('保存')
 
   querycont.
-    closeup(Gtk::HBox.new(false, 0).
+    closeup(::Gtk::HBox.new(false, 0).
             pack_start(querybox).
             closeup(searchbtn)).
-    closeup(Gtk::HBox.new(false, 0).
+    closeup(::Gtk::HBox.new(false, 0).
             closeup(savebtn))
 
   tab(:search, "検索") do

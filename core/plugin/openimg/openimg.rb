@@ -14,7 +14,7 @@ Plugin.create :openimg do
   def changesize(eb, w, url)
     eb.remove(eb.children.first)
     @size = w.window.geometry[2,2].freeze
-    eb.add(Gtk::WebIcon.new(url, *@size).show_all)
+    eb.add(::Gtk::WebIcon.new(url, *@size).show_all)
     @size end
 
   def redraw(eb, pb)
@@ -25,11 +25,11 @@ Plugin.create :openimg do
     eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
 
   def display(url, cancel = nil)
-    w = Gtk::Window.new.set_title("（読み込み中）")
+    w = ::Gtk::Window.new.set_title("（読み込み中）")
     w.set_size_request(320, 240)
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
-    eventbox = Gtk::EventBox.new
+    eventbox = ::Gtk::EventBox.new
     w.add(eventbox)
     size = DEFAULT_SIZE
     Thread.new{
@@ -150,14 +150,14 @@ Plugin.create :openimg do
   def addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
     if block == nil
-      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
           display(url, cancel)
         }
       }
     else
-      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{
                       imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
@@ -185,7 +185,7 @@ Plugin.create :openimg do
     end
   }
 
-  Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
+  ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
     Delayer.new(Delayer::NORMAL) { display(url, cancel) }
   }

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 Plugin.create :shortcutkey do
-  class ShortcutKeyListView < Gtk::CRUD
+  class ShortcutKeyListView < ::Gtk::CRUD
 
     COLUMN_KEYBIND = 0
     COLUMN_COMMAND = 1

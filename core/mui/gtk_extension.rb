@@ -34,13 +34,13 @@ class GLib::Instantiatable
   private
   def __track(&proc)
     type_strict proc => :call
-    trace = caller
+    trace = caller(3)
     lambda{ |*args|
-      trash_size = caller.size
       begin
         proc.call(*args)
       rescue Exception => e
-        error "event hook crashed.\n" + trace.join("\n")
+        now = caller.size + 1     # proc.callのぶんスタックが１つ多い
+        $@ = e.backtrace[0, e.backtrace.size - now] + trace
         Gtk.exception = e
         into_debug_mode(e, proc.binding)
         raise e end

@@ -58,7 +58,7 @@ Plugin.create :extract do
 
   def append_message(source, messages)
     type_strict source => String, messages => Enumerable
-    tabs = extract_tabs.values.select{ |r| r[:sources].include?(source) }
+    tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
     return if tabs.empty?
     messages.each{ |message|
       message = message.retweet_source if message.retweet_source
@@ -70,7 +70,7 @@ Plugin.create :extract do
       tabs.each{ |record|
         timeline(record[:slug]) << message if miku(record[:sexp], table) } } end
 
-  class ExtractTab < Gtk::CRUD
+  class ExtractTab < ::Gtk::CRUD
     ITER_NAME = 0
     ITER_SOURCE = 1
     ITER_SEXP = 2
@@ -96,7 +96,7 @@ Plugin.create :extract do
     # ==== Return
     # レコードの配列
     def extract_tabs
-      UserConfig[:extract_tabs] end
+      UserConfig[:extract_tabs] || {} end
 
     def on_created(iter)
       Plugin.call(:extract_tab_create,
