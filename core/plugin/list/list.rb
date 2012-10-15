@@ -12,7 +12,7 @@ Plugin.create :list do
 
   profiletab :list, "リスト" do
     set_icon MUI::Skin.get("list.png")
-    bio = Gtk::IntelligentTextview.new(user[:detail])
+    bio = ::Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
     container = ProfileTab.new(Plugin.create(:list), user)
     nativewidget container.show_all end
@@ -258,7 +258,7 @@ Plugin.create :list do
 
   class IDs < TypedArray(Integer); end
 
-  class Tab < Gtk::ListList
+  class Tab < ::Gtk::ListList
     attr_accessor :plugin
 
     VISIBILITY = 0
@@ -318,7 +318,7 @@ Plugin.create :list do
 
   end
 
-  class ProfileTab < Gtk::ListList
+  class ProfileTab < ::Gtk::ListList
     MEMBER = 0
     SLUG = 1
     LIST = 2

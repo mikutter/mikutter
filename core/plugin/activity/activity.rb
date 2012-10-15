@@ -51,8 +51,8 @@ class Plugin
 end
 
 Plugin.create(:activity) do
-  class ActivityView < Gtk::CRUD
-    include Gtk::TreeViewPrettyScroll
+  class ActivityView < ::Gtk::CRUD
+    include ::Gtk::TreeViewPrettyScroll
 
     ICON = 0
     KIND = 1
@@ -111,18 +111,18 @@ Plugin.create(:activity) do
     not result.all?(&ret_nth) end
 
   activity_view = ActivityView.new
-  activity_vscrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
-  activity_hscrollbar = Gtk::HScrollbar.new(activity_view.hadjustment)
-  activity_shell = Gtk::Table.new(2, 2)
-  activity_description = Gtk::IntelligentTextview.new
-  activity_status = Gtk::Label.new
-  activity_container = Gtk::VBox.new
+  activity_vscrollbar = ::Gtk::VScrollbar.new(activity_view.vadjustment)
+  activity_hscrollbar = ::Gtk::HScrollbar.new(activity_view.hadjustment)
+  activity_shell = ::Gtk::Table.new(2, 2)
+  activity_description = ::Gtk::IntelligentTextview.new
+  activity_status = ::Gtk::Label.new
+  activity_container = ::Gtk::VBox.new
 
   activity_container.
     pack_start(activity_shell.
-               attach(activity_view, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-               attach(activity_vscrollbar, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL).
-               attach(activity_hscrollbar, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)).
+               attach(activity_view, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).
+               attach(activity_vscrollbar, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL).
+               attach(activity_hscrollbar, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL)).
     closeup(activity_description).
     closeup(activity_status.right)
 
