@@ -70,10 +70,10 @@ module Plugin::DirectMessage
     end
 
     def dm_list_widget(user)
-      container = Gtk::VBox.new
+      container = ::Gtk::VBox.new
       tl = DirectMessage.new
 
-      scrollbar = Gtk::VScrollbar.new(tl.vadjustment)
+      scrollbar = ::Gtk::VScrollbar.new(tl.vadjustment)
       model = tl.model
       @dm_lock.synchronize do
         if @dm_store.has_key?(user[:id])
@@ -107,10 +107,10 @@ module Plugin::DirectMessage
       tl.ssc(:destroy){
         detach(:direct_message, event)
       }
-      mumbles = Gtk::VBox.new(false, 0)
-      postbox = Gtk::PostBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
+      mumbles = ::Gtk::VBox.new(false, 0)
+      postbox = ::Gtk::PostBox.new(Sender.new(Service.primary_service, user), :postboxstorage => mumbles, :delegate_other => true)
       mumbles.pack_start(postbox)
-      container.closeup(mumbles).add(Gtk::HBox.new.add(tl).closeup(scrollbar))
+      container.closeup(mumbles).add(::Gtk::HBox.new.add(tl).closeup(scrollbar))
       container
     end
 
