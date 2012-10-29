@@ -24,7 +24,7 @@ Plugin.create :smartthread do
   command(:smartthread,
           name: '会話スレッドを表示',
           icon: MUI::Skin.get("list.png"),
-          condition: lambda{ |opt| opt.messages.all? &:repliable? },
+          condition: lambda{ |opt| not opt.messages.empty? and opt.messages.all? &:repliable? },
           visible: true,
           role: :timeline){ |opt|
     serial = counter.call

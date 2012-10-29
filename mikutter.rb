@@ -80,6 +80,9 @@ begin
 rescue Interrupt, SystemExit => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
+rescue SignalException => e
+  File.delete(errfile) if File.exist?(errfile)
+  raise e
 rescue Exception => e
   object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), e) rescue nil
   raise e
