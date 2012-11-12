@@ -107,5 +107,19 @@
 			},
 			"class": "pict"
 		}
+	},
+	"Tumblr image": {
+		"url": "^http://[-0-9a-z]+\\.tumblr\\.com/image/\\d+",
+		"attribute": {
+			"id": "image"
+		}
+	},
+	"はてなフォトライフ": {
+		"url": "^http://f\\.hatena\\.ne\\.jp/[-\\w]+/\\d{9,}",
+		"attribute": {
+			"tag" : "img",
+			"attribute": "src",
+			"class": "foto"
+		}
 	}
 }
