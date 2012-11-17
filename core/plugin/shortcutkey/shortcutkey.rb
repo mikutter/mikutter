@@ -88,7 +88,8 @@ Plugin.create :shortcutkey do
     [key, widget, executed] end
 
   settings "ショートカットキー" do
-    pack_start(ShortcutKeyListView.new)
+    listview = ShortcutKeyListView.new
+    pack_start(Gtk::HBox.new(false, 4).add(listview).closeup(listview.buttons(Gtk::VBox)))
   end
 
 end
