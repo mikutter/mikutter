@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
 require 'mocha'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
-require File.expand_path(File.dirname(__FILE__) + '/../utils')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
+miquire :lib, 'test_unit_extensions'
 miquire :core, 'userlist'
 miquire :core, 'service'
+
+Dir::chdir File.dirname(__FILE__) + '/../'
 
 $debug = false
 # seterrorlevel(:notice)
