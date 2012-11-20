@@ -1,5 +1,4 @@
 # :include: ../README.rdoc
-
 require "typed-array/functions"
 
 # Provides TypedArray functionality to a subclass of Array
