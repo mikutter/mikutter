@@ -1,0 +1,11 @@
+---
+name: Direct Message
+slug: direct_message
+description: mikutterにリア充御用達機能ダイレクトメッセージを追加します。 送受信したすべてのDMを見るタブと、各ユーザのプロフィールにそのユーザと自分がやり取りしたDMを表示するタブを追加します。
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+  - gtk
+version: '1.1'
+author: toshi_a

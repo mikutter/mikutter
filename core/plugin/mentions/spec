@@ -1,0 +1,10 @@
+---
+slug: :mentions
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: Mentions
+description: 自分宛のツイートだけを表示するタイムラインを追加する

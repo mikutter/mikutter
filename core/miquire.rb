@@ -3,9 +3,13 @@
 
 require 'set'
 
+$LOAD_PATH.
+  unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib'))).
+  unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/')))
+
 # ミクってかわいいよねぇ。
 # ツインテールいいよねー。
-# どう言いのかを書くとコードより長くなりそうだから詳しくは書かないけどいいよねぇ。
+# どう良いのかを書くとコードより長くなりそうだから詳しくは書かないけどいいよねぇ。
 # ふたりで寒い時とかに歩いてたら首にまいてくれるんだよー。
 # 我ながらなんてわかりやすい説明なんだろう。
 # (訳: Miquire::miquire のエイリアス)
@@ -27,6 +31,13 @@ module Miquire
           render[:gtk] end } }.new
     PATH_KIND_CONVERTER[:core] = ''
     PATH_KIND_CONVERTER[:user_plugin] = '../plugin/'
+    PATH_KIND_CONVERTER[:lib] = Class.new{
+      define_method(:+){ |other|
+        render = lambda{ |r| File.join(r, other) }
+        if other == '*' or FileTest.exist?(render["../vendor"] + '.rb')
+          render["../vendor"]
+        else
+          render["lib"] end } }.new
 
     # CHIのコアソースコードファイルを読み込む。
     # _kind_ はファイルの種類、 _file_ はファイル名（拡張子を除く）。
@@ -49,9 +60,10 @@ module Miquire
         miquire_all_files(kind)
       else
         if kind == :lib
-          Dir.chdir(PATH_KIND_CONVERTER[kind]){
-            files.each{ |file|
-              miquire_original_require file.to_s } }
+          files.each{ |file|
+            path = File.expand_path(PATH_KIND_CONVERTER[:lib] + file)
+            Dir.chdir(File.dirname(path)) {
+              miquire_original_require file } }
         else
           files.each{ |file|
             file_or_directory_require PATH_KIND_CONVERTER[kind] + file.to_s } end end end

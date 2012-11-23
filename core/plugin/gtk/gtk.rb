@@ -24,7 +24,7 @@ Plugin.create :gtk do
   # PostBoxとか複数のペインを持つための処理が入るので、Gtk::MikutterWindowクラスを新設してそれを使う
   on_window_created do |i_window|
     notice "create window #{i_window.slug.inspect}"
-    window = Gtk::MikutterWindow.new
+    window = ::Gtk::MikutterWindow.new
     @windows_by_slug[i_window.slug] = window
     window.title = i_window.name
     window.set_size_request(240, 240)
@@ -53,7 +53,7 @@ Plugin.create :gtk do
     window.ssc("destroy"){
       Delayer.freeze
       window.destroy
-      Gtk::Object.main_quit
+      ::Gtk::Object.main_quit
       # Gtk.main_quit
       false }
     window.ssc(:focus_in_event) {
@@ -61,7 +61,7 @@ Plugin.create :gtk do
       false
     }
     window.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_window) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_window) }
     window.show_all
   end
 
@@ -93,7 +93,7 @@ Plugin.create :gtk do
       else
         notice "switch_page: pagenum(#{pagenum}) != pane.page(#{pane.page})" end }
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
-      type_strict tabcontainer => Gtk::TabContainer
+      type_strict tabcontainer => ::Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
       window_order_save_request(i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
@@ -133,7 +133,7 @@ Plugin.create :gtk do
   # Tab(Gtk::EventBox)
   def create_tab(i_tab)
     notice "create tab #{i_tab.slug.inspect}"
-    tab = Gtk::EventBox.new.tooltip(i_tab.name)
+    tab = ::Gtk::EventBox.new.tooltip(i_tab.name)
     if i_tab.is_a? Plugin::GUI::Tab
       @tabs_by_slug[i_tab.slug] = tab
     elsif i_tab.is_a? Plugin::GUI::ProfileTab
@@ -144,7 +144,7 @@ Plugin.create :gtk do
       false
     }
     tab.ssc(:key_press_event){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_tab) }
     tab.ssc(:button_press_event) { |this, e|
       if e.button == 3
         Plugin::GUI::Command.menu_pop(i_tab) end
@@ -158,7 +158,7 @@ Plugin.create :gtk do
   # Gtk::TimeLine
   on_timeline_created do |i_timeline|
     notice "create timeline #{i_timeline.slug.inspect}"
-    timeline = Gtk::TimeLine.new(i_timeline)
+    timeline = ::Gtk::TimeLine.new(i_timeline)
     @timelines_by_slug[i_timeline.slug] = timeline
     focus_in_event = lambda { |this, event|
       if this.focus?
@@ -174,7 +174,7 @@ Plugin.create :gtk do
     timeline.tl.ssc(:focus_in_event, &focus_in_event)
     timeline.tl.ssc(:destroy, &destroy_event)
     timeline.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_timeline) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) }
     timeline.ssc(:destroy){
       i_timeline.destroy
       false }
@@ -208,7 +208,7 @@ Plugin.create :gtk do
     next if not widget
     tab = widgetof(i_tab)
     pane = widgetof(i_pane)
-    old_pane = widget.get_ancestor(Gtk::Notebook)
+    old_pane = widget.get_ancestor(::Gtk::Notebook)
     notice "pane: #{pane}, old_pane: #{old_pane}"
     if tab and pane and old_pane and pane != old_pane
       notice "#{widget} removes by #{old_pane}"
@@ -251,7 +251,7 @@ Plugin.create :gtk do
       i_postbox.active!(true, true)
       false }
     postbox.post.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_postbox) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_postbox) }
     postbox.post.ssc(:destroy){
       i_postbox.destroy
       false }
@@ -263,7 +263,7 @@ Plugin.create :gtk do
   on_gui_contextmenu do |event, contextmenu|
     widget = widgetof(event.widget)
     if widget
-      Gtk::ContextMenu.new(*contextmenu).popup(widget, event) end end
+      ::Gtk::ContextMenu.new(*contextmenu).popup(widget, event) end end
 
   on_gui_timeline_clear do |i_timeline|
     timeline = widgetof(i_timeline)
@@ -435,9 +435,9 @@ Plugin.create :gtk do
         return container.pack_start(widget, i_tab.pack_rule[container.children.size]) end end
     if tab.parent
       raise Plugin::Gtk::GtkError, "Gtk Widget #{tab.inspect} of Tab(#{i_tab.slug.inspect}) has parent Gtk Widget #{tab.parent.inspect}" end
-    container = Gtk::TabContainer.new(i_tab).show_all
+    container = ::Gtk::TabContainer.new(i_tab).show_all
     container.ssc(:key_press_event){ |w, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_tab) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_tab) }
     container.pack_start(widget, i_tab.pack_rule[container.children.size])
     pane.insert_page_menu(where_should_insert_it(i_tab, pane.children.map(&:i_tab), i_pane.children), container, tab)
     pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
@@ -449,9 +449,9 @@ Plugin.create :gtk do
     if tab
       tab.remove(tab.child) if tab.child
       if i_tab.icon.is_a?(String)
-        tab.add(Gtk::WebIcon.new(i_tab.icon, 24, 24).show)
+        tab.add(::Gtk::WebIcon.new(i_tab.icon, 24, 24).show)
       else
-        tab.add(Gtk::Label.new(i_tab.name).show) end end
+        tab.add(::Gtk::Label.new(i_tab.name).show) end end
     self end
 
   def get_window_geometry(slug)
@@ -471,13 +471,13 @@ Plugin.create :gtk do
   # ペイン(Gtk::Notebook)
   def create_pane(i_pane)
     notice "create pane #{i_pane.slug.inspect}"
-    pane = Gtk::Notebook.new
+    pane = ::Gtk::Notebook.new
     if i_pane.is_a? Plugin::GUI::Pane
       @panes_by_slug[i_pane.slug] = pane
     elsif i_pane.is_a? Plugin::GUI::Profile
       @profiles_by_slug[i_pane.slug] = pane end
     pane.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(Gtk::keyname([event.keyval ,event.state]), i_pane) }
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_pane) }
     pane.ssc(:destroy){
       i_pane.destroy if i_pane.destroyed?
       false }
@@ -552,7 +552,7 @@ Plugin.create :gtk do
   # ==== Return
   # _widget_ に対応するウィジェットオブジェクトまたは偽
   def find_implement_widget_by_gtkwidget(widget)
-    type_strict widget => Gtk::Widget
+    type_strict widget => ::Gtk::Widget
     [
      [@windows_by_slug, Plugin::GUI::Window],
      [@panes_by_slug, Plugin::GUI::Pane],

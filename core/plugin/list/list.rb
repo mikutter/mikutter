@@ -12,7 +12,7 @@ Plugin.create :list do
 
   profiletab :list, "リスト" do
     set_icon MUI::Skin.get("list.png")
-    bio = Gtk::IntelligentTextview.new(user[:detail])
+    bio = ::Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
     container = ProfileTab.new(Plugin.create(:list), user)
     nativewidget container.show_all end
@@ -47,7 +47,8 @@ Plugin.create :list do
   on_appear do |messages|
     messages.each{ |message|
       timelines.each{ |slug, list|
-        timeline(slug) << message if list.member.include? message.user } } end
+        if list.related?(message)
+          timeline(slug) << message end } } end
 
   # filter stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
@@ -55,17 +56,17 @@ Plugin.create :list do
 
   # 設定のGtkウィジェット
   def setting_container
-    container = Tab.new
-    container.plugin = self
+    tab = Tab.new
+    tab.plugin = self
     available_lists.each{ |list|
-      iter = container.model.append
+      iter = tab.model.append
       iter[Tab::VISIBILITY] = list_visible?(list)
       iter[Tab::SLUG] = list[:full_name]
       iter[Tab::LIST] = list
       iter[Tab::NAME] = list[:name]
       iter[Tab::DESCRIPTION] = list[:description]
       iter[Tab::PUBLICITY] = list[:mode] }
-    container.show_all end
+    Gtk::HBox.new.add(tab).closeup(tab.buttons(Gtk::VBox)).show_all end
 
   # _service_ が作成した全てのリストを取得する
   # ==== Args
@@ -243,7 +244,8 @@ Plugin.create :list do
       tab(slug).destroy end
     self end
 
-  fetch_list_of_service(Service.primary, true)
+  Delayer.new{
+    fetch_list_of_service(Service.primary, true) }
 
   at(:visible_list_obj, {}).values.each{ |list|
     begin
@@ -256,7 +258,7 @@ Plugin.create :list do
 
   class IDs < TypedArray(Integer); end
 
-  class Tab < Gtk::ListList
+  class Tab < ::Gtk::ListList
     attr_accessor :plugin
 
     VISIBILITY = 0
@@ -316,7 +318,7 @@ Plugin.create :list do
 
   end
 
-  class ProfileTab < Gtk::ListList
+  class ProfileTab < ::Gtk::ListList
     MEMBER = 0
     SLUG = 1
     LIST = 2

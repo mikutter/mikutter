@@ -1,0 +1,10 @@
+---
+slug: :image_file_cache
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+version: '1.0'
+author: toshi_a
+name: 画像キャッシュ
+description: ユーザのアバターアイコンをストレージ上にキャッシュして、画像を取得するためのリクエストを抑える

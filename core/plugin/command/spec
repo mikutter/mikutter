@@ -1,0 +1,11 @@
+---
+slug: :command
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+  - gtk
+version: '1.0'
+author: toshi_a
+name: mikutter command
+description: 標準的なmikutterコマンドを提供する

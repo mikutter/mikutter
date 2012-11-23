@@ -4,7 +4,7 @@ Plugin.create :change_account do
 
   def popup(watch, method = nil, url = nil, options = nil, res = nil)
     if(Thread.main == Thread.current)
-      _popup(watch)
+      Delayer.event_lock{ _popup(watch) }
     else
       input = false
       result = nil
@@ -18,31 +18,29 @@ Plugin.create :change_account do
       if result
         UserConfig[:twitter_authenticate_revision] = Environment::TWITTER_AUTHENTICATE_REVISION
         UserConfig[:twitter_token], UserConfig[:twitter_secret] = result end
-      return result
-    end
-  end
+      result end end
 
   def _popup(watch)
     result = [nil]
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
-    dialog = Gtk::Dialog.new(Environment::NAME + " ログイン")
+    dialog = ::Gtk::Dialog.new(Environment::NAME + " ログイン")
     container, key, request_token = main(watch, dialog)
     dialog.set_size_request(600, 400)
-    dialog.window_position = Gtk::Window::POS_CENTER
+    dialog.window_position = ::Gtk::Window::POS_CENTER
     dialog.vbox.pack_start(container, true, true, 30)
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.default_response = Gtk::Dialog::RESPONSE_OK
+    dialog.add_button(::Gtk::Stock::OK, ::Gtk::Dialog::RESPONSE_OK)
+    dialog.default_response = ::Gtk::Dialog::RESPONSE_OK
     quit = lambda{
       dialog.hide_all.destroy
-      Gtk.main_iteration_do(false)
+      ::Gtk.main_iteration_do(false)
       main_windows.each{ |w| w.show }
       if alert_thread
         alert_thread.run
       else
-        Gtk.main_quit end }
+        ::Gtk.main_quit end }
     dialog.signal_connect("response") do |widget, response|
-      if response == Gtk::Dialog::RESPONSE_OK
+      if response == ::Gtk::Dialog::RESPONSE_OK
         begin
           access_token = request_token.get_access_token(:oauth_token => request_token.token,
                                                         :oauth_verifier => key.text)
@@ -64,30 +62,28 @@ Plugin.create :change_account do
     if(alert_thread)
       Thread.stop
     else
-      Gtk::main
-    end
-    return *result
-  end
+      ::Gtk::main end
+    result end
 
   def main(watch, dialog)
-    goaisatsu = Gtk::VBox.new(false, 0)
-    box = Gtk::VBox.new(false, 8)
+    goaisatsu = ::Gtk::VBox.new(false, 0)
+    box = ::Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
-    goaisatsu.add(Gtk::IntelligentTextview.new(hello(request_token.authorize_url)))
+    goaisatsu.add(::Gtk::IntelligentTextview.new(hello(request_token.authorize_url)))
     user, key_input = gen_input('暗証番号', dialog, true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token
   end
 
   def gen_input(label, dialog, visibility=true, default="")
-    container = Gtk::HBox.new(false, 0)
-    input = Gtk::Entry.new
+    container = ::Gtk::HBox.new(false, 0)
+    input = ::Gtk::Entry.new
     input.text = default
     input.visibility = visibility
     input.signal_connect('activate') { |elm|
-      dialog.response(Gtk::Dialog::RESPONSE_OK) }
-    container.pack_start(Gtk::Label.new(label), false, true, 0)
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+      dialog.response(::Gtk::Dialog::RESPONSE_OK) }
+    container.pack_start(::Gtk::Label.new(label), false, true, 0)
+    container.pack_start(::Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     return container, input
   end
 
@@ -109,8 +105,8 @@ Plugin.create :change_account do
 
   MikuTwitter::AuthenticationFailedAction.regist &method(:popup)
   settings 'アカウント情報' do
-    closeup attention = Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
-    closeup decide = Gtk::Button.new('変更')
+    closeup attention = ::Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
+    closeup decide = ::Gtk::Button.new('変更')
     attention.wrap = true
     decide.signal_connect("clicked"){
       Plugin.call(:reauthentication_dialog, Service.primary) }

@@ -1,0 +1,10 @@
+---
+slug: :home_timeline
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: Home Timeline
+description: フォロイーのツイートを表示するタイムラインを追加する

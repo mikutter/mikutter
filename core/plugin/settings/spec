@@ -1,0 +1,11 @@
+---
+slug: :settings
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+  - gtk
+version: '1.0'
+author: toshi_a
+name: 設定
+description: 設定画面を追加し、他のプラグインが設定画面をユーザに提供するためのイベントを提供する

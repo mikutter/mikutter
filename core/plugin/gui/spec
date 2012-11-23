@@ -1,0 +1,9 @@
+---
+slug: :gui
+depends:
+  mikutter: '0.2'
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: GUI
+description: プラグインがグラフィカルなインターフェイスを提供するための各種イベントを追加する

@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :extract do
+
+  # 抽出タブオブジェクト。各キーは抽出タブIDで、値は以下のようなオブジェクト
+  # name :: タブの名前
+  # sexp :: 条件式（S式）
+  # source :: どこのツイートを見るか（イベント名、配列で複数）
+  # slug :: タイムラインとタブのスラッグ
+  # id :: 抽出タブのID
+  def extract_tabs
+    @extract_tabs ||= {} end
+
   crud = nil
 
   settings "抽出タブ" do
@@ -14,7 +24,7 @@ Plugin.create :extract do
       iter[ExtractTab::ITER_ID] = record[:id]
     }
 
-    pack_start(crud)
+    pack_start(Gtk::HBox.new.add(crud).closeup(crud.buttons(Gtk::VBox)))
   end
 
   on_extract_tab_create do |record|
@@ -31,7 +41,11 @@ Plugin.create :extract do
     modify_extract_tabs end
 
   on_extract_tab_delete do |id|
-    extract_tabs.delete(id) end
+    if extract_tabs.has_key? id
+      deleted_tab = extract_tabs[id]
+      tab(deleted_tab[:slug]).destroy
+      extract_tabs.delete(id)
+      modify_extract_tabs end end
 
   on_appear do |messages|
     append_message("appear", messages) end
@@ -49,16 +63,13 @@ Plugin.create :extract do
     [tabs + extract_tabs.values]
   end
 
-  def extract_tabs
-    @extract_tabs ||= {} end
-
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
   end
 
   def append_message(source, messages)
     type_strict source => String, messages => Enumerable
-    tabs = extract_tabs.values.select{ |r| r[:sources].include?(source) }
+    tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
     return if tabs.empty?
     messages.each{ |message|
       message = message.retweet_source if message.retweet_source
@@ -70,7 +81,7 @@ Plugin.create :extract do
       tabs.each{ |record|
         timeline(record[:slug]) << message if miku(record[:sexp], table) } } end
 
-  class ExtractTab < Gtk::CRUD
+  class ExtractTab < ::Gtk::CRUD
     ITER_NAME = 0
     ITER_SOURCE = 1
     ITER_SEXP = 2
@@ -96,7 +107,7 @@ Plugin.create :extract do
     # ==== Return
     # レコードの配列
     def extract_tabs
-      UserConfig[:extract_tabs] end
+      UserConfig[:extract_tabs] || {} end
 
     def on_created(iter)
       Plugin.call(:extract_tab_create,

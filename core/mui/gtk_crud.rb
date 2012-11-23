@@ -20,6 +20,30 @@ class Gtk::CRUD < Gtk::TreeView
     handle_row_activated
   end
 
+  def buttons(box_klass)
+    box_klass.new(false, 4).closeup(create_button).closeup(update_button).closeup(delete_button) end
+
+  def create_button
+    if not defined? @create_button
+      @create_button = Gtk::Button.new(Gtk::Stock::ADD)
+      @create_button.ssc(:clicked) {
+        record_create(nil, nil) } end
+    @create_button end
+
+  def update_button
+    if not defined? @update_button
+      @update_button = Gtk::Button.new(Gtk::Stock::EDIT)
+      @update_button.ssc(:clicked) {
+        record_update(nil, nil) } end
+    @update_button end
+
+  def delete_button
+    if not defined? @delete_button
+      @delete_button = Gtk::Button.new(Gtk::Stock::DELETE)
+      @delete_button.ssc(:clicked) {
+        record_delete(nil, nil) } end
+    @delete_button end
+
   protected
 
   def handle_row_activated
@@ -135,7 +159,7 @@ class Gtk::CRUD < Gtk::TreeView
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
     input = gen_popup_window_widget(defaults)
-    Mtk.dialog(dialog_title || "", input[:widget], self, &input[:result]) end
+    Mtk.dialog(dialog_title || "", input[:widget], self.toplevel || self, &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new

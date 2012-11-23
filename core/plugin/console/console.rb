@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require File.expand_path File.join(File.dirname(__FILE__), 'console_control')
+
 Plugin.create :console do
   command(:console_open,
           name: 'コンソールを開く',
@@ -9,22 +11,23 @@ Plugin.create :console do
     if Plugin::GUI::Tab.cuscaded.has_key?(:console)
       Plugin::GUI::Tab.instance(:console).active!
       next end
-    widget_result = Gtk::TextView.new
+    widget_result = ::Gtk::TextView.new
     scroll_result_v, scroll_result_h = gen_scrollbars(widget_result)
-    widget_input = Gtk::TextView.new
+    widget_input = ::Gtk::TextView.new
     scroll_input_v, scroll_input_h = gen_scrollbars(widget_input)
 
     widget_result.set_editable(false)
 
-    widget_input.set_size_request(0, 100)
+    widget_result.set_size_request(0, 50)
+    widget_input.set_size_request(0, 50)
 
     widget_result.buffer.insert(widget_result.buffer.start_iter, "mikutter console.\n下にRubyコードを入力して、Ctrl+Enterを押すと、ここに実行結果が表示されます\n")
 
     gen_tags(widget_result.buffer)
 
     widget_input.ssc('key_press_event'){ |widget, event|
-      notice "console key press #{Gtk::keyname([event.keyval ,event.state])}"
-      if "Control + Return" == Gtk::keyname([event.keyval ,event.state])
+      notice "console key press #{::Gtk::keyname([event.keyval ,event.state])}"
+      if "Control + Return" == ::Gtk::keyname([event.keyval ,event.state])
         notice "console eval #{widget.buffer.text}"
         iter = widget_result.buffer.end_iter
         begin
@@ -51,15 +54,17 @@ Plugin.create :console do
     tab(:console, "コンソール") do
       set_icon MUI::Skin.get('console.png')
       set_deletable true
-      nativewidget Gtk::Table.new(2, 3).
-        attach(widget_result, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-        attach(scroll_result_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
-        attach(scroll_result_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL)
-      shrink
-      nativewidget Gtk::Table.new(2, 3).
-        attach(widget_input, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-        attach(scroll_input_h, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL).
-        attach(scroll_input_v, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL)
+      nativewidget Plugin::Console::ConsoleControl.new().
+        pack1(::Gtk::Table.new(2, 3).
+              attach(widget_result, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).
+              attach(scroll_result_h, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL).
+              attach(scroll_result_v, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL),
+              true, false).
+        pack2(::Gtk::Table.new(2, 3).
+              attach(widget_input, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).
+              attach(scroll_input_h, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL).
+              attach(scroll_input_v, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL),
+              false, false)
       active!
     end
   end
@@ -70,8 +75,8 @@ Plugin.create :console do
   # ==== Return
   # 縦スクロールバーと横スクロールバー
   def gen_scrollbars(widget)
-    scroll_v = Gtk::VScrollbar.new
-    scroll_h = Gtk::HScrollbar.new
+    scroll_v = ::Gtk::VScrollbar.new
+    scroll_h = ::Gtk::HScrollbar.new
     widget.set_scroll_adjustment(scroll_h.adjustment, scroll_v.adjustment)
     return scroll_v, scroll_h
   end
@@ -80,7 +85,7 @@ Plugin.create :console do
   # ==== Args
   # [buffer] Gtk::TextBuffer
   def gen_tags(buffer)
-    type_strict buffer => Gtk::TextBuffer
+    type_strict buffer => ::Gtk::TextBuffer
     buffer.create_tag("prompt",
                       foreground_gdk: Gdk::Color.new(0, 0x6666, 0))
     buffer.create_tag("echo",

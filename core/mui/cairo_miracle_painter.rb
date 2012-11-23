@@ -179,7 +179,7 @@ class Gdk::MiraclePainter < Gtk::Object
   def iob_icon_pixbuf_off
     [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png"),
        nil],
-      [nil,
+      [message.retweeted? ? "retweet.png" : nil,
        message.favorite? ? "unfav.png" : nil]
     ]
   end
@@ -188,7 +188,13 @@ class Gdk::MiraclePainter < Gtk::Object
     @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    @tree.imaginary.create_reply_postbox(message, :retweet => true)
+    if message.retweeted?
+      retweet = message.retweeted_statuses.find(&:from_me?)
+      retweet.destroy if retweet
+    else
+      message.retweet
+    end
+    # @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked

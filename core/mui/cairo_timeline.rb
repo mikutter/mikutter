@@ -23,9 +23,6 @@ miquire :lib, 'reserver'
 =end
 class Gtk::TimeLine
 
-  FRAME_PER_SECOND = 30
-  FRAME_MS = 1000.to_f / FRAME_PER_SECOND
-
   include Gtk::TimeLineUtils
 
   attr_reader :tl
@@ -45,7 +42,7 @@ class Gtk::TimeLine
     else
       [] end end
 
-  def initialize(imaginary)
+  def initialize(imaginary=nil)
     super()
     @tl = InnerTL.new
     @tl.imaginary = imaginary
@@ -91,36 +88,9 @@ class Gtk::TimeLine
     }
     @tl.set_size_request(100, 100)
     @tl.get_column(0).sizing = Gtk::TreeViewColumn::FIXED
-    scroll_to_top_anime = false
-    scroll_to_top_anime_id = 1
-    scroll_to_top_anime_lock = Mutex.new
-    @tl.ssc(:scroll_event){ |this, e|
-      case e.direction
-      when Gdk::EventScroll::UP
-        this.vadjustment.value -= this.vadjustment.step_increment
-        scroll_to_top_anime_lock.synchronize{ scroll_to_top_anime_id += 1 }
-      when Gdk::EventScroll::DOWN
-        @scroll_to_zero_lator = false if this.vadjustment.value == 0
-        this.vadjustment.value += this.vadjustment.step_increment
-        scroll_to_top_anime_lock.synchronize{ scroll_to_top_anime_id += 1 } end
-      false }
     @tl.ssc(:expose_event){
       emit_expose_miraclepainter
       false }
-    @scroll_to_zero_hook = lambda{ |*args|
-      emit_expose_miraclepainter
-      if(scroll_to_zero? and not(scroll_to_top_anime))
-        scroll_to_top_anime = true
-        my_id = scroll_to_top_anime_lock.synchronize {
-          scroll_to_top_anime_id += 1
-          scroll_to_top_anime_id }
-        Gtk.timeout_add(FRAME_MS){
-          scroll_to_top_anime = if scroll_to_top_anime_id == my_id and not(@tl.destroyed?)
-            @tl.vadjustment.value -= (@tl.vadjustment.value / 2) + 1
-            @tl.vadjustment.value > 0.0 end
-          scroll_to_top_anime } end
-      false }
-    @tl.vadjustment.ssc(:value_changed, &@scroll_to_zero_hook)
 
     init_remover
     @shell = Gtk::HBox.new.pack_start(@tl).closeup(scrollbar) end
@@ -185,10 +155,6 @@ class Gtk::TimeLine
   def active
     get_ancestor(Gtk::Window).set_focus(@tl)
   end
-
-  def scroll_to_zero_lator!
-    @scroll_to_zero_lator = true
-    @scroll_to_zero_hook.call end
 
   # このTLが既に削除されているなら真
   def destroyed?
@@ -271,11 +237,6 @@ class Gtk::TimeLine
 
   def postbox
     @postbox ||= Gtk::VBox.new end
-
-  def scroll_to_zero?
-    result = (defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator)
-    @scroll_to_zero_lator = false
-    result end
 
   Delayer.new{
     plugin = Plugin::create(:core)

@@ -1,0 +1,10 @@
+---
+slug: :bitly
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+version: '1.0'
+author: toshi_a
+name: bit.ly
+description: bit.ly及びj.mpで短縮されたURLを展開する機能を追加する

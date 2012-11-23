@@ -1,0 +1,12 @@
+---
+slug: :extract
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+  - settings
+  - gui
+version: '1.0'
+author: toshi_a
+name: 抽出タブ
+description: 特定の条件にマッチしたツイートをタイムライン形式で表示するタブを追加する

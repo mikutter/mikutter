@@ -14,7 +14,7 @@ Plugin.create :openimg do
   def changesize(eb, w, url)
     eb.remove(eb.children.first)
     @size = w.window.geometry[2,2].freeze
-    eb.add(Gtk::WebIcon.new(url, *@size).show_all)
+    eb.add(::Gtk::WebIcon.new(url, *@size).show_all)
     @size end
 
   def redraw(eb, pb)
@@ -25,11 +25,11 @@ Plugin.create :openimg do
     eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
 
   def display(url, cancel = nil)
-    w = Gtk::Window.new.set_title("（読み込み中）")
+    w = ::Gtk::Window.new.set_title("（読み込み中）")
     w.set_size_request(320, 240)
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
-    eventbox = Gtk::EventBox.new
+    eventbox = ::Gtk::EventBox.new
     w.add(eventbox)
     size = DEFAULT_SIZE
     Thread.new{
@@ -150,14 +150,14 @@ Plugin.create :openimg do
   def addsupport(cond, element_rule = {}, &block)
     element_rule.freeze
     if block == nil
-      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
           display(url, cancel)
         }
       }
     else
-      Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
+      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{
                       imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
@@ -184,8 +184,37 @@ Plugin.create :openimg do
       nil
     end
   }
-
-  Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
+  
+  # Tumblr image
+  # http://tmblr.co/[-\w]+ http://tumblr.com/[[:36進数:]]+
+  # http://{screen-name}.tumblr.com/post/\d+
+  # 上記を展開し、記事タイプがphotoかphotosetなら /post/ を /image/ にすると
+  # 単一画像ページが得られることを利用した画像展開
+  addsupport(/^http:\/\/([-0-9a-z]+\.tumblr\.com\/post\/\d+|tmblr\.co\/[-\w]+$|tumblr\.com\/[0-9a-z]+$)/, nil) { |url, cancel|
+    def fetch(t)
+      req = URI.parse(t)
+      res = Net::HTTP.new(req.host).request_head(req.path)
+      case res
+      when Net::HTTPSuccess
+        t
+      when Net::HTTPRedirection
+        fetch(res['location'])
+      else
+        nil
+      end
+    end
+    
+    t = fetch(url)
+    /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
+    if $~
+      imgurlresolver($1 + "image" + $2, 'id' => 'image')
+    else
+      warn "たんぶらの記事ページじゃないっぽい"
+      nil
+    end
+  }
+  
+  ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
     Delayer.new(Delayer::NORMAL) { display(url, cancel) }
   }

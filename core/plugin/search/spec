@@ -1,0 +1,11 @@
+---
+slug: :search
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+  - gui
+version: '1.0'
+author: toshi_a
+name: 検索
+description: Twitter上で、特定のキーワードでツイートを検索する機能を追加する

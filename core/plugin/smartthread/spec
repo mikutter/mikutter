@@ -1,0 +1,10 @@
+---
+slug: :smartthread
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: 会話
+description: 革命的な会話タブを追加する。タブは常に開いておくことができ、閉じるまでに会話が進行すると、それらがすべて即時反映される

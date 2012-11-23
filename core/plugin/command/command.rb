@@ -13,14 +13,14 @@ Plugin.create :command do
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           role: :timeline) do |opt|
-    Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
+    ::Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
 
   command(:copy_description,
           name: '本文をコピー',
           condition: Plugin::Command[:HasOneMessage],
           visible: true,
           role: :timeline) do |opt|
-    Gtk::Clipboard.copy(opt.messages.first.to_show) end
+    ::Gtk::Clipboard.copy(opt.messages.first.to_show) end
 
   command(:reply,
           name: '返信',
@@ -60,7 +60,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     opt.messages.each { |m|
       retweet = m.retweeted_statuses.find(&:from_me?)
-      retweet.destroy if retweet and Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
+      retweet.destroy if retweet and ::Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
 
   command(:favorite,
           name: 'ふぁぼふぁぼする',
@@ -82,7 +82,7 @@ Plugin.create :command do
           visible: true,
           role: :timeline) do |opt|
     opt.messages.each { |m|
-      m.destroy if Gtk::Dialog.confirm("失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？\n\n#{m.to_show}") } end
+      m.destroy if ::Gtk::Dialog.confirm("失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？\n\n#{m.to_show}") } end
 
   command(:select_prev,
           name: '一つ上のメッセージを選択',
@@ -110,7 +110,7 @@ Plugin.create :command do
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           role: :timeline) do |opt|
-    Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
+    ::Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
 
   command(:open_link,
           name: 'リンクを開く',
@@ -119,7 +119,7 @@ Plugin.create :command do
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
-      Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
+      ::Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
 
   command(:new_pane,
           name: '新規ペインに移動',

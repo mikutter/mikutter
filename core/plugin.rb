@@ -205,18 +205,34 @@ _miracle_painter_ のツイート本文のフォントを変更する。 _font_ 
 class Plugin
 
   class << self
-    @@eventqueue = Queue.new
+
+    def gen_event_ring
+      Hash.new{ |hash, key| hash[key] = [] }
+    end
+
+    # 変数の初期化
+    def init
+      @plugins = [] # plugin
+      @load_hook = {}
+      @event          = gen_event_ring # { event_name => [[plugintag, proc]] }
+      @add_event_hook = gen_event_ring
+      @event_filter   = gen_event_ring
+      @plugin_exit = lambda{ throw(:plugin_exit) }
+      @filter_exit = lambda{ |result| throw(:filter_exit, result) }
+    end
+
+    @eventqueue = Queue.new
     EventFilterThread = SerialThreadGroup.new
 
     Thread.new{
-      while proc = @@eventqueue.pop
+      while proc = @eventqueue.pop
         proc.call end
     }
 
     def event_wrap(&callback)
       lambda{ |*args|
         begin
-          callback.call(*args, &@@plugin_exit)
+          callback.call(*args, &@plugin_exit)
         rescue Exception => e
           into_debug_mode(e, binding)
           raise e end } end
@@ -224,24 +240,15 @@ class Plugin
     def filter_wrap(&callback)
       lambda{ |*args|
         begin
-          callback.call(*args, &@@filter_exit)
+          callback.call(*args, &@filter_exit)
         rescue Exception => e
           into_debug_mode(e, binding)
           raise e end } end
 
-    def self.gen_event_ring
-      Hash.new{ |hash, key| hash[key] = [] }
-    end
-    @@event          = gen_event_ring # { event_name => [[plugintag, proc]] }
-    @@add_event_hook = gen_event_ring
-    @@event_filter   = gen_event_ring
-    @@plugin_exit = lambda{ throw(:plugin_exit) }
-    @@filter_exit = lambda{ |result| throw(:filter_exit, result) }
-
     # イベントリスナーを追加する。
     def add_event(event_name, tag, &callback)
       callback = event_wrap(&callback)
-      @@event[event_name.to_sym] << [tag, callback]
+      @event[event_name.to_sym] << [tag, callback]
       call_add_event_hook(event_name, callback)
       callback end
 
@@ -250,7 +257,7 @@ class Plugin
     # 返さなければいけない。
     def add_event_filter(event_name, tag, &callback)
       callback = filter_wrap(&callback)
-      @@event_filter[event_name.to_sym] << [tag, callback]
+      @event_filter[event_name.to_sym] << [tag, callback]
       callback end
 
     def fetch_event(event_name, tag, &callback)
@@ -258,13 +265,13 @@ class Plugin
       callback end
 
     def add_event_hook(event_name, tag, &callback)
-      @@add_event_hook[event_name.to_sym] << [tag, callback]
+      @add_event_hook[event_name.to_sym] << [tag, callback]
       callback end
 
     def detach(event_name, event)
       deleter = lambda{ |events|
         events[event_name.to_sym].reject!{ |e| e[1] == event } }
-      deleter.call(@@event) or deleter.call(@@event_filter) or deleter.call(@@add_event_hook) end
+      deleter.call(@event) or deleter.call(@event_filter) or deleter.call(@add_event_hook) end
 
     # プラグインをアンインストールする
     # ==== Args
@@ -272,12 +279,12 @@ class Plugin
     def uninstall(name)
       name = name.to_sym
       plugin = Plugin.create(name)
-      [@@event, @@event_filter, @@add_event_hook].each{ |event_ring|
+      [@event, @event_filter, @add_event_hook].each{ |event_ring|
         event_ring.dup.each{ |event_name, events|
           event_ring[event_name] = events.reject{ |e|
             e[0].to_sym == name } } }
       plugin.execute_unload_hook
-      @@plugins.delete(plugin)
+      @plugins.delete(plugin)
     end
 
     # フィルタ内部で使う。フィルタの実行をキャンセルする。Plugin#filtering はfalseを返し、
@@ -289,7 +296,7 @@ class Plugin
     def filtering(event_name, *args)
       length = args.size
       catch(:filter_exit){
-        @@event_filter[event_name.to_sym].inject(args){ |store, plugin|
+        @event_filter[event_name.to_sym].inject(args){ |store, plugin|
           result = store
           plugintag, proc = *plugin
           boot_plugin(plugintag, event_name, :filter, false){
@@ -303,12 +310,12 @@ class Plugin
     def call(event_name, *args)
       Delayer.new{
         filtered = filtering(event_name, *args)
-        plugin_callback_loop(@@event, event_name, :proc, *filtered) if filtered } end
+        plugin_callback_loop(@event, event_name, :proc, *filtered) if filtered } end
 
     # イベントが追加されたときに呼ばれるフックを呼ぶ。
     # _callback_ には、登録されたイベントのProcオブジェクトを渡す
     def call_add_event_hook(event_name, callback)
-      plugin_callback_loop(@@add_event_hook, event_name, :hook, callback) end
+      plugin_callback_loop(@add_event_hook, event_name, :hook, callback) end
 
     # plugin_loopの簡略化版。プラグインに引数 _args_ をそのまま渡して呼び出す
     def plugin_callback_loop(ary, event_name, kind, *args)
@@ -356,14 +363,14 @@ class Plugin
       result = Hash.new{ |hash, key|
         hash[key] = Hash.new{ |hash, key|
           hash[key] = [] } }
-      @@event.each_pair{ |event, pair|
+      @event.each_pair{ |event, pair|
         result[pair[0]][event] << pair[1] }
       result
     end
 
     # 登録済みプラグイン名を一次元配列で返す
     def plugin_list
-      @@event.map{ |event, pair| pair[0] }.uniq end
+      @plugins.map(&:name) end
 
     # プラグイン処理中に例外が発生した場合、アプリケーションごと落とすかどうかを返す。
     # trueならば、その場でバックトレースを吐いて落ちる、falseならエラーを表示してプラグインをstopする
@@ -381,14 +388,13 @@ class Plugin
     alias :newSAyTof :new
     def new(name)
       type_strict name => Symbol
-      plugin = @@plugins.find{ |p| p.name == name }
+      plugin = @plugins.find{ |p| p.name == name }
       if not plugin
         plugin = newSAyTof(name) end
       if block_given?
         catch(:plugin_define_exit) {
           plugin.instance_eval(&Proc.new) } end
       if defined?(@load_hook[name]) and @load_hook[name]
-        notice "load hook for #{name} found. execute."
         @load_hook[name].each &:call
         @load_hook.delete(name) end
       plugin end
@@ -396,17 +402,19 @@ class Plugin
 
     def load_file(file, spec)
       type_strict file => String, spec => Hash
-      still_not_load = lazy{ (spec[:depends] - plugin_list).map(&:to_sym) }
-      if spec[:depends] and not still_not_load.empty?
+      still_not_load = lazy{ (spec[:depends][:plugin].map(&:to_sym) - plugin_list) }
+      if defined?(spec[:depends]) and spec[:depends].is_a? Array
+        spec[:depends] = { plugin: spec[:depends] } end
+      if defined?(spec[:depends][:plugin]) and not still_not_load.empty?
         still_not_load.each{ |depend|
           Plugin.load_hook(depend){
             still_not_load.delete(depend)
             if still_not_load.empty?
-              Plugin.create(spec[:slug].to_sym){ @spec = spec }
-              require file end } }
+              require file
+              Plugin.create(spec[:slug].to_sym){ @spec = spec } end } }
       else
-        Plugin.create(spec[:slug].to_sym){ @spec = spec }
-        require file end end
+        require file
+        Plugin.create(spec[:slug].to_sym){ @spec = spec } end end
 
     def load_hook(slug, &callback)
       type_strict slug => Symbol, callback => Proc
@@ -414,26 +422,32 @@ class Plugin
       @load_hook[slug] ||= []
       @load_hook[slug] << callback end
 
+    def require(file)
+      Kernel.require(file) end
+
     # すでに有るプラグインを名前から探して返す。 Plugin.create とちがってない場合は作成せずにnilを返す
     # ==== Args
     # [name] プラグイン名
     # ==== Return
     # プラグインオブジェクトか、見つからなければnil
     def instance(name)
-      @@plugins.find{ |p| p.name == name } end
+      @plugins.find{ |p| p.name == name } end
+
+    def register(plugin)
+      @plugins.push(plugin) end
 
   end
 
-  include ConfigLoader
+  init
 
-  @@plugins = [] # plugin
+  include ConfigLoader
 
   attr_reader :name, :spec
 
   def initialize(name = :anonymous)
     @name = name
     active!
-    regist end
+    register end
 
   def create(name)
     new(name) end
@@ -534,8 +548,8 @@ class Plugin
 
   private
 
-  def regist
-    @@plugins.push(self) end
+  def register
+    Plugin.register(self) end
 end
 
 Module.new do

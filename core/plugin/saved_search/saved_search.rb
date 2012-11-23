@@ -12,8 +12,24 @@ Plugin.create :saved_search do
         rewind_timeline(saved_search) } end end
 
   on_saved_search_regist do |id, query|
-    add_tab(id, query, query)
+    add_tab(SavedSearch.new(id, query, query, ("savedsearch_" + id.to_s).to_sym))
   end
+
+  command(:saved_search_destroy,
+          name: '保存した検索を削除',
+          condition: lambda{ |opt| timelines.values.any?{ |s| s.slug == opt.widget.slug } },
+          visible: true,
+          role: :tab) do |opt|
+    saved_search = timelines.values.find{ |s| s.slug == opt.widget.slug }
+    if saved_search
+      Service.primary.search_destroy(id: saved_search.id)
+      opt.widget.destroy end end
+
+  on_gui_destroy do |i_tab|
+    if i_tab.is_a? Plugin::GUI::Tab
+      saved_search = timelines.values.find{ |s| s.slug == i_tab.slug }
+      if saved_search
+        delete_cache(saved_search.id) end end end
 
   # id => SavedSearch
   def timelines
@@ -24,7 +40,6 @@ Plugin.create :saved_search do
   # [saved_search] saved search
   def add_tab(saved_search)
     type_strict saved_search => SavedSearch
-    notice "add: #{saved_search.query}"
     tab(saved_search.slug, saved_search.name) do
       set_icon MUI::Skin.get("savedsearch.png")
       timeline saved_search.slug end
@@ -36,10 +51,9 @@ Plugin.create :saved_search do
   # ==== Args
   # [id] saved search の ID
   def delete_tab(id)
-    type_strict saved_search => Integer
+    type_strict id => Integer
     saved_search = timelines[id]
-    tab(saved_search.slug).destroy if saved_search.slug
-    delete_cache(id) end
+    tab(saved_search.slug).destroy if saved_search.slug end
 
   # タイムラインを更新する
   # ==== Args
@@ -90,7 +104,7 @@ Plugin.create :saved_search do
   at(:cache, {}).values.each{ |s|
     add_tab(SavedSearch.new(s[:id], URI.decode(s[:query]), URI.decode(s[:name]), s[:slug])) }
 
-  refresh(true)
+  Delayer.new{ refresh(true) }
 
 end
 

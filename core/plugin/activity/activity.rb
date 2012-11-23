@@ -5,6 +5,8 @@ miquire :mui, 'tree_view_pretty_scroll'
 
 require "set"
 
+UserConfig[:activity_kind_order] ||= ["retweet", "favorite", "follow", "list_member_added", "list_member_removed", "dm", "system", "error"]
+
 module Plugin::Activity
   # アクティビティを更新する。
   # ==== Args
@@ -23,6 +25,16 @@ module Plugin::Activity
                   date: Time.new,
                   description: title }.merge(args))
   end
+
+  # 新しいアクティビティの種類を定義する。設定に表示されるようになる
+  # ==== Args
+  # [kind] 種類
+  # [name] 表示する名前
+  def defactivity(kind, name)
+    filter_activity_kind do |data|
+      data[kind] = name
+      [data] end end
+
 end
 
 class Plugin
@@ -39,8 +51,8 @@ class Plugin
 end
 
 Plugin.create(:activity) do
-  class ActivityView < Gtk::CRUD
-    include Gtk::TreeViewPrettyScroll
+  class ActivityView < ::Gtk::CRUD
+    include ::Gtk::TreeViewPrettyScroll
 
     ICON = 0
     KIND = 1
@@ -86,32 +98,31 @@ Plugin.create(:activity) do
   # [ids] ID
   # ==== Return
   # 初めて表示するキーなら真
- def show_once(event, *ids)
-   @show_once ||= Hash.new{ |h, k| h[k] = [] }
-   result = []
-   ids.each_with_index{ |id, index|
-     storage = @show_once[event][index] ||= Set.new
-     if storage.include? id
-       result << true
-     else
-       storage << id
-       result << false end }
-   notice "#{event}: #{ids.inspect} -> #{result.inspect} #{not result.all?(&ret_nth)}"
-   not result.all?(&ret_nth) end
+  def show_once(event, *ids)
+    @show_once ||= Hash.new{ |h, k| h[k] = [] }
+    result = []
+    ids.each_with_index{ |id, index|
+      storage = @show_once[event][index] ||= Set.new
+      if storage.include? id
+        result << true
+      else
+        storage << id
+        result << false end }
+    not result.all?(&ret_nth) end
 
   activity_view = ActivityView.new
-  activity_vscrollbar = Gtk::VScrollbar.new(activity_view.vadjustment)
-  activity_hscrollbar = Gtk::HScrollbar.new(activity_view.hadjustment)
-  activity_shell = Gtk::Table.new(2, 2)
-  activity_description = Gtk::IntelligentTextview.new
-  activity_status = Gtk::Label.new
-  activity_container = Gtk::VBox.new
+  activity_vscrollbar = ::Gtk::VScrollbar.new(activity_view.vadjustment)
+  activity_hscrollbar = ::Gtk::HScrollbar.new(activity_view.hadjustment)
+  activity_shell = ::Gtk::Table.new(2, 2)
+  activity_description = ::Gtk::IntelligentTextview.new
+  activity_status = ::Gtk::Label.new
+  activity_container = ::Gtk::VBox.new
 
   activity_container.
     pack_start(activity_shell.
-               attach(activity_view, 0, 1, 0, 1, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND).
-               attach(activity_vscrollbar, 1, 2, 0, 1, Gtk::FILL, Gtk::SHRINK|Gtk::FILL).
-               attach(activity_hscrollbar, 0, 1, 1, 2, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)).
+               attach(activity_view, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).
+               attach(activity_vscrollbar, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL).
+               attach(activity_hscrollbar, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL)).
     closeup(activity_description).
     closeup(activity_status.right)
 
@@ -234,50 +245,42 @@ Plugin.create(:activity) do
   end
 
   settings "アクティビティ" do
+    activity_kind = Plugin.filtering(:activity_kind, {})
+    activity_kind_order = TypedArray(String).new
+    if activity_kind
+      activity_kind = activity_kind.last
+      activity_kind.keys.each{ |kind|
+        kind = kind.to_s
+        i = where_should_insert_it(kind, activity_kind_order, UserConfig[:activity_kind_order])
+        activity_kind_order.insert(i, kind) }
+    else
+      activity_kind_order = []
+      activity_kind = {} end
+
     settings "表示しないイベント" do
       multiselect("以下の自分に関係ないイベント", :activity_mute_kind_related) do
-        option "retweet", "リツイート"
-        option "favorite", "ふぁぼ"
-        option "follow", "フォロー"
-        option "list_member_added", "リストに追加"
-        option "list_member_removed", "リストから削除"
-        option "dm", "ダイレクトメッセージ"
-        option "system", "システムメッセージ"
-        option "error", "エラー"
-      end
+        activity_kind_order.each{ |kind|
+          option kind, activity_kind[kind] } end
 
       multiselect("以下の全てのイベント", :activity_mute_kind) do
-        option "retweet", "リツイート"
-        option "favorite", "ふぁぼ"
-        option "follow", "フォロー"
-        option "list_member_added", "リストに追加"
-        option "list_member_removed", "リストから削除"
-        option "dm", "ダイレクトメッセージ"
-        option "system", "システムメッセージ"
-        option "error", "エラー"
-      end
-    end
+        activity_kind_order.each{ |kind|
+          option kind, activity_kind[kind] } end end
 
     multiselect("タイムラインに表示", :activity_show_timeline) do
-      option "retweet", "リツイート"
-      option "favorite", "ふぁぼ"
-      option "follow", "フォロー"
-      option "list_member_added", "リストに追加"
-      option "list_member_removed", "リストから削除"
-      option "dm", "ダイレクトメッセージ"
-      option "system", "システムメッセージ"
-      option "error", "エラー"
-    end
+      activity_kind_order.each{ |kind|
+        option kind, activity_kind[kind] } end
 
     multiselect("ステータスバーに表示", :activity_show_statusbar) do
-      option "retweet", "リツイート"
-      option "favorite", "ふぁぼ"
-      option "follow", "フォロー"
-      option "list_member_added", "リストに追加"
-      option "list_member_removed", "リストから削除"
-      option "dm", "ダイレクトメッセージ"
-      option "system", "システムメッセージ"
-      option "error", "エラー"
-    end
-  end
+      activity_kind_order.each{ |kind|
+        option kind, activity_kind[kind] } end end
+
+  defactivity "retweet", "リツイート"
+  defactivity "favorite", "ふぁぼ"
+  defactivity "follow", "フォロー"
+  defactivity "list_member_added", "リストに追加"
+  defactivity "list_member_removed", "リストから削除"
+  defactivity "dm", "ダイレクトメッセージ"
+  defactivity "system", "システムメッセージ"
+  defactivity "error", "エラー"
+
 end

@@ -1,0 +1,12 @@
+---
+slug: :list
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gtk
+  - settings
+  - gui
+version: '1.0'
+author: toshi_a
+name: リスト
+description: Twitterのリストを表示する

@@ -1,0 +1,10 @@
+---
+slug: :streaming
+depends:
+  mikutter: '0.2'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: Streaming
+description: UserStream等の各種ストリーミングAPIに対応する

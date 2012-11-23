@@ -167,6 +167,6 @@ end
 
 Plugin.create :gtk_intelligent_textview do
   on_entity_linkrule_added do |rule|
-    Gtk::IntelligentTextview.addlinkrule(rule[:regexp], lambda{ |seg, tv| rule[:callback].call(face: seg, url: seg, textview: tv) }) if rule[:regexp]
+    ::Gtk::IntelligentTextview.addlinkrule(rule[:regexp], lambda{ |seg, tv| rule[:callback].call(face: seg, url: seg, textview: tv) }) if rule[:regexp]
   end
 end
