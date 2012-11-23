@@ -46,6 +46,9 @@ class Service
     @twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
     @twitter.a_token = UserConfig[:twitter_token]
     @twitter.a_secret = UserConfig[:twitter_secret]
+    if @twitter.a_token.empty? and @twitter.a_secret.empty?
+      @twitter.authentication_failed_action(self, nil, nil, nil)
+    end
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
     @@services << self
