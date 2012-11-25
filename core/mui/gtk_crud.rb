@@ -11,7 +11,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def initialize
     super()
-    set_model(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
+    set_model(Gtk::ListStore.new(*column_schemer.flatten.map{|x| x[:type]}))
     @creatable = @updatable = @deletable = true
     set_columns
     # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
@@ -72,13 +72,24 @@ class Gtk::CRUD < Gtk::TreeView
   private
 
   def set_columns
-    column_schemer.each_with_index{ |scheme, index|
-      if(scheme[:label] and scheme[:kind])
-        col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
-        col.resizable = scheme[:resizable]
+    column_schemer.inject(0){ |index, scheme|
+      if scheme.is_a? Array
+        col = Gtk::TreeViewColumn.new(scheme.first[:label])
+        col.resizable = scheme.first[:resizable]
+        scheme.each{ |cell|
+          if cell[:kind]
+            cell_renderer = get_render_by(cell, index)
+            col.pack_start(cell_renderer, cell[:expand])
+            col.add_attribute(cell_renderer, cell[:kind], index) end
+          index += 1 }
         append_column(col)
-      end
-    }
+      else
+        if(scheme[:label] and scheme[:kind])
+          col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
+          col.resizable = scheme[:resizable]
+          append_column(col) end
+        index += 1 end
+      index }
   end
 
   def get_render_by(scheme, index)
@@ -163,7 +174,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new
-    column_schemer.each_with_index{ |scheme, index|
+    column_schemer.flatten.each_with_index{ |scheme, index|
       case scheme[:widget]
       when :message_picker
         widget.closeup(Mtk.message_picker(lambda{ |new|
