@@ -91,7 +91,7 @@ Plugin.create :profile do
              "ユーザについて" end },
           condition: lambda{ |opt| opt.messages.first.repliable? },
           visible: true,
-          icon: lambda{ |opt| opt.messages.first.user[:profile_image_url] },
+          icon: lambda{ |opt| opt && opt.messages.first.user[:profile_image_url] },
           role: :timeline) do |opt|
     Plugin.call(:show_profile, Service.primary, opt.messages.first.user) end
 
