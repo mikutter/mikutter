@@ -51,6 +51,7 @@ class Plugin
 end
 
 Plugin.create(:activity) do
+
   class ActivityView < ::Gtk::CRUD
     include ::Gtk::TreeViewPrettyScroll
 
@@ -126,8 +127,9 @@ Plugin.create(:activity) do
     closeup(activity_description).
     closeup(activity_status.right)
 
-  Delayer.new do
-    Plugin.call(:mui_tab_regist, activity_container, 'アクティビティ', MUI::Skin.get("underconstruction.png"))
+  tab(:activity, "アクティビティ") do
+    set_icon MUI::Skin.get("underconstruction.png")
+    nativewidget activity_container
   end
 
   activity_view.ssc("cursor-changed") { |this|
@@ -143,6 +145,7 @@ Plugin.create(:activity) do
   # plugin, kind, title, icon, date, service
   on_modify_activity do |params|
     if not mute?(params)
+      activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       iter = activity_view.model.prepend
       if params[:icon].is_a? String
         iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(params[:icon], 24, 24){ |loaded_icon|
