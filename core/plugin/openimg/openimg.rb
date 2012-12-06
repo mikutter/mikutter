@@ -184,7 +184,36 @@ Plugin.create :openimg do
       nil
     end
   }
-
+  
+  # Tumblr image
+  # http://tmblr.co/[-\w]+ http://tumblr.com/[[:36進数:]]+
+  # http://{screen-name}.tumblr.com/post/\d+
+  # 上記を展開し、記事タイプがphotoかphotosetなら /post/ を /image/ にすると
+  # 単一画像ページが得られることを利用した画像展開
+  addsupport(/^http:\/\/([-0-9a-z]+\.tumblr\.com\/post\/\d+|tmblr\.co\/[-\w]+$|tumblr\.com\/[0-9a-z]+$)/, nil) { |url, cancel|
+    def fetch(t)
+      req = URI.parse(t)
+      res = Net::HTTP.new(req.host).request_head(req.path)
+      case res
+      when Net::HTTPSuccess
+        t
+      when Net::HTTPRedirection
+        fetch(res['location'])
+      else
+        nil
+      end
+    end
+    
+    t = fetch(url)
+    /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
+    if $~
+      imgurlresolver($1 + "image" + $2, 'id' => 'image')
+    else
+      warn "たんぶらの記事ページじゃないっぽい"
+      nil
+    end
+  }
+  
   ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
     Delayer.new(Delayer::NORMAL) { display(url, cancel) }

@@ -26,7 +26,9 @@ Plugin.create(:settings) do
       @window = nil
       false }
 
-    window.add(::Gtk::HPaned.new.add1(menu).add2(scrolled.add_with_viewport(settings))) end
+    scrolled_menu = ::Gtk::ScrolledWindow.new.set_policy(::Gtk::POLICY_NEVER, ::Gtk::POLICY_AUTOMATIC)
+
+    window.add(::Gtk::HPaned.new.add1(scrolled_menu.add_with_viewport(menu)).add2(scrolled.add_with_viewport(settings))) end
 
   def menu_widget(widgets_dict)
     column = ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererText.new, text: 0)

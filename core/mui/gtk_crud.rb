@@ -11,7 +11,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def initialize
     super()
-    set_model(Gtk::ListStore.new(*column_schemer.map{|x| x[:type]}))
+    set_model(Gtk::ListStore.new(*column_schemer.flatten.map{|x| x[:type]}))
     @creatable = @updatable = @deletable = true
     set_columns
     # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
@@ -19,6 +19,30 @@ class Gtk::CRUD < Gtk::TreeView
     handle_release_event
     handle_row_activated
   end
+
+  def buttons(box_klass)
+    box_klass.new(false, 4).closeup(create_button).closeup(update_button).closeup(delete_button) end
+
+  def create_button
+    if not defined? @create_button
+      @create_button = Gtk::Button.new(Gtk::Stock::ADD)
+      @create_button.ssc(:clicked) {
+        record_create(nil, nil) } end
+    @create_button end
+
+  def update_button
+    if not defined? @update_button
+      @update_button = Gtk::Button.new(Gtk::Stock::EDIT)
+      @update_button.ssc(:clicked) {
+        record_update(nil, nil) } end
+    @update_button end
+
+  def delete_button
+    if not defined? @delete_button
+      @delete_button = Gtk::Button.new(Gtk::Stock::DELETE)
+      @delete_button.ssc(:clicked) {
+        record_delete(nil, nil) } end
+    @delete_button end
 
   protected
 
@@ -48,13 +72,24 @@ class Gtk::CRUD < Gtk::TreeView
   private
 
   def set_columns
-    column_schemer.each_with_index{ |scheme, index|
-      if(scheme[:label] and scheme[:kind])
-        col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
-        col.resizable = scheme[:resizable]
+    column_schemer.inject(0){ |index, scheme|
+      if scheme.is_a? Array
+        col = Gtk::TreeViewColumn.new(scheme.first[:label])
+        col.resizable = scheme.first[:resizable]
+        scheme.each{ |cell|
+          if cell[:kind]
+            cell_renderer = get_render_by(cell, index)
+            col.pack_start(cell_renderer, cell[:expand])
+            col.add_attribute(cell_renderer, cell[:kind], index) end
+          index += 1 }
         append_column(col)
-      end
-    }
+      else
+        if(scheme[:label] and scheme[:kind])
+          col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
+          col.resizable = scheme[:resizable]
+          append_column(col) end
+        index += 1 end
+      index }
   end
 
   def get_render_by(scheme, index)
@@ -135,11 +170,11 @@ class Gtk::CRUD < Gtk::TreeView
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
     input = gen_popup_window_widget(defaults)
-    Mtk.dialog(dialog_title || "", input[:widget], self, &input[:result]) end
+    Mtk.dialog(dialog_title || "", input[:widget], self.toplevel || self, &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new
-    column_schemer.each_with_index{ |scheme, index|
+    column_schemer.flatten.each_with_index{ |scheme, index|
       case scheme[:widget]
       when :message_picker
         widget.closeup(Mtk.message_picker(lambda{ |new|

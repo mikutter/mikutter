@@ -56,17 +56,17 @@ Plugin.create :list do
 
   # 設定のGtkウィジェット
   def setting_container
-    container = Tab.new
-    container.plugin = self
+    tab = Tab.new
+    tab.plugin = self
     available_lists.each{ |list|
-      iter = container.model.append
+      iter = tab.model.append
       iter[Tab::VISIBILITY] = list_visible?(list)
       iter[Tab::SLUG] = list[:full_name]
       iter[Tab::LIST] = list
       iter[Tab::NAME] = list[:name]
       iter[Tab::DESCRIPTION] = list[:description]
       iter[Tab::PUBLICITY] = list[:mode] }
-    container.show_all end
+    Gtk::HBox.new.add(tab).closeup(tab.buttons(Gtk::VBox)).show_all end
 
   # _service_ が作成した全てのリストを取得する
   # ==== Args

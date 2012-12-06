@@ -8,7 +8,7 @@ miquire :core, 'messageconverters'
 
 require 'net/http'
 require 'delegate'
-require 'typed-array'
+miquire :lib, 'typed-array'
 
 =begin
 = Message

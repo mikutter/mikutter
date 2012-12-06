@@ -19,7 +19,8 @@ module Plugin::GUI
             name = if defined? face.call then lambda{ |x| face.call(event) } else face end
             contextmenu.insert(index, [name,
                                        lambda{ |x| record[:condition] === event },
-                                       lambda{ |x| record[:exec].call(event) }]) end }
+                                       lambda{ |x| record[:exec].call(event) },
+                                       record[:icon]]) end }
         Plugin.call(:gui_contextmenu, event, contextmenu)
       end
 
