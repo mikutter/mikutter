@@ -39,7 +39,7 @@ module CHIConfig
   # 再起動後に、前回取得したポストを取得しない
   NeverRetrieveOverlappedMumble = false
 
-  REVISION = 1064
+  REVISION = 1080
 
   # このソフトのバージョン。
   VERSION = [0,2,0, ((/Last Changed Rev\s*:\s*(\d+)/.match(`sh -c 'LC_ALL=C svn info ../'`)[1] || REVISION).to_i rescue REVISION)]
