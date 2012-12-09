@@ -4,6 +4,7 @@ depends:
   mikutter: '0.2'
   plugin:
   - gui
+  - change_account
 version: '1.0'
 author: toshi_a
 name: 保存した検索

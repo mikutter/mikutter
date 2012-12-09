@@ -6,6 +6,7 @@ depends:
   - gtk
   - settings
   - gui
+  - change_account
 version: '1.0'
 author: toshi_a
 name: リスト
