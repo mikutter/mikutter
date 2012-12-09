@@ -5,7 +5,10 @@ miquire :mui, 'tree_view_pretty_scroll'
 
 require "set"
 
+# アクティビティの設定の並び順
 UserConfig[:activity_kind_order] ||= ["retweet", "favorite", "follow", "list_member_added", "list_member_removed", "dm", "system", "error"]
+# アクティビティタブに保持する通知の数
+UserConfig[:activity_max] ||= 1000
 
 module Plugin::Activity
   # アクティビティを更新する。
@@ -75,7 +78,7 @@ Plugin.create(:activity) do
        {:kind => :text, :type => String, :label => '説明'},        # TITLE
        {:kind => :text, :type => String, :label => '時刻'},        # DATE
        {:type => Plugin},                                          # PLUGIN
-       {:type => Integer},                                         # ID
+       {:type => Integer},                                         # IDu
        {:type => Service},                                         # SERVICE
        {:type => Hash} ].freeze                                    # EVENT
     end
@@ -111,6 +114,25 @@ Plugin.create(:activity) do
         result << false end }
     not result.all?(&ret_nth) end
 
+  # アクティビティの古い通知を一定時間後に消す
+  def reset_activity(model)
+    notice "reset activity registered"
+    Reserver.new(60) {
+      Delayer.new {
+        if not model.destroyed?
+          notice "reset activity start"
+          iters = model.to_enum(:each).to_a
+          remove_count = iters.size - UserConfig[:activity_max]
+          notice "remove count #{remove_count}"
+          if remove_count > 0
+            iters[-remove_count, remove_count].each{ |mpi|
+              notice "activity deleted: #{mpi[2][ActivityView::TITLE]}"
+              model.remove(mpi[2]) }
+          else
+            notice "nothing to remove activity" end
+          reset_activity(model) end } }
+  end
+
   activity_view = ActivityView.new
   activity_vscrollbar = ::Gtk::VScrollbar.new(activity_view.vadjustment)
   activity_hscrollbar = ::Gtk::HScrollbar.new(activity_view.hadjustment)
@@ -118,6 +140,7 @@ Plugin.create(:activity) do
   activity_description = ::Gtk::IntelligentTextview.new
   activity_status = ::Gtk::Label.new
   activity_container = ::Gtk::VBox.new
+  reset_activity(activity_view.model)
 
   activity_container.
     pack_start(activity_shell.
