@@ -89,7 +89,7 @@ Plugin.create :profile do
               "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__')
             else
              "ユーザについて" end },
-          condition: lambda{ |opt| opt.messages.first.repliable? },
+          condition: Plugin::Command::CanReplyAll,
           visible: true,
           role: :timeline) do |opt|
     Plugin.call(:show_profile, Service.primary, opt.messages.first.user) end
