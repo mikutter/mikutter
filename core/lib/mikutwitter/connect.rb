@@ -55,12 +55,17 @@ module MikuTwitter::Connect
       when '400'
         fire_oauth_limit_event
       when '401'
+        notice "#{res.code} Authorization failed."
+        notice res.body
+        notice "trigger request: #{path}"
         begin
-          error_message = (JSON.parse(res.body)["error"] rescue nil)
-          return res if(error_message == "Not authorized")
-          notice error_message
-        rescue JSON::ParserError
-        end
+          errors = (JSON.parse(res.body)["errors"] rescue nil)
+          errors.each { |error|
+            notice error
+            return res if error["code"] == 53
+          }
+        rescue Exception => e
+          notice e end
         atoken = authentication_failed_action(method, url, options, res)
         notice atoken
         return query_with_oauth!(method, url, options) if atoken
@@ -72,3 +77,4 @@ module MikuTwitter::Connect
 end
 
 class MikuTwitter; include MikuTwitter::Connect end
+
