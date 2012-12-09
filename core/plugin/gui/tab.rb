@@ -7,6 +7,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
 require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_parent')
 require File.expand_path File.join(File.dirname(__FILE__), 'tablike')
 require File.expand_path File.join(File.dirname(__FILE__), 'widget')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 
 class Plugin::GUI::Tab
 
@@ -33,6 +34,10 @@ class Plugin::GUI::Tab
     else
       Plugin::GUI::Pane.add_default << self
     end
+    @tab_toolbar = Plugin::GUI::TabToolbar.instance
     Plugin.call(:tab_created, self)
+    shrink
+    add_child(@tab_toolbar)
+    expand
   end
 end
