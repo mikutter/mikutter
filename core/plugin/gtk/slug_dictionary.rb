@@ -20,6 +20,7 @@ module Plugin::Gtk
     register_widget Plugin::GUI::Window,         ::Gtk::MikutterWindow
     register_widget Plugin::GUI::Pane,           ::Gtk::Notebook
     register_widget Plugin::GUI::Tab,            ::Gtk::EventBox
+    register_widget Plugin::GUI::TabToolbar,     ::Gtk::TabToolbar
     register_widget Plugin::GUI::Timeline,       ::Gtk::TimeLine
     register_widget Plugin::GUI::Profile,        ::Gtk::Notebook
     register_widget Plugin::GUI::ProfileTab,     ::Gtk::EventBox
@@ -70,11 +71,16 @@ module Plugin::Gtk
     # 対応するウィジェット
     def imaginally_by_gtk(gtk_widget)
       type_strict gtk_widget => ::Gtk::Widget
-      i_widget_klass = Plugin::Gtk::SlugDictionary.nameklass.key(gtk_widget.class)
-      return nil if not i_widget_klass
-      slug = @widget_of_gtk[i_widget_klass].key(gtk_widget)
-      return nil if not slug
-      i_widget_klass.instance(slug) end
+      Plugin::Gtk::SlugDictionary.nameklass.each{ |i_widget_klass, gtk_widget_klass|
+        if gtk_widget.is_a? gtk_widget_klass
+          notice "#{i_widget_klass} -> #{gtk_widget_klass}"
+          next if not i_widget_klass
+          slug = @widget_of_gtk[i_widget_klass].key(gtk_widget)
+          next if not slug
+          notice "got #{i_widget_klass.instance(slug)}"
+          return i_widget_klass.instance(slug) end }
+      notice "notfound"
+      nil end
 
     class UndefinedWidgetError < ArgumentError
     end

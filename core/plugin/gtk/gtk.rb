@@ -5,6 +5,7 @@
 require "gtk2"
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
 
@@ -144,6 +145,17 @@ Plugin.create :gtk do
       i_tab.destroy
       false }
     tab.show_all end
+
+  on_tab_toolbar_created do |i_tab_toolbar|
+    notice "create tab toolbar #{i_tab_toolbar.inspect}"
+    tab_toolbar = ::Gtk::TabToolbar.new(i_tab_toolbar).show_all
+    @slug_dictionary.add(i_tab_toolbar, tab_toolbar)
+  end
+
+  on_gui_tab_toolbar_join_tab do |i_tab_toolbar, i_tab|
+    widget = widgetof(i_tab_toolbar)
+    widget_join_tab(i_tab, widget) if widget
+  end
 
   # タイムライン作成。
   # Gtk::TimeLine
@@ -524,8 +536,7 @@ Plugin.create :gtk do
   # ==== Return
   # _widget_ に対応するウィジェットオブジェクトまたは偽
   def find_implement_widget_by_gtkwidget(widget)
-    @slug_dictionary.imaginally_by_gtk(widget)
-    false end
+    @slug_dictionary.imaginally_by_gtk(widget) end
 end
 
 module Plugin::Gtk
