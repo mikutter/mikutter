@@ -5,17 +5,12 @@
 require "gtk2"
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
+require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
+require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
 
 Plugin.create :gtk do
-  @windows_by_slug = {}                  # slug => Gtk::MikutterWindow
-  @panes_by_slug = {}                    # slug => Gtk::NoteBook
-  @tabs_by_slug = {}                     # slug => Gtk::EventBox
-  @timelines_by_slug = {}                # slug => Gtk::TimeLine
-  @profiles_by_slug = {}                    # slug => Gtk::NoteBook
-  @profiletabs_by_slug = {}                     # slug => Gtk::EventBox
-  @tabchildwidget_by_slug = {}           # slug => Gtk::TabChildWidget
-  @postboxes_by_slug = {}                # slug => Gtk::Postbox
+  @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}
   @tabs_promise = {}                     # slug => Deferred
 
   TABPOS = [Gtk::POS_TOP, Gtk::POS_BOTTOM, Gtk::POS_LEFT, Gtk::POS_RIGHT]
@@ -25,7 +20,7 @@ Plugin.create :gtk do
   on_window_created do |i_window|
     notice "create window #{i_window.slug.inspect}"
     window = ::Gtk::MikutterWindow.new
-    @windows_by_slug[i_window.slug] = window
+    @slug_dictionary.add(i_window, window)
     window.title = i_window.name
     window.set_size_request(240, 240)
     geometry = get_window_geometry(i_window.slug)
@@ -134,10 +129,7 @@ Plugin.create :gtk do
   def create_tab(i_tab)
     notice "create tab #{i_tab.slug.inspect}"
     tab = ::Gtk::EventBox.new.tooltip(i_tab.name)
-    if i_tab.is_a? Plugin::GUI::Tab
-      @tabs_by_slug[i_tab.slug] = tab
-    elsif i_tab.is_a? Plugin::GUI::ProfileTab
-      @profiletabs_by_slug[i_tab.slug] = tab end
+    @slug_dictionary.add(i_tab, tab)
     tab_update_icon(i_tab)
     tab.ssc(:focus_in_event) {
       i_tab.active!(true, true)
@@ -154,12 +146,23 @@ Plugin.create :gtk do
       false }
     tab.show_all end
 
+  on_tab_toolbar_created do |i_tab_toolbar|
+    notice "create tab toolbar #{i_tab_toolbar.inspect}"
+    tab_toolbar = ::Gtk::TabToolbar.new(i_tab_toolbar).show_all
+    @slug_dictionary.add(i_tab_toolbar, tab_toolbar)
+  end
+
+  on_gui_tab_toolbar_join_tab do |i_tab_toolbar, i_tab|
+    widget = widgetof(i_tab_toolbar)
+    widget_join_tab(i_tab, widget) if widget
+  end
+
   # タイムライン作成。
   # Gtk::TimeLine
   on_timeline_created do |i_timeline|
     notice "create timeline #{i_timeline.slug.inspect}"
     timeline = ::Gtk::TimeLine.new(i_timeline)
-    @timelines_by_slug[i_timeline.slug] = timeline
+    @slug_dictionary.add(i_timeline, timeline)
     focus_in_event = lambda { |this, event|
       if this.focus?
         i_timeline.active!(true, true)
@@ -246,7 +249,7 @@ Plugin.create :gtk do
     next if not i_postbox_parent
     postbox_parent = widgetof(i_postbox_parent)
     next if not postbox_parent
-    postbox = @postboxes_by_slug[i_postbox.slug] = postbox_parent.add_postbox(i_postbox)
+    postbox = @slug_dictionary.add(i_postbox, postbox_parent.add_postbox(i_postbox))
     postbox.post.ssc(:focus_in_event) {
       i_postbox.active!(true, true)
       false }
@@ -321,7 +324,7 @@ Plugin.create :gtk do
     i_tab = Plugin::GUI::Tab.instance(slug, name)
     i_tab.set_icon(icon).expand
     i_container = Plugin::GUI::TabChildWidget.instance
-    @tabchildwidget_by_slug[i_container.slug] = container
+    @slug_dictionary.add(i_container, container)
     i_tab << i_container
     @tabs_promise[i_tab.slug] = (@tabs_promise[i_tab.slug] || Deferred.new).next{ |tab|
       widget_join_tab(i_tab, container.show_all) } end
@@ -329,16 +332,16 @@ Plugin.create :gtk do
   # Gtkオブジェクトをタブに入れる
   on_gui_nativewidget_join_tab do |i_tab, i_container, container|
     notice "nativewidget: #{container} => #{i_tab}"
-    @tabchildwidget_by_slug[i_container.slug] = container
+    @slug_dictionary.add(i_container, container)
     widget_join_tab(i_tab, container.show_all) end
 
   on_gui_nativewidget_join_profiletab do |i_profiletab, i_container, container|
     notice "nativewidget: #{container} => #{i_profiletab}"
-    @tabchildwidget_by_slug[i_container.slug] = container
+    @slug_dictionary.add(i_container, container)
     widget_join_tab(i_profiletab, container.show_all) end
 
   on_gui_window_rewindstatus do |i_window, text, expire|
-    statusbar = @windows_by_slug[:default].statusbar
+    statusbar = @slug_dictionary.get(Plugin::GUI::Window, :default).statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
     notice "rewind statusbar to #{text}, #{expire.inspect}, #{cid}"
@@ -472,10 +475,7 @@ Plugin.create :gtk do
   def create_pane(i_pane)
     notice "create pane #{i_pane.slug.inspect}"
     pane = ::Gtk::Notebook.new
-    if i_pane.is_a? Plugin::GUI::Pane
-      @panes_by_slug[i_pane.slug] = pane
-    elsif i_pane.is_a? Plugin::GUI::Profile
-      @profiles_by_slug[i_pane.slug] = pane end
+    @slug_dictionary.add(i_pane, pane)
     pane.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_pane) }
     pane.ssc(:destroy){
@@ -524,23 +524,7 @@ Plugin.create :gtk do
   # 対応するGtkオブジェクト
   def widgetof(cuscadable)
     type_strict cuscadable => :slug
-    collection = if cuscadable.is_a? Plugin::GUI::Window
-                   @windows_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::Pane
-                   @panes_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::Tab
-                   @tabs_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::Profile
-                   @profiles_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::ProfileTab
-                   @profiletabs_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::Timeline
-                   @timelines_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::TabChildWidget
-                   @tabchildwidget_by_slug
-                 elsif cuscadable.is_a? Plugin::GUI::Postbox
-                   @postboxes_by_slug end
-    result = collection[cuscadable.slug]
+    result = @slug_dictionary.get(cuscadable)
     if result and result.destroyed?
       nil
     else
@@ -552,21 +536,7 @@ Plugin.create :gtk do
   # ==== Return
   # _widget_ に対応するウィジェットオブジェクトまたは偽
   def find_implement_widget_by_gtkwidget(widget)
-    type_strict widget => ::Gtk::Widget
-    [
-     [@windows_by_slug, Plugin::GUI::Window],
-     [@panes_by_slug, Plugin::GUI::Pane],
-     [@tabs_by_slug, Plugin::GUI::Tab],
-     [@panes_by_slug, Plugin::GUI::Profile],
-     [@tabs_by_slug, Plugin::GUI::ProfileTab],
-     [@timelines_by_slug, Plugin::GUI::Timeline],
-     [@tabchildwidget_by_slug, Plugin::GUI::TabChildWidget],
-     [@postboxes_by_slug, Plugin::GUI::Postbox] ].each{ |collection, klass|
-      slug, node = *collection.find{ |slug, node|
-        node == widget }
-      if slug
-        return klass.instance(slug) end }
-    false end
+    @slug_dictionary.imaginally_by_gtk(widget) end
 end
 
 module Plugin::Gtk
