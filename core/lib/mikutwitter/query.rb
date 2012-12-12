@@ -101,7 +101,7 @@ module MikuTwitter::Query
     notice "access(#{serial}): #{output_url}"
     res = yield
   ensure
-    notice "quit(#{serial.to_s}): #{output_url} (#{(Time.new - start_time).to_s}s)" rescue nil
+    notice "quit(#{serial.to_s}): #{res.code} #{output_url} (#{(Time.new - start_time).to_s}s)" rescue nil
     Plugin.call(:query_end,
                 :serial     => serial,
                 :method     => method,
