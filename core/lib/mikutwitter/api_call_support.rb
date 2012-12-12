@@ -32,7 +32,7 @@ module MikuTwitter::ApiCallSupport
     # - オブジェクトが一つだけ返ってくることを想定したパーサ
     # - 同種のオブジェクトが大量に返ってくるが、cursorを使ってページが分かれているデータ用のパーサ
     # の3つを定義する。
-    # メソッドの名前は上から順番に、 multi, uni, #{multi}_pager になる。
+    # メソッドの名前は上から順番に、 multi, uni, paged_#{multi} になる。
     # ==== Args
     # [uni] 名前（単数形）
     # [multi] 名前（複数形）
