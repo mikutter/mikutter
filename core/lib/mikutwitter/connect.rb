@@ -63,10 +63,6 @@ module MikuTwitter::Connect
         notice "#{res.code} Authorization failed."
         notice res.body
         notice "trigger request: #{path}"
-        if url.include?("verify_credentials") and 0 == response['X-RateLimit-Remaining'].to_i
-          puts "REST APIにアクセス制限されています。 #{Time.at(response['X-RateLimit-Reset'].to_i).to_s} 以降にもう一度試してみてください。"
-          abort
-        end
         begin
           errors = (JSON.parse(res.body)["errors"] rescue nil)
           errors.each { |error|
