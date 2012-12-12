@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'cgi'
 
 class Bitly < MessageConverters
   USER = 'mikutter'
@@ -55,7 +56,7 @@ class Bitly < MessageConverters
 
   # urlの配列 urls を受け取り、それら全てを短縮して返す
   def shrink_url(url)
-    query = "login=#{user}&apiKey=#{apikey}&longUrl=#{Escape.query_segment(url).to_s}"
+    query = "login=#{user}&apiKey=#{apikey}&longUrl=#{CGI.escape(url)}"
     3.times{
       response = begin
                    JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/shorten?#{query}"))
@@ -89,7 +90,7 @@ class Bitly < MessageConverters
     urls = urls.select &method(:shrinked_url?)
     return nil if urls.empty?
     query = "login=#{user}&apiKey=#{apikey}&" + urls.map{ |url|
-      "shortUrl=#{Escape.query_segment(url).to_s}" }.join('&')
+      "shortUrl=#{CGI.escape(url)}" }.join('&')
     3.times{
       result = begin
                  JSON.parse(Net::HTTP.get("api.bit.ly", "/v3/expand?#{query}"))

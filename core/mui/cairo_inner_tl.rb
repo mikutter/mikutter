@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 miquire :mui, 'timeline', 'tree_view_pretty_scroll'
-miquire :lib, 'ruby-bsearch-1.5/bsearch'
+miquire :lib, 'bsearch'
 miquire :lib, 'uithreadonly'
 require 'gtk2'
 
