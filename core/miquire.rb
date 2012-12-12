@@ -34,10 +34,12 @@ module Miquire
     PATH_KIND_CONVERTER[:lib] = Class.new{
       define_method(:+){ |other|
         render = lambda{ |r| File.join(r, other) }
-        if other == '*' or FileTest.exist?(render["../vendor"] + '.rb')
+        if FileTest.exist?(render["../vendor"] + '.rb')
           render["../vendor"]
+        elsif FileTest.exist?(render["lib"] + '.rb')
+          render["lib"]
         else
-          render["lib"] end } }.new
+          other end } }.new
 
     # CHIのコアソースコードファイルを読み込む。
     # _kind_ はファイルの種類、 _file_ はファイル名（拡張子を除く）。
@@ -62,8 +64,12 @@ module Miquire
         if kind == :lib
           files.each{ |file|
             path = File.expand_path(PATH_KIND_CONVERTER[:lib] + file)
-            Dir.chdir(File.dirname(path)) {
-              miquire_original_require file } }
+            directory = File.dirname(path)
+            if FileTest.exist?(directory)
+              Dir.chdir(File.dirname(path)) {
+                miquire_original_require file }
+            else
+              miquire_original_require file end }
         else
           files.each{ |file|
             file_or_directory_require PATH_KIND_CONVERTER[kind] + file.to_s } end end end
