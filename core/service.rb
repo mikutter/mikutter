@@ -57,13 +57,11 @@ class Service
 
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
-    @user_obj ||= parallel { user_initialize } end
+    @user_obj  end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
-    @user_idname ||= parallel{
-      scaned = user_obj
-      @user_idname = scaned[:idname] if scaned and scaned[:idname] } end
+    @user_obj[:idname] end
   alias :idname :user
 
   # userと同じだが、サービスに問い合わせずにnilを返すのでブロッキングが発生しない
@@ -187,23 +185,34 @@ class Service
   private
 
   def user_initialize
-    res = twitter.query!('account/verify_credentials', cache: true)
-    begin
-      if '200' == res.code
-        scaned = MikuTwitter::ApiCallSupport::Request::Parser.user(JSON.parse(res.body).symbolize)
-        if scaned
-          @user_obj = scaned
-          UserConfig[:verify_credentials] = {
-            :id => @user_obj[:id],
-            :idname => @user_obj[:idname],
-            :name => @user_obj[:name],
-            :profile_image_url => @user_obj[:profile_image_url] }
-          return @user_obj end end
-    rescue => e
-      warn e end
     if UserConfig[:verify_credentials]
       @user_obj = User.new_ifnecessary(UserConfig[:verify_credentials])
-    elsif '400' == res.code
+      (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed))
+    else
+      res = twitter.query!('account/verify_credentials', cache: true)
+      if "200" == res.code
+        user_data_received(MikuTwitter::ApiCallSupport::Request::Parser.user(JSON.parse(res.body).symbolize))
+      else
+        user_data_failed_crash!(res) end end end
+
+  # :enddoc:
+
+  def user_data_received(user)
+    @user_obj = user
+    UserConfig[:verify_credentials] = {
+      :id => @user_obj[:id],
+      :idname => @user_obj[:idname],
+      :name => @user_obj[:name],
+      :profile_image_url => @user_obj[:profile_image_url] }
+  end
+
+  def user_data_failed(e)
+    if e.is_a? MikuTwitter::Error
+      if not UserConfig[:verify_credentials]
+        user_data_failed_crash!(e.httpresponse) end end end
+
+  def user_data_failed_crash!(res)
+    if '400' == res.code
       chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。規制されてるんじゃないですかね。\n" +
         "ニコ動とか見て、規制が解除されるまで適当に時間を潰してください。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n" +
         "\n\n--\n\n" +
@@ -212,11 +221,7 @@ class Service
       chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。電車が止まってるから会社行けないみたいなかんじで起動できません。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
         "Twitterサーバの情況を調べる→ https://dev.twitter.com/status\n"+
         "Twitterサーバの情況を調べたくない→ http://www.nicovideo.jp/vocaloid\n\n--\n\n" +
-        "#{res.code} #{res.body}"
-    end
-  end
-
-  # :enddoc:
+        "#{res.code} #{res.body}" end end
 
   class ServiceRetriever
     include Retriever::DataSource

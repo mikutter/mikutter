@@ -31,11 +31,8 @@
 #  => 2...3
 #  >> %w(a b d e f).bsearch_range {|x| x <=> "c"}
 #  => 2...2
-
-module Bsearch
-  VERSION = '1.5'
-end
-
+$LOAD_PATH << File.dirname(File.expand_path(__FILE__))
+require 'bsearch/version'
 class Array
   # 
   # The binary search algorithm is extracted from Jon Bentley's
