@@ -10,6 +10,7 @@ module MikuTwitter::APIShortcuts
       define_method(method_name, &yield(api, parser))
     else
       define_method(method_name){ |args = {}|
+        args = args.to_hash
         key_convert.each{ |src, dst|
           args[dst] = args[src] if args.has_key?(src) }
         (self/api).__send__(parser, defaults.merge(args)) } end end
@@ -131,44 +132,17 @@ module MikuTwitter::APIShortcuts
     id = args[:id]
     (self/"statuses/destroy"/id).message end
 
-  def send_direct_message(args = {})
-    (self/"direct_messages/new").direct_message(args)
-  end
+  defshortcut :send_direct_message, "direct_messages/new", :direct_message
 
-  def destroy_direct_message(args)
-    id = args[:id]
-    args = args.dup
-    args.delete(:id)
-    (self/"direct_messages/destroy"/id).direct_message(args)
-  end
+  defshortcut :destroy_direct_message, "direct_messages/destroy", :direct_message
 
-  def favorite(args = {})
-    id = args[:id]
-    (self/"favorites/create"/id).message end
+  defshortcut :favorite, "favorites/create", :message
 
-  def unfavorite(args = {})
-    id = args[:id]
-    (self/"favorites/destroy"/id).message end
+  defshortcut :unfavorite, "favorites/destroy", :message
 
-  def follow(user)
-    user_id = user[:id]
-    if user.is_a? Hash
-      args = user.dup
-      args.delete(:id)
-    else
-      args = {} end
-    (self/"friendships/create"/user_id).user(args)
-  end
+  defshortcut :follow, "friendships/create", :user, id: :user_id
 
-  def unfollow(user)
-    user_id = user[:id]
-    if user.is_a? Hash
-      args = user.dup
-      args.delete(:id)
-    else
-      args = {} end
-    (self/"friendships/destroy"/user_id).user(args)
-  end
+  defshortcut :unfollow, "friendships/destroy", :user, id: :user_id
 
   # list = {
   #   :user => User(自分)
