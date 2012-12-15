@@ -2,12 +2,13 @@
 
 require "mikutwitter/basic"
 require "mikutwitter/connect"
-require "mikutwitter/unauthorized"
 require "mikutwitter/utils"
 require "mikutwitter/cache"
 require "mikutwitter/error"
 require "deferred"
 require "monitor"
+
+miquire :lib, "weakstorage"
 
 # TwitterAPIを叩く機能
 module MikuTwitter::Query
@@ -16,7 +17,6 @@ module MikuTwitter::Query
 
   include MikuTwitter::Utils
   include MikuTwitter::Connect
-  include MikuTwitter::Unauthorized
   include MikuTwitter::Cache
 
   def initialize(*a, &b)
@@ -50,7 +50,7 @@ module MikuTwitter::Query
   # [options]
   #   API引数。ただし、以下のキーは特別扱いされ、API引数からは除外される
   #   :head :: HTTPリクエストヘッダ（Hash）
-  # [force_oauth] 真なら自動判別せずに必ずOAuthを使う
+  # [force_oauth] 互換性のため
   # ==== Return
   # API戻り値(HTTPResponse)
   # ==== Exceptions
@@ -62,7 +62,7 @@ module MikuTwitter::Query
             "http://#{options[:host]}/#{api}.json"
           else
             "#{@base_path}/#{api}.json" end
-    res = _query!(api, options, method, url, force_oauth)
+    res = _query!(api, options, method, url)
     if('2' == res.code[0])
       res
     else
@@ -70,21 +70,14 @@ module MikuTwitter::Query
 
   private
 
-  # query! の本質的な部分。単純に query_with_oauth! か query_without_oauth! のどちらかを呼び出す
-  def _query!(api, options, method, url, force_oauth)
+  # query! の本質的な部分。単純に query_with_oauth! を呼び出す
+  def _query!(api, options, method, url)
     query_uri = (url + get_args(options)).freeze
     MikuTwitter::Query.api_lock(query_uri) {
       cache(api, url, options, method) {
         retry_if_fail(method, query_uri){
           fire_request_event(api, url, options, method) {
-            if force_oauth or get_api_property(api, options, necessary_oauth)
-              query_with_oauth!(method, url, options)
-            else
-              res = query_without_oauth!(method, url, options)
-              if [400, 401, 403].include? res.code.to_i
-                query_with_oauth!(method, url, options)
-              else
-                res end end } } } }
+            query_with_oauth!(method, url, options) } } } }
   end
 
   def fire_request_event(api, url, options, method)
@@ -140,73 +133,6 @@ module MikuTwitter::Query
       method.call(api, options)
     else
       method end end
-
-  # true 必須
-  # false 不要
-  # ない場合(nil)は不要
-  def necessary_oauth
-    aster_nil = { '*' => nil }.freeze
-    aster_true = { '*' => true }.freeze
-    @necessary_oauth ||= {
-      'statuses' => {
-        'home_timeline' => true,
-        'mentions' => true,
-        'public_timeline' => false,
-        'retweeted_by_me' => true,
-        'retweeted_to_me' => true,
-        'retweets_of_me' => true,
-        'retweets' => aster_true,
-        'destroy' => aster_true,
-        'retweet' => aster_true,
-        'update' => aster_true,
-        'update_with_media' => aster_true,
-        '*' => {
-          'retweeted_by' => {
-            'ids' => true } } },
-      'direct_messages' => true,
-      'friendships' => {
-        'incoming' => true,
-        'outgoing' => true,
-        'create' => true,
-        'destroy' => true,
-        'lookup' => true,
-        'update' => true,
-        'no_retweet_ids' => true },
-      'users' => {
-        'search' => true },
-      'favorites' => aster_true,
-      'lists' => {
-        'all' => true,
-        'members' => {
-          'create' => true,
-          'create_all' => true,
-          'destroy' => true,
-          'show' => true },
-        'subscribers' => {
-          'create' => true,
-          'show' => true,
-          'destroy' => true },
-        'destroy' => true,
-        'update' => true,
-        'create' => true },
-      'account' => {
-        'verify_credentials' => true,
-        'end_session' => true,
-        'update_profile' => true,
-        'update_profile_background_image' => true,
-        'update_profile_colors' => true,
-        'update_profile_image' => true,
-        'settings' => true,
-        'totals' => true,
-        'settings' => true },
-      'notifications' => aster_true,
-      'saved_searches' => aster_true,
-      'geo' => { 'place' => true },
-      'blocks' => aster_true,
-      'report_spam' => true,
-      'oauth' => aster_true,
-    }
-  end
 
   # get, post, put, deleteの何れかを返す。
   # nilの場合は未定義(まぁget)

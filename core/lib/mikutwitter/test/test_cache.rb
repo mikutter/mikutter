@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
-DIR = File.expand_path(File.dirname($0))
-$LOAD_PATH.push(File.expand_path(File.join(File.dirname($0), '../../..')))
+require "#{File.dirname(__FILE__)}/extension"
 
 require 'test/unit'
 require 'mocha'
