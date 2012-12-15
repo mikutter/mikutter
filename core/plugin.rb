@@ -85,19 +85,13 @@ _image_ が省略された場合は、 _label_ が使われる。
 === mui_tab_active(String label)
 ラベル _label_ のついたタブをアクティブにする。
 
-=== apilimit(Time time)
-サーバによって、時間 _time_ までクエリの実行を停止された時に呼ばれる。
-
 === apifail(String text)
 何らかのクエリが実行に失敗した場合に呼ばれる。サーバからエラーメッセージが帰ってきた場合は
 _text_ に渡される。エラーメッセージが得られなかった場合はnilが渡される。
 
-=== apiremain(Integer remain, Time expire, String transaction)
-サーバへのクリエ発行が時間 _expire_ までに _remain_ 回実行できることを通知するために呼ばれる。
-現在のTwitterの仕様では、クエリを発行するたびにこれが呼ばれる。
-
-=== ipapiremain(Integer remain, Time expire, String transaction)
-基本的にはapiremainと同じだが、IPアドレス規制について動くことが違う。
+=== ratelimit(MikuTwitter::RateLimiting::RateLimit ratelimit)
+ratelimit 情報が更新された時に呼ばれる。
+RateLimitオブジェクトについては core/lib/mikutwitter/rate_limiting.rb を参照
 
 === rewindstatus(String mes)
 ユーザに情報 _mes_ を「さりげなく」提示する。 GUI プラグインがハンドルしていて、ステータスバーを
