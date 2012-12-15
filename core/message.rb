@@ -141,7 +141,7 @@ class Message < Retriever::Model
     return true if self.system?
     if self.service
       return true if self.receive_to?(self.service.user_obj)
-      return true if self[:message].to_s.include?(self.service.user)
+      return true if self[:message].to_s.include?(self.service.user.to_s)
     end
     false
   end

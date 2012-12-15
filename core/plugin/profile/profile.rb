@@ -89,7 +89,7 @@ Plugin.create :profile do
               "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__')
             else
              "ユーザについて" end },
-          condition: lambda{ |opt| opt.messages.first.repliable? },
+          condition: Plugin::Command::CanReplyAll,
           visible: true,
           icon: lambda{ |opt| opt && opt.messages.first.user[:profile_image_url] },
           role: :timeline) do |opt|

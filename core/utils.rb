@@ -32,6 +32,7 @@ Dir::chdir(File::dirname(__FILE__))
 ['.', 'lib', 'miku'].each{|path|
   $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
 }
+
 miquire :lib, 'escape_bundle'
 miquire :lib, 'lazy'
 
