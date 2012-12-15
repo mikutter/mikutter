@@ -43,7 +43,7 @@ module MikuTwitter::Query
     promise.abort_on_exception = false
     promise end
 
-  # APIを叩く。OAuthを使うかどうかは自動的に判定して実行する
+  # APIを叩く
   # ==== Args
   # [method] メソッド。:get, :post, :put, :delete の何れか
   # [api] APIの種類（文字列）
@@ -90,7 +90,8 @@ module MikuTwitter::Query
                 :method     => method,
                 :path       => api,
                 :options    => options,
-                :start_time => start_time)
+                :start_time => start_time,
+                :mikutwitter => self)
     notice "access(#{serial}): #{output_url}"
     res = yield
   ensure
@@ -102,7 +103,9 @@ module MikuTwitter::Query
                 :options    => options,
                 :start_time => start_time,
                 :end_time   => Time.new.freeze,
-                :res        => res) end
+                :res        => res,
+                :mikutwitter => self,
+                :ratelimit => ratelimit_rewind(api, res)) end
 
   def retry_if_fail(method, uri)
     return @unretriable_uri[uri] if :get == method and @unretriable_uri[uri]
