@@ -29,13 +29,14 @@ module MikuTwitter::APIShortcuts
   defshortcut :friends_timeline, 'statuses/home_timeline', :messages
   alias home_timeline friends_timeline
 
-  defshortcut :replies, 'statuses/mentions', :messages
+  defshortcut :replies, 'statuses/mentions_timeline', :messages
   alias mentions replies
 
   defshortcut :favorites, 'favorites', :message
 
-  def search(args = {})
-    (self/:search).search({host: 'search.twitter.com'}.merge(args)) end
+  defshortcut :search, 'search/tweets', :search
+  # def search(args = {})
+  #   (self/:search).search({host: 'search.twitter.com'}.merge(args)) end
 
   defshortcut :trends, :trends, :json
 
@@ -68,7 +69,7 @@ module MikuTwitter::APIShortcuts
   def status_show(args = {})
     (self/"statuses/show").message({cache: true}.merge(args)) end
 
-  defshortcut :saved_searches, :saved_searches, :json
+  defshortcut :saved_searches, "saved_searches/list", :json
 
   defshortcut :search_create, "saved_searches/create", :json
 
@@ -79,7 +80,7 @@ module MikuTwitter::APIShortcuts
     (self/"saved_searches/destroy"/id).json(args) end
 
   def lists(args = {})
-    (self/'lists/all').lists(args) end
+    (self/'lists/list').lists(args) end
 
   def list_subscriptions(args = {})
     args[:user_id] = args[:user][:id] if args[:user]
