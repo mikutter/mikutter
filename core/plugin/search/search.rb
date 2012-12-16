@@ -45,7 +45,7 @@ Plugin.create :search do
       Plugin.call(:saved_search_regist, saved_search[:id], query)
     }.terminate("検索キーワード「#{query}」を保存できませんでした。あとで試してみてください") }
 
-  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/){ |segment|
+  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :search_hashtag){ |segment|
     Plugin.call(:search_start, '#' + segment[:url].match(/^(?:#|＃)?(.+)$/)[1])
   }
 end

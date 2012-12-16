@@ -8,6 +8,14 @@ Plugin.create :display_requirements do
     i_tab.expand
   end
 
+  filter_entity_linkrule_added do |options|
+    Plugin.filter_cancel! if :search_hashtag == options[:filter_id]
+    [options]
+  end
+
+  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
+    Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/^(?:#|＃)?.+$/)[0]))
+  }
 end
 
 class ::Gdk::MiraclePainter
@@ -54,5 +62,4 @@ class ::Gdk::SubPartsVoter
     context.translate(layout.size[0] / Pango::SCALE + margin, 0)
     icon_width + layout.size[0] / Pango::SCALE + margin
   end
-
 end
