@@ -4,7 +4,11 @@ Plugin.create :display_requirements do
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
     i_tab.shrink
-    i_tab.nativewidget(Gtk::WebIcon.new(MUI::Skin.get("twitter-bird.png"), 32, 32))
+    fuckingbird = Gtk::Button.new
+    fuckingbird.relief = Gtk::RELIEF_NONE
+    fuckingbird.add(Gtk::WebIcon.new(MUI::Skin.get("twitter-bird.png"), 32, 32))
+    fuckingbird.ssc(:clicked){ Gtk.openurl("https://twitter.com/") }
+    i_tab.nativewidget(fuckingbird)
     i_tab.expand
   end
 
