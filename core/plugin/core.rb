@@ -19,4 +19,6 @@ Plugin.create :core do
           Plugin.call(:retweet_destroyed, source, message.user, message[:id])
           source.retweeted_statuses.delete(message) end end } end
 
+  on_entity_linkrule_added(&Message::Entity.method(:on_entity_linkrule_added))
+
 end

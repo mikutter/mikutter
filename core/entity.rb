@@ -8,11 +8,14 @@ class Message::Entity
 
   attr_reader :message
 
-  def self.addlinkrule(slug, regexp=nil, &callback)
+  def self.addlinkrule(slug, regexp=nil, filter_id=nil, &callback)
     slug = slug.to_sym
-    @@linkrule[slug] = { :slug => slug, :regexp => regexp, :callback => callback }.freeze
-    Plugin.call(:entity_linkrule_added, @@linkrule[slug])
+    Plugin.call(:entity_linkrule_added, { slug: slug, filter_id: filter_id, regexp: regexp, callback: callback }.freeze)
     # Gtk::IntelligentTextview.addlinkrule(regexp, lambda{ |seg, tv| callback.call(face: seg, url: seg, textview: tv) }) if regexp
+    self end
+
+  def self.on_entity_linkrule_added(linkrule)
+    @@linkrule[linkrule[:slug]] = linkrule
     self end
 
   def self.filter(slug, &filter)
