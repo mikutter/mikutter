@@ -22,7 +22,7 @@ class Gdk::MiraclePainter < Gtk::Object
   signal_new(:expose_event, GLib::Signal::RUN_FIRST, nil, nil)
 
   include Gdk::Coordinate
-  include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
+  include Gdk::IconOverButton
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
   include Gdk::MarkupGenerator

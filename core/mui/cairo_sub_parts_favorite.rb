@@ -12,8 +12,8 @@ class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
     helper.message.favorited_by
   end
 
-  def label
-    "fav" end
+  def title_icon
+    Gdk::Pixbuf.new(MUI::Skin.get("unfav.png"), @icon_width, @icon_height) end
 
   def name
     :favorited end
