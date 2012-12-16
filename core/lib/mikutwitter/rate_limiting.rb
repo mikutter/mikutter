@@ -12,7 +12,8 @@ module MikuTwitter::RateLimiting
     attr_reader :limit, :remain, :reset, :endpoint
     def initialize(limit, remain, reset, endpoint)
       type_strict [[limit, Numeric], [remain, Numeric], [reset, Time], [endpoint, :to_s]]
-      @limit, @remain, @reset, @endpoint = limit, remain, reset.freeze, endpoint.to_s.freeze end
+      @limit, @remain, @reset, @endpoint = limit, remain, reset.freeze, endpoint.to_s.freeze
+    end
 
     alias [] __send__
 

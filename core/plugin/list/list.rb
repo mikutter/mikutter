@@ -94,7 +94,7 @@ Plugin.create :list do
   def list_modify_member(list, cache=:keep)
     Service.primary.list_members( list_id: list[:id],
                                   mode: list[:mode],
-                                  cache: cache).next{ |users|
+                                  cache: false).next{ |users|
       list.add_member(users) if users
       Service.primary.list_statuses(:id => list[:id],
                                     :cache => cache).next{ |res|
