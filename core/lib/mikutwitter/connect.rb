@@ -48,25 +48,12 @@ module MikuTwitter::Connect
       query_args.delete(:head)
       res = access_token.__send__(method, path, query_args, head) end
     if res.is_a? Net::HTTPResponse
-      # X-RateLimit-Classがapiなのは不具合。一応メッセージを出力する
-      if 'api' == res['X-RateLimit-Class']
-        notice "X-RateLimit-Class = api: #{url} remain #{res['X-RateLimit-Remaining']}"
-        notice options
-      end
-      limit, remain, reset = api_remain(res)
-      Plugin.call(:apiremain, remain, reset)
       case res.code
       when '200'
-      when '400'
-        fire_oauth_limit_event
       when '401'
         notice "#{res.code} Authorization failed."
         notice res.body
         notice "trigger request: #{path}"
-        if url.include?("verify_credentials") and 0 == response['X-RateLimit-Remaining'].to_i
-          puts "REST APIにアクセス制限されています。 #{Time.at(response['X-RateLimit-Reset'].to_i).to_s} 以降にもう一度試してみてください。"
-          abort
-        end
         begin
           errors = (JSON.parse(res.body)["errors"] rescue nil)
           errors.each { |error|

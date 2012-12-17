@@ -22,7 +22,7 @@ class Gdk::MiraclePainter < Gtk::Object
   signal_new(:expose_event, GLib::Signal::RUN_FIRST, nil, nil)
 
   include Gdk::Coordinate
-  include Gdk::IconOverButton(:x_count => 2, :y_count => 2)
+  include Gdk::IconOverButton
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
   include Gdk::MarkupGenerator
@@ -293,7 +293,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
-    attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    attr_list, text = header_left_markup
     color = Plugin.filtering(:message_header_left_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
     font = Plugin.filtering(:message_header_left_font, message, nil).last
@@ -304,14 +304,13 @@ class Gdk::MiraclePainter < Gtk::Object
     layout.text = text
     layout end
 
+  def header_left_markup
+    Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+  end
+
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
   def header_right(context = dummy_context)
-    now = Time.now
-    hms = if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
-            message[:created].strftime('%H:%M:%S')
-          else
-            message[:created].strftime('%Y/%m/%d %H:%M:%S')
-          end
+    hms = timestamp_label
     attr_list, text = Pango.parse_markup(Pango.escape(hms))
     layout = context.create_pango_layout
     layout.attributes = attr_list
@@ -320,6 +319,15 @@ class Gdk::MiraclePainter < Gtk::Object
     layout.text = text
     layout.alignment = Pango::ALIGN_RIGHT
     layout end
+
+  def timestamp_label
+    now = Time.now
+    if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
+      message[:created].strftime('%H:%M:%S')
+    else
+      message[:created].strftime('%Y/%m/%d %H:%M:%S')
+    end
+  end
 
   # pixmapを組み立てる
   def gen_pixmap

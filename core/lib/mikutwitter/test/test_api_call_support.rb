@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-
-DIR = File.expand_path(File.dirname($0))
-$LOAD_PATH.push(File.expand_path(File.join(File.dirname($0), '../../..')))
-
+require "#{File.dirname(__FILE__)}/extension"
 require 'test/unit'
 require 'mocha'
 require 'webmock/test_unit'
 require 'pp'
 require 'utils'
+
 miquire :lib, 'test_unit_extensions', 'mikutwitter'
 miquire :core, 'delayer'
 
@@ -31,11 +29,10 @@ class TC_mikutwitter_api_call_support < Test::Unit::TestCase
   end
 
   must "get home timeline" do
-    stub_request(:get, "http://api.twitter.com/1/statuses/show/154380989328662530.json?include_entities=true"). # !> assigned but unused variable - limit
-      with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
-      to_return(:status => 200, :body => file_get_contents(File.join(DIR, '154380989328662530.json')), :headers => {}) # !> previous definition of messages was here
+    stub_request(:get, "http://api.twitter.com/1.1/statuses/show.json?id=154380989328662530").
+      to_return(:status => 200, :body => file_get_contents(File.join(MIKUTWITTER_TEST_DIR, '154380989328662530.json')), :headers => {}) # !> previous definition of messages was herey
     result = exception = nil
-    (@m/:statuses/:show/154380989328662530).json(include_entities: true).next{ |json| # !> assigned but unused variable - remain
+    (@m/:statuses/:show).json(id: 154380989328662530).next{ |json| # !> assigned but unused variable - remain
       result = json
     }
     wait_all_tasks

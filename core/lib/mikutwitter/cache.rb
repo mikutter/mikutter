@@ -87,7 +87,7 @@ module MikuTwitter::Cache
     if result and '200' == result.code
       cache_write(path, result.body)
     else
-      get_cache(path)
+      cached_value = get_cache(path)
       if cached_value
         notice "cache hit #{url}"
         return cached_value end end
