@@ -15,10 +15,9 @@ Plugin.create :ratelimit do
     end
   end
 
-  on_query_end do |options|
-    mikutwitter = options[:mikutwitter]
+  on_mikutwitter_ratelimit do |mikutwitter, ratelimit|
     service = Service.all.select{ |s| s.twitter == mikutwitter }
-    Plugin.call(:ratelimit, service, options[:ratelimit]) if service and options[:ratelimit] end
+    Plugin.call(:ratelimit, service, ratelimit) if service and ratelimit end
 
   filter_ratelimit do |service, ratelimit|
     ratelimit_filter_mutex.synchronize {
