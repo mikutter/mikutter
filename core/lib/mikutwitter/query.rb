@@ -58,7 +58,9 @@ module MikuTwitter::Query
   def query!(api, options = {}, force_oauth = false)
     type_strict options => Hash
     resource = ratelimit(api.to_s)
-    raise MikuTwitter::Error.new("Rate limit #{resource.endpoint}", nil) if resource and resource.limit?
+    if resource and resource.limit?
+      Plugin.call(:mikutwitter_ratelimit, self, options[:ratelimit])
+      raise MikuTwitter::Error.new("Rate limit #{resource.endpoint}", nil) end
     method = get_api_property(api, options, method_of_api) || :get
     url = if options[:host]
             "http://#{options[:host]}/#{api}.json"
