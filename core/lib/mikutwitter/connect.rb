@@ -9,6 +9,16 @@ require "oauth"
 # OAuth関連
 module MikuTwitter::Connect
 
+  INVALID_REQUEST = 32
+  PAGE_DOES_NOT_EXIST = 34
+  BASIC_AUTHENTICATION_IS_NOT_SUPPORTED = 53
+  RATE_LIMIT_EXCEEDED = 88
+  INVALID_OR_EXPIRED_TOKEN = 89
+  OVER_CAPACITY = 130
+  INTERNAL_ERROR = 131
+  TIMESTAMP_TOOLATE = 135
+  BAD_AUTHENTICATION_DATA = 215
+
   attr_accessor :consumer_key, :consumer_secret, :a_token, :a_secret, :oauth_url
 
   def initialize(*a, &b)
@@ -58,13 +68,12 @@ module MikuTwitter::Connect
           errors = (JSON.parse(res.body)["errors"] rescue nil)
           errors.each { |error|
             notice error
-            return res if error["code"] == 53
-          }
+            if [INVALID_OR_EXPIRED_TOKEN].include? error["code"]
+              atoken = authentication_failed_action(method, url, options, res)
+              notice atoken
+              return query_with_oauth!(method, url, options) if atoken end }
         rescue Exception => e
           notice e end
-        atoken = authentication_failed_action(method, url, options, res)
-        notice atoken
-        return query_with_oauth!(method, url, options) if atoken
       end
     end
     res
