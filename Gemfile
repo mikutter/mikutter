@@ -9,6 +9,7 @@ platforms :ruby_19 do
   gem 'memoize'
   gem 'ruby-hmac'
   gem 'httpclient'
+  gem 'typed-array'
   group :test do
     gem 'rake'
     gem 'watch'
