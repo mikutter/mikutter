@@ -2,7 +2,7 @@ source :rubygems
 platforms :ruby_19 do
   gem 'gtk2'
   gem 'escape'
-  # gem 'oauth'#, '0.3.6'
+  gem 'oauth', '0.4.6'
   gem 'json_pure'
   gem 'bsearch', '1.5'
   gem 'addressable'
