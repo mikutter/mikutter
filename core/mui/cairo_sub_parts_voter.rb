@@ -127,7 +127,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     context.save{
       context.translate(icon_width + margin, (icon_width/2) - (plc.size[1] / Pango::SCALE / 2))
       context.show_pango_layout(plc) }
-    @icon_ofst = ((plc.size[0] / Pango::SCALE + icon_width + margin*2) / icon_width).ceil * icon_width
+    @icon_ofst = ((plc.size[0] / Pango::SCALE + icon_width + margin*2).to_f / icon_width).ceil * icon_width
   end
 
   def put_voter(context)
