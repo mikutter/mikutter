@@ -13,17 +13,19 @@ Plugin.create :shortcutkey do
       super
       commands = Plugin.filtering(:command, Hash.new).first
       shortcutkeys.each{ |id, behavior|
+        slug = behavior[:slug]
         iter = model.append
         iter[COLUMN_ID] = id
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
-        icon = commands[behavior[:slug]][:icon]
-        icon = icon.call(nil) if icon.is_a? Proc
-        if icon
-          iter[COLUMN_COMMAND_ICON] = Gdk::WebImageLoader.pixbuf(icon, 16, 16){ |pixbuf|
-            if not destroyed?
-              iter[COLUMN_COMMAND_ICON] = pixbuf end } end
-        iter[COLUMN_SLUG] = behavior[:slug] } end
+        iter[COLUMN_SLUG] = slug
+        if commands[slug]
+          icon = commands[slug][:icon]
+          icon = icon.call(nil) if icon.is_a? Proc
+          if icon
+            iter[COLUMN_COMMAND_ICON] = Gdk::WebImageLoader.pixbuf(icon, 16, 16){ |pixbuf|
+              if not destroyed?
+                iter[COLUMN_COMMAND_ICON] = pixbuf end } end end } end
 
     def column_schemer
       [{:kind => :text, :widget => :keyconfig, :type => String, :label => 'キーバインド'},
