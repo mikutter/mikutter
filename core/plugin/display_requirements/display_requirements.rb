@@ -49,6 +49,20 @@ class ::Gdk::MiraclePainter
       message[:created].strftime('%Y/%m/%d')
     end
   end
+
+  # アイコンをクリックしたら必ずプロフィールを表示しなければならない
+  def _schemer
+    {x_count: 1, y_count: 1} end
+
+  def iob_icon_pixbuf
+    [ [ nil ] ] end
+
+  def iob_icon_pixbuf_off
+    [ [ nil] ] end
+
+  def iob_clicked
+    if(current_icon_pos)
+      Plugin.call(:show_profile, Service.primary, message.user) end end
 end
 
 class ::Gdk::SubPartsVoter
@@ -67,3 +81,5 @@ class ::Gdk::SubPartsVoter
     icon_width + layout.size[0] / Pango::SCALE + margin
   end
 end
+
+
