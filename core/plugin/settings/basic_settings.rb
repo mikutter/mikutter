@@ -55,7 +55,7 @@ Plugin::create(:basic_settings) do
     about "#{Environment::NAME} について", {
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,
-      :copyright => '2009-2012 Toshiaki Asai',
+      :copyright => '2009-2013 Toshiaki Asai',
       :comments => "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 圧倒的なかわいさではないか我がミクは
