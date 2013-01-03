@@ -41,8 +41,7 @@ module MikuTwitter::RateLimiting
     type_strict resource_name => :to_s
     resource_name = resource_name.to_s.freeze
     if response and response['X-Rate-Limit-Reset']
-      if (!defined?(@api_remain[2])) or time !=  @api_remain[2]
-      end
+      time = Time.at(response['X-Rate-Limit-Reset'].to_i)
       @api_remain[resource_name] = Resource.new(response['X-Rate-Limit-Limit'].to_i,
                                                 response['X-Rate-Limit-Remaining'].to_i,
                                                 time,
