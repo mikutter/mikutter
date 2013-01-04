@@ -59,8 +59,7 @@ module MikuTwitter::Query
     type_strict options => Hash
     resource = ratelimit(api.to_s)
     if resource and resource.limit?
-      Plugin.call(:mikutwitter_ratelimit, self, options[:ratelimit])
-      raise MikuTwitter::Error.new("Rate limit #{resource.endpoint}", nil) end
+      raise MikuTwitter::RateLimitError.new("Rate limit #{resource.endpoint}", nil) end
     method = get_api_property(api, options, method_of_api) || :get
     url = if options[:host]
             "http://#{options[:host]}/#{api}.json"
@@ -70,7 +69,11 @@ module MikuTwitter::Query
     if('2' == res.code[0])
       res
     else
-      raise MikuTwitter::Error.new("#{res.code} #{res.to_s}", res) end end
+      raise MikuTwitter::Error.new("#{res.code} #{res.to_s}", res) end
+  rescue MikuTwitter::RateLimitError => e
+    # 変数 resource の情報は振るい可能性がある（他のTwitterクライアントが同じエンドポイントを使用した時等）
+    Plugin.call(:mikutwitter_ratelimit, self, ratelimit(api.to_s))
+    raise e end
 
   private
 
@@ -88,7 +91,6 @@ module MikuTwitter::Query
     serial = query_serial_number
     start_time = Time.new
     output_url = url
-    # output_url += get_args(options) if(:get == method)
     Plugin.call(:query_start,
                 :serial     => serial,
                 :method     => method,
@@ -109,7 +111,7 @@ module MikuTwitter::Query
                 :end_time   => Time.new.freeze,
                 :res        => res,
                 :mikutwitter => self,
-                :ratelimit => ratelimit_rewind(api, res)) end
+                :ratelimit => ratelimit_rewind(api.to_s, res)) end
 
   def retry_if_fail(method, uri)
     return @unretriable_uri[uri] if :get == method and @unretriable_uri[uri]

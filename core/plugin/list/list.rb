@@ -21,13 +21,11 @@ Plugin.create :list do
     crawl_count += 1
     if crawl_count >= UserConfig[:retrieve_interval_list_timeline]
       crawl_count = 0
-      fetch_list_of_service(Service.primary)
+      fetch_list_of_service(Service.primary).next {
+        timelines.values.each{ |list|
+          list_modify_member(list) } }
     end
   end
-
-  on_before_exit_api_section do
-    timelines.values.each{ |list|
-      list_modify_member(list) } end
 
   # available_list の同期をとる。外的要因でリストが追加されたのを検出した場合。
   on_list_created do |service, lists|

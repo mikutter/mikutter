@@ -74,6 +74,8 @@ module MikuTwitter::Connect
               return query_with_oauth!(method, url, options) if atoken end }
         rescue Exception => e
           notice e end
+      when '429'
+        raise MikuTwitter::RateLimitError.new("Rate limit #{url}", nil)
       end
     end
     res
@@ -82,4 +84,5 @@ module MikuTwitter::Connect
 end
 
 class MikuTwitter; include MikuTwitter::Connect end
+
 
