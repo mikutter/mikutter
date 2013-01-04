@@ -311,7 +311,7 @@ class Gdk::MiraclePainter < Gtk::Object
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
   def header_right(context = dummy_context)
     hms = timestamp_label
-    attr_list, text = Pango.parse_markup(Pango.escape(hms))
+    attr_list, text = Pango.parse_markup(hms)
     layout = context.create_pango_layout
     layout.attributes = attr_list
     font = Plugin.filtering(:message_header_right_font, message, nil).last
@@ -323,9 +323,9 @@ class Gdk::MiraclePainter < Gtk::Object
   def timestamp_label
     now = Time.now
     if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
-      message[:created].strftime('%H:%M:%S')
+      Pango.escape(message[:created].strftime('%H:%M:%S'))
     else
-      message[:created].strftime('%Y/%m/%d %H:%M:%S')
+      Pango.escape(message[:created].strftime('%Y/%m/%d %H:%M:%S'))
     end
   end
 
@@ -391,6 +391,13 @@ class Gdk::MiraclePainter < Gtk::Object
       hr_layout = header_right(context)
       hr_color = Plugin.filtering(:message_header_right_font_color, message, nil).last
       hr_color = BLACK if not(hr_color and hr_color.is_a? Array and 3 == hr_color.size)
+
+      hl_rectangle = Gdk::Rectangle.new(pos.header_text.x, pos.header_text.y,
+                                        hl_layout.size[0] / Pango::SCALE, hl_layout.size[1] / Pango::SCALE)
+      hr_rectangle = Gdk::Rectangle.new(pos.header_text.x + pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), pos.header_text.y,
+                                        hr_layout.size[0] / Pango::SCALE, hr_layout.size[1] / Pango::SCALE)
+      @hl_region = Gdk::Region.new(hl_rectangle)
+      @hr_region = Gdk::Region.new(hr_rectangle)
 
       context.save{
         context.translate(pos.header_text.w - (hr_layout.size[0] / Pango::SCALE), 0)

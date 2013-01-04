@@ -36,19 +36,50 @@ class ::Gdk::MiraclePainter
     now = Time.now.to_i
     there = message[:created].to_i
     diff = (there - now).abs
-    case diff
-    when 0
-      "今"
-    when 1...60
-      "#{diff}秒#{there < now ? '前' : "後"}"
-    when 60...3600
-      "#{(diff/60).to_i}分#{there < now ? '前' : "後"}"
-    when 3600...86400
-      "#{(diff/3600).to_i}時間#{there < now ? '前' : "後"}"
+    label = case diff
+            when 0
+              "今"
+            when 1...60
+              "#{diff}秒#{there < now ? '前' : "後"}"
+            when 60...3600
+              "#{(diff/60).to_i}分#{there < now ? '前' : "後"}"
+            when 3600...86400
+              "#{(diff/3600).to_i}時間#{there < now ? '前' : "後"}"
+            else
+              message[:created].strftime('%Y/%m/%d')
+            end
+    Pango.escape(label)end
+
+  # アイコン上のボタンの数の変更
+  def _schemer
+    {x_count: 1, y_count: 1} end
+
+  # アイコン上のボタンを削除
+  def iob_icon_pixbuf
+    [ [ nil ] ] end
+
+  # アイコン上のボタンを削除
+  def iob_icon_pixbuf_off
+    [ [ nil] ] end
+
+  # アイコンをクリックしたら必ずプロフィールを表示しなければならない
+  def iob_clicked
+    if(current_icon_pos)
+      Plugin.call(:show_profile, Service.primary, message.user) end end
+
+  # 名前からはプロフィールに、タイムスタンプからはツイートのパーマリンクにリンクしなければならない
+  alias __clicked_l7eOfD__ clicked
+  def clicked(x, y, e)
+    if defined?(@hl_region) and @hl_region.point_in?(x, y)
+      notice "#{@hl_region.rectangles.first.to_a} in #{x}, #{y}"
+      Plugin.call(:show_profile, Service.primary, message.user)
+    elsif defined?(@hr_region) and @hr_region.point_in?(x, y)
+      Gtk.openurl("https://twitter.com/#{message.user.idname}/status/#{message.id}")
     else
-      message[:created].strftime('%Y/%m/%d')
+      __clicked_l7eOfD__(x, y, e)
     end
   end
+
 end
 
 class ::Gdk::SubPartsVoter
@@ -67,3 +98,5 @@ class ::Gdk::SubPartsVoter
     icon_width + layout.size[0] / Pango::SCALE + margin
   end
 end
+
+

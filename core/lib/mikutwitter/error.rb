@@ -10,3 +10,7 @@ class MikuTwitter::Error < StandardError
     @httpresponse = httpresponse
   end
 end
+
+class MikuTwitter::RateLimitError < MikuTwitter::Error
+
+end

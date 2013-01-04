@@ -19,7 +19,12 @@ module MikuTwitter::RateLimiting
 
     # 規制されているなら真
     def limit?
-      remain and reset and remain <= 0 and Time.new <= reset end end
+      remain and reset and remain <= 0 and Time.new <= reset end
+
+    def inspect
+      "#<MikuTwitter::RateLimiting::Resource #{@endpoint}:#{@remain}/#{@limit} #{@reset}>" end
+    alias to_s inspect
+  end
 
   def initialize(*args)
     super
@@ -37,9 +42,6 @@ module MikuTwitter::RateLimiting
     resource_name = resource_name.to_s.freeze
     if response and response['X-Rate-Limit-Reset']
       time = Time.at(response['X-Rate-Limit-Reset'].to_i)
-      if (!defined?(@api_remain[2])) or time !=  @api_remain[2]
-        notice "event reserved :before_exit_api_section at #{time}"
-        Reserver.new(time - 60){ Plugin.call(:before_exit_api_section) } rescue nil end
       @api_remain[resource_name] = Resource.new(response['X-Rate-Limit-Limit'].to_i,
                                                 response['X-Rate-Limit-Remaining'].to_i,
                                                 time,
