@@ -2,6 +2,7 @@
 
 require "mikutwitter/basic"
 require "lazy"
+require "cgi"
 
 module MikuTwitter::Utils
 
@@ -23,10 +24,17 @@ module MikuTwitter::Utils
   def get_args(args)
     filtered = lazy{ args.select{|k, v| not EXCLUDE_OPTIONS.include? k } }
     if not(args.empty? or filtered.empty?)
-      "?" + filtered.map{|pair| "#{URI.encode_www_form_component(pair[0].to_s).to_s}=#{URI.encode_www_form_component(pair[1].to_s).to_s}"}.join('&')
+      "?" + filtered.map{|pair| "#{CGI.escape(pair[0].to_s).to_s}=#{CGI.escape(pair[1].to_s).to_s}"}.join('&')
     else
       '' end end
  # !> loading in progress, circular require considered harmful - /home/toshi/Documents/hobby/scripts/mikutter/trunk/core/lib/oauth/client/helper.rb
+end
+
+class << CGI
+  alias __escape_aoVit97__ escape
+  def escape(*args)
+    __escape_aoVit97__(*args).gsub(/[*:]/){|m| "%" + m.unpack("H2") }
+  end
 end
 
 class MikuTwitter; include MikuTwitter::Utils end
