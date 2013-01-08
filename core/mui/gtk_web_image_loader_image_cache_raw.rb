@@ -24,7 +24,9 @@ module Gdk::WebImageLoader
       # _raw_ の値
       def save(url, raw)
         Gdk::WebImageLoader::ImageCache.synchronize(url) {
-          storage[url.freeze] = raw.freeze if raw } end
+          if raw
+            storage[url.freeze] = raw.freeze
+            Plugin.call(:image_cache_saved, url, raw) end } end
 
       def clear
         @storage = nil end
