@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :display_requirements do
+  BIRD_URL = "http://mikutter.hachune.net/img/twitter-bird.png".freeze
+  CACHE_DIR = File.expand_path(File.join(Environment::CACHE, 'dr'))
+  BIRD_CACHE_PATH = File.join(CACHE_DIR, "twitter-bird.png")
+  FileUtils.mkdir_p(CACHE_DIR)
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
     i_tab.shrink
     fuckingbird = Gtk::Button.new
     fuckingbird.relief = Gtk::RELIEF_NONE
-    fuckingbird.add(Gtk::WebIcon.new(MUI::Skin.get("twitter-bird.png"), 32, 32))
+    fuckingbird.add(Gtk::WebIcon.new(BIRD_URL, 32, 32))
     fuckingbird.ssc(:clicked){ Gtk.openurl("https://twitter.com/") }
     i_tab.nativewidget(fuckingbird)
     i_tab.expand
   end
+
+  on_image_cache_saved do |url, imagedata|
+    if BIRD_URL == url and not FileTest.exist?(BIRD_CACHE_PATH)
+      file_put_contents BIRD_CACHE_PATH, imagedata
+    end
+  end
+
+  filter_image_cache do |url, image, &stop|
+    if BIRD_URL == url and FileTest.exist?(BIRD_CACHE_PATH)
+      stop.call([url, file_get_contents(BIRD_CACHE_PATH)]) end
+    [url, image] end
 
   filter_entity_linkrule_added do |options|
     Plugin.filter_cancel! if :search_hashtag == options[:filter_id]

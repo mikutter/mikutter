@@ -11,7 +11,9 @@ require 'lib/test_unit_extensions'
 miquire :mui, 'web_image_loader'
 miquire :core, 'delayer'
 
-Plugin = Class.new
+Plugin = Class.new do
+  def self.call(*args); end
+end
 
 class TC_GtkWebImageLoader < Test::Unit::TestCase
   def setup

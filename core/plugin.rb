@@ -155,6 +155,10 @@ end_time::
 res::
   受け取ったレスポンス。通常はNet::HTTPResponseを渡す。捕捉できない例外が発生した場合はここにその例外を渡す。
 
+== image_cache_saved(String url, String imagedata)
+Web上の画像がmikutterにメモリキャッシュされた時に発生する。
+imagedata は、その画像のバイナリデータ（jpegとかpngとかがそのまま）。
+
 == フィルタ
 
 以下に、フックできる主なフィルタを示す。
