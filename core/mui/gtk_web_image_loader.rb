@@ -27,19 +27,16 @@ module Gdk::WebImageLoader
   def pixbuf(url, rect, height = nil, &load_callback)
     url = Plugin.filtering(:web_image_loader_url_filter, url.freeze)[0].freeze
     rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-    if Gdk::WebImageLoader::ImageCache.locking?(url)
-      downloading_anotherthread_case(url, rect, &load_callback)
-    else
-      pixbuf = ImageCache::Pixbuf.load(url, rect)
-      return pixbuf if pixbuf
-      if(is_local_path?(url))
-        url = File.expand_path(url)
-        if(FileTest.exist?(url))
-          Gdk::Pixbuf.new(url, rect.width, rect.height)
-        else
-          notfound_pixbuf(rect) end
+    pixbuf = ImageCache::Pixbuf.load(url, rect)
+    return pixbuf if pixbuf
+    if(is_local_path?(url))
+      url = File.expand_path(url)
+      if(FileTest.exist?(url))
+        Gdk::Pixbuf.new(url, rect.width, rect.height)
       else
-        via_internet(url, rect, &load_callback) end end
+        notfound_pixbuf(rect) end
+    else
+      via_internet(url, rect, &load_callback) end
   rescue Gdk::PixbufError
     notfound_pixbuf(rect)
   rescue => e
@@ -82,7 +79,7 @@ module Gdk::WebImageLoader
     else
       exception = nil
       if load_callback
-        web_image_thread(url){
+        WebImageThread.new{
           get_raw_data_load_proc(url, &load_callback) }
         :wait
       else
@@ -194,13 +191,6 @@ module Gdk::WebImageLoader
 
   private
 
-  # _url_ のホスト名１つにつき同時に指定された数だけブロックを実行する
-  # ==== Args
-  # [url] URL
-  # [&proc] 実行するブロック
-  def web_image_thread(url, &proc)
-    WebImageThread.new(&proc) end
-
   # urlが指している画像を引っ張ってきてPixbufを返す。
   # 画像をダウンロードする場合は、読み込み中の画像を返して、ロードが終わったらブロックを実行する
   # ==== Args
@@ -257,24 +247,6 @@ module Gdk::WebImageLoader
       raise e
     else
       notfound_pixbuf(rect) end end
-
-  # Gdk::WebImageLoader.pixbuf が呼ばれた時に、他のスレッドでそのURLの画像を
-  # ダウンロード中だった場合の処理
-  # ==== Args
-  # Gdk::WebImageLoader.pixbuf を参照
-  # ==== Return
-  # Pixbuf
-  def downloading_anotherthread_case(url, rect, &load_callback)
-    url.freeze
-    if(load_callback)
-      web_image_thread(url) {
-        pixbuf = ImageCache::Pixbuf.load(url, rect)
-        Delayer.new{ load_callback.call(pixbuf) } }
-      loading_pixbuf(rect)
-    else
-      ImageCache::Pixbuf.load(url, rect) end
-  rescue Gdk::PixbufError
-    notfound_pixbuf(rect) end
 
   def http(host, port)
     result = nil
