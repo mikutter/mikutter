@@ -1,0 +1,10 @@
+---
+slug: :ratelimit
+depends:
+  mikutter: '0.2.1'
+  plugin:
+  - gui
+version: '1.0'
+author: toshi_a
+name: 'Rate Limit'
+description: 'レートリミット情報を表示する'
