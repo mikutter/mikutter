@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
-require File.expand_path(File.dirname(__FILE__) + '/../utils')
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
+# require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'retriever'
 
 class Message < Retriever::Model

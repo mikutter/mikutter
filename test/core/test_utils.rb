@@ -2,7 +2,12 @@
 
 require 'test/unit'
 require 'uri'
+<<<<<<< HEAD:core/test/test_utils.rb
 require File.expand_path(File.dirname(__FILE__) + '/../utils')
+=======
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
+# require File.expand_path(File.dirname(__FILE__) + '/../utils')
+>>>>>>> remotes/katsyoshi/miku_dis:test/core/test_utils.rb
 miquire :lib, 'test_unit_extensions'
 
 $debug = true

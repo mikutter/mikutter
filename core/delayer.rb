@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require File.expand_path('utils')
+require File.expand_path(File.dirname(__FILE__)+'/utils')
 
 # ブロックを、後で時間があいたときに順次実行する。
 # 名前deferのほうがよかったんじゃね
