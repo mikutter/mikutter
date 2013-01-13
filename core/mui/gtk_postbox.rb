@@ -62,7 +62,7 @@ module Gtk
 
     def widget_post
       return @post if defined?(@post)
-      @post = Gtk::TextView.new
+      @post = gen_widget_post
       post_set_default_text(@post)
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
@@ -158,6 +158,9 @@ module Gtk
 
     private
 
+    def gen_widget_post
+      Gtk::TextView.new end
+
     def postable?
       not(widget_post.buffer.text.empty?) and (/[^\s]/ === widget_post.buffer.text) end
 
@@ -174,6 +177,7 @@ module Gtk
             set_focus(postbox.widget_post) end end
       if @options[:before_post_hook]
         @options[:before_post_hook].call(self) end
+      Plugin.call(:before_postbox_post, widget_post.buffer.text)
       true end
 
     def start_post
