@@ -16,9 +16,6 @@ file:core/skin/data/icon.png
 - notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
 - aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
 
-** gemで入れるもの(なくてもOKです):
-- httpclient
-
 * OS/ディストリ別インストール方法
 ** Ubuntu 12.04でのインストール方法
    1. aptでインストール
@@ -26,7 +23,7 @@ file:core/skin/data/icon.png
          : $ sudo apt-get update
          : $ sudo apt-get upgrade
       2. mikutterに必要なパッケージをインストールします
-         : $ sudo apt-get install ruby1.9.1 ruby-gnome2 libnotify-bin
+         : $ sudo apt-get install ruby1.9.1 ruby1.9.1-dev libnotify-bin
    2. バージョンの確認
       以下のコマンドを実行してください。
       : $ ruby -v
@@ -52,12 +49,16 @@ file:core/skin/data/icon.png
    http://shootingstar067.com/
 
 ** 共通の設定 # <<common settings>>
-   1. ruby mikutter.rb で起動できます。
-   2. ruby mikutter.rb --debug とすると、人柱気分が味わえます。
+   必要なライブラリをインストールします。
+
+   : $ sudo gem install bundler
+   : $ sudo bundle
+
+   以上でインストールは終了です。
 
 ** 起動
    単純に、以下のようなコマンドで実行できます。
-   : ruby mikutter.rb
+   : $ ruby mikutter.rb
 
 * ディレクトリ構成
   - mikutter.rb 本体起動スクリプト
