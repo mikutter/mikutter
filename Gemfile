@@ -1,7 +1,6 @@
 source :rubygems
 platforms :ruby_19 do
   gem 'gtk2'
-  gem 'escape'
   gem 'oauth', '~> 0.4.7'
   gem 'json_pure'
   gem 'bsearch', '~> 1.5.0'
