@@ -17,19 +17,26 @@ class WeakStore
 
   def initialize
     @_storage = gen_storage
-    @_mutex = Mutex.new
+    @_mutex = Monitor.new
+    @_tls_name = "weakstore_lock_#{@_mutex.object_id}".to_sym
     @exit = false end
 
   def atomic(&proc)
-    @_mutex.synchronize(&proc) if not exit end
+    if not exit
+      Thread.current[@_tls_name] ||= 0
+      Thread.current[@_tls_name] += 1
+      begin
+        @_mutex.synchronize(&proc)
+      ensure
+        Thread.current[@_tls_name] -= 1 end end end
 
   protected
 
   def storage
-    if(@_mutex.locked?)
+    if(Thread.current[@_tls_name] and Thread.current[@_tls_name] >= 1)
       @_storage
     else
-      raise "WeakStore inner storage can control in atomic{} block only."
+      raise "WeakStore inner storage can control in atomic{} block only. #{Thread.current[@_tls_name]}"
       nil end end
 end
 
@@ -50,7 +57,7 @@ class TimeLimitedStorage < WeakStore
                  @_storage[key] = @repository[key] end
       repository
       result } end
-  alias add []
+  alias get []
 
   def []=(key, val)
     type_strict key => @key_class, val => @val_class
@@ -87,6 +94,83 @@ class TimeLimitedStorage < WeakStore
     Hash.new end
 
 end
+
+# ストレージ内の要素が一定のサイズ以上になったら、古いものから消去される連想配列っぽいもの。
+class SizeLimitedStorage < WeakStore
+  # 格納できる容量
+  attr_accessor :limit
+
+  # 使用している容量
+  attr_reader :using
+
+  # ==== Args
+  # [limit] 格納できる容量(Integer)
+  # [&proc] 要素の容量を返すブロック(デフォルト: sizeメソッド)
+  def initialize(key_class, val_class, limit, proc=(block_given? ? Proc.new : :size.to_proc))
+    @key_class, @val_class, @limit, @get_size = key_class, val_class, limit, proc
+    @using = 0
+    super()
+  end
+
+  def [](key)
+    atomic { storage[key] } end
+  alias get []
+
+  # 値 _val_ を追加する。
+  # これを入れることで容量制限を超えてしまう場合、入るようになるまで古い要素から順番に破棄される。
+  # _val_ のサイズが 容量制限以上だったら追加されない。
+  # ==== Args
+  # [key] キー
+  # [val] 値
+  # ==== Return
+  # val 又は nil（値が大きすぎて格納できない場合）
+  def []=(key, val)
+    type_strict key => @key_class, val => @val_class
+    val_size = get_size(val.freeze)
+    return nil if val_size >= @limit
+    atomic {
+      delete key
+      insert_value(key, val, val_size) }
+    val
+  end
+  alias store []=
+
+  def has_key?(key)
+    atomic{ storage.has_key? key }
+  end
+
+  # _key_ に対応する値を削除する
+  # ==== Args
+  # [key] キー
+  # ==== Return
+  # 削除した値。値が存在しない場合はnil。
+  def delete(key)
+    type_strict key => @key_class
+    atomic {
+      if has_key? key
+        result = storage.delete(key)
+        @using -= get_size(result)
+        result end } end
+
+  def inspect
+    "#<SizeLimitedStorage(#{@using}/#{@limit})>" end
+
+  private
+  def get_size(obj)
+    type_strict obj => @val_class
+    @get_size.call(obj) end
+
+  def insert_value(key, val, val_size = get_size(val))
+    type_strict key => @key_class, val => @val_class
+    if (@using + val_size) <= @limit
+      @using += val_size
+      storage[key] = val
+    else
+      delete storage.first[0]
+      insert_value(key, val, val_size) end end
+
+  def gen_storage
+    Hash.new end end
 
 class WeakStorage < WeakStore
 
