@@ -5,6 +5,18 @@ require File.expand_path File.join(File.dirname(__FILE__), 'basic_settings')
 
 Plugin.create(:settings) do
 
+  command(:open_setting,
+          name: '設定',
+          condition: lambda{ |opt| true },
+          visible: true,
+          icon: MUI::Skin.get("settings.png"),
+          role: :window) do |opt|
+    setting_window.show_all
+  end
+
+  on_open_setting do
+    setting_window.show_all end
+
   def setting_window
     return @window if defined?(@window) and @window
     record_order = UserConfig[:settings_menu_order] || ["基本設定", "入力", "表示", "通知", "ショートカットキー", "アクティビティ", "アカウント情報"]
@@ -46,8 +58,5 @@ Plugin.create(:settings) do
             widgets_dict[title].hide end } end
       false }
     menu.set_width_request(HYDE) end
-
-  on_gui_setting do
-    setting_window.show_all end
 
 end

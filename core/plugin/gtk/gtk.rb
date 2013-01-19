@@ -19,7 +19,7 @@ Plugin.create :gtk do
   # PostBoxとか複数のペインを持つための処理が入るので、Gtk::MikutterWindowクラスを新設してそれを使う
   on_window_created do |i_window|
     notice "create window #{i_window.slug.inspect}"
-    window = ::Gtk::MikutterWindow.new
+    window = ::Gtk::MikutterWindow.new(i_window)
     @slug_dictionary.add(i_window, window)
     window.title = i_window.name
     window.set_size_request(240, 240)

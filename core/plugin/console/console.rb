@@ -7,6 +7,7 @@ Plugin.create :console do
           name: 'コンソールを開く',
           condition: lambda{ |opt| true },
           visible: true,
+          icon: MUI::Skin.get('console.png'),
           role: :pane) do |opt|
     if Plugin::GUI::Tab.cuscaded.has_key?(:console)
       Plugin::GUI::Tab.instance(:console).active!
