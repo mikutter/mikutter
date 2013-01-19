@@ -176,7 +176,7 @@ Plugin.create :gtk do
       false }
     timeline.tl.ssc(:focus_in_event, &focus_in_event)
     timeline.tl.ssc(:destroy, &destroy_event)
-    timeline.ssc('key_press_event'){ |widget, event|
+    timeline.tl.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) }
     timeline.ssc(:destroy){
       i_timeline.destroy
