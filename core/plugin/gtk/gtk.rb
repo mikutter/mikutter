@@ -3,11 +3,20 @@
 # RubyGnome2を用いてUIを表示するプラグイン
 
 require "gtk2"
+
+miquire :mui,
+'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
+'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
+'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
+'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
+'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
+
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
+require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}

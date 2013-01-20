@@ -2,7 +2,7 @@
 
 require File.expand_path('utils')
 
-miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer'
+miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer', 'reserver'
 miquire :lib, "mikutwitter"
 
 Thread.abort_on_exception = true

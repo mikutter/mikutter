@@ -112,6 +112,7 @@ class Delayer
     self.class.synchronize{
       @@routines[prio] << self
     }
+    Thread.main.wakeup
   end
 
 end

@@ -14,7 +14,7 @@ class TC_GtkWebIcon < Test::Unit::TestCase
   end
 
   must "local image load" do
-    image = Gtk::WebIcon.new(MUI::Skin.get('mikutter.png'), 48, 48)
+    image = Gtk::WebIcon.new(Skin.get('mikutter.png'), 48, 48)
     assert_kind_of(Gdk::Pixbuf, image.pixbuf)
     assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), image.pixbuf)
     assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), image.pixbuf)

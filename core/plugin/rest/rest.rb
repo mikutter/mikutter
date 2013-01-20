@@ -25,7 +25,7 @@ Plugin.create :rest do
   def start(service)
     notice "boot period"
     @crawlers.each{ |s| s.call(service) }
-    Reserver.new(60){
+    ::Reserver.new(60){
       start(service) } end
 
   onboot do |service|

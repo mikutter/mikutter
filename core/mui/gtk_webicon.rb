@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # ／(^o^)＼
 require File.expand_path(File.dirname(__FILE__+'/utils'))
-miquire :core, 'environment', 'serialthread'
-miquire :mui, 'skin', 'web_image_loader'
+miquire :core, 'environment', 'serialthread', 'skin'
+miquire :mui, 'web_image_loader'
 
 require 'gtk2'
 require 'observer'

@@ -41,7 +41,7 @@ Plugin.create :saved_search do
   def add_tab(saved_search)
     type_strict saved_search => SavedSearch
     tab(saved_search.slug, saved_search.name) do
-      set_icon MUI::Skin.get("savedsearch.png")
+      set_icon Skin.get("savedsearch.png")
       timeline saved_search.slug end
     rewind_timeline(saved_search)
     register_cache(saved_search)

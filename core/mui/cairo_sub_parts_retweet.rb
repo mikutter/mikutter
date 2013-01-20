@@ -13,7 +13,7 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
   end
 
   def title_icon
-    Gdk::Pixbuf.new(MUI::Skin.get("retweet.png"), @icon_width, @icon_height) end
+    Gdk::Pixbuf.new(Skin.get("retweet.png"), @icon_width, @icon_height) end
 
   def name
     :retweeted end

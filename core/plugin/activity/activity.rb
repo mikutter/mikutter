@@ -151,7 +151,7 @@ Plugin.create(:activity) do
     closeup(activity_status.right)
 
   tab(:activity, "アクティビティ") do
-    set_icon MUI::Skin.get("underconstruction.png")
+    set_icon Skin.get("underconstruction.png")
     nativewidget activity_container
   end
 

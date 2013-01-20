@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # 画像のURLを受け取って、Gtk::Pixbufを返す
 
-miquire :mui, 'skin', 'web_image_loader_image_cache'
+miquire :core, 'serialthread', 'skin'
+miquire :mui, 'web_image_loader_image_cache'
 miquire :lib, 'memoize', 'addressable/uri'
-miquire :core, 'serialthread'
 require 'net/http'
 require 'uri'
 require 'thread'
@@ -158,7 +158,7 @@ module Gdk::WebImageLoader
     else
       _loading_pixbuf(rect.width, rect.height) end end
   def _loading_pixbuf(width, height)
-    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("loading.png")), width, height).freeze end
+    Gdk::Pixbuf.new(File.expand_path(Skin.get("loading.png")), width, height).freeze end
   memoize :_loading_pixbuf
 
   # 画像が見つからない場合のPixbufを返す
@@ -173,7 +173,7 @@ module Gdk::WebImageLoader
     else
       _notfound_pixbuf(rect.width, rect.height) end end
   def _notfound_pixbuf(width, height)
-    Gdk::Pixbuf.new(File.expand_path(MUI::Skin.get("notfound.png")), width, height).freeze
+    Gdk::Pixbuf.new(File.expand_path(Skin.get("notfound.png")), width, height).freeze
   end
   memoize :_notfound_pixbuf
 

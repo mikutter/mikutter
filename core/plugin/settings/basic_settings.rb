@@ -63,7 +63,7 @@ Plugin::create(:basic_settings) do
 このソフトウェアは GPL3 によって浄化されています。",
       :license => (file_get_contents('../LICENSE') rescue nil),
       :website => 'http://mikutter.hachune.net/',
-      :logo => MUI::Skin.get('icon.png'),
+      :logo => Skin.get('icon.png'),
       :authors => ['toshi_a', 'Phenomer', 'tana_ash'],
       :artists => ['toshi_a', 'soramame_bscl', 'bina1204', 'seibe2'],
       :documenters => ['toshi_a']

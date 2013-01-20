@@ -5,7 +5,6 @@ miquire :core, 'configloader'
 
 require 'singleton'
 require 'fileutils'
-require 'gtk2'
 
 #
 #= UserConfig 動的な設定

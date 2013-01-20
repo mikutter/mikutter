@@ -29,7 +29,7 @@ require 'fileutils'
 require File.expand_path('boot/option')
 require File.expand_path('utils')
 
-miquire :boot, 'check_config_permission'
+miquire :boot, 'check_config_permission', 'mainloop'
 miquire :core, 'service'
 miquire :boot, 'load_plugin'
 
@@ -39,13 +39,13 @@ Plugin.call(:boot, Post.primary_service)
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
-  Gtk.init_add{ Gtk.quit_add(Gtk.main_level){ SerialThreadGroup.force_exit! } }
+  Mainloop.before_mainloop
   if profile
     require 'ruby-prof'
     begin
       notice 'start profiling'
       RubyProf.start
-      Gtk.main
+      Mainloop.mainloop
     ensure
       result = RubyProf.stop
       printer = RubyProf::CallTreePrinter.new(result)
@@ -55,12 +55,12 @@ def boot!(profile)
       notice "profile: done."
     end
   else
-    Gtk.main end
+    Mainloop.mainloop end
 rescue => e
   into_debug_mode(e)
   raise e
 rescue Exception => e
-  e = Gtk.exception if Gtk.exception
+  e = Mainloop.exception_filter(e)
   notice e.class
   raise e
 end

@@ -11,7 +11,7 @@ Plugin.create :list do
   end
 
   profiletab :list, "リスト" do
-    set_icon MUI::Skin.get("list.png")
+    set_icon Skin.get("list.png")
     bio = ::Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
     container = ProfileTab.new(Plugin.create(:list), user)
@@ -219,7 +219,7 @@ Plugin.create :list do
     return self if timelines.has_key? slug
     timelines[slug] = list
     tab(slug, list[:full_name]) do
-      set_icon MUI::Skin.get("list.png")
+      set_icon Skin.get("list.png")
       timeline slug end
     list_modify_member(list, true)
     visible_list_obj = at(:visible_list_obj, {}).melt
