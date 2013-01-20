@@ -605,10 +605,3 @@ Module.new do
   end
 
 end
-
-miquire :mui,
-'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
-'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
-'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
-'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
-'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
