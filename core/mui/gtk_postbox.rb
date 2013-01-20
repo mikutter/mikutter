@@ -90,7 +90,7 @@ module Gtk
 
     def widget_send
       return @send if defined?(@send)
-      @send = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('post.png'), 16, 16))
+      @send = Gtk::Button.new.add(Gtk::WebIcon.new(Skin.get('post.png'), 16, 16))
       @send.sensitive = postable?
       @send.signal_connect('clicked'){|button|
         post_it
@@ -99,7 +99,7 @@ module Gtk
 
     def widget_tool
       return @tool if defined?(@tool)
-      @tool = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16))
+      @tool = Gtk::Button.new.add(Gtk::WebIcon.new(Skin.get('close.png'), 16, 16))
       @tool.signal_connect_after('focus_out_event', &method(:focus_out_event))
       @tool.ssc('event'){
         @tool.sensitive = destructible? || posting?

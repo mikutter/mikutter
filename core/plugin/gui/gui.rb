@@ -16,7 +16,7 @@ Plugin.create :gui do
 
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
-    window.set_icon File.expand_path(MUI::Skin.get('icon.png'))
+    window.set_icon File.expand_path(Skin.get('icon.png'))
     window << Plugin::GUI::Postbox.instance
     if panes.empty?
       panes = { default: [] } end

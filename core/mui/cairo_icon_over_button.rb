@@ -30,8 +30,8 @@ module Gdk::IconOverButton
 
   # _context_ にicon over buttonを描画する。
   def render_icon_over_button(context)
-    pb_overbutton = Gdk::Pixbuf.new(MUI::Skin.get("overbutton.png"))
-    pb_overbutton_mo = Gdk::Pixbuf.new(MUI::Skin.get("overbutton_mouseover.png"))
+    pb_overbutton = Gdk::Pixbuf.new(Skin.get("overbutton.png"))
+    pb_overbutton_mo = Gdk::Pixbuf.new(Skin.get("overbutton_mouseover.png"))
     context.save{
       context.translate(pos.main_icon.x, pos.main_icon.y)
       _schemer[:y_count].times{ |posy|
@@ -52,7 +52,7 @@ module Gdk::IconOverButton
                 context.paint } end
             context.save{
               context.translate(ir.x, ir.y)
-              icon_pb = Gdk::Pixbuf.new(MUI::Skin.get(icon_file_name))
+              icon_pb = Gdk::Pixbuf.new(Skin.get(icon_file_name))
               context.scale(ir.width.to_f / icon_pb.width, ir.height.to_f / icon_pb.height)
               context.set_source_pixbuf(icon_pb)
               context.paint } end } } } end

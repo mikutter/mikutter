@@ -30,7 +30,7 @@ Plugin.create :followingcontrol do
   def set_event(api, title)
     userlist = Gtk::UserList.new
     tab(api, title) do
-      set_icon MUI::Skin.get("#{api}.png")
+      set_icon Skin.get("#{api}.png")
       expand
       nativewidget userlist
     end
@@ -83,7 +83,7 @@ end
 #   def self.set_event(api, title)
 #     userlist = Gtk::UserList.new.show_all
 #     proc = gen_relationship(api, userlist)
-#     Plugin.call(:mui_tab_regist, userlist, title, MUI::Skin.get("#{api}.png"))
+#     Plugin.call(:mui_tab_regist, userlist, title, Skin.get("#{api}.png"))
 #     Plugin.create(:following_control).add_event(:period){ |service|
 #       promise = proc.call(service)
 #       if promise

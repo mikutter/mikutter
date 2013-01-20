@@ -21,13 +21,13 @@ module Plugin::DirectMessage
 
     list = userlist
     tab(:directmessage, "DM") do
-      set_icon MUI::Skin.get("directmessage.png")
+      set_icon Skin.get("directmessage.png")
       expand
       nativewidget list
     end
 
     profiletab(:directmessage, "DM") do
-      set_icon MUI::Skin.get("directmessage.png")
+      set_icon Skin.get("directmessage.png")
       nativewidget Plugin.create(:direct_message).dm_list_widget(user)
     end
 

@@ -9,7 +9,7 @@ Plugin.create(:settings) do
           name: '設定',
           condition: lambda{ |opt| true },
           visible: true,
-          icon: MUI::Skin.get("settings.png"),
+          icon: Skin.get("settings.png"),
           role: :window) do |opt|
     setting_window.show_all
   end

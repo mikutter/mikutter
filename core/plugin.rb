@@ -76,7 +76,7 @@ _source_user_ が、 _target_user_ をリスト _list_ に追加した時に呼�
 
 === mui_tab_regist(Gtk::Widget container, String label, String image=nil)
 ウィンドウにタブを追加する。 _label_ はウィンドウ内での識別名にも使われるので一意であること。
-_image_ は画像への相対パスかURLで、通常は #MUI::Skin.get の戻り値を使う。
+_image_ は画像への相対パスかURLで、通常は #Skin.get の戻り値を使う。
 _image_ が省略された場合は、 _label_ が使われる。
 
 === mui_tab_remove(String label)
@@ -611,4 +611,4 @@ miquire :mui,
 'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
 'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
 'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
-'pseudo_signal_handler', 'selectbox', 'skin', 'timeline_utils', 'userlist', 'webicon'
+'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
