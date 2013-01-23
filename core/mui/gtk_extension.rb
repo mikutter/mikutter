@@ -228,3 +228,7 @@ module Gtk
     memoize :url_open_command
   end
 end
+
+module MUI
+  Skin = ::Skin
+end
