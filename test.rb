@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 #! /usr/bin/ruby
+# -*- coding: utf-8 -*-
 
 successed = []
 failed = []
 processes = {}
 
-Dir.glob(File.dirname(__FILE__) + '/core/test/test_*').each{ |f|
+Dir.glob(File.dirname(__FILE__) + '/test/core/test_*').each{ |f|
   processes[fork { require File.expand_path(f) }] = f }
 
 Process.waitall.each{ |pid, stat|
