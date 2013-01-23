@@ -2,12 +2,11 @@
 require 'test/unit'
 require 'rubygems'
 require 'mocha'
-require File.expand_path(File.dirname(__FILE__) + '/../helper')
-# require File.expand_path(File.dirname(__FILE__) + '/../utils')
+require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 miquire :core, 'messageconverters'
+miquire :lib, 'weakstorage'
 
 $debug = true
-# seterrorlevel(:notice)
 $logfile = nil
 $daemon = false
 
