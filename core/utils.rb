@@ -226,14 +226,14 @@ def type_check(args, &proc)
   check_function = lambda{ |val, check|
     if not check
       true
-    elsif check.respond_to?(:call)
-      check.call(val)
     elsif check.is_a? Array
       val.__send__(*check)
     elsif check.is_a? Symbol
       val.respond_to?(check)
     elsif check.is_a?(Class) or check.is_a?(Module)
-      val.is_a?(check) end }
+      val.is_a?(check)
+    elsif check.respond_to?(:call)
+      check.call(val) end }
   error = args.find{ |a| not(check_function.call(*a)) }
   if(error)
     warn "argument error: #{error[0].inspect} is not passed #{error[1].inspect}"

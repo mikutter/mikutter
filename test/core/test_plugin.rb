@@ -1,44 +1,120 @@
 # -*- coding: utf-8 -*-
 
 require 'test/unit'
+require 'rubygems'
+require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
-# require File.expand_path(File.expand_path(File.dirname(__FILE__) + '/../utils'))
+
+Dir.chdir(File.expand_path(File.dirname(__FILE__) + '/../core'))
+$LOAD_PATH.push '.'
+require 'utils'
+
+miquire :lib, 'test_unit_extensions'
 miquire :core, 'plugin'
-miquire :core, 'message'
 
-require 'pp'
-
-$debug = true
-$debug_avail_level = 3
- # !> `*' interpreted as argument prefix
 class TC_Plugin < Test::Unit::TestCase
+  def setup
+    Plugin.clear!
+  end
 
-  def test_filter
-    plg = Plugin.create(:test)
-    plg.add_event_filter(:update){ |x, ary| [x, ary.select{ |x| x[:message] == 'qun' }] }
-    plg.add_event(:update){ |x, ary|
-      assert_kind_of(Array, ary)
-      # assert_equal(1, ary.size)
-    }
-    Plugin.call(:update, nil, [Message.new(:system => true, :message => 'moe'),
-                               Message.new(:system => true, :message => 'moe'),
-                               Message.new(:system => true, :message => 'qun')])
-    Delayer.run
+  must "basic plugin" do
+    sum = 0
+    Plugin.create(:event) do
+      on_increase do |v|
+        sum += v end
+
+      filter_increase do |v|
+        [v * 2]
+      end
+    end
+    Event[:increase].call(1)
+    Delayer.run while not Delayer.empty?
+    assert_equal(2, sum)
+  end
+
+  must "uninstall" do
+    sum = 0
+    Plugin.create(:event) do
+      on_increase do |v|
+        sum += v end
+      filter_increase do |v|
+        [v * 2]
+      end
+    end
+    Plugin.create(:event).uninstall
+    Event[:increase].call(1)
+    Delayer.run while not Delayer.empty?
+    assert_equal(0, sum)
+  end
+
+  must "detach" do
+    sum = 0
+    event = filter = nil
+    Plugin.create(:event) do
+      event = on_increase do |v|
+        sum += v end
+      filter = filter_increase do |v|
+        [v * 2]
+      end
+    end
+    Event[:increase].call(1)
+    Delayer.run while not Delayer.empty?
+    assert_equal(2, sum)
+
+    Plugin.create(:event).detach filter
+    Event[:increase].call(1)
+    Delayer.run while not Delayer.empty?
+    assert_equal(3, sum)
+
+    Plugin.create(:event).detach event
+    Event[:increase].call(1)
+    Delayer.run while not Delayer.empty?
+    assert_equal(3, sum)
+  end
+
+  must "get plugin list" do
+    assert_equal([], Plugin.plugin_list)
+    Plugin.create(:plugin_0)
+    assert_equal([:plugin_0], Plugin.plugin_list)
+    Plugin.create(:plugin_1)
+    assert_equal([:plugin_0, :plugin_1], Plugin.plugin_list)
+  end
+
+  must "load exist plugin" do
+    Plugin.stubs(:require).with("/path/to/plugin/loadtest/loadtest.rb").returns(true).once
+    Plugin.load_file("/path/to/plugin/loadtest/loadtest.rb", slug: :loadtest)
+  end
+
+  must "load plugin dependencies" do
+    Plugin.stubs(:require).with("a.rb").returns(true).once
+    Plugin.stubs(:require).with("b.rb").returns(true).once
+    Plugin.stubs(:require).with("c.rb").returns(true).once
+    Plugin.load_file("a.rb", slug: :a, depends: {plugin: [:b, :c]})
+    assert_equal([], Plugin.plugin_list)
+    Plugin.load_file("b.rb", slug: :b)
+    assert_equal([:b], Plugin.plugin_list)
+    Plugin.load_file("c.rb", slug: :c)
+    assert_equal([:b, :c, :a], Plugin.plugin_list)
+  end
+
+  must "dsl method defevent" do
+    Plugin.create :defevent do
+      defevent :increase, prototype: [Integer] end
+    assert_equal([Integer], Event[:increase].options[:prototype])
+    assert_equal(Plugin[:defevent], Event[:increase].options[:plugin])
+  end
+
+  must "unload hook" do
+    value = 0
+    Plugin.create(:unload) {
+      on_unload {
+        value += 2 }
+      on_unload {
+        value += 1 } }
+    assert_equal(value, 0)
+    Plugin.create(:unload).uninstall
+    assert_equal(value, 3)
   end
 
 end
-# >> Loaded suite -
-# >> Started
-# >> [[#<Plugin::PluginTag:0x7f54f17516e0 @name=:core, @status=:active>,
-# >>   #<Proc:0x00007f54f1777958@./plugin/plugin.rb:278>],
-# >>  3,
-# >>  3]
-# >> [[#<Plugin::PluginTag:0x7f54e6c4aeb8 @name=:test, @status=:active>,
-# >>   #<Proc:0x00007f54f42d8c28@-:17>],
-# >>  3,
-# >>  1]
-# >> 1
-# >> .
-# >> Finished in 0.005362 seconds.
-# >> 
-# >> 1 tests, 1 assertions, 0 failures, 0 errors
+
