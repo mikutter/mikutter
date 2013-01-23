@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
 require 'mocha'
-require File.expand_path(File.dirname(__FILE__) + '/../helper')
-# require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
-# require File.expand_path(File.dirname(__FILE__) + '/../utils')
+require File.expand_path(File.dirname(__FILE__) + '/../../core/lib/test_unit_extensions')
+require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 miquire :core, 'message'
-miquire :core, 'post'
+miquire :core, 'service'
 
 $debug = false
 # seterrorlevel(:notice)

@@ -4,10 +4,7 @@ require 'test/unit'
 require 'rubygems'
 require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
-
-Dir.chdir(File.expand_path(File.dirname(__FILE__) + '/../core'))
-$LOAD_PATH.push '.'
-require 'utils'
+require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 
 miquire :lib, 'test_unit_extensions'
 miquire :core, 'plugin'
