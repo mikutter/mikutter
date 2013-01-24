@@ -32,13 +32,12 @@ class Event
   # ==== Args
   # [*args] イベントの引数
   # ==== Return
-  # Delayer
+  # Delayerか、イベントを待ち受けているリスナがない場合はnil
   def call(*args)
-    filter = Thread.new{ filtering(*args) }
     Delayer.new(priority) {
       changed
-      result = filter.value
-      catch(:plugin_exit){ notify_observers(*result) } if result.is_a? Array } end
+      args = filtering(*args) if not @filters.empty?
+      catch(:plugin_exit){ notify_observers(*args) } if args.is_a? Array } end
 
   # 引数 _args_ をフィルタリングした結果を返す
   # ==== Args

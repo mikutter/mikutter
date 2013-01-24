@@ -4,9 +4,7 @@ require 'test/unit'
 require 'rubygems'
 require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
-require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 
-miquire :lib, 'test_unit_extensions'
 miquire :core, 'plugin'
 
 class TC_Plugin < Test::Unit::TestCase
