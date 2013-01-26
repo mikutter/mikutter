@@ -78,6 +78,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
   # ==== Return
   # self
   def rewind(msg)
+    type_strict msg => String
     set_buffer(Gtk::TextBuffer.new)
     gen_body(msg)
   end
@@ -93,6 +94,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
   end
 
   def gen_body(msg, fonts={})
+    type_strict msg => String, fonts => Hash
     tags = fonts2tags(fonts)
     tag_shell = buffer.create_tag('shell', fonts2tags(fonts))
     buffer.insert(buffer.start_iter, msg, 'shell')
