@@ -52,13 +52,13 @@ module ::Plugin::Command
     not opt.messages.empty? and opt.messages.all? { |m|
       m.retweetable? and m.retweeted_by_me? } }
 
-  # 選択されているツイートが全てリツイート可能な時。
+  # 選択されているツイートが全てお気に入りに追加可能な時。
   # ツイートが選択されていなければ偽
   CanFavoriteAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
       m.favoritable? and not m.favorited_by_me? } }
 
-  # 選択されているツイートが全てに対してリツイートしている場合。
+  # 選択されているツイートが全てが既にお気に入りに追加されている場合。
   # ツイートが選択されていなければ偽
   IsFavoritedAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
