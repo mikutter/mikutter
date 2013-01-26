@@ -22,11 +22,11 @@ module Gtk
       menu = Gtk::Menu.new
       @contextmenu.each{ |param|
         label, cond, proc, icon = param
-        if icon.is_a? Proc
-          icon = icon.call(*[optional, widget][0, (icon.arity == -1 ? 1 : icon.arity)]) end
         if cond.call(*[optional, widget][0, (cond.arity == -1 ? 1 : cond.arity)])
           if label
             label_text = defined?(label.call) ? label.call(*[optional, widget][0, (label.arity == -1 ? 1 : label.arity)]) : label
+            if icon.is_a? Proc
+              icon = icon.call(*[optional, widget][0, (icon.arity == -1 ? 1 : icon.arity)]) end
             if icon
               item = Gtk::ImageMenuItem.new(label_text)
               item.set_image(Gtk::WebIcon.new(icon, 16, 16))
