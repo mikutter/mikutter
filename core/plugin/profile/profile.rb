@@ -62,7 +62,7 @@ Plugin.create :profile do
     scrolledwindow.style = container.style
     nativewidget scrolledwindow.show_all
     user_complete do
-      biotext = user[:detail]
+      biotext = (user[:detail] || "")
       if user[:url]
         biotext += "\n\nWeb: " + user[:url] end
       bio.rewind(biotext)
