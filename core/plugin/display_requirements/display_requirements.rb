@@ -4,7 +4,6 @@ Plugin.create :display_requirements do
   BIRD_URL = "http://mikutter.hachune.net/img/twitter-bird.png".freeze
   CACHE_DIR = File.expand_path(File.join(Environment::CACHE, 'dr'))
   BIRD_CACHE_PATH = File.join(CACHE_DIR, "twitter-bird.png")
-  FileUtils.mkdir_p(CACHE_DIR)
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
     i_tab.shrink
@@ -17,8 +16,27 @@ Plugin.create :display_requirements do
   end
 
   on_image_cache_saved do |url, imagedata|
-    if BIRD_URL == url and not FileTest.exist?(BIRD_CACHE_PATH)
-      file_put_contents BIRD_CACHE_PATH, imagedata
+    begin
+      if BIRD_URL == url and not FileTest.exist?(BIRD_CACHE_PATH)
+        FileUtils.mkdir_p(CACHE_DIR)
+        file_put_contents BIRD_CACHE_PATH, imagedata
+      end
+    rescue => exception
+      # ここにmikutterをクラッシュさせようとする厄介がおるじゃろ
+      # 　　(＾ω＾)
+      #  ⊃exception⊂
+      #
+      # こうして…
+      # 　　(＾ω＾)
+      # 　 ⊃cepti⊂
+      # 　　　:･..
+      #
+      # こうじゃ
+      # 　　(＾ω＾)
+      # 　　 ⊃⊂
+      # 　　　:･:･
+      # 　　 ':.･..
+      warn exception
     end
   end
 
