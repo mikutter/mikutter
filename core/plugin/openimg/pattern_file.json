@@ -86,10 +86,7 @@
 	 	"attribute": { 
 			"tag": "meta",
 			"attribute": "content",
-			"content": {
-				"json_class": "Regexp",
-				"data": "^http://img\\.viame-cdn\\.com/photos/[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+/s600x600\\.jpg"
-			}
+			"property": "og:image"
 		}
  	},
 	"twitgoo": {
@@ -120,6 +117,34 @@
 			"tag" : "img",
 			"attribute": "src",
 			"class": "foto"
+		}
+	},
+	"imgur": {
+		"url": "http://imgur\\.com(/gallery)?/\\w+",
+		"attribute": {
+			"tag": "link",
+			"rel": "image_src",
+			"attribute": "href"
+		}
+	},
+	"Fotolog": {
+		"url": "http://fotolog\\.cc/\\w+",
+		"attribute": {
+			"tag": "meta",
+			"property": "og:image",
+			"attribute": "content"
+		}
+	},
+	"Danbooru": {
+		"url": "http://((danbooru|hijiribe)\\.donmai\\.us|chan\\.sankakucomplex\\.com|konachan.com)/post/show/\\d+",
+		"attribute": {
+			"id": "image"
+		}
+	},
+	"Danbooru old ver": {
+		"url": "http://(lolibooru\\.com|gelbooru\\.com)/index\.php\\?page=post&s=view&id=\\d+",
+		"attribute": {
+			"id": "image"
 		}
 	}
 }
