@@ -40,7 +40,7 @@
         }
     },
     "携帯百景": {
-        "url": "^http://movapic.com/(?:[a-zA-Z0-9]+/pic/d+|pic/[a-zA-Z0-9]+)",
+        "url": "^http://movapic.com/(?:[a-zA-Z0-9]+/pic/\\d+|pic/[a-zA-Z0-9]+)",
         "attribute": {
             "class": "image",
             "src": {
@@ -100,7 +100,7 @@
 		"attribute": {
 			"src": {
 				"json_class": "Regexp",
-				"data": "^http://(?:img\\.jigokuno\\.com|jigokuno\\.img\\.jugem\\.jp)/\\d{8}_\\d{7}.gif"
+				"data": "^http://(?:img\\.jigokuno\\.com|jigokuno\\.img\\.jugem\\.jp)/\\d{8}_\\d+\\."
 			},
 			"class": "pict"
 		}
@@ -142,7 +142,7 @@
 		}
 	},
 	"Danbooru old ver": {
-		"url": "http://(lolibooru\\.com|gelbooru\\.com)/index\.php\\?page=post&s=view&id=\\d+",
+		"url": "http://(lolibooru\\.com|gelbooru\\.com)/index\\.php\\?page=post&s=view&id=\\d+",
 		"attribute": {
 			"id": "image"
 		}
