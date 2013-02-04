@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'timeline', 'tree_view_pretty_scroll'
+miquire :mui, 'timeline', 'tree_view_pretty_scroll', 'dark_matter_prification'
 miquire :lib, 'bsearch'
 miquire :lib, 'uithreadonly'
 require 'gtk2'
@@ -9,9 +9,10 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   include UiThreadOnly
   include Gtk::TreeViewPrettyScroll
+  include Gtk::InnerTLDarkMatterPurification
 
   attr_writer :force_retrieve_in_reply_to
-  attr_accessor :postbox, :collect_counter, :imaginary
+  attr_accessor :postbox, :imaginary
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
@@ -32,7 +33,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def initialize(from = nil)
     super()
     @force_retrieve_in_reply_to = :auto
-    @collect_counter = 256
     @@current_tl ||= self
     @id_dict = {} # message_id: iter
     self.name = 'timeline'

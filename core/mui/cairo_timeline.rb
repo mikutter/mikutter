@@ -6,12 +6,8 @@ require 'cairo'
 class Gtk::TimeLine < Gtk::VBox
 end
 
-miquire :mui, 'crud'
-miquire :mui, 'cell_renderer_message'
-miquire :mui, 'timeline_utils'
-miquire :mui, 'pseudo_message_widget'
-miquire :mui, 'postbox'
-miquire :mui, 'inner_tl'
+miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'pseudo_message_widget', 'postbox'
+miquire :mui, 'inner_tl', 'dark_matter_prification'
 
 miquire :core, 'message'
 miquire :core, 'user'
@@ -24,6 +20,7 @@ miquire :lib, 'reserver'
 class Gtk::TimeLine
 
   include Gtk::TimeLineUtils
+  include Gtk::TimelineDarkMatterPurification
 
   attr_reader :tl
 
@@ -47,32 +44,7 @@ class Gtk::TimeLine
     @tl = InnerTL.new
     @tl.imaginary = imaginary
     closeup(postbox).pack_start(init_tl)
-    refresh_timer
   end
-
-  # InnerTLをすげ替える。
-  def refresh
-    notice "timeline refresh"
-    scroll = @tl.vadjustment.value
-    oldtl = @tl
-    @tl = InnerTL.new(oldtl)
-    remove(@shell)
-    @shell = init_tl
-    @tl.vadjustment.value = scroll
-    pack_start(@shell.show_all)
-    @exposing_miraclepainter = []
-    oldtl.destroy if not oldtl.destroyed?
-  end
-
-  # ある条件を満たしたらInnerTLを捨てて、全く同じ内容の新しいInnerTLにすげ替えるためのイベントを定義する。
-  def refresh_timer
-    Reserver.new(60) {
-      Delayer.new {
-        if !@tl.destroyed?
-          window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
-          @tl.collect_counter -= 1 if not window_active
-          refresh if not(InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.collect_counter <= (window_active ? -HYDE : 0)
-          refresh_timer end } } end
 
   def init_tl
     @tl.postbox = postbox
@@ -210,17 +182,16 @@ class Gtk::TimeLine
           remove_count = size - timeline_max
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
-              @tl.collect_counter -= 1
               tl_model_remove(iter) } end end } } end
 
-  # _iter_ を削除する。このメソッドを通さないと、Gdk::MiraclePainterに
-  # destroyイベントが発生しない。
-  # ==== Args
-  # [iter] 削除するレコード(Gtk::TreeIter)
-  def tl_model_remove(iter)
-    iter[InnerTL::MIRACLE_PAINTER].destroy
-    @tl.model.remove(iter)
-  end
+  if not method_defined? :tl_model_remove
+    # _iter_ を削除する。このメソッドを通さないと、Gdk::MiraclePainterに
+    # destroyイベントが発生しない。
+    # ==== Args
+    # [iter] 削除するレコード(Gtk::TreeIter)
+    def tl_model_remove(iter)
+      iter[InnerTL::MIRACLE_PAINTER].destroy
+      @tl.model.remove(iter) end end
 
   # スクロールなどの理由で新しくTLに現れたMiraclePainterにシグナルを送る
   def emit_expose_miraclepainter
