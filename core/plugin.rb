@@ -184,6 +184,19 @@ class Plugin
   def defevent(event_name, options={})
     Event[event_name].options.merge!({plugin: self}.merge(options)) end
 
+  # DSLメソッドを新しく追加する。
+  # 追加されたメソッドは呼ぶと &callback が呼ばれ、その戻り値が返される。引数も順番通り全て &callbackに渡される
+  # ==== Args
+  # [dsl_name] 新しく追加するメソッド名
+  # [&callback] 実行されるメソッド
+  # ==== Return
+  # self
+  def defdsl(dsl_name, &callback)
+    self.class.instance_eval {
+      define_method(dsl_name, &callback) }
+    self
+  end
+
   # プラグインが Plugin.uninstall される時に呼ばれるブロックを登録する。
   def onunload
     @unload_hook ||= []

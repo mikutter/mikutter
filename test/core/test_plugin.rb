@@ -111,5 +111,28 @@ class TC_Plugin < Test::Unit::TestCase
     assert_equal(value, 3)
   end
 
+  must "simple dsl" do
+    Plugin.create :dsl_def do
+      defdsl :twice do |number|
+        number * 2
+      end
+    end
+
+    dsl_use = Plugin.create(:dsl_use)
+    assert_equal(4, dsl_use.twice(2))
+    assert_equal(0, dsl_use.twice(0))
+    assert_equal(-26, dsl_use.twice(-13))
+  end
+
+  must "callback dsl" do
+    Plugin.create :dsl_def do
+      defdsl :rejector do |value, &condition|
+        value.reject(&condition)
+      end
+    end
+
+    dsl_use = Plugin.create(:dsl_use)
+    assert_equal([2, 4, 6], dsl_use.rejector(1..6){ |d| 0 != (d & 1) })
+  end
 end
 
