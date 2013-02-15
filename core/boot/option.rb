@@ -23,6 +23,9 @@ module Mopt
     opt.on('--profile', 'Profiling mode (for development)') { @opts[:profile] = true }
     opt.on('--skip-version-check', 'Skip library and environment version check') { @opts[:skip_version_check] = true }
     opt.on('-p', '--plugin=', 'Plugin slug to load (comma separated)'){ |plugins| @opts[:plugin] = (@opts[:plugin]||[]).concat plugins.split(",") }
+    opt.on('--confroot=', 'set confroot directory') { |v|
+      @opts[:confroot] = File.expand_path(v)
+    }
     opt.on('--clean', 'delete all caches and duplicated files') { |v|
       require 'fileutils'
       require File.expand_path('utils')

@@ -21,17 +21,18 @@ module CHIConfig
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
 
+  confroot = File.expand_path(File.join("~", ".#{ACRO}"))
   # コンフィグファイルのディレクトリ
-  CONFROOT = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}"
+  CONFROOT = (if Mopt.confroot then Mopt.confroot else confroot end) rescue confroot
 
   # 一時ディレクトリ
-  TMPDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}tmp#{File::SEPARATOR}"
+  TMPDIR = File.join(CONFROOT, 'tmp')
 
   # ログディレクトリ
-  LOGDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}log#{File::SEPARATOR}"
+  LOGDIR = File.join(CONFROOT, 'log')
 
   # キャッシュディレクトリ
-  CACHE = "#{CONFROOT}cache#{File::SEPARATOR}"
+  CACHE = File.join(CONFROOT, 'cache')
 
   # AutoTag有効？
   AutoTag = false

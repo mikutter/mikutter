@@ -19,7 +19,7 @@ require 'set'
   mikutter, CHIのプラグインでは通常はUserConfigをつかうこと。
 =end
 module ConfigLoader
-  SAVE_FILE = File.expand_path("#{Environment::CONFROOT}p_class_values.db")
+  SAVE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))
   BACKUP_FILE = "#{SAVE_FILE}.bak"
   AVAILABLE_TYPES = [Hash, Array, Numeric, String, Symbol, NilClass, TrueClass, FalseClass].freeze
 
