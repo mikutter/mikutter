@@ -33,6 +33,7 @@ class Plugin::Settings::Select
   # ==== Return
   # ウィジェット
   def build(label, config)
+    type_strict label => String, config => Symbol
     if has_widget?
       group = Gtk::Frame.new.set_border_width(8)
       group.set_label(label)
@@ -44,6 +45,7 @@ class Plugin::Settings::Select
   private
 
   def build_box(listener)
+    type_strict listener => Plugin::Settings::Listener
     box = Gtk::VBox.new
     group = Gtk::RadioButton.new
 
@@ -66,12 +68,13 @@ class Plugin::Settings::Select
             radio = Gtk::RadioButton.new(group)
             closeup container.closeup(radio).add(setting) end
         end
-        radio.signal_connect('toggled'){ |widget|
-          listener.set value if widget.active?
-          setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
-        notice "#{listener.get.inspect} == #{value.inspect}"
-        radio.active = listener.get == value
-        face.sensitive = radio.active? if face.is_a? Gtk::Widget } }
+        if radio
+          radio.signal_connect('toggled'){ |widget|
+            listener.set value if widget.active?
+            setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
+          notice "#{listener.get.inspect} == #{value.inspect}"
+          radio.active = listener.get == value
+          face.sensitive = radio.active? if face.is_a? Gtk::Widget end } }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する
