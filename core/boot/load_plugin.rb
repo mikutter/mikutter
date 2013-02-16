@@ -2,7 +2,7 @@
 # プラグインを全てロードする
 miquire :core, 'plugin'
 
-Miquire::Plugin.loadpath << 'plugin' << '../plugin' << '~/.mikutter/plugin'
+Miquire::Plugin.loadpath << 'plugin' << '../plugin' << File.join(Environment::CONFROOT, 'plugin')
 spec_unsupported = []
 Miquire::Plugin.each{ |path|
   spec_filename = File.join(File.dirname(path), "spec")
