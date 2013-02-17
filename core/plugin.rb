@@ -85,6 +85,14 @@ class Plugin
         require path
         Plugin.create(spec[:slug].to_sym){ @spec = spec } end end
 
+    def activity(kind, title, args = {})
+      Plugin.call(:modify_activity,
+                  { plugin: nil,
+                    kind: kind,
+                    title: title,
+                    date: Time.new,
+                    description: title }.merge(args)) end
+
     alias __clear_aF4e__ clear!
     def clear!
       Event.clear!
