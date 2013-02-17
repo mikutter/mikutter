@@ -11,7 +11,7 @@ Plugin.create(:settings) do
           visible: true,
           icon: Skin.get("settings.png"),
           role: :window) do |opt|
-    setting_window.show_all
+    Plugin.call(:open_setting)
   end
 
   on_open_setting do

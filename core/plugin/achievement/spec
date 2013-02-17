@@ -1,0 +1,11 @@
+---
+slug: :achievement
+depends:
+  mikutter: 0.2.2.1150
+  plugin:
+  - gui
+  - activity
+version: '1.0'
+author: toshi_a
+name: 実績
+description: mikutterに実績機能を提供します

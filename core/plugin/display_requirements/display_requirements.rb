@@ -53,6 +53,9 @@ Plugin.create :display_requirements do
   Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
     Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/^(?:#|＃)?.+$/)[0]))
   }
+
+  def rotten?
+  end
 end
 
 class ::Gdk::MiraclePainter

@@ -90,6 +90,7 @@ Plugin.create :gtk do
       notice "tabcontainer #{tabcontainer} => #{i_tab.inspect}"
       if i_tab
         i_pane.reorder_child(i_tab, index) end
+      Plugin.call(:after_gui_tab_reordered, i_tab)
       false }
     pane.ssc(:switch_page){ |this, page, pagenum|
       if pagenum == pane.page
@@ -103,6 +104,7 @@ Plugin.create :gtk do
       i_tab = tabcontainer.i_tab
       next false if i_tab.parent == i_pane
       notice "on_pane_created: reparent"
+      Plugin.call(:after_gui_tab_reparent, i_tab, i_tab.parent, i_pane)
       i_pane.add_child(i_tab, index)
       false }
     # 子が無くなった時 : このpaneを削除
