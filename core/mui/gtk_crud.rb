@@ -170,7 +170,7 @@ class Gtk::CRUD < Gtk::TreeView
   # 入力ウィンドウを表示する
   def popup_input_window(defaults = [])
     input = gen_popup_window_widget(defaults)
-    Mtk.dialog(dialog_title || "", input[:widget], self.toplevel || self, &input[:result]) end
+    Mtk.scrolled_dialog(dialog_title || "", input[:widget], self.toplevel || self, &input[:result]) end
 
   def gen_popup_window_widget(results = [])
     widget = Gtk::VBox.new

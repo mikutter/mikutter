@@ -217,7 +217,7 @@ class Plugin
   # [options] コマンドオプション
   # [&exec] コマンドの実行内容
   def command(slug, options, &exec)
-    command = options.merge(slug: slug, exec: exec).freeze
+    command = options.merge(slug: slug, exec: exec, plugin: @name).freeze
     add_event_filter(:command){ |menu|
       menu[slug] = command
       [menu] } end
