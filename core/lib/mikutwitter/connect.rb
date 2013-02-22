@@ -22,7 +22,7 @@ module MikuTwitter::Connect
   attr_accessor :consumer_key, :consumer_secret, :a_token, :a_secret, :oauth_url
 
   def initialize(*a, &b)
-    @oauth_url = 'http://twitter.com'
+    @oauth_url = 'https://twitter.com'
     super(*a, &b)
   end
 
