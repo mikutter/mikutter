@@ -188,7 +188,7 @@ Plugin.create :profile do
               followbutton.sensitive = false
               event = following ? :followings_destroy : :followings_created
               me.__send__(following ? :unfollow : :follow, user).next{ |msg|
-                Plugin.call(event, me, [user])
+                Plugin.call(event, me, Users.new([user]))
                 followbutton.sensitive = true unless followbutton.destroyed? }.
               terminate.trap{
                 followbutton.sensitive = true unless followbutton.destroyed? }

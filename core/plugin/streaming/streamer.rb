@@ -108,14 +108,14 @@ module ::Plugin::Streaming
           Plugin.activity :system, "unsupported event:\n" + YAML.dump(json) end end end
 
     defevent(:update, true) do |data|
-      events = {update: [], mention: [], mypost: []}
+      events = {update: Messages.new, mention: Messages.new, mypost: Messages.new}
       data.each { |json|
         msg = MikuTwitter::ApiCallSupport::Request::Parser.message(json.symbolize)
         events[:update] << msg
         events[:mention] << msg if msg.to_me?
         events[:mypost] << msg if msg.from_me? }
       events.each{ |event_name, data|
-        Plugin.call(event_name, @service, data) } end
+        Plugin.call(event_name, @service, data.freeze) } end
 
     defevent(:direct_message, true) do |data|
       Plugin.call(:direct_messages, @service, data.map{ |datum| MikuTwitter::ApiCallSupport::Request::Parser.direct_message(datum.symbolize) }) end
@@ -136,9 +136,9 @@ module ::Plugin::Streaming
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
       if(target.is_me?)
-        Plugin.call(:followers_created, @service, [source])
+        Plugin.call(:followers_created, @service, Users.new([source]))
       elsif(source.is_me?)
-        Plugin.call(:followings_created, @service, [target]) end end
+        Plugin.call(:followings_created, @service, Users.new([target])) end end
 
     defevent(:list_member_added) do |json|
       target_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize) # リストに追加されたユーザ

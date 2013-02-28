@@ -2,6 +2,8 @@
 require File.expand_path('utils')
 miquire :core, 'retriever', 'skin'
 
+miquire :lib, 'typed-array'
+
 class User < Retriever::Model
 
   @@users_id = WeakStorage.new(String, User) # {idname => User}
@@ -138,6 +140,6 @@ class User < Retriever::Model
   end
 
 end
-# ~> -:44: syntax error, unexpected kEND, expecting '}'
-# ~> -:98: class definition in method body
-# ~> -:115: syntax error, unexpected kEND, expecting '}'
+
+class Users < TypedArray(User)
+end
