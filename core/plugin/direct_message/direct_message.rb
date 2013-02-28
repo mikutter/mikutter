@@ -14,16 +14,20 @@ module Plugin::DirectMessage
     @dm_store = Hash.new{|h, k|
       Plugin.call(:direct_message_add_user, k)
       h[k] = [] }
+    # user_id => created_at(Integer)
+    userlist.dm_last_date = @dm_last_date = Hash.new
     @dm_lock = Mutex.new
     @counter = gen_counter
-    userlist.double_clicked = lambda{ |user|
-      Plugin.call(:show_profile, Service.primary_service, user) }
+    ul = userlist
+    userlist.listview.ssc(:row_activated) { |this, path, column|
+      iter = this.model.get_iter(path)
+      if iter
+        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
 
-    list = userlist
     tab(:directmessage, "DM") do
       set_icon Skin.get("directmessage.png")
       expand
-      nativewidget list
+      nativewidget ul
     end
 
     profiletab(:directmessage, "DM") do
@@ -32,11 +36,8 @@ module Plugin::DirectMessage
     end
 
     onperiod do
-      service = Service.primary_service
       if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
-        Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
-          result = dm + sent
-          Plugin.call(:direct_messages, service, result) if result and not result.empty? }.terminate end end
+        rewind end end
 
     filter_direct_messages do |service, dms|
       if defined? dms.sort_by
@@ -52,20 +53,25 @@ module Plugin::DirectMessage
     on_direct_message_add_user do |user_id|
       user = User.findbyid(user_id)
       if user.is_a? User
-        user[:last_dm_date] ||= 0
-        userlist.block_add(user)
-      end
-    end
+        userlist.add_user(Users.new([user])) end end
 
-    def call_api(service, api)
-      service.call_api(api, :count => UserConfig[:retrieve_count_direct_messages]) end
+    def rewind
+      service = Service.primary_service
+      Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
+        result = dm + sent
+        Plugin.call(:direct_messages, service, result) if result and not result.empty?
+      }.trap{ |e|
+        error e
+        raise e
+      }.terminate
+    end
 
     def add_dm(dm, user)
       unless @dm_store[user[:id]].any?{ |stored| stored[:id] == dm[:id] }
         created_at = Time.parse(dm[:created_at]).to_i
-        if user[:last_dm_date] and user[:last_dm_date] < created_at
-          user[:last_dm_date] = created_at
-          Delayer.new{ userlist.modify_date(user) } end
+        if not(@dm_last_date.has_key?(user.id)) or @dm_last_date[user.id] < created_at
+          @dm_last_date[user.id] = created_at
+          Delayer.new{ userlist.reorder(user) } end
         @dm_store[user[:id]] << dm end
     end
 
@@ -113,6 +119,8 @@ module Plugin::DirectMessage
       container.closeup(mumbles).add(::Gtk::HBox.new.add(tl).closeup(scrollbar))
       container
     end
+
+    rewind
 
   end
 end
