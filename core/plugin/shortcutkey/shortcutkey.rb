@@ -22,7 +22,16 @@ Plugin.create :shortcutkey do
 
   settings "ショートカットキー" do
     listview = Plugin::Shortcutkey::ShortcutKeyListView.new
-    pack_start(Gtk::HBox.new(false, 4).add(listview).closeup(listview.buttons(Gtk::VBox)))
+    filter_entry = listview.filter_entry = Gtk::Entry.new
+    filter_entry.primary_icon_pixbuf = Gdk::WebImageLoader.pixbuf(MUI::Skin.get("search.png"), 24, 24)
+    filter_entry.ssc(:changed){
+      listview.model.refilter
+    }
+    pack_start(Gtk::VBox.new(false, 4).
+               closeup(filter_entry).
+               add(Gtk::HBox.new(false, 4).
+                   add(listview).
+                   closeup(listview.buttons(Gtk::VBox))))
   end
 
 end

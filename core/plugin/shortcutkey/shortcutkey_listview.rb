@@ -9,12 +9,22 @@ module Plugin::Shortcutkey
     COLUMN_SLUG = 3
     COLUMN_ID = 4
 
+    attr_accessor :filter_entry
+
     def initialize
       super
+      set_model(Gtk::TreeModelFilter.new(model))
+      model.set_visible_func{ |model, iter|
+        if defined?(@filter_entry) and @filter_entry
+          [COLUMN_KEYBIND, COLUMN_COMMAND, COLUMN_SLUG].any?{ |column| iter[column].to_s.include?(@filter_entry.text) }
+        else
+          true end }
+      # model.set_modify_func(String){ |model, iter, column|
+      #   iter[1] }
       commands = Plugin.filtering(:command, Hash.new).first
       shortcutkeys.each{ |id, behavior|
         slug = behavior[:slug]
-        iter = model.append
+        iter = model.model.append
         iter[COLUMN_ID] = id
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
