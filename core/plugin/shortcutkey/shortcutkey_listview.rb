@@ -19,8 +19,6 @@ module Plugin::Shortcutkey
           [COLUMN_KEYBIND, COLUMN_COMMAND, COLUMN_SLUG].any?{ |column| iter[column].to_s.include?(@filter_entry.text) }
         else
           true end }
-      # model.set_modify_func(String){ |model, iter, column|
-      #   iter[1] }
       commands = Plugin.filtering(:command, Hash.new).first
       shortcutkeys.each{ |id, behavior|
         slug = behavior[:slug]
@@ -58,7 +56,6 @@ module Plugin::Shortcutkey
 
     def on_created(iter)
       bind = shortcutkeys
-      p [iter[COLUMN_SLUG], iter[COLUMN_KEYBIND]]
       name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
       name = name.call(nil) if name.is_a? Proc
       iter[COLUMN_ID] = new_serial
@@ -138,14 +135,16 @@ module Plugin::Shortcutkey
     def command_box(results)
       treeview = CommandList.new(results)
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
-      return ::Gtk::HBox.new(false, 0).
-                add(treeview).
-                closeup(scrollbar)
-      ::Gtk::VBox.new(false, 16).
-        closeup(::Gtk::Label.new('コマンド')).
-        closeup(::Gtk::HBox.new(false, 0).
-                add(treeview).
-                closeup(scrollbar))
+      filter_entry = treeview.filter_entry = Gtk::Entry.new
+      filter_entry.primary_icon_pixbuf = Gdk::WebImageLoader.pixbuf(MUI::Skin.get("search.png"), 24, 24)
+      filter_entry.ssc(:changed){
+        treeview.model.refilter
+        false }
+      return ::Gtk::VBox.new(false, 0)
+      .closeup(filter_entry)
+      .add(::Gtk::HBox.new(false, 0).
+           add(treeview).
+           closeup(scrollbar))
     end
 
     class KeyConfigWindow < ::Gtk::Window
@@ -158,21 +157,30 @@ module Plugin::Shortcutkey
 
     class CommandList < ::Gtk::TreeView
       include Gtk::TreeViewPrettyScroll
+
       COL_ICON = 0
       COL_NAME = 1
       COL_SLUG = 2
+
+      attr_accessor :filter_entry
+
       def initialize(results)
-        super(::Gtk::TreeStore.new(Gdk::Pixbuf, String, Symbol))
+        super(::Gtk::TreeModelFilter.new(::Gtk::TreeStore.new(::Gdk::Pixbuf, String, Symbol)))
+        model.set_visible_func{ |model, iter|
+          if defined?(@filter_entry) and @filter_entry
+            iter_match(iter, @filter_entry.text)
+          else
+            true end }
         append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
         append_column ::Gtk::TreeViewColumn.new("コマンド名", ::Gtk::CellRendererText.new, text: COL_NAME)
         append_column ::Gtk::TreeViewColumn.new("スラッグ", ::Gtk::CellRendererText.new, text: COL_SLUG)
         parents = Hash.new{ |h, k| # role => TreeIter
-          h[k] = iter = model.append(nil)
+          h[k] = iter = model.model.append(nil)
           iter[COL_NAME] = k.to_s
           iter
         }
         commands = Plugin.filtering(:command, Hash.new).first.map{ |slug, command|
-          iter = model.append(parents[command[:role]])
+          iter = model.model.append(parents[command[:role]])
           icon = command[:icon]
           icon = icon.call(nil) if icon.is_a? Proc
           if icon
@@ -199,7 +207,21 @@ module Plugin::Shortcutkey
         if selected
           scroll_to_cell(selected.path, nil, false, 0.5, 0) end
       end
+
+      private
+
+      def iter_match(iter, text)
+        [COL_NAME, COL_SLUG].any?{ |column|
+          iter[column].to_s.include?(text)
+        } or if iter.has_child?
+               iter.n_children.times.any?{ |i| iter_match(iter.nth_child(i), text) } end end
     end
 
   end
 end
+
+
+
+
+
+
