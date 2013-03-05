@@ -178,7 +178,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:("@#{user[:idname]} がふぁぼふぁぼしました\n"+
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#!/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -188,7 +188,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:("@#{user[:idname]} があんふぁぼしました\n"+
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#!/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -200,7 +200,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:("@#{retweet.user[:idname]} がリツイートしました\n"+
                               "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              "https://twitter.com/#!/#{source.user[:idname]}/statuses/#{source[:id]}"),
+                              "https://twitter.com/#{source.user[:idname]}/statuses/#{source[:id]}"),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.is_me? || source && source.user.is_me?),
@@ -212,7 +212,7 @@ Plugin.create(:activity) do
       activity(:list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました",
                description:("@#{user[:idname]} が #{list[:full_name]} に追加されました\n"+
                             "#{list[:description]} (by @#{list.user[:idname]})\n"+
-                            "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
+                            "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
                related: user.is_me? || source_user.is_me?,
                service: service) end
@@ -223,7 +223,7 @@ Plugin.create(:activity) do
       activity(:list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました",
                description:("@#{user[:idname]} が #{list[:full_name]} から削除されました\n"+
                             "#{list[:description]} (by @#{list.user[:idname]})\n"+
-                            "https://twitter.com/#!/#{list.user[:idname]}/#{list[:slug]}"),
+                            "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
                related: user.is_me? || source_user.is_me?,
                service: service) end
