@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 platforms :ruby_19 do
   gem 'gtk2'
   gem 'oauth', '~> 0.4.7'
