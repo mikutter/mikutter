@@ -1,14 +1,13 @@
 # -*- coding:utf-8 -*-
 
 require File.expand_path('utils')
-miquire :core, 'autotag'
 miquire :core, 'user'
 miquire :core, 'retriever'
 miquire :core, 'messageconverters'
 
 require 'net/http'
 require 'delegate'
-miquire :lib, 'typed-array'
+miquire :lib, 'typed-array', 'timelimitedqueue'
 
 =begin
 = Message
