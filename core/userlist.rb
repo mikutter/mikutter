@@ -35,7 +35,7 @@ class UserList < Retriever::Model
              ]
 
   def initialize(value)
-    assert_type(Hash, value)
+    type_strict value => Hash
     super(value)
   end
 

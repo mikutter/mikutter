@@ -49,26 +49,6 @@ def confroot(*path)
 end
 miquire :core, 'environment'
 
-# 複数条件if
-# 条件を二つ持ち、a&b,a&!b,!a&b,!a&!bの４パターンに分岐する
-# procs配列は前から順番に、上記の条件の順番に対応している。
-# 評価されたブロックの戻り値を返す。ブロックがない場合はfalseを返す。
-# なお、ブロックはa,bを引数に取り呼び出される。
-# 誰得すぎて自分でも使ってないけどどこかで使った気がするなぁ
-def biif(a, b, *procs, &last_proc)
-  procs.push(last_proc)
-  num = 0
-  if not(a) then
-    num += 2
-  end
-  if not(b) then
-    num += 1
-  end
-  if(procs[num]) then
-    procs[num].call(a,b)
-  end
-end
-
 # _num_ 番目の引数をそのまま返す関数を返す
 def ret_nth(num=0)
   lambda { |*arg| arg[num] } end
@@ -106,38 +86,6 @@ def object_get_contents(fn)
     Marshal.load input
   }
 end
-
-# オブジェクト _body_ をファイル _fn_ に書き込む。
-# _body_ は、Marshalizeできるものでなければならない。
-def object_put_contents(fn, body)
-  File.open(fn, 'w'){ |put|
-    Marshal.dump body, put
-  }
-end
-
-# YAMLファイルを読み込む。存在しない場合はからのハッシュを返す。
-# _file_ は、IOオブジェクトかファイル名。
-def confload(file)
-  if(file.is_a?(IO))
-    YAML.load(file.read)
-  elsif(FileTest.exist?(File.expand_path(file))) then
-    YAML.load(file_get_contents(file))
-  else
-    Hash.new
-  end
-end
-
-# プロセスID _pid_ が存在するか否かを返す。
-def pid_exist?(pid)
-  if FileTest.exist? '/proc' then
-    FileTest.exist? "/proc/#{pid}"
-  else
-    begin
-      Process.kill(0, pid.to_i)
-    rescue Errno::ESRCH
-      false
-    else
-      true end end end
 
 # UNIXコマンド _cmd_ が存在するか否かを返す。
 def command_exist?(cmd)
@@ -265,64 +213,20 @@ def result_strict(must, &block)
   result
 end
 
-# カレントスレッドがメインスレッドかどうかを返す
-def mainthread?
-  Thread.main == Thread.current end
-
 # メインスレッド以外で呼び出されたらThreadErrorを投げる
 def mainthread_only
-  unless mainthread?
+  unless Thread.main == Thread.current
     raise ThreadError.new('The method can calls only main thread. but called by another thread.') end end
 
 # メインスレッドで呼び出されたらThreadErrorを投げる
 def no_mainthread
-  if mainthread?
+  if Thread.main == Thread.current
     raise ThreadError.new('The method can not calls main thread. but called by main thread.') end end
-
-# type_checkで型をチェックしてからブロックを評価する無名関数を生成して返す
-def tclambda(*args, &proc)
-  lambda{ |*a|
-    if proc.arity >= 0
-      if proc.arity != a.size
-        raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end
-    elsif -(proc.arity+1) > a.size
-      raise ArgumentError.new("wrong number of arguments (#{a.size} for #{proc.arity})") end
-    proc.call(*a) if type_check(a.slice(0, args.size).zip(args)) } end
 
 # utils.rbのメソッドを呼び出した最初のバックトレースを返す
 def caller_util
   caller.each{ |result|
     return result unless /utils\.rb/ === result } end
-
-def caller_util_all
-  aflag = false
-  result = []
-  caller.each{ |c|
-    aflag |= /utils\.rb/ === c
-    result << c if aflag }
-  result end
-
-
-# デバッグモードの場合、_obj_ が _type_ とis_a?関係にない場合、RuntimeErrorを発生させる。
-# _obj_ を返す。
-def assert_type(type, obj)
-  if Mopt.debug and not obj.is_a?(type)
-    raise RuntimeError, "#{obj} should be type #{type}"
-  end
-  obj
-end
-
-# デバッグモードの場合、_obj_ _methods_ に指定されたメソッドをひとつでも持っていない場合、
-# RuntimeErrorを発生させる。
-# _obj_ を返す。
-def assert_hasmethods(obj, *methods)
-  if Mopt.debug
-    methods.all?{ |m|
-      raise RuntimeError, "#{obj.inspect} should have method #{m}" if not obj.methods.include? m
-    }
-  end
-  obj
-end
 
 # エラーログに記録する。
 # 内部処理用。外部からは呼び出さないこと。
@@ -378,32 +282,13 @@ end
 # 共通のMutexで処理を保護して実行する。
 # atomicブロックで囲まれたコードは、別々のスレッドで同時に実行されない。
 def atomic
-  # if Thread.current == Thread.main
-  #    raise 'Atomic Mutex dont have to block main thread'
-  # end
   $atomic.synchronize{ yield }
-end
-
-# 文字列をエンティティデコードする
-def entity_unescape(str)
-  str.gsub(/&(.{2,3});/){|s| {'gt'=>'>', 'lt'=>'<', 'amp'=>'&'}[$1] }
 end
 
 # コマンドをバックグラウンドで起動することを覗いては system() と同じ
 def bg_system(*args)
   Process.detach(spawn(*args))
 end
-
-def wakachigaki(str, ret_io=false)
-  if(ret_io)
-    IO.popen('mecab -Owakati', 'r+').tap{ |io|
-      io.write(str)
-      io.close_write }
-  else
-    IO.popen('mecab -Owakati', 'r+'){ |io|
-      io.write(str)
-      io.close_write
-      io.read } end end
 
 class Module
   # ハッシュ用のアクセサ。最初から空の連想配列が入っている
@@ -421,9 +306,6 @@ class Module
           hash[args[0]] = args[1] end } } end end
 
 class Object
-
-  def self.defun(method_name, *args, &proc)
-    define_method(method_name, &tclambda(*args, &proc)) end
 
   # freezeできるならtrueを返す
   def freezable?
@@ -447,51 +329,7 @@ class Numeric
   def freezable?
     false end end
 
-#
-# Integer
-#
-
-class Integer
-  # ページあたりone_page_contain個の要素が入る場合に、self番目の要素は何ページ目に来るかを返す
-  def page_of(one_page_contain)
-    (self.to_f / one_page_contain).ceil end
-
-end
-
-#
-# Float
-#
-
-class Float
-  # 小数n桁以前を削除
-  def floor_at(n)
-    (self * 10**n).floor.to_f / 10**n
-  end
-  def ceil_at(n)
-    (self * 10**n).ceil.to_f / 10**n
-  end
-  def round_at(n)
-    (self * 10**n).round.to_f / 10**n
-  end
-
-  # 百分率を返す（小数n桁まで）
-  def percent(n=0)
-    (self*100).floor_at(n)
-  end
-
-end
-
 module Enumerable
-
-  # 複数のeachの代わりになるメソッドを同時に使って繰り返す。
-  # 引数には、メソッド名をシンボルで渡すか、[メソッド名, 引数...]という配列を渡せる。
-  # 例 :
-  #   ary = [1, 2, 3]
-  #   ary.iterate(:each_with_index, [:inject, [:foo]]){ |a, x| a + x } # => [:foo, 1, 0, 2, 1, 3, 2]
-  def iterate(*methods)
-    methods.inject(self){ |itr, method|
-      method = [method] unless method.is_a? Array
-      Enumerable::Enumerator.new(itr, *method) }.each(&Proc.new) end
 
   # 各要素の[0]がキー、[1]が値のHashを返す。
   # ブロックが渡された場合、mapしてからto_hashした結果を返す。
@@ -514,49 +352,6 @@ end
 class Array
   include Comparable
 
-  # index番目からlength個の要素を先頭にもっていく
-  def bubbleup!(index, length=1)
-    if index.abs >= self.size
-      return nil
-    end
-    self[0,0]= self.slice!(index, length)
-    self
-  end
-
-  def bubbleup(index, length=1)
-    self.clone.bubbleup!(index, length)
-  end
-
-  # index番目からlength個の要素を末尾にもっていく
-  def bubbledown!(index, length=1)
-    if index.abs >= self.size
-      return nil
-    end
-    self[self.size-length..0]= self.slice!(index, length)
-    self
-  end
-
-  def bubbledown(index, length=1)
-    self.clone.bubbledown!(index, length)
-  end
-
-  # 1.9のrindexと同じ挙動
-  def reverse_index(val=nil, &proc)
-    if proc
-      val = Class.new{
-        define_method(:==, &proc) }.new end
-    rindex(val) end
-
-  # 1.9のindexと同じようにブロックを渡すことができる
-  def index(val = nil) # !> method redefined; discarding old index
-    compare = if(block_given?)
-                Proc.new
-              else
-                lambda{ |x| x == val } end
-    each_with_index{ |x, i|
-      return i if compare[x] }
-    nil end
-
   def symbolize
     result = []
     each { |val|
@@ -569,18 +364,6 @@ end
 class Hash
   # キーの名前を変換する。
   def convert_key(rule = nil)
-    if block_given?
-      convert_key_proc(&Proc.new)
-    else
-      convert_key_hash(rule) end end
-
-  def convert_key_proc(&rule)
-    result = {}
-    self.each_pair { |key, val|
-      result[rule.call(key)] = val }
-    result end
-
-  def convert_key_hash(rule)
     result = {}
     self.each_pair { |key, val|
       if rule[key]
@@ -596,12 +379,6 @@ class Hash
       result[key.to_sym] = if val.respond_to?(:symbolize) then val.symbolize else val end }
     result
   end
-
-  # 1.8でもHash#keyが正常に動作するようにする
-  unless(Hash.new.respond_to?(:key))
-    alias key index
-  end
-
 end
 
 #
@@ -609,42 +386,6 @@ end
 #
 
 class String
-
-  # 最初に文字列内に見つかった小数を返す
-  def trim_f()
-    if /-{0,1}\d+\.\d+/ =~ self then
-      return Regexp.last_match[0].to_f
-    end
-    return nil
-  end
-
-  # 最初に文字列内に見つかった整数を返す
-  def trim_i()
-    if /-{0,1}\d+/ =~ self then
-      return Regexp.last_match[0].to_i
-    end
-    return nil
-  end
-
-  # 最初に文字列内に見つかった数を返す
-  def trim_n()
-    biif(self.trim_i, self.trim_f, ret_nth(1), ret_nth(0))
-  end
-
-  # 日本語の分かち書きをする
-  def to_wakati()
-    wakachigaki(self)
-  end
-  alias to_wakachi to_wakati
-
-  # 日本語の分かち書きをする。mecabをスタートさせたら直ちにIOオブジェクトを返す。
-  # 実際の結果文字列はIO#readで読む。
-  def to_wakatio()
-    wakachigaki(self, true)
-  end
-  alias to_wakachio to_wakatio
-
-  # 引数にStringを渡したら、正規表現にコンパイルするmatch
   def match_regexp(str)
     if(str.is_a? String)
       match(Regexp.new(str))
@@ -670,24 +411,6 @@ class String
         proc.call(match, pos + match.begin(0), pos + match.begin(0)) end
       str = match.post_match
       pos += match.end(0) end end
-
-  def shrink(count, uni_char=nil, separator=' ')
-    o_match = uni_char && match(uni_char)
-    if o_match
-      pure_matched = o_match.pre_match + o_match[0]
-      sh_post = lazy{ o_match.post_match.shrink([count - pure_matched.size, 0].max, uni_char, separator) }
-      sh_head = lazy{ o_match.pre_match[0, [0, count-separator.size-o_match[0].size].max] }
-      if pure_matched.size <= count
-        pure_matched + sh_post
-      elsif not sh_head.nil?
-        (sh_head.empty? ? '' : sh_head + separator) + o_match[0] + sh_post
-      else
-        o_match[0].shrink(count, uni_char, separator)
-      end
-    elsif empty?
-      ""
-    else
-      self[0,count] end end
 
   # _byte_ バイト目が何文字目にあたるかを返す
   def get_index_from_byte(byte)
@@ -745,23 +468,9 @@ class HatsuneStore < PStore
     result = synchronize{
       super(ro){ |db| block.call(db) } }
     if (Time.now - start) >= 0.1
-      notice (Time.now - start).round_at(4).to_s
+      notice "%.4f" % (Time.now - start)
     end
     result
   end
 end
 
-def is_fib?(n)
-  x = 1
-  loop{
-    if(fib(x) == n)
-      return true
-    elsif(fib(x) > n)
-      return false end
-    x += 1 } end
-
-def fib(n)
-  return n if n < 2
-  fib(n-1) + fib(n-2)
-end
-memoize(:fib)

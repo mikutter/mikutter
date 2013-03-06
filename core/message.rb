@@ -53,7 +53,7 @@ class Message < Retriever::Model
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
   # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
-    assert_type(Hash, value)
+    type_strict value => Hash
     value.update(system) if value[:system]
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
