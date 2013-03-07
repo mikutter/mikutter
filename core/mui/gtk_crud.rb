@@ -48,7 +48,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def handle_row_activated
     self.signal_connect("row-activated"){|view, path, column|
-      if @editable and iter = view.model.get_iter(path)
+      if @updatable and iter = view.model.get_iter(path)
         if record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
           force_record_update(iter, record) end end }
   end
@@ -124,19 +124,23 @@ class Gtk::CRUD < Gtk::TreeView
   memoize :column_schemer
 
   def force_record_create(record)
-    iter = model.append
+    iter = model.model.append
     record.each_with_index{ |item, index|
       iter[index] = item }
     on_created(iter) end
 
   def force_record_update(iter, record)
+    if defined? model.convert_iter_to_child_iter(iter)
+      iter = model.convert_iter_to_child_iter iter end
     record.each_with_index{ |item, index|
       iter[index] = item }
     on_updated(iter) end
 
   def force_record_delete(iter)
+    if defined? model.convert_iter_to_child_iter(iter)
+      iter = model.convert_iter_to_child_iter iter end
     on_deleted(iter)
-    model.remove(iter)
+    model.model.remove(iter)
   end
 
   def record_create(optional, widget)
@@ -149,7 +153,7 @@ class Gtk::CRUD < Gtk::TreeView
     if @updatable
       self.selection.selected_each {|model, path, iter|
         record = popup_input_window((0...model.n_columns).map{|i| iter[i] })
-        if record
+        if record and not model.destroyed?
           force_record_update(iter, record) end } end end
 
   def record_delete(optional, widget)
