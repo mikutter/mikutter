@@ -122,20 +122,28 @@ Plugin.create(:activity) do
   activity_shell = ::Gtk::Table.new(2, 2)
   activity_description = ::Gtk::IntelligentTextview.new
   activity_status = ::Gtk::Label.new
-  activity_container = ::Gtk::VBox.new
+  activity_container = ::Gtk::VPaned.new
+  activity_detail_view = Gtk::ScrolledWindow.new
+
   reset_activity(activity_view.model)
 
+  activity_detail_view.
+    set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC).
+    set_height_request(88)
+
   activity_container.
-    pack_start(activity_shell.
+    pack1(activity_shell.
                attach(activity_view, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).
                attach(activity_vscrollbar, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL).
-               attach(activity_hscrollbar, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL)).
-    closeup(activity_description).
-    closeup(activity_status.right)
+               attach(activity_hscrollbar, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL),
+          true, true).
+    pack2(activity_detail_view.add_with_viewport(::Gtk::VBox.new.
+                                  closeup(activity_description).
+                                  closeup(activity_status.right)), true, false)
 
   tab(:activity, "アクティビティ") do
     set_icon Skin.get("underconstruction.png")
-    nativewidget activity_container
+    nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 
   activity_view.ssc("cursor-changed") { |this|
