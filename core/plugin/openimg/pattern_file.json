@@ -146,5 +146,12 @@
 		"attribute": {
 			"id": "image"
 		}
+	},
+	"pikubo": {
+		"url": "^http://(?:pikubo\\.jp/photo/[a-zA-Z0-9-]+|pikubo\\.me/[a-zA-Z0-9]+)",
+		"attribute": {
+			"class": "photo_frame kadomaru"
+		}
 	}
+
 }
