@@ -23,10 +23,16 @@ class Plugin::Achievement::Achievement
   # 解除する
   def take!
     unless took?
-      UserConfig[:achievement_took] = (UserConfig[:achievement_took] || []) + [slug]
       @events.each{ |e| plugin.detach(*e) }
       @events.clear
-      Plugin.call(:achievement_took, self) end
+      if @options[:depends] and not @options[:depends].empty?
+        unachievements = Plugin.filtering(:unachievements, {}).first.values_at(*@options[:depends])
+        if not unachievements.empty?
+          on_achievement_took do |ach|
+            if unachievements.delete(ach) and unachievements.empty?
+              _force_take! end end
+          return self end end
+      _force_take! end
     self end
 
   # 依存してる実績の中で、解除されてない最初の一つを返す
@@ -54,6 +60,12 @@ class Plugin::Achievement::Achievement
     end
     result
   end
+
+  private
+
+  def _force_take!
+    UserConfig[:achievement_took] = (UserConfig[:achievement_took] || []) + [slug]
+    Plugin.call(:achievement_took, self) end
 
 end
 
