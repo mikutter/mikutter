@@ -168,7 +168,7 @@ Plugin.create :openimg do
     end
   end
 
-  pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))))
+  pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))), create_additions: true)
   pattern.each{ |name, config|
     addsupport(Regexp.new(config["url"]), config["attribute"])
   }
