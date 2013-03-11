@@ -327,6 +327,9 @@ Plugin.create :gtk do
             path, = *tl.get_path(0, message)
               tl.set_cursor(path, column, false) if path end end end end end
 
+  on_gui_timeline_set_order do |i_timeline, order|
+    widgetof(i_timeline).set_order(&order) end
+
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
     if postbox

@@ -242,11 +242,11 @@ class Gdk::MiraclePainter < Gtk::Object
     if tree
       start, last = tree.visible_range
       if start
-        range = tree.selected_range_bytime
+        range = tree.selected_range_byorder
         if(tree.vadjustment.value == 0)
-          range.first <= message.modified.to_i
+          range.first <= @tree.get_order(message)
         else
-          range.include?(message.modified.to_i) end end
+          range.include?(@tree.get_order(message)) end end
     else
       true end end
 

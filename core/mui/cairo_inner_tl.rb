@@ -16,11 +16,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
-  Record = Struct.new(:id, :message, :created, :miracle_painter)
+  Record = Struct.new(:id, :message, :order, :miracle_painter)
 
   MESSAGE_ID = 0
   MESSAGE = 1
-  CREATED = 2
+  ORDER = 2
   MIRACLE_PAINTER = 3
 
   def self.current_tl
@@ -35,6 +35,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     @force_retrieve_in_reply_to = :auto
     @@current_tl ||= self
     @id_dict = {} # message_id: iter
+    @order = ->(m) { m.modified.to_i }
     self.name = 'timeline'
     set_headers_visible(false)
     set_enable_search(false)
@@ -59,6 +60,18 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       {:kind => :text, :type => Object}
     ].freeze
   end
+
+  def get_order(m)
+    type_strict m => Message
+    @order.call(m) end
+
+  # レコードの並び順を決めるブロックを登録する。ブロックは一つの Message を受け取り、数値を返す
+  # ==== Args
+  # [&block] 並び順を決めるブロック
+  # ==== Return
+  # self
+  def set_order(&block)
+    @order = block end
 
   def menu_pop(widget, event)
   end
@@ -108,11 +121,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         selected << path } end
     selected end
 
-  # 選択範囲の時刻(UNIX Time)の最初と最後を含むRangeを返す
-  def selected_range_bytime
+  # 選択範囲の並び順の最初と最後を含むRangeを返す
+  def selected_range_byorder
     start, last = visible_range
     start_record, last_record = get_record(start), get_record(last)
-    Range.new(last_record.created, start_record.created) if (start_record and last_record)
+    Range.new(last_record[2], start_record[2]) if (start_record and last_record)
   end
 
   # _message_ のレコードの _column_ 番目のカラムの値を _value_ にセットする。
@@ -190,7 +203,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       iter = model.append
       iter[MESSAGE_ID] = from_iter[MESSAGE_ID]
       iter[MESSAGE] = from_iter[MESSAGE]
-      iter[CREATED] = from_iter[CREATED]
+      iter[ORDER] = from_iter[ORDER]
       iter[MIRACLE_PAINTER] = from_iter[MIRACLE_PAINTER].set_tree(self)
       set_id_dict(iter) }
     self
