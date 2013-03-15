@@ -77,6 +77,7 @@ class Gdk::MiraclePainter < Gtk::Object
     @p_message = message
     @message = message.to_message
     @selected = false
+    @pixbuf = nil
     type_strict @message => Message
     super()
     coordinator(*coodinate)
@@ -113,7 +114,16 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # TLに表示するための Gdk::Pixbuf のインスタンスを返す
   def pixbuf
-    @pixbuf ||= gen_pixbuf
+    return @pixbuf if @pixbuf
+    if visible?
+      @pixbuf = gen_pixbuf
+      if(defined? @last_modify_height and @last_modify_height != @pixbuf.height)
+        tree.get_column(0).queue_resize
+        @last_modify_height = @pixbuf.height end
+      @pixbuf
+    else
+      @last_modify_height = height
+      Gdk::WebImageLoader.loading_pixbuf(@last_modify_height, @last_modify_height) end
   end
 
   # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が押されたことを通知する
@@ -231,9 +241,6 @@ class Gdk::MiraclePainter < Gtk::Object
       @pixmap = nil
       @pixbuf = nil
       @coordinate = nil
-      if(defined? @last_modify_height and @last_modify_height != height)
-        tree.get_column(0).queue_resize
-        @last_modify_height = height end
       signal_emit('modified') if event
     end
   end
@@ -333,7 +340,6 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # pixbufを組み立てる
   def gen_pixbuf
-    notice @modify_source.to_s + " " + @message.to_s
     @pixmap = gen_pixmap
     Gdk::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
   end

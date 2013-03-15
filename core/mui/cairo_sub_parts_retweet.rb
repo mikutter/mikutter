@@ -27,7 +27,7 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
               begin
                 mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.add(retweet[:user])
                 mp.on_modify
-              rescue Gtk::MiraclePainter::DestroyedError
+              rescue Gdk::MiraclePainter::DestroyedError
                 nil end end } }.terminate("retweet error") } end
 
     on_retweet_destroyed do |source, user, retweet_id|
@@ -37,7 +37,7 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
               begin
                 mp.subparts.find{ |sp| sp.class == Gdk::SubPartsRetweet }.delete(user)
                 mp.on_modify
-              rescue Gtk::MiraclePainter::DestroyedError
+              rescue Gdk::MiraclePainter::DestroyedError
                 nil end end }.terminate("retweet destroy error")
       }
     end
