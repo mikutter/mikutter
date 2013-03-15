@@ -4,6 +4,6 @@
 Plugin.create :alsa do
 
   defsound :alsa, "ALSA" do |filename|
-    spawn("aplay","-q", filename) if FileTest.exist?(filename) end
+    bg_system("aplay","-q", filename) if FileTest.exist?(filename) end
 
 end
