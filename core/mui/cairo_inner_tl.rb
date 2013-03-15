@@ -121,13 +121,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         selected << path } end
     selected end
 
-  # 選択範囲の並び順の最初と最後を含むRangeを返す
-  def selected_range_byorder
-    start, last = visible_range
-    start_record, last_record = get_record(start), get_record(last)
-    Range.new(last_record[2], start_record[2]) if (start_record and last_record)
-  end
-
   # _message_ のレコードの _column_ 番目のカラムの値を _value_ にセットする。
   # 成功したら _value_ を返す
   def update!(message, column, value)

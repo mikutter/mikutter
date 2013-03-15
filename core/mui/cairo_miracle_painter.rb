@@ -226,6 +226,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 更新イベントを発生させる
   def on_modify(event=true)
+    @modify_source = caller(1)
     if not destroyed?
       @pixmap = nil
       @pixbuf = nil
@@ -240,15 +241,9 @@ class Gdk::MiraclePainter < Gtk::Object
   # 画面上にこれが表示されているかを返す
   def visible?
     if tree
-      start, last = tree.visible_range
-      if start
-        range = tree.selected_range_byorder
-        if(tree.vadjustment.value == 0)
-          range.first <= @tree.get_order(message)
-        else
-          range.include?(@tree.get_order(message)) end end
-    else
-      true end end
+      range = tree.visible_range
+      if range and 2 == range.size
+        Range.new(*range).cover?(tree.get_path_by_message(@message)) end end end
 
   def destroy
     def self.tree
@@ -338,6 +333,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # pixbufを組み立てる
   def gen_pixbuf
+    notice @modify_source.to_s + " " + @message.to_s
     @pixmap = gen_pixmap
     Gdk::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
   end
@@ -362,8 +358,7 @@ class Gdk::MiraclePainter < Gtk::Object
     render_background context
     render_main_icon context
     render_main_text context
-    render_parts context
-  end
+    render_parts context end
 
   def render_background(context)
     context.save{

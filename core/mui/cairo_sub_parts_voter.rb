@@ -14,11 +14,6 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     @icon_width, @icon_height, @margin, @votes, @user_icon = 24, 24, 2, get_default_votes.to_a, Hash.new
     @avatar_rect = []
     @icon_ofst = 0
-    if not(helper.visible? or @votes.empty?)
-      sid = helper.ssc(:expose_event){
-        helper.on_modify
-        helper.signal_handler_disconnect(sid)
-        false } end
     helper.ssc(:click){ |this, e, x, y|
       ofsty = helper.mainpart_height
       helper.subparts.each{ |part|
@@ -70,12 +65,11 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
 
   def render(context)
     if(not @votes.empty?)
-      if helper.visible?
-        context.save{
-          context.translate(@margin, 0)
-          put_title_icon(context)
-          put_counter(context)
-          put_voter(context) } end end
+      context.save{
+        context.translate(@margin, 0)
+        put_title_icon(context)
+        put_counter(context)
+        put_voter(context) } end
     @last_height = height end
 
   def height
