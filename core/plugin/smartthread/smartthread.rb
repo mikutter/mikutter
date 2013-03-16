@@ -32,7 +32,9 @@ Plugin.create :smartthread do
     tab slug, "会話#{serial}" do
       set_deletable true
       set_icon Skin.get("list.png")
-      timeline slug end
+      timeline slug do
+        order do |message|
+          message[:created].to_i end end end
     @timelines[slug] = opt.messages.map(&:ancestor).uniq
     timeline(slug) << opt.messages.map(&:around).flatten
     timeline(slug).active!
