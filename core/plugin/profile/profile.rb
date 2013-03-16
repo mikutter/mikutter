@@ -40,7 +40,11 @@ Plugin.create :profile do
 
   profiletab :usertimeline, "最近のツイート" do
     set_icon Skin.get("timeline.png")
-    i_timeline = timeline nil
+    uid = user.id
+    i_timeline = timeline nil do
+      order do |message|
+        retweet = message.retweeted_statuses.find{ |r| uid == r.user.id }
+        (retweet || message)[:created].to_i end end
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
