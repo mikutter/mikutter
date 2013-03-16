@@ -117,7 +117,7 @@ class Gdk::MiraclePainter < Gtk::Object
     return @pixbuf if @pixbuf
     if visible?
       @pixbuf = gen_pixbuf
-      if(defined? @last_modify_height and @last_modify_height != @pixbuf.height)
+      if(@pixbuf and defined?(@last_modify_height) and @last_modify_height != @pixbuf.height)
         tree.get_column(0).queue_resize
         @last_modify_height = @pixbuf.height end
       @pixbuf
