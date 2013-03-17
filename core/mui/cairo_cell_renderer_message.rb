@@ -126,7 +126,7 @@ module Gtk
 
     def message_id=(id)
       if id && id.to_i > 0
-        message = Message.findbyid(id.to_i, 1)
+        message = Message.findbyid(id.to_i, -2)
         if message
           return render_message(message) end end
       self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png')) end
