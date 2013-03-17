@@ -11,7 +11,6 @@ end
 
 require 'yaml'
 require 'thread'
-require 'resolv-replace'
 require 'pstore'
 require 'monitor'
 require "open-uri"
