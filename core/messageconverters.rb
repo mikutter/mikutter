@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'uri'
+require 'timeout'
 
 =begin rdoc
   URL短縮・展開のためのクラス。これを継承したクラスを作れば短縮URL機能として利用されるようになる
