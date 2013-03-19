@@ -7,7 +7,7 @@ Plugin.create :aspectframe do
     Time.new end
 
   THE_DAY = Time.new(now.year, 4, 1)..Time.new(now.year, 4, 2)
-  PREFETCH = Time.new(now.year, 3, 30)..THE_DAY.first
+  PREFETCH = Time.new(now.year, 3, 1)..THE_DAY.first
 
   CACHE_DIR = File.expand_path(File.join(Environment::CACHE, "af"))
 
