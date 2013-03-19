@@ -24,8 +24,9 @@ module Mopt
     opt.on('--skip-version-check', 'Skip library and environment version check') { @opts[:skip_version_check] = true }
     opt.on('-p', '--plugin=', 'Plugin slug to load (comma separated)'){ |plugins| @opts[:plugin] = (@opts[:plugin]||[]).concat plugins.split(",") }
     opt.on('--confroot=', 'set confroot directory') { |v|
-      @opts[:confroot] = File.expand_path(v)
-    }
+      @opts[:confroot] = File.expand_path(v) }
+    opt.on('--daemon', '-d'){
+      Process.daemon(true) }
     opt.on('--clean', 'delete all caches and duplicated files') { |v|
       require 'fileutils'
       require File.expand_path('utils')
@@ -38,15 +39,13 @@ module Mopt
       FileUtils.rm_rf(File.expand_path(File.join(Environment::CONFROOT, 'icons')))
       puts "delete "+File.expand_path(Environment::CACHE)
       FileUtils.rm_rf(File.expand_path(Environment::CACHE))
-      exit
-    }
+      exit }
     opt.on('-h', '--help', "Show this message"){
       puts opt
       puts "command are:"
       puts "        generate [plugin_slug]       generate plugin template at ~/.mikutter/plugin/"
       puts "        spec [directory]             generate plugin spec. ex) mikutter spec ~/.mikutter/plugin/test"
-      exit
-    }
+      exit }
 
     opt.parse!(ARGV)
 
