@@ -5,7 +5,8 @@ require 'set'
 
 $LOAD_PATH.
   unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib'))).
-  unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/')))
+  unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/'))).
+  unshift(File.expand_path(File.join(File.dirname(__FILE__))))
 
 # ミクってかわいいよねぇ。
 # ツインテールいいよねー。
@@ -25,11 +26,11 @@ module Miquire
     PATH_KIND_CONVERTER[:mui] = Class.new{
       define_method(:+){ |other|
         render = lambda{ |r| File.join('mui', "#{r}_" + other) }
-        if other == '*' or FileTest.exist?(render[:cairo] + '.rb')
+        if other == '*' or FileTest.exist?(File.join(File.dirname(__FILE__), render[:cairo] + '.rb'))
           render[:cairo]
         else
           render[:gtk] end } }.new
-    PATH_KIND_CONVERTER[:core] = ''
+    PATH_KIND_CONVERTER[:core] = ""
     PATH_KIND_CONVERTER[:user_plugin] = '../plugin/'
     PATH_KIND_CONVERTER[:lib] = Class.new{
       define_method(:+){ |other|

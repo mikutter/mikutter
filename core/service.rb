@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path('utils')
-
 miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer', 'reserver'
 miquire :lib, "mikutwitter"
 

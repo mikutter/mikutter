@@ -9,7 +9,7 @@ class Skin
   end
 
   def self.path
-    %w(skin data)
+    [File.dirname(__FILE__), "skin", "data"]
   end
 
 end

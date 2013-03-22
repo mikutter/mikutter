@@ -3,7 +3,6 @@
 # ruby config loader
 #
 
-require File.expand_path('utils')
 miquire :core, 'environment'
 miquire :core, 'serialthread'
 miquire :miku, 'miku'

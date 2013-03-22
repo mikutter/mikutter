@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require File.expand_path('utils')
+
 miquire :core, 'retriever', 'skin'
 
 miquire :lib, 'typed-array'
