@@ -26,8 +26,8 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path('core/boot/option')
-require File.expand_path('core/utils')
+require File.expand_path(File.join(File.dirname(__FILE__), 'core/boot/option'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'core/utils'))
 
 miquire :boot, 'check_config_permission', 'mainloop'
 miquire :core, 'service'
