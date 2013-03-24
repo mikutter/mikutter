@@ -19,7 +19,7 @@ require 'set'
   mikutter, CHIのプラグインでは通常はUserConfigをつかうこと。
 =end
 module ConfigLoader
-  SAVE_FILE = File.expand_path("#{Environment::CONFROOT}p_class_values.db")
+  SAVE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))
   BACKUP_FILE = "#{SAVE_FILE}.bak"
   AVAILABLE_TYPES = [Hash, Array, Numeric, String, Symbol, NilClass, TrueClass, FalseClass].freeze
 
@@ -42,7 +42,7 @@ module ConfigLoader
   # _key_ が存在しない場合は nil か _ifnone_ を返す
   def at(key, ifnone=nil)
     ckey = configloader_key(key)
-    @@configloader_cache[ckey] ||= ConfigLoader.transaction(true){
+    @@configloader_cache[ckey] ||= ConfigLoader.transaction(true){ |pstore|
       if ConfigLoader.pstore.root?(ckey)
         to_utf8(ConfigLoader.pstore[ckey]).freeze
       elsif defined? yield
@@ -111,12 +111,11 @@ module ConfigLoader
       yield(pstore) } end
 
   def self.pstore
-    if not(@@configloader_pstore) then
+    if not(@@configloader_pstore)
       FileUtils.mkdir_p(File.expand_path(File.dirname(SAVE_FILE)))
       @@configloader_pstore = HatsuneStore.new(File.expand_path(SAVE_FILE))
     end
-    return @@configloader_pstore
-  end
+    @@configloader_pstore end
 
   def self.create(prefix)
     Class.new{
@@ -126,8 +125,7 @@ module ConfigLoader
 
   # データが壊れていないかを調べる
   def self.boot
-    if(FileTest.exist?(SAVE_FILE))
-    SerialThread.new{
+    if FileTest.exist?(SAVE_FILE)
       c = create("valid")
       if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
         FileUtils.copy(BACKUP_FILE, SAVE_FILE)
@@ -137,7 +135,10 @@ module ConfigLoader
         FileUtils.install(SAVE_FILE, BACKUP_FILE)
       end
       c.store(:validate, true)
-    }
+    end
+    if not(@@configloader_pstore)
+      FileUtils.mkdir_p(File.expand_path(File.dirname(SAVE_FILE)))
+      @@configloader_pstore = HatsuneStore.new(File.expand_path(SAVE_FILE))
     end
   end
 
