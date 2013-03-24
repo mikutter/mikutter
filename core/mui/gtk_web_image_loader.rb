@@ -7,6 +7,7 @@ miquire :core, 'serialthread'
 require 'net/http'
 require 'uri'
 require 'thread'
+require 'fileutils'
 
 module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
