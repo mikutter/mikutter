@@ -32,8 +32,8 @@ Plugin.create :aspectframe do
 
   # return fetched data
   filter_image_cache do |url, image, &stop|
-    if /http:\/\/toshia.dip.jp\/img\/api\/[0-9A-F]{2}\.png/ =~ url
-      local = localfile(url)
+    if /http:\/\/toshia.dip.jp\/img\/api\/([0-9A-F]{2})\.png/ =~ url
+      local = localfile_hash($1)
       if FileTest.exist? local
         raw = file_get_contents(local)
         if raw and not raw.empty?
@@ -51,8 +51,10 @@ Plugin.create :aspectframe do
   end
 
   def localfile(url)
-    File.expand_path(File.join(CACHE_DIR, "#{Digest::MD5.hexdigest(url)[0,2].upcase}_4.png"))
-  end
+    localfile_hash(Digest::MD5.hexdigest(url)[0,2]) end
+
+  def localfile_hash(hash)
+    File.expand_path(File.join(CACHE_DIR, "#{hash.upcase}_5.png")) end
 
   def the_day?
     THE_DAY.cover?(now) end
