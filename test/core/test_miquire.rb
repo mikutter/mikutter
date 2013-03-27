@@ -41,8 +41,22 @@ class TC_Miquire < Test::Unit::TestCase
     miquire :allfiles
   end
 
-  # must "enum plugins" do
-  #   Miquire::Plugin.loadpath << 'addon/'
-  # end
+  must "get plugin slug by path (spec exist)" do
+    assert_equal(:rest, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), '../../core/plugin/rest/'))))
+  end
+
+  must "get plugin slug by path (spec not exist)" do
+    Miquire::Plugin.stubs(:get_spec).returns(false)
+    assert_equal(:rest, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), '../../core/plugin/rest/'))))
+    assert_equal(:rest, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), '../../core/plugin/rest/rest.rb'))))
+  end
+
+  must "to_hash plugin slug and path" do
+    p Miquire::Plugin.to_hash
+  end
+
+  must "load a plugin and depends" do
+    #Miquire::Plugin.load(:home_timeline)
+  end
 
 end
