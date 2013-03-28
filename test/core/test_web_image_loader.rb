@@ -44,36 +44,31 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   must "internal server error" do
     WebMock.stub_request(:get, "internal.server.error").to_return(:status => 404)
-    response = nil
+    response_pixbuf = response_success = nil
     Gdk::WebImageLoader.pixbuf('http://internal.server.error/', 48, 48){ |pixbuf, success, url|
-      response = [pixbuf, success]
+      response_pixbuf, response_success = [pixbuf, success]
     }
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
-    assert_equal(true, response[1])
-    assert_kind_of(Gdk::Pixbuf, response[0])
+    assert_equal(true, response_success)
+    assert_kind_of(Gdk::Pixbuf, response_pixbuf)
   end
 
   must "successfully load image" do
     url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
     WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
-    response = nil
+    response_pixbuf = response_success = nil
     Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
-      response = [pixbuf, success]
+      response_pixbuf, response_success = [pixbuf, success]
     }
     (Thread.list - [Thread.current]).each &:join
     while not Delayer.empty? do Delayer.run end
     assert_equal(true, Delayer.empty?)
     assert_equal(0, Delayer.size)
-    assert_equal(nil, response[1])
-    # response[0].save('test/result.png', 'png')
+    assert_equal(nil, response_success)
 
     # もう一回ロードしてみる
-    response2 = nil
-    pb = Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
-      response2 = [pixbuf, success]
-    }
-    assert_equal(response[0], pb)
+    assert_equal(response_pixbuf, Gdk::WebImageLoader.pixbuf(url, 48, 48))
   end
 
   must "load by url included japanese" do
@@ -83,17 +78,17 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
     response = nil
     Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
-      response = [pixbuf, success]
+      response = success
     }
     (Thread.list - [Thread.current]).each &:join
     while not Delayer.empty? do Delayer.run end
     assert_equal(true, Delayer.empty?)
     assert_equal(0, Delayer.size)
-    assert_equal(nil, response[1])
+    assert_equal(nil, response)
   end
 
   must "successfully load local image" do
-    url = 'skin/data/icon.png'
+    url = File.join(File.dirname(__FILE__), '../../core/skin/data/icon.png')
     Plugin.stubs(:filtering).with(:web_image_loader_url_filter, url).returns([url])
     response = Gdk::WebImageLoader.pixbuf(url, 48, 48)
     (Thread.list - [Thread.current]).each &:join

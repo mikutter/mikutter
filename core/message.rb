@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 
-require File.expand_path('utils')
 miquire :core, 'user'
 miquire :core, 'retriever'
 miquire :core, 'messageconverters'

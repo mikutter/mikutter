@@ -3,8 +3,6 @@
 #
 # Reply display/post support
 
-require File.expand_path(File.join(File.basename(__FILE__), '..', 'plugin', "gui", "gui"))
-
 Plugin.create :mentions do
   tab :mentions, "Replies" do
     set_icon Skin.get("reply.png")

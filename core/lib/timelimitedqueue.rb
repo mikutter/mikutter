@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path(File.join('timelimitedqueue', 'timelimitedqueue'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'timelimitedqueue', 'timelimitedqueue'))

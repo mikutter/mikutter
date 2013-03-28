@@ -12,11 +12,11 @@ You should have received a copy of the GNU General Public License along with thi
 
 =end
 
-if File.symlink?($0)
-  Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
-else
-  Dir.chdir(File.join(File.dirname($0), 'core'))
-end
+# if File.symlink?($0)
+#   Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
+# else
+#   Dir.chdir(File.join(File.dirname($0), 'core'))
+# end
 
 Thread.abort_on_exception = true
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
@@ -26,8 +26,8 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path('boot/option')
-require File.expand_path('utils')
+require File.expand_path(File.join(File.dirname(__FILE__), 'core/boot/option'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'core/utils'))
 
 miquire :boot, 'check_config_permission', 'mainloop'
 miquire :core, 'service'

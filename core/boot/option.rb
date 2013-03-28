@@ -29,7 +29,7 @@ module Mopt
       Process.daemon(true) }
     opt.on('--clean', 'delete all caches and duplicated files') { |v|
       require 'fileutils'
-      require File.expand_path('utils')
+      require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
       miquire :core, 'environment'
       puts "delete "+File.expand_path(Environment::TMPDIR)
       FileUtils.rm_rf(File.expand_path(Environment::TMPDIR))
@@ -50,7 +50,7 @@ module Mopt
     opt.parse!(ARGV)
 
     if ARGV[0]
-      require File.expand_path('utils')
+      require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
       miquire :boot, 'check_config_permission'
       file = File.expand_path("boot/shell/#{ARGV[0]}.rb")
       if FileTest.exist?(file)

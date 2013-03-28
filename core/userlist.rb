@@ -5,7 +5,6 @@
 
 # users list
 
-require File.expand_path('utils')
 require 'typed-array'
 
 miquire :core, 'user', 'message', 'retriever'

@@ -27,8 +27,9 @@ RUBY_VERSION_ARRAY = RUBY_VERSION.split('.').map{ |i| i.to_i }.freeze
 
 require File.join(File::dirname(__FILE__), 'miquire')
 
-Dir::chdir(File::dirname(__FILE__))
-['.', 'lib', 'miku'].each{|path|
+[File::dirname(__FILE__),
+ File.join(File::dirname(__FILE__), 'lib'),
+ File.join(File::dirname(__FILE__), 'miku')].each{|path|
   $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
 }
 
