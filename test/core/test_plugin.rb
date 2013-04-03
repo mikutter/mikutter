@@ -75,23 +75,6 @@ class TC_Plugin < Test::Unit::TestCase
     assert_equal([:plugin_0, :plugin_1], Plugin.plugin_list)
   end
 
-  must "load exist plugin" do
-    Plugin.stubs(:require).with("/path/to/plugin/loadtest/loadtest.rb").returns(true).once
-    Plugin.load_file("/path/to/plugin/loadtest/loadtest.rb", slug: :loadtest)
-  end
-
-  must "load plugin dependencies" do
-    Plugin.stubs(:require).with("a.rb").returns(true).once
-    Plugin.stubs(:require).with("b.rb").returns(true).once
-    Plugin.stubs(:require).with("c.rb").returns(true).once
-    Plugin.load_file("a.rb", slug: :a, depends: {plugin: [:b, :c]})
-    assert_equal([], Plugin.plugin_list)
-    Plugin.load_file("b.rb", slug: :b)
-    assert_equal([:b], Plugin.plugin_list)
-    Plugin.load_file("c.rb", slug: :c)
-    assert_equal([:b, :c, :a], Plugin.plugin_list)
-  end
-
   must "dsl method defevent" do
     Plugin.create :defevent do
       defevent :increase, prototype: [Integer] end

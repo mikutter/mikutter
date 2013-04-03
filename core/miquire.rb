@@ -96,74 +96,7 @@ module Miquire
 
     def miquire_original_require(file)
       require file end
-
   end
 
-  # プラグインのロードに関すること
-  module Plugin
-
-    class << self
-
-      include Enumerable
-
-      # ロードパスの配列を返す。
-      # ロードパスに追加したい場合は、以下のようにすればいい
-      #
-      #  Miquire::Plugin.loadpath << 'pathA' << 'pathB'
-      def loadpath
-        @loadpath ||= [] end
-
-      # プラグインのファイル名(フルパス)で繰り返す。
-      def each
-        iterated = Set.new
-        detected = []
-        loadpath.reverse.each { |path|
-          Dir[File.join(File.expand_path(path), '*')].each { |file|
-            if FileTest.directory?(file) and FileTest.exist?(File.join(file, File.basename(file))+'.rb')
-              file = File.join(file, File.basename(file))+'.rb'
-            elsif not /\.rb$/ =~ file
-              next end
-            plugin_name = File.basename(file, '.rb')
-            if not iterated.include? plugin_name
-              iterated << plugin_name
-              detected << file end } }
-        detected.sort.each &Proc.new end
-
-      def each_spec
-        each{ |path|
-          spec = get_spec path
-          yield spec if spec } end
-
-      def to_hash
-        result = {}
-        each_spec{ |spec|
-          result[spec[:slug]] = spec }
-        result end
-
-      # 受け取ったパスにあるプラグインのスラッグを返す
-      # ==== Args
-      # [path] パス(String)
-      # ==== Return
-      # プラグインスラッグ(Symbol)
-      def get_slug(path)
-        spec = get_spec(path)
-        if spec
-          spec[:slug]
-        else
-          File.basename(path, ".rb").to_sym end end
-
-      # specファイルがあればそれを返す
-      # ==== Args
-      # [path] パス(String)
-      # ==== Return
-      # specファイルの内容か、存在しなければnil
-      def get_spec(path)
-        plugin_dir = FileTest.directory?(path) ? path : File.dirname(path)
-        spec_filename = File.join(plugin_dir, "spec")
-        if FileTest.exist? spec_filename
-          spec = YAML.load_file(spec_filename).symbolize
-          spec[:path] = plugin_dir
-          spec end end
-    end
-  end
+  class LoadError < StandardError; end
 end

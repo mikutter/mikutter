@@ -19,9 +19,6 @@ class Plugin
     def create(plugin_name, &body)
       type_strict plugin_name => Symbol
       Plugin[plugin_name].instance_eval(&body) if body
-      if defined?(@load_hook[plugin_name]) and @load_hook[plugin_name]
-        @load_hook[plugin_name].each &:call
-        @load_hook.delete(plugin_name) end
       Plugin[plugin_name] end
 
     # イベントを宣言する。
@@ -65,26 +62,6 @@ class Plugin
 
     alias plugin_list instances_name
 
-    # ファイル _path_ を実行し、プラグインを読み込む。
-    # ==== Args
-    # [path] ruby スクリプトファイルのパス
-    # [spec] specの内容(Hash)
-    def load_file(path, spec)
-      type_strict path => String, spec[:slug] => :to_sym
-      still_not_load = lazy{ (spec[:depends][:plugin].map(&:to_sym) - plugin_list) }
-      if defined?(spec[:depends]) and spec[:depends].is_a? Array
-        spec[:depends] = { plugin: spec[:depends] } end
-      if defined?(spec[:depends][:plugin]) and not still_not_load.empty?
-        still_not_load.each{ |depend|
-          load_hook(depend){
-            still_not_load.delete(depend)
-            if still_not_load.empty?
-              require path
-              Plugin.create(spec[:slug].to_sym){ @spec = spec } end } }
-      else
-        require path
-        Plugin.create(spec[:slug].to_sym){ @spec = spec } end end
-
     def activity(kind, title, args = {})
       Plugin.call(:modify_activity,
                   { plugin: nil,
@@ -98,14 +75,6 @@ class Plugin
       Event.clear!
       __clear_aF4e__()
     end
-
-    private
-
-    def load_hook(slug, &callback)
-      type_strict slug => Symbol, callback => Proc
-      @load_hook ||= {}
-      @load_hook[slug] ||= []
-      @load_hook[slug] << callback end
   end
 
   # プラグインの名前

@@ -52,7 +52,7 @@ module Mopt
     if ARGV[0]
       require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
       miquire :boot, 'check_config_permission'
-      file = File.expand_path("boot/shell/#{ARGV[0]}.rb")
+      file = File.join(File.dirname(__FILE__), "shell/#{ARGV[0]}.rb")
       if FileTest.exist?(file)
         require file
       else
