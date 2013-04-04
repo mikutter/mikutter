@@ -76,10 +76,14 @@ Plugin.create :extract do
       table = MIKU::SymbolTable.new(nil,
                                     :user => MIKU::Cons.new(message.idname, nil),
                                     :body => MIKU::Cons.new(message.to_s, nil),
-                                    :source => MIKU::Cons.new(message[:sources], nil),
+                                    :source => MIKU::Cons.new(message[:source] || "", nil),
                                     :message => MIKU::Cons.new(message, nil))
       tabs.each{ |record|
-        timeline(record[:slug]) << message if miku(record[:sexp], table) } } end
+        begin
+          timeline(record[:slug]) << message if miku(record[:sexp], table)
+        rescue Exception => e
+          error "filter '#{record[:name]}' crash: #{e.to_s}" end
+      } } end
 
   class ExtractTab < ::Gtk::CRUD
     ITER_NAME = 0
