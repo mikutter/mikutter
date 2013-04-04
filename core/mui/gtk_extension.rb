@@ -188,6 +188,11 @@ class Gtk::Notebook
     nil end
 end
 
+class Gtk::ListStore
+  def model
+    self end
+end
+
 module Gtk
   # _url_ を設定されているブラウザで開く
   class << self
