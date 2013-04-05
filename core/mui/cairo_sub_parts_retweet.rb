@@ -8,6 +8,10 @@ require 'cairo'
 class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
   regist
 
+  def get_vote_count
+    [helper.message[:retweet_count] || 0, super].max
+  end
+
   def get_default_votes
     helper.message.retweeted_by
   end

@@ -8,6 +8,10 @@ require 'cairo'
 class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
   regist
 
+  def get_vote_count
+    [helper.message[:favorite_count] || 0, super].max
+  end
+
   def get_default_votes
     helper.message.favorited_by
   end

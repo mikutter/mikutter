@@ -64,7 +64,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
         @votes[index] end end end
 
   def render(context)
-    if(not @votes.empty?)
+    if get_vote_count != 0
       context.save{
         context.translate(@margin, 0)
         put_title_icon(context)
@@ -73,7 +73,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     @last_height = height end
 
   def height
-    if @votes.empty?
+    if get_vote_count == 0
       0
     else
       icon_height end end
@@ -154,8 +154,12 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     layout = context.create_pango_layout
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = "#{votes.size}"
+    layout.text = "#{get_vote_count}"
     layout
+  end
+
+  def get_vote_count
+    votes.size
   end
 
 end
