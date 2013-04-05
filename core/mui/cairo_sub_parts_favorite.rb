@@ -19,7 +19,7 @@ class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
     :favorited end
 
   Delayer.new{
-    Plugin.create(:core) do
+    Plugin.create(:sub_parts_favorite) do
       onfavorite do |service, user, message|
         Gdk::MiraclePainter.findbymessage_d(message).next{ |mps|
           mps.deach{ |mp|

@@ -417,20 +417,6 @@ class Gdk::MiraclePainter < Gtk::Object
       context.translate(pos.main_text.x, pos.main_text.y)
       context.show_pango_layout(main_message(context)) } end
 
-  Delayer.new{
-    Plugin.create(:core).add_event(:posted){ |service, messages|
-      messages.each{ |message|
-        if(replyto_source = message.replyto_source)
-          findbymessage(replyto_source).each{ |mp|
-            mp.on_modify } end } }
-
-    Plugin.create(:core).add_event(:favorite){ |service, user, message|
-      if(user.is_me?)
-        findbymessage(message).each{ |mp|
-          mp.on_modify } end }
-
-  }
-
   class DestroyedError < Exception
   end
 

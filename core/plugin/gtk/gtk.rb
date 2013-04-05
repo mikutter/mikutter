@@ -409,6 +409,17 @@ Plugin.create :gtk do
             else
               window.set_focus(widget) end end end end end end
 
+  on_posted do |service, messages|
+    messages.each{ |message|
+      if(replyto_source = message.replyto_source)
+        Gdk::MiraclePainter.findbymessage(replyto_source).each{ |mp|
+          mp.on_modify } end } end
+
+  on_favorite do |service, user, message|
+    if(user.is_me?)
+      Gdk::MiraclePainter.findbymessage(message).each{ |mp|
+        mp.on_modify } end end
+
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
     if postbox
