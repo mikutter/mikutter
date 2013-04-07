@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
-require 'rubygems'
-require 'mocha'
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
+
 require 'webmock'
 require 'gtk2'
 
 ICON_TEST = File.expand_path(File.dirname(__FILE__) + "/icon_test.png")
-require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 
-require 'lib/test_unit_extensions'
 miquire :mui, 'web_image_loader'
 miquire :core, 'delayer'
 
@@ -75,7 +72,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     # URI::InvalidURIError
     # url = 'http://a1.twimg.com/profile_images/80925056/クリップボード01_normal.jpg'
     url = 'http://a0.twimg.com/profile_images/1522298893/みくかわいい.png'
-    WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
+    WebMock.stub_request(:get, url).to_return{ File.open(ICON_TEST, 'rb'){ |io| io.read } }
     response = nil
     Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
       response = success

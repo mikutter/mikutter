@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
-require 'rubygems'
 require 'mocha'
-require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :core, 'messageconverters'
 miquire :lib, 'weakstorage'
 

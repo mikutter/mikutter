@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
-require 'rubygems'
-require 'mocha'
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
 require 'webmock'
 require 'gtk2'
-require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
 
 require 'lib/test_unit_extensions'
 miquire :mui, 'webicon'

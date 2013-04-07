@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
 require 'mocha'
-require File.expand_path(File.dirname(__FILE__) + '/../../core/lib/test_unit_extensions')
-require File.expand_path(File.dirname(__FILE__) + '/../../core/utils')
+require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :core, 'message'
 miquire :core, 'service'
 
