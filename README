@@ -7,8 +7,8 @@ file:core/skin/data/icon.png
 * 用件
 
 ** 必須アプリケーション:
-- ruby (1.9.2)
-- ruby gtk (1.0.0)
+- ruby (1.9.3 or 2.0.0)
+- ruby gtk (1.5.0)
 - rcairo (1.10.0)
 - Open SSL
 
@@ -27,9 +27,9 @@ file:core/skin/data/icon.png
    2. バージョンの確認
       以下のコマンドを実行してください。
       : $ ruby -v
-      ubuntu 12.04 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。
-      そのため、上記コマンドでruby 1.9.3 以前のバージョンが表示されたら、以下のようなコマンドで起動しなければいけません。
+      ubuntu 12.04 では、単に apt-get で ruby というパッケージを入れると、 ruby1.8 が入ってしまい、 ruby コマンドでは ruby1.8 が起動してしまいます。その場合は以下のように、1.9.1をつけて起動します。
       : $ ruby1.9.1 mikutter.rb
+	  同様に、gemはgem1.9.1、bundleはbundle1.9.1です。
       [[common settings][共通の設定]]へ
 
 ** その他のディストリビューション
@@ -49,10 +49,10 @@ file:core/skin/data/icon.png
    http://shootingstar067.com/
 
 ** 共通の設定 # <<common settings>>
-   必要なライブラリをインストールします。
+   必要なライブラリをインストールします。割と時間がかかります。
 
    : $ sudo gem install bundler
-   : $ sudo bundle
+   : $ bundle install --path=vendor/bundle
 
    以上でインストールは終了です。
 
