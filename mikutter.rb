@@ -16,7 +16,7 @@ mikutter_directory = File.expand_path(File.dirname(__FILE__))
 begin
   ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
   require 'bundler/setup'
-rescue LoadError
+rescue LoadError, SystemExit
   ENV['GEM_HOME'] = File.join(mikutter_directory, 'vendor/bundle/ruby/' + RUBY_VERSION + '/')
 end
 
