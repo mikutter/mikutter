@@ -65,14 +65,24 @@ module Miquire::Plugin
       if FileTest.exist? spec_filename
         spec = YAML.load_file(spec_filename).symbolize
         spec[:path] = plugin_dir
+        spec[:kind] = get_kind(path)
         spec
       elsif FileTest.exist? path
         { slug: File.basename(path, ".rb").to_sym,
+          kind: get_kind(path),
           path: plugin_dir } end end
 
     def get_spec_by_slug(slug)
       type_strict slug => Symbol
       to_hash[slug] end
+
+    # プラグインがthirdpartyかbundleかを返す
+    def get_kind(path)
+      type_strict path => String
+      if path.start_with?(Environment::PLUGIN_PATH)
+        :bundle
+      else
+        :thirdparty end end
 
     def load_all
       each_spec{ |spec|

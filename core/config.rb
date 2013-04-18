@@ -34,6 +34,9 @@ module CHIConfig
   # キャッシュディレクトリ
   CACHE = File.join(CONFROOT, 'cache')
 
+  # プラグインディレクトリ
+  PLUGIN_PATH = File.expand_path(File.join(File.dirname(__FILE__), "plugin"))
+
   # AutoTag有効？
   AutoTag = false
 
