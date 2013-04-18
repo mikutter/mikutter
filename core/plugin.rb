@@ -80,6 +80,9 @@ class Plugin
   # プラグインの名前
   attr_reader :name
 
+  # spec
+  attr_accessor :spec
+
   # ==== Args
   # [plugin_name] プラグイン名
   def initialize(*args)

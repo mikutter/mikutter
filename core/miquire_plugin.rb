@@ -127,6 +127,8 @@ module Miquire::Plugin
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
       Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
+      plugin = ::Plugin.instance(spec[:slug])
+      plugin.spec = spec if plugin
       true end
   end
 end
