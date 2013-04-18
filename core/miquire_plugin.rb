@@ -27,7 +27,9 @@ module Miquire::Plugin
           if not iterated.include? plugin_name
             iterated << plugin_name
             detected << file end } }
-      detected.sort.each &Proc.new end
+      detected.sort_by{ |a|
+        [:bundle == get_kind(a) ? 0 : 1, a]
+      }.each &Proc.new end
 
     def each_spec
       each{ |path|
