@@ -17,7 +17,8 @@ begin
   ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
   require 'bundler/setup'
 rescue LoadError, SystemExit
-  ENV['GEM_HOME'] = File.join(mikutter_directory, 'vendor/bundle/ruby/' + RUBY_VERSION + '/')
+  # bundlerがないか、依存関係の解決に失敗した場合
+  # System の gem を使ってみる
 end
 
 Thread.abort_on_exception = true
