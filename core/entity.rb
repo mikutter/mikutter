@@ -19,17 +19,26 @@ class Message::Entity
     self end
 
   def self.filter(slug, &filter)
-    parent = @@filter[slug]
-    @@filter[slug] = lambda{ |s|
-      result = filter.call(parent.call(s))
-      [:url, :face].each{ |key|
-        raise InvalidEntityError.new("entity key :#{key} required. but not exist. ##{message[:id]}(#{message.to_s})") unless result[key] }
-      result }
+    if @@filter.has_key?(slug)
+      parent = @@filter[slug]
+      @@filter[slug] = filter_wrap{ |s| filter.call(parent.call(s)) }
+    else
+      @@filter[slug] = filter_wrap &filter end
     self end
+
+  def self.filter_wrap(&filter)
+    ->(s) {
+      result = filter.call(s)
+      [:url, :face].each{ |key|
+        if defined? result[:message]
+          raise InvalidEntityError.new("entity key :#{key} required. but not exist", result[:message]) unless result[key]
+        else
+          raise RuntimeError, "entity key :#{key} required. but not exist" end }
+      result } end
 
   def self.refresh
     @@linkrule = {}
-    @@filter = Hash.new(ret_nth)
+    @@filter = Hash.new(filter_wrap(&ret_nth))
     filter(:urls){ |segment|
       segment[:face] ||= segment[:url]
       if UserConfig[:shrinkurl_expand]
@@ -161,11 +170,14 @@ class Message::Entity
     if message[:entities]
       message[:entities].each{ |slug, children|
         children.each{ |link|
-          rule = @@linkrule[slug] || {}
-          entity = @@filter[slug].call(rule.merge({ :message => message,
-                                                    :from => :message_entities}.merge(link)))
-          entity[:range] = get_range_by_face(entity) #indices_to_range(link[:indices])
-          result << entity.freeze } } end
+          begin
+            rule = @@linkrule[slug] || {}
+            entity = @@filter[slug].call(rule.merge({ :message => message,
+                                                      :from => :message_entities}.merge(link)))
+            entity[:range] = get_range_by_face(entity) #indices_to_range(link[:indices])
+            result << entity.freeze
+          rescue InvalidEntityError, RuntimeError => exception
+            error exception end } } end
     result.sort_by{ |r| r[:range].first }.freeze end
 
   def get_range_by_face(link)

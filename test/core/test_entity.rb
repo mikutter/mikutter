@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'test/unit'
-require 'rubygems'
-require 'mocha'
-require 'pp'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 #require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'entity'
@@ -165,23 +161,30 @@ class TC_Message < Test::Unit::TestCase
     assert_equal(tweet, entity.to_s.inspect)
   end
 
+  def test_7
+    tweet = "@uebayasi I tried and it works as below:\n$ uname -srm\nNetBSD 6.0.1 amd64\n$  s ( ) { local b; b=1; echo $b; b=\"$@\"; echo $b; }\n$ s d e\n1\nd e"
+    mes = stub
+    mes.stubs(:to_show).returns(tweet)
+    mes.stubs(:[]).with(:id).returns(325862212793159680)
+    mes.stubs(:[]).with(:message).returns(tweet)
+    mes.stubs(:[]).with(:entities).
+      returns({ hashtags: [], 
+                symbols: [{ indices: [103, 105], 
+                            text: "b"},
+                          { indices: [120, 122],
+                            text: "b"}],
+                urls: [], 
+                user_mentions: [{ id: 5864792, 
+                                  id_str: "5864792", 
+                                  indices: [0, 9],
+                                  name: "Masao Uebayashi", 
+                                  screen_name: "uebayasi" }]})
+    mes.stubs(:is_a?).with(Message).returns(true)
+    entity = Message::Entity.new(mes)
+
+    assert_kind_of(String, entity.to_s)
+    assert_equal(tweet, entity.to_s.inspect)
+  end
+
 end
 
-
-# >> Loaded suite -
-# >> Started
-# >> .F...
-# >> Finished in 0.015698 seconds.
-# >> 
-# >>   1) Failure:
-# >> test_2(TC_Message)
-# >>     [-:145:in `test_2'
-# >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `__send__'
-# >>      /usr/lib/ruby/gems/1.8/gems/mocha-0.9.12/lib/mocha/integration/test_unit/ruby_version_186_and_above.rb:22:in `run']:
-# >> <&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA> expected but was
-# >> <&#9829; Unfaithful by Rihanna #lahttp://www.last.fm/music/Rihanna/_/Unfaithful3YP9Hq amhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA1tmPYb>.
-# >> 
-# >> 5 tests, 9 assertions, 1 failures, 0 errors
-
-# >> <&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA> expected but was
-# >> <&#9829; Unfaithful by Rihanna #lasthttp://www.last.fm/music/Rihanna/_/UnfaithfulP9Hq amazhttp://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBAmPYb>.
