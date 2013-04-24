@@ -129,6 +129,10 @@ module Gtk
         message = Message.findbyid(id.to_i, -2)
         if message
           return render_message(message) end end
+      self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png'))
+    rescue Exception => e
+      if Mopt.debug
+        raise e end
       self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png')) end
 
     private
