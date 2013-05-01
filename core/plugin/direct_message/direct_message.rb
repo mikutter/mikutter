@@ -44,7 +44,7 @@ module Plugin::DirectMessage
         result = []
         @dm_lock.synchronize do
           dms.sort_by{ |s| Time.parse(s[:created_at]) rescue Time.now }.each { |dm|
-            if add_dm(dm, dm[:sender]) and add_dm(dm, dm[:recipient])
+            if add_dm(dm, dm[:sender]) and (dm[:sender] == dm[:recipient] || add_dm(dm, dm[:recipient]))
               result << dm end } end
         [service, result]
       else
