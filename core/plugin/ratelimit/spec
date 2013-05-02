@@ -4,6 +4,7 @@ depends:
   mikutter: '0.2.1'
   plugin:
   - gui
+  - activity
 version: '1.0'
 author: toshi_a
 name: 'Rate Limit'
