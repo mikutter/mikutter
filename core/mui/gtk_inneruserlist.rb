@@ -45,9 +45,9 @@ class Gtk::InnerUserList < Gtk::TreeView
   # self
   def remove_user(users)
     type_strict users => Users
-    model.select{ |model,path,iter|
-      users.include?(iter[COL_USER])
-    }.each &model.method(:remove)
+    Enumerator.new(model).each{ |model,path,iter|
+      if users.include?(iter[COL_USER])
+         model.remove(iter) end }
     self end
 
   # ユーザ user の順番を再計算する
