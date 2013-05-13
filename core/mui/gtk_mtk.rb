@@ -326,21 +326,40 @@ module Mtk
     btn
   end
 
-  def self.dialog(title, container, parent=nil, &block)
+  def self.scrolled_dialog(title, container, parent=nil, expand=true, &block)
+    dialog(title,
+           Gtk::ScrolledWindow.new.
+           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
+           add_with_viewport(container),
+           parent, expand, &block) end
+
+  def self.dialog(title, container, parent=nil, expand=true, &block)
     parent_window = parent and parent.toplevel.toplevel? and parent.toplevel
     result = nil
     dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
     dialog.set_size_request(640, 480)
     dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(Gtk::ScrolledWindow.new.
-                           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
-                           add_with_viewport(container),
-                           true, true, 30)
+    dialog.vbox.pack_start(container, expand, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if block_given?
     dialog.signal_connect('response'){ |widget, response|
       if block and response == Gtk::Dialog::RESPONSE_OK
-        result = block.call(*[response, dialog][0,block.arity]) end
+        begin
+          result = block.call(*[response, dialog][0,block.arity])
+        rescue Mtk::ValidateError => e
+          dialog.sensitive = false
+          alert = Gtk::Dialog.new("エラー - " + Environment::NAME)
+          alert.set_size_request(420, 90)
+          alert.window_position = Gtk::Window::POS_CENTER
+          alert.vbox.add(Gtk::Label.new(e.to_s))
+          alert.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
+          alert.show_all
+          alert.signal_connect('response'){
+            dialog.sensitive = true
+            alert.hide_all.destroy }
+          next
+        end
+      end
       parent_window.sensitive = true if parent_window
       dialog.hide_all.destroy
       Gtk::main_quit
@@ -350,5 +369,6 @@ module Mtk
     Gtk::main
     result end
 
+  class Mtk::ValidateError < StandardError;  end
 
 end

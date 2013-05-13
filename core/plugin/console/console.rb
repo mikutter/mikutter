@@ -7,6 +7,7 @@ Plugin.create :console do
           name: 'コンソールを開く',
           condition: lambda{ |opt| true },
           visible: true,
+          icon: Skin.get('console.png'),
           role: :pane) do |opt|
     if Plugin::GUI::Tab.cuscaded.has_key?(:console)
       Plugin::GUI::Tab.instance(:console).active!
@@ -52,7 +53,7 @@ Plugin.create :console do
         false end }
 
     tab(:console, "コンソール") do
-      set_icon MUI::Skin.get('console.png')
+      set_icon Skin.get('console.png')
       set_deletable true
       nativewidget Plugin::Console::ConsoleControl.new().
         pack1(::Gtk::Table.new(2, 3).

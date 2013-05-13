@@ -3,11 +3,20 @@
 # RubyGnome2を用いてUIを表示するプラグイン
 
 require "gtk2"
+
+miquire :mui,
+'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
+'miracle_painter', 'pseudo_message_widget', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
+'sub_parts_retweet', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
+'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
+'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
+
 require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
+require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}
@@ -19,7 +28,7 @@ Plugin.create :gtk do
   # PostBoxとか複数のペインを持つための処理が入るので、Gtk::MikutterWindowクラスを新設してそれを使う
   on_window_created do |i_window|
     notice "create window #{i_window.slug.inspect}"
-    window = ::Gtk::MikutterWindow.new
+    window = ::Gtk::MikutterWindow.new(i_window)
     @slug_dictionary.add(i_window, window)
     window.title = i_window.name
     window.set_size_request(240, 240)
@@ -81,6 +90,7 @@ Plugin.create :gtk do
       notice "tabcontainer #{tabcontainer} => #{i_tab.inspect}"
       if i_tab
         i_pane.reorder_child(i_tab, index) end
+      Plugin.call(:after_gui_tab_reordered, i_tab)
       false }
     pane.ssc(:switch_page){ |this, page, pagenum|
       if pagenum == pane.page
@@ -94,6 +104,7 @@ Plugin.create :gtk do
       i_tab = tabcontainer.i_tab
       next false if i_tab.parent == i_pane
       notice "on_pane_created: reparent"
+      Plugin.call(:after_gui_tab_reparent, i_tab, i_tab.parent, i_pane)
       i_pane.add_child(i_tab, index)
       false }
     # 子が無くなった時 : このpaneを削除
@@ -163,26 +174,45 @@ Plugin.create :gtk do
     notice "create timeline #{i_timeline.slug.inspect}"
     timeline = ::Gtk::TimeLine.new(i_timeline)
     @slug_dictionary.add(i_timeline, timeline)
-    focus_in_event = lambda { |this, event|
-      if this.focus?
-        i_timeline.active!(true, true)
-      else
-        notice "timeline_created: focus_in_event: event receive but not has focus #{i_timeline}" end
-      false }
-    destroy_event = lambda{ |this|
-      if not(timeline.tl.destroyed?) and this != timeline.tl
-        timeline.tl.ssc(:focus_in_event, &focus_in_event)
-        timeline.tl.ssc(:destroy, &destroy_event) end
-      false }
-    timeline.tl.ssc(:focus_in_event, &focus_in_event)
-    timeline.tl.ssc(:destroy, &destroy_event)
-    timeline.ssc('key_press_event'){ |widget, event|
-      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) }
+    handler = {
+      key_press_event: timeline_key_press_event(i_timeline),
+      focus_in_event: timeline_focus_in_event(i_timeline),
+      destroy: lambda{ |this| timeline_hook_events(timeline, handler) } }
+    timeline_hook_events(timeline, handler)
     timeline.ssc(:destroy){
       i_timeline.destroy
       false }
     timeline.show_all
   end
+
+  # Gtk::TimeLine::InnerTL にたいして、イベントのリスナを登録する。
+  # ==== Args
+  # [gtk_timeline] 対象となる Gtk::TimeLine のインスタンス
+  def timeline_hook_events(gtk_timeline, handler)
+    handler.each{ |event_name, callback|
+      gtk_timeline.tl.ssc(event_name, gtk_timeline, &callback) } end
+
+  # Timelineウィジェットのfocus_in_eventのコールバックを返す
+  # ==== Args
+  # [i_timeline] タイムラインのインターフェイス
+  # ==== Return
+  # コールバック関数
+  def timeline_focus_in_event(i_timeline)
+    lambda { |this, event|
+      if this.focus?
+        i_timeline.active!(true, true)
+      else
+        notice "timeline_created: focus_in_event: event receive but not has focus #{i_timeline}" end
+      false } end
+
+  # Timelineウィジェットのkey_press_eventのコールバックを返す
+  # ==== Args
+  # [i_timeline] タイムラインのインターフェイス
+  # ==== Return
+  # コールバック関数
+  def timeline_key_press_event(i_timeline)
+    lambda { |widget, event|
+      Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) } end
 
   on_gui_pane_join_window do |i_pane, i_window|
     puts "gui_pane_join_window #{i_pane.slug.inspect}, #{i_window.slug.inspect}"
@@ -297,6 +327,9 @@ Plugin.create :gtk do
             path, = *tl.get_path(0, message)
               tl.set_cursor(path, column, false) if path end end end end end
 
+  on_gui_timeline_set_order do |i_timeline, order|
+    widgetof(i_timeline).set_order(&order) end
+
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
     if postbox
@@ -375,6 +408,17 @@ Plugin.create :gtk do
               widget.active
             else
               window.set_focus(widget) end end end end end end
+
+  on_posted do |service, messages|
+    messages.each{ |message|
+      if(replyto_source = message.replyto_source)
+        Gdk::MiraclePainter.findbymessage(replyto_source).each{ |mp|
+          mp.on_modify } end } end
+
+  on_favorite do |service, user, message|
+    if(user.is_me?)
+      Gdk::MiraclePainter.findbymessage(message).each{ |mp|
+        mp.on_modify } end end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)

@@ -74,7 +74,6 @@ Module.new do
         Net::HTTP.start('mikutter.hachune.net'){ |http|
           param = {
             'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
-            'svn' => revision,
             'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
             'line' => crashed_line,
             'exception_class' => exception.class,
@@ -91,6 +90,7 @@ Module.new do
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
         Plugin.activity :system, "エラー報告を送信しました。ありがとう♡"
+        Plugin.call :send_bugreport, param
       rescue TimeoutError, StandardError => e
         Plugin.activity :system, "ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww"
         Plugin.activity :error, e.to_s, exception: e

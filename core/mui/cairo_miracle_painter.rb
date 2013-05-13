@@ -77,6 +77,7 @@ class Gdk::MiraclePainter < Gtk::Object
     @p_message = message
     @message = message.to_message
     @selected = false
+    @pixbuf = nil
     type_strict @message => Message
     super()
     coordinator(*coodinate)
@@ -113,7 +114,16 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # TLに表示するための Gdk::Pixbuf のインスタンスを返す
   def pixbuf
-    @pixbuf ||= gen_pixbuf
+    return @pixbuf if @pixbuf
+    if visible?
+      @pixbuf = gen_pixbuf
+      if(@pixbuf and defined?(@last_modify_height) and @last_modify_height != @pixbuf.height)
+        tree.get_column(0).queue_resize
+        @last_modify_height = @pixbuf.height end
+      @pixbuf
+    else
+      @last_modify_height = height
+      Gdk::WebImageLoader.loading_pixbuf(@last_modify_height, @last_modify_height) end
   end
 
   # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が押されたことを通知する
@@ -231,9 +241,6 @@ class Gdk::MiraclePainter < Gtk::Object
       @pixmap = nil
       @pixbuf = nil
       @coordinate = nil
-      if(defined? @last_modify_height and @last_modify_height != height)
-        tree.get_column(0).queue_resize
-        @last_modify_height = height end
       signal_emit('modified') if event
     end
   end
@@ -241,15 +248,9 @@ class Gdk::MiraclePainter < Gtk::Object
   # 画面上にこれが表示されているかを返す
   def visible?
     if tree
-      start, last = tree.visible_range
-      if start
-        range = tree.selected_range_bytime
-        if(tree.vadjustment.value == 0)
-          range.first <= message.modified.to_i
-        else
-          range.include?(message.modified.to_i) end end
-    else
-      true end end
+      range = tree.visible_range
+      if range and 2 == range.size
+        Range.new(*range).cover?(tree.get_path_by_message(@message)) end end end
 
   def destroy
     def self.tree
@@ -363,8 +364,7 @@ class Gdk::MiraclePainter < Gtk::Object
     render_background context
     render_main_icon context
     render_main_text context
-    render_parts context
-  end
+    render_parts context end
 
   def render_background(context)
     context.save{
@@ -416,20 +416,6 @@ class Gdk::MiraclePainter < Gtk::Object
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)
       context.show_pango_layout(main_message(context)) } end
-
-  Delayer.new{
-    Plugin.create(:core).add_event(:posted){ |service, messages|
-      messages.each{ |message|
-        if(replyto_source = message.replyto_source)
-          findbymessage(replyto_source).each{ |mp|
-            mp.on_modify } end } }
-
-    Plugin.create(:core).add_event(:favorite){ |service, user, message|
-      if(user.is_me?)
-        findbymessage(message).each{ |mp|
-          mp.on_modify } end }
-
-  }
 
   class DestroyedError < Exception
   end

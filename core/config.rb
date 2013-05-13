@@ -21,17 +21,21 @@ module CHIConfig
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
 
+  confroot = File.expand_path(File.join("~", ".#{ACRO}"))
   # コンフィグファイルのディレクトリ
-  CONFROOT = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}"
+  CONFROOT = (if Mopt.confroot then Mopt.confroot else confroot end) rescue confroot
 
   # 一時ディレクトリ
-  TMPDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}tmp#{File::SEPARATOR}"
+  TMPDIR = File.join(CONFROOT, 'tmp')
 
   # ログディレクトリ
-  LOGDIR = "~#{File::SEPARATOR}.#{ACRO}#{File::SEPARATOR}log#{File::SEPARATOR}"
+  LOGDIR = File.join(CONFROOT, 'log')
 
   # キャッシュディレクトリ
-  CACHE = "#{CONFROOT}cache#{File::SEPARATOR}"
+  CACHE = File.join(CONFROOT, 'cache')
+
+  # プラグインディレクトリ
+  PLUGIN_PATH = File.expand_path(File.join(File.dirname(__FILE__), "plugin"))
 
   # AutoTag有効？
   AutoTag = false
@@ -39,9 +43,14 @@ module CHIConfig
   # 再起動後に、前回取得したポストを取得しない
   NeverRetrieveOverlappedMumble = false
 
-  REVISION = 1142
+  REVISION = 1230
 
   # このソフトのバージョン。
-  VERSION = [0,2,1, ((/Last Changed Rev\s*:\s*(\d+)/.match(`sh -c 'LC_ALL=C svn info ../'`)[1] || REVISION).to_i rescue REVISION)]
+  VERSION = [0,2,2,REVISION]
 
 end
+
+
+
+
+

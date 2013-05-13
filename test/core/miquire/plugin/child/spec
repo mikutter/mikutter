@@ -1,0 +1,9 @@
+---
+slug: :child
+depends:
+  mikutter: 0.2.2.1150
+  plugin: [parent]
+version: '1.0'
+author: toshi_a
+name: child plugin
+description: dependency test

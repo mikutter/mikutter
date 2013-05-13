@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require File.expand_path('utils')
 miquire :core, 'userconfig'
 
 require 'gtk2'
@@ -189,6 +188,11 @@ class Gtk::Notebook
     nil end
 end
 
+class Gtk::ListStore
+  def model
+    self end
+end
+
 module Gtk
   # _url_ を設定されているブラウザで開く
   class << self
@@ -227,4 +231,8 @@ module Gtk
       command end
     memoize :url_open_command
   end
+end
+
+module MUI
+  Skin = ::Skin
 end

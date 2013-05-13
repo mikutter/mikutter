@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
 # プラグインを全てロードする
-miquire :core, 'plugin'
+miquire :core, "miquire_plugin"
 
-Miquire::Plugin.loadpath << 'plugin' << '../plugin' << '~/.mikutter/plugin'
-spec_unsupported = []
-Miquire::Plugin.each{ |path|
-  spec_filename = File.join(File.dirname(path), "spec")
-  if FileTest.exist? spec_filename
-    spec = YAML.load_file(spec_filename).symbolize
-    Plugin.load_file(path, spec)
-  else
-    spec_unsupported << [ path,
-                          { name: File.basename(path),
-                            slug: File.basename(path).to_sym }] end }
-spec_unsupported.each{ |args|
-  Plugin.load_file(*args) }
+Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(File.dirname(__FILE__), "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
+
+Miquire::Plugin.load_all
+
+

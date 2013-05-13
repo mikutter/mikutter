@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 require 'gtk2'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
-miquire :core, 'message'
+miquire :core, 'message', 'skin'
 miquire :mui, 'mtk'
 miquire :mui, 'extension'
-miquire :mui, 'skin'
 miquire :mui, 'webicon'
 miquire :miku, 'miku'
 
@@ -51,7 +50,7 @@ class Gtk::MessagePicker < Gtk::EventBox
 
   def add_condition(expr = [:==, :user, ''])
     pack = Gtk::HBox.new
-    close = Gtk::Button.new.add(Gtk::WebIcon.new(MUI::Skin.get('close.png'), 16, 16)).set_relief(Gtk::RELIEF_NONE)
+    close = Gtk::Button.new.add(Gtk::WebIcon.new(Skin.get('close.png'), 16, 16)).set_relief(Gtk::RELIEF_NONE)
     close.signal_connect(:clicked){
       @container.remove(pack)
       pack.destroy

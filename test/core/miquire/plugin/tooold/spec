@@ -1,0 +1,9 @@
+---
+slug: :tooold
+depends:
+  mikutter: 1.0
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: tooold mikutter
+description: dependency test for too old mikutter

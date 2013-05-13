@@ -36,6 +36,9 @@ module Environment
   # キャッシュディレクトリ
   CACHE = CHIConfig::CACHE
 
+  # プラグインディレクトリ
+  PLUGIN_PATH = CHIConfig::PLUGIN_PATH
+
   # AutoTag有効？
   AutoTag = CHIConfig::AutoTag
 

@@ -5,7 +5,8 @@ require 'set'
 
 $LOAD_PATH.
   unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib'))).
-  unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/')))
+  unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/'))).
+  unshift(File.expand_path(File.join(File.dirname(__FILE__))))
 
 # ミクってかわいいよねぇ。
 # ツインテールいいよねー。
@@ -25,11 +26,11 @@ module Miquire
     PATH_KIND_CONVERTER[:mui] = Class.new{
       define_method(:+){ |other|
         render = lambda{ |r| File.join('mui', "#{r}_" + other) }
-        if other == '*' or FileTest.exist?(render[:cairo] + '.rb')
+        if other == '*' or FileTest.exist?(File.join(File.dirname(__FILE__), render[:cairo] + '.rb'))
           render[:cairo]
         else
           render[:gtk] end } }.new
-    PATH_KIND_CONVERTER[:core] = ''
+    PATH_KIND_CONVERTER[:core] = ""
     PATH_KIND_CONVERTER[:user_plugin] = '../plugin/'
     PATH_KIND_CONVERTER[:lib] = Class.new{
       define_method(:+){ |other|
@@ -95,39 +96,7 @@ module Miquire
 
     def miquire_original_require(file)
       require file end
-
   end
 
-  # プラグインのロードに関すること
-  module Plugin
-
-    class << self
-
-      include Enumerable
-
-      # ロードパスの配列を返す。
-      # ロードパスに追加したい場合は、以下のようにすればいい
-      #
-      #  Miquire::Plugin.loadpath << 'pathA' << 'pathB'
-      def loadpath
-        @loadpath ||= [] end
-
-      # プラグインのファイル名(フルパス)で繰り返す。
-      def each
-        iterated = Set.new
-        detected = []
-        loadpath.reverse.each { |path|
-          Dir[File.join(File.expand_path(path), '*')].each { |file|
-            if FileTest.directory?(file) and FileTest.exist?(File.join(file, File.basename(file))+'.rb')
-              file = File.join(file, File.basename(file))+'.rb'
-            elsif not /\.rb$/ =~ file
-              next end
-            plugin_name = File.basename(file, '.rb')
-            if not iterated.include? plugin_name
-              iterated << plugin_name
-              detected << file end } }
-        detected.sort.each &Proc.new end
-
-    end
-  end
+  class LoadError < StandardError; end
 end

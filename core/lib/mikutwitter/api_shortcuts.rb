@@ -36,8 +36,6 @@ module MikuTwitter::APIShortcuts
   defshortcut :favorites, 'favorites', :message
 
   defshortcut :search, 'search/tweets', :search
-  # def search(args = {})
-  #   (self/:search).search({host: 'search.twitter.com'}.merge(args)) end
 
   defshortcut :trends, :trends, :json
 

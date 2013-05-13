@@ -11,7 +11,7 @@ unless slug
   exit
 end
 
-plugin_path = File.expand_path(CHIConfig::CONFROOT + "plugin/" + slug)
+plugin_path = File.expand_path(File.join(CHIConfig::CONFROOT, "plugin", slug))
 FileUtils.mkdir_p(plugin_path)
 puts "directory generated: #{plugin_path}"
 File.open("#{plugin_path}/#{slug}.rb", "w"){ |io|

@@ -14,7 +14,7 @@ Plugin.create :search do
             closeup(savebtn))
 
   tab(:search, "検索") do
-    set_icon MUI::Skin.get("search.png")
+    set_icon Skin.get("search.png")
     shrink
     nativewidget querycont
     expand

@@ -39,8 +39,12 @@ Plugin.create :profile do
   end
 
   profiletab :usertimeline, "最近のツイート" do
-    set_icon MUI::Skin.get("timeline.png")
-    i_timeline = timeline nil
+    set_icon Skin.get("timeline.png")
+    uid = user.id
+    i_timeline = timeline nil do
+      order do |message|
+        retweet = message.retweeted_statuses.find{ |r| uid == r.user.id }
+        (retweet || message)[:created].to_i end end
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
@@ -67,7 +71,7 @@ Plugin.create :profile do
         biotext += "\n\nWeb: " + user[:url] end
       bio.rewind(biotext)
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
-      label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : (user[:statuses_count].to_f / ago).round_at(2)}tweet/day)\n" end
+      label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : "%.2f" % (user[:statuses_count].to_f / ago)}tweet/day)\n" end
   end
 
   on_appear do |messages|
@@ -162,7 +166,7 @@ Plugin.create :profile do
               w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
 
             w_eventbox_image_following.style = w_eventbox_image_following.parent.style
-            w_eventbox_image_following.add(::Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
+            w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
             w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
             followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
         # フォローされている状態の更新
@@ -172,7 +176,7 @@ Plugin.create :profile do
             if not w_eventbox_image_followed.children.empty?
               w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
-            w_eventbox_image_followed.add(::Gtk::WebIcon.new(MUI::Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
+            w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
         Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
@@ -188,7 +192,7 @@ Plugin.create :profile do
               followbutton.sensitive = false
               event = following ? :followings_destroy : :followings_created
               me.__send__(following ? :unfollow : :follow, user).next{ |msg|
-                Plugin.call(event, me, [user])
+                Plugin.call(event, me, Users.new([user]))
                 followbutton.sensitive = true unless followbutton.destroyed? }.
               terminate.trap{
                 followbutton.sensitive = true unless followbutton.destroyed? }

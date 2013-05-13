@@ -1,0 +1,10 @@
+---
+slug: :sound
+depends:
+  mikutter: 0.2.1.1119
+  plugin:
+  - settings
+version: '1.0'
+author: toshi_a
+name: sound plugin
+description: mikutterで音声を再生するプラグイン

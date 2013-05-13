@@ -54,7 +54,7 @@ module MikuTwitter::Cache
   # ==== Return
   # キャッシュファイルのローカルのパス
   def cache_file_path(path)
-    cache_path = Environment::CACHE + path
+    cache_path = File.join(Environment::CACHE, path)
     name, query_string = *cache_path.split('?', 2)
     if(query_string)
       md5_query_string = Digest::MD5.hexdigest(query_string)
@@ -66,7 +66,7 @@ module MikuTwitter::Cache
 
   def self.garbage_collect
     begin
-      delete_files = Dir.glob(File.expand_path("#{Environment::CACHE}**#{File::Separator}*")).select(&method(:is_tooold))
+      delete_files = Dir.glob(File.expand_path(File.join(Environment::CACHE, "**", "*"))).select(&method(:is_tooold))
       FileUtils.rm_rf(delete_files)
       delete_files
     rescue => e

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-require File.expand_path('utils')
-miquire :core, 'retriever'
-miquire :mui, 'skin'
+
+miquire :core, 'retriever', 'skin'
+
+miquire :lib, 'typed-array'
 
 class User < Retriever::Model
 
@@ -35,7 +36,7 @@ class User < Retriever::Model
       @@system = User.new({ :id => 0,
                             :idname => 'mikutter_bot',
                             :name => Environment::NAME,
-                            :profile_image_url => MUI::Skin.get("icon.png")})
+                            :profile_image_url => Skin.get("icon.png")})
     end
     @@system
   end
@@ -139,6 +140,6 @@ class User < Retriever::Model
   end
 
 end
-# ~> -:44: syntax error, unexpected kEND, expecting '}'
-# ~> -:98: class definition in method body
-# ~> -:115: syntax error, unexpected kEND, expecting '}'
+
+class Users < TypedArray(User)
+end

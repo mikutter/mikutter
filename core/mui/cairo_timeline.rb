@@ -83,7 +83,7 @@ class Gtk::TimeLine
     remove_if_exists_all(removes)
     retweets, appends = *messages.partition{ |m| m[:retweet] }
     add_retweets(retweets)
-    appends.sort_by{ |m| -(m.modified.to_i) }.deach(&method(:block_add))
+    appends.sort_by{ |m| -get_order(m) }.deach(&method(:block_add))
   end
 
   # リツイートを追加する。 _messages_ には Message の配列を指定し、それらはretweetでなければならない
@@ -100,7 +100,7 @@ class Gtk::TimeLine
     type_strict message => Message
     path = @tl.get_path_by_message(message)
     if(path)
-      @tl.update!(message, 2, message.modified.to_i) end
+      @tl.update!(message, 2, get_order(message)) end
     self end
 
   # _message_ が新たに _user_ のお気に入りに追加された時に呼ばれる
@@ -165,7 +165,7 @@ class Gtk::TimeLine
     iter = @tl.model.append
     iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] = message[:id].to_s
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
-    iter[Gtk::TimeLine::InnerTL::CREATED] = message.modified.to_i
+    iter[Gtk::TimeLine::InnerTL::ORDER] = get_order(message)
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
     @tl.set_id_dict(iter)
     @remover_queue.push(message) if @tl.realized?

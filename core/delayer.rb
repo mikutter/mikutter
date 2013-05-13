@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
-require File.expand_path('utils')
+require File.expand_path(File.dirname(__FILE__)+'/utils')
 
 # ブロックを、後で時間があいたときに順次実行する。
 # 名前deferのほうがよかったんじゃね
 class Delayer
+  # ユーザのUI入力に対するレスポンスのプライオリティ。
+  # 何が何でもこれを最優先にする。
+  UI_RESPONSE = 0
+
+  # ユーザの入力によって行われる内部処理。
+  ROUTINE_ACTIVE = 1
+
+  # Twitterからのレスポンスなど、外的要因によるUIの更新。
+  UI_PASSIVE = 2
+
+  # 外的要因によって発生した内部処理。
+  ROUTINE_PASSIVE = 3
+
+  # OBSOLETE
   CRITICAL = 0
   FASTER = 0
   NORMAL = 1
   LATER = 2
   LAST = 2
+
   extend MonitorMixin
-  @@routines = [[],[],[]]
+  @@routines = [[],[],[],[]]
   @frozen = false
 
   attr_reader :backtrace, :status
@@ -26,7 +41,7 @@ class Delayer
       begin
         @busy = true
         @st = Process.times.utime
-        3.times{ |cnt|
+        @@routines.size.times{ |cnt|
           procs = []
           if not @@routines[cnt].empty? then
             procs = @@routines[cnt].clone
@@ -112,6 +127,7 @@ class Delayer
     self.class.synchronize{
       @@routines[prio] << self
     }
+    Thread.main.wakeup
   end
 
 end

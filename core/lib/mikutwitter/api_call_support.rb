@@ -36,12 +36,12 @@ module MikuTwitter::ApiCallSupport
     # ==== Args
     # [uni] 名前（単数形）
     # [multi] 名前（複数形）
-    def self.defparser(uni, multi = :"#{uni}s", defaults = {})
+    def self.defparser(uni, multi = :"#{uni}s", container = Array, defaults = {})
       parser = lazy{ MikuTwitter::ApiCallSupport::Request::Parser.method(uni) }
       define_method(multi){ |options = {}|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node|
-          Thread.new{ node.map(&parser) } } }
+          Thread.new{ container.new(node.map(&parser)).freeze } } }
 
       define_method(uni){ |options = {}|
         type_strict options => Hash
@@ -73,15 +73,11 @@ module MikuTwitter::ApiCallSupport
       twitter.api(api, options, force_oauth).next{ |res|
         Thread.new{ JSON.parse(res.body).symbolize } } end
 
-    defparser :user
-    defparser :message, :messages
+    defparser :user, :users, Users
+    defparser :message, :messages, Messages
     defparser :list
     defparser :id
     defparser :direct_message
-
-    def messages(options = {})
-      type_strict options => Hash
-      json(options).next{ |m| Thread.new{ Parser.messages m } } end
 
     def friendship(options = {})
       type_strict options => Hash
@@ -97,14 +93,14 @@ module MikuTwitter::ApiCallSupport
       json(options).next{ |res|
         Thread.new { Parser.messages res[:statuses] } } end
 
-      def inspect
-        "#<#{MikuTwitter::ApiCallSupport::Request}: #{@api}>"
-      end
+    def inspect
+      "#<#{MikuTwitter::ApiCallSupport::Request}: #{@api}>"
+    end
 
     module Parser
       extend Parser
 
-      def message(msg, appear = true)
+      def message(msg)
         cnv = msg.convert_key(:text => :message,
                               :in_reply_to_user_id => :receiver,
                               :in_reply_to_status_id => :replyto)
@@ -117,14 +113,9 @@ module MikuTwitter::ApiCallSupport
         message end
 
       def messages(msgs)
-        result = msgs.map{ |msg| message(msg, false) }
-        result end
+        Messages.new msgs.map{ |msg| message(msg) } end
 
       def user(u)
-        if u.is_a? Array
-          p u
-          abort
-        end
         cnv = u.convert_key(:screen_name =>:idname, :url => :url)
         cnv[:created] = Time.parse(u[:created_at])
         cnv[:detail] = u[:description]

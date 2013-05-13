@@ -2,7 +2,7 @@
 slug: :alsa
 depends:
   mikutter: '0.2'
-  plugin: []
+  plugin: [sound]
 version: '1.0'
 author: toshi_a
 name: ALSA

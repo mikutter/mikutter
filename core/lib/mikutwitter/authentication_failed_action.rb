@@ -44,6 +44,8 @@ module MikuTwitter::AuthenticationFailedAction
         result = MikuTwitter::AuthenticationFailedAction.get.call(self, method, url, options, res)
         if(result and 2 == result.size)
           self.a_token, self.a_secret = *result
+          UserConfig[:twitter_token] = self.a_token
+          UserConfig[:twitter_secret] = self.a_secret
           return *result end
       else
         return self.a_token, self.a_secret end } end

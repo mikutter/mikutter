@@ -10,49 +10,6 @@ UserConfig[:activity_kind_order] ||= ["retweet", "favorite", "follow", "list_mem
 # アクティビティタブに保持する通知の数
 UserConfig[:activity_max] ||= 1000
 
-module Plugin::Activity
-  # アクティビティを更新する。
-  # ==== Args
-  # [kind] Symbol イベントの種類
-  # [title] タイトル
-  # [args] その他オプション。主に以下の値
-  #   icon :: String|Gdk::Pixbuf アイコン
-  #   date :: Time イベントの発生した時刻
-  #   service :: Service 関係するServiceオブジェクト
-  #   related :: 自分に関係するかどうかのフラグ
-  def activity(kind, title, args = {})
-    Plugin.call(:modify_activity,
-                { plugin: self,
-                  kind: kind,
-                  title: title,
-                  date: Time.new,
-                  description: title }.merge(args))
-  end
-
-  # 新しいアクティビティの種類を定義する。設定に表示されるようになる
-  # ==== Args
-  # [kind] 種類
-  # [name] 表示する名前
-  def defactivity(kind, name)
-    filter_activity_kind do |data|
-      data[kind] = name
-      [data] end end
-
-end
-
-class Plugin
-  include Plugin::Activity
-
-  def self.activity(kind, title, args = {})
-    Plugin.call(:modify_activity,
-                { plugin: nil,
-                  kind: kind,
-                  title: title,
-                  date: Time.new,
-                  description: title }.merge(args))
-  end
-end
-
 Plugin.create(:activity) do
 
   class ActivityView < ::Gtk::CRUD
@@ -133,6 +90,32 @@ Plugin.create(:activity) do
           reset_activity(model) end } }
   end
 
+  # アクティビティを更新する。
+  # ==== Args
+  # [kind] Symbol イベントの種類
+  # [title] タイトル
+  # [args] その他オプション。主に以下の値
+  #   icon :: String|Gdk::Pixbuf アイコン
+  #   date :: Time イベントの発生した時刻
+  #   service :: Service 関係するServiceオブジェクト
+  #   related :: 自分に関係するかどうかのフラグ
+  defdsl :activity do |kind, title, args = {}|
+    Plugin.call(:modify_activity,
+                { plugin: self,
+                  kind: kind,
+                  title: title,
+                  date: Time.new,
+                  description: title }.merge(args)) end
+
+  # 新しいアクティビティの種類を定義する。設定に表示されるようになる
+  # ==== Args
+  # [kind] 種類
+  # [name] 表示する名前
+  defdsl :defactivity do |kind, name|
+    filter_activity_kind do |data|
+      data[kind] = name
+      [data] end end
+
   activity_view = ActivityView.new
   activity_vscrollbar = ::Gtk::VScrollbar.new(activity_view.vadjustment)
   activity_hscrollbar = ::Gtk::HScrollbar.new(activity_view.hadjustment)
@@ -159,7 +142,7 @@ Plugin.create(:activity) do
                                   closeup(activity_status.right)), true, false)
 
   tab(:activity, "アクティビティ") do
-    set_icon MUI::Skin.get("underconstruction.png")
+    set_icon Skin.get("underconstruction.png")
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 

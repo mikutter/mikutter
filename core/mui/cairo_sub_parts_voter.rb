@@ -14,11 +14,6 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     @icon_width, @icon_height, @margin, @votes, @user_icon = 24, 24, 2, get_default_votes.to_a, Hash.new
     @avatar_rect = []
     @icon_ofst = 0
-    if not(helper.visible? or @votes.empty?)
-      sid = helper.ssc(:expose_event){
-        helper.on_modify
-        helper.signal_handler_disconnect(sid)
-        false } end
     helper.ssc(:click){ |this, e, x, y|
       ofsty = helper.mainpart_height
       helper.subparts.each{ |part|
@@ -69,17 +64,16 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
         @votes[index] end end end
 
   def render(context)
-    if(not @votes.empty?)
-      if helper.visible?
-        context.save{
-          context.translate(@margin, 0)
-          put_title_icon(context)
-          put_counter(context)
-          put_voter(context) } end end
+    if get_vote_count != 0
+      context.save{
+        context.translate(@margin, 0)
+        put_title_icon(context)
+        put_counter(context)
+        put_voter(context) } end
     @last_height = height end
 
   def height
-    if @votes.empty?
+    if get_vote_count == 0
       0
     else
       icon_height end end
@@ -160,8 +154,12 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
     layout = context.create_pango_layout
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = "#{votes.size}"
+    layout.text = "#{get_vote_count}"
     layout
+  end
+
+  def get_vote_count
+    votes.size
   end
 
 end

@@ -5,7 +5,6 @@
 
 # users list
 
-require File.expand_path('utils')
 require 'typed-array'
 
 miquire :core, 'user', 'message', 'retriever'
@@ -35,7 +34,7 @@ class UserList < Retriever::Model
              ]
 
   def initialize(value)
-    assert_type(Hash, value)
+    type_strict value => Hash
     super(value)
   end
 

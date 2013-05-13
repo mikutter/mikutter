@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path('utils')
-
-miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer'
+miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer', 'reserver'
 miquire :lib, "mikutwitter"
 
 Thread.abort_on_exception = true
@@ -252,8 +250,8 @@ class Service
         front = id.to_a.slice(0, 100)
         remain = id.to_a.slice(100,id.size)
         messages = @post.scan(:user_lookup, :id => front.join(','))
-        messages = [] if not messages.is_a? Array
-        messages.concat(findbyid(remain)) if remain and not remain.empty?
+        messages = Messages.new if not messages.is_a? Array
+        messages += findbyid(remain) if remain and not remain.empty?
         messages
       else
         @post.scan(@api, :id => id) end end end

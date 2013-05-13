@@ -11,11 +11,14 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 =end
+mikutter_directory = File.expand_path(File.dirname(__FILE__))
 
-if File.symlink?($0)
-  Dir.chdir(File.join(File.dirname(File.readlink($0)), 'core'))
-else
-  Dir.chdir(File.join(File.dirname($0), 'core'))
+begin
+  ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
+  require 'bundler/setup'
+rescue LoadError, SystemExit
+  # bundlerがないか、依存関係の解決に失敗した場合
+  # System の gem を使ってみる
 end
 
 Thread.abort_on_exception = true
@@ -26,11 +29,12 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path('boot/option')
-require File.expand_path('utils')
+require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
+require File.expand_path(File.join(mikutter_directory, 'core/utils'))
 
-miquire :boot, 'check_config_permission'
-miquire :core, 'service'
+miquire :boot, 'check_config_permission', 'mainloop'
+miquire :core, 'service', 'environment'
+Dir.chdir(Environment::CONFROOT)
 miquire :boot, 'load_plugin'
 
 notice "fire boot event"
@@ -39,13 +43,13 @@ Plugin.call(:boot, Post.primary_service)
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
-  Gtk.init_add{ Gtk.quit_add(Gtk.main_level){ SerialThreadGroup.force_exit! } }
+  Mainloop.before_mainloop
   if profile
     require 'ruby-prof'
     begin
       notice 'start profiling'
       RubyProf.start
-      Gtk.main
+      Mainloop.mainloop
     ensure
       result = RubyProf.stop
       printer = RubyProf::CallTreePrinter.new(result)
@@ -55,12 +59,12 @@ def boot!(profile)
       notice "profile: done."
     end
   else
-    Gtk.main end
+    Mainloop.mainloop end
 rescue => e
   into_debug_mode(e)
   raise e
 rescue Exception => e
-  e = Gtk.exception if Gtk.exception
+  e = Mainloop.exception_filter(e)
   notice e.class
   raise e
 end

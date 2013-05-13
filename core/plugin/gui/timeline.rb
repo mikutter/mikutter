@@ -87,4 +87,13 @@ class Plugin::GUI::Timeline
     result = Plugin.filtering(:gui_timeline_selected_text, self, message, nil)
     result.last if result end
 
+  # Messageを並べる順序を数値で返すブロックを設定する
+  # ==== Args
+  # [&block] 並び順
+  # ==== Return
+  # self
+  def order(&block)
+    Plugin.call(:gui_timeline_set_order, self, block)
+  end
+
 end
