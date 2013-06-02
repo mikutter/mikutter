@@ -32,7 +32,7 @@ require 'fileutils'
 require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
 require File.expand_path(File.join(mikutter_directory, 'core/utils'))
 
-miquire :boot, 'check_config_permission', 'mainloop'
+miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
 miquire :core, 'service', 'environment'
 Dir.chdir(Environment::CONFROOT)
 miquire :boot, 'load_plugin'

@@ -274,7 +274,8 @@ module Gtk
         140 - widget_post.buffer.text.size - footer end end
 
     def focus_out_event(widget, event=nil)
-      Delayer.new(Delayer::NORMAL, @options){ |options|
+      options = @options
+      Delayer.new{
         if(not(frozen?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
           destroy_if_necessary(widget_send, widget_tool, *@replies) end }
       false end

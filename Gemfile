@@ -8,6 +8,7 @@ group :default do
   gem 'memoize'
   gem 'ruby-hmac'
   gem 'typed-array'
+  gem 'delayer'
 end
 
 group :test do

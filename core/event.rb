@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'observer'
-miquire :core, "delayer"
-miquire :lib, "instance_storage"
+miquire :lib, "instance_storage", "delayer"
 
 # イベントの定義。イベントの種類を識別するためのオブジェクト。
 class Event
@@ -26,7 +25,7 @@ class Event
     if @options.has_key? :priority
       @options[:priority]
     else
-      Delayer::ROUTINE_PASSIVE end end
+      :routine_passive end end
 
   # イベントを引数 _args_ で発生させる
   # ==== Args

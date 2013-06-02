@@ -94,7 +94,7 @@ module Enumerable
       while not iteratee.empty?
         item = iteratee.shift
         proc.call(item)
-        if Delayer.time_limit?
+        if Delayer.expire?
           break result = iteratee.deach(&proc) end end
       result }
   end
@@ -103,3 +103,5 @@ end
 def deferred(&proc)
   Deferred.new.next(&proc) end
 # ~> -:4: uninitialized constant Deferred::Deferredable (NameError)
+
+

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'delayer', 'reserver'
-miquire :lib, "mikutwitter"
+miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig'
+miquire :lib, "mikutwitter", 'reserver', 'delayer'
 
 Thread.abort_on_exception = true
 

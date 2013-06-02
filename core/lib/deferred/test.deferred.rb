@@ -25,8 +25,7 @@ $LOAD_PATH.push(File.expand_path(File.join(File.dirname($0), '../..')))
 
 require 'test/unit'
 require 'utils'
-miquire :core, 'delayer'
-miquire :lib, 'deferred', 'test_unit_extensions'
+miquire :lib, 'delayer', 'deferred', 'test_unit_extensions'
 
 class TC_Deferred < Test::Unit::TestCase
   def setup()

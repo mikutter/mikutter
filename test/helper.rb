@@ -19,3 +19,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'utils'
 require 'miquire'
 require 'test_unit_extensions'
+
+miquire :boot, 'delayer'
+

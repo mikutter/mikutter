@@ -25,9 +25,9 @@ class TC_Event < Test::Unit::TestCase
   end
 
   must "priority" do
-    assert_kind_of Fixnum, Event[:prio1].priority
-    Event[:prio1].options[:priority] = Delayer::UI_RESPONSE
-    assert_equal Delayer::UI_RESPONSE, Event[:prio1].priority
+    assert_kind_of Symbol, Event[:prio1].priority
+    Event[:prio1].options[:priority] = :ui_response
+    assert_equal :ui_response, Event[:prio1].priority
   end
 end
 

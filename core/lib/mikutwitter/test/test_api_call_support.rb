@@ -6,8 +6,7 @@ require 'webmock/test_unit'
 require 'pp'
 require 'utils'
 
-miquire :lib, 'test_unit_extensions', 'mikutwitter'
-miquire :core, 'delayer'
+miquire :lib, 'delayer', 'test_unit_extensions', 'mikutwitter'
 
 class Plugin
   def self.call(*args); end end

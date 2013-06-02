@@ -4,9 +4,9 @@
 require 'set'
 
 $LOAD_PATH.
-  unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib'))).
+  unshift(File.expand_path(File.join(File.dirname(__FILE__)))).
   unshift(File.expand_path(File.join(File.dirname(__FILE__), '../vendor/'))).
-  unshift(File.expand_path(File.join(File.dirname(__FILE__))))
+  unshift(File.expand_path(File.join(File.dirname(__FILE__), 'lib')))
 
 # ミクってかわいいよねぇ。
 # ツインテールいいよねー。
@@ -30,7 +30,7 @@ module Miquire
           render[:cairo]
         else
           render[:gtk] end } }.new
-    PATH_KIND_CONVERTER[:core] = ""
+    PATH_KIND_CONVERTER[:core] = File.expand_path(File.join(File.dirname(__FILE__)))+"/"
     PATH_KIND_CONVERTER[:user_plugin] = '../plugin/'
     PATH_KIND_CONVERTER[:lib] = Class.new{
       define_method(:+){ |other|

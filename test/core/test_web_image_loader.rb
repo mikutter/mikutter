@@ -7,7 +7,7 @@ require 'gtk2'
 ICON_TEST = File.expand_path(File.dirname(__FILE__) + "/icon_test.png")
 
 miquire :mui, 'web_image_loader'
-miquire :core, 'delayer'
+miquire :lib, 'delayer'
 
 Plugin = Class.new do
   def self.call(*args); end
@@ -46,7 +46,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       response_pixbuf, response_success = [pixbuf, success]
     }
     (Thread.list - [Thread.current]).each &:join
-    Delayer.run
+    Delayer.run(0)
     assert_equal(true, response_success)
     assert_kind_of(Gdk::Pixbuf, response_pixbuf)
   end

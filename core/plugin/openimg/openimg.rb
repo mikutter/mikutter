@@ -35,7 +35,7 @@ Plugin.create :openimg do
     Thread.new{
       url = url.value if url.is_a? Thread
       if not(url) or not(url.respond_to?(:to_s))
-        Delayer.new{
+        Delayer.new(:ui_response).new{
           unless w.destroyed?
             if cancel
               w.destroy
@@ -62,7 +62,7 @@ Plugin.create :openimg do
           loader.write raw
           loader.close
           pixbuf = loader.pixbuf end
-        Delayer.new{
+        Delayer.new(:ui_passive){
           unless w.destroyed?
             w.set_title(url.to_s)
             eventbox.signal_connect("event"){ |ev, event|
@@ -152,21 +152,18 @@ Plugin.create :openimg do
     if block == nil
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
-        Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
-          display(url, cancel)
-        }
-      }
+        Delayer.new(:ui_response){
+          display(Thread.new{
+                    imgurlresolver(url, element_rule)
+                  }, cancel) } }
     else
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
-        Delayer.new(Delayer::NORMAL, Thread.new{
-                      imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
-                    }) {|url|
-          display(url, cancel)
-        }
-      }
-    end
-  end
+        Delayer.new(:ui_response){
+          display(Thread.new{
+                    imgurlresolver(url, element_rule){ |url|
+                      block.call(url, cancel) }
+                  }, cancel) } } end end
 
   pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))), create_additions: true)
   pattern.each{ |name, config|
@@ -216,7 +213,7 @@ Plugin.create :openimg do
   
   ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
-    Delayer.new(Delayer::NORMAL) { display(url, cancel) }
+    Delayer.new { display(url, cancel) }
   }
 
 end

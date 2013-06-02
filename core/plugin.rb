@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'configloader', 'environment', 'delayer', 'event', 'event_listener', 'event_filter'
-miquire :lib, "instance_storage"
+miquire :core, 'configloader', 'environment', 'event', 'event_listener', 'event_filter'
+miquire :lib, "instance_storage", 'delayer'
 
 # プラグインの本体。
 # DSLを提供し、イベントやフィルタの管理をする
