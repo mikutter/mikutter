@@ -95,34 +95,34 @@ Plugin.create :achievement do
     end
   end
 
-  defactivity "achievement", "実績"
+  defactivity "achievement", _("実績")
 
   defachievement(:open_setting,
-                 description: "設定画面で、mikutterをカスタマイズしましょう。",
-                 hint: "画面右下にあるレンチのアイコンをクリックしよう"
+                 description: _("設定画面で、mikutterをカスタマイズしましょう。"),
+                 hint: _("画面右下にあるレンチのアイコンをクリックしよう")
                  ) do |ach|
     on_open_setting do ach.take! end
   end
 
   defachievement(:display_requirements,
-                 description: "ヾ(＠⌒ー⌒＠)ノ",
-                 hint: "https://github.com/toshia/display_requirements",
+                 description: _("ヾ(＠⌒ー⌒＠)ノ"),
+                 hint: _("https://github.com/toshia/display_requirements"),
                  depends: [:open_setting]
                  ) do |ach|
     dr = Plugin.instance(:display_requirements)
     ach.take! unless dr and defined? dr.rotten? end
 
   defachievement(:multipane,
-                 description: "新規ペインを追加コマンドでペインを増やせます",
-                 hint: "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
+                 description: _("新規ペインを追加コマンドでペインを増やせます"),
+                 hint: _("タブを右クリックして、「新規ペインに移動」をクリックしてみよう")
                  ) do |ach|
     on_gui_pane_join_window do |pane, window|
       if window.children.size >= 2
         ach.take! end end end
 
   defachievement(:move_pane,
-                 description: "タブを別のペインにドラッグすれば、そのペインに移動できます",
-                 hint: "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう",
+                 description: _("タブを別のペインにドラッグすれば、そのペインに移動できます"),
+                 hint: _("二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"),
                  depends: [:multipane]
                  ) do |ach|
     on_after_gui_tab_reordered do |tab|
@@ -132,7 +132,7 @@ Plugin.create :achievement do
       ach.take! end end
 
   defachievement(:bugreporter,
-                 description: "クラッシュレポートの報告ありがとうございます",
+                 description: _("クラッシュレポートの報告ありがとうございます"),
                  hidden: true
                  ) do |ach|
     on_send_bugreport do |report|
@@ -146,7 +146,7 @@ Plugin.create :achievement do
         activity :achievement, not_achieved.hint end end end
 
   on_achievement_took do |achievement|
-    activity :achievement, "実績 #{achievement.slug.to_s} を達成しました！おめでとう♪" end
+    activity :achievement, (_("実績 %s を達成しました！おめでとう♪") % achievement.slug.to_s) end
 
 end
 
