@@ -43,6 +43,15 @@ Module.new do
        appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] }
 
   Plugin.create(:core) do
+
+    defevent :favorite,
+    priority: :ui_favorited,
+    prototype: [Service, User, Message]
+
+    defevent :unfavorite,
+    priority: :ui_favorited,
+    prototype: [Service, User, Message]
+
     favorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
     unfavorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
 
