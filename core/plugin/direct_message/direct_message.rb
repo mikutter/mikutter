@@ -24,13 +24,13 @@ module Plugin::DirectMessage
       if iter
         Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
 
-    tab(:directmessage, "DM") do
+    tab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       expand
       nativewidget ul
     end
 
-    profiletab(:directmessage, "DM") do
+    profiletab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       nativewidget Plugin.create(:direct_message).dm_list_widget(user)
     end

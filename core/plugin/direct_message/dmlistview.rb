@@ -30,7 +30,7 @@ module Plugin::DirectMessage
             get_column(C_TEXT).queue_resize end end
         false }
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
-       {:kind => :text, :type => String, :label => '本文', :renderer => lambda{ |scheme, index|
+       {:kind => :text, :type => String, :label => _('本文'), :renderer => lambda{ |scheme, index|
            renderer = Gtk::CellRendererText.new
            Delayer.new{
              if not destroyed?
