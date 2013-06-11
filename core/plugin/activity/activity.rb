@@ -24,20 +24,26 @@ Plugin.create(:activity) do
     SERVICE = 6
     EVENT = 7
 
-    def initialize
+    def initialize(plugin)
+      type_strict plugin => Plugin
+      @plugin = plugin
       super()
       @creatable = @updatable = @deletable = false
     end
 
     def column_schemer
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'}, # ICON
-       {:kind => :text, :type => String, :label => '種類'},        # KIND
-       {:kind => :text, :type => String, :label => '説明'},        # TITLE
-       {:kind => :text, :type => String, :label => '時刻'},        # DATE
+       {:kind => :text, :type => String, :label => _('種類')},      # KIND
+       {:kind => :text, :type => String, :label => _('説明')},      # TITLE
+       {:kind => :text, :type => String, :label => _('時刻')},      # DATE
        {:type => Plugin},                                          # PLUGIN
        {:type => Integer},                                         # IDu
        {:type => Service},                                         # SERVICE
        {:type => Hash} ].freeze                                    # EVENT
+    end
+
+    def method_missing(*args, &block)
+      @plugin.__send__(*args, &block)
     end
   end
 
@@ -116,7 +122,7 @@ Plugin.create(:activity) do
       data[kind] = name
       [data] end end
 
-  activity_view = ActivityView.new
+  activity_view = ActivityView.new(self)
   activity_vscrollbar = ::Gtk::VScrollbar.new(activity_view.vadjustment)
   activity_hscrollbar = ::Gtk::HScrollbar.new(activity_view.hadjustment)
   activity_shell = ::Gtk::Table.new(2, 2)
@@ -141,7 +147,7 @@ Plugin.create(:activity) do
                                   closeup(activity_description).
                                   closeup(activity_status.right)), true, false)
 
-  tab(:activity, "アクティビティ") do
+  tab(:activity, _("アクティビティ")) do
     set_icon Skin.get("underconstruction.png")
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
@@ -184,7 +190,7 @@ Plugin.create(:activity) do
 
   on_favorite do |service, user, message|
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
-             description:("@#{user[:idname]} がふぁぼふぁぼしました\n"+
+             description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
                           "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
@@ -194,7 +200,7 @@ Plugin.create(:activity) do
 
   on_unfavorite do |service, user, message|
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
-             description:("@#{user[:idname]} があんふぁぼしました\n"+
+             description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
                           "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
              icon: user[:profile_image_url],
@@ -206,20 +212,26 @@ Plugin.create(:activity) do
     retweets.each { |retweet|
       retweet.retweet_source_d.next{ |source|
         activity(:retweet, retweet.to_s,
-                 description:("@#{retweet.user[:idname]} がリツイートしました\n"+
+                 description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
                               "@#{source.user[:idname]}: #{source.to_s}\n"+
                               "https://twitter.com/#{source.user[:idname]}/statuses/#{source[:id]}"),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.is_me? || source && source.user.is_me?),
-                 service: Service.primary) }.terminate('リツイートソースが取得できませんでした') }
+                 service: Service.primary) }.terminate(_ 'リツイートソースが取得できませんでした') }
   end
 
   on_list_member_added do |service, user, list, source_user|
     if show_once(:list_member_added, user[:id], list[:id])
-      activity(:list_member_added, "@#{user[:idname]}が#{list[:full_name]}に追加されました",
-               description:("@#{user[:idname]} が #{list[:full_name]} に追加されました\n"+
-                            "#{list[:description]} (by @#{list.user[:idname]})\n"+
+      title = _("@%{user}が%{list}に追加されました") % {
+        user: user[:idname],
+        list: list[:full_name] }
+      desc_by_user = {
+        description: list[:description],
+        user: list.user[:idname] }
+      activity(:list_member_added, title,
+               description:("#{title}\n" +
+                            _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
                related: user.is_me? || source_user.is_me?,
@@ -228,9 +240,15 @@ Plugin.create(:activity) do
 
   on_list_member_removed do |service, user, list, source_user|
     if show_once(:list_member_removed, user[:id], list[:id])
-      activity(:list_member_removed, "@#{user[:idname]}が#{list[:full_name]}から削除されました",
-               description:("@#{user[:idname]} が #{list[:full_name]} から削除されました\n"+
-                            "#{list[:description]} (by @#{list.user[:idname]})\n"+
+      title = _("@%{user}が%{list}から削除されました") % {
+        user: user[:idname],
+        list: list[:full_name] }
+      desc_by_user = {
+        description: list[:description],
+        user: list.user[:idname] }
+      activity(:list_member_removed, title,
+               description:("#{title}\n"+
+                            _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
                related: user.is_me? || source_user.is_me?,
@@ -239,7 +257,10 @@ Plugin.create(:activity) do
 
   on_follow do |by, to|
     if show_once(:follow, by[:id], to[:id])
-      activity(:follow, "@#{by[:idname]}が@#{to[:idname]}をﾌｮﾛｰしました",
+      by_user_to_user = {
+        followee: by[:idname],
+        follower: to[:idname] }
+      activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
                related: by.is_me? || to.is_me?,
                icon: (to.is_me? ? by : to)[:profile_image_url]) end
   end
@@ -248,20 +269,23 @@ Plugin.create(:activity) do
     dms.each{ |dm|
       date = Time.parse(dm[:created_at])
       if date > BOOT_TIME
-        first_line = dm[:sender].is_me? ? "ダイレクトメッセージを送信しました" : "ダイレクトメッセージを受信しました"
-        activity(:dm, "D #{dm[:recipient][:idname]} #{dm[:text]}",
+        first_line = dm[:sender].is_me? ? _("ダイレクトメッセージを送信しました") : _("ダイレクトメッセージを受信しました")
+        title = _("D %{recipient} %{text}") % {
+          recipient: dm[:recipient][:idname],
+          text: dm[:text] }
+        activity(:dm, title,
                  description: ("#{first_line}\n" +
-                               "@#{dm[:sender][:idname]}: D #{dm[:recipient][:idname]} #{dm[:text]}"),
+                               "@#{dm[:sender][:idname]}: #{title}"),
                  icon: dm[:sender][:profile_image_url],
                  service: service,
                  date: date) end }
   end
 
   onunload do
-    Addon.remove_tab 'アクティビティ'
+    Addon.remove_tab _('アクティビティ')
   end
 
-  settings "アクティビティ" do
+  settings _("アクティビティ") do
     activity_kind = Plugin.filtering(:activity_kind, {})
     activity_kind_order = TypedArray(String).new
     if activity_kind
@@ -274,30 +298,30 @@ Plugin.create(:activity) do
       activity_kind_order = []
       activity_kind = {} end
 
-    settings "表示しないイベント" do
-      multiselect("以下の自分に関係ないイベント", :activity_mute_kind_related) do
+    settings _("表示しないイベント") do
+      multiselect(_("以下の自分に関係ないイベント"), :activity_mute_kind_related) do
         activity_kind_order.each{ |kind|
           option kind, activity_kind[kind] } end
 
-      multiselect("以下の全てのイベント", :activity_mute_kind) do
+      multiselect(_("以下の全てのイベント"), :activity_mute_kind) do
         activity_kind_order.each{ |kind|
           option kind, activity_kind[kind] } end end
 
-    multiselect("タイムラインに表示", :activity_show_timeline) do
+    multiselect(_("タイムラインに表示"), :activity_show_timeline) do
       activity_kind_order.each{ |kind|
         option kind, activity_kind[kind] } end
 
-    multiselect("ステータスバーに表示", :activity_show_statusbar) do
+    multiselect(_("ステータスバーに表示"), :activity_show_statusbar) do
       activity_kind_order.each{ |kind|
         option kind, activity_kind[kind] } end end
 
-  defactivity "retweet", "リツイート"
-  defactivity "favorite", "ふぁぼ"
-  defactivity "follow", "フォロー"
-  defactivity "list_member_added", "リストに追加"
-  defactivity "list_member_removed", "リストから削除"
-  defactivity "dm", "ダイレクトメッセージ"
-  defactivity "system", "システムメッセージ"
-  defactivity "error", "エラー"
+  defactivity "retweet", _("リツイート")
+  defactivity "favorite", _("ふぁぼ")
+  defactivity "follow", _("フォロー")
+  defactivity "list_member_added", _("リストに追加")
+  defactivity "list_member_removed", _("リストから削除")
+  defactivity "dm", _("ダイレクトメッセージ")
+  defactivity "system", _("システムメッセージ")
+  defactivity "error", _("エラー")
 
 end
