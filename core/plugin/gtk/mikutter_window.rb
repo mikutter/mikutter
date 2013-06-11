@@ -30,7 +30,7 @@ class Gtk::MikutterWindow < Gtk::Window
   def create_statusbar
     statusbar = Gtk::Statusbar.new
     notice "statusbar: context id: #{statusbar.get_context_id("system")}"
-    statusbar.push(statusbar.get_context_id("system"), "mikutterの誕生以来、最も大きな驚きを")
+    statusbar.push(statusbar.get_context_id("system"), "新しいmikutter　欲しいだけのパワーを、一日中。")
     @statusbar = statusbar.closeup(status_button(Gtk::HBox.new)) end
 
   # ステータスバーに表示するWindowレベルのボタンを _container_ にpackする。
