@@ -13,8 +13,8 @@ Plugin.create :extract do
 
   crud = nil
 
-  settings "抽出タブ" do
-    crud = ExtractTab.new
+  settings _("抽出タブ") do
+    crud = ExtractTab.new(Plugin[:extract])
     crud.set_size_request(0, 200)
     (UserConfig[:extract_tabs] or []).each{ |record|
       iter = crud.model.append
@@ -90,6 +90,13 @@ Plugin.create :extract do
     ITER_SOURCE = 1
     ITER_SEXP = 2
     ITER_ID   = 3
+
+    def initialize(plugin)
+      type_strict plugin => Plugin
+      @plugin = plugin
+      super()
+    end
+
     def column_schemer
       [{ :kind => :text,
          :widget => :input,
@@ -97,10 +104,10 @@ Plugin.create :extract do
          :label => '名前' },
        { :type => Object,
          :widget => :choosemany,
-         :args => [[['appear', '受信したすべての投稿'],
-                    ['update', 'フレンドタイムライン'],
-                    ['mention', '自分宛のリプライ'],
-                    ['posted', '自分が投稿したメッセージ']]]},
+         :args => [[['appear', @plugin._('受信したすべての投稿')],
+                    ['update', @plugin._('フレンドタイムライン')],
+                    ['mention', @plugin._('自分宛のリプライ')],
+                    ['posted', @plugin._('自分が投稿したメッセージ')]]]},
        { :type => Object,
          :widget => :message_picker },
        { :type => Integer },
