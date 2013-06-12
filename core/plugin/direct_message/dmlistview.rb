@@ -8,8 +8,9 @@ module Plugin::DirectMessage
     C_TEXT = 1
     C_RAW = 3
 
-    def initialize
-      super
+    def initialize(plugin)
+      @plugin = plugin
+      super()
       model.set_sort_column_id(DirectMessage::C_CREATED, Gtk::SORT_DESCENDING)
       @creatable = @updatable = false
     end
@@ -29,8 +30,8 @@ module Plugin::DirectMessage
             renderer.set_property "wrap-width", nw
             get_column(C_TEXT).queue_resize end end
         false }
-      [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'},
-       {:kind => :text, :type => String, :label => _('本文'), :renderer => lambda{ |scheme, index|
+      [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => @plugin._('icon')},
+       {:kind => :text, :type => String, :label => @plugin._('本文'), :renderer => lambda{ |scheme, index|
            renderer = Gtk::CellRendererText.new
            Delayer.new{
              if not destroyed?

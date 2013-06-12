@@ -77,7 +77,7 @@ module Plugin::DirectMessage
 
     def dm_list_widget(user)
       container = ::Gtk::VBox.new
-      tl = DirectMessage.new
+      tl = DirectMessage.new(self)
 
       scrollbar = ::Gtk::VScrollbar.new(tl.vadjustment)
       model = tl.model
