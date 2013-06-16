@@ -1,0 +1,11 @@
+---
+slug: :set_input
+depends:
+  mikutter: 0.2.2.1264
+  plugin:
+  - settings
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: input settings
+description: 入力設定画面を提供する
