@@ -6,11 +6,11 @@ Plugin.create :list do
   crawl_count = 0
   this = self
 
-  settings "リスト" do
+  settings _("リスト") do
     pack_start(this.setting_container, true)
   end
 
-  profiletab :list, "リスト" do
+  profiletab :list, _("リスト") do
     set_icon Skin.get("list.png")
     bio = ::Gtk::IntelligentTextview.new(user[:detail])
     ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
@@ -54,7 +54,7 @@ Plugin.create :list do
 
   # 設定のGtkウィジェット
   def setting_container
-    tab = Tab.new
+    tab = Tab.new(Plugin.create(:list))
     tab.plugin = self
     available_lists.each{ |list|
       iter = tab.model.append
@@ -100,7 +100,9 @@ Plugin.create :list do
           slug = timelines.keys.find{ |slug| timelines[slug] == list }
           timeline(slug) << res if slug end
       }.terminate
-    }.terminate("リスト #{list[:full_name]} (##{list[:id]}) のメンバーの取得に失敗しました") end
+    }.terminate(_("リスト %{list_name} (#%{list_id}) のメンバーの取得に失敗しました") % {
+                list_name: list[:full_name],
+                list_id: list[:id] }) end
 
   # 表示中のタイムライン/タブのスラッグとリストオブジェクトの連想配列
   def timelines
@@ -266,17 +268,19 @@ Plugin.create :list do
     DESCRIPTION = 4
     PUBLICITY = 5
 
-    def initialize
-      super
+    def initialize(plugin)
+      type_strict plugin => Plugin
+      @plugin = plugin
+      super()
       dialog_title = "リスト" end
 
     def column_schemer
-      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
-       {:kind => :text, :type => String, :label => 'リスト名'},
+      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => @plugin._('表示')},
+       {:kind => :text, :type => String, :label => @plugin._('リスト名')},
        {:type => UserList},
-       {:type => String, :widget => :input, :label => 'リストの名前'},
-       {:type => String, :widget => :input, :label => 'リスト説明'},
-       {:type => TrueClass, :widget => :boolean, :label => '公開'},
+       {:type => String, :widget => :input, :label => @plugin._('リストの名前')},
+       {:type => String, :widget => :input, :label => @plugin._('リスト説明')},
+       {:type => TrueClass, :widget => :boolean, :label => @plugin._('公開')},
       ].freeze
     end
 
@@ -324,11 +328,12 @@ Plugin.create :list do
 
     def initialize(plugin, dest)
       type_strict plugin => Plugin, dest => User
+      @plugin = plugin
       @dest_user = dest
       @locked = {}
       super()
       creatable = updatable = deletable = false
-      set_auto_getter(plugin, true) do |service, list, iter|
+      set_auto_getter(@plugin, true) do |service, list, iter|
         iter[MEMBER] = list.member?(@dest_user)
         iter[SLUG] = list[:slug]
         iter[LIST] = list
@@ -344,7 +349,7 @@ Plugin.create :list do
               iter[LIST].add_member(@dest_user) end }
           toggled.activatable = true
           queue_draw end
-      }.terminate("@#{@dest_user[:idname]} が入っているリストが取得できませんでした。雰囲気で適当に表示しておきますね").trap{ |e|
+      }.terminate(@plugin._("@%{user} が入っているリストが取得できませんでした。雰囲気で適当に表示しておきますね") % {user: @dest_user[:idname]}).trap{ |e|
         if not destroyed?
           toggled.activatable = true
           queue_draw end } end
@@ -367,13 +372,13 @@ Plugin.create :list do
           }.terminate{ |e|
             iter[MEMBER] = !flag if not destroyed?
             @locked[iter[SLUG]] = false
-            "@#{@dest_user[:idname]} をリスト #{list[:full_name]} に追加できませんでした" } end
-      end
-    end
+            @plugin._("@%{user} をリスト %{list_name} に追加できませんでした") % {
+              user: @dest_user[:idname],
+              list_name: list[:full_name] } } end end end
 
     def column_schemer
-      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => 'リスト行き'},
-       {:kind => :text, :type => String, :label => 'リスト名'},
+      [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => @plugin._('リスト行き')},
+       {:kind => :text, :type => String, :label => @plugin._('リスト名')},
        {:type => UserList},
        {:type => Service}
       ].freeze
