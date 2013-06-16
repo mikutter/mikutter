@@ -7,11 +7,7 @@ Module.new do
 
   def self.boot
     Gtk.idle_add_priority(GLib::PRIORITY_LOW) {
-      begin
-        Delayer.run
-      rescue => e
-        into_debug_mode(e)
-        Gtk.main_quit end
+      Delayer.run
       false }
   end
 
