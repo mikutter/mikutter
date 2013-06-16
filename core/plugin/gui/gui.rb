@@ -45,7 +45,7 @@ Plugin.create :gui do
       i_profiletab.profile_slug = slug
       i_profile.add_child(i_profiletab, where_should_insert_it(slug, i_profile.children.map(&:profile_slug), UserConfig[:profile_tab_order]))
       i_profiletab.instance_eval{ @user = user }
-      i_profiletab.instance_eval(&proc) end end
+      i_profiletab.instance_eval_with_delegate(self, &proc) end end
 
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)

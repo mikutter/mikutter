@@ -36,7 +36,9 @@ class Plugin::GUI::ProfileTab
         if not(defined?(@user_promise) and @user_promise)
           @user_promise = Service.primary.user_show(user_id: user[:id]).next{ |u|
             @user_promise = false
-            u }.terminate("@#{user[:idname]} のユーザ情報が取得できませんでした") end
+            u }.terminate{
+            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: user[:idname]}
+          } end
         @user_promise = @user_promise.next{ |u| callback.call(u); u } } end
   end
 

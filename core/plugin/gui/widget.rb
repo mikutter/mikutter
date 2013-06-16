@@ -56,6 +56,16 @@ module Plugin::GUI::Widget
     return true if defined?(@destroy) and @destroy
     Plugin.filtering(:gui_destroyed, self).first end
 
+  def instance_eval_with_delegate(delegatee, &proc)
+    before_delegatee = @delegatee
+    begin
+      @delegatee = delegatee
+      instance_eval &proc
+    ensure
+      @delegatee = before_delegatee
+    end
+  end
+
   def inspect
     "#<#{self.class.to_s}(role=#{self.class.role},slug=#{slug})>"
   end
@@ -73,5 +83,11 @@ module Plugin::GUI::Widget
       children.each{ |child|
         result[child.slug] = child.to_hash }
       result end end
+
+  def method_missing(*args, &block)
+    if defined?(@delegatee) and @delegatee
+      @delegatee.__send__(*args, &block)
+    else
+      super end end
 
 end
