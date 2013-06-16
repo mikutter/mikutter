@@ -27,7 +27,7 @@ Plugin.create :profile do
 
   on_show_profile do |service, user|
     container = profile_head(user)
-    i_profile = tab nil, "#{user[:name]} のプロフィール" do
+    i_profile = tab nil, _("%{user} のプロフィール") % {user: user[:name]} do
       set_icon user[:profile_image_url]
       set_deletable true
       shrink
@@ -38,7 +38,7 @@ Plugin.create :profile do
     Plugin.call(:filter_stream_reconnect_request)
   end
 
-  profiletab :usertimeline, "最近のツイート" do
+  profiletab :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")
     uid = user.id
     i_timeline = timeline nil do
@@ -47,11 +47,11 @@ Plugin.create :profile do
         (retweet || message)[:created].to_i end end
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
-    }.terminate("@#{user[:idname]} の最近のつぶやきが取得できませんでした。見るなってことですかね")
+    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: user[:idname]})
     timeline_storage[i_timeline.slug] = user
     i_timeline.active! end
 
-  profiletab :aboutuser, "ユーザについて" do
+  profiletab :aboutuser, _("ユーザについて") do
     set_icon user[:profile_image_url]
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new
@@ -68,10 +68,18 @@ Plugin.create :profile do
     user_complete do
       biotext = (user[:detail] || "")
       if user[:url]
-        biotext += "\n\nWeb: " + user[:url] end
+        biotext += "\n\n" + _('Web: %{url}') % {url: user[:url]} end
       bio.rewind(biotext)
       ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
-      label_since.text = "Twitter開始: #{user[:created].strftime('%Y/%m/%d %H:%M:%S')} (#{ago == 0 ? user[:statuses_count] : "%.2f" % (user[:statuses_count].to_f / ago)}tweet/day)\n" end
+      label_since.text = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
+        year: user[:created].strftime('%Y'),
+        month: user[:created].strftime('%m'),
+        day: user[:created].strftime('%d'),
+        hour: user[:created].strftime('%H'),
+        minute: user[:created].strftime('%M'),
+        second: user[:created].strftime('%S'),
+        tweets_per_day: ago == 0 ? user[:statuses_count] : "%.2f" % (user[:statuses_count].to_f / ago)
+      } + "\n" end
   end
 
   on_appear do |messages|
@@ -90,9 +98,11 @@ Plugin.create :profile do
           name: lambda { |opt|
             if defined? opt.messages.first and opt.messages.first.repliable?
               u = opt.messages.first.user
-              "#{u[:idname]}(#{u[:name]})について".gsub(/_/, '__')
+              (_("%{screen_name}(%{name})について") % {
+               screen_name: u[:idname],
+               name: u[:name] }).gsub(/_/, '__')
             else
-             "ユーザについて" end },
+              _("ユーザについて") end },
           condition: Plugin::Command::CanReplyAll,
           visible: true,
           icon: lambda{ |opt| opt && opt.messages.first.user[:profile_image_url] },
@@ -109,7 +119,7 @@ Plugin.create :profile do
         remove_muted_user(user)
       end
     }
-    btn = Mtk::boolean(changer, 'ミュート')
+    btn = Mtk::boolean(changer, _('ミュート'))
   end
 
   def add_muted_user(user)
@@ -137,12 +147,12 @@ Plugin.create :profile do
     container = ::Gtk::VBox.new(false, 4)
     Service.all.each{ |me|
       following = followed = nil
-      w_following_label = ::Gtk::Label.new("関係を取得中")
+      w_following_label = ::Gtk::Label.new(_("関係を取得中"))
       w_followed_label = ::Gtk::Label.new("")
       w_eventbox_image_following = ::Gtk::EventBox.new
       w_eventbox_image_followed = ::Gtk::EventBox.new
       relation = if me.user_obj == user
-                   ::Gtk::Label.new("それはあなたです！")
+                   ::Gtk::Label.new(_("それはあなたです！"))
                  else
                    ::Gtk::HBox.new.
                      closeup(w_eventbox_image_following).
@@ -167,8 +177,8 @@ Plugin.create :profile do
 
             w_eventbox_image_following.style = w_eventbox_image_following.parent.style
             w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
-            w_following_label.text = new ? "ﾌｮﾛｰしている" : "ﾌｮﾛｰしていない"
-            followbutton.label = new ? "解除" : "ﾌｮﾛｰ" end }
+            w_following_label.text = new ? _("ﾌｮﾛｰしている") : _("ﾌｮﾛｰしていない")
+            followbutton.label = new ? _("解除") : _("ﾌｮﾛｰ") end }
         # フォローされている状態の更新
         m_followed_refresh = lambda { |new|
           if not w_eventbox_image_followed.destroyed?
@@ -177,7 +187,7 @@ Plugin.create :profile do
               w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
             w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
-            w_followed_label.text = new ? "ﾌｮﾛｰされている" : "ﾌｮﾛｰされていない" end }
+            w_followed_label.text = new ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない") end }
         Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
             m_following_refresh.call(rel[:following])
@@ -203,7 +213,7 @@ Plugin.create :profile do
               false }
             followbutton.sensitive = true end
         }.terminate.trap{
-          w_following_label.text = "取得できませんでした" } end
+          w_following_label.text = _("取得できませんでした") } end
       container.closeup(relation_container.closeup(followbutton)) }
     container end
 
@@ -259,7 +269,7 @@ Plugin.create :profile do
     w_followers = ::Gtk::Label.new(user[:followers_count].to_s)
     user.count_favorite_by.next{ |favs|
       w_faved.text = favs.to_s
-    }.terminate("ふぁぼが取得できませんでした").trap{
+    }.terminate(_("ふぁぼが取得できませんでした")).trap{
       w_faved.text = '-' }
     ::Gtk::Table.new(2, 5).
       attach(w_tweets.right, 0, 1, 0, 1).
