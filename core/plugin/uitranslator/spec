@@ -1,0 +1,9 @@
+---
+slug: :uitranslator
+depends:
+  mikutter: 0.2.2.1230
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: UI Translator
+description: 他のプラグインに国際化機能を提供します
