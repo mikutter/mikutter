@@ -42,6 +42,10 @@ class Plugin::Settings::Select
     else
       Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(build_combobox(Plugin::Settings::Listener[config])) end end
 
+  def method_missing(*args, &block)
+    @plugin.__send__(*args, &block)
+  end
+
   private
 
   def build_box(listener)
