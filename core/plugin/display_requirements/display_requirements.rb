@@ -72,17 +72,20 @@ class ::Gdk::MiraclePainter
     now = Time.now.to_i
     there = message[:created].to_i
     diff = (there - now).abs
+    time_arg = nil
     label = case diff
             when 0
-              "今"
+              _("今")
             when 1...60
-              "#{diff}秒#{there < now ? '前' : "後"}"
+              (there < now ? _("%{sec}秒前") : _("%{sec}秒後")) % {sec: diff}
             when 60...3600
-              "#{(diff/60).to_i}分#{there < now ? '前' : "後"}"
+              (there < now ? _('%{min}分前') : _('%{min}分後')) % {min: (diff/60).to_i}
             when 3600...86400
-              "#{(diff/3600).to_i}時間#{there < now ? '前' : "後"}"
+              (there < now ? _('%{hour}時間前') : _('%{hour}時間後')) % {hour: (diff/3600).to_i}
             else
-              message[:created].strftime('%Y/%m/%d')
+              # TRANSLATORS: Time#strftimeが食う形式。
+              # こんなん設定できたら良さそうだけどDRとかどうでもいいので適当にやってね
+              message[:created].strftime(_('%Y/%m/%d'))
             end
     Pango.escape(label)end
 
