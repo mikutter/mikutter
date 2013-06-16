@@ -25,7 +25,7 @@ Plugin.create :openimg do
     eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
 
   def display(url, cancel = nil)
-    w = ::Gtk::Window.new.set_title("（読み込み中）")
+    w = ::Gtk::Window.new.set_title(_("（読み込み中）"))
     w.set_size_request(320, 240)
     w.set_default_size(*@size).move(*@position)
     w.signal_connect(:destroy){ w.destroy }
@@ -41,7 +41,7 @@ Plugin.create :openimg do
               w.destroy
               cancel.call
             else
-              w.set_title("URLの取得に失敗") end end }
+              w.set_title(_("URLの取得に失敗")) end end }
       else
         pixbuf = Gdk::WebImageLoader.loading_pixbuf(*@size)
         raw = Gdk::WebImageLoader.get_raw_data(url){ |data|
