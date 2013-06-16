@@ -16,7 +16,7 @@ Plugin.create :saved_search do
   end
 
   command(:saved_search_destroy,
-          name: '保存した検索を削除',
+          name: _('保存した検索を削除'),
           condition: lambda{ |opt| timelines.values.any?{ |s| s.slug == opt.widget.slug } },
           visible: true,
           role: :tab) do |opt|
@@ -63,7 +63,7 @@ Plugin.create :saved_search do
     Service.primary.search(q: saved_search.query, rpp: 100).next{ |res|
       timeline(saved_search.slug) << res if res.is_a? Array
     }.trap{ |e|
-      timeline(saved_search.slug) << Message.new(message: "更新中にエラーが発生しました (#{e.to_s})", system: true) } end
+      timeline(saved_search.slug) << Message.new(message: _("更新中にエラーが発生しました (%{error})") % {error: e.to_s}, system: true) } end
 
   # saved search を取得する
   # ==== Args
