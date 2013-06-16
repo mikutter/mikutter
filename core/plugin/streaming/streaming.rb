@@ -13,12 +13,12 @@ Plugin.create :streaming do
       streamer = Plugin::Streaming::ParmaStreamer.new(Service.primary)
     else
       if streamer
-        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), 'UserStream: 接続を切りました', 10)
+        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), _('UserStream: 接続を切りました'), 10)
         streamer.kill
         streamer = nil
       else
         # 無効にされたがすでに接続が切れていた場合
-        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), 'UserStream: 接続を無効にしました', 10)
+        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), _('UserStream: 接続を無効にしました'), 10)
       end
     end
   }
