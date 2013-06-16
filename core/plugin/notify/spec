@@ -1,0 +1,11 @@
+---
+slug: :notify
+depends:
+  mikutter: 0.2.2.1264
+  plugin:
+  - settings
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: notify
+description: 各種通知を制御するプラグイン
