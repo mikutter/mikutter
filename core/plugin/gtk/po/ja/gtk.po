@@ -1,0 +1,23 @@
+# Japanese translations for gtk package
+# gtk パッケージに対する翻訳.
+# Copyright (C) 2013 THE gtk'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gtk package.
+# Toshiaki Asai <toshi.alternative@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtk 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-06 10:00+0900\n"
+"PO-Revision-Date: 2013-07-06 10:04+0900\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: core/plugin/gtk/mikutter_window.rb:35
+msgid "Statusbar default message"
+msgstr "mikutter - Twitterを、全く新しい視点から。"
