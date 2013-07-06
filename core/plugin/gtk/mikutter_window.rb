@@ -7,9 +7,11 @@ class Gtk::MikutterWindow < Gtk::Window
 
   attr_reader :panes, :statusbar
 
-  def initialize(imaginally, *args)
+  def initialize(imaginally, plugin, *args)
+    type_strict plugin => Plugin
     super(*args)
     @imaginally = imaginally
+    @plugin = plugin
     @container = Gtk::VBox.new(false, 0)
     @panes = Gtk::HBox.new(true, 0)
     @postboxes = Gtk::VBox.new(false, 0)
@@ -30,7 +32,7 @@ class Gtk::MikutterWindow < Gtk::Window
   def create_statusbar
     statusbar = Gtk::Statusbar.new
     notice "statusbar: context id: #{statusbar.get_context_id("system")}"
-    statusbar.push(statusbar.get_context_id("system"), "新しいmikutter　欲しいだけのパワーを、一日中。")
+    statusbar.push(statusbar.get_context_id("system"), @plugin._("Statusbar default message"))
     @statusbar = statusbar.closeup(status_button(Gtk::HBox.new)) end
 
   # ステータスバーに表示するWindowレベルのボタンを _container_ にpackする。

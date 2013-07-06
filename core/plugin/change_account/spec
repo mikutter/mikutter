@@ -1,0 +1,11 @@
+---
+slug: :change_account
+depends:
+  mikutter: 0.2.2.1264
+  plugin:
+  - settings
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: Change Account
+description: アカウント情報をGUIで入力するプラグイン

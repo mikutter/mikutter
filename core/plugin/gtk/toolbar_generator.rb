@@ -29,7 +29,7 @@ module Plugin::Gtk
       }.trap{ |e|
         error "error on command toolbar:"
         error e
-      }.terminate("コマンドエラー")
+      }.terminate
       container end
   end
 end

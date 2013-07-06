@@ -5,6 +5,7 @@ depends:
   plugin:
   - gui
   - change_account
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 保存した検索

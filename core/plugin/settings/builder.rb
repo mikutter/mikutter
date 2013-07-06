@@ -21,6 +21,12 @@ settingsの中身は、 Plugin::Settings のインスタンスの中で実行さ
 =end
 class Plugin::Settings < Gtk::VBox
 
+  def initialize(plugin)
+    type_strict plugin => Plugin
+    super()
+    @plugin = plugin
+  end
+
   # 複数行テキスト
   # ==== Args
   # [label] ラベル
@@ -177,7 +183,7 @@ class Plugin::Settings < Gtk::VBox
       group.set_label_widget(title)
     else
       group.set_label(title) end
-    box = Plugin::Settings.new.set_border_width(4)
+    box = Plugin::Settings.new(@plugin).set_border_width(4)
     box.instance_eval(&Proc.new)
     closeup group.add(box)
     group
@@ -242,7 +248,7 @@ class Plugin::Settings < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def select(label, config, default = {})
-    builder = Plugin::Settings::Select.new(default)
+    builder = Plugin::Settings::Select.new(@plugin, default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container end
@@ -256,7 +262,7 @@ class Plugin::Settings < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def multiselect(label, config, default = {})
-    builder = Plugin::Settings::MultiSelect.new(default)
+    builder = Plugin::Settings::MultiSelect.new(@plugin, default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container end
@@ -280,6 +286,10 @@ class Plugin::Settings < Gtk::VBox
     button.signal_connect('font-set'){ |w|
       Listener[config].set w.font_name }
     button end
+
+  def method_missing(*args, &block)
+    @plugin.__send__(*args, &block)
+  end
 
 end
 

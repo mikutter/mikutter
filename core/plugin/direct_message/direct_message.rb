@@ -24,13 +24,13 @@ module Plugin::DirectMessage
       if iter
         Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
 
-    tab(:directmessage, "DM") do
+    tab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       expand
       nativewidget ul
     end
 
-    profiletab(:directmessage, "DM") do
+    profiletab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       nativewidget Plugin.create(:direct_message).dm_list_widget(user)
     end
@@ -77,7 +77,7 @@ module Plugin::DirectMessage
 
     def dm_list_widget(user)
       container = ::Gtk::VBox.new
-      tl = DirectMessage.new
+      tl = DirectMessage.new(self)
 
       scrollbar = ::Gtk::VScrollbar.new(tl.vadjustment)
       model = tl.model

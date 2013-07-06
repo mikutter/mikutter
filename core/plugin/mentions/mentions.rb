@@ -4,7 +4,7 @@
 # Reply display/post support
 
 Plugin.create :mentions do
-  tab :mentions, "Replies" do
+  tab :mentions, _("Replies") do
     set_icon Skin.get("reply.png")
     timeline :mentions end
 

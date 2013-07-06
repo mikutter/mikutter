@@ -5,6 +5,7 @@ depends:
   plugin:
   - gtk
   - gui
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 検索

@@ -1,4 +1,4 @@
-# -*- coding: utf-8
+# -*- coding: utf-8 -8
 
 require 'net/http'
 
@@ -31,17 +31,17 @@ module Net
 end
 
 Plugin::create(:proxy) do
-  settings "プロキシ" do
-    select "プロキシ", :proxy_enabled do
-      option :specify, "自分で設定する" do
-        input "サーバ", :proxy_server
-        adjustment "ポート", :proxy_port, 1, 65535
-        input "ユーザ", :proxy_user
-        inputpass "パスワード", :proxy_password
-        boolean "ユーザ認証が必要", :proxy_cert
+  settings _("プロキシ") do
+    select _("プロキシ"), :proxy_enabled do
+      option :specify, _("自分で設定する") do
+        input _("サーバ"), :proxy_server
+        adjustment _("ポート"), :proxy_port, 1, 65535
+        input _("ユーザ"), :proxy_user
+        inputpass _("パスワード"), :proxy_password
+        boolean _("ユーザ認証が必要"), :proxy_cert
       end
-      option :disable, "環境変数の設定を使う"
-      option nil, "プロキシを使わない"
+      option :disable, _("環境変数の設定を使う")
+      option nil, _("プロキシを使わない")
     end
   end
 
@@ -56,65 +56,3 @@ Plugin::create(:proxy) do
     end
   }
 end
-
-  # def settings
-  #   box = Gtk::VBox.new(false, 8)
-
-  #   radio_tag = radio_specify = Gtk::RadioButton.new('自分で設定する')
-  #   radio_envval = Gtk::RadioButton.new(radio_tag, '環境変数の設定を使う')
-  #   radio_disable = Gtk::RadioButton.new(radio_tag, 'プロキシを使わない')
-
-  #   case UserConfig[:proxy_enabled]
-  #   when :specify
-  #     radio_specify.active = true
-  #   when :disable
-  #     radio_disable.active = true
-  #   else
-  #     radio_envval.active = true end
-
-  #   box.
-  #     closeup(gen_group(:specify, radio_specify)).
-  #     closeup(gen_group(:envval, radio_envval)).
-  #     closeup(gen_record(:disable, radio_disable))
-  # end
-
-  # def gen_record(name, radio)
-  #   radio.signal_connect('toggled'){ |widget|
-  #     UserConfig[:proxy_enabled] = name if widget.active? }
-  #   radio
-  # end
-
-  # def gen_group(name, radio)
-  #   eventbox = __send__("gen_#{name}_ev")
-  #   radio.signal_connect('toggled'){ |widget|
-  #     UserConfig[:proxy_enabled] = name if widget.active?
-  #     eventbox.sensitive = widget.active? }
-  #   eventbox.sensitive = UserConfig[:proxy_enabled] == name
-  #   Mtk::group(radio, eventbox)
-  # end
-
-  # def gen_specify_ev
-  #   sv = Mtk.input(:proxy_server, "サーバ")
-  #   pt = Mtk.input(:proxy_port, "ポート")
-  #   us = Mtk.input(:proxy_user, "ユーザ")
-  #   pw = Mtk.input(:proxy_password, "パスワード")
-  #   ct = Mtk.boolean(:proxy_cert, "ユーザ認証が必要")
-
-  #   auth_group = Mtk::group(ct, us, pw)
-  #   UserConfig.connect(:proxy_cert){ |key, new_val, before_val, id|
-  #     us.sensitive = pw.sensitive = new_val }
-
-  #   Gtk::EventBox.new.add(Gtk::VBox.new(false, 8).closeup(sv).closeup(pt).closeup(auth_group))
-  # end
-
-  # def gen_envval_ev
-  #   env_getter = lambda{ |index|
-  #     lambda{|x| Net::HTTP.get_env_proxy_settings[index].to_s } }
-  #   sv = Mtk.input(env_getter[0], "サーバ"){|c,i|i.sensitive = false}
-  #   pt = Mtk.input(env_getter[1], "ポート"){|c,i|i.sensitive = false}
-  #   us = Mtk.input(env_getter[2], "ユーザ"){|c,i|i.sensitive = false}
-  #   pw = Mtk.input(env_getter[3], "パスワード"){|c,i|i.sensitive = false}
-  #   Gtk::EventBox.new.add(Gtk::VBox.new(false, 8).closeup(sv).closeup(pt).closeup(us).closeup(pw))
-  # end
-
-# end

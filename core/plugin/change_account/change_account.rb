@@ -24,7 +24,7 @@ Plugin.create :change_account do
     result = [nil]
     main_windows = Plugin.filtering(:get_windows, Set.new).first
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
-    dialog = ::Gtk::Dialog.new(Environment::NAME + " ログイン")
+    dialog = ::Gtk::Dialog.new(_("%{mikutter} ログイン") % {mikutter: Environment::NAME})
     container, key, request_token = main(watch, dialog)
     dialog.set_size_request(600, 400)
     dialog.window_position = ::Gtk::Window::POS_CENTER
@@ -49,7 +49,7 @@ Plugin.create :change_account do
           result = [access_token.token, access_token.secret]
           quit.call
         rescue => e
-          Mtk.alert("暗証番号が違うみたいです\n\n#{e}")
+          Mtk.alert(_("暗証番号が違うみたいです")+"\n\n#{e}")
         end
       else
         quit.call end end
@@ -70,7 +70,7 @@ Plugin.create :change_account do
     box = ::Gtk::VBox.new(false, 8)
     request_token = watch.request_oauth_token
     goaisatsu.add(::Gtk::IntelligentTextview.new(hello(request_token.authorize_url)))
-    user, key_input = gen_input('暗証番号', dialog, true)
+    user, key_input = gen_input(_('暗証番号'), dialog, true)
     box.closeup(goaisatsu).closeup(user)
     return box, key_input, request_token
   end
@@ -88,11 +88,9 @@ Plugin.create :change_account do
   end
 
   def hello(url)
-    "マスターったら、ツイッターまでみっくみくね！\n\n"+
-    "ログインの手順:\n下のリンクをクリックして、ユーザ名などを入れてから許可するボタンを"+
-      "押してください(クリックしても開かなかったら、アドレスバーにコピペだ！)。\n"+
-      "#{url}\n表示された数字を「暗証番号」に入力してOKボタンを押してください。\n\n"+
-      'すると、みっくみくにされます。'
+    _("マスターったら、ツイッターまでみっくみくね！") + "\n\n" +
+      _("ログインの手順:\n下のリンクをクリックして、ユーザ名などを入れてから許可するボタンを押してください(クリックしても開かなかったら、アドレスバーにコピペだ！)。") + "\n" +
+      url + "\n" + _("表示された数字を「暗証番号」に入力してOKボタンを押してください。\nすると、みっくみくにされます。")
   end
 
   on_reauthentication_dialog do |service|
@@ -104,9 +102,9 @@ Plugin.create :change_account do
   end
 
   MikuTwitter::AuthenticationFailedAction.regist &method(:popup)
-  settings 'アカウント情報' do
-    closeup attention = ::Gtk::Label.new("変更後は、#{Environment::NAME}を再起動した方がいいと思うよ！")
-    closeup decide = ::Gtk::Button.new('変更')
+  settings _('アカウント情報') do
+    closeup attention = ::Gtk::Label.new(_("変更後は、%{mikutter} を再起動した方がいいと思うよ！") % {mikutter: Environment::NAME})
+    closeup decide = ::Gtk::Button.new(_('変更'))
     attention.wrap = true
     decide.signal_connect("clicked"){
       Plugin.call(:reauthentication_dialog, Service.primary) }

@@ -66,6 +66,8 @@ class SerialThreadGroup
           Thread.pass end
       rescue QueueExpire => e
         ;
+      rescue ThreadError => e
+        ;
       rescue Object => e
         error e
         abort

@@ -25,7 +25,7 @@ module ::Plugin::Streaming
           @queue[name].push json }
       else
         define_method("event_#{name}"){ |json|
-          @queue[name] ||= _queue = Queue.new
+          @queue[name] ||= Queue.new
           @threads[name] ||= Thread.new{
             loop{
               begin

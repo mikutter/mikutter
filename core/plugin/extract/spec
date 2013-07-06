@@ -6,6 +6,7 @@ depends:
   - gtk
   - settings
   - gui
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 抽出タブ

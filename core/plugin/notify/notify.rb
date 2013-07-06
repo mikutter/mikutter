@@ -5,20 +5,20 @@ Plugin.create(:notify) do
   DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
   DEFINED_TIME = Time.new.freeze
 
-  settings("通知") do
+  settings(_("通知")) do
     def self.defnotify(label, kind)
       settings (label) do
-        boolean 'ポップアップ', "notify_#{kind}".to_sym
-      fileselect('サウンド', "notify_sound_#{kind}".to_sym, DEFAULT_SOUND_DIRECTORY) end end
+        boolean _('ポップアップ'), "notify_#{kind}".to_sym
+      fileselect(_('サウンド'), "notify_sound_#{kind}".to_sym, DEFAULT_SOUND_DIRECTORY) end end
 
-    defnotify "フレンドタイムライン", :friend_timeline
-    defnotify "リプライ", :mention
-    defnotify 'フォローされたとき', :followed
-    defnotify 'フォロー解除されたとき', :removed
-    defnotify 'リツイートされたとき', :retweeted
-    defnotify 'ふぁぼられたとき', :favorited
-    defnotify 'ダイレクトメッセージ受信', :direct_message
-    adjustment('通知を表示し続ける秒数', :notify_expire_time, 1, 60)
+    defnotify _("フレンドタイムライン"), :friend_timeline
+    defnotify _("リプライ"), :mention
+    defnotify _('フォローされたとき'), :followed
+    defnotify _('フォロー解除されたとき'), :removed
+    defnotify _('リツイートされたとき'), :retweeted
+    defnotify _('ふぁぼられたとき'), :favorited
+    defnotify _('ダイレクトメッセージ受信'), :direct_message
+    adjustment(_('通知を表示し続ける秒数'), :notify_expire_time, 1, 60)
   end
 
   onupdate do |post, raw_messages|
@@ -43,21 +43,23 @@ Plugin.create(:notify) do
     if not(users.empty?)
       if(UserConfig[:notify_followed])
         users.each{ |user|
-          self.notify(users.first, users.map{|u| "@#{u[:idname]}" }.join(' ')+' にフォローされました。') } end
+          self.notify(users.first, _('%{users} にフォローされました。') % {users: users.map{|u| "@#{u[:idname]}" }.join(' ')}) } end
       if(UserConfig[:notify_sound_followed])
         self.notify_sound(UserConfig[:notify_sound_followed]) end end end
 
   on_followers_destroy do |post, users|
     if not(users.empty?)
       if(UserConfig[:notify_removed])
-        self.notify(users.first, users.map{|u| "@#{u[:idname]}" }.join(' ')+' にリムーブされました。') end
+        self.notify(users.first, _('%{users} にリムーブされました。') % {users: users.map{|u| "@#{u[:idname]}" }.join(' ')}) end
       if(UserConfig[:notify_sound_removed])
         self.notify_sound(UserConfig[:notify_sound_removed]) end end end
 
   on_favorite do |service, by, to|
     if to.from_me?
       if(UserConfig[:notify_favorited])
-        self.notify(by, "fav by #{by[:idname]} \"#{to.to_s}\"") end
+        self.notify(by, _("fav by %{from_user} \"%{tweet}\"") % {
+                      from_user: by[:idname],
+                      tweet: to.to_s }) end
       if(UserConfig[:notify_sound_favorited])
         self.notify_sound(UserConfig[:notify_sound_favorited]) end end end
 
@@ -66,7 +68,7 @@ Plugin.create(:notify) do
     if not(messages.empty?)
       if(UserConfig[:notify_retweeted])
         messages.each{ |message|
-          self.notify(message[:user], 'ReTweet: ' +  message.to_s) } end
+          self.notify(message[:user], _('ReTweet: %{tweet}') % {tweet: message.to_s}) } end
       if(UserConfig[:notify_sound_retweeted])
         self.notify_sound(UserConfig[:notify_sound_retweeted]) end end end
 

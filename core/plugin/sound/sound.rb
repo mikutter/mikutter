@@ -15,8 +15,8 @@ Plugin.create :sound do
         value.play.call(filename)
         break end } end
 
-  settings "サウンド" do
-    select "サウンドの再生方法", :sound_server do
+  settings _("サウンド") do
+    select _("サウンドの再生方法"), :sound_server do
       Plugin.filtering(:sound_servers, []).first.each{ |value|
         option value.slug, value.name } end end
 

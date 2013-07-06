@@ -22,14 +22,14 @@ Plugin.create :smartthread do
               i_timeline << message end } } end end end
 
   command(:smartthread,
-          name: '会話スレッドを表示',
+          name: _('会話スレッドを表示'),
           icon: Skin.get("list.png"),
           condition: lambda{ |opt| not opt.messages.empty? and opt.messages.all? &:repliable? },
           visible: true,
           role: :timeline){ |opt|
     serial = counter.call
     slug = "conversation#{serial}".to_sym
-    tab slug, "会話#{serial}" do
+    tab slug, _("会話%{serial_id}") % {serial_id: serial} do
       set_deletable true
       set_icon Skin.get("list.png")
       timeline slug do

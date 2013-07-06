@@ -6,6 +6,7 @@ depends:
   - gui
   - gtk
   - command
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: プロフィール

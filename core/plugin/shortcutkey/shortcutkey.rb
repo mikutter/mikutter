@@ -20,8 +20,8 @@ Plugin.create :shortcutkey do
             cmd[:exec].call(event) end end end }
     [key, widget, executed] end
 
-  settings "ショートカットキー" do
-    listview = Plugin::Shortcutkey::ShortcutKeyListView.new
+  settings _("ショートカットキー") do
+    listview = Plugin::Shortcutkey::ShortcutKeyListView.new(Plugin[:shortcutkey])
     filter_entry = listview.filter_entry = Gtk::Entry.new
     filter_entry.primary_icon_pixbuf = Gdk::WebImageLoader.pixbuf(MUI::Skin.get("search.png"), 24, 24)
     filter_entry.ssc(:changed){

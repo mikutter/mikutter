@@ -2,7 +2,9 @@
 require File.expand_path File.join(File.dirname(__FILE__), 'builder')
 
 class Plugin::Settings::Select
-  def initialize(values = [])
+  def initialize(plugin, values = [])
+    type_strict plugin => Plugin
+    @plugin = plugin
     @options = values.to_a.freeze end
 
   # セレクトボックスに要素を追加する
@@ -12,7 +14,7 @@ class Plugin::Settings::Select
   # [&block] Plugin::Settings のインスタンス内で評価され、そのインスタンスが内容として使われる
   def option(value, label = nil)
     if block_given?
-      widget = Plugin::Settings.new.set_border_width(4)
+      widget = Plugin::Settings.new(@plugin).set_border_width(4)
       widget.instance_eval(&Proc.new)
       @options += [[value, label, widget].freeze]
     else
@@ -41,6 +43,10 @@ class Plugin::Settings::Select
       group
     else
       Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(build_combobox(Plugin::Settings::Listener[config])) end end
+
+  def method_missing(*args, &block)
+    @plugin.__send__(*args, &block)
+  end
 
   private
 

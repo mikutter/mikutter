@@ -128,9 +128,9 @@ module Miquire::Plugin
             raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depended_plugin_slug} was not loaded." end } end
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
-      Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
       ::Plugin.create(spec[:slug].to_sym) do
         self.spec = spec end
+      Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
       true end
   end
 end

@@ -9,7 +9,7 @@ Plugin.create :command do
       last_active_pane[i_window.slug] = i_pane end end
 
   command(:copy_selected_region,
-          name: 'コピー',
+          name: _('コピー'),
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           icon: Skin.get("copy.png"),
@@ -17,7 +17,7 @@ Plugin.create :command do
     ::Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
 
   command(:copy_description,
-          name: '本文をコピー',
+          name: _('本文をコピー'),
           condition: Plugin::Command[:HasOneMessage],
           visible: true,
           icon: Skin.get("copy_all.png"),
@@ -25,7 +25,7 @@ Plugin.create :command do
     ::Gtk::Clipboard.copy(opt.messages.first.to_show) end
 
   command(:reply,
-          name: '返信',
+          name: _('返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
           icon: Skin.get("reply.png"),
@@ -34,7 +34,7 @@ Plugin.create :command do
                                     subreplies: opt.messages.map(&:message)) end
 
   command(:reply_all,
-          name: '全員に返信',
+          name: _('全員に返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
           icon: Skin.get("reply.png"),
@@ -44,14 +44,14 @@ Plugin.create :command do
                                     exclude_myself: true) end
 
   command(:legacy_retweet,
-          name: '引用',
+          name: _('引用'),
           condition: Plugin::Command[:HasOneMessage, :CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
     opt.widget.create_reply_postbox(opt.messages.first.message, retweet: true) end
 
   command(:retweet,
-          name: 'リツイート',
+          name: _('リツイート'),
           condition: Plugin::Command[:CanReTweetAll],
           visible: true,
           icon: Skin.get("retweet.png"),
@@ -59,7 +59,7 @@ Plugin.create :command do
     opt.messages.select{ |x| not x.from_me? }.each(&:retweet) end
 
   command(:delete_retweet,
-          name: 'リツイートをキャンセル',
+          name: _('リツイートをキャンセル'),
           condition: Plugin::Command[:IsReTweetedAll],
           visible: true,
           icon: Skin.get("retweet_cancel.png"),
@@ -69,7 +69,7 @@ Plugin.create :command do
       retweet.destroy if retweet and ::Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
 
   command(:favorite,
-          name: 'ふぁぼふぁぼする',
+          name: _('ふぁぼふぁぼする'),
           condition: Plugin::Command[:CanFavoriteAll],
           visible: true,
           icon: Skin.get("unfav.png"),
@@ -77,7 +77,7 @@ Plugin.create :command do
     opt.messages.each(&:favorite) end
 
   command(:delete_favorite,
-          name: 'あんふぁぼ',
+          name: _('あんふぁぼ'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
           icon: Skin.get("fav.png"),
@@ -85,30 +85,30 @@ Plugin.create :command do
     opt.messages.each(&:unfavorite) end
 
   command(:delete,
-          name: '削除',
+          name: _('削除'),
           condition: Plugin::Command[:IsMyMessageAll],
           visible: true,
           icon: Skin.get("close.png"),
           role: :timeline) do |opt|
     opt.messages.each { |m|
-      m.destroy if ::Gtk::Dialog.confirm("失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？\n\n#{m.to_show}") } end
+      m.destroy if ::Gtk::Dialog.confirm(_('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？') + "\n\n#{m.to_show}") } end
 
   command(:select_prev,
-          name: '一つ上のメッセージを選択',
+          name: _('一つ上のメッセージを選択'),
           condition: ret_nth,
           visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :prev) end
 
   command(:select_next,
-          name: '一つ下のメッセージを選択',
+          name: _('一つ下のメッセージを選択'),
           condition: ret_nth,
           visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :next) end
 
   command(:post_it,
-          name: '投稿する',
+          name: _('投稿する'),
           condition: Plugin::Command[:Editable],
           visible: false,
           icon: Skin.get("post.png"),
@@ -116,7 +116,7 @@ Plugin.create :command do
     opt.widget.post_it! end
 
   command(:google_search,
-          name: 'ggrks',
+          name: _('ggrks'),
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
           icon: "https://www.google.co.jp/images/google_favicon_128.png",
@@ -124,7 +124,7 @@ Plugin.create :command do
     ::Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
 
   command(:open_link,
-          name: 'リンクを開く',
+          name: _('リンクを開く'),
           condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
             opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
           visible: true,
@@ -133,7 +133,7 @@ Plugin.create :command do
       ::Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
 
   command(:new_pane,
-          name: '新規ペインに移動',
+          name: _('新規ペインに移動'),
           condition: lambda{ |opt|
             pane = opt.widget.parent
             notice "pane: #{pane}"
@@ -153,7 +153,7 @@ Plugin.create :command do
   end
 
   command(:close,
-          name: 'タブを閉じる',
+          name: _('タブを閉じる'),
           condition: lambda{ |opt|
             opt.widget.deletable },
           visible: true,
@@ -163,7 +163,7 @@ Plugin.create :command do
   end
 
   command(:focus_right_tab,
-          name: '右のタブを選択',
+          name: _('右のタブを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
@@ -171,7 +171,7 @@ Plugin.create :command do
   end
 
   command(:focus_left_tab,
-          name: '左のタブを選択',
+          name: _('左のタブを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
@@ -179,7 +179,7 @@ Plugin.create :command do
   end
 
   command(:focus_right_pane,
-          name: '右のペインを選択',
+          name: _('右のペインを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :pane) do |opt|
@@ -187,7 +187,7 @@ Plugin.create :command do
   end
 
   command(:focus_left_pane,
-          name: '左のペインを選択',
+          name: _('左のペインを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :pane) do |opt|
@@ -195,7 +195,7 @@ Plugin.create :command do
   end
 
   command(:focus_to_postbox,
-          name: '投稿ボックスにフォーカス',
+          name: _('投稿ボックスにフォーカス'),
           condition: lambda{ |opt|
             if opt.widget.respond_to? :active_chain
               not opt.widget.active_chain.last.is_a? Plugin::GUI::Postbox
@@ -207,7 +207,7 @@ Plugin.create :command do
   end
 
   command(:focus_to_tab,
-          name: 'タブにフォーカス',
+          name: _('タブにフォーカス'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :postbox) do |opt|
@@ -215,7 +215,7 @@ Plugin.create :command do
   end
 
   command(:timeline_scroll_to_top,
-          name: 'タイムラインの一番上にジャーンプ！',
+          name: _('タイムラインの一番上にジャーンプ！'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :timeline) do |opt|

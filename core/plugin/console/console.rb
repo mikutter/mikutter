@@ -4,7 +4,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'console_control')
 
 Plugin.create :console do
   command(:console_open,
-          name: 'コンソールを開く',
+          name: _('コンソールを開く'),
           condition: lambda{ |opt| true },
           visible: true,
           icon: Skin.get('console.png'),
@@ -22,7 +22,7 @@ Plugin.create :console do
     widget_result.set_size_request(0, 50)
     widget_input.set_size_request(0, 50)
 
-    widget_result.buffer.insert(widget_result.buffer.start_iter, "mikutter console.\n下にRubyコードを入力して、Ctrl+Enterを押すと、ここに実行結果が表示されます\n")
+    widget_result.buffer.insert(widget_result.buffer.start_iter, _("mikutter console.\n下にRubyコードを入力して、Ctrl+Enterを押すと、ここに実行結果が表示されます") + "\n")
 
     gen_tags(widget_result.buffer)
 
@@ -52,7 +52,7 @@ Plugin.create :console do
       else
         false end }
 
-    tab(:console, "コンソール") do
+    tab(:console, _("コンソール")) do
       set_icon Skin.get('console.png')
       set_deletable true
       nativewidget Plugin::Console::ConsoleControl.new().

@@ -2,18 +2,28 @@
 require 'set'
 
 Plugin.create :ratelimit do
-  defactivity "ratelimit", "規制通知"
+  defactivity "ratelimit", _("規制通知")
 
   notificated = Set.new
   ratelimit_filter_mutex = Mutex.new
 
   on_ratelimit do |service, ratelimit|
-    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "API #{ratelimit.endpoint} #{ratelimit.remain}/#{ratelimit.limit}回くらい (#{ratelimit.reset.strftime('%Y/%m/%d %H:%M:%S')}まで)", 30)
+    Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), _("API %{endpoint} %{remain}/%{limit}回くらい (%{refresh_time}まで)") % {
+                  endpoint: ratelimit.endpoint,
+                  remain: ratelimit.remain,
+                  limit: ratelimit.limit,
+                  refresh_time: ratelimit.reset.strftime(_('%Y/%m/%d %H:%M:%S'))
+                }, 30)
     if ratelimit.limit?
-      title = "エンドポイント `#{ratelimit.endpoint}' が規制されました。#{ratelimit.reset.strftime('%Y/%m/%d %H:%M:%S')}に解除されます。"
+      title = _("エンドポイント `%{endpoint}' が規制されました。%{refresh_time}に解除されます。") % {
+        endpoint: ratelimit.endpoint,
+        refresh_time: ratelimit.reset.strftime(_('%Y/%m/%d %H:%M:%S')) }
       activity(:ratelimit, title,
                service: service,
-               description: "#{title}\n#{ratelimit.endpoint} は15分に #{ratelimit.limit} 回までのアクセスが許可されています。頻発するようなら同時に使用するTwitterクライアントを減らすか、設定を見直しましょう")
+               description: "#{title}\n" + _("%{endpoint} は%{minute}分に %{limit} 回までのアクセスが許可されています。頻発するようなら同時に使用するTwitterクライアントを減らすか、設定を見直しましょう") % {
+                 endpoint: ratelimit.endpoint,
+                 minute: 15,
+                 limit: ratelimit.limit })
     end
   end
 

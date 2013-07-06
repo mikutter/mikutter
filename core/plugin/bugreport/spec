@@ -1,0 +1,11 @@
+---
+slug: :bugreport
+depends:
+  mikutter: 0.2.2.1264
+  plugin:
+  - gtk
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: Bug report
+description: mikutterがクラッシュした時にログを送信する

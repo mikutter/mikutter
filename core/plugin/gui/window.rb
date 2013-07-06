@@ -28,7 +28,7 @@ class Plugin::GUI::Window
   end
 
   def self.active
-    @@active ||= instance(:default, "デフォルト")
+    @@active ||= instance(:default, _("デフォルト"))
   end
 
   def set_icon(icon)

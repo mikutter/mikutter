@@ -19,7 +19,7 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     else
       group = Gtk::Frame.new.set_border_width(8).
         set_label(label)
-      box = Plugin::Settings.new.set_border_width(4).
+      box = Plugin::Settings.new(@plugin).set_border_width(4).
         closeup(build_combobox(Plugin::Settings::Listener[config]))
       group.add(box)
     end end

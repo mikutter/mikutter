@@ -11,8 +11,10 @@ module Plugin::Shortcutkey
 
     attr_accessor :filter_entry
 
-    def initialize
-      super
+    def initialize(plugin)
+      type_strict plugin => Plugin
+      @plugin = plugin
+      super()
       set_model(Gtk::TreeModelFilter.new(model))
       model.set_visible_func{ |model, iter|
         if defined?(@filter_entry) and @filter_entry
@@ -36,8 +38,8 @@ module Plugin::Shortcutkey
                 iter[COLUMN_COMMAND_ICON] = pixbuf end } end end } end
 
     def column_schemer
-      [{:kind => :text, :widget => :keyconfig, :type => String, :label => 'キーバインド'},
-       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => '機能名'},
+      [{:kind => :text, :widget => :keyconfig, :type => String, :label => @plugin._('キーバインド')},
+       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => @plugin._('機能名')},
         {:kind => :text, :type => String, :expand => true}],
        {:kind => :text, :widget => :chooseone, :args => [Hash[Plugin.filtering(:command, Hash.new).first.values.map{ |x|
                                                             [x[:slug], x[:name]]
@@ -89,12 +91,12 @@ module Plugin::Shortcutkey
       values = defaults.dup
       result = nil
       defaults.freeze
-      window = KeyConfigWindow.new("設定 - " + Environment::NAME)
+      window = KeyConfigWindow.new(@plugin._("設定 - %{software_name}") % {software_name: Environment::NAME})
       window.transient_for = toplevel
       window.modal = true
       window.destroy_with_parent = true
-      btn_ok = ::Gtk::Button.new("OK")
-      btn_cancel = ::Gtk::Button.new("キャンセル")
+      btn_ok = ::Gtk::Button.new(@plugin._("OK"))
+      btn_cancel = ::Gtk::Button.new(@plugin._("キャンセル"))
       window.
         add(::Gtk::VBox.new(false, 16).
             add(::Gtk::HBox.new(false, 16).
@@ -109,8 +111,8 @@ module Plugin::Shortcutkey
       btn_cancel.ssc(:clicked){ window.destroy }
       btn_ok.ssc(:clicked){
         error = catch(:validate) {
-          throw :validate, "キーバインドを選択してください" unless values[COLUMN_KEYBIND]
-          throw :validate, "コマンドを選択してください" unless values[COLUMN_SLUG]
+          throw :validate, @plugin._("キーバインドを選択してください") unless values[COLUMN_KEYBIND]
+          throw :validate, @plugin._("コマンドを選択してください") unless values[COLUMN_SLUG]
           result = values
           window.destroy }
         if error
@@ -126,14 +128,14 @@ module Plugin::Shortcutkey
 
     def key_box(results)
       container = ::Gtk::VBox.new(false, 16)
-      button = ::Gtk::KeyConfig.new('キーバインド', results[COLUMN_KEYBIND])
+      button = ::Gtk::KeyConfig.new(@plugin._('キーバインド'), results[COLUMN_KEYBIND])
       button.change_hook = lambda { |new| results[COLUMN_KEYBIND] = new }
       container.
-        closeup(::Gtk::Label.new('キーバインド')).
+        closeup(::Gtk::Label.new(@plugin._('キーバインド'))).
         closeup(button) end
 
     def command_box(results)
-      treeview = CommandList.new(results)
+      treeview = CommandList.new(@plugin, results)
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
       filter_entry = treeview.filter_entry = Gtk::Entry.new
       filter_entry.primary_icon_pixbuf = Gdk::WebImageLoader.pixbuf(MUI::Skin.get("search.png"), 24, 24)
@@ -164,7 +166,9 @@ module Plugin::Shortcutkey
 
       attr_accessor :filter_entry
 
-      def initialize(results)
+      def initialize(plugin, results)
+        type_strict plugin => Plugin
+        @plugin = plugin
         super(::Gtk::TreeModelFilter.new(::Gtk::TreeStore.new(::Gdk::Pixbuf, String, Symbol)))
         model.set_visible_func{ |model, iter|
           if defined?(@filter_entry) and @filter_entry
@@ -172,8 +176,8 @@ module Plugin::Shortcutkey
           else
             true end }
         append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
-        append_column ::Gtk::TreeViewColumn.new("コマンド名", ::Gtk::CellRendererText.new, text: COL_NAME)
-        append_column ::Gtk::TreeViewColumn.new("スラッグ", ::Gtk::CellRendererText.new, text: COL_SLUG)
+        append_column ::Gtk::TreeViewColumn.new(@plugin._("コマンド名"), ::Gtk::CellRendererText.new, text: COL_NAME)
+        append_column ::Gtk::TreeViewColumn.new(@plugin._("スラッグ"), ::Gtk::CellRendererText.new, text: COL_SLUG)
         parents = Hash.new{ |h, k| # role => TreeIter
           h[k] = iter = model.model.append(nil)
           iter[COL_NAME] = k.to_s

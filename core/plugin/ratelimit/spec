@@ -5,6 +5,7 @@ depends:
   plugin:
   - gui
   - activity
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 'Rate Limit'
