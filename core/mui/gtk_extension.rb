@@ -68,7 +68,33 @@ module Gtk
       r << 'Alt + ' if (key[1] & Gdk::Window::MOD1_MASK) != 0
       r << 'Super + ' if (key[1] & Gdk::Window::SUPER_MASK) != 0
       r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
-      return r + Gdk::Keyval.to_name(key[0]) end end end
+      return r + Gdk::Keyval.to_name(key[0]) end end
+
+  def self.buttonname(key)
+    type_strict key => Array
+    type, button, state = key
+    if key.empty? or type == 0 or not key.all?(&ret_nth)
+      return '(割り当てなし)'
+    else
+      r = ""
+      r << 'Control + ' if (state & Gdk::Window::CONTROL_MASK) != 0
+      r << 'Shift + ' if (state & Gdk::Window::SHIFT_MASK) != 0
+      r << 'Alt + ' if (state & Gdk::Window::MOD1_MASK) != 0
+      r << 'Super + ' if (state & Gdk::Window::SUPER_MASK) != 0
+      r << 'Hyper + ' if (state & Gdk::Window::HYPER_MASK) != 0
+      r << "Button #{button} "
+      case type
+      when Gdk::Event::BUTTON_PRESS
+          r << 'Click'
+      when Gdk::Event::BUTTON2_PRESS
+          r << 'Double Click'
+      when Gdk::Event::BUTTON3_PRESS
+          r << 'Triple Click'
+      else
+        return '(割り当てなし)' end
+      return r end end
+
+end
 
 =begin rdoc
 = Gtk::Lock Ruby::Gnome2の排他制御

@@ -150,7 +150,10 @@ Plugin.create :gtk do
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_tab) }
     tab.ssc(:button_press_event) { |this, e|
       if e.button == 3
-        Plugin::GUI::Command.menu_pop(i_tab) end
+        Plugin::GUI::Command.menu_pop(i_tab)
+      else
+        Plugin::GUI.keypress(::Gtk::buttonname([event.event_type, event.button, event.state]), i_tab)
+      end
       false }
     tab.ssc(:destroy){
       i_tab.destroy

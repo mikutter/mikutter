@@ -36,19 +36,19 @@ module Gtk
                Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
                Integer, Integer)
 
-    def signal_do_button_press_event(event, path, column, cell_x, cell_y)
+    def signal_do_button_press_event(e, path, column, cell_x, cell_y)
     end
 
-    def signal_do_button_release_event(event, path, column, cell_x, cell_y)
+    def signal_do_button_release_event(e, path, column, cell_x, cell_y)
     end
 
-    def signal_do_motion_notify_event(event, path, column, cell_x, cell_y)
+    def signal_do_motion_notify_event(e, path, column, cell_x, cell_y)
     end
 
-    def signal_do_leave_notify_event(event, path, column, cell_x, cell_y)
+    def signal_do_leave_notify_event(e, path, column, cell_x, cell_y)
     end
 
-    def signal_do_click(event, path, column, cell_x, cell_y)
+    def signal_do_click(e, path, column, cell_x, cell_y)
     end
 
     def tree=(tree)
@@ -112,7 +112,6 @@ module Gtk
     # Messageに関連付けられた Gdk::MiraclePainter を取得する
     def miracle_painter(message)
       type_strict message => Message
-      mid = message[:id].to_s.freeze
       record = @tree.get_record_by_message(message)
       if record and record.miracle_painter
         record.miracle_painter
@@ -162,11 +161,14 @@ module Gtk
         record.miracle_painter.clicked(cell_x, cell_y, e) if record
         false }
       ssc(:button_press_event, @tree){ |r, e, path, column, cell_x, cell_y|
-        if e.button == 1
-          record = @tree.get_record(path)
-          if record
-            last_pressed = record.miracle_painter
-            last_pressed.pressed(cell_x, cell_y) end end
+        record = @tree.get_record(path)
+        if record
+          last_pressed = record.miracle_painter
+          if e.button == 1
+            last_pressed.pressed(cell_x, cell_y) end
+          Delayer.new(:ui_response) {
+            Plugin::GUI.keypress(::Gtk::buttonname([e.event_type, e.button, e.state]), @tree.imaginary) }
+        end
         false }
       ssc(:button_release_event, @tree){ |r, e, path, column, cell_x, cell_y|
         if e.button == 1 and last_pressed
@@ -190,4 +192,3 @@ module Gtk
 
   end
 end
-# ~> -:3: undefined method `miquire' for main:Object (NoMethodError)

@@ -139,9 +139,9 @@ class Gdk::MiraclePainter < Gtk::Object
       textselector_release(*main_pos_to_index_forclick(x, y)[1..2]) end end
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
-  def clicked(x, y, e)
-    signal_emit(:click, e, x, y)
-    case e.button
+  def clicked(x, y, event)
+    signal_emit(:click, event, x, y)
+    case event.button
     when 1
       iob_clicked
       if not textselector_range

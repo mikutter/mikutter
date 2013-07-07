@@ -42,7 +42,8 @@ class Gtk::KeyConfig < Gtk::Button
     button.add(label)
     box.pack_start(Gtk::Label.new('下のボタンをクリックして、割り当てたいキーを押してください。'))
     box.pack_start(button)
-    button.signal_connect('key_press_event', &key_set(label))
+    button.signal_connect(:key_press_event, &key_set(label))
+    button.signal_connect(:button_press_event, &button_set(label))
     dialog.vbox.add(box)
     dialog.show_all
     dialog.run
@@ -51,6 +52,14 @@ class Gtk::KeyConfig < Gtk::Button
   def key_set(label)
     lambda{ |widget, event|
       self.keycode = Gtk.keyname([event.keyval, event.state])
+      buttonlabel.text = label.text = keycode
+      self.change_hook.call(keycode) if self.change_hook
+      true }
+  end
+
+  def button_set(label)
+    lambda{ |widget, event|
+      self.keycode = Gtk.buttonname([event.event_type, event.button, event.state])
       buttonlabel.text = label.text = keycode
       self.change_hook.call(keycode) if self.change_hook
       true }

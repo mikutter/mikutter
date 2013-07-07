@@ -111,7 +111,7 @@ module Plugin::Shortcutkey
       btn_cancel.ssc(:clicked){ window.destroy }
       btn_ok.ssc(:clicked){
         error = catch(:validate) {
-          throw :validate, @plugin._("キーバインドを選択してください") unless values[COLUMN_KEYBIND]
+          throw :validate, @plugin._("キーバインドを選択してください") unless (values[COLUMN_KEYBIND] && values[COLUMN_KEYBIND] != "")
           throw :validate, @plugin._("コマンドを選択してください") unless values[COLUMN_SLUG]
           result = values
           window.destroy }
