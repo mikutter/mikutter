@@ -52,7 +52,7 @@ Plugin.create :openimg do
                 loader.write data
                 loader.close
                 pixbuf = loader.pixbuf
-              rescue => e
+              rescue => _
                 pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
             else
               pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
@@ -112,7 +112,7 @@ Plugin.create :openimg do
   def imgurlresolver(url, element_rule, limit=5, &block)
     return nil if limit <= 0
     return block.call(url) if block != nil
-    res = dom = nil
+    res = nil
     begin
       uri = URI.parse(url)
       path = uri.path + (uri.query ? "?"+uri.query : "")
@@ -152,17 +152,17 @@ Plugin.create :openimg do
     if block == nil
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
-        Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |url|
-          display(url, cancel)
+        Delayer.new(Delayer::NORMAL, Thread.new{ imgurlresolver(url, element_rule) }){ |image_url|
+          display(image_url, cancel)
         }
       }
     else
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(Delayer::NORMAL, Thread.new{
-                      imgurlresolver(url, element_rule){ |url| block.call(url, cancel) }
-                    }) {|url|
-          display(url, cancel)
+                      imgurlresolver(url, element_rule){ |image_url| block.call(image_url, cancel) }
+                    }) {|image_url|
+          display(image_url, cancel)
         }
       }
     end
