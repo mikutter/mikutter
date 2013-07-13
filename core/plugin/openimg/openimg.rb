@@ -207,7 +207,7 @@ Plugin.create :openimg do
     t = fetch(url)
     /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
     if $~
-      imgurlresolver($1 + "image" + $2, 'id' => 'image')
+      imgurlresolver($1 + "image" + $2, 'id' => 'content-image')
     else
       warn "たんぶらの記事ページじゃないっぽい"
       nil
