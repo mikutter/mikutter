@@ -126,11 +126,18 @@ Plugin.create :command do
   command(:open_link,
           name: _('リンクを開く'),
           condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
-            opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
+            opt.messages[0].entity.to_a.any? {|u| [:urls, :media].include?(u[:slug]) } },
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
-      ::Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
+      url =
+        case u[:slug]
+        when :urls
+          u[:expanded_url] || u[:url]
+        when :media
+          u[:media_url]
+        end
+      ::Gtk::TimeLine.openurl(url) if url } end
 
   command(:new_pane,
           name: _('新規ペインに移動'),
@@ -230,17 +237,13 @@ Plugin.create :command do
     type_strict widget => Plugin::GUI::HierarchyChild
     children = widget.parent.children.select{ |w| w.is_a? widget.class }
     index = children.index(widget)
-    if distance > 0 ? (children.size <= (index+distance)) : (0 > (index+distance))
-      notice "terminate #{widget}"
-      yield(widget, distance) if block_given?
-    else
-      term = children[index + distance]
-      term = term.active_chain.last if term.respond_to? :active_chain
-      term.active! if term
-      notice "activate #{term} #{widget.class} #{term.class}"
-      src_tl = widget.active_chain.last
-      if widget.is_a?(Plugin::GUI::Pane) and src_tl.is_a?(Plugin::GUI::Timeline) and term.is_a?(Plugin::GUI::Timeline)
-        slide_timeline_focus(src_tl, term) end end end
+    term = children[(index + distance) % children.size]
+    term = term.active_chain.last if term.respond_to? :active_chain
+    term.active! if term
+    notice "activate #{term} #{widget.class} #{term.class}"
+    src_tl = widget.active_chain.last
+    if widget.is_a?(Plugin::GUI::Pane) and src_tl.is_a?(Plugin::GUI::Timeline) and term.is_a?(Plugin::GUI::Timeline)
+      slide_timeline_focus(src_tl, term) end end
 
   # タイムライン _src_ で選択されているディスプレイ上のy座標が同じ _dest_ のツイートに
   # フォーカスを移動する

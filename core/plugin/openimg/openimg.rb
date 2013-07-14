@@ -52,7 +52,7 @@ Plugin.create :openimg do
                 loader.write data
                 loader.close
                 pixbuf = loader.pixbuf
-              rescue => e
+              rescue => _
                 pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
             else
               pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
@@ -112,7 +112,7 @@ Plugin.create :openimg do
   def imgurlresolver(url, element_rule, limit=5, &block)
     return nil if limit <= 0
     return block.call(url) if block != nil
-    res = dom = nil
+    res = nil
     begin
       uri = URI.parse(url)
       path = uri.path + (uri.query ? "?"+uri.query : "")
@@ -154,15 +154,14 @@ Plugin.create :openimg do
         url = MessageConverters.expand_url_one(shrinked_url)
         Delayer.new(:ui_response){
           display(Thread.new{
-                    imgurlresolver(url, element_rule)
-                  }, cancel) } }
+                    imgurlresolver(url, element_rule) }, cancel) } }
     else
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
         url = MessageConverters.expand_url_one(shrinked_url)
-        Delayer.new(:ui_response){
+        Delayer.new(:ui_response) {
           display(Thread.new{
-                    imgurlresolver(url, element_rule){ |url|
-                      block.call(url, cancel) }
+                    imgurlresolver(url, element_rule){ |image_url|
+                      block.call(image_url, cancel) }
                   }, cancel) } } end end
 
   pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))), create_additions: true)
@@ -204,7 +203,7 @@ Plugin.create :openimg do
     t = fetch(url)
     /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
     if $~
-      imgurlresolver($1 + "image" + $2, 'id' => 'image')
+      imgurlresolver($1 + "image" + $2, 'id' => 'content-image')
     else
       warn "たんぶらの記事ページじゃないっぽい"
       nil

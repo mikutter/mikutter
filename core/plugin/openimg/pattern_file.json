@@ -110,7 +110,7 @@
 	"Tumblr image": {
 		"url": "^http://[-0-9a-z]+\\.tumblr\\.com/image/\\d+",
 		"attribute": {
-			"id": "image"
+			"id": "content-image"
 		}
 	},
 	"はてなフォトライフ": {
@@ -154,6 +154,11 @@
 		"attribute": {
 			"class": "photo_frame kadomaru"
 		}
+	},
+	"フォト蔵": {
+		"url": "^http://photozou\\.jp/photo/show/\\d+/\\d+",
+		"attribute": {
+			"itemprop": "image"
+		}
 	}
-
 }
