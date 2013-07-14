@@ -126,11 +126,18 @@ Plugin.create :command do
   command(:open_link,
           name: 'リンクを開く',
           condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
-            opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
+            opt.messages[0].entity.to_a.any? {|u| [:urls, :media].include?(u[:slug]) } },
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
-      ::Gtk::TimeLine.openurl(u[:url]) if u[:slug] == :urls } end
+      url =
+        case u[:slug]
+        when :urls
+          u[:expanded_url] || u[:url]
+        when :media
+          u[:media_url]
+        end
+      ::Gtk::TimeLine.openurl(url) if url } end
 
   command(:new_pane,
           name: '新規ペインに移動',
