@@ -48,7 +48,11 @@ Plugin.create :list do
         if list.related?(message)
           timeline(slug) << message end } } end
 
-  # filter stream で、タイムラインを表示しているユーザをフォロー
+  on_service_registered do |service|
+    if service
+      fetch_list_of_service(service, true) end end
+
+  # FILTER stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
     [timelines.values.inject(users){ |r, list| r.merge(list.member) }] end
 
@@ -244,8 +248,10 @@ Plugin.create :list do
       tab(slug).destroy end
     self end
 
-  Delayer.new{
-    fetch_list_of_service(Service.primary, true) }
+  ->(service) {
+    if service
+      Delayer.new{
+        fetch_list_of_service(service, true) } end }.(Service.primary)
 
   at(:visible_list_obj, {}).values.each{ |list|
     begin

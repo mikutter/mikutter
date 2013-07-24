@@ -22,12 +22,17 @@ Plugin.create :rest do
     Plugin.call(:mention, service, messages)
     Plugin.call(:mypost, service, messages.select{ |m| m.from_me? }) end
 
-  def start(service)
-    notice "boot period"
-    @crawlers.each{ |s| s.call(service) }
-    ::Reserver.new(60){
-      start(service) } end
+  def start
+    if Service.instances.empty?
+      @account_observer ||= on_service_registered do |s|
+        start
+        @account_observer.detach
+        @account_observer = nil end
+    else
+      Service.instances.each { |service|
+        @crawlers.each{ |s| s.call(service) } }
+      ::Reserver.new(60){
+        start } end end
 
-  onboot do |service|
-    start(service) end
+  Delayer.new{ start }
 end

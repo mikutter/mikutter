@@ -57,14 +57,14 @@ module Plugin::DirectMessage
 
     def rewind
       service = Service.primary_service
-      Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
-        result = dm + sent
-        Plugin.call(:direct_messages, service, result) if result and not result.empty?
-      }.trap{ |e|
-        error e
-        raise e
-      }.terminate
-    end
+      if service
+        Deferred.when(service.direct_messages, service.sent_direct_messages).next{ |dm, sent|
+          result = dm + sent
+          Plugin.call(:direct_messages, service, result) if result and not result.empty?
+        }.trap{ |e|
+          error e
+          raise e
+        }.terminate end end
 
     def add_dm(dm, user)
       unless @dm_store[user[:id]].any?{ |stored| stored[:id] == dm[:id] }

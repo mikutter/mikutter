@@ -71,14 +71,16 @@ Plugin.create :saved_search do
   # ==== Return
   # deferred
   def refresh(cache=:keep)
-    Service.primary.saved_searches(cache: cache).next{ |res|
-      if res
-        saved_searches = {}
-        res.each{ |record|
-          saved_searches[record[:id]] = SavedSearch.new(record[:id], URI.decode(record[:query]), URI.decode(record[:name]), "savedsearch_#{record[:id]}".to_sym) }
-        new_ids, old_ids = saved_searches.keys, timelines.keys
-        (new_ids - old_ids).each{ |id| add_tab(saved_searches[id]) }
-        (old_ids - new_ids).each{ |id| delete_tab(id) } end }.terminate end
+    service = Service.primary
+    if service
+      service.saved_searches(cache: cache).next{ |res|
+        if res
+          saved_searches = {}
+          res.each{ |record|
+            saved_searches[record[:id]] = SavedSearch.new(record[:id], URI.decode(record[:query]), URI.decode(record[:name]), "savedsearch_#{record[:id]}".to_sym) }
+          new_ids, old_ids = saved_searches.keys, timelines.keys
+          (new_ids - old_ids).each{ |id| add_tab(saved_searches[id]) }
+          (old_ids - new_ids).each{ |id| delete_tab(id) } end }.terminate end end
 
   # 保存した検索の情報をキャッシュに登録する
   # ==== Args

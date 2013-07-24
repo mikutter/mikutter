@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig'
-miquire :lib, "mikutwitter", 'reserver', 'delayer'
+miquire :lib, "mikutwitter", 'reserver', 'delayer', 'instance_storage'
+
+require 'digest/md5'
 
 Thread.abort_on_exception = true
 
@@ -10,52 +12,95 @@ Twitter APIとmikutterプラグインのインターフェイス
 =end
 class Service
   include ConfigLoader
+  include InstanceStorage
 
   # MikuTwitter のインスタンス
   attr_reader :twitter
 
-  # 現在ログイン中のアカウント
-  @@services = Set.new
-
   def self.services_refresh
-    Service.new if(@@services.empty?) end
+    accounts = UserConfig[:accounts] # account_id => {token: ,secret:, ...}
+    if not accounts
+      if UserConfig[:twitter_token] and UserConfig[:twitter_secret] # 前バージョンから引継ぎ
+        accounts = UserConfig[:accounts] = {
+          default: {
+            token: UserConfig[:twitter_token],
+            secret: UserConfig[:twitter_secret],
+            user: UserConfig[:verify_credentials] } }
+      else
+        accounts = {} end end
+    accounts.each do |account|
+      Service.instance(account) end
+    @primary = (UserConfig[:primary_account] and Service[UserConfig[:primary_account]]) or instances.first
+  end
 
   # 存在するServiceオブジェクトをSetで返す。
   # つまり、投稿権限のある「自分」のアカウントを全て返す。
-  def self.all
-    Service.services_refresh
-    @@services.dup end
-  class << self; alias services all end
+  class << self
+    alias all instances
+    alias services instances
+  end
 
+  # 現在アクティブになっているサービスを返す。
+  # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。
   def self.primary
-    services.first end
+    @primary end
   class << self; alias primary_service primary end
+
+  def self.set_primary(service)
+    type_strict service => Service
+    @primary = service
+    Plugin.call(:primary_service_changed, service)
+    self end
+
+  # 新しくサービスを認証する
+  def self.add_service(token, secret)
+    type_strict token => String, secret => String
+
+    twitter = MikuTwitter.new
+    twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
+    twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
+    twitter.a_token = token
+    twitter.a_secret = secret
+
+    (twitter/:account/:verify_credentials).user.next { |user|
+      id = "twitter-#{user[:idname]}".to_sym
+      UserConfig[:accounts][id] = {
+        token: token,
+        secret: secret,
+        user: {
+          id: user[:id],
+          idname: user[:idname],
+          name: user[:name],
+          profile_image_url: user[:profile_image_url] } }
+      service = Service.instance(id)
+      Plugin.call(:service_registered, service)
+      service } end
 
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
-  def initialize
-    token, secret = UserConfig[:twitter_token], UserConfig[:twitter_secret]
-    if UserConfig[:twitter_authenticate_revision] != Environment::TWITTER_AUTHENTICATE_REVISION
-      notice "current authentication token revision #{UserConfig[:twitter_authenticate_revision]}. but required #{Environment::TWITTER_AUTHENTICATE_REVISION}"
-      token = secret = nil
-    end
+  def initialize(name)
+    account = UserConfig[:accounts][name.to_sym]
     @twitter = MikuTwitter.new
     @twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
     @twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-    @twitter.a_token = UserConfig[:twitter_token]
-    @twitter.a_secret = UserConfig[:twitter_secret]
-    if @twitter.a_token.empty? and @twitter.a_secret.empty?
-      @twitter.authentication_failed_action(self, nil, nil, nil)
-    end
+    @twitter.a_token = account[:token]
+    @twitter.a_secret = account[:secret]
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
-    @@services << self
     user_initialize
+  end
+
+  # アクセストークンとアクセスキーを再設定する
+  def set_token_secret(token, secret)
+    UserConfig[:accounts][name.to_sym] = {token: token, secret: secret}
+    @twitter.a_token = token
+    @twitter.a_secret = secret
+    self
   end
 
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
-    @user_obj  end
+    @user_obj end
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
@@ -183,8 +228,8 @@ class Service
   private
 
   def user_initialize
-    if UserConfig[:verify_credentials]
-      @user_obj = User.new_ifnecessary(UserConfig[:verify_credentials])
+    if UserConfig[:accounts][name][:user]
+      @user_obj = User.new_ifnecessary(UserConfig[:accounts][name][:user])
       (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed))
     else
       res = twitter.query!('account/verify_credentials', cache: true)
@@ -197,7 +242,7 @@ class Service
 
   def user_data_received(user)
     @user_obj = user
-    UserConfig[:verify_credentials] = {
+    UserConfig[:accounts][name][:user] = {
       :id => @user_obj[:id],
       :idname => @user_obj[:idname],
       :name => @user_obj[:name],
@@ -255,6 +300,8 @@ class Service
         messages
       else
         @post.scan(@api, :id => id) end end end
+
+  services_refresh
 end
 
 Post = Service
