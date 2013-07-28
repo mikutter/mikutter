@@ -61,6 +61,7 @@ class Service
       return self if before_primary != @primary || @primary == service
       @primary = service
       Plugin.call(:primary_service_changed, service)
+      notice "current active service: #{service.name}"
       self end end
 
   # 新しくサービスを認証する
