@@ -17,6 +17,8 @@ class Service
   # MikuTwitter のインスタンス
   attr_reader :twitter
 
+  @@service_lock = Mutex.new
+
   def self.services_refresh
     accounts = UserConfig[:accounts] # account_id => {token: ,secret:, ...}
     if not accounts
@@ -28,8 +30,8 @@ class Service
             user: UserConfig[:verify_credentials] } }
       else
         accounts = {} end end
-    accounts.each do |account|
-      Service.instance(account) end
+    accounts.keys.each do |account|
+      Service[account] end
     @primary = (UserConfig[:primary_account] and Service[UserConfig[:primary_account]]) or instances.first
   end
 
@@ -43,14 +45,23 @@ class Service
   # 現在アクティブになっているサービスを返す。
   # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。
   def self.primary
-    @primary end
+    if @primary
+      @primary
+    else
+      set_primary(services.first)
+      @primary
+    end
+  end
   class << self; alias primary_service primary end
 
   def self.set_primary(service)
     type_strict service => Service
-    @primary = service
-    Plugin.call(:primary_service_changed, service)
-    self end
+    before_primary = @primary
+    @@service_lock.synchronize do
+      return self if before_primary != @primary || @primary == service
+      @primary = service
+      Plugin.call(:primary_service_changed, service)
+      self end end
 
   # 新しくサービスを認証する
   def self.add_service(token, secret)
@@ -64,7 +75,12 @@ class Service
 
     (twitter/:account/:verify_credentials).user.next { |user|
       id = "twitter-#{user[:idname]}".to_sym
-      UserConfig[:accounts][id] = {
+      accounts = UserConfig[:accounts]
+      if accounts.is_a? Hash
+        accounts = accounts.melt
+      else
+        accounts = {} end
+      accounts[id] = {
         token: token,
         secret: secret,
         user: {
@@ -72,13 +88,15 @@ class Service
           idname: user[:idname],
           name: user[:name],
           profile_image_url: user[:profile_image_url] } }
-      service = Service.instance(id)
+      UserConfig[:accounts] = accounts
+      service = Service[id]
       Plugin.call(:service_registered, service)
       service } end
 
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
   def initialize(name)
+    super
     account = UserConfig[:accounts][name.to_sym]
     @twitter = MikuTwitter.new
     @twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
@@ -228,8 +246,8 @@ class Service
   private
 
   def user_initialize
-    if UserConfig[:accounts][name][:user]
-      @user_obj = User.new_ifnecessary(UserConfig[:accounts][name][:user])
+    if defined? UserConfig[:accounts][name.to_sym][:user]
+      @user_obj = User.new_ifnecessary(UserConfig[:accounts][name.to_sym][:user])
       (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed))
     else
       res = twitter.query!('account/verify_credentials', cache: true)
@@ -242,11 +260,18 @@ class Service
 
   def user_data_received(user)
     @user_obj = user
-    UserConfig[:accounts][name][:user] = {
-      :id => @user_obj[:id],
-      :idname => @user_obj[:idname],
-      :name => @user_obj[:name],
-      :profile_image_url => @user_obj[:profile_image_url] }
+    accounts = UserConfig[:accounts]
+    if accounts.is_a? Hash
+      accounts = accounts.melt
+      accounts[name.to_sym] ||= {}
+    else
+      accounts = {name.to_sym => {}} end
+    accounts[name.to_sym][:user] = {
+      id: @user_obj[:id],
+      idname: @user_obj[:idname],
+      name: @user_obj[:name],
+      profile_image_url: @user_obj[:profile_image_url] }
+    UserConfig[:accounts] = accounts
   end
 
   def user_data_failed(e)

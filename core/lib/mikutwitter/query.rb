@@ -91,27 +91,30 @@ module MikuTwitter::Query
     serial = query_serial_number
     start_time = Time.new
     output_url = url
-    Plugin.call(:query_start,
-                :serial     => serial,
-                :method     => method,
-                :path       => api,
-                :options    => options,
-                :start_time => start_time,
-                :mikutwitter => self)
+    if defined? Plugin
+      Plugin.call(:query_start,
+                  :serial     => serial,
+                  :method     => method,
+                  :path       => api,
+                  :options    => options,
+                  :start_time => start_time,
+                  :mikutwitter => self)
+    end
     notice "access(#{serial}): #{output_url}"
     res = yield
   ensure
     notice "quit(#{serial.to_s}): #{res.code} #{output_url} (#{(Time.new - start_time).to_s}s)" rescue nil
-    Plugin.call(:query_end,
-                :serial     => serial,
-                :method     => method,
-                :path       => api,
-                :options    => options,
-                :start_time => start_time,
-                :end_time   => Time.new.freeze,
-                :res        => res,
-                :mikutwitter => self,
-                :ratelimit => ratelimit_rewind(api.to_s, res)) end
+    if defined? Plugin
+      Plugin.call(:query_end,
+                  :serial     => serial,
+                  :method     => method,
+                  :path       => api,
+                  :options    => options,
+                  :start_time => start_time,
+                  :end_time   => Time.new.freeze,
+                  :res        => res,
+                  :mikutwitter => self,
+                  :ratelimit => ratelimit_rewind(api.to_s, res)) end end
 
   def retry_if_fail(method, uri)
     return @unretriable_uri[uri] if :get == method and @unretriable_uri[uri]
