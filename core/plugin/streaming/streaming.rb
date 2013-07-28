@@ -22,6 +22,11 @@ Plugin.create :streaming do
     end
   }
 
+  on_service_registered do |service|
+    if UserConfig[:realtime_rewind]
+      streamers[service.name] ||= Plugin::Streaming::ParmaStreamer.new(service) end
+  end
+
   onunload do
     UserConfig.disconnect(rewind_switch_change_hook)
     streamers.values.each(&:kill)
