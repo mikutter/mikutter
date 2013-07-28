@@ -109,15 +109,16 @@ Plugin.create :achievement do
                  hint: "https://github.com/toshia/display_requirements",
                  depends: [:open_setting]
                  ) do |ach|
-    dr = Plugin.instance(:display_requirements)
-    ach.take! unless dr and defined? dr.rotten? end
+    Delayer.new {
+      dr = Plugin.instance(:display_requirements)
+      ach.take! unless dr and defined? dr.rotten? } end
 
   defachievement(:multipane,
                  description: "新規ペインを追加コマンドでペインを増やせます",
                  hint: "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
                  ) do |ach|
     on_gui_pane_join_window do |pane, window|
-      if window.children.size >= 2
+      if window.children.inject(0){|i,s| i + (s.is_a?(Plugin::GUI::Pane) ? 1 : 0) } >= 2
         ach.take! end end end
 
   defachievement(:move_pane,
