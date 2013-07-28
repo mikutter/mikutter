@@ -118,7 +118,7 @@ class UserConfig
     :subparts_order => ["Gdk::ReplyViewer", "Gdk::SubPartsFavorite", "Gdk::SubPartsRetweet"],
 
     :activity_mute_kind => ["error"],
-    :activity_show_timeline => ["system"]
+    :activity_show_timeline => ["system", "achievement"]
 
   }
 
