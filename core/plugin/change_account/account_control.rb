@@ -28,6 +28,9 @@ module ::Plugin::ChangeAccount
       on_created(iter)
     end
 
+    def on_deleted(iter)
+      Service.destroy(iter[COL_SERVICE]) end
+
     def popup_input_window(defaults = [])
       parent_window = self and self.toplevel.toplevel? and self.toplevel
       twitter = MikuTwitter.new

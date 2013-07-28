@@ -93,6 +93,20 @@ class Service
       Plugin.call(:service_registered, service)
       service } end
 
+  def self.destroy(service)
+    type_strict service => Service
+      accounts = UserConfig[:accounts]
+      if accounts.is_a? Hash
+        accounts = accounts.melt
+      else
+        accounts = {} end
+      accounts.delete(service.name)
+      UserConfig[:accounts] = accounts
+    super
+    Plugin.call(:service_destroyed, service) end
+  def self.remove_service(service)
+    destroy(service) end
+
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
   def initialize(name)

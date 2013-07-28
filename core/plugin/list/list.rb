@@ -52,6 +52,12 @@ Plugin.create :list do
     if service
       fetch_list_of_service(service, true) end end
 
+  on_service_destroyed do |service|
+    service.lists(cache: true, user: service.user_obj).next{ |lists|
+      Plugin.call(:list_destroy, service, lists) if lists
+    }.terminate
+  end
+
   # FILTER stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
     [timelines.values.inject(users){ |r, list| r.merge(list.member) }] end

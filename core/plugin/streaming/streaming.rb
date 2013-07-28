@@ -24,13 +24,14 @@ Plugin.create :streaming do
 
   on_service_registered do |service|
     if UserConfig[:realtime_rewind]
-      streamers[service.name] ||= Plugin::Streaming::ParmaStreamer.new(service) end
-  end
+      streamers[service.name] ||= Plugin::Streaming::ParmaStreamer.new(service) end end
+
+  on_service_destroyed do |service|
+    streamers[service.name] and streamers[service.name].kill end
 
   onunload do
     UserConfig.disconnect(rewind_switch_change_hook)
     streamers.values.each(&:kill)
-    streamers = {}
-  end
+    streamers = {} end
 
 end
