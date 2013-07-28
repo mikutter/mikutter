@@ -11,7 +11,6 @@ miquire :mui, 'intelligent_textview'
 
 module Gtk
   class PostBox < Gtk::EventBox
-
     attr_accessor :return_to_top
 
     @@ringlock = Mutex.new
@@ -22,12 +21,13 @@ module Gtk
       return @@postboxes
     end
 
-    def initialize(watch, options = {})
+    def initialize(postable = PostToPrimaryService.new, options = {})
+      type_strict postable => :post, options => Hash
       mainthread_only
       @posting = nil
       @return_to_top = nil
       @options = options
-      @watch = watch
+      @postable = postable
       super()
       signal_connect('parent-set'){
         if parent
@@ -169,7 +169,7 @@ module Gtk
       if(@options[:postboxstorage])
         return false if delegate
         if not @options[:delegated_by]
-          postbox = Gtk::PostBox.new(@watch, @options)
+          postbox = Gtk::PostBox.new(@postable, @options)
           @options[:postboxstorage].
             pack_start(postbox).
             show_all.
@@ -208,18 +208,18 @@ module Gtk
         options = @options.clone
         options[:delegate_other] = false
         options[:delegated_by] = self
-        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@watch, options)).show_all
+        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@postable, options)).show_all
         true end end
 
     def service
       if UserConfig[:legacy_retweet_act_as_reply]
-        @watch
+        @postable
       else
-        (retweet? ? @watch.service : @watch) end end
+        (retweet? ? @postable.service : @postable) end end
 
     def post_is_empty?
       widget_post.buffer.text.empty? or
-        (defined?(@watch[:user]) ? widget_post.buffer.text == "@#{@watch[:user][:idname]} " : false) end
+        (defined?(@postable[:user]) ? widget_post.buffer.text == "@#{@postable[:user][:idname]} " : false) end
 
     def brothers
       if(@options[:postboxstorage])
@@ -251,7 +251,7 @@ module Gtk
         @on_delete.call end end
 
     def reply?
-      @watch.is_a?(Retriever::Model) end
+      @postable.is_a?(Retriever::Model) end
 
     def retweet?
       @options[:retweet] end
@@ -302,18 +302,18 @@ module Gtk
         post.buffer.text = @options[:delegated_by].post.buffer.text
         @options[:delegated_by].post.buffer.text = ''
       elsif retweet?
-        post.buffer.text = " RT @" + @watch.idname + ": " + @watch.to_show
+        post.buffer.text = " RT @" + @postable.idname + ": " + @postable.to_show
         post.buffer.place_cursor(post.buffer.start_iter)
       elsif reply?
         post.buffer.text = reply_users + ' ' + post.buffer.text end
       post.accepts_tab = false end
 
     def reply_users
-      replies = [@watch.idname]
+      replies = [@postable.idname]
       if(@options[:subreplies].is_a? Enumerable)
         replies += @options[:subreplies].map{ |m| m.to_message.idname } end
       if @options[:exclude_myself]
-        replies = replies.select{|x| x != @watch.service.idname }
+        replies = replies.select{|x| x != @postable.service.idname }
       end
       replies.uniq.map{ |x| "@#{x}" }.join(' ')
     end
@@ -322,10 +322,20 @@ module Gtk
     def in_reply_to_all
       result = Set.new
       if reply?
-        result << @watch
+        result << @postable
         if @options[:subreplies].is_a? Enumerable
           result += @options[:subreplies] end end
       result end
+
+    class PostToPrimaryService
+      def post(*args, &proc)
+        Service.primary.post(*args, &proc)
+      end
+
+      def service
+        self
+      end
+    end
 
   end
 end
