@@ -54,6 +54,11 @@ Plugin.create :display_requirements do
     Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/^(?:#|＃)?.+$/)[0]))
   }
 
+  # DR実績が解除されていたら差し戻す
+  if UserConfig[:achievement_took].include? :display_requirements
+    UserConfig[:achievement_took] = UserConfig[:achievement_took].reject {|slug| :display_requirements == slug }
+  end
+
   def rotten?
   end
 end
