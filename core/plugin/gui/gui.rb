@@ -47,6 +47,7 @@ Plugin.create :gui do
       i_profiletab.instance_eval{ @user = user }
       i_profiletab.instance_eval(&proc) end end
 
+  # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
     window.set_icon File.expand_path(Skin.get('icon.png'))
@@ -55,9 +56,9 @@ Plugin.create :gui do
       panes = { default: [] } end
     panes.each { |pane_slug, tabs|
       pane = Plugin::GUI::Pane.instance(pane_slug)
-      window << pane
-    }
-  }
+      tabs.each { |tab_slug|
+        pane << Plugin::GUI::Tab.instance(tab_slug) }
+      window << pane } }
 
   # 互換性のため。ステータスバーの更新。ツールキットプラグインで定義されているgui_window_rewindstatusを呼ぶこと
   on_rewindstatus do |text|
