@@ -55,6 +55,7 @@ Plugin.create :console do
     tab(:console, "コンソール") do
       set_icon Skin.get('console.png')
       set_deletable true
+      temporary_tab
       nativewidget Plugin::Console::ConsoleControl.new().
         pack1(::Gtk::Table.new(2, 3).
               attach(widget_result, 0, 1, 0, 1, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND, ::Gtk::FILL|::Gtk::SHRINK|::Gtk::EXPAND).

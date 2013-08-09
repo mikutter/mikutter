@@ -30,6 +30,7 @@ Plugin.create :profile do
     i_profile = tab nil, "#{user[:name]} のプロフィール" do
       set_icon user[:profile_image_url]
       set_deletable true
+      temporary_tab
       shrink
       nativewidget container
       expand

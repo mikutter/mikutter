@@ -542,7 +542,7 @@ Plugin.create :gtk do
           if pane
             pane.n_pages.times{ |page_num|
               i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
-              tab_order << i_widget.slug if i_widget } end
+              tab_order << i_widget.slug if i_widget and not i_widget.temporary_tab? } end
           panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
       ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
       ui_tab_order[i_window.slug] = panes_order
