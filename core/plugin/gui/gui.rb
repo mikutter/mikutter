@@ -24,8 +24,9 @@ Plugin.create :gui do
   defdsl :tab do |slug, name=nil, &proc|
     if proc
       i_tab = Plugin::GUI::Tab.instance(slug, name, self.name)
-      i_tab.instance_eval(&proc)
+      result = i_tab.instance_eval(&proc)
       Plugin.call :gui_tab_change_icon, i_tab
+      result
     else
       Plugin::GUI::Tab.instance(slug, name, self.name) end end
 
