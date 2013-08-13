@@ -34,6 +34,8 @@ Plugin.create :list do
 
   # available_list の同期をとる。外的要因でリストが削除されたのを検出した場合。
   on_list_destroy do |service, lists|
+    lists.each { |list|
+      list_set_visibility!(list, false) }
     deleted = lists.select{ |list| available_lists.include?(list) }
     set_available_lists(available_lists - deleted) if not deleted.empty? end
 
@@ -105,7 +107,13 @@ Plugin.create :list do
           slug = timelines.keys.find{ |slug| timelines[slug] == list }
           timeline(slug) << res if slug end
       }.terminate
-    }.terminate(_("リスト %{list_name} (#%{list_id}) のメンバーの取得に失敗しました") % {
+    }.trap { |error|
+      if defined?(error.httpresponse.code) && 404 == error.httpresponse.code.to_i
+        Plugin.call(:list_destroy, Service.primary, [list])
+        Plugin.activity :error, "リストが削除されています (#{list[:full_name]})"
+      else
+        Deferred.fail(error)
+      end }.terminate(_("リスト %{list_name} (#%{list_id}) のメンバーの取得に失敗しました") % {
                 list_name: list[:full_name],
                 list_id: list[:id] }) end
 

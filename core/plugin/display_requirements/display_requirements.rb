@@ -55,7 +55,7 @@ Plugin.create :display_requirements do
   }
 
   # DR実績が解除されていたら差し戻す
-  if UserConfig[:achievement_took].include? :display_requirements
+  if defined?(UserConfig[:achievement_took].include?) and UserConfig[:achievement_took].include?(:display_requirements)
     UserConfig[:achievement_took] = UserConfig[:achievement_took].reject {|slug| :display_requirements == slug }
   end
 
