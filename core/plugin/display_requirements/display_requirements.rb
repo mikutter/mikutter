@@ -82,15 +82,15 @@ class ::Gdk::MiraclePainter
             when 0
               _("今")
             when 1...60
-              (there < now ? _("%{sec}秒前") : _("%{sec}秒後")) % {sec: diff}
+              (there < now ? Plugin[:display_requirements]._("%{sec}秒前") : Plugin[:display_requirements]._("%{sec}秒後")) % {sec: diff}
             when 60...3600
-              (there < now ? _('%{min}分前') : _('%{min}分後')) % {min: (diff/60).to_i}
+              (there < now ? Plugin[:display_requirements]._('%{min}分前') : Plugin[:display_requirements]._('%{min}分後')) % {min: (diff/60).to_i}
             when 3600...86400
-              (there < now ? _('%{hour}時間前') : _('%{hour}時間後')) % {hour: (diff/3600).to_i}
+              (there < now ? Plugin[:display_requirements]._('%{hour}時間前') : Plugin[:display_requirements]._('%{hour}時間後')) % {hour: (diff/3600).to_i}
             else
               # TRANSLATORS: Time#strftimeが食う形式。
               # こんなん設定できたら良さそうだけどDRとかどうでもいいので適当にやってね
-              message[:created].strftime(_('%Y/%m/%d'))
+              message[:created].strftime(Plugin[:display_requirements]._('%Y/%m/%d'))
             end
     Pango.escape(label)end
 
