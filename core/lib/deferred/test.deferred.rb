@@ -25,7 +25,8 @@ $LOAD_PATH.push(File.expand_path(File.join(File.dirname($0), '../..')))
 
 require 'test/unit'
 require 'utils'
-miquire :lib, 'delayer', 'deferred', 'test_unit_extensions'
+require 'delayer'
+miquire :lib, 'deferred', 'test_unit_extensions'
 
 class TC_Deferred < Test::Unit::TestCase
   def setup()
@@ -61,7 +62,7 @@ class TC_Deferred < Test::Unit::TestCase
       ans = e
     }
     wait_all_tasks
-    assert_kind_of(RuntimeError, ans) # !> shadowing outer local variable - bt
+    assert_kind_of(RuntimeError, ans)
     assert_equal("#<RuntimeError: mikutan peropero>", ans.inspect)
   end
 
@@ -101,13 +102,13 @@ class TC_Deferred < Test::Unit::TestCase
     }.next{ |x|
       ans = x
     }.trap{ |x|
-      ans = x # !> ambiguous first argument; put parentheses or even spaces
+      ans = x
     }
     wait_all_tasks
     assert_kind_of(RuntimeError, ans)
   end
 
-  def test_thread_error_receive # !> `&' interpreted as argument prefix
+  def test_thread_error_receive
     ans = 0
     deferred{
       Thread.new{
@@ -147,7 +148,7 @@ class TC_Deferred < Test::Unit::TestCase
         trace << 7
       }
     }
-    trace << 8
+    trace << 8 # !> `&' interpreted as argument prefix
     wait_all_tasks
     assert_equal([8, 1, 2, 3, 4, 5, 6], trace)
   # rescue SystemStackError => e
@@ -198,7 +199,7 @@ class TC_Deferred < Test::Unit::TestCase
     result = nil
     Deferred.system("ruby", "-e", "exit").next{ |v| result = v }
     wait_all_tasks
-    assert_equal(true, result) # !> `&' interpreted as argument prefix
+    assert_equal(true, result)
   end
 
   def test_system_fail
@@ -217,6 +218,6 @@ end
 # >> 
 # >> .............
 # >> 
-# >> Finished tests in 0.296070s, 43.9085 tests/s, 54.0412 assertions/s.
+# >> Finished tests in 0.130105s, 99.9192 tests/s, 122.9775 assertions/s.
 # >> 
 # >> 13 tests, 16 assertions, 0 failures, 0 errors, 0 skips

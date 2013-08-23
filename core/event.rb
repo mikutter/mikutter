@@ -13,6 +13,9 @@ class Event
   # :priority :: Delayerの優先順位
   attr_accessor :options
 
+  # フィルタを別のスレッドで実行する。偽ならメインスレッドでフィルタを実行する
+  @filter_another_thread = false
+
   def initialize(*args)
     super
     @options = {}
@@ -33,10 +36,31 @@ class Event
   # ==== Return
   # Delayerか、イベントを待ち受けているリスナがない場合はnil
   def call(*args)
-    Delayer.new(priority) {
-      changed
-      args = filtering(*args) if not @filters.empty?
-      catch(:plugin_exit){ notify_observers(*args) } if args.is_a? Array } end
+    #return nil if count_observers == 0
+    if Event.filter_another_thread
+      if @filters.empty?
+        Delayer.new(priority) {
+          changed
+          catch(:plugin_exit){ notify_observers(*args) } }
+      else
+        promise = Deferred.new true
+        SerialThread.new{
+          filtered_args = filtering(*args)
+          if filtered_args.is_a? Array
+            Delayer.new(priority) {
+              begin
+                changed
+                catch(:plugin_exit){ notify_observers(*filtered_args) }
+                promise.call
+              rescue Exception => e
+                promise.fail e
+              end } end }
+        promise end
+    else
+      Delayer.new(priority) {
+        changed
+        args = filtering(*args) if not @filters.empty?
+        catch(:plugin_exit){ notify_observers(*args) } if args.is_a? Array } end end
 
   # 引数 _args_ をフィルタリングした結果を返す
   # ==== Args
@@ -66,6 +90,16 @@ class Event
   def delete_filter(event_filter)
     @filters.delete(event_filter)
     self end
+
+  class << self
+    attr_accessor :filter_another_thread
+
+    alias __clear_aF4e__ clear!
+    def clear!
+      @filter_another_thread = false
+      __clear_aF4e__()
+    end
+  end
 
   clear!
 end

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
-miquire :lib, 'delayer'
+miquire :lib, 'delayer', 'deferred'
 
 require 'set'
 require 'thread'
@@ -24,6 +24,8 @@ class SerialThreadGroup
   end
 
   # 実行するブロックを新しく登録する
+  # ==== Args
+  # [proc] 実行するブロック
   def push(proc=Proc.new)
     return if @@force_exit
     @lock.synchronize{

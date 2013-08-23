@@ -380,7 +380,10 @@ Plugin.create :gtk do
     widget_join_tab(i_profiletab, container.show_all) end
 
   on_gui_window_rewindstatus do |i_window, text, expire|
-    statusbar = @slug_dictionary.get(Plugin::GUI::Window, :default).statusbar
+    window = @slug_dictionary.get(Plugin::GUI::Window, :default)
+    if not window
+      next end
+    statusbar = window.statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
     notice "rewind statusbar to #{text}, #{expire.inspect}, #{cid}"

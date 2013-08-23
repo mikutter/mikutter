@@ -27,6 +27,35 @@ class TC_Plugin < Test::Unit::TestCase
     assert_equal(2, sum)
   end
 
+  must "filter in another thread" do
+    filter_thread = nil
+    Plugin.create(:event) do
+      on_thread do
+      end
+
+      filter_thread do
+        filter_thread = Thread.current
+        []
+      end
+    end
+    Event[:thread].call
+    Delayer.run while not Delayer.empty?
+    assert filter_thread
+    assert_equal Thread.current, filter_thread
+
+    Event.filter_another_thread = true
+    filter_thread = nil
+    r = true
+    Event[:thread].call.next{ r = false }.trap{ r = false }
+
+    Delayer.run while r
+    # p r
+    # p SerialThread.instance_eval{ @queue.size }
+    # p Delayer.empty?
+    assert filter_thread
+    assert_not_equal Thread.current, filter_thread
+  end
+
   must "uninstall" do
     sum = 0
     Plugin.create(:event) do
@@ -118,4 +147,5 @@ class TC_Plugin < Test::Unit::TestCase
     assert_equal([2, 4, 6], dsl_use.rejector(1..6){ |d| 0 != (d & 1) })
   end
 end
+
 

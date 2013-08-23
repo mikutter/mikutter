@@ -60,6 +60,9 @@ Module.new do
       if not(retweets.empty?)
         Plugin.call(:retweet, retweets) end end
 
+    on_boot do
+      Event.filter_another_thread = true end
+
     # 同じツイートに対するfavoriteイベントは一度しか発生させない
     filter_favorite do |service, user, message|
       Plugin.filter_cancel! if favorites[user[:id]].include? message[:id]
