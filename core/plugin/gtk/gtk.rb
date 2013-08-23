@@ -495,7 +495,7 @@ Plugin.create :gtk do
     container.ssc(:key_press_event){ |w, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_tab) }
     container.pack_start(widget, i_tab.pack_rule[container.children.size])
-    pane.insert_page_menu(where_should_insert_it(i_tab, pane.children.map(&:i_tab), i_pane.children), container, tab)
+    pane.append_page(container, tab)
     pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
     true end
 
@@ -503,6 +503,7 @@ Plugin.create :gtk do
     type_strict i_tab => Plugin::GUI::TabLike
     tab = widgetof(i_tab)
     if tab
+      tab.tooltip(i_tab.name)
       tab.remove(tab.child) if tab.child
       if i_tab.icon.is_a?(String)
         tab.add(::Gtk::WebIcon.new(i_tab.icon, 24, 24).show)
@@ -551,7 +552,8 @@ Plugin.create :gtk do
           if pane
             pane.n_pages.times{ |page_num|
               i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
-              tab_order << i_widget.slug if i_widget } end
+              if i_widget and not i_widget.temporary_tab? and i_widget.children.any?{ |child| not child.is_a? Plugin::GUI::TabToolbar }
+                tab_order << i_widget.slug end } end
           panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
       ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
       ui_tab_order[i_window.slug] = panes_order

@@ -84,4 +84,9 @@ module Plugin::GUI::TabLike
     @deletable = new
     self end
 
+  def name=(new_name)
+    result = super new_name
+    Plugin.call(:gui_tab_change_icon, self)
+    result end
+
 end
