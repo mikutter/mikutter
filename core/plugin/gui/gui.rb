@@ -43,12 +43,16 @@ Plugin.create :gui do
   # [slug] タブスラッグ
   # [title] タブのタイトル
   defdsl :profiletab do |slug, title, &proc|
-    on_profiletab do |i_profile, user|
-      i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
-      i_profiletab.profile_slug = slug
-      i_profile.add_child(i_profiletab, where_should_insert_it(slug, i_profile.children.map(&:profile_slug), UserConfig[:profile_tab_order]))
-      i_profiletab.instance_eval{ @user = user }
-      i_profiletab.instance_eval(&proc) end end
+    filter_profiletab do |tabs, i_profile, user|
+      tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
+                  [slug,
+                   -> {
+                     i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     i_profiletab.profile_slug = slug
+                     i_profile << i_profiletab
+                     i_profiletab.instance_eval{ @user = user }
+                     i_profiletab.instance_eval(&proc)} ])
+      [tabs, i_profile, user] end end
 
   # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
