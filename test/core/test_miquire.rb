@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'test/unit'
-require 'rubygems'
-require 'mocha' # !> already initialized constant AssertionFailedError
 require File.expand_path(File.dirname(__FILE__)+'/../helper')
 # require File.expand_path(File.dirname(__FILE__) + '/../miquire')
 # require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
