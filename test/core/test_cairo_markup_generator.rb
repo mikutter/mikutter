@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
-require 'mocha'
 $cairo = true
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 # require File.expand_path(File.dirname(__FILE__) + '/../utils')

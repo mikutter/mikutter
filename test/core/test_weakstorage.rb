@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'test/unit'
 require 'rubygems'
-require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 
 Dir.chdir(File.expand_path(File.dirname(__FILE__) + '/../core'))
