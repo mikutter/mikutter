@@ -120,7 +120,7 @@ module Gdk::WebImageLoader
   # get_raw_dataのdeferred版
   def get_raw_data_d(url)
     url.freeze
-    promise = Deferred.new
+    promise = Deferred.new true
     Thread.new {
       result = get_raw_data(url){ |raw, e, url|
         begin

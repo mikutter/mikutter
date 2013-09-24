@@ -34,6 +34,8 @@ Plugin.create :list do
 
   # available_list の同期をとる。外的要因でリストが削除されたのを検出した場合。
   on_list_destroy do |service, lists|
+    lists.each { |list|
+      list_set_visibility!(list, false) }
     deleted = lists.select{ |list| available_lists.include?(list) }
     set_available_lists(available_lists - deleted) if not deleted.empty? end
 
@@ -61,6 +63,11 @@ Plugin.create :list do
   # FILTER stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
     [timelines.values.inject(users){ |r, list| r.merge(list.member) }] end
+
+  def tabslug_by_list(list)
+    type_strict list => UserList
+    "list_#{list[:id]}".to_sym
+  end
 
   # 設定のGtkウィジェット
   def setting_container
@@ -110,7 +117,13 @@ Plugin.create :list do
           slug = timelines.keys.find{ |slug| timelines[slug] == list }
           timeline(slug) << res if slug end
       }.terminate
-    }.terminate(_("リスト %{list_name} (#%{list_id}) のメンバーの取得に失敗しました") % {
+    }.trap { |error|
+      if defined?(error.httpresponse.code) && 404 == error.httpresponse.code.to_i
+        Plugin.call(:list_destroy, Service.primary, [list])
+        Plugin.activity :error, "リストが削除されています (#{list[:full_name]})"
+      else
+        Deferred.fail(error)
+      end }.terminate(_("リスト %{list_name} (#%{list_id}) のメンバーの取得に失敗しました") % {
                 list_name: list[:full_name],
                 list_id: list[:id] }) end
 
@@ -145,7 +158,8 @@ Plugin.create :list do
     type_strict list => UserList
     visible_lists = at(:visible_lists, [])
     if visible_lists.include?(list[:id])
-      store(:visible_lists, visible_lists - [list[:id]]) end
+      store(:visible_lists, visible_lists - [list[:id]])
+    end
     visible_list_obj = at(:visible_list_obj, {}).melt
     visible_list_obj.delete(list[:id])
     store(:visible_list_obj, visible_list_obj)
@@ -227,7 +241,7 @@ Plugin.create :list do
   # self
   def tab_open(list)
     type_strict list => UserList
-    slug = "list_#{list[:full_name]}".to_sym
+    slug = tabslug_by_list list
     return self if timelines.has_key? slug
     timelines[slug] = list
     tab(slug, list[:full_name]) do
@@ -235,9 +249,11 @@ Plugin.create :list do
       timeline slug end
     list_modify_member(list, true)
     visible_list_obj = at(:visible_list_obj, {}).melt
-    visible_list_obj[list[:id]] = list.to_hash
-    visible_list_obj[list[:id]][:user] = list[:user].to_hash
-    store(:visible_list_obj, visible_list_obj)
+    if not defined? visible_list_obj[list[:id]]
+      visible_list_obj[list[:id]] = list.to_hash
+      visible_list_obj[list[:id]][:user] = list[:user].to_hash
+      visible_list_obj[list[:id]].delete(:member)
+      store(:visible_list_obj, visible_list_obj) end
     self end
 
   # _list_ のためのタブを閉じる。タブがない場合は何もしない。
@@ -259,14 +275,20 @@ Plugin.create :list do
       Delayer.new{
         fetch_list_of_service(service, true) } end }.(Service.primary)
 
-  at(:visible_list_obj, {}).values.each{ |list|
-    begin
-      list = UserList.new_ifnecessary(list)
-      list[:user] = User.new_ifnecessary(list[:user])
-      tab_open(list)
-    rescue => e
-      error "list redume failed"
-      error e end }
+  ->(visible_lists) {
+    visible_list_ids.each{ |list_id|
+      begin
+        if defined? visible_lists[list_id]
+          list = visible_lists[list_id].melt
+          list[:user] = User.new_ifnecessary(list[:user])
+          list[:member] = Set.new
+          userlist = UserList.new_ifnecessary(list)
+          tab_open(userlist)
+        end
+      rescue => e
+        error "list redume failed"
+        error e end }
+  }.(at(:visible_list_obj, {}))
 
   class IDs < TypedArray(Integer); end
 

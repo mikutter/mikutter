@@ -20,7 +20,7 @@ require 'set'
 module ConfigLoader
   SAVE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))
   BACKUP_FILE = "#{SAVE_FILE}.bak"
-  AVAILABLE_TYPES = [Hash, Array, Numeric, String, Symbol, NilClass, TrueClass, FalseClass].freeze
+  AVAILABLE_TYPES = [Hash, Array, Set, Numeric, String, Symbol, Time, NilClass, TrueClass, FalseClass].freeze
 
   @@configloader_pstore = nil
   @@configloader_cache = Hash.new
@@ -52,13 +52,14 @@ module ConfigLoader
   # _key_ にたいして _val_ を関連付ける。
   def store(key, val)
     ConfigLoader.validate(key)
-    ConfigLoader.validate(val)
+    val = ConfigLoader.validate(val)
     ckey = configloader_key(key)
     @@configloader_queue.push([ckey, val])
-    if(val.frozen?)
-      @@configloader_cache[ckey] = val
-    else
-      @@configloader_cache[ckey] = (val.clone.freeze rescue val) end end
+    @@configloader_cache[ckey] = val
+  rescue => error
+    into_debug_mode(error, binding)
+    raise error
+  end
 
   # ConfigLoader#store と同じ。ただし、値を変更する前に _key_ に関連付けられていた値を返す。
   # もともと関連付けられていた値がない場合は _val_ を返す。
@@ -72,9 +73,19 @@ module ConfigLoader
   # _obj_ が保存可能な値なら _obj_ を返す。そうでなければ _ArgumentError_ 例外を投げる。
   def self.validate(obj)
     if AVAILABLE_TYPES.any?{|x| obj.is_a?(x)}
-      obj
+      if obj.is_a? Hash
+        result = {}
+        obj.each{ |key, value|
+          result[self.validate(key)] = self.validate(value) }
+        result.freeze
+      elsif obj.is_a? Enumerable
+        obj.map(&method(:validate)).freeze
+      elsif not(obj.freezable?) or obj.frozen?
+        obj
+      else
+        obj.dup.freeze end
     else
-      emes = "ConfigLoader recordable class of #{AVAILABLE_TYPES.join(',')} only. but #{obj.class} gaven."
+      emes = "ConfigLoader recordable class of #{AVAILABLE_TYPES.join(',')} only. but #{obj.class} given."
       error(emes)
       raise ArgumentError.new(emes)
     end

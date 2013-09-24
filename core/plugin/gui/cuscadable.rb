@@ -2,7 +2,8 @@
 # タブとかペインみたいにたくさん作れるパーツ
 
 module Plugin::GUI::Cuscadable
-  attr_reader :slug, :name, :plugin
+  attr_reader :slug, :plugin
+  attr_accessor :name
 
   class << self
     def included(klass)
@@ -56,7 +57,11 @@ module Plugin::GUI::Cuscadable
         return instance if cuscaded.has_key? slug end
       type_strict slug => Symbol, name => :to_s
       if cuscaded.has_key? slug
-        cuscaded[slug]
+        imaginally = cuscaded[slug]
+        if name != slug and name != imaginally
+          imaginally.name = name
+        end
+        imaginally
       else
         new(slug, name.to_s, plugin) end end
 

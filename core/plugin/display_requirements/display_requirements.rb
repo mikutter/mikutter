@@ -54,6 +54,11 @@ Plugin.create :display_requirements do
     Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/^(?:#|＃)?.+$/)[0]))
   }
 
+  # DR実績が解除されていたら差し戻す
+  if defined?(UserConfig[:achievement_took].include?) and UserConfig[:achievement_took].include?(:display_requirements)
+    UserConfig[:achievement_took] = UserConfig[:achievement_took].reject {|slug| :display_requirements == slug }
+  end
+
   def rotten?
   end
 end
@@ -77,15 +82,15 @@ class ::Gdk::MiraclePainter
             when 0
               dr._("今")
             when 1...60
-              (there < now ? dr._("%{sec}秒前") : dr._("%{sec}秒後")) % {sec: diff}
+              (there < now ? Plugin[:display_requirements]._("%{sec}秒前") : Plugin[:display_requirements]._("%{sec}秒後")) % {sec: diff}
             when 60...3600
-              (there < now ? dr._('%{min}分前') : dr._('%{min}分後')) % {min: (diff/60).to_i}
+              (there < now ? Plugin[:display_requirements]._('%{min}分前') : Plugin[:display_requirements]._('%{min}分後')) % {min: (diff/60).to_i}
             when 3600...86400
-              (there < now ? dr._('%{hour}時間前') : dr._('%{hour}時間後')) % {hour: (diff/3600).to_i}
+              (there < now ? Plugin[:display_requirements]._('%{hour}時間前') : Plugin[:display_requirements]._('%{hour}時間後')) % {hour: (diff/3600).to_i}
             else
               # TRANSLATORS: Time#strftimeが食う形式。
               # こんなん設定できたら良さそうだけどDRとかどうでもいいので適当にやってね
-              message[:created].strftime(dr._('%Y/%m/%d'))
+              message[:created].strftime(Plugin[:display_requirements]._('%Y/%m/%d'))
             end
     Pango.escape(label)end
 

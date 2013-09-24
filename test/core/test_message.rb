@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
-require 'mocha'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :core, 'message'
 miquire :core, 'service'

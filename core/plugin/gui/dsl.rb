@@ -5,7 +5,15 @@ module Plugin::GUI
   Event = Struct.new(:event, :widget, :messages)
   class << self
     def ui_setting
-      UserConfig[:ui_tab_order] || {default: {default: [:home_timeline, :mentions, :アクティビティ, :directmessage, :search, :Followings, :Followers]}} end
+      UserConfig[:ui_tab_order] || {
+        default: {
+          default: [:home_timeline,
+                    :mentions,
+                    :activity,
+                    :directmessage,
+                    :search,
+                    :followings,
+                    :followers] } } end
 
     # 設定されているタブの位置を返す
     # ==== Args

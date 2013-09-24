@@ -5,6 +5,7 @@ require 'gtk2'
 
 Plugin.create :openimg do
   DEFAULT_SIZE = [640, 480].freeze
+  USER_AGENT = (Environment::NAME + '/' + Environment::VERSION.to_s).freeze
   @size = DEFAULT_SIZE
   @position = [Gdk.screen_width/2 - @size[0]/2, Gdk.screen_height/2 - @size[1]/2].freeze
 
@@ -116,7 +117,7 @@ Plugin.create :openimg do
     begin
       uri = URI.parse(url)
       path = uri.path + (uri.query ? "?"+uri.query : "")
-      res = Net::HTTP.new(uri.host).get(path, "User-Agent" => Environment::NAME + '/' + Environment::VERSION.to_s)
+      res = Net::HTTP.new(uri.host).get(path, "User-Agent" => USER_AGENT)
       case(res)
       when Net::HTTPSuccess
         address = get_tagattr(res.body, element_rule)
@@ -209,7 +210,22 @@ Plugin.create :openimg do
       nil
     end
   }
-  
+
+  INSTAGRAM_PATTERN = %r{^http://(?:instagr\.am/p/([a-zA-Z0-9_]+)|instagram\.com/p/([a-zA-Z0-9_-]+))}
+  addsupport(INSTAGRAM_PATTERN) do |url, cancel|
+    m = url.match(INSTAGRAM_PATTERN)
+    shortcode = m[1] || m[2]
+    # http://instagram.com/developer/embedding/
+    uri = URI.parse "http://instagram.com/p/#{shortcode}/media/?size=l"
+    res = Net::HTTP.new(uri.host).get uri.request_uri, 'User-Agent' => USER_AGENT
+    if res.is_a? Net::HTTPRedirection
+      res['Location']
+    else
+      warn 'instagram url failed'
+      nil
+    end
+  end
+
   ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
     Delayer.new { display(url, cancel) }

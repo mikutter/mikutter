@@ -133,10 +133,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が離されたことを通知する
   def released(x=nil, y=nil)
-    if(x == y and not x)
-      unselect
-    else
-      textselector_release(*main_pos_to_index_forclick(x, y)[1..2]) end end
+    if not destroyed?
+      if(x == y and not x)
+        unselect
+      else
+        textselector_release(*main_pos_to_index_forclick(x, y)[1..2]) end end end
 
   # 座標 ( _x_ , _y_ ) にクリックイベントを発生させる
   def clicked(x, y, event)

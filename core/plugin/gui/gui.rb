@@ -23,7 +23,10 @@ Plugin.create :gui do
   # procの戻り値
   defdsl :tab do |slug, name=nil, &proc|
     if proc
-      Plugin::GUI::Tab.instance(slug, name, self.name).instance_eval(&proc)
+      i_tab = Plugin::GUI::Tab.instance(slug, name, self.name)
+      result = i_tab.instance_eval(&proc)
+      Plugin.call :gui_tab_change_icon, i_tab
+      result
     else
       Plugin::GUI::Tab.instance(slug, name, self.name) end end
 
@@ -40,13 +43,18 @@ Plugin.create :gui do
   # [slug] タブスラッグ
   # [title] タブのタイトル
   defdsl :profiletab do |slug, title, &proc|
-    on_profiletab do |i_profile, user|
-      i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
-      i_profiletab.profile_slug = slug
-      i_profile.add_child(i_profiletab, where_should_insert_it(slug, i_profile.children.map(&:profile_slug), UserConfig[:profile_tab_order]))
-      i_profiletab.instance_eval{ @user = user }
-      i_profiletab.instance_eval_with_delegate(self, &proc) end end
+    filter_profiletab do |tabs, i_profile, user|
+      tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
+                  [slug,
+                   -> {
+                     i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     i_profiletab.profile_slug = slug
+                     i_profile << i_profiletab
+                     i_profiletab.instance_eval{ @user = user }
+                     i_profiletab.instance_eval_with_delegate(self, &proc)} ])
+      [tabs, i_profile, user] end end
 
+  # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
     window.set_icon File.expand_path(Skin.get('icon.png'))
@@ -55,9 +63,9 @@ Plugin.create :gui do
       panes = { default: [] } end
     panes.each { |pane_slug, tabs|
       pane = Plugin::GUI::Pane.instance(pane_slug)
-      window << pane
-    }
-  }
+      tabs.each { |tab_slug|
+        pane << Plugin::GUI::Tab.instance(tab_slug) }
+      window << pane } }
 
   # 互換性のため。ステータスバーの更新。ツールキットプラグインで定義されているgui_window_rewindstatusを呼ぶこと
   on_rewindstatus do |text|

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :lib, "gettext"#, 'gettext/tools'
+miquire :lib, "gettext"
 
 module Plugin::UITranslate
   LocaleDirectory = File.join(CHIConfig::CACHE, "uitranslator", "locale")
@@ -9,8 +9,6 @@ end
 Plugin.create :uitranslator do
   FileUtils.mkdir_p Plugin::UITranslate::LocaleDirectory
 end
-# include GetText
-# bindtextdomain("setting", path: Plugin::UITranslate::LocaleDirectory)
 
 class Plugin
   include GetText
@@ -27,7 +25,14 @@ class Plugin
       if !FileTest.exist?(mo) or Dir.glob(File.join(po_root, "*/*.po")).any?{ |po| File.mtime(po) > bound }
         miquire :lib, "gettext/tools"
         notice "generate mo file: #{po_root} to #{mo_root}"
-        GetText.create_mofiles po_root: po_root, mo_root: mo_root
+
+        Dir.glob(File.join(po_root, "*/*.po")) do |po_file|
+          lang, textdomain = %r[/([^/]+?)/(.*)\.po].match(po_file[po_root.size..-1]).to_a[1,2]
+          mo_file = File.join(mo_root, "#{lang}/LC_MESSAGES", "#{textdomain}.mo")
+          FileUtils.mkdir_p(File.dirname(mo_file))
+          GetText::Tools::MsgFmt.run(po_file, "-o", mo_file)
+        end
+
       end
       bindtextdomain(to_s, path: Plugin::UITranslate::LocaleDirectory)
     end

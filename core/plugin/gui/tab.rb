@@ -24,6 +24,7 @@ class Plugin::GUI::Tab
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(*args)
     super
+    @temporary_tab = false
     position = Plugin::GUI.get_tab_order(slug)
     if position
       window_slug, pane_slug, order = position
@@ -40,4 +41,17 @@ class Plugin::GUI::Tab
     add_child(@tab_toolbar)
     expand
   end
+
+  # このタブが一時的なタブであることを宣言する。
+  # タブの並び順に記録されないようになり、次回起動時にタブが生成されない。
+  # ==== Return
+  # self
+  def temporary_tab(value=true)
+    @temporary_tab = value end
+
+  # このタブが一時的なタブかどうかを返す
+  # ==== Return
+  # self
+  def temporary_tab?
+    @temporary_tab end
 end
