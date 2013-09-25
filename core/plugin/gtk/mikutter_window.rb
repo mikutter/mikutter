@@ -2,6 +2,7 @@
 
 require "gtk2"
 require File.expand_path(File.join(File.dirname(__FILE__), 'toolbar_generator'))
+require File.expand_path(File.join(File.dirname(__FILE__), 'account_box'))
 
 class Gtk::MikutterWindow < Gtk::Window
 
@@ -14,8 +15,15 @@ class Gtk::MikutterWindow < Gtk::Window
     @plugin = plugin
     @container = Gtk::VBox.new(false, 0)
     @panes = Gtk::HBox.new(true, 0)
+    account = Gtk::AccountBox.new
+    header = Gtk::HBox.new(false, 0)
     @postboxes = Gtk::VBox.new(false, 0)
-    add(@container.closeup(@postboxes).pack_start(@panes).closeup(create_statusbar))
+    add @container.
+      closeup(header.
+              closeup(account).
+              pack_start(@postboxes)).
+      pack_start(@panes).
+      closeup(create_statusbar)
   end
 
   def add_postbox(i_postbox)
