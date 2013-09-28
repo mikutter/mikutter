@@ -122,7 +122,7 @@ class Message < Retriever::Model
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    service and not system? and not from_me? end
+    service and not system? and not from_me? and not user[:protected] end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
@@ -332,8 +332,14 @@ class Message < Retriever::Model
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show
-    body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
-  memoize :to_show
+    @to_show ||= body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
+
+  # このMessageのパーマリンクを取得する
+  # ==== Return
+  # パーマリンクのURL(String)か、存在しない場合はnil
+  def parma_link
+    if not system?
+      @parma_link ||= "https://twitter.com/#{user[:idname]}/status/#{self[:id]}".freeze end end
 
   # :nodoc:
   def marshal_dump

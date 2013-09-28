@@ -148,7 +148,7 @@ Plugin.create(:activity) do
                                   closeup(activity_status.right)), true, false)
 
   tab(:activity, _("アクティビティ")) do
-    set_icon Skin.get("underconstruction.png")
+    set_icon Skin.get("activity.png")
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 
@@ -192,7 +192,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          message.parma_link),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -202,7 +202,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          message.parma_link),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -214,7 +214,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
                               "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              "https://twitter.com/#{source.user[:idname]}/statuses/#{source[:id]}"),
+                              source.parma_link),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.is_me? || source && source.user.is_me?),
