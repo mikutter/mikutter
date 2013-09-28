@@ -186,7 +186,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:("@#{user[:idname]} がふぁぼふぁぼしました\n"+
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          message.parma_link),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -196,7 +196,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:("@#{user[:idname]} があんふぁぼしました\n"+
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          "https://twitter.com/#{message.user[:idname]}/statuses/#{message[:id]}"),
+                          message.parma_link),
              icon: user[:profile_image_url],
              related: message.user.is_me? || user.is_me?,
              service: service)
@@ -208,7 +208,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:("@#{retweet.user[:idname]} がリツイートしました\n"+
                               "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              "https://twitter.com/#{source.user[:idname]}/statuses/#{source[:id]}"),
+                              source.parma_link),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.is_me? || source && source.user.is_me?),
