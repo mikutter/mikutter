@@ -1,12 +1,12 @@
 ---
 slug: :activity
 depends:
-  mikutter: '0.2'
+  mikutter: '0.2.2.1373'
   plugin:
   - gui
   - gtk
   - settings
-version: '1.0'
+version: '1.1'
 author: toshi_a
 name: Activity
 description: お気に入り、リツイート等のイベントや、エラーやシステムメッセージをタイムライン形式で表示するタブを追加する
