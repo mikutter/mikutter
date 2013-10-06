@@ -149,7 +149,7 @@ Plugin.create :profile do
     icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
     arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = ::Gtk::VBox.new(false, 4)
-    Service.all.each{ |me|
+    Service.each{ |me|
       following = followed = nil
       w_following_label = ::Gtk::Label.new(_("関係を取得中"))
       w_followed_label = ::Gtk::Label.new("")

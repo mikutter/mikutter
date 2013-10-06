@@ -28,7 +28,7 @@ Plugin.create :ratelimit do
   end
 
   on_mikutwitter_ratelimit do |mikutwitter, ratelimit|
-    service = Service.all.select{ |s| s.twitter == mikutwitter }
+    service = Service.select{ |s| s.twitter == mikutwitter }
     notice "ratelimit: #{ratelimit}"
     Plugin.call(:ratelimit, service, ratelimit) if service and ratelimit end
 

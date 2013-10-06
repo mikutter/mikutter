@@ -13,6 +13,7 @@ Twitter APIとmikutterプラグインのインターフェイス
 class Service
   include ConfigLoader
   include InstanceStorage
+  extend Enumerable
 
   # MikuTwitter のインスタンス
   attr_reader :twitter
@@ -38,9 +39,12 @@ class Service
   # 存在するServiceオブジェクトをSetで返す。
   # つまり、投稿権限のある「自分」のアカウントを全て返す。
   class << self
-    alias all instances
-    alias services instances
+    alias services instances  
   end
+
+  # Service.instances.eachと同じ
+  def self.each(*args, &proc)
+    instances.each(*args, &proc) end
 
   # 現在アクティブになっているサービスを返す。
   # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。

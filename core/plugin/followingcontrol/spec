@@ -4,6 +4,8 @@ depends:
   mikutter: '0.2'
   plugin:
   - gtk
+  - gui
+  - profile
 version: '1.0'
 author: toshi_a
 name: フォロー

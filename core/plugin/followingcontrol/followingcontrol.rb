@@ -1,58 +1,150 @@
 # -*- coding: utf-8 -*-
 
-require 'enumerator'
+require 'set'
+
 Plugin.create :followingcontrol do
 
-  def boot_event(api, service, created, destroy)
-    type_strict api => Symbol, service => Service, created => Users, destroy => Users
-    unless created.empty?
-      Plugin.call("#{api}_created".to_sym, service, created) end
-    unless destroy.empty?
-      Plugin.call("#{api}_destroy".to_sym, service, destroy) end end
+  counter = gen_counter
 
-  def gen_relationship(api, userlist)
-    count = gen_counter
-    retrieve_interval = "retrieve_interval_#{api}".to_sym
-    retrieve_count = "retrieve_count_#{api}".to_sym
-    add_event_filter(api) { |list| [list + userlist.to_a] }
-    lambda{ |service|
-      c = count.call
-      if (c % UserConfig[retrieve_interval]) == 0
-        relations = userlist.to_a
-        service.__send__(api, cache: (c==0 ? true : :keep)).next{ |users|
-          users = Users.new(users.select(&ret_nth).reverse!).freeze
-          boot_event(api, service, users - relations, relations - users) unless relations.empty?
-          users
-        }.terminate
-      end } end
+  on_period do
+    target = lazy{ Set.new(Service.instances) - @activating_services }
+    count = counter.call
+    if 0 == count % UserConfig["retrieve_interval_followings"]
+      rewind(:followings, target) end
+    if 0 == count % UserConfig["retrieve_interval_followers"]
+      rewind(:followers, target) end
+  end
 
-  def set_event(api, title)
-    userlist = Gtk::UserList.new
-    tab(api, title) do
-      set_icon Skin.get("#{api}.png")
-      expand
-      nativewidget userlist.show_all
+  on_followings_created do |service, created|
+    user = service.user_obj
+    users = relation.followings[user]
+    if users
+      relation.followings[user] = Users.new((created + users).uniq) end end
+
+  on_followings_destroy do |service, destroyed|
+    user = service.user_obj
+    users = relation.followings[user]
+    if users
+      relation.followings[user] = users - destroyed end end
+
+  on_followers_created do |service, created|
+    user = service.user_obj
+    users = relation.followers[user]
+    if users
+      relation.followers[user] = Users.new((created + users).uniq) end end
+
+  on_followers_destroy do |service, destroyed|
+    user = service.user_obj
+    users = relation.followers[user]
+    if users
+      relation.followers[user] = users - destroyed end end
+
+  profiletab(:followings, _('フォローしている')) do
+    set_icon Skin.get("followings.png")
+    userlist = gen_userlist
+    userlist.add_user(Users.new((relation.followings[user] || []).reverse))
+    nativewidget userlist.show_all
+    if Service.map(&:user_obj).include?(user)
+      events = []
+      events << on_followings_created do |service, created|
+        if service.user_obj == user
+          userlist.add_user(Users.new(created)) end end
+      events << on_followings_destroy do |service, destroyed|
+        if service.user_obj == user
+          userlist.remove_user(Users.new(destroyed)) end end
+      events << on_followings_modified do |service, modified|
+        if service.user_obj == user
+          userlist.listview.model.clear
+          userlist.add_user(Users.new(modified.reverse)) end end
+      userlist.ssc(:destroy) do
+        events.each(&:detach) end
     end
-    proc = gen_relationship(api, userlist)
-    onperiod{ |service|
-      promise = proc.call(service)
-      if promise
-        promise.next{ |res|
-          if res
-            userlist.add_user(res)
-          end }.terminate end }
-    add_event("#{api}_created".to_sym){ |service, users|
-      userlist.add_user(users)
-    }
-    add_event("#{api}_destroy".to_sym){ |service, users|
-      userlist.remove_user(users)
-    }
+  end
+
+  profiletab(:followers, _('フォローされている')) do
+    set_icon Skin.get("followers.png")
+    userlist = gen_userlist
+    userlist.add_user(Users.new((relation.followers[user] || []).reverse))
+    nativewidget userlist.show_all
+    if Service.map(&:user_obj).include?(user)
+      events = []
+      events << on_followers_created do |service, created|
+        if service.user_obj == user
+          userlist.add_user(Users.new(created)) end end
+      events << on_followers_destroy do |service, destroyed|
+        if service.user_obj == user
+          userlist.remove_user(Users.new(destroyed)) end end
+      events << on_followers_modified do |service, modified|
+        if service.user_obj == user
+          userlist.listview.model.clear
+          userlist.add_user(Users.new(modified.reverse)) end end
+      userlist.ssc(:destroy) do
+        events.each(&:detach) end
+    end
+  end
+
+  # profiletab(:followers, _('フォローされている')) do
+  #   set_icon Skin.get("followers.png")
+  #   userlist = Gtk::UserList.new
+  #   userlist.add_user(Users.new((relation.followers[user] || []).reverse))
+  #   nativewidget userlist.show_all
+  # end
+
+  def boot
+    @activating_services = Set.new
+    @relation = Struct.new(:followings, :followers).new(TimeLimitedStorage.new, TimeLimitedStorage.new)
+
+    Service.each(&method(:service_register))
+  end
+
+  def gen_userlist
+    userlist = Gtk::UserList.new
     userlist.listview.ssc(:row_activated) { |this, path, column|
       iter = this.model.get_iter(path)
       if iter
-        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end } end
+        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
+    #userlist.listview.model.set_sort_column_id(Gtk::InnerUserList::COL_ORDER, Gtk::SORT_ASCENDING)
+    userlist end
 
-  set_event(:followings, 'Followings')
-  set_event(:followers, 'Followers')
+  def relation
+    @relation end
 
+  def rewind(direction, target)
+    relation = @relation[direction.to_sym]
+    target.each { |service|
+      user = service.user_obj
+      service.__send__(direction, cache: :keep, user_id: user[:id]).next { |users|
+        primitive = relation[user]
+        if primitive and not primitive.empty?
+          created = users - primitive
+          Plugin.call("#{direction}_created".to_sym, service, created) if not created.empty?
+          destroyed = primitive - users
+          Plugin.call("#{direction}_destroy".to_sym, service, destroyed) if not destroyed.empty?
+        else
+          relation[user] = Users.new(users)
+          Plugin.call("#{direction}_modified".to_sym, service, users)
+        end
+      }
+    }
+  end
+
+  # _service_ を監視対象に入れる
+  # ==== Args
+  # service :: 監視するservice
+  def service_register(service)
+    @activating_services << service
+    user = service.user_obj
+    Deferred.when(service.followings(cache: true, user_id: user[:id]),
+                  service.followers(cache: true, user_id: user[:id])).next { |followings, followers|
+      @relation.followings[user] = Users.new(followings)
+      @relation.followers[user] = Users.new(followers)
+      Plugin.call(:followings_modified, service, @relation.followings[user])
+      Plugin.call(:followers_modified, service, @relation.followers[user])
+      @activating_services.delete(service)
+    }.trap {
+      @activating_services.delete(service)
+    }
+  end
+
+  boot
 end
