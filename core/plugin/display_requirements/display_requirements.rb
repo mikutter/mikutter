@@ -80,7 +80,7 @@ class ::Gdk::MiraclePainter
     time_arg = nil
     label = case diff
             when 0
-              _("今")
+              Plugin[:display_requirements]._("今")
             when 1...60
               (there < now ? Plugin[:display_requirements]._("%{sec}秒前") : Plugin[:display_requirements]._("%{sec}秒後")) % {sec: diff}
             when 60...3600
