@@ -41,10 +41,11 @@ Plugin.create :followingcontrol do
 
   profiletab(:followings, _('フォローしている')) do
     set_icon Skin.get("followings.png")
+    container = Gtk::EventBox.new
     userlist = gen_userlist
-    userlist.add_user(Users.new((relation.followings[user] || []).reverse))
-    nativewidget userlist.show_all
+    nativewidget container
     if Service.map(&:user_obj).include?(user)
+      userlist.add_user(Users.new((relation.followings[user] || []).reverse))
       events = []
       events << on_followings_created do |service, created|
         if service.user_obj == user
@@ -58,15 +59,29 @@ Plugin.create :followingcontrol do
           userlist.add_user(Users.new(modified.reverse)) end end
       userlist.ssc(:destroy) do
         events.each(&:detach) end
+      container.add(userlist).show_all
+    else
+      container.ssc_atonce :expose_event do
+        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        container.add(loading_image.show_all)
+        Service.primary.followings(cache: true, user_id: user[:id]).next{ |users|
+          container.remove(loading_image)
+          loading_image = nil
+          container.add(userlist.show_all)
+          userlist.add_user(Users.new(users.reverse))
+        }.trap{
+          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+        } end
     end
   end
 
   profiletab(:followers, _('フォローされている')) do
     set_icon Skin.get("followers.png")
+    container = Gtk::EventBox.new
     userlist = gen_userlist
-    userlist.add_user(Users.new((relation.followers[user] || []).reverse))
-    nativewidget userlist.show_all
+    nativewidget container
     if Service.map(&:user_obj).include?(user)
+    userlist.add_user(Users.new((relation.followers[user] || []).reverse))
       events = []
       events << on_followers_created do |service, created|
         if service.user_obj == user
@@ -80,6 +95,19 @@ Plugin.create :followingcontrol do
           userlist.add_user(Users.new(modified.reverse)) end end
       userlist.ssc(:destroy) do
         events.each(&:detach) end
+      container.add(userlist).show_all
+    else
+      container.ssc_atonce :expose_event do
+        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        container.add(loading_image.show_all)
+        Service.primary.followers(cache: true, user_id: user[:id]).next{ |users|
+          container.remove(loading_image)
+          loading_image = nil
+          container.add(userlist.show_all)
+          userlist.add_user(Users.new(users.reverse))
+        }.trap{
+          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+        } end
     end
   end
 

@@ -27,7 +27,7 @@ class Gtk::InnerUserList < Gtk::TreeView
   # self
   def add_user(users)
     type_strict users => Users
-    (users - Enumerator.new(model).map{ |model,path,iter| iter[COL_USER] }).each { |user|
+    (users - Enumerator.new(model).map{ |model,path,iter| iter[COL_USER] }).deach { |user|
       iter = model.append
       iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
         if not destroyed?
@@ -36,6 +36,7 @@ class Gtk::InnerUserList < Gtk::TreeView
       iter[COL_NAME] = user[:name]
       iter[COL_USER] = user
       iter[COL_ORDER] = @userlist.gen_order(user) }
+    scroll_to_zero_lator! if realized? and vadjustment.value == 0.0
     self end
 
   # Userの配列 _users_ に含まれるユーザを削除する
