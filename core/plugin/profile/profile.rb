@@ -26,21 +26,25 @@ Plugin.create :profile do
       [messages] end end
 
   on_show_profile do |service, user|
-    container = profile_head(user)
-    i_profile = tab nil, _("%{user} のプロフィール") % {user: user[:name]} do
-      set_icon user[:profile_image_url]
-      set_deletable true
-      temporary_tab
-      shrink
-      nativewidget container
-      expand
-      profile nil end
-    Thread.new {
-      Plugin.filtering(:profiletab, [], i_profile, user).first
-    }.next { |tabs|
-      tabs.map(&:last).each(&:call)
-    }.next {
-      Plugin.call(:filter_stream_reconnect_request) } end
+    slug = "profile-#{user.id}".to_sym
+    if Plugin::GUI::Tab.exist?(slug)
+      Plugin::GUI::Tab.instance(slug).active!
+    else
+      container = profile_head(user)
+      i_profile = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
+        set_icon user[:profile_image_url]
+        set_deletable true
+        temporary_tab
+        shrink
+        nativewidget container
+        expand
+        profile nil end
+      Thread.new {
+        Plugin.filtering(:profiletab, [], i_profile, user).first
+      }.next { |tabs|
+        tabs.map(&:last).each(&:call)
+      }.next {
+        Plugin.call(:filter_stream_reconnect_request) } end end
 
   profiletab :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")

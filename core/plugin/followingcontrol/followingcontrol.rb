@@ -111,13 +111,6 @@ Plugin.create :followingcontrol do
     end
   end
 
-  # profiletab(:followers, _('フォローされている')) do
-  #   set_icon Skin.get("followers.png")
-  #   userlist = Gtk::UserList.new
-  #   userlist.add_user(Users.new((relation.followers[user] || []).reverse))
-  #   nativewidget userlist.show_all
-  # end
-
   def boot
     @activating_services = Set.new
     @relation = Struct.new(:followings, :followers).new(TimeLimitedStorage.new, TimeLimitedStorage.new)

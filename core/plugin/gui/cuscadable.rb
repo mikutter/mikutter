@@ -81,6 +81,14 @@ module Plugin::GUI::Cuscadable
       @cuscaded ||= {}          # slug => instance
     end
 
+    # そのスラッグを持つインスタンスがあるかどうかを調べる
+    # ==== Args
+    # [slug] スラッグ
+    # ==== Return
+    # スラッグslugを持つインスタンスが既にあれば真
+    def exist?(slug)
+      @cuscaded.has_key?(slug) end
+
   end
 
 end
