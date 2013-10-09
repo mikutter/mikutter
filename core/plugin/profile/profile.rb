@@ -2,9 +2,9 @@
 
 Plugin.create :profile do
   UserConfig[:profile_show_tweet_once] ||= 20
-  @counter = gen_counter
   plugin = self
-  timeline_storage = {}                # {slug: user}
+  def timeline_storage # {slug: user}
+    @timeline_storage ||= {} end
 
   Message::Entity.addlinkrule(:user_mentions, /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )[a-zA-Z0-9_]+/){ |segment|
     idname = segment[:url].match(/^(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )?(.+)$/)[1]
@@ -18,6 +18,13 @@ Plugin.create :profile do
                             :screen_name => idname)
         Plugin.call(:show_profile, Service.primary, user) if user } end }
 
+  Delayer.new do
+    Thread.new do
+      (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
+        user = User.findbyid(user_id)
+        if user
+          show_profile(user, true) end end end end
+
   filter_show_filter do |messages|
     muted_users = UserConfig[:muted_users]
     if muted_users && !muted_users.empty?
@@ -26,15 +33,18 @@ Plugin.create :profile do
       [messages] end end
 
   on_show_profile do |service, user|
+    show_profile(user) end
+
+  def show_profile(user, force=false)
     slug = "profile-#{user.id}".to_sym
-    if Plugin::GUI::Tab.exist?(slug)
+    if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
+      UserConfig[:profile_opened_tabs] = (UserConfig[:profile_opened_tabs] || []) + [user.id]
       container = profile_head(user)
       i_profile = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
         set_icon user[:profile_image_url]
         set_deletable true
-        temporary_tab
         shrink
         nativewidget container
         expand
@@ -44,7 +54,10 @@ Plugin.create :profile do
       }.next { |tabs|
         tabs.map(&:last).each(&:call)
       }.next {
-        Plugin.call(:filter_stream_reconnect_request) } end end
+        Plugin.call(:filter_stream_reconnect_request)
+        if !force
+          i_profile.active! end }
+    end end
 
   profiletab :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")
@@ -56,8 +69,7 @@ Plugin.create :profile do
     Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: user[:idname]})
-    timeline_storage[i_timeline.slug] = user
-    i_timeline.active! end
+    timeline_storage[i_timeline.slug] = user end
 
   profiletab :aboutuser, _("ユーザについて") do
     set_icon user[:profile_image_url]
@@ -99,8 +111,10 @@ Plugin.create :profile do
     [users.merge(timeline_storage.values)] end
 
   on_gui_destroy do |widget|
+    notice "on_gui_destroy: #{widget}"
     if widget.is_a? Plugin::GUI::Timeline
-      timeline_storage.delete(widget.slug) end end
+      timeline_storage.delete(widget.slug)
+      UserConfig[:profile_opened_tabs] = timeline_storage.values.map(&:id) end end
 
   command(:aboutuser,
           name: lambda { |opt|

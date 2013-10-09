@@ -22,4 +22,8 @@ class Plugin::GUI::TabToolbar
     Plugin.call(:tab_toolbar_created, self)
   end
 
+  def rewind
+    Plugin.call(:tab_toolbar_rewind, self)
+  end
+
 end

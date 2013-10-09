@@ -21,6 +21,8 @@ class Plugin::GUI::Tab
 
   set_parent_event :gui_tab_join_pane
 
+  attr_reader :tab_toolbar
+
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(*args)
     super

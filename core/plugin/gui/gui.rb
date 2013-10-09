@@ -26,6 +26,7 @@ Plugin.create :gui do
       i_tab = Plugin::GUI::Tab.instance(slug, name, self.name)
       result = i_tab.instance_eval(&proc)
       Plugin.call :gui_tab_change_icon, i_tab
+      i_tab.tab_toolbar.rewind
       result
     else
       Plugin::GUI::Tab.instance(slug, name, self.name) end end

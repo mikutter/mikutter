@@ -299,6 +299,11 @@ Plugin.create :gtk do
   on_gui_tab_change_icon do |i_tab|
     tab_update_icon(i_tab) end
 
+  on_tab_toolbar_rewind do |i_tab_toolbar|
+    tab_toolbar = widgetof(i_tab_toolbar)
+    if tab_toolbar
+      tab_toolbar.set_button end end
+
   on_gui_contextmenu do |event, contextmenu|
     widget = widgetof(event.widget)
     if widget

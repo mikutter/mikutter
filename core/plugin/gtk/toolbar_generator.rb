@@ -24,7 +24,7 @@ module Plugin::Gtk
           toolitem.ssc(:clicked){
             command[:exec].call(event) }
           container.closeup(toolitem) }
-        container.ssc(:realize, &:queue_resize)
+        #container.ssc(:realize, &:queue_resize)
         container.show_all if not commands.empty?
       }.trap{ |e|
         error "error on command toolbar:"

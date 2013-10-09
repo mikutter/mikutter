@@ -9,13 +9,10 @@ class Gtk::TabToolbar < Gtk::HBox
     type_strict imaginally => Plugin::GUI::TabToolbar
     @imaginally = imaginally
     super(*args)
-    initialize_event
   end
 
-  private
-
-  # イベントハンドラの登録
-  def initialize_event
+  def set_button
+    self.children.each(&method(:remove))
     Plugin::Gtk::ToolbarGenerator.generate(self,
                                            Plugin::GUI::Event.new(:tab_toolbar, @imaginally.parent, []),
                                            :tab)
