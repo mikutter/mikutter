@@ -40,7 +40,7 @@ Plugin.create :profile do
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
-      UserConfig[:profile_opened_tabs] = (UserConfig[:profile_opened_tabs] || []) + [user.id]
+      UserConfig[:profile_opened_tabs] = ((UserConfig[:profile_opened_tabs] || []) + [user.id]).uniq
       container = profile_head(user)
       i_profile = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
         set_icon user[:profile_image_url]
