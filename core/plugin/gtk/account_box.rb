@@ -3,24 +3,41 @@
 require "gtk2"
 
 class Gtk::AccountBox < Gtk::EventBox
-  UserConfig[:gtk_accountbox_geometry] = 32
+  UserConfig[:gtk_accountbox_geometry] ||= 32
 
   def initialize
-    @face = Gtk::Image.new(Gdk::WebImageLoader.loading_pixbuf(UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]))
     Plugin[:gtk].on_primary_service_changed(&method(:change_user))
-    change_user Service.primary
     super
+    Plugin[:gtk].on_service_registered do |service|
+      refresh end
+    Plugin[:gtk].on_service_destroyed do |service|
+      refresh end
     ssc(:button_press_event) do |this,event|
       open_menu event if 3 >= event.button
-      false
-    end
-    self.add(@face) end
+      false end
+    ssc_atonce(:realize) do
+      change_user Service.primary end
+  end
   
+  def refresh
+    if 1 < Service.to_a.size
+      if not @face
+        @face = Gtk::Image.new(Gdk::WebImageLoader.loading_pixbuf(UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]))
+        self.add(@face).show_all end
+    else
+      if @face
+        self.remove(@face)
+        @face.destroy
+        @face = nil end end
+  end
+
   def change_user(service)
-    user = service.user_obj
-    @face.pixbuf = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]){ |pixbuf|
-      if user == service.user_obj
-        @face.pixbuf = pixbuf end } end
+    refresh
+    if @face
+      user = service.user_obj
+      @face.pixbuf = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]){ |pixbuf|
+        if user == service.user_obj
+          @face.pixbuf = pixbuf end } end end
 
   def open_menu(event)
     menu = Gtk::Menu.new

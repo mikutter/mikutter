@@ -98,8 +98,10 @@ class Service
       Plugin.call(:service_registered, service)
       service } end
 
-  def self.destroy(service)
-    type_strict service => Service
+  class << self
+    alias __destroy_e3de__ destroy
+    def destroy(service)
+      type_strict service => Service
       accounts = UserConfig[:accounts]
       if accounts.is_a? Hash
         accounts = accounts.melt
@@ -107,10 +109,11 @@ class Service
         accounts = {} end
       accounts.delete(service.name)
       UserConfig[:accounts] = accounts
-    super
-    Plugin.call(:service_destroyed, service) end
-  def self.remove_service(service)
-    destroy(service) end
+      __destroy_e3de__("twitter-#{service.user}".to_sym)
+      Plugin.call(:service_destroyed, service) end
+    def remove_service(service)
+      destroy(service) end    
+  end
 
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを
   # 新たに作る必要はない
