@@ -139,6 +139,15 @@ Plugin.create :command do
         end
       ::Gtk::TimeLine.openurl(url) if url } end
 
+  command(:copy_link,
+          name: _('リンクをコピー'),
+          condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
+            opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
+          visible: true,
+          role: :timeline) do |opt|
+    opt.messages[0].entity.to_a.each {|u|
+    ::Gtk::Clipboard.copy(u[:url]) if u[:slug] == :urls } end
+
   command(:new_pane,
           name: _('新規ペインに移動'),
           condition: lambda{ |opt|
