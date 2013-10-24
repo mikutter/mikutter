@@ -37,6 +37,11 @@ Plugin.create :smartthread do
           message[:created].to_i end end end
     @timelines[slug] = opt.messages.map(&:ancestor).uniq
     timeline(slug) << opt.messages.map(&:around).flatten
+    tl = timeline(slug)
+    @timelines[slug].each{ |message|
+      Thread.new{
+        message.each_ancestors(true){ |child|
+          tl << child } }.trap{|e| error e} }
     timeline(slug).active!
   }
 
