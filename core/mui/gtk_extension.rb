@@ -175,6 +175,11 @@ class Gtk::Clipboard
   def self.copy(t)
     Gtk::Clipboard.get(Gdk::Atom.intern('CLIPBOARD', true)).text = t
   end
+
+  # クリップボードから文字列を取得する
+  def self.paste
+    Gtk::Clipboard.get(Gdk::Atom.intern('CLIPBOARD', true)).wait_for_text
+  end
 end
 
 class Gtk::Dialog

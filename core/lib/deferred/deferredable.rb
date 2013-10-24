@@ -63,6 +63,14 @@ module Deferredable
         error inner_error end
       Deferred.fail(e) } end
 
+  # second 秒待って次を実行する
+  # ==== Args
+  # [second] 待つ秒数(second)
+  # ==== Return
+  # Deferred
+  def wait(second)
+    self.next{ Thread.new{ sleep second } } end
+
   private
 
   def _call(stat = :ok, value = nil)

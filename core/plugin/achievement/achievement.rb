@@ -97,9 +97,17 @@ Plugin.create :achievement do
 
   defactivity "achievement", _("実績")
 
+  defachievement(:register_account,
+                 description: _("Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"),
+                 hidden: true
+                 ) do |ach|
+    on_service_registered do |_| ach.take! end
+  end
+
   defachievement(:open_setting,
                  description: _("設定画面で、mikutterをカスタマイズしましょう。"),
-                 hint: _("画面右下にあるレンチのアイコンをクリックしよう")
+                 hint: _("画面右下にあるレンチのアイコンをクリックしよう"),
+                 depends: [:register_account, :tutorial]
                  ) do |ach|
     on_open_setting do ach.take! end
   end
@@ -115,7 +123,8 @@ Plugin.create :achievement do
 
   defachievement(:multipane,
                  description: _("新規ペインを追加コマンドでペインを増やせます"),
-                 hint: _("タブを右クリックして、「新規ペインに移動」をクリックしてみよう")
+                 hint: _("タブを右クリックして、「新規ペインに移動」をクリックしてみよう"),
+                 depends: [:register_account, :tutorial]
                  ) do |ach|
     on_gui_pane_join_window do |pane, window|
       if window.children.inject(0){|i,s| i + (s.is_a?(Plugin::GUI::Pane) ? 1 : 0) } >= 2
@@ -134,7 +143,8 @@ Plugin.create :achievement do
 
   defachievement(:bugreporter,
                  description: _("クラッシュレポートの報告ありがとうございます"),
-                 hidden: true
+                 hidden: true,
+                 depends: [:register_account, :tutorial]
                  ) do |ach|
     on_send_bugreport do |report|
       ach.take! end end

@@ -47,7 +47,7 @@ class Deferred
     # ==== Return
     # Deferred
     def system(*args)
-      promise = Deferred.new
+      promise = Deferred.new(true)
       Thread.new{
         if Kernel.system(*args)
           promise.call(true)

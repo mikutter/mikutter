@@ -51,6 +51,8 @@ class Service
   def self.primary
     if @primary
       @primary
+    elsif services.empty?
+      nil
     else
       set_primary(services.first)
       @primary

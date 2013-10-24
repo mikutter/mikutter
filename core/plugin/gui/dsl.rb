@@ -11,9 +11,7 @@ module Plugin::GUI
                     :mentions,
                     :activity,
                     :directmessage,
-                    :search,
-                    :followings,
-                    :followers] } } end
+                    :search] } } end
 
     # 設定されているタブの位置を返す
     # ==== Args

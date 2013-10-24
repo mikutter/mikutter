@@ -58,14 +58,11 @@ module ::Plugin::ChangeAccount
           access_token = request_token.get_access_token(oauth_token: request_token.token,
                                                         oauth_verifier: code_input.text)
           dialog.sensitive = false
-          Service.add_service(access_token.token, access_token.secret).next { |service|          
-            notice "pass1"
-            result = service
+          Service.add_service(access_token.token, access_token.secret).next { |service|              result = service
             parent_window.sensitive = true
             dialog.hide_all.destroy
             Gtk::main_quit
           }.trap { |e|
-            notice "pass2"
             alert = ::Gtk::Dialog.new("エラー - " + Environment::NAME)
             alert.set_size_request(420, 90)
             alert.window_position = ::Gtk::Window::POS_CENTER
@@ -76,12 +73,10 @@ module ::Plugin::ChangeAccount
               dialog.sensitive = true
               alert.hide_all.destroy }
           }.terminate
-          notice "pass3"
         else
           result = nil
           parent_window.sensitive = true
           dialog.hide_all.destroy
-          notice "pass4"
           Gtk::main_quit
         end
       }

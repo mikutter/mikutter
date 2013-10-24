@@ -5,6 +5,7 @@ depends:
   plugin:
   - settings
   - uitranslator
+  - achievement
 version: '1.0'
 author: toshi_a
 name: Change Account
