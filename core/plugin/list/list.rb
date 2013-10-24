@@ -150,9 +150,6 @@ Plugin.create :list do
     if visible_lists.include?(list[:id])
       store(:visible_lists, visible_lists - [list[:id]])
     end
-    visible_list_obj = at(:visible_list_obj, {}).melt
-    visible_list_obj.delete(list[:id])
-    store(:visible_list_obj, visible_list_obj)
     self end
 
   # _list_ の表示可否状態を _visibility_ にして、実際に表示/非表示を切り替える
@@ -238,12 +235,6 @@ Plugin.create :list do
       set_icon Skin.get("list.png")
       timeline slug end
     list_modify_member(list, true)
-    visible_list_obj = at(:visible_list_obj, {}).melt
-    if not defined? visible_list_obj[list[:id]]
-      visible_list_obj[list[:id]] = list.to_hash
-      visible_list_obj[list[:id]][:user] = list[:user].to_hash
-      visible_list_obj[list[:id]].delete(:member)
-      store(:visible_list_obj, visible_list_obj) end
     self end
 
   # _list_ のためのタブを閉じる。タブがない場合は何もしない。
@@ -262,21 +253,6 @@ Plugin.create :list do
 
   Delayer.new{
     fetch_list_of_service(Service.primary, true) }
-
-  ->(visible_lists) {
-    visible_list_ids.each{ |list_id|
-      begin
-        if defined? visible_lists[list_id]
-          list = visible_lists[list_id].melt
-          list[:user] = User.new_ifnecessary(list[:user])
-          list[:member] = Set.new
-          userlist = UserList.new_ifnecessary(list)
-          tab_open(userlist)
-        end
-      rescue => e
-        error "list redume failed"
-        error e end }
-  }.(at(:visible_list_obj, {}))
 
   class IDs < TypedArray(Integer); end
 
