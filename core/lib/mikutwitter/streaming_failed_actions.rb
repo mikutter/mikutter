@@ -40,7 +40,7 @@ class MikuTwitter::StreamingFailedActions
       end
       httperror
       @last_code = e.code
-    elsif e.is_a? Exception
+    elsif e.is_a?(Exception) or e.is_a?(Thread)
       tcperror
     end
   end
