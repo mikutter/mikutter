@@ -150,7 +150,6 @@ Plugin.create :change_account do
 
   defsequence :settings do
     sequence.
-      say(_('mikutterを使う前にいくつか設定をしようね(仮)')).
       next{ jump_seq :complete }
   end
 
