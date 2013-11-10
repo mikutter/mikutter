@@ -111,6 +111,7 @@ Plugin.create :change_account do
                                                       oauth_verifier: code_entry.text)
         Service.add_service(access_token.token, access_token.secret)
       }.next{ |service|
+        shell.remove(eventbox)
         Thread.new{
           sleep 2
           sequence.
