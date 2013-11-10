@@ -92,7 +92,7 @@
 		}
 	},
 	"jigokuno.com": {
-		"url": "^http://jigokuno\\.com/\\?eid=\\d+$",
+		"url": "^http://jigokuno\\.com/\\?eid=\\d+",
 		"attribute": {
 			"src": {
 				"json_class": "Regexp",
@@ -104,7 +104,9 @@
 	"Tumblr image": {
 		"url": "^http://[-0-9a-z]+\\.tumblr\\.com/image/\\d+",
 		"attribute": {
-			"id": "content-image"
+			"id": "content-image",
+			"attribute": "data-src",
+			"tag": "img"
 		}
 	},
 	"はてなフォトライフ": {

@@ -24,7 +24,7 @@ class Gtk::ListList < Gtk::CRUD
     type_strict plugin => Plugin, proc => Proc
     add_hook(Service.primary, own, UserLists.new(Plugin.filtering(:following_lists, UserLists.new).first), &proc)
     create = plugin.add_event(:list_created) { |service, lists|
-      add_hook(service, own, lists, &proc) }
+      add_hook(service, own, UserLists.new(lists), &proc) }
     destroy = plugin.add_event(:list_destroy){ |service, list_ids|
       unless destroyed?
         each{ |model, path, iter|
