@@ -86,7 +86,7 @@ Plugin.create :openimg do
 
   def get_tag_by_attributes(tag)
     attribute = {}
-    tag.each_matches(/([a-zA-Z0-9]+?)=(['"])(.*?)\2/){ |pair, pos|
+    tag.each_matches(/([^\s=]+)=(['"])(.*?)\2/){ |pair, pos|
       key, val = pair[1], pair[3]
       attribute[key] = val }
     attribute.freeze end
@@ -204,7 +204,7 @@ Plugin.create :openimg do
     t = fetch(url)
     /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
     if $~
-      imgurlresolver($1 + "image" + $2, 'id' => 'content-image')
+      imgurlresolver($1 + "image" + $2, {'tag' => 'img', 'id' => 'content-image', 'attribute' => 'data-src'})
     else
       warn "たんぶらの記事ページじゃないっぽい"
       nil

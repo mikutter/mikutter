@@ -77,10 +77,9 @@ class ::Gdk::MiraclePainter
     now = Time.now.to_i
     there = message[:created].to_i
     diff = (there - now).abs
-    dr = Plugin.instance(:display_requirements)
     label = case diff
             when 0
-              dr._("今")
+              Plugin[:display_requirements]._("今")
             when 1...60
               (there < now ? Plugin[:display_requirements]._("%{sec}秒前") : Plugin[:display_requirements]._("%{sec}秒後")) % {sec: diff}
             when 60...3600
