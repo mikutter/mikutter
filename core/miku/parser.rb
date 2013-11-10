@@ -109,7 +109,7 @@ module MIKU
   end
 
   def self._string(s)
-    result = read_to(s){ |c| c == '"' }
+    result = read_to(s){ |c| c == '"' }.gsub('\n', "\n")
     s.getc
     result.extend(StaticCode).staticcode_copy_info(s)
   end

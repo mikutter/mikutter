@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 #! /usr/bin/ruby
+# -*- coding: utf-8 -*-
 
 if not defined? $loaded_miku
   $loaded_miku = true
@@ -39,7 +39,7 @@ if not defined? $loaded_miku
     if ARGV.last
       miku_stream(open(ARGV.last, 'r'), scope)
     else
-      require_relative 'readline'
+      require 'readline'
       while buf = Readline.readline('>>> ', true)
         begin
           puts MIKU.unparse(miku(MIKU.parse(buf), scope))

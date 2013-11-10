@@ -37,3 +37,18 @@
        true
      ,(if other
           `(or ,@other))))
+
+(defmacro let (bind (rest body))
+  (#((mapped)
+	 `(#(,(map mapped #((node) (car node)))
+		 ,@body) ,@(map mapped #((node) (cdr node)))))
+   (map bind #((node)
+			   (if (listp node)
+				   (cons (car node) (nth node 1))
+				   (cons node nil))))))
+
+(defmacro progn ((rest body))
+  `(#(() ,@body)))
+
+(defmacro cond (condition (rest follow))
+  `(if ,(car condition) (progn ,@(cdr condition)) ,(if (not (empty? follow)) (cons 'cond follow))))

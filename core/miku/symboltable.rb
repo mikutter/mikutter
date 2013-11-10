@@ -88,6 +88,7 @@ module MIKU
                         :def , Cons.new(nil, Primitive.new(:defun)),
                         :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
                         :'macro-expand-all' , Cons.new(nil, Primitive.new(:macro_expand_all)),
+                        :'to-ruby' , Cons.new(nil, Primitive.new(:to_ruby)),
                         :"=", Cons.new(nil, Primitive.new(:eq)),
                         :not, Cons.new(nil, Primitive.new(:_not)),
                         :true, Cons.new(true, nil),
