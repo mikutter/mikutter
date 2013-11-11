@@ -109,7 +109,7 @@ module MIKU
   end
 
   def self._string(s)
-    result = read_to(s){ |c| c == '"' }.gsub('\n', "\n")
+    result = read_to(s){ |c| c == '"' }
     s.getc
     result.extend(StaticCode).staticcode_copy_info(s)
   end
@@ -137,8 +137,11 @@ module MIKU
     if !escape and cond.call(c)
       s.ungetc(c[0])
       return '' end
-    if c == '\\'
+    case
+    when '\\' == c
       read_to(s, true, &cond)
+    when ('n' == c) && escape
+      "\n" + read_to(s, &cond)
     else
       c + read_to(s, &cond) end
   end

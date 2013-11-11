@@ -67,23 +67,31 @@ Plugin.create :extract do
     UserConfig[:extract_tabs] = extract_tabs.values
   end
 
+  def compile(tab_id, code)
+    atomic do
+      @compiled ||= {}
+      @compiled[tab_id] ||= ->(assign,evaluated){
+        assign += "  user = message.idname\n"     if evaluated.include? "user"
+        assign += "  body = message.to_s\n"       if evaluated.include? "body"
+        assign += "  source = message[:source]\n" if evaluated.include? "source"
+        notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
+        eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
+      }.("",MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, code)) end end
+
+  def destroy_compile_cache
+    atomic do
+      @compiled = {} end end
+
   def append_message(source, messages)
     type_strict source => String, messages => Enumerable
     tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
     return if tabs.empty?
-    messages.each{ |message|
-      message = message.retweet_source if message.retweet_source
-      table = MIKU::SymbolTable.new(nil,
-                                    :user => MIKU::Cons.new(message.idname, nil),
-                                    :body => MIKU::Cons.new(message.to_s, nil),
-                                    :source => MIKU::Cons.new(message[:source] || "", nil),
-                                    :message => MIKU::Cons.new(message, nil))
-      tabs.each{ |record|
-        begin
-          timeline(record[:slug]) << message if miku(record[:sexp], table)
-        rescue Exception => e
-          error "filter '#{record[:name]}' crash: #{e.to_s}" end
-      } } end
+    converted_messages = Messages.new(messages.map{ |message| message.retweet_source ? message.retweet_source : message })
+    tabs.deach{ |record|
+      begin
+        timeline(record[:slug]) << converted_messages.select(&compile(record[:id], record[:sexp]))
+      rescue Exception => e
+        error "filter '#{record[:name]}' crash: #{e.to_s}" end } end
 
   class ExtractTab < ::Gtk::CRUD
     ITER_NAME = 0
@@ -147,6 +155,12 @@ Plugin.create :extract do
   (UserConfig[:extract_tabs] or []).each{ |record|
     extract_tabs[record[:id]] = record.freeze
     Plugin.call(:extract_tab_create, record) }
+
+  extract_tabs_watcher = UserConfig.connect :extract_tabs do |key, val, before_val, id|
+    destroy_compile_cache end
+
+  on_unload do
+    UserConfig.disconnect(extract_tabs_watcher) end
 
 end
 
