@@ -81,7 +81,7 @@ module MIKU
       @@defaults ||= __defaults end
 
     def self.__defaults
-      default = Hash[*(defsform(:cons, :eq, :listp, :set, :function, :value, :quote, :eval, :list,
+      default = Hash[*(defsform(:cons, :listp, :set, :function, :value, :quote, :eval, :list,
                                 :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
                                 :<, :>, :<=, :>=, :eq, :eql, :equal) +
                        [:lambda , Cons.new(nil, Primitive.new(:negi)),

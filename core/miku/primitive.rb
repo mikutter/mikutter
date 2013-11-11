@@ -160,6 +160,59 @@ module MIKU
       macro_expand_ne(symtable, eval(symtable, sexp))
     end
 
+    def to_ruby(symtable, sexp)
+      to_ruby_ne(symtable, eval(symtable, sexp))
+    end
+
+    def to_ruby_ne(symtable, sexp, quoted=false)
+      expanded = macro_expand_all_ne(symtable, sexp)
+      case expanded
+      when Symbol
+        (quoted ? ":" : "") + "#{expanded.to_s}"
+      when Numeric
+        expanded.to_s
+      when String
+        '"' + expanded.gsub("\n", '\n') + '"'
+      when TrueClass
+        'true'
+      when FalseClass
+        'false'
+      when NilClass
+        'nil'
+      when List
+        if quoted
+          '[' + expanded.map{|node| to_ruby_ne(symtable, node, true)}.join(", ") + ']'
+        else
+          operator = expanded.car
+          case operator
+          when :quote
+            to_ruby_ne(symtable, expanded[1], true)
+          when :<, :>, :<=, :>=, :eql, :equal, :and, :or
+            converted = {
+              :< => "<", :> => ">", :<= => "<=", :>= => ">=", :eql => "==", :equal => "===", :and => "and", :or => "or"}[operator]
+            if 2 == expanded.size
+              to_ruby_ne(symtable, expanded[1])
+            else
+              expanded.cdr.enum_for(:each_cons, 2).map{ |a, b|
+                "#{to_ruby_ne(symtable, a)} #{converted} #{to_ruby_ne(symtable, b)}" }.join(' and ')
+            end
+          when :eq
+            expanded.cdr.enum_for(:each_cons, 2).map{ |a, b|
+              "#{to_ruby_ne(symtable, a)}.equal?(#{to_ruby_ne(symtable, b)})" }.join(' and ')
+          when :+, :-, :*, :/
+            expanded.cdr.join(" #{expanded.car.to_s} ")
+          else
+            if expanded[1].is_a? Symbol
+              args = [":" + operator.to_s, *(expanded.size > 2 ? expanded.cdr.cdr.map{|node|to_ruby_ne(symtable, node)} : [])].join(", ")
+              "#{to_ruby_ne(symtable, expanded[1])}.__send__(#{args})"
+            else
+              args = expanded.size > 2 ? expanded.cdr.cdr.map{|node|to_ruby_ne(symtable, node)}.join(",") : ""
+              "#{to_ruby_ne(symtable, expanded[1])}.#{operator.to_s}(#{args})" end end end
+      else
+        expanded.to_s
+      end
+    end
+
     def negi(parenttable, alist, *body)
       # body = body.map{ |node| macro_expand(parenttable, node) }
       lambda{ |*args|

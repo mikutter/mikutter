@@ -130,15 +130,17 @@ module MIKU
     end
   end
 
-  def self.read_to(s, &cond)
+  def self.read_to(s, escape=false, &cond)
     c = s.getc
     return '' if not c
     c = c.chr
-    if cond.call(c) then
+    if !escape and cond.call(c)
       s.ungetc(c[0])
-      return ''
-    end
-    c + read_to(s, &cond)
+      return '' end
+    if c == '\\'
+      read_to(s, true, &cond)
+    else
+      c + read_to(s, &cond) end
   end
 
   def self.skipspace(s)
