@@ -27,7 +27,19 @@ module MikuTwitter::Utils
       "?" + filtered.map{|pair| "#{CGI.escape(pair[0].to_s).to_s}=#{CGI.escape(pair[1].to_s).to_s}"}.join('&')
     else
       '' end end
- # !> loading in progress, circular require considered harmful - /home/toshi/Documents/hobby/scripts/mikutter/trunk/core/lib/oauth/client/helper.rb
+
+  def line_accumlator(splitter="\n", &proc)
+    splitter.freeze
+    buffer = ""
+    push = ->(str){ proc.(buffer + str); buffer = "" }
+    ->(chunk){
+      if chunk.end_with?(splitter)
+        objects = chunk.split(splitter)
+        if objects.empty? then push.("") else objects.each(&push) end
+      else
+        *objects, last = chunk.split(splitter)
+        objects.each(&push)
+        buffer += (last || "") end } end
 end
 
 class << CGI
