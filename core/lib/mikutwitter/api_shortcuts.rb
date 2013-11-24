@@ -204,11 +204,13 @@ module MikuTwitter::APIShortcuts
                                              {},
                                              params,
                                              { 'Host' => parsed_url.host,
-                                               'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}"})
+                                               'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}",
+                                               'accept-encoding' => "identity;q=1"})
+    proc = line_accumlator("\x0D\x0A", &chunk)
     http.request(request){ |res|
       notice "response #{url} #{res.code} #{res}"
       if res.code == '200'
-        res.read_body(&chunk)
+        res.read_body(&proc)
       end } end
 
   # APIの戻り値に、 next_cursor とかがついてて、二ページ目以降の取得がやたら面倒な
