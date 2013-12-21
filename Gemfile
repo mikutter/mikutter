@@ -11,8 +11,11 @@ group :default do
   gem 'delayer'
 end
 
-group :test do
+group :translation do
   gem 'rake'
+end
+
+group :test do
   gem 'watch'
   gem 'mocha'
   gem 'webmock'

@@ -2,7 +2,8 @@
 # 全プラグインにpot作成
 
 miquire :core, "miquire_plugin"
-require 'gettext/tools'
+require 'gettext/tools/task'
+require 'rake'
 
 mo_root = File.join(CHIConfig::CACHE, "uitranslator", "locale")
 
@@ -16,14 +17,35 @@ Miquire::Plugin.each_spec do |spec|
       (defined?(spec[:depends][:plugin]) and spec[:depends][:plugin].include? "uitranslator")
     po_root = File.join spec[:path], "po"
     begin
-      GetText.update_pofiles(spec[:slug].to_s,
-                             Dir.glob("#{spec[:path]}/**/*.rb"),
-                             "#{spec[:slug]} #{spec[:version]}",
-                             po_root: po_root)
+      GetText::Tools::Task.define do |task|
+        task.spec = Gem::Specification.new do |s|
+          s.name = spec[:slug].to_s
+          s.version = spec[:version].to_s
+          s.files = Dir.glob("#{spec[:path]}/**/*.rb")
+        end
+        task.locales = ["ja"]
+        task.po_base_directory = po_root
+      end
     rescue Exception => e
       failed_plugins << spec[:slug]
     end
   end
 end
+notice Rake::Task.tasks.join("\n")
+
+# gettext:po:updateがいちいち翻訳者名とか聞いてきてうざいので潰す。
+# 本来はgettextにパッチを送るとかするべきな気がする。
+class GetText::Tools::MsgInit
+  def translator_full_name
+    ""
+  end
+
+  def translator_mail
+    ""
+  end
+end
+
+Rake::Task["gettext:pot:create"].invoke
+Rake::Task["gettext:po:update"].invoke
 
 puts "failed plugins: #{failed_plugins}" unless failed_plugins.empty?
