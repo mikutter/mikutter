@@ -36,7 +36,9 @@ class Event
   # ==== Return
   # Delayerか、イベントを待ち受けているリスナがない場合はnil
   def call(*args)
-    #return nil if count_observers == 0
+    prototype = @options.has_key? :prototype
+    type_strict args.zip(@options[:prototype]) if prototype
+
     if Event.filter_another_thread
       if @filters.empty?
         Delayer.new(priority) {
