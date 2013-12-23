@@ -3,6 +3,9 @@
 require 'gtk2'
 
 Plugin.create :list do
+  defevent :list_created, priority: :routine_passive, prototype: [Service, UserLists]
+  defevent :list_destroy, priority: :routine_passive, prototype: [Service, Array]
+
   crawl_count = 0
   this = self
 
@@ -201,8 +204,8 @@ Plugin.create :list do
   def set_available_lists(newlist)
     created = newlist - available_lists
     deleted = available_lists - newlist
-    Plugin.call(:list_created, Service.primary, created.freeze) if not created.empty?
-    Plugin.call(:list_destroy, Service.primary, deleted.freeze) if not deleted.empty?
+    Plugin.call(:list_created, Service.primary, UserLists.new(created)) if not created.empty?
+    Plugin.call(:list_destroy, Service.primary, UserLists.new(deleted)) if not deleted.empty?
     @available_lists = UserLists.new(newlist).freeze
     Plugin.call(:list_data, Service.primary, @available_lists) if not(created.empty? and deleted.empty?)
     @available_lists end
