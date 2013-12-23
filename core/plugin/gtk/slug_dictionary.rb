@@ -73,13 +73,11 @@ module Plugin::Gtk
       type_strict gtk_widget => ::Gtk::Widget
       Plugin::Gtk::SlugDictionary.nameklass.each{ |i_widget_klass, gtk_widget_klass|
         if gtk_widget.is_a? gtk_widget_klass
-          notice "#{i_widget_klass} -> #{gtk_widget_klass}"
           next if not i_widget_klass
           slug = @widget_of_gtk[i_widget_klass].key(gtk_widget)
           next if not slug
-          notice "got #{i_widget_klass.instance(slug)}"
           return i_widget_klass.instance(slug) end }
-      notice "notfound"
+      error "not found (#{gtk_widget.inspect})"
       nil end
 
     class UndefinedWidgetError < ArgumentError
@@ -87,3 +85,6 @@ module Plugin::Gtk
 
   end
 end
+
+
+

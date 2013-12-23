@@ -39,8 +39,7 @@ module Plugin::GUI::Widget
   # self
   def destroy
     if not destroyed?
-      if respond_to? :children
-        children.each(&:destroy) end
+      notice "gui: Plugin::GUI::Widget#destroy: #{self.inspect}"
       Plugin.call(:gui_destroy, self)
       self.class.cuscaded.delete(slug)
       @destroy = true
