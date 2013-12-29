@@ -4,7 +4,7 @@ module Plugin::GUI
   class Command
 
     class << self
-      def menu_pop(widget = get_active_widget)
+      def get_menu_items(widget = get_active_widget)
         type_strict widget => Plugin::GUI::Widget
         labels = []
         contextmenu = []
@@ -21,6 +21,13 @@ module Plugin::GUI
                                        lambda{ |x| record[:condition] === event },
                                        lambda{ |x| record[:exec].call(event) },
                                        record[:icon]]) end }
+
+        [event,contextmenu]
+      end
+
+      def menu_pop(widget = get_active_widget)
+        (event, contextmenu) = get_menu_items(widget)
+
         Plugin.call(:gui_contextmenu, event, contextmenu)
       end
 

@@ -287,6 +287,16 @@ Plugin.create :gtk do
     postbox.post.ssc(:focus_in_event) {
       i_postbox.active!(true, true)
       false }
+
+    postbox.post.ssc("populate-popup"){ |widget, menu|
+      (event, items) = Plugin::GUI::Command.get_menu_items(i_postbox)
+
+      menu.append(Gtk::SeparatorMenuItem.new) if items.length != 0
+      menu2 = Gtk::ContextMenu.new(*items).build!(i_postbox, event, menu)
+      menu2.show_all 
+
+      true }
+
     postbox.post.ssc('key_press_event'){ |widget, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_postbox) }
     postbox.post.ssc(:destroy){

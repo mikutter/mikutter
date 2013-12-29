@@ -110,7 +110,7 @@ Plugin.create :command do
   command(:post_it,
           name: _('投稿する'),
           condition: Plugin::Command[:Editable],
-          visible: false,
+          visible: true,
           icon: Skin.get("post.png"),
           role: :postbox) do |opt|
     opt.widget.post_it! end
