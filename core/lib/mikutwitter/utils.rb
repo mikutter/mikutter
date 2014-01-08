@@ -12,7 +12,7 @@ module MikuTwitter::Utils
 
   def initialize(*a, &b)
     @twitter_host = 'api.twitter.com'
-    @base_path = "http://#{@twitter_host}/1.1".freeze
+    @base_path = "https://#{@twitter_host}/1.1".freeze
     super(*a, &b)
   end
 
