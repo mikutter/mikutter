@@ -25,11 +25,13 @@ module Gtk
                Integer, Integer)
 
     signal_new("motion_notify_event", GLib::Signal::RUN_FIRST, nil, nil,
-               Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
+               Gtk::BINDING_VERSION >= [2,0,3] ? Gdk::EventMotion : Gdk::EventButton,
+               Gtk::TreePath, Gtk::TreeViewColumn,
                Integer, Integer)
 
     signal_new("leave_notify_event", GLib::Signal::RUN_FIRST, nil, nil,
-               Gdk::EventButton, Gtk::TreePath, Gtk::TreeViewColumn,
+               Gtk::BINDING_VERSION >= [2,0,3] ? Gdk::EventCrossing : Gdk::EventButton,
+               Gtk::TreePath, Gtk::TreeViewColumn,
                Integer, Integer)
 
     signal_new("click", GLib::Signal::RUN_FIRST, nil, nil,
@@ -74,7 +76,7 @@ module Gtk
             motioned_id = @tree.get_record(motioned[0]).id rescue nil
             last_motioned_id = @tree.get_record(last_motioned[0]).id rescue nil
             if(last_motioned_id and motioned_id != last_motioned_id)
-              signal_emit("leave_notify_event", e, *last_motioned) end end
+              emit_leave_notify_from_event_motion(e, *last_motioned) end end
           last_motioned = motioned end }
 
       tree.ssc("button_press_event") { |w, e|
@@ -189,6 +191,21 @@ module Gtk
         record.miracle_painter.point_leaved(cell_x, cell_y) if record
         false }
     end
+
+    # RubyGtk2 2.0.3以降は、motion_notify_eventやleave_notify_eventに
+    # 発行されるイベントが変更されている
+    if Gtk::BINDING_VERSION >= [2,0,3]
+      def emit_leave_notify_from_event_motion(e, *args)
+        signal_emit("leave_notify_event",
+                    Gdk::EventCrossing.new(Gdk::Event::LEAVE_NOTIFY).tap{ |le|
+                      le.time = e.time
+                      le.x, le.y = e.x, e.y
+                      le.x_root, le.y_root = e.x_root, e.y_root
+                      le.focus = true
+                    }, *args) end
+    else
+      def emit_leave_notify_from_event_motion(e, *args)
+        signal_emit("leave_notify_event", e, *args) end end
 
   end
 end
