@@ -10,3 +10,8 @@ Delayer.default = Delayer.generate_class(priority: [:ui_response,
                                          default: :routine_passive,
                                          expire: 0.02)
 
+
+Delayer.register_remain_hook do
+  Thread.main.wakeup
+end
+
