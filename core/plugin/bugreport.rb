@@ -71,18 +71,18 @@ Module.new do
         exception = crashed_exception
         m = exception.backtrace.first.match(/(.+?):(\d+)/)
         crashed_file, crashed_line = m[1], m[2]
-        Net::HTTP.start('mikutter.hachune.net'){ |http|
-          param = {
-            'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
-            'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
-            'line' => crashed_line,
-            'exception_class' => exception.class,
-            'description' => exception.to_s,
-            'ruby_version' => RUBY_VERSION,
-            'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
-            'platform' => RUBY_PLATFORM,
-            'url' => 'exception',
-            'version' => Environment::VERSION }
+        param = {
+          'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
+          'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
+          'line' => crashed_line,
+          'exception_class' => exception.class,
+          'description' => exception.to_s,
+          'ruby_version' => RUBY_VERSION,
+          'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
+          'platform' => RUBY_PLATFORM,
+          'url' => 'exception',
+          'version' => Environment::VERSION }
+        Net::HTTP.start('mikutter.hachune.net', 4567){ |http|
           console = mikutter_error
           param['stderr'] = console if console
           eparam = encode_parameters(param)

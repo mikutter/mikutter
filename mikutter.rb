@@ -87,6 +87,6 @@ rescue SignalException => e
   File.delete(errfile) if File.exist?(errfile)
   raise e
 rescue Exception => e
-  object_put_contents(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), e) rescue nil
+  File.open(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), 'w'){ |io| Marshal.dump(e, io) }
   raise e
 end
