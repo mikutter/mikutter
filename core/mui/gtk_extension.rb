@@ -8,21 +8,35 @@ require_if_exist 'Win32API'
 class GLib::Instantiatable
   # signal_connectと同じだが、イベントが呼ばれるたびにselfが削除されたGLib Objectでない場合のみブロックを実行する点が異なる。
   # また、relatedの中に既に削除されたGLib objectがあれば、ブロックを実行せずにシグナルをselfから切り離す。
+  # ==== Args
+  # [signal] イベント名か、イベントとブロックの連想配列
+  #   Symbol|String :: イベントの名前
+  #   Hash :: キーにイベント名、値に呼び出すブロックを持つHash
+  # [*related] GLib::Object ブロック実行時、これらのうちどれか一つでも削除されていたらブロックを実行しない
+  # [&proc] signalがイベントの名前の場合、イベントが発生したらこのブロックが呼ばれる
+  # ==== Return
+  # signal_connectと同じ
   def safety_signal_connect(signal, *related, &proc)
-    type_strict proc => :call
-    related.each{ |gobj|
-      raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
-    if related
-      sid = signal_connect(signal){ |*args|
-        if not(destroyed?)
-          if (related.any?(&:destroyed?))
-            signal_handler_disconnect(sid)
-          else
-            proc.call(*args) end end }
+    case signal
+    when Hash
+      signal.each{ |name, callback|
+        safety_signal_connect(name, *related, &callback) }
+    when String, Symbol
+      related.each{ |gobj|
+        raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
+      if related
+        sid = signal_connect(signal){ |*args|
+          if not(destroyed?)
+            if (related.any?(&:destroyed?))
+              signal_handler_disconnect(sid)
+            else
+              proc.call(*args) end end }
+      else
+        signal_connect(signal){ |*args|
+          if not(destroyed?)
+            proc.call(*args) end } end
     else
-      signal_connect(signal){ |*args|
-        if not(destroyed?)
-          proc.call(*args) end } end end
+      raise ArgumentError, "First argument should Hash, String, or Symbol." end end
   alias ssc safety_signal_connect
 
   # safety_signal_connect を、イベントが発生した最初の一度だけ呼ぶ
