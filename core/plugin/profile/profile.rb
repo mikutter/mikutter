@@ -141,8 +141,7 @@ Plugin.create :profile do
         remove_muted_user(user)
       end
     }
-    btn = Mtk::boolean(changer, _('ミュート'))
-  end
+    Mtk::boolean(changer, _('ミュート')) end
 
   def add_muted_user(user)
     type_strict user => User
