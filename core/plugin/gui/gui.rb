@@ -74,9 +74,8 @@ Plugin.create :gui do
   end
 
   on_gui_destroy do |widget|
-    if widget.respond_to?(:parent)
-      notice "destroy " + widget.to_s
-      widget.parent.remove(widget) end end
+    widget.parent.remove(widget) if widget.respond_to?(:parent)
+    widget.children.each(&:destroy) if widget.respond_to?(:children) end
 
   filter_tabs do |set|
     [(set || {}).merge(Plugin::GUI::Tab.cuscaded)]
