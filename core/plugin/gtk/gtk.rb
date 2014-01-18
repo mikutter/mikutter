@@ -175,25 +175,13 @@ Plugin.create :gtk do
   # Gtk::TimeLine
   on_timeline_created do |i_timeline|
     notice "create timeline #{i_timeline.slug.inspect}"
-    timeline = ::Gtk::TimeLine.new(i_timeline)
-    @slug_dictionary.add(i_timeline, timeline)
-    handler = {
-      key_press_event: timeline_key_press_event(i_timeline),
-      focus_in_event: timeline_focus_in_event(i_timeline),
-      destroy: lambda{ |this| timeline_hook_events(timeline, handler) } }
-    timeline_hook_events(timeline, handler)
-    timeline.ssc(:destroy){
-      i_timeline.destroy
-      false }
-    timeline.show_all
+    gtk_timeline = ::Gtk::TimeLine.new(i_timeline)
+    @slug_dictionary.add(i_timeline, gtk_timeline)
+    gtk_timeline.tl.ssc(key_press_event: timeline_key_press_event(i_timeline),
+                        focus_in_event:  timeline_focus_in_event(i_timeline),
+                        destroy:         timeline_destroy_event(i_timeline))
+    gtk_timeline.show_all
   end
-
-  # Gtk::TimeLine::InnerTL にたいして、イベントのリスナを登録する。
-  # ==== Args
-  # [gtk_timeline] 対象となる Gtk::TimeLine のインスタンス
-  def timeline_hook_events(gtk_timeline, handler)
-    handler.each{ |event_name, callback|
-      gtk_timeline.tl.ssc(event_name, gtk_timeline, &callback) } end
 
   # Timelineウィジェットのfocus_in_eventのコールバックを返す
   # ==== Args
@@ -216,6 +204,16 @@ Plugin.create :gtk do
   def timeline_key_press_event(i_timeline)
     lambda { |widget, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) } end
+
+  # Timelineウィジェットのdestroyのコールバックを返す
+  # ==== Args
+  # [i_timeline] タイムラインのインターフェイス
+  # ==== Return
+  # Proc
+  def timeline_destroy_event(i_timeline)
+    lambda { |this|
+      i_timeline.destroy
+      false } end
 
   on_gui_pane_join_window do |i_pane, i_window|
     puts "gui_pane_join_window #{i_pane.slug.inspect}, #{i_window.slug.inspect}"
