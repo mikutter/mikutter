@@ -199,7 +199,7 @@ Plugin.create :gtk do
   # ==== Args
   # [i_timeline] タイムラインのインターフェイス
   # ==== Return
-  # コールバック関数
+  # Proc
   def timeline_focus_in_event(i_timeline)
     lambda { |this, event|
       if this.focus?
@@ -212,7 +212,7 @@ Plugin.create :gtk do
   # ==== Args
   # [i_timeline] タイムラインのインターフェイス
   # ==== Return
-  # コールバック関数
+  # Proc
   def timeline_key_press_event(i_timeline)
     lambda { |widget, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_timeline) } end
