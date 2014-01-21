@@ -111,7 +111,6 @@ Plugin.create :profile do
     [users.merge(timeline_storage.values)] end
 
   on_gui_destroy do |widget|
-    notice "on_gui_destroy: #{widget}"
     if widget.is_a? Plugin::GUI::Timeline
       timeline_storage.delete(widget.slug)
       UserConfig[:profile_opened_tabs] = timeline_storage.values.map(&:id) end end
