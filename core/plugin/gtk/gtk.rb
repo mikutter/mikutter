@@ -85,7 +85,7 @@ Plugin.create :gtk do
       pane.set_tab_pos(TABPOS[val]) unless pane.destroyed? }
     pane.ssc(:page_reordered){ |this, tabcontainer, index|
       notice "on_pane_created: page_reordered: #{i_pane.inspect}"
-      window_order_save_request(i_pane.parent) if i_pane.parent
+        Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
       notice "tabcontainer #{tabcontainer} => #{i_tab.inspect}"
       if i_tab
@@ -100,7 +100,7 @@ Plugin.create :gtk do
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => ::Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
-      window_order_save_request(i_pane.parent) if i_pane.parent
+      Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
       next false if i_tab.parent == i_pane
       notice "on_pane_created: reparent"
@@ -155,7 +155,7 @@ Plugin.create :gtk do
         Plugin::GUI.keypress(::Gtk::buttonname([event.event_type, event.button, event.state]), i_tab)
       end
       false }
-    tab.ssc(:destroy){
+    tab.ssc(:destroy) {
       i_tab.destroy
       false }
     tab.show_all end
@@ -261,7 +261,7 @@ Plugin.create :gtk do
         w_child.parent.remove(w_child)
         widget_join_tab(i_tab, w_child) }
       tab.show_all end
-    window_order_save_request(i_pane.parent) if i_pane.parent
+    Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
   end
 
   on_gui_timeline_join_tab do |i_timeline, i_tab|
@@ -492,7 +492,7 @@ Plugin.create :gtk do
                                       not child.is_a? Plugin::GUI::TabToolbar })
     notice "widget_join_tab: #{widget} join #{i_tab}"
     if has_child
-      window_order_save_request(i_pane.parent) end
+      Plugin.call(:rewind_window_order, i_pane.parent) end
     container_index = pane.get_tab_pos_by_tab(tab)
     if container_index
       container = pane.get_nth_page(container_index)
@@ -547,28 +547,21 @@ Plugin.create :gtk do
     pane.show_all end
 
   # ウィンドウ内のペイン、タブの現在の順序を設定に保存する
-  # ==== Args
-  # [i_window] ウィンドウ
-  def window_order_save_request(i_window)
-    notice "window_order_save_request: #{i_window.inspect}"
-    type_strict i_window => Plugin::GUI::Window
-    Delayer.new do
-      panes_order = {}
-      i_window.children.each{ |i_pane|
-        if i_pane.is_a? Plugin::GUI::Pane
-          tab_order = []
-          pane = widgetof(i_pane)
-          if pane
-            pane.n_pages.times{ |page_num|
-              i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
-              if i_widget and not i_widget.temporary_tab? and i_widget.children.any?{ |child| not child.is_a? Plugin::GUI::TabToolbar }
-                tab_order << i_widget.slug end } end
-          panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
-      ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
-      ui_tab_order[i_window.slug] = panes_order
-      UserConfig[:ui_tab_order] = ui_tab_order
-    end
-  end
+  on_rewind_window_order do |i_window|
+    panes_order = {}
+    i_window.children.each{ |i_pane|
+      if i_pane.is_a? Plugin::GUI::Pane
+        tab_order = []
+        pane = widgetof(i_pane)
+        if pane
+          pane.n_pages.times{ |page_num|
+            i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
+            if i_widget and not i_widget.temporary_tab? and i_widget.children.any?{ |child| not child.is_a? Plugin::GUI::TabToolbar }
+              tab_order << i_widget.slug end } end
+        panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
+    ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
+    ui_tab_order[i_window.slug] = panes_order
+    UserConfig[:ui_tab_order] = ui_tab_order end
 
   # ペインを順序リストから削除する
   # ==== Args
