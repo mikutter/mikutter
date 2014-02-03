@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require File.expand_path File.join(File.dirname(__FILE__), 'edit_window')
+
 Plugin.create :extract do
 
   # 抽出タブオブジェクト。各キーは抽出タブIDで、値は以下のようなオブジェクト
@@ -27,6 +29,17 @@ Plugin.create :extract do
     pack_start(Gtk::HBox.new.add(crud).closeup(crud.buttons(Gtk::VBox)))
   end
 
+  command(:extract_edit,
+          name: _('抽出条件を編集'),
+          condition: lambda{ |opt|
+            opt.widget.slug.to_s =~ /^extract_(?:.+)$/
+          },
+          visible: true,
+          role: :tab) do |opt|
+	extract_id = opt.widget.slug.to_s.match(/^extract_(.+)$/)[1].to_i
+    Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
+  end
+
   on_extract_tab_create do |record|
     slug = "extract_#{record[:id]}".to_sym
     record = record.melt
@@ -47,6 +60,10 @@ Plugin.create :extract do
       extract_tabs.delete(id)
       modify_extract_tabs end end
 
+  on_extract_open_edit_dialog do |extract_id|
+    ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+  end
+
   on_appear do |messages|
     append_message("appear", messages) end
 
@@ -62,6 +79,16 @@ Plugin.create :extract do
   filter_extract_tabs_get do |tabs|
     [tabs + extract_tabs.values]
   end
+
+  filter_extract_datasources do |datasources|
+    datasources = {all: _("受信したすべての投稿")}.merge datasources
+    Service.map{ |service|
+      user = service.user_obj
+      datasources.merge!({ "home_timeline-#{user.id}".to_sym => "@#{user.idname}/" + _("Home Timeline"),
+                           "mentions-#{user.id}".to_sym => "@#{user.idname}/" + _("Mentions")
+                         })
+    }
+    [datasources] end
 
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
