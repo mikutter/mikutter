@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require File.expand_path File.join(File.dirname(__FILE__), 'edit_window')
+require File.expand_path File.join(File.dirname(__FILE__), 'extract_tab_list')
 
 Plugin.create :extract do
 
@@ -13,20 +14,29 @@ Plugin.create :extract do
   def extract_tabs
     @extract_tabs ||= {} end
 
-  crud = nil
-
   settings _("抽出タブ") do
-    crud = ExtractTab.new(Plugin[:extract])
-    crud.set_size_request(0, 200)
-    (UserConfig[:extract_tabs] or []).each{ |record|
-      iter = crud.model.append
-      iter[ExtractTab::ITER_NAME] = record[:name]
-      iter[ExtractTab::ITER_SEXP] = record[:sexp]
-      iter[ExtractTab::ITER_SOURCE] = record[:sources]
-      iter[ExtractTab::ITER_ID] = record[:id]
-    }
-
-    pack_start(Gtk::HBox.new.add(crud).closeup(crud.buttons(Gtk::VBox)))
+    tablist = Plugin::Extract::ExtractTabList.new(Plugin[:extract])
+    pack_start(Gtk::HBox.new.
+               add(tablist).
+               closeup(Gtk::VBox.new(false, 4).
+                       closeup(Gtk::Button.new(Gtk::Stock::ADD).tap{ |button|
+                                 button.ssc(:clicked) {
+                                   # TODO
+                                   Plugin.call :extract_tab_open_create_dialog
+                                   true } }).
+                       closeup(Gtk::Button.new(Gtk::Stock::EDIT).tap{ |button|
+                                 button.ssc(:clicked) {
+                                   id = tablist.selected_id
+                                   if id
+                                     Plugin.call(:extract_open_edit_dialog, id) end
+                                   true } }).
+                       closeup(Gtk::Button.new(Gtk::Stock::DELETE).tap{ |button|
+                                 button.ssc(:clicked) {
+                                   # TODO: confirm
+                                   id = tablist.selected_id
+                                   if id
+                                     Plugin.call(:extract_tab_delete, id) end
+                                   true } })))
   end
 
   command(:extract_edit,
@@ -61,7 +71,8 @@ Plugin.create :extract do
       modify_extract_tabs end end
 
   on_extract_open_edit_dialog do |extract_id|
-    ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    edit_window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    edit_window.add_observer(self)
   end
 
   on_appear do |messages|
@@ -81,7 +92,11 @@ Plugin.create :extract do
   end
 
   filter_extract_datasources do |datasources|
-    datasources = {all: _("受信したすべての投稿")}.merge datasources
+    datasources = {
+      appear: _("受信したすべての投稿"),
+      update: _("ホームタイムライン(全てのアカウント)"),
+      mention: _("自分宛ての投稿(全てのアカウント)")
+    }.merge datasources
     Service.map{ |service|
       user = service.user_obj
       datasources.merge!({ "home_timeline-#{user.id}".to_sym => "@#{user.idname}/" + _("Home Timeline"),
@@ -90,8 +105,26 @@ Plugin.create :extract do
     }
     [datasources] end
 
+  # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
+  end
+
+  # 
+  # ==== Args
+  # [extract] 
+  # ==== Return
+  # 
+  def update(extract)
+    if extract_tabs.has_key? extract.id
+      # edit
+      extract_tabs[extract.id] = extract.to_h
+      modify_extract_tabs
+      notice "tab #{extract.id} saved"
+    else
+      # new
+      notice "tab #{extract.id} does not exist. dont saved."
+    end
   end
 
   def compile(tab_id, code)
@@ -119,65 +152,6 @@ Plugin.create :extract do
         timeline(record[:slug]) << converted_messages.select(&compile(record[:id], record[:sexp]))
       rescue Exception => e
         error "filter '#{record[:name]}' crash: #{e.to_s}" end } end
-
-  class ExtractTab < ::Gtk::CRUD
-    ITER_NAME = 0
-    ITER_SOURCE = 1
-    ITER_SEXP = 2
-    ITER_ID   = 3
-
-    def initialize(plugin)
-      type_strict plugin => Plugin
-      @plugin = plugin
-      super()
-    end
-
-    def column_schemer
-      [{ :kind => :text,
-         :widget => :input,
-         :type => String,
-         :label => '名前' },
-       { :type => Object,
-         :widget => :choosemany,
-         :args => [[['appear', @plugin._('受信したすべての投稿')],
-                    ['update', @plugin._('フレンドタイムライン')],
-                    ['mention', @plugin._('自分宛のリプライ')],
-                    ['posted', @plugin._('自分が投稿したメッセージ')]]]},
-       { :type => Object,
-         :widget => :message_picker },
-       { :type => Integer },
-      ].freeze
-    end
-
-    # レコードの配列を返す
-    # ==== Return
-    # レコードの配列
-    def extract_tabs
-      UserConfig[:extract_tabs] || {} end
-
-    def on_created(iter)
-      Plugin.call(:extract_tab_create,
-                  name: iter[ITER_NAME],
-                  sexp: iter[ITER_SEXP],
-                  sources: iter[ITER_SOURCE],
-                  id: iter[ITER_ID] = gen_uniq_id) end
-
-    def on_updated(iter)
-      Plugin.call(:extract_tab_update,
-                  name: iter[ITER_NAME],
-                  sexp: iter[ITER_SEXP],
-                  sources: iter[ITER_SOURCE],
-                  id: iter[ITER_ID]) end
-
-    def on_deleted(iter)
-      Plugin.call(:extract_tab_delete, iter[ITER_ID]) end
-
-    def gen_uniq_id(uniq_id = Time.now.to_i)
-      if extract_tabs.any?{ |x| x[:id] == uniq_id }
-        gen_uniq_id(uniq_id + 1)
-      else
-        uniq_id end end
-  end
 
   (UserConfig[:extract_tabs] or []).each{ |record|
     extract_tabs[record[:id]] = record.freeze

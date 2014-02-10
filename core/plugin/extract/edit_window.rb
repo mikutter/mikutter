@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+require 'observer'
 
 module Plugin::Extract
 end
 
 class Plugin::Extract::EditWindow < Gtk::Window
+  include Observable
+
   def initialize(extract, plugin)
     @plugin = plugin
-    @extract = extract.dup
-    super(_('%{name} - 抽出タブ - %{application_name}') % {name: extract[:name], application_name: Environment::NAME})
+    @extract = extract.dup.freeze
+    super(_('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME})
     add(Gtk::VBox.new().
         closeup(name_widget).
         add(Gtk::HBox.new().
@@ -18,6 +21,31 @@ class Plugin::Extract::EditWindow < Gtk::Window
                     closeup(ok_button).right)))
     show_all
   end
+
+  def name
+    @extract[:name] || "".freeze end
+
+  def sexp
+    if defined? @condition_form
+      @condition_form.to_a
+    else
+      @extract[:sexp] end end
+
+  def id
+    @extract[:id] end
+
+  def sources
+    @extract[:sources] end
+
+  # extract の内容を返す
+  # ==== Return
+  # @extract の内容(Hash)
+  def to_h
+    @to_h ||= {
+      name: name,
+      sexp: sexp,
+      id: id,
+      sources: sources }.freeze end
 
   # 名前入力ウィジェットを返す
   # ==== Return
@@ -32,17 +60,21 @@ class Plugin::Extract::EditWindow < Gtk::Window
   # Gtk::Entry
   def name_entry
     @name_entry ||= Gtk::Entry.new().tap { |name_entry|
-      name_entry.set_text @extract[:name]
+      name_entry.set_text name
       name_entry.ssc(:changed){ |widget|
-        @extract[:name] = widget.text
-        self.set_title _('%{name} - 抽出タブ - %{application_name}') % {name: @extract[:name], application_name: Environment::NAME}
+        modify_value name: widget.text.dup.freeze
+        self.set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
         false } } end
 
   def source_widget
+    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first
+    datasources_box = Gtk::SelectBox.new(datasources, sources.map(&:to_sym)){
+      modify_value sources: datasources_box.selected
+    }
+
     @source_widget ||= Gtk::VBox.new().
       closeup(Gtk::Label.new(_('データソース'))).
-      add(Gtk::SelectBox.new((Plugin.filtering(:extract_datasources, {}) || [{}]).first, []))
-  end
+      add(datasources_box) end
 
   def condition_widget
     @condition_widget ||= Gtk::VBox.new().
@@ -50,8 +82,8 @@ class Plugin::Extract::EditWindow < Gtk::Window
       add(condition_form) end
 
   def condition_form
-    @condition_form = Gtk::MessagePicker.new(@extract[:sexp]) {
-      # changed
+    @condition_form = Gtk::MessagePicker.new(sexp.freeze){
+      modify_value sexp: @condition_form.to_a
     } end
 
   def ok_button
@@ -60,6 +92,18 @@ class Plugin::Extract::EditWindow < Gtk::Window
         self.destroy } } end
 
   private
+
+  def modify_value(new_values)
+    @extract = @extract.merge(new_values).freeze
+    @to_h = nil
+    notify_changed
+    self end
+
+  # オブザーバに変更を通知
+  def notify_changed
+    changed
+    notify_observers(self)
+    self end
 
   def _(message)
     @plugin._(message) end
