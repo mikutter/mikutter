@@ -21,7 +21,6 @@ Plugin.create :extract do
                closeup(Gtk::VBox.new(false, 4).
                        closeup(Gtk::Button.new(Gtk::Stock::ADD).tap{ |button|
                                  button.ssc(:clicked) {
-                                   # TODO
                                    Plugin.call :extract_tab_open_create_dialog
                                    true } }).
                        closeup(Gtk::Button.new(Gtk::Stock::EDIT).tap{ |button|
@@ -51,6 +50,7 @@ Plugin.create :extract do
   end
 
   on_extract_tab_create do |record|
+    record[:id] = Time.now.to_i unless record[:id]
     slug = "extract_#{record[:id]}".to_sym
     record = record.melt
     record[:slug] = slug
@@ -69,6 +69,21 @@ Plugin.create :extract do
       tab(deleted_tab[:slug]).destroy
       extract_tabs.delete(id)
       modify_extract_tabs end end
+
+  on_extract_tab_open_create_dialog do
+    dialog = Gtk::Dialog.new(_("抽出タブを作成 - %{mikutter}") % {mikutter: Environment::NAME}, nil, nil,
+                             [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_ACCEPT],
+                             [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_REJECT])
+    prompt = Gtk::Entry.new
+    dialog.vbox.
+      add(Gtk::HBox.new(false, 8).
+          closeup(Gtk::Label.new(_("名前"))).
+          add(prompt).show_all)
+    dialog.run{ |response|
+      if Gtk::Dialog::RESPONSE_ACCEPT == response
+        Plugin.call :extract_tab_create, name: prompt.text end
+      dialog.destroy
+      prompt = dialog = nil } end
 
   on_extract_open_edit_dialog do |extract_id|
     ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
