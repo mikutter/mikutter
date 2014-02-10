@@ -36,6 +36,12 @@ Plugin.create :extract do
                                    if id
                                      Plugin.call(:extract_tab_delete, id) end
                                    true } })))
+    Plugin.create :extract do
+      add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
+      tablist.ssc(:destroy) do
+        detach add_tab_observer
+      end
+    end
   end
 
   command(:extract_edit,

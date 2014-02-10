@@ -18,10 +18,7 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
 
     append_column Gtk::TreeViewColumn.new(plugin._("名前"), Gtk::CellRendererText.new, text: ITER_NAME)
 
-    extract_tabs.each{ |record|
-      iter = model.append
-      iter[Plugin::Extract::ExtractTabList::ITER_NAME] = record[:name]
-      iter[Plugin::Extract::ExtractTabList::ITER_ID] = record[:id] } end
+    extract_tabs.each(&method(:add_record)) end
 
   # 現在選択されている抽出タブのIDを返す
   # ==== Return
@@ -29,6 +26,16 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   def selected_id
     selected_iter = selection.selected
     selected_iter[ITER_ID] if selected_iter end
+
+  # レコードを追加する
+  # ==== Args
+  # [record] 追加するレコード(Hash)
+  # ==== Return
+  # self
+  def add_record(record)
+    iter = model.append
+    iter[Plugin::Extract::ExtractTabList::ITER_NAME] = record[:name]
+    iter[Plugin::Extract::ExtractTabList::ITER_ID] = record[:id] end
 
   private
 
