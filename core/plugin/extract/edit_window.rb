@@ -34,7 +34,10 @@ class Plugin::Extract::EditWindow < Gtk::Window
     @extract[:id] end
 
   def sources
-    @extract[:sources] end
+    @extract[:sources] || [] end
+
+  def slug
+    @extract[:slug] end
 
   # extract の内容を返す
   # ==== Return
@@ -44,6 +47,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
       name: name,
       sexp: sexp,
       id: id,
+      slug: slug,
       sources: sources }.freeze end
 
   # 名前入力ウィジェットを返す
