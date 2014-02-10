@@ -5,7 +5,6 @@ module Plugin::Extract
 end
 
 class Plugin::Extract::EditWindow < Gtk::Window
-  include Observable
 
   def initialize(extract, plugin)
     @plugin = plugin
@@ -96,13 +95,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
   def modify_value(new_values)
     @extract = @extract.merge(new_values).freeze
     @to_h = nil
-    notify_changed
-    self end
-
-  # オブザーバに変更を通知
-  def notify_changed
-    changed
-    notify_observers(self)
+    Plugin.call :extract_tab_update, self.to_h
     self end
 
   def _(message)

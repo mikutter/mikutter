@@ -60,7 +60,7 @@ Plugin.create :extract do
     modify_extract_tabs end
 
   on_extract_tab_update do |record|
-    extract_tabs[record[:id]] = extract_tabs[record[:id]].merge(record).freeze
+    extract_tabs[record[:id]] = record.freeze
     modify_extract_tabs end
 
   on_extract_tab_delete do |id|
@@ -71,8 +71,7 @@ Plugin.create :extract do
       modify_extract_tabs end end
 
   on_extract_open_edit_dialog do |extract_id|
-    edit_window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
-    edit_window.add_observer(self)
+    ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
   end
 
   on_appear do |messages|
@@ -108,23 +107,6 @@ Plugin.create :extract do
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
-  end
-
-  # 
-  # ==== Args
-  # [extract] 
-  # ==== Return
-  # 
-  def update(extract)
-    if extract_tabs.has_key? extract.id
-      # edit
-      extract_tabs[extract.id] = extract.to_h
-      modify_extract_tabs
-      notice "tab #{extract.id} saved"
-    else
-      # new
-      notice "tab #{extract.id} does not exist. dont saved."
-    end
   end
 
   def compile(tab_id, code)
