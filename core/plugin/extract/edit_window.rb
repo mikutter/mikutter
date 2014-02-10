@@ -18,8 +18,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
         closeup(Gtk::EventBox.new().
                 add(Gtk::HBox.new().
                     closeup(ok_button).right)))
-    show_all
-  end
+    ssc(:destroy) do
+      Plugin.call :extract_tab_update, self.to_h end
+    show_all end
 
   def name
     @extract[:name] || "".freeze end
@@ -43,8 +44,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
   # ==== Return
   # @extract の内容(Hash)
   def to_h
-    @to_h ||= {
-      name: name,
+    { name: name,
       sexp: sexp,
       id: id,
       slug: slug,
@@ -98,7 +98,6 @@ class Plugin::Extract::EditWindow < Gtk::Window
 
   def modify_value(new_values)
     @extract = @extract.merge(new_values).freeze
-    @to_h = nil
     Plugin.call :extract_tab_update, self.to_h
     self end
 

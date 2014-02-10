@@ -109,16 +109,23 @@ Plugin.create :extract do
   end
 
   on_appear do |messages|
-    append_message("appear", messages) end
+    Plugin.call :extract_receive_message, :appear, messages end
 
-  on_update do |s, messages|
-    append_message("update", messages) end
+  on_update do |service, messages|
+    Plugin.call :extract_receive_message, :update, messages
+    service_datasource = "home_timeline-#{service.user_obj.id}".to_sym
+    if active_datasources.include? service_datasource
+      Plugin.call :extract_receive_message, :update, messages end end
 
-  on_mention do |s, messages|
-    append_message("mention", messages) end
+  on_mention do |service, messages|
+    Plugin.call :extract_receive_message, :mention, messages
+    service_datasource = "mentions-#{service.user_obj.id}".to_sym
+    if active_datasources.include? service_datasource
+      Plugin.call :extract_receive_message, :mention, messages end end
 
-  on_posted do |s, messages|
-    append_message("posted", messages) end
+  on_extract_receive_message do |source, messages|
+    append_message source, messages
+  end
 
   filter_extract_tabs_get do |tabs|
     [tabs + extract_tabs.values]
@@ -141,7 +148,12 @@ Plugin.create :extract do
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
-  end
+    @active_datasources = nil
+    self end
+
+  # 使用されているデータソースのSetを返す
+  def active_datasources
+    @active_datasources ||= extract_tabs.values.inject(Set.new){|set,tab| set.merge(tab[:sources]) }.freeze end
 
   def compile(tab_id, code)
     atomic do
@@ -159,7 +171,7 @@ Plugin.create :extract do
       @compiled = {} end end
 
   def append_message(source, messages)
-    type_strict source => String, messages => Enumerable
+    type_strict source => Symbol, messages => Enumerable
     tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
     return if tabs.empty?
     converted_messages = Messages.new(messages.map{ |message| message.retweet_source ? message.retweet_source : message })
