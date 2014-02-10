@@ -31,6 +31,9 @@ module CHIConfig
   # ログディレクトリ
   LOGDIR = File.join(CONFROOT, 'log')
 
+  # プラグインの設定等
+  SETTINGDIR = File.join(CONFROOT, 'settings')
+
   # キャッシュディレクトリ
   CACHE = File.join(CONFROOT, 'cache')
 

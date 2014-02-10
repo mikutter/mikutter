@@ -33,6 +33,8 @@ module Environment
   # ログディレクトリ
   LOGDIR = CHIConfig::LOGDIR
 
+  SETTINGDIR = CHIConfig::SETTINGDIR
+
   # キャッシュディレクトリ
   CACHE = CHIConfig::CACHE
 
