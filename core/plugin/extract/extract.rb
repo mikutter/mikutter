@@ -31,17 +31,16 @@ Plugin.create :extract do
                                    true } }).
                        closeup(Gtk::Button.new(Gtk::Stock::DELETE).tap{ |button|
                                  button.ssc(:clicked) {
-                                   # TODO: confirm
                                    id = tablist.selected_id
                                    if id
-                                     Plugin.call(:extract_tab_delete, id) end
+                                     Plugin.call(:extract_tab_delete_with_confirm, id) end
                                    true } })))
     Plugin.create :extract do
       add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
+      delete_tab_observer = on_extract_tab_delete(&tablist.method(:remove_record))
       tablist.ssc(:destroy) do
         detach add_tab_observer
-      end
-    end
+        detach delete_tab_observer end end
   end
 
   command(:extract_edit,
@@ -75,6 +74,20 @@ Plugin.create :extract do
       tab(deleted_tab[:slug]).destroy
       extract_tabs.delete(id)
       modify_extract_tabs end end
+
+  on_extract_tab_delete_with_confirm do |id|
+    extract = extract_tabs[id]
+    if extract
+      message = _("本当に抽出タブ「%{name}」を削除しますか？") % {name: extract[:name]}
+      dialog = Gtk::MessageDialog.new(nil,
+                                      Gtk::Dialog::DESTROY_WITH_PARENT,
+                                      Gtk::MessageDialog::QUESTION,
+                                      Gtk::MessageDialog::BUTTONS_YES_NO,
+                                      message)
+      dialog.run{ |response|
+        if Gtk::Dialog::RESPONSE_YES == response
+          Plugin.call :extract_tab_delete, id end
+        dialog.close } end end
 
   on_extract_tab_open_create_dialog do
     dialog = Gtk::Dialog.new(_("抽出タブを作成 - %{mikutter}") % {mikutter: Environment::NAME}, nil, nil,

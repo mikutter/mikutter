@@ -35,7 +35,18 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   def add_record(record)
     iter = model.append
     iter[Plugin::Extract::ExtractTabList::ITER_NAME] = record[:name]
-    iter[Plugin::Extract::ExtractTabList::ITER_ID] = record[:id] end
+    iter[Plugin::Extract::ExtractTabList::ITER_ID] = record[:id]
+    self end
+
+  # 抽出タブをリストから削除する
+  # ==== Args
+  # [record_id] 削除する抽出タブのID
+  # ==== Return
+  # self
+  def remove_record(record_id)
+    remove_iter = model.to_enum(:each).map{|_,_,iter|iter}.find{|iter| record_id == iter[ITER_ID] }
+    model.remove(remove_iter) if remove_iter
+    self end
 
   private
 
