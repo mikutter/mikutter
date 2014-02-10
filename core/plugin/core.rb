@@ -2,12 +2,29 @@
 
 Plugin.create :core do
 
-  # appearイベントには二回以上同じMessageを渡さない
-  @appear_fired = Set.new
-  filter_appear do |messages|
-    [ messages.select{ |m|
-        if not @appear_fired.include?(m[:id])
-          @appear_fired << m[:id] end } ] end
+  # Serviceと、Messageの配列を受け取り、一度以上受け取ったことのあるものを除外して返すフィルタを作成して返す。
+  # ただし、除外したかどうかはService毎に記録する。
+  # ==== Return
+  # フィルタのプロシージャ(Proc)
+  def gen_message_filter_with_service
+    service_filters = Hash.new{|h,k|h[k] = gen_message_filter}
+    lambda{ |service, messages|
+      [service] + service_filters[service.user_obj.id].(messages) } end
+
+  # Messageの配列を受け取り、一度以上受け取ったことのあるものを除外して返すフィルタを作成して返す
+  # ==== Return
+  # フィルタのプロシージャ(Proc)
+  def gen_message_filter
+    appeared = Set.new
+    lambda{ |messages|
+      [messages.select{ |message|
+         appeared.add(message.id) unless appeared.include?(message.id) }] } end
+
+  filter_update(&gen_message_filter_with_service)
+
+  filter_mention(&gen_message_filter_with_service)
+
+  filter_appear(&gen_message_filter)
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
   on_destroyed do |messages|
@@ -24,23 +41,6 @@ Plugin.create :core do
 end
 
 Module.new do
-  def self.gen_never_message_filter
-    appeared = Set.new
-    lambda{ |service, messages|
-      [service,
-       messages.select{ |m|
-         appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] } end
-
-  def self.never_message_filter(event_name, &filter_func)
-    Plugin.create(:core).add_event_filter(event_name, &(filter_func || gen_never_message_filter))
-  end
-
-  never_message_filter :update
-  never_message_filter :mention
-  appeared = Set.new
-  never_message_filter(:appear){ |messages|
-    [messages.select{ |m|
-       appeared.add(m[:id].to_i) if m and not(appeared.include?(m[:id].to_i)) }] }
 
   Plugin.create(:core) do
 
