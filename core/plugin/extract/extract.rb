@@ -115,13 +115,13 @@ Plugin.create :extract do
     Plugin.call :extract_receive_message, :update, messages
     service_datasource = "home_timeline-#{service.user_obj.id}".to_sym
     if active_datasources.include? service_datasource
-      Plugin.call :extract_receive_message, :update, messages end end
+      Plugin.call :extract_receive_message, service_datasource, messages end end
 
   on_mention do |service, messages|
     Plugin.call :extract_receive_message, :mention, messages
     service_datasource = "mentions-#{service.user_obj.id}".to_sym
     if active_datasources.include? service_datasource
-      Plugin.call :extract_receive_message, :mention, messages end end
+      Plugin.call :extract_receive_message, service_datasource, messages end end
 
   on_extract_receive_message do |source, messages|
     append_message source, messages
