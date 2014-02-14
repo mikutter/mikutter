@@ -9,8 +9,8 @@ miquire :miku, 'miku'
 miquire :lib, 'timelimitedqueue'
 
 require 'fileutils'
-require 'thread'
 require 'set'
+require 'yaml'
 
 =begin rdoc
   オブジェクトにデータ保存機能をつけるmix-in
@@ -18,139 +18,88 @@ require 'set'
   mikutter, CHIのプラグインでは通常はUserConfigをつかうこと。
 =end
 module ConfigLoader
-  SAVE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))
-  BACKUP_FILE = "#{SAVE_FILE}.bak"
+  STORAGE_FILE = File.expand_path(File.join(Environment::SETTINGDIR, "setting.yml"))
+  TMP_FILE = File.expand_path(File.join(Environment::SETTINGDIR, "setting.writing.yml"))
+  PSTORE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))
   AVAILABLE_TYPES = [Hash, Array, Set, Numeric, String, Symbol, Time, NilClass, TrueClass, FalseClass].freeze
 
-  @@configloader_pstore = nil
-  @@configloader_cache = Hash.new
-  @@configloader_queue = TimeLimitedQueue.new{ |data|
-    detected = Array.new
-    ConfigLoader.transaction{
-      data.each{ |pair|
-        key, val = *pair
-        detected << key
-        begin
-          ConfigLoader.pstore[key] = val
-        rescue => e
-          error e end } }
-    notice "configloader: wrote #{detected.size} keys (#{detected.join(', ')})"
-  }
+  @@configloader_cache = nil
+  @@configloader_queue ||= TimeLimitedQueue.new(HYDE, 5, Set){ |keys|
+    File.open(TMP_FILE, 'w'.freeze){ |tmpfile|
+      YAML.dump(@@configloader_cache, tmpfile)
+    }
+    FileUtils.mv TMP_FILE, STORAGE_FILE
+    notice "configloader: wrote #{keys.size} keys (#{keys.to_a.join(', ')})" }
+
+  class << self
+
+    # 一度だけ自動的に呼ばれる(このソースファイルの一番下の方)
+    # メモリ上に設定データを読み込む。
+    # YAMLがなければ、旧データ形式(PStore)からデータを読み込む。
+    def boot
+      @@configloader_cache = if FileTest.exist?(STORAGE_FILE)
+                               notice "load setting data from #{STORAGE_FILE}"
+                               YAML.load_file(STORAGE_FILE)
+                             elsif FileTest.exist?(PSTORE_FILE)
+                               notice "load setting data from #{PSTORE_FILE}"
+                               ConfigLoader.migration_from_pstore
+                             else
+                               notice "setting data not found"
+                               Hash.new end end
+
+    # 旧データ形式(PStore)からデータを取得して返す
+    # ==== Return
+    # 設定データ(Hash)
+    def migration_from_pstore
+      require 'pstore'
+      PStore.new(PSTORE_FILE).transaction(true) { |db|
+        config = Hash.new
+        db.roots.each { |key|
+          config[key] = db[key] }
+        config } end
+
+    # _obj_ が保存可能な値なら _obj_ を返す。そうでなければ _ArgumentError_ 例外を投げる。
+    def validate(obj)
+      if AVAILABLE_TYPES.any?{|x| obj.is_a?(x)}
+        if obj.is_a? Hash
+          result = {}
+          obj.each{ |key, value|
+            result[self.validate(key)] = self.validate(value) }
+          result.freeze
+        elsif obj.is_a? Enumerable
+          obj.map(&method(:validate)).freeze
+        elsif not(obj.freezable?) or obj.frozen?
+          obj
+        else
+          obj.dup.freeze end
+      else
+        emes = "ConfigLoader recordable class of #{AVAILABLE_TYPES.join(',')} only. but #{obj.class} given."
+        error(emes)
+        raise ArgumentError.new(emes)
+      end
+    end
+
+  end
 
   # _key_ に対応するオブジェクトを取り出す。
   # _key_ が存在しない場合は nil か _ifnone_ を返す
   def at(key, ifnone=nil)
-    ckey = configloader_key(key)
-    @@configloader_cache[ckey] ||= ConfigLoader.transaction(true){ |pstore|
-      if ConfigLoader.pstore.root?(ckey)
-        to_utf8(ConfigLoader.pstore[ckey]).freeze
-      elsif defined? yield
-        yield(key, ifnone).freeze
-      else
-        ifnone end } end
+    @@configloader_cache[configloader_key(key)] || ifnone end
 
   # _key_ にたいして _val_ を関連付ける。
   def store(key, val)
     ConfigLoader.validate(key)
     val = ConfigLoader.validate(val)
     ckey = configloader_key(key)
-    @@configloader_queue.push([ckey, val])
     @@configloader_cache[ckey] = val
-  rescue => error
-    into_debug_mode(error, binding)
-    raise error
-  end
-
-  # ConfigLoader#store と同じ。ただし、値を変更する前に _key_ に関連付けられていた値を返す。
-  # もともと関連付けられていた値がない場合は _val_ を返す。
-  def store_before_at(key, val)
-    result = self.at(key)
-    self.store(key, val)
-    result or val end
+    @@configloader_queue.push(ckey)
+    val end
 
   private
-
-  # _obj_ が保存可能な値なら _obj_ を返す。そうでなければ _ArgumentError_ 例外を投げる。
-  def self.validate(obj)
-    if AVAILABLE_TYPES.any?{|x| obj.is_a?(x)}
-      if obj.is_a? Hash
-        result = {}
-        obj.each{ |key, value|
-          result[self.validate(key)] = self.validate(value) }
-        result.freeze
-      elsif obj.is_a? Enumerable
-        obj.map(&method(:validate)).freeze
-      elsif not(obj.freezable?) or obj.frozen?
-        obj
-      else
-        obj.dup.freeze end
-    else
-      emes = "ConfigLoader recordable class of #{AVAILABLE_TYPES.join(',')} only. but #{obj.class} given."
-      error(emes)
-      raise ArgumentError.new(emes)
-    end
-  end
-
-  # Ruby1.9の文字列のM17N対策
-  # 1.8では直ちにselfを返す
-  if(''.respond_to? :force_encoding)
-    def to_utf8(a)
-      unless(a.frozen?)
-        if(a.is_a? Array)
-          a.freeze
-          return a.map &method(:to_utf8).freeze
-        elsif(a.is_a? Hash)
-          r = Hash.new
-          a.freeze
-          a.each{ |key, val|
-            r[to_utf8(key)]= to_utf8(val) }
-          return r.freeze
-        elsif(a.respond_to? :force_encoding)
-          return a.dup.force_encoding(Encoding::UTF_8).freeze rescue a end end
-      a end
-  else
-    def to_utf8(a)
-      a end end
 
   def configloader_key(key)
     "#{self.class.to_s}::#{key}".freeze end
   memoize :configloader_key
-
-  def self.transaction(ro = false)
-    self.pstore.transaction(ro){ |pstore|
-      yield(pstore) } end
-
-  def self.pstore
-    if not(@@configloader_pstore)
-      FileUtils.mkdir_p(File.expand_path(File.dirname(SAVE_FILE)))
-      @@configloader_pstore = HatsuneStore.new(File.expand_path(SAVE_FILE))
-    end
-    @@configloader_pstore end
-
-  def self.create(prefix)
-    Class.new{
-      include ConfigLoader
-      define_method(:configloader_key){ |key|
-        "#{prefix}::#{key}" } }.new end
-
-  # データが壊れていないかを調べる
-  def self.boot
-    if FileTest.exist?(SAVE_FILE)
-      c = create("valid")
-      if not(c.at(:validate)) and FileTest.exist?(BACKUP_FILE)
-        FileUtils.copy(BACKUP_FILE, SAVE_FILE)
-        @@configloader_pstore = nil
-        warn "database was broken. restore by backup"
-      else
-        FileUtils.install(SAVE_FILE, BACKUP_FILE)
-      end
-      c.store(:validate, true)
-    end
-    if not(@@configloader_pstore)
-      FileUtils.mkdir_p(File.expand_path(File.dirname(SAVE_FILE)))
-      @@configloader_pstore = HatsuneStore.new(File.expand_path(SAVE_FILE))
-    end
-  end
 
   boot
 
