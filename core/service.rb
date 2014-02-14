@@ -20,87 +20,85 @@ class Service
 
   @@service_lock = Mutex.new
 
-  def self.services_refresh
-    accounts = UserConfig[:accounts] # account_id => {token: ,secret:, ...}
-    if not accounts
-      if UserConfig[:twitter_token] and UserConfig[:twitter_secret] # 前バージョンから引継ぎ
-        accounts = UserConfig[:accounts] = {
-          default: {
-            token: UserConfig[:twitter_token],
-            secret: UserConfig[:twitter_secret],
-            user: UserConfig[:verify_credentials] } }
-      else
-        accounts = {} end end
-    accounts.keys.each do |account|
-      Service[account] end
-    @primary = (UserConfig[:primary_account] and Service[UserConfig[:primary_account]]) or instances.first
-  end
-
-  # 存在するServiceオブジェクトをSetで返す。
-  # つまり、投稿権限のある「自分」のアカウントを全て返す。
   class << self
-    alias services instances  
-  end
-
-  # Service.instances.eachと同じ
-  def self.each(*args, &proc)
-    instances.each(*args, &proc) end
-
-  # 現在アクティブになっているサービスを返す。
-  # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。
-  def self.primary
-    if @primary
-      @primary
-    elsif services.empty?
-      nil
-    else
-      set_primary(services.first)
-      @primary
+    def services_refresh
+      accounts = UserConfig[:accounts] # account_id => {token: ,secret:, ...}
+      if not accounts
+        if UserConfig[:twitter_token] and UserConfig[:twitter_secret] # 前バージョンから引継ぎ
+          accounts = UserConfig[:accounts] = {
+            default: {
+              token: UserConfig[:twitter_token],
+              secret: UserConfig[:twitter_secret],
+              user: UserConfig[:verify_credentials] } }
+        else
+          accounts = {} end end
+      accounts.keys.each do |account|
+        Service[account] end
+      @primary = (UserConfig[:primary_account] and Service[UserConfig[:primary_account]]) or instances.first
     end
-  end
-  class << self; alias primary_service primary end
 
-  def self.set_primary(service)
-    type_strict service => Service
-    before_primary = @primary
-    @@service_lock.synchronize do
-      return self if before_primary != @primary || @primary == service
-      @primary = service
-      Plugin.call(:primary_service_changed, service)
-      notice "current active service: #{service.name}"
-      self end end
+    # 存在するServiceオブジェクトをSetで返す。
+    # つまり、投稿権限のある「自分」のアカウントを全て返す。
+    alias services instances  
 
-  # 新しくサービスを認証する
-  def self.add_service(token, secret)
-    type_strict token => String, secret => String
+    # Service.instances.eachと同じ
+    def each(*args, &proc)
+      instances.each(*args, &proc) end
 
-    twitter = MikuTwitter.new
-    twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
-    twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-    twitter.a_token = token
-    twitter.a_secret = secret
-
-    (twitter/:account/:verify_credentials).user.next { |user|
-      id = "twitter-#{user[:idname]}".to_sym
-      accounts = UserConfig[:accounts]
-      if accounts.is_a? Hash
-        accounts = accounts.melt
+    # 現在アクティブになっているサービスを返す。
+    # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。
+    def primary
+      if @primary
+        @primary
+      elsif services.empty?
+        nil
       else
-        accounts = {} end
-      accounts[id] = {
-        token: token,
-        secret: secret,
-        user: {
-          id: user[:id],
-          idname: user[:idname],
-          name: user[:name],
-          profile_image_url: user[:profile_image_url] } }
-      UserConfig[:accounts] = accounts
-      service = Service[id]
-      Plugin.call(:service_registered, service)
-      service } end
+        set_primary(services.first)
+        @primary
+      end
+    end
+    alias primary_service primary
 
-  class << self
+    def set_primary(service)
+      type_strict service => Service
+      before_primary = @primary
+      @@service_lock.synchronize do
+        return self if before_primary != @primary || @primary == service
+        @primary = service
+        Plugin.call(:primary_service_changed, service)
+        notice "current active service: #{service.name}"
+        self end end
+
+    # 新しくサービスを認証する
+    def add_service(token, secret)
+      type_strict token => String, secret => String
+
+      twitter = MikuTwitter.new
+      twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
+      twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
+      twitter.a_token = token
+      twitter.a_secret = secret
+
+      (twitter/:account/:verify_credentials).user.next { |user|
+        id = "twitter-#{user[:idname]}".to_sym
+        accounts = UserConfig[:accounts]
+        if accounts.is_a? Hash
+          accounts = accounts.melt
+        else
+          accounts = {} end
+        accounts[id] = {
+          token: token,
+          secret: secret,
+          user: {
+            id: user[:id],
+            idname: user[:idname],
+            name: user[:name],
+            profile_image_url: user[:profile_image_url] } }
+        UserConfig[:accounts] = accounts
+        service = Service[id]
+        Plugin.call(:service_registered, service)
+        service } end
+
     alias __destroy_e3de__ destroy
     def destroy(service)
       type_strict service => Service
