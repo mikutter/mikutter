@@ -21,17 +21,80 @@ class Service
   @@service_lock = Mutex.new
 
   class << self
+    # 全てのアカウント情報をオブジェクトとして返す
+    # ==== Return
+    # account_id => {token: ,secret:, ...}
+    def accounts
+      result = UserConfig[:accounts]
+      if result.is_a? Hash
+        result
+      else
+        {} end end
+
+    # アカウント情報を返す
+    # ==== Args
+    # [name] アカウントのキー(Symbol)
+    # ==== Return
+    # アカウント情報(Hash)
+    def account_data(name)
+      accounts[name.to_sym] or raise ArgumentError, 'account data `#{name}\' does not exists.' end
+
+    # 新しいアカウントの情報を登録する
+    # ==== Args
+    # [name] アカウントのキー(Symbol)
+    # [options] アカウント情報(Hash)
+    # ==== Exceptions
+    # ArgumentError name のサービスが既に存在している場合、optionsの情報が足りない場合
+    # ==== Return
+    # Service
+    def account_register(name, options)
+      name = name.to_sym
+      @@service_lock.synchronize do
+        raise ArgumentError, "account #{name} already exists." if accounts.has_key? name
+        UserConfig[:accounts] = accounts.merge name => {
+          token: (options[:token] or raise ArgumentError, 'options requires key `token\'.'),
+          secret: (options[:token] or raise ArgumentError, 'options requires key `secret\'.'),
+          user: (options[:token] or raise ArgumentError, 'options requires key `user\'.') } end
+      self end
+
+    # アカウント情報を更新する
+    # ==== Args
+    # [name] アカウントのキー(Symbol)
+    # [options] アカウント情報(Hash)
+    # ==== Exceptions
+    # ArgumentError name のサービスが存在しない場合
+    # ==== Return
+    # Service
+    def account_modify(name, options)
+      name = name.to_sym
+      @@service_lock.synchronize do
+        raise ArgumentError, "account #{name} is not exists." unless accounts.has_key? name
+        UserConfig[:accounts] = accounts.merge name => accounts[name].merge({
+          token: (options[:token] or raise ArgumentError, 'options requires key `token\'.'),
+          secret: (options[:token] or raise ArgumentError, 'options requires key `secret\'.'),
+          user: (options[:token] or raise ArgumentError, 'options requires key `user\'.') })
+        
+      end
+      self end
+
+    # 垢消しの時間だ
+    # ==== Args
+    # [name] 
+    # ==== Return
+    # Service
+    def account_destroy(name)
+      name = name.to_sym
+      @@service_lock.synchronize do
+        UserConfig[:accounts] = accounts.delete(name) end
+      self end
+
     def services_refresh
-      accounts = UserConfig[:accounts] # account_id => {token: ,secret:, ...}
-      if not accounts
+      if Service.accounts.empty?
         if UserConfig[:twitter_token] and UserConfig[:twitter_secret] # 前バージョンから引継ぎ
-          accounts = UserConfig[:accounts] = {
-            default: {
-              token: UserConfig[:twitter_token],
-              secret: UserConfig[:twitter_secret],
-              user: UserConfig[:verify_credentials] } }
-        else
-          accounts = {} end end
+          account_register :default, {
+            token: UserConfig[:twitter_token],
+            secret: UserConfig[:twitter_secret],
+            user: UserConfig[:verify_credentials] } end end
       accounts.keys.each do |account|
         Service[account] end
       @primary = (UserConfig[:primary_account] and Service[UserConfig[:primary_account]]) or instances.first
@@ -81,12 +144,12 @@ class Service
 
       (twitter/:account/:verify_credentials).user.next { |user|
         id = "twitter-#{user[:idname]}".to_sym
-        accounts = UserConfig[:accounts]
+        accounts = Service.accounts
         if accounts.is_a? Hash
           accounts = accounts.melt
         else
           accounts = {} end
-        accounts[id] = {
+        account_register id, {
           token: token,
           secret: secret,
           user: {
@@ -94,7 +157,6 @@ class Service
             idname: user[:idname],
             name: user[:name],
             profile_image_url: user[:profile_image_url] } }
-        UserConfig[:accounts] = accounts
         service = Service[id]
         Plugin.call(:service_registered, service)
         service } end
@@ -102,13 +164,7 @@ class Service
     alias __destroy_e3de__ destroy
     def destroy(service)
       type_strict service => Service
-      accounts = UserConfig[:accounts]
-      if accounts.is_a? Hash
-        accounts = accounts.melt
-      else
-        accounts = {} end
-      accounts.delete(service.name)
-      UserConfig[:accounts] = accounts
+      account_destroy service.name
       __destroy_e3de__("twitter-#{service.user}".to_sym)
       Plugin.call(:service_destroyed, service) end
     def remove_service(service)
@@ -119,7 +175,7 @@ class Service
   # 新たに作る必要はない
   def initialize(name)
     super
-    account = UserConfig[:accounts][name.to_sym]
+    account = Service.account_data name
     @twitter = MikuTwitter.new
     @twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
     @twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
@@ -132,7 +188,7 @@ class Service
 
   # アクセストークンとアクセスキーを再設定する
   def set_token_secret(token, secret)
-    UserConfig[:accounts][name.to_sym] = {token: token, secret: secret}
+    Service.account_modify name, {token: token, secret: secret}
     @twitter.a_token = token
     @twitter.a_secret = secret
     self
@@ -268,8 +324,8 @@ class Service
   private
 
   def user_initialize
-    if defined? UserConfig[:accounts][name.to_sym][:user]
-      @user_obj = User.new_ifnecessary(UserConfig[:accounts][name.to_sym][:user])
+    if defined? Service.account_data(name.to_sym)[:user]
+      @user_obj = User.new_ifnecessary(Service.account_data(name.to_sym)[:user])
       (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed))
     else
       res = twitter.query!('account/verify_credentials', cache: true)
@@ -282,19 +338,12 @@ class Service
 
   def user_data_received(user)
     @user_obj = user
-    accounts = UserConfig[:accounts]
-    if accounts.is_a? Hash
-      accounts = accounts.melt
-      accounts[name.to_sym] ||= {}
-    else
-      accounts = {name.to_sym => {}} end
-    accounts[name.to_sym][:user] = {
-      id: @user_obj[:id],
-      idname: @user_obj[:idname],
-      name: @user_obj[:name],
-      profile_image_url: @user_obj[:profile_image_url] }
-    UserConfig[:accounts] = accounts
-  end
+    Service.account_modify name, {
+      user: {
+        id: @user_obj[:id],
+        idname: @user_obj[:idname],
+        name: @user_obj[:name],
+        profile_image_url: @user_obj[:profile_image_url] } } end
 
   def user_data_failed(e)
     if e.is_a? MikuTwitter::Error
