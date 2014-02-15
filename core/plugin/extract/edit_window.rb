@@ -12,9 +12,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
     super(_('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME})
     add(Gtk::VBox.new().
         closeup(name_widget).
-        add(Gtk::HBox.new().
-            closeup(source_widget).
-            add(condition_widget)).
+        add(Gtk::Notebook.new.
+            append_page(source_widget, Gtk::Label.new(_('データソース'))).
+            append_page(condition_widget, Gtk::Label.new(_('絞り込み条件')))).
         closeup(Gtk::EventBox.new().
                 add(Gtk::HBox.new().
                     closeup(ok_button).right)))
@@ -72,16 +72,12 @@ class Plugin::Extract::EditWindow < Gtk::Window
   def source_widget
     datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first
     datasources_box = Gtk::SelectBox.new(datasources, sources.map(&:to_sym)){
-      modify_value sources: datasources_box.selected
-    }
-
+      modify_value sources: datasources_box.selected }
     @source_widget ||= Gtk::VBox.new().
-      closeup(Gtk::Label.new(_('データソース'))).
       add(datasources_box) end
 
   def condition_widget
     @condition_widget ||= Gtk::VBox.new().
-      closeup(Gtk::Label.new(_('条件'))).
       add(condition_form) end
 
   def condition_form
