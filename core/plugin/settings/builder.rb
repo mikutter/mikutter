@@ -25,6 +25,9 @@ class Plugin::Settings < Gtk::VBox
     type_strict plugin => Plugin
     super()
     @plugin = plugin
+    if block_given?
+      instance_eval(&Proc.new)
+    end
   end
 
   # 複数行テキスト

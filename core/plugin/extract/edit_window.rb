@@ -11,10 +11,10 @@ class Plugin::Extract::EditWindow < Gtk::Window
     @extract = extract.dup.freeze
     super(_('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME})
     add(Gtk::VBox.new().
-        closeup(name_widget).
         add(Gtk::Notebook.new.
             append_page(source_widget, Gtk::Label.new(_('データソース'))).
-            append_page(condition_widget, Gtk::Label.new(_('絞り込み条件')))).
+            append_page(condition_widget, Gtk::Label.new(_('絞り込み条件'))).
+            append_page(option_widget, Gtk::Label.new(_('オプション')))).
         closeup(Gtk::EventBox.new().
                 add(Gtk::HBox.new().
                     closeup(ok_button).right)))
@@ -65,8 +65,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
     @name_entry ||= Gtk::Entry.new().tap { |name_entry|
       name_entry.set_text name
       name_entry.ssc(:changed){ |widget|
-        modify_value name: widget.text.dup.freeze
-        self.set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
+
         false } } end
 
   def source_widget
@@ -85,6 +84,19 @@ class Plugin::Extract::EditWindow < Gtk::Window
       modify_value sexp: @condition_form.to_a
     } end
 
+  def generate_modifier(method)
+    Plugin::Settings::Listener.new.get {
+      __send__(method)
+    }.set { |v|
+      modify_value method => v } end
+
+  def option_widget
+    name_modifier = generate_modifier :name
+    sound_modifier = generate_modifier :sound
+    popup_modifier = generate_modifier :popup
+    Plugin::Settings.new(Plugin[:extract]) do
+      input _('名前'), name_modifier end end
+
   def ok_button
     Gtk::Button.new(_('閉じる')).tap{ |button|
       button.ssc(:clicked){
@@ -94,6 +106,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
 
   def modify_value(new_values)
     @extract = @extract.merge(new_values).freeze
+    set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
     Plugin.call :extract_tab_update, self.to_h
     self end
 

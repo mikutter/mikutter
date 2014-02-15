@@ -23,9 +23,17 @@ class Plugin::Settings::Listener
       @setter = lambda{ |new| value = new } end end
 
   def get
-    @getter.call end
+    if block_given?
+      @getter = Proc.new
+      self
+    else
+      @getter.call end end
 
-  def set(value)
-    @setter.call(value) end
+  def set(value=nil)
+    if block_given?
+      @setter = Proc.new
+      self
+    else
+      @setter.call(value) end end
 
 end
