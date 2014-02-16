@@ -177,7 +177,17 @@ Plugin.create :extract do
     converted_messages = Messages.new(messages.map{ |message| message.retweet_source ? message.retweet_source : message })
     tabs.deach{ |record|
       begin
-        timeline(record[:slug]) << converted_messages.select(&compile(record[:id], record[:sexp]))
+        filtered_messages = converted_messages.select(&compile(record[:id], record[:sexp])).freeze
+        unless filtered_messages.empty?
+          timeline(record[:slug]) << filtered_messages
+          if record[:popup]
+            notice "popup #{record[:name]} #{record[:slug]} #{filtered_messages.size} messages."
+            filtered_messages.each do |message|
+              notice message.user.idname + " " + message.to_show
+              Plugin.call(:popup_notify, message.user, message.to_show) end end
+          if record[:sound].is_a? String and FileTest.exist?(record[:sound])
+            Plugin.call(:play_sound, record[:sound]) end
+        end
       rescue Exception => e
         error "filter '#{record[:name]}' crash: #{e.to_s}" end } end
 

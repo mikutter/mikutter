@@ -40,6 +40,12 @@ class Plugin::Extract::EditWindow < Gtk::Window
   def slug
     @extract[:slug] end
 
+  def sound
+    @extract[:sound] end
+
+  def popup
+    @extract[:popup] end
+
   # extract の内容を返す
   # ==== Return
   # @extract の内容(Hash)
@@ -48,7 +54,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
       sexp: sexp,
       id: id,
       slug: slug,
-      sources: sources }.freeze end
+      sources: sources,
+      sound: sound,
+      popup: popup }.freeze end
 
   # 名前入力ウィジェットを返す
   # ==== Return
@@ -95,7 +103,10 @@ class Plugin::Extract::EditWindow < Gtk::Window
     sound_modifier = generate_modifier :sound
     popup_modifier = generate_modifier :popup
     Plugin::Settings.new(Plugin[:extract]) do
-      input _('名前'), name_modifier end end
+      input _('名前'), name_modifier
+      settings _('通知') do
+        fileselect _('サウンド'), sound_modifier
+        boolean _('ポップアップ'), popup_modifier end end end
 
   def ok_button
     Gtk::Button.new(_('閉じる')).tap{ |button|
