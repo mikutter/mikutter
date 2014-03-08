@@ -46,6 +46,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
   def popup
     @extract[:popup] end
 
+  def icon
+    @extract[:icon] end
+
   # extract の内容を返す
   # ==== Return
   # @extract の内容(Hash)
@@ -56,7 +59,8 @@ class Plugin::Extract::EditWindow < Gtk::Window
       slug: slug,
       sources: sources,
       sound: sound,
-      popup: popup }.freeze end
+      popup: popup,
+      icon: icon }.freeze end
 
   # 名前入力ウィジェットを返す
   # ==== Return
@@ -100,10 +104,12 @@ class Plugin::Extract::EditWindow < Gtk::Window
 
   def option_widget
     name_modifier = generate_modifier :name
+    icon_modifier = generate_modifier :icon
     sound_modifier = generate_modifier :sound
     popup_modifier = generate_modifier :popup
     Plugin::Settings.new(Plugin[:extract]) do
       input _('名前'), name_modifier
+      fileselect _('アイコン'), icon_modifier, File.join(Skin.path)
       settings _('通知') do
         fileselect _('サウンド'), sound_modifier
         boolean _('ポップアップ'), popup_modifier end end end
