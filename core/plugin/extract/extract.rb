@@ -150,7 +150,6 @@ Plugin.create :extract do
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values
-    @active_datasources = nil
     self end
 
   # 使用されているデータソースのSetを返す
@@ -198,7 +197,8 @@ Plugin.create :extract do
     Plugin.call(:extract_tab_create, record) }
 
   extract_tabs_watcher = UserConfig.connect :extract_tabs do |key, val, before_val, id|
-    destroy_compile_cache end
+    destroy_compile_cache
+    @active_datasources = nil end
 
   on_unload do
     UserConfig.disconnect(extract_tabs_watcher) end
