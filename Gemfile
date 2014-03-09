@@ -1,20 +1,20 @@
 source 'https://rubygems.org'
 
 group :default do
-  gem 'oauth', '~> 0.4.7'
-  gem 'json_pure'
-  gem 'bsearch', '~> 1.5.0'
-  gem 'addressable'
-  gem 'memoize'
-  gem 'ruby-hmac'
-  gem 'typed-array'
+  gem 'oauth', '~> 0.4'
+  gem 'json_pure', '~> 1.8'
+  gem 'bsearch', '~> 1.5'
+  gem 'addressable', '~> 2.3'
+  gem 'memoize', '~> 1.3'
+  gem 'ruby-hmac', '~> 0.4'
+  gem 'typed-array', '~> 0.1'
 end
 
 group :test do
-  gem 'rake'
-  gem 'watch'
-  gem 'mocha'
-  gem 'webmock'
+  gem 'rake', '~> 10.1'
+  gem 'watch', '~> 0.1'
+  gem 'mocha', '~> 0.14'
+  gem 'webmock', '~> 1.17'
 end
 
 group :plugin do
