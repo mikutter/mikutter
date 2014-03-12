@@ -220,13 +220,13 @@ class Gdk::MiraclePainter < Gtk::Object
     x -= pos.main_text.x
     y -= pos.main_text.y
     inside, byte, trailing = *main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
-    message.to_s.get_index_from_byte(byte) if inside end
+    main_message.text.get_index_from_byte(byte) if inside end
 
   def main_pos_to_index_forclick(x, y)
     x -= pos.main_text.x
     y -= pos.main_text.y
     result = main_message.xy_to_index(x * Pango::SCALE, y * Pango::SCALE)
-    result[1] = message.to_s.get_index_from_byte(result[1])
+    result[1] = main_message.text.get_index_from_byte(result[1])
     return *result end
 
   def signal_do_modified()
