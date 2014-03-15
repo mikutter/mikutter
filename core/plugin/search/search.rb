@@ -32,7 +32,7 @@ Plugin.create :search do
   searchbtn.signal_connect('clicked'){ |elm|
     elm.sensitive = querybox.sensitive = false
     timeline(:search).clear
-    Service.primary.search(q: querybox.text, rpp: 100).next{ |res|
+    Service.primary.search(q: querybox.text, count: 100).next{ |res|
       timeline(:search) << res if res.is_a? Array
       elm.sensitive = querybox.sensitive = true
     }.trap{ |e|
