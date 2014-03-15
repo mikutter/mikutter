@@ -11,12 +11,14 @@ http://opensource.org/licenses/mit-license.php
 =end
 mikutter_directory = File.expand_path(File.dirname(__FILE__))
 
-begin
-  ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
-  require 'bundler/setup'
-rescue LoadError, SystemExit
-  # bundlerがないか、依存関係の解決に失敗した場合
-  # System の gem を使ってみる
+unless ENV['DISABLE_BUNDLER_SETUP']
+  begin
+    ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
+    require 'bundler/setup'
+  rescue LoadError, SystemExit
+    # bundlerがないか、依存関係の解決に失敗した場合
+    # System の gem を使ってみる
+  end
 end
 
 Thread.abort_on_exception = true
