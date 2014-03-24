@@ -40,7 +40,6 @@ module Mtk
       input.append_text(values[x].respond_to?(:call) ? values[x].call(nil) : values[x])
     }
     input.active = (sorted.index{ |i| i.to_s == proc.call(*[nil, input][0, proc.arity]).to_s } or 0)
-    proc.call(*[sorted[input.active], input][0, proc.arity])
     input.signal_connect('changed'){ |widget|
       proc.call(*[sorted[widget.active], widget][0, proc.arity])
       nil

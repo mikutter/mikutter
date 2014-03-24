@@ -26,10 +26,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
     @extract[:name] || "".freeze end
 
   def sexp
-    if defined? @condition_form
-      @condition_form.to_a
-    else
-      @extract[:sexp] end end
+    @extract[:sexp] end
 
   def id
     @extract[:id] end
