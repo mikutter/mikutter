@@ -85,7 +85,7 @@ class Gtk::MessagePicker < Gtk::EventBox
       add_condition([:and, [:==, :user, '']]).show_all }
     container.closeup(btn).closeup(btn2) end
 
-  class Gtk::MessagePicker::PickCondition < Gtk::HBox
+  class PickCondition < Gtk::HBox
     def initialize(conditions = [:==, :user, ''], *args, &block)
       super(*args)
       @changed_hook = block
@@ -98,9 +98,9 @@ class Gtk::MessagePicker < Gtk::EventBox
 
     private
 
-  def call
-    if @changed_hook
-      @changed_hook.call end end
+    def call
+      if @changed_hook
+        @changed_hook.call end end
 
     def build
       closeup(Mtk::chooseone(lambda{ |new|
