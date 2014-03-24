@@ -8,6 +8,8 @@ module Mainloop
 
   def mainloop
     Gtk.main
+  rescue Exception => exception
+    Gtk.exception = exception
   end
 
   def exception_filter(e)

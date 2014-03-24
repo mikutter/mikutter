@@ -31,6 +31,9 @@ module CHIConfig
   # ログディレクトリ
   LOGDIR = File.join(CONFROOT, 'log')
 
+  # プラグインの設定等
+  SETTINGDIR = File.join(CONFROOT, 'settings')
+
   # キャッシュディレクトリ
   CACHE = File.join(CONFROOT, 'cache')
 
@@ -43,10 +46,10 @@ module CHIConfig
   # 再起動後に、前回取得したポストを取得しない
   NeverRetrieveOverlappedMumble = false
 
-  REVISION = 1476
+  REVISION = 1537
 
   # このソフトのバージョン。
-  VERSION = [0,2,2,REVISION]
+  VERSION = [0,3,0,REVISION]
 
 end
 

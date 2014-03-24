@@ -9,9 +9,7 @@ if defined? HYDE
   require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
 end
 
-require 'yaml'
 require 'thread'
-require 'pstore'
 require 'monitor'
 require "open-uri"
 
@@ -455,22 +453,3 @@ class Regexp
     new(o['data'])
   end
 end
-
-class HatsuneStore < PStore
-
-  def initialize(*args)
-    extend MonitorMixin
-    super
-  end
-
-  def transaction(ro = false, &block)
-    start = Time.now
-    result = synchronize{
-      super(ro){ |db| block.call(db) } }
-    if (Time.now - start) >= 0.1
-      notice "%.4f" % (Time.now - start)
-    end
-    result
-  end
-end
-

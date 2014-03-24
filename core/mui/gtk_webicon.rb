@@ -25,8 +25,11 @@ module Gtk
       rect = Gdk::Rectangle.new(0, 0, rect, height) if height
       if(Gdk::WebImageLoader.is_local_path?(url))
         url = File.expand_path(url)
-        if(FileTest.exist?(url))
-          super(Gdk::Pixbuf.new(url, rect.width, rect.height))
+        if FileTest.exist?(url)
+          super begin
+                  Gdk::Pixbuf.new(url, rect.width, rect.height)
+                rescue
+                  Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height) end
         else
           super(Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height)) end
       else

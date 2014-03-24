@@ -4,7 +4,7 @@
 miquire :core, 'environment'
 
 begin
-  directories = [Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR]
+  directories = [Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR, Environment::SETTINGDIR]
   directories.each{ |dir|
     FileUtils.mkdir_p(File.expand_path(dir)) }
   Dir.glob(directories.map{ |path| File.join(File.expand_path(path), '**', '*') }.join("\0")){ |file|
