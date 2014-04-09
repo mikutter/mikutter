@@ -151,10 +151,13 @@ Plugin.create :achievement do
 
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
-    if not unachievements.empty?
-      if not unachievements.empty?
-        not_achieved = unachievements.values[rand(unachievements.size)].notachieved_parent
-        activity :achievement, not_achieved.hint end end end
+    unless unachievements.empty?
+      not_achieved = unachievements.values[rand(unachievements.size)].notachieved_parent
+      unless not_achieved.hidden?
+        if Mopt.debug?
+          activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})"
+        else
+          activity :achievement, not_achieved.hint end end end end
 
   on_achievement_took do |achievement|
     activity :achievement, (_("実績 %s を達成しました！おめでとう♪") % achievement.slug.to_s) end
