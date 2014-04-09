@@ -116,13 +116,13 @@ Plugin.create :change_account do
           sleep 2
           sequence.
           say(_('おっと。初めてアカウントを登録したから実績が解除されちゃったね。')).next{ jump_seq :achievement } }
-      }.trap{ |e|
-        error e
+      }.trap{ |error|
+        error error
         shell.remove(eventbox)
-        response = if e.is_a?(Net::HTTPResponse)
-                     e
-                   elsif e.is_a?(OAuth::Unauthorized)
-                     e.request
+        response = if error.is_a?(Net::HTTPResponse)
+                     error
+                   elsif error.is_a?(OAuth::Unauthorized)
+                     error.request
                    end
         if response
           case response.code
@@ -135,10 +135,10 @@ Plugin.create :change_account do
           end
           break
         end
-        sequence.say(_("何かがおかしいよ。\n(%{error})") % {error: e.to_s}).next{
+        sequence.say(_("何かがおかしいよ。\n(%{error})") % {error: error.to_s}).next{
           jump_seq :register_account }
-      }.trap{ |e|
-        error e
+      }.trap{ |error|
+        error error
       }
       false
     }
