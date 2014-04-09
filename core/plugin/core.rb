@@ -4,19 +4,27 @@ Plugin.create :core do
 
   # Serviceと、Messageの配列を受け取り、一度以上受け取ったことのあるものを除外して返すフィルタを作成して返す。
   # ただし、除外したかどうかはService毎に記録する。
+  # また、アカウント登録前等、serviceがnilの時はシステムメッセージ以外を全て削除し、記録しない。
   # ==== Return
   # フィルタのプロシージャ(Proc)
   def gen_message_filter_with_service
     service_filters = Hash.new{|h,k|h[k] = gen_message_filter}
-    lambda{ |service, messages|
-      [service] + service_filters[service.user_obj.id].(messages) } end
+    ->(service, messages, &cancel) {
+      if service
+        [service] + service_filters[service.user_obj.id].(messages)
+      else
+        system = messages.select(&:system?)
+        if system.empty?
+          cancel.call
+        else
+          [nil, system] end end } end
 
   # Messageの配列を受け取り、一度以上受け取ったことのあるものを除外して返すフィルタを作成して返す
   # ==== Return
   # フィルタのプロシージャ(Proc)
   def gen_message_filter
     appeared = Set.new
-    lambda{ |messages|
+    -> (messages){
       [messages.select{ |message|
          appeared.add(message.id) unless appeared.include?(message.id) }] } end
 
