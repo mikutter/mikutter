@@ -86,7 +86,7 @@ Plugin.create :change_account do
 
   defsequence :register_account do
     if not Service.to_a.empty?
-      jump_seq :settings
+      jump_seq :achievement
       next
     end
 
