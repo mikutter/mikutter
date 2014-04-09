@@ -26,7 +26,7 @@ class Plugin::Achievement::Achievement
       @events.each{ |e| plugin.detach(*e) }
       @events.clear
       if @options[:depends] and not @options[:depends].empty?
-        unachievements = Plugin.filtering(:unachievements, {}).first.values_at(*@options[:depends]).select &ret_nth
+        unachievements = Plugin.filtering(:unachievements, {}).first.values_at(*@options[:depends]).select(&ret_nth)
         notice unachievements
         if not unachievements.empty?
           on_achievement_took do |ach|
