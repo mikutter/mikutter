@@ -115,9 +115,7 @@ Plugin.create :change_account do
         Thread.new{
           sleep 2
           sequence.
-          say(_("おっと。初めてアカウントを登録したから実績が解除されちゃったね。")).
-          say(_("実績は新しい機能を使うと達成されるよ。たまに私が達成してない実績を教えてあげるから、その時は試してみてね。")).
-          say(_("改めて！%{name}さん、よろしくね！") % {name: service.user_obj[:name]}).next{ jump_seq :settings } }
+          say(_('おっと。初めてアカウントを登録したから実績が解除されちゃったね。')).next{ jump_seq :achievement } }
       }.trap{ |e|
         error e
         shell.remove(eventbox)
@@ -148,8 +146,17 @@ Plugin.create :change_account do
       say(_("登録方法は、\n1. %{authorize_url} にアクセスする\n2. mikutterに登録したいTwitterアカウントでログイン\n3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\nだよ。") % {authorize_url: request_token.authorize_url}, nil)
   end
 
-  defsequence :settings do
+  defsequence :achievement do
+    name = Service.primary.user_obj[:name]
     sequence.
+      say(_('実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。') % {name: name}).
+      next{ jump_seq :final }
+  end
+
+  defsequence :final do
+    sequence.
+      say(_('……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} をインストールしてくれたんだもんね。') % {mikutter: Environment::NAME}).
+      say(_('これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。')).
       next{ jump_seq :complete }
   end
 
@@ -163,15 +170,18 @@ Plugin.create :change_account do
                  description: _("mikutterのチュートリアルを見た"),
                  hidden: true
                  ) do |ach|
-    achievement = ach
     seq = at(:tutorial_sequence)
-    request_token if Service.to_a.empty?
-    if seq
-      sequence.
-        say(_("前回の続きから説明するね")).
-        next{ jump_seq(seq) }
+    if not(seq or Service.instances.empty?)
+      ach.take!
     else
-      jump_seq(:first) end end
+      achievement = ach
+      request_token if Service.to_a.empty?
+      if seq
+        sequence.
+          say(_("前回の続きから説明するね")).
+          next{ jump_seq(seq) }
+      else
+        jump_seq(:first) end end end
 
 end
 
