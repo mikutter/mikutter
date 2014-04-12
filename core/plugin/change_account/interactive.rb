@@ -35,11 +35,11 @@ module Plugin::ChangeAccount
   class SubPartsTutorial < Gdk::SubParts
     Button = Struct.new(:layout, :value, :x, :y, :width, :height)
     OutsideOffset = 48          # 最初のボタンの左端との隙間
-    ButtonLeft = 4              # ボタンの左端と文字の左側の距離
-    ButtonRight = 4             # ボタンの右端と文字の右側の距離
-    ButtonTop = 4               # わかるよね
-    ButtonBottom = 4            # わかるよね
-    ButtonMargin = 4            # ボタンとボタンの距離
+    ButtonLeft = 6              # ボタンの左端と文字の左側の距離
+    ButtonRight = 6             # ボタンの右端と文字の右側の距離
+    ButtonTop = 6               # わかるよね
+    ButtonBottom = 6            # わかるよね
+    ButtonMargin = 3            # ボタンとボタンの距離
 
     regist
 
@@ -67,6 +67,7 @@ module Plugin::ChangeAccount
           buttons = generate_buttons(context)
           return if not buttons
           buttons.each{ |button|
+            render_outline(context, button.x, button.y, *button.layout.size.map{|_|_/Pango::SCALE})
             context.save{
               context.translate(button.x + ButtonLeft, button.y + ButtonTop)
               context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
@@ -75,7 +76,7 @@ module Plugin::ChangeAccount
     def height
       buttons = generate_buttons
       return 0 if not buttons
-      @height ||= (buttons.map{|b|b.layout.size[1]}.max / Pango::SCALE) + ButtonMargin*2 end
+      @height ||= (buttons.map{|b|b.layout.size[1]}.max / Pango::SCALE) + ButtonMargin*2 + ButtonTop + ButtonBottom end
 
     private
 
@@ -94,6 +95,25 @@ module Plugin::ChangeAccount
                    x, 0,
                    width,
                    layout.size[1]/Pango::SCALE + ButtonTop + ButtonBottom) } end
+
+    def render_outline(context, x, y, width, height)
+      rect = [ButtonMargin + x,
+              ButtonMargin + y,
+              width - ButtonMargin*2 + ButtonLeft + ButtonRight,
+              height - ButtonMargin*2 + ButtonTop + ButtonBottom, 4]
+      context.save {
+        context.pseudo_blur(4) {
+          context.fill {
+            context.set_source_rgb(0.5, 0.5, 0.5)
+            context.rounded_rectangle(*rect)
+          }
+        }
+        context.fill {
+          context.set_source_rgb(1, 0.95, 0.95)
+          context.rounded_rectangle(*rect)
+        }
+      }
+    end
 
     def message
       helper.message end
