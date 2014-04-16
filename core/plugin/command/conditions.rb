@@ -38,31 +38,41 @@ module ::Plugin::Command
   # 選択されているツイートが全てリプライ可能な時。
   # ツイートが選択されていなければ偽
   CanReplyAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all? &:repliable? }
+    not opt.messages.empty? and opt.messages.all?(&:repliable?) }
 
-  # 選択されているツイートが全てリツイート可能な時。
+  # 選択されているツイートのうち、一つでも現在のアカウントでリツイートできるものがあれば真を返す
+  CanReTweetAny = Condition.new { |opt|
+    opt.messages.any? { |message| message.retweetable? and not message.retweeted_by_me? Service.primary } }
+
+  # 選択されているツイートが全て、現在のアカウントでリツイート可能な時、真を返す。
+  # 既にリツイート済みのものはリツイート不可とみなす。
   # ツイートが選択されていなければ偽
   CanReTweetAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
-      m.retweetable? and not m.retweeted_by_me? } }
+      m.retweetable? and not m.retweeted_by_me?(Service.primary) } }
 
-  # 選択されているツイートが全てに対してリツイートしている場合。
+  # 選択されているツイートを、現在のアカウントで全てリツイートしている場合。
   # ツイートが選択されていなければ偽
   IsReTweetedAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
-      m.retweetable? and m.retweeted_by_me? } }
+      m.retweetable? and m.retweeted_by_me?(Service.primary) } }
 
-  # 選択されているツイートが全てお気に入りに追加可能な時。
+  # 選択されているツイートのうち、一つでも現在のアカウントでふぁぼれるものがあれば真を返す
+  CanFavoriteAny = Condition.new { |opt|
+    opt.messages.any? { |message| message.favoritable? and not message.favorited_by_me? Service.primary } }
+
+  # 選択されているツイートが全て、現在のアカウントでお気に入りに追加可能な時、真を返す。
+  # 既にお気に入りに追加済みのものはお気に入りに追加不可とみなす。
   # ツイートが選択されていなければ偽
   CanFavoriteAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
-      m.favoritable? and not m.favorited_by_me? } }
+      m.favoritable? and not m.favorited_by_me?(Service.primary) } }
 
-  # 選択されているツイートが全てが既にお気に入りに追加されている場合。
+  # 選択されているツイートを、現在のアカウントで全てお気に入りに追加している場合。
   # ツイートが選択されていなければ偽
   IsFavoritedAll = Condition.new{ |opt|
     not opt.messages.empty? and opt.messages.all? { |m|
-      m.favoritable? and m.favorited_by_me? } }
+      m.favoritable? and m.favorited_by_me?(Service.primary) } }
 
   # 選択しているのが全て自分のツイートの時
   IsMyMessageAll = Condition.new{ |opt|

@@ -52,11 +52,11 @@ Plugin.create :command do
 
   command(:retweet,
           name: _('リツイート'),
-          condition: Plugin::Command[:CanReTweetAll],
+          condition: Plugin::Command[:CanReTweetAny],
           visible: true,
           icon: Skin.get("retweet.png"),
           role: :timeline) do |opt|
-    opt.messages.select{ |x| not x.from_me? }.each(&:retweet) end
+    opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.each(&:retweet) end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),
@@ -70,11 +70,11 @@ Plugin.create :command do
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
-          condition: Plugin::Command[:CanFavoriteAll],
+          condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
           icon: Skin.get("unfav.png"),
           role: :timeline) do |opt|
-    opt.messages.each(&:favorite) end
+    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),

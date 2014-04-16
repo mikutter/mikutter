@@ -282,8 +282,13 @@ class Message < Retriever::Model
 
   # この投稿を「自分」がふぁぼっていれば真
   def favorited_by_me?(me = Service.services)
-    not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
-  end
+    case me
+    when Service
+      favorited_by.include? me.user_obj
+    when Enumerable
+      not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+    else
+      raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
@@ -300,8 +305,13 @@ class Message < Retriever::Model
 
   # この投稿を「自分」がリツイートしていれば真
   def retweeted_by_me?(me = Service.services)
-    not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
-  end
+    case me
+    when Service
+      retweeted_by.include? me.user_obj
+    when Enumerable
+      not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+    else
+      raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
   # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
