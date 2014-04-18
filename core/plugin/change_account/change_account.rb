@@ -38,6 +38,23 @@ Plugin.create :change_account do
       Service.set_primary(Service.instances.first) end
   end
 
+  filter_command do |menu|
+    Service.each do |service|
+      user = service.user_obj
+      slug = "switch_account_to_#{user.idname}".to_sym
+      menu[slug] = {
+        slug: slug,
+        exec: -> options {},
+        plugin: @name,
+        name: _('@%{screen_name}(%{name}) に切り替える'.freeze) % {
+          screen_name: user.idname,
+          name: user[:name] },
+        condition: -> options {},
+        visible: false,
+        role: :window,
+        icon: user[:profile_image_url] } end
+    [menu] end
+
   # サブ垢は心の弱さ
   settings _('アカウント情報') do
     listview = ::Plugin::ChangeAccount::AccountControl.new()
