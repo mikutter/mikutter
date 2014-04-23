@@ -65,7 +65,7 @@ class User < Retriever::Model
   def profile_image_url_large
     url = self[:profile_image_url]
     if url
-      url.gsub(/_normal(.[a-zA-Z0-9]+)$/, '\1') end end
+      url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '\1') end end
 
   def follow
     if(@value[:post]) then

@@ -207,11 +207,11 @@ class Plugin
   # filter_?name :: add_event_filter(name)
   def method_missing(method, *args, &proc)
     case method.to_s
-    when /^on_?(.+)$/
+    when /\Aon_?(.+)\Z/
        add_event($1.to_sym, &proc)
-    when /^filter_?(.+)$/
+    when /\Afilter_?(.+)\Z/
        add_event_filter($1.to_sym, &proc)
-    when /^hook_?(.+)$/
+    when /\Ahook_?(.+)\Z/
       add_event_hook($1.to_sym, &proc)
     else
       super end end

@@ -46,6 +46,6 @@ Plugin.create :search do
     }.terminate(_("検索キーワード「%{query}」を保存できませんでした。あとで試してみてください" % {query: query})) }
 
   Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :search_hashtag){ |segment|
-    Plugin.call(:search_start, '#' + segment[:url].match(/^(?:#|＃)?(.+)$/)[1])
+    Plugin.call(:search_start, '#' + segment[:url].match(/\A(?:#|＃)?(.+)\Z/)[1])
   }
 end

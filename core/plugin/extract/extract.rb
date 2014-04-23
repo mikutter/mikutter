@@ -48,11 +48,11 @@ Plugin.create :extract do
   command(:extract_edit,
           name: _('抽出条件を編集'),
           condition: lambda{ |opt|
-            opt.widget.slug.to_s =~ /^extract_(?:.+)$/
+            opt.widget.slug.to_s =~ /\Aextract_(?:.+)\Z/
           },
           visible: true,
           role: :tab) do |opt|
-	extract_id = opt.widget.slug.to_s.match(/^extract_(.+)$/)[1].to_i
+	extract_id = opt.widget.slug.to_s.match(/\Aextract_(.+)\Z/)[1].to_i
     Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
   end
 

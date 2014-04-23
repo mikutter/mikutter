@@ -54,9 +54,9 @@ class Plugin::Achievement::Achievement
   def method_missing(method, *args, &block)
     result = plugin.__send__(method, *args, &block)
     case method.to_s
-    when /^on_?(.*)$/
+    when /\Aon_?(.*)\Z/
       @events << [$1.to_sym, result]
-    when /^filter_?(.*)$/
+    when /\Afilter_?(.*)\Z/
       @events << [$1.to_sym, result]
     end
     result

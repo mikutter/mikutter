@@ -35,9 +35,9 @@ class Depend < Ripper::Filter
     else
       @last_const = tok end
     case @last_const
-    when /^G[td]k$/             # GtkクラスとかGdkクラス使ってたらgtkプラグインに依存してるだろう
+    when /\AG[td]k\Z/             # GtkクラスとかGdkクラス使ってたらgtkプラグインに依存してるだろう
       depend :gtk
-    when /^Plugin::(\w+)/       # Plugin::なんとか は、プラグインスラッグのキャメルケース名なので、使ってたら依存してる
+    when /\APlugin::(\w+)/       # Plugin::なんとか は、プラグインスラッグのキャメルケース名なので、使ってたら依存してる
       depend $1.gsub(/([a-z])([A-Z])/, '\1_\2').downcase.to_sym end end
 
   def on_op(tok, f)
@@ -98,7 +98,7 @@ def spec_generate(dir)
       abort
     when /s/i
       return
-    when /^[0-9]+$/
+    when /\A[0-9]+\Z/
       slug = expects[number.to_i].to_sym
     else
       slug = number.to_sym end

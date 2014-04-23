@@ -39,7 +39,7 @@ Plugin.create :streaming do
             r = service.streaming(:filter_stream, param){ |json|
               json.strip!
               case json
-              when /^\{.*\}$/
+              when /\A\{.*\}\Z/
                 if @success_flag
                   @fail.success
                   @success_flag = true end

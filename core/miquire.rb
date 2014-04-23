@@ -78,11 +78,11 @@ module Miquire
     # miquireと同じだが、全てのファイルが対象になる
     def miquire_all_files(kind)
       kind = kind.to_sym
-      Dir.glob(PATH_KIND_CONVERTER[kind] + '*').select{ |x| FileTest.directory?(x) or /\.rb$/ === x }.sort.each{ |rb|
+      Dir.glob(PATH_KIND_CONVERTER[kind] + '*'.freeze).select{ |x| FileTest.directory?(x) or x.end_with?('.rb'.freeze) }.sort.each{ |rb|
         file_or_directory_require(rb) } end
 
     def file_or_directory_require(rb)
-      if(match = rb.match(/^(.*)\.rb$/))
+      if(match = rb.match(/\A(.*)\.rb\Z/))
         rb = match[1] end
       case
       when FileTest.directory?(File.join(rb))

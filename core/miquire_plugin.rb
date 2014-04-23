@@ -21,7 +21,7 @@ module Miquire::Plugin
         Dir[File.join(File.expand_path(path), '*')].each { |file|
           if FileTest.directory?(file) and FileTest.exist?(File.join(file, File.basename(file))+'.rb')
             file = File.join(file, File.basename(file))+'.rb'
-          elsif not /\.rb$/ =~ file
+          elsif not file.end_with?('.rb'.freeze)
             next end
           plugin_name = File.basename(file, '.rb')
           if not iterated.include? plugin_name
@@ -29,7 +29,7 @@ module Miquire::Plugin
             detected << file end } }
       detected.sort_by{ |a|
         [:bundle == get_kind(a) ? 0 : 1, a]
-      }.each &Proc.new end
+      }.each(&Proc.new) end
 
     def each_spec
       each{ |path|

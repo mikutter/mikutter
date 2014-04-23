@@ -122,13 +122,13 @@ Plugin.create :openimg do
       when Net::HTTPSuccess
         address = get_tagattr(res.body, element_rule)
         case address
-        when /^https?:/
+        when /\Ahttps?:/
           # Complete URL
           result = address
-        when /^\/\//
+        when /\A\/\//
           # No scheme
           result = "http:" + address
-        when /^\//
+        when /\A\//
           # Absolute path
           result = uri.dup
           result.path = address
@@ -171,7 +171,7 @@ Plugin.create :openimg do
   }
 
   # plixi 参考: http://groups.google.com/group/plixi/web/fetch-photos-from-url
-  addsupport(/^http:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url, cancel|
+  addsupport(/\Ahttp:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url, cancel|
     addr = "http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=" + url
     response = Net::HTTP.get_response(URI.parse(addr))
     if response.is_a?(Net::HTTPRedirection)
@@ -187,7 +187,7 @@ Plugin.create :openimg do
   # http://{screen-name}.tumblr.com/post/\d+
   # 上記を展開し、記事タイプがphotoかphotosetなら /post/ を /image/ にすると
   # 単一画像ページが得られることを利用した画像展開
-  addsupport(/^http:\/\/([-0-9a-z]+\.tumblr\.com\/post\/\d+|tmblr\.co\/[-\w]+$|tumblr\.com\/[0-9a-z]+$)/, nil) { |url, cancel|
+  addsupport(/\Ahttp:\/\/([-0-9a-z]+\.tumblr\.com\/post\/\d+|tmblr\.co\/[-\w]+$|tumblr\.com\/[0-9a-z]+\Z)/, nil) { |url, cancel|
     def fetch(t)
       req = URI.parse(t)
       res = Net::HTTP.new(req.host).request_head(req.path)
@@ -202,7 +202,7 @@ Plugin.create :openimg do
     end
     
     t = fetch(url)
-    /^(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
+    /\A(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
     if $~
       imgurlresolver($1 + "image" + $2, {'tag' => 'img', 'id' => 'content-image', 'attribute' => 'data-src'})
     else
@@ -226,7 +226,7 @@ Plugin.create :openimg do
     end
   end
 
-  ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)$/) { |shrinked_url, cancel|
+  ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)\Z/) { |shrinked_url, cancel|
     url = MessageConverters.expand_url_one(shrinked_url)
     Delayer.new { display(url, cancel) }
   }

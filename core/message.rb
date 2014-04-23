@@ -231,7 +231,7 @@ class Message < Retriever::Model
     result.add_child(this) unless result.children.include?(this) }
 
   # Message#receive_message と同じ。ただし、ReTweetedのみをさがす。
-  define_source_getter(:retweet, /^RT/){ |this, result|
+  define_source_getter(:retweet, -> t { t.start_with? 'RT'.freeze }){ |this, result|
     result.add_child(this) unless result.retweeted_statuses.include?(this) }
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
@@ -440,7 +440,7 @@ class Message < Retriever::Model
     attr_accessor :url
     attr_reader :resource
 
-    IS_URL = /^https?:\/\//
+    IS_URL = /\Ahttps?:\/\//
 
     def initialize(resource)
       if(not resource.is_a?(IO)) and (FileTest.exist?(resource.to_s)) then

@@ -24,7 +24,7 @@ module OAuth
 
   class Consumer
     def get_request(http_method, path, token = nil, request_options = {}, *arguments)
-      if path !~ /^\//
+      unless path.start_with?('/'.freeze)
         @http = create_http(path)
         _uri = URI.parse(path)
         path = "#{_uri.path}#{_uri.query ? "?#{_uri.query}" : ""}" end

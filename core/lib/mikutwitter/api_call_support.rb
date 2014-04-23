@@ -104,7 +104,7 @@ module MikuTwitter::ApiCallSupport
         cnv = msg.convert_key(:text => :message,
                               :in_reply_to_user_id => :receiver,
                               :in_reply_to_status_id => :replyto)
-        cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/^<a\s+.*>(.*?)<\/a>$/)
+        cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]) rescue Time.now)
         cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
