@@ -84,7 +84,7 @@ module Gdk
 
     def markup(str, range, s, e)
       type_strict str => String
-      astr = str.matches(/<.*?>|&(?:gt|lt|amp);|./um)
+      astr = str.scan(/<.*?>|&(?:gt|lt|amp);|./um)
       arange_split(astr, range).reverse_each{ |arange|
         astr.insert(arange.last, e)
         astr.insert(arange.first, s)

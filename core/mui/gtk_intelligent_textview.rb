@@ -145,9 +145,9 @@ class Gtk::IntelligentTextview < Gtk::TextView
   def apply_links
     @@linkrule.each{ |param|
       reg, left, right = param
-      buffer.text.each_matches(reg) { |match, index|
+      buffer.text.scan(reg) { |match|
         match = match.to_s
-        index = buffer.text[0, index].size
+        index = buffer.text[0, Regexp.last_match.begin(0)].size
         create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
         range = buffer.get_range(index, match.size)
         buffer.apply_tag(match, *range)
@@ -157,9 +157,9 @@ class Gtk::IntelligentTextview < Gtk::TextView
     offset = 0
     @@widgetrule.each{ |param|
       reg, widget_generator = param
-      buffer.text.each_matches(reg) { |match, index|
+      buffer.text.scan(reg) { |match|
         match = match.to_s
-        index = [buffer.text.size, index].min
+        index = [buffer.text.size, Regexp.last_match.begin(0)].min
         range = buffer.get_range(index, match.size + offset)
         widget = widget_generator.call(match)
         if widget

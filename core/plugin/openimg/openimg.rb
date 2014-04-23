@@ -86,7 +86,7 @@ Plugin.create :openimg do
 
   def get_tag_by_attributes(tag)
     attribute = {}
-    tag.each_matches(/([^\s=]+)=(['"])(.*?)\2/){ |pair, pos|
+    tag.scan(/([^\s=]+)=(['"])(.*?)\2/){ |pair|
       key, val = pair[1], pair[3]
       attribute[key] = val }
     attribute.freeze end
@@ -100,7 +100,7 @@ Plugin.create :openimg do
     if dom
       attribute = {}
       catch(:imgtag_match){
-        dom.gsub("\n", ' ').each_matches(Regexp.new("<#{tag_name}.*?>")){ |str, pos|
+        dom.gsub("\n", ' ').scan(Regexp.new("<#{tag_name}.*?>")){ |str|
           attr = get_tag_by_attributes(str.to_s)
           if element_rule.all?{ |k, v| v === attr[k] }
             attribute = attr.freeze

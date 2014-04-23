@@ -154,7 +154,8 @@ class Message::Entity
     result = Set.new(message_entities)
     @@linkrule.values.each{ |rule|
       if rule[:regexp]
-        message.to_show.each_matches(rule[:regexp]){ |match, byte, pos|
+        message.to_show.scan(rule[:regexp]){ |match|
+          pos = Regexp.last_match.begin(0)
           if not result.any?{ |this| this[:range].include?(pos) }
             result << @@filter[rule[:slug]].call(rule.merge({ :message => message,
                                                               :range => Range.new(pos, pos + match.to_s.size, true),

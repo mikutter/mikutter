@@ -62,14 +62,14 @@ class MessageConverters
 
     # textからURLを抜き出してすべて短縮したテキストを返す
     def shrink_url_all(text)
-      urls = text.matches(shrinkable_url_regexp)
+      urls = text.to_enum(:scan, shrinkable_url_regexp).map{ Regexp.last_match.to_s }
       return text if(urls.empty?)
       table = self.shrink_url(urls)
       text.gsub(shrinkable_url_regexp){ |k| table[k] } if table end
 
     # textからURLを抜き出してすべて展開したテキストを返す
     def expand_url_all(text)
-      urls = text.matches(shrinkable_url_regexp)
+      urls = text.to_enum(:scan, shrinkable_url_regexp).map{ Regexp.last_match.to_s }
       return text if(urls.empty?)
       table = self.expand_url(urls)
       text.gsub(shrinkable_url_regexp){ |k| table[k] } if table end

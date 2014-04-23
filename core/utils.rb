@@ -391,6 +391,7 @@ class String
       match(str) end end
 
   def matches(regexp)
+    warn "String#matches is obsolete method. use String#scan"
     result = []
     each_matches(regexp){ |m, pos|
       result << m.to_s }
@@ -398,6 +399,7 @@ class String
   end
 
   def each_matches(regexp, &proc) # :yield: match, byte_index, char_intex
+    warn "String#each_matches is obsolete method. use String#scan"
     pos = 0
     str = self
     while(match = regexp.match(str))
