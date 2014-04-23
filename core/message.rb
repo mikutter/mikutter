@@ -13,6 +13,12 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 投稿１つを表すクラス。
 =end
 class Message < Retriever::Model
+  # screen nameにマッチする正規表現
+  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )([a-zA-Z0-9_]+)/.freeze
+
+  # screen nameのみから構成される文字列から、@などを切り取るための正規表現
+  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
+
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
@@ -136,13 +142,7 @@ class Message < Retriever::Model
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?
-    return true if self.system?
-    if self.service
-      return true if self.receive_to?(self.service.user_obj)
-      return true if self[:message].to_s.include?(self.service.user.to_s)
-    end
-    false
-  end
+    system? or service and receive_to?(service.user_obj) end
 
   # この投稿の投稿主を返す
   def user
@@ -167,11 +167,10 @@ class Message < Retriever::Model
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
-      match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
+      match = MentionMatcher.match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
-  memoize :receiver
 
   # ユーザ _other_ に宛てられたメッセージならtrueを返す。
   # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
@@ -182,7 +181,7 @@ class Message < Retriever::Model
     elsif self[:receiver]
       other[:id] == self[:receiver]
     else
-      match = (/@([a-zA-Z0-9_]+)/).match(self[:message].to_s)
+      match = MentionMatcher.match(self[:message].to_s)
       if match
         match[1] == other[:idname] end end end
 
@@ -191,7 +190,7 @@ class Message < Retriever::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.to_enum(:each_matches, /@([a-zA-Z0-9_]+)/).map{ |m| m[1] } end
+    self[:message].to_s.scan(MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?

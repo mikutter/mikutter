@@ -6,8 +6,8 @@ Plugin.create :profile do
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
 
-  Message::Entity.addlinkrule(:user_mentions, /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )[a-zA-Z0-9_]+/){ |segment|
-    idname = segment[:url].match(/^(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )?(.+)$/)[1]
+  Message::Entity.addlinkrule(:user_mentions, Message::MentionMatcher){ |segment|
+    idname = segment[:url].match(Message::MentionExactMatcher)[1]
     user = User.findbyidname(idname)
     if user
       Plugin.call(:show_profile, Service.primary, user)
