@@ -1,0 +1,41 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the extract package.
+# 
+# Translators:
+# akkiesoft <akkiesoft@marokun.net>, 2013
+# polamjag <indirectgeeks@gmail.com>, 2013
+# Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-21 13:43+0000\n"
+"Last-Translator: Shirayuki/しらゆき Shira <shirayuking@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../extract.rb:16
+msgid "抽出タブ"
+msgstr "Filtered tab"
+
+#: ../extract.rb:115
+msgid "受信したすべての投稿"
+msgstr "All posts received"
+
+#: ../extract.rb:116
+msgid "フレンドタイムライン"
+msgstr "Friend timeline"
+
+#: ../extract.rb:117
+msgid "自分宛のリプライ"
+msgstr "Replies to me"
+
+#: ../extract.rb:118
+msgid "自分が投稿したメッセージ"
+msgstr "Message who posted by me."

@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the achievement package.
+# 
+# Translators:
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:34+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../achievement.rb:98
+msgid "実績"
+msgstr "成就"
+
+#: ../achievement.rb:101
+msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
+msgstr ""
+
+#: ../achievement.rb:108
+msgid "設定画面で、mikutterをカスタマイズしましょう。"
+msgstr "进入设定界面定制你自己的mikutter吧"
+
+#: ../achievement.rb:109
+msgid "画面右下にあるレンチのアイコンをクリックしよう"
+msgstr "点击窗口右下角的扳手图标吧"
+
+#: ../achievement.rb:116
+msgid "ヾ(＠⌒ー⌒＠)ノ"
+msgstr "ヾ(＠⌒ー⌒＠)ノ"
+
+#: ../achievement.rb:117
+msgid "https://github.com/toshia/display_requirements"
+msgstr "https://github.com/toshia/display_requirements"
+
+#: ../achievement.rb:125
+msgid "新規ペインを追加コマンドでペインを増やせます"
+msgstr "通过命令“添加新栏”来增加栏数"
+
+#: ../achievement.rb:126
+msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
+msgstr "右击标签后选择“移动至新栏”看看吧"
+
+#: ../achievement.rb:134
+msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
+msgstr "拖动标签到其他栏，就可以把该标签移动至该栏"
+
+#: ../achievement.rb:135
+msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
+msgstr "在一栏中有两个以上标签的时候，试试拖动标签到其他栏上吧"
+
+#: ../achievement.rb:145
+msgid "クラッシュレポートの報告ありがとうございます"
+msgstr "谢谢您发送崩溃报告"
+
+#: ../achievement.rb:160
+msgid "実績 %s を達成しました！おめでとう♪"
+msgstr "成就已达成 %s ！祝贺你♪"

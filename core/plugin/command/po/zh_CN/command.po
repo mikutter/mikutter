@@ -1,0 +1,123 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the command package.
+# 
+# Translators:
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:41+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../command.rb:12
+msgid "コピー"
+msgstr "复制"
+
+#: ../command.rb:20
+msgid "本文をコピー"
+msgstr "复制本文"
+
+#: ../command.rb:28
+msgid "返信"
+msgstr "回复"
+
+#: ../command.rb:37
+msgid "全員に返信"
+msgstr "全员回复"
+
+#: ../command.rb:47
+msgid "引用"
+msgstr "引用转推"
+
+#: ../command.rb:54
+msgid "リツイート"
+msgstr "转推"
+
+#: ../command.rb:62
+msgid "リツイートをキャンセル"
+msgstr "取消转推"
+
+#: ../command.rb:72
+msgid "ふぁぼふぁぼする"
+msgstr "加星星"
+
+#: ../command.rb:80
+msgid "あんふぁぼ"
+msgstr "收回星星"
+
+#: ../command.rb:88
+msgid "削除"
+msgstr "删除"
+
+#: ../command.rb:94
+msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
+msgstr "丧失的信赖是无法挽回滴，真的要删除这个发言吗？"
+
+#: ../command.rb:97
+msgid "一つ上のメッセージを選択"
+msgstr "选择上一条发言"
+
+#: ../command.rb:104
+msgid "一つ下のメッセージを選択"
+msgstr "选择下一条发言"
+
+#: ../command.rb:111
+msgid "投稿する"
+msgstr "发送信息"
+
+#: ../command.rb:119
+msgid "ggrks"
+msgstr "不Google会死啊"
+
+#: ../command.rb:127
+msgid "リンクを開く"
+msgstr "打开链接"
+
+#: ../command.rb:143
+msgid "リンクをコピー"
+msgstr ""
+
+#: ../command.rb:152
+msgid "新規ペインに移動"
+msgstr "移动至新栏"
+
+#: ../command.rb:172
+msgid "タブを閉じる"
+msgstr "关闭标签"
+
+#: ../command.rb:182
+msgid "右のタブを選択"
+msgstr "选择右边的标签"
+
+#: ../command.rb:190
+msgid "左のタブを選択"
+msgstr "选择左边标签"
+
+#: ../command.rb:198
+msgid "右のペインを選択"
+msgstr "选择右栏"
+
+#: ../command.rb:206
+msgid "左のペインを選択"
+msgstr "选择左栏"
+
+#: ../command.rb:214
+msgid "投稿ボックスにフォーカス"
+msgstr "聚焦至发言框"
+
+#: ../command.rb:226
+msgid "タブにフォーカス"
+msgstr "聚焦至标签"
+
+#: ../command.rb:234
+msgid "タイムラインの一番上にジャーンプ！"
+msgstr "纵身一跃至时间线最上方！"

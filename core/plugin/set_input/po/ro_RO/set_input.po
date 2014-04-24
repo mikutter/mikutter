@@ -1,0 +1,63 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the set_input package.
+# 
+# Translators:
+# ArianServ <arianserv@gmail.com>, 2014
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-04-15 20:10+0000\n"
+"Last-Translator: ArianServ <arianserv@gmail.com>\n"
+"Language-Team: Romanian (Romania) (http://www.transifex.com/projects/p/mikutter/language/ro_RO/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ro_RO\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));\n"
+
+#: ../set_input.rb:4
+msgid "入力"
+msgstr "Intrare"
+
+#: ../set_input.rb:5
+msgid "投稿をリトライする回数"
+msgstr "Reîncearcă numărul înainte de a formula un mesaj"
+
+#: ../set_input.rb:6
+msgid "非公式Retweetにin_reply_to_statusを付与する"
+msgstr "Adaugă în_răspunsul_la_status pentru Retweet-uri neoficiale"
+
+#: ../set_input.rb:7
+msgid "短縮URL"
+msgstr "URL scurt"
+
+#: ../set_input.rb:8
+msgid "常にURLを短縮する"
+msgstr "Scurtează întotdeaună URL-uri"
+
+#: ../set_input.rb:9
+msgid "フッタ"
+msgstr "Subsol"
+
+#: ../set_input.rb:10
+msgid "デフォルトで挿入するフッタ"
+msgstr "Subsol implicit"
+
+#: ../set_input.rb:11
+msgid "リプライの場合はフッタを付与しない"
+msgstr "Nu adăuga subsolul la răspuns"
+
+#: ../set_input.rb:12
+msgid "リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"
+msgstr "Dacă te-ai simţit cumva nemulţumit la postarea unui răspuns cu acest un subsol de tip [3 zile până la finalizare], s-o lăsăm atunci pe data viitoare."
+
+#: ../set_input.rb:13
+msgid "引用(非公式ReTweet)の場合はフッタを付与しない"
+msgstr "Nu adăuga sufixul la citarea tweet-ului. (QT)"
+
+#: ../set_input.rb:14
+msgid "関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えないし邪魔ですよねぇ"
+msgstr "By the way, is it just me or do y'all find tooltips to be rubbish? I mean, they rarely contain useful information, and they block your view.\n\nApropo, mi se pare mie, sau tu crezi că toate ponturile sunt nasoale? Adică, foarte rar conţin informaţii utile, şi-ţi blochează perspectiva."

@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the notify package.
+# 
+# Translators:
+# akkiesoft <akkiesoft@marokun.net>, 2013
+# numpad0 <triphenylmethane@gmail.com>, 2013
+# Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-21 14:51+0000\n"
+"Last-Translator: numpad0 <triphenylmethane@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../notify.rb:8
+msgid "通知"
+msgstr "Notify"
+
+#: ../notify.rb:11
+msgid "ポップアップ"
+msgstr "Popup"
+
+#: ../notify.rb:12
+msgid "サウンド"
+msgstr "Sound"
+
+#: ../notify.rb:14
+msgid "フレンドタイムライン"
+msgstr "Friends timeline"
+
+#: ../notify.rb:15
+msgid "リプライ"
+msgstr "Reply"
+
+#: ../notify.rb:16
+msgid "フォローされたとき"
+msgstr "When followed by anyone."
+
+#: ../notify.rb:17
+msgid "フォロー解除されたとき"
+msgstr "When unfollowed by anyone."
+
+#: ../notify.rb:18
+msgid "リツイートされたとき"
+msgstr "When tweet is retweeted by anyone."
+
+#: ../notify.rb:19
+msgid "ふぁぼられたとき"
+msgstr "When my tweet is favorited by anyone."
+
+#: ../notify.rb:20
+msgid "ダイレクトメッセージ受信"
+msgstr "When received direct message."
+
+#: ../notify.rb:21
+msgid "通知を表示し続ける秒数"
+msgstr "Keep notification displayed for(seconds)"
+
+#: ../notify.rb:46
+msgid "%{users} にフォローされました。"
+msgstr "Followed by %{users}."
+
+#: ../notify.rb:53
+msgid "%{users} にリムーブされました。"
+msgstr "Unfollowed by %{users}."
+
+#: ../notify.rb:60
+msgid "fav by %{from_user} \"%{tweet}\""
+msgstr "fav by %{from_user} \"%{tweet}\""
+
+#: ../notify.rb:71
+msgid "ReTweet: %{tweet}"
+msgstr "ReTweet: %{tweet}"

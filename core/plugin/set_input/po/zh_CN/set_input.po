@@ -1,0 +1,63 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the set_input package.
+# 
+# Translators:
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-20 16:33+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../set_input.rb:4
+msgid "入力"
+msgstr "输入"
+
+#: ../set_input.rb:5
+msgid "投稿をリトライする回数"
+msgstr "发言重试次数"
+
+#: ../set_input.rb:6
+msgid "非公式Retweetにin_reply_to_statusを付与する"
+msgstr "非官方转推上添加in_reply_to_status"
+
+#: ../set_input.rb:7
+msgid "短縮URL"
+msgstr "缩短"
+
+#: ../set_input.rb:8
+msgid "常にURLを短縮する"
+msgstr "总是缩短"
+
+#: ../set_input.rb:9
+msgid "フッタ"
+msgstr "加入文尾"
+
+#: ../set_input.rb:10
+msgid "デフォルトで挿入するフッタ"
+msgstr "默认插入的文尾"
+
+#: ../set_input.rb:11
+msgid "リプライの場合はフッタを付与しない"
+msgstr "回复的时候不加入文尾"
+
+#: ../set_input.rb:12
+msgid "リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"
+msgstr "妈妈我再也不用担心在回复的时候还会自动插入[离考试还有3天]了！"
+
+#: ../set_input.rb:13
+msgid "引用(非公式ReTweet)の場合はフッタを付与しない"
+msgstr "引用(非官方转推)的时候也不插入文尾"
+
+#: ../set_input.rb:14
+msgid "関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えないし邪魔ですよねぇ"
+msgstr "话说回来悬停提示的内容一点都没营养而且还会遮住后面的东西真不是一般地讨厌你说是不是"

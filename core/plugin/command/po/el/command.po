@@ -1,0 +1,123 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the command package.
+# 
+# Translators:
+# Klearchos-Angelos Gkountras <kag@grrlz.net>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:41+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Greek (http://www.transifex.com/projects/p/mikutter/language/el/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../command.rb:12
+msgid "コピー"
+msgstr "Αντιγραφή"
+
+#: ../command.rb:20
+msgid "本文をコピー"
+msgstr "Αντιγραφή του κειμένου"
+
+#: ../command.rb:28
+msgid "返信"
+msgstr "Απάντηση"
+
+#: ../command.rb:37
+msgid "全員に返信"
+msgstr "Απάντηση σε όλους"
+
+#: ../command.rb:47
+msgid "引用"
+msgstr "Qoute"
+
+#: ../command.rb:54
+msgid "リツイート"
+msgstr "RT"
+
+#: ../command.rb:62
+msgid "リツイートをキャンセル"
+msgstr "Αναίρεση του RT"
+
+#: ../command.rb:72
+msgid "ふぁぼふぁぼする"
+msgstr "Fav"
+
+#: ../command.rb:80
+msgid "あんふぁぼ"
+msgstr "Unfav"
+
+#: ../command.rb:88
+msgid "削除"
+msgstr "Διαγραφή"
+
+#: ../command.rb:94
+msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
+msgstr "Η διαγραφή αυτό το τιτίβισμα δεν πρόκειται να βοηθήσει να ανακτήσει κάθε ίχνος αξιοπιστίας που μπορεί να έχετε χάσει, ξέρεις. Εξακολουθείτε να θέλετε να το κάνετε;"
+
+#: ../command.rb:97
+msgid "一つ上のメッセージを選択"
+msgstr "Επιλογή προηγούμενο tweet"
+
+#: ../command.rb:104
+msgid "一つ下のメッセージを選択"
+msgstr "Επιλογή επόμενου μυνήματος"
+
+#: ../command.rb:111
+msgid "投稿する"
+msgstr "Post"
+
+#: ../command.rb:119
+msgid "ggrks"
+msgstr "RTFG"
+
+#: ../command.rb:127
+msgid "リンクを開く"
+msgstr "Άνοιγμα αυτού του συνδέσμου"
+
+#: ../command.rb:143
+msgid "リンクをコピー"
+msgstr ""
+
+#: ../command.rb:152
+msgid "新規ペインに移動"
+msgstr "Μετακίνση στο επόμενο pane"
+
+#: ../command.rb:172
+msgid "タブを閉じる"
+msgstr ""
+
+#: ../command.rb:182
+msgid "右のタブを選択"
+msgstr ""
+
+#: ../command.rb:190
+msgid "左のタブを選択"
+msgstr ""
+
+#: ../command.rb:198
+msgid "右のペインを選択"
+msgstr ""
+
+#: ../command.rb:206
+msgid "左のペインを選択"
+msgstr ""
+
+#: ../command.rb:214
+msgid "投稿ボックスにフォーカス"
+msgstr ""
+
+#: ../command.rb:226
+msgid "タブにフォーカス"
+msgstr ""
+
+#: ../command.rb:234
+msgid "タイムラインの一番上にジャーンプ！"
+msgstr ""

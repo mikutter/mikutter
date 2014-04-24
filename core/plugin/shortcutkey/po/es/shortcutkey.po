@@ -1,0 +1,59 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the shortcutkey package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-02-04 19:38+0000\n"
+"Last-Translator: soulchainer <soulchainer@gmail.com>\n"
+"Language-Team: Spanish (http://www.transifex.com/projects/p/mikutter/language/es/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../shortcutkey.rb:23
+msgid "ショートカットキー"
+msgstr "Atajos de teclado"
+
+#: ../shortcutkey_listview.rb:41 ../shortcutkey_listview.rb:131
+#: ../shortcutkey_listview.rb:134
+msgid "キーバインド"
+msgstr "Atajo"
+
+#: ../shortcutkey_listview.rb:42
+msgid "機能名"
+msgstr "Acción"
+
+#: ../shortcutkey_listview.rb:94
+msgid "設定 - %{software_name}"
+msgstr "Configuración- %{software_name}"
+
+#: ../shortcutkey_listview.rb:98
+msgid "OK"
+msgstr "OK"
+
+#: ../shortcutkey_listview.rb:99
+msgid "キャンセル"
+msgstr "Cancelar"
+
+#: ../shortcutkey_listview.rb:114
+msgid "キーバインドを選択してください"
+msgstr "Por favor, elige una combinación de teclas."
+
+#: ../shortcutkey_listview.rb:115
+msgid "コマンドを選択してください"
+msgstr "Por favor, elige un comando."
+
+#: ../shortcutkey_listview.rb:179
+msgid "コマンド名"
+msgstr "Comando"
+
+#: ../shortcutkey_listview.rb:180
+msgid "スラッグ"
+msgstr "Identificador"

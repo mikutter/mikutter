@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the achievement package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:34+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Arabic (http://www.transifex.com/projects/p/mikutter/language/ar/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: ../achievement.rb:98
+msgid "実績"
+msgstr ""
+
+#: ../achievement.rb:101
+msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
+msgstr ""
+
+#: ../achievement.rb:108
+msgid "設定画面で、mikutterをカスタマイズしましょう。"
+msgstr ""
+
+#: ../achievement.rb:109
+msgid "画面右下にあるレンチのアイコンをクリックしよう"
+msgstr ""
+
+#: ../achievement.rb:116
+msgid "ヾ(＠⌒ー⌒＠)ノ"
+msgstr ""
+
+#: ../achievement.rb:117
+msgid "https://github.com/toshia/display_requirements"
+msgstr ""
+
+#: ../achievement.rb:125
+msgid "新規ペインを追加コマンドでペインを増やせます"
+msgstr ""
+
+#: ../achievement.rb:126
+msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
+msgstr ""
+
+#: ../achievement.rb:134
+msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
+msgstr ""
+
+#: ../achievement.rb:135
+msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
+msgstr ""
+
+#: ../achievement.rb:145
+msgid "クラッシュレポートの報告ありがとうございます"
+msgstr ""
+
+#: ../achievement.rb:160
+msgid "実績 %s を達成しました！おめでとう♪"
+msgstr ""

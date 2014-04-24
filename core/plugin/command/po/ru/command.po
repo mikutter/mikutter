@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the command package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:41+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Russian (http://www.transifex.com/projects/p/mikutter/language/ru/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../command.rb:12
+msgid "コピー"
+msgstr ""
+
+#: ../command.rb:20
+msgid "本文をコピー"
+msgstr ""
+
+#: ../command.rb:28
+msgid "返信"
+msgstr ""
+
+#: ../command.rb:37
+msgid "全員に返信"
+msgstr ""
+
+#: ../command.rb:47
+msgid "引用"
+msgstr ""
+
+#: ../command.rb:54
+msgid "リツイート"
+msgstr ""
+
+#: ../command.rb:62
+msgid "リツイートをキャンセル"
+msgstr ""
+
+#: ../command.rb:72
+msgid "ふぁぼふぁぼする"
+msgstr ""
+
+#: ../command.rb:80
+msgid "あんふぁぼ"
+msgstr ""
+
+#: ../command.rb:88
+msgid "削除"
+msgstr ""
+
+#: ../command.rb:94
+msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
+msgstr ""
+
+#: ../command.rb:97
+msgid "一つ上のメッセージを選択"
+msgstr ""
+
+#: ../command.rb:104
+msgid "一つ下のメッセージを選択"
+msgstr ""
+
+#: ../command.rb:111
+msgid "投稿する"
+msgstr ""
+
+#: ../command.rb:119
+msgid "ggrks"
+msgstr ""
+
+#: ../command.rb:127
+msgid "リンクを開く"
+msgstr ""
+
+#: ../command.rb:143
+msgid "リンクをコピー"
+msgstr ""
+
+#: ../command.rb:152
+msgid "新規ペインに移動"
+msgstr ""
+
+#: ../command.rb:172
+msgid "タブを閉じる"
+msgstr ""
+
+#: ../command.rb:182
+msgid "右のタブを選択"
+msgstr ""
+
+#: ../command.rb:190
+msgid "左のタブを選択"
+msgstr ""
+
+#: ../command.rb:198
+msgid "右のペインを選択"
+msgstr ""
+
+#: ../command.rb:206
+msgid "左のペインを選択"
+msgstr ""
+
+#: ../command.rb:214
+msgid "投稿ボックスにフォーカス"
+msgstr ""
+
+#: ../command.rb:226
+msgid "タブにフォーカス"
+msgstr ""
+
+#: ../command.rb:234
+msgid "タイムラインの一番上にジャーンプ！"
+msgstr ""

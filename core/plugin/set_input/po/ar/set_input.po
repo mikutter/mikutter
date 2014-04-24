@@ -1,0 +1,62 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the set_input package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-20 17:35+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Arabic (http://www.transifex.com/projects/p/mikutter/language/ar/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: ../set_input.rb:4
+msgid "入力"
+msgstr ""
+
+#: ../set_input.rb:5
+msgid "投稿をリトライする回数"
+msgstr ""
+
+#: ../set_input.rb:6
+msgid "非公式Retweetにin_reply_to_statusを付与する"
+msgstr ""
+
+#: ../set_input.rb:7
+msgid "短縮URL"
+msgstr ""
+
+#: ../set_input.rb:8
+msgid "常にURLを短縮する"
+msgstr ""
+
+#: ../set_input.rb:9
+msgid "フッタ"
+msgstr ""
+
+#: ../set_input.rb:10
+msgid "デフォルトで挿入するフッタ"
+msgstr ""
+
+#: ../set_input.rb:11
+msgid "リプライの場合はフッタを付与しない"
+msgstr ""
+
+#: ../set_input.rb:12
+msgid "リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"
+msgstr ""
+
+#: ../set_input.rb:13
+msgid "引用(非公式ReTweet)の場合はフッタを付与しない"
+msgstr ""
+
+#: ../set_input.rb:14
+msgid "関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えないし邪魔ですよねぇ"
+msgstr ""

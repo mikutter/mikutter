@@ -1,0 +1,36 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the search package.
+# 
+# Translators:
+# akkiesoft <akkiesoft@marokun.net>, 2013
+# Hotaka Hitagi, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-20 17:41+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../search.rb:6 ../search.rb:16
+msgid "検索"
+msgstr "Search"
+
+#: ../search.rb:7
+msgid "保存"
+msgstr "Save"
+
+#: ../search.rb:39
+msgid "検索中にエラーが発生しました (%{error})"
+msgstr "An error occurred while searching (%{error})"
+
+#: ../search.rb:46
+msgid "検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
+msgstr "We could not save search keywords, \"% {query}\" . Please try it later"

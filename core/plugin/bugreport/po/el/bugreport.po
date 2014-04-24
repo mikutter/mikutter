@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the bugreport package.
+# 
+# Translators:
+# Klearchos-Angelos Gkountras <kag@grrlz.net>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-11-20 13:22+0000\n"
+"Last-Translator: Klearchos-Angelos Gkountras <kag@grrlz.net>\n"
+"Language-Team: Greek (http://www.transifex.com/projects/p/mikutter/language/el/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../bugreport.rb:50
+msgid "%{mikutter} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ"
+msgstr " ヽ('ω')ﾉ三ヽ('ω')Συγνωμη αλλά τo  %{mikutter}  κράσαρε ξαφνικά !"
+
+#: ../bugreport.rb:51
+msgid "OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても役に立つんですよ。よかったら送ってくれません？"
+msgstr "Άμα πατήσεις το ΟΚ , τα επόμενα κειμενα θα σταλθούν αυτόματα. Αυτο είναι πολυ εύκολο για να διορθώσουμε τα bugs. Θα μου τα στείλεις?"
+
+#: ../bugreport.rb:86
+msgid "エラー報告を送信しました。ありがとう♡"
+msgstr "Η αναφορά του σφάλματος έχει αποσταλεί .Σε ευχαριστώ ♡"
+
+#: ../bugreport.rb:89
+msgid "ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww"
+msgstr "Pyaaaaaaaaaaaaaaaaaaaaaaa lolololololololololol"

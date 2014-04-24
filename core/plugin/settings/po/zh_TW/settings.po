@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the settings package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:42+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../basic_settings.rb:4
+msgid "基本設定"
+msgstr ""
+
+#: ../basic_settings.rb:5
+msgid "各情報を取りに行く間隔。単位は分"
+msgstr ""
+
+#: ../basic_settings.rb:6 ../basic_settings.rb:29
+msgid "タイムラインとリプライ"
+msgstr ""
+
+#: ../basic_settings.rb:7
+msgid "あなたがフォローしている人からのリプライとつぶやきの取得間隔"
+msgstr ""
+
+#: ../basic_settings.rb:9 ../basic_settings.rb:30
+msgid "フォローしていない人からのリプライ"
+msgstr ""
+
+#: ../basic_settings.rb:10
+msgid ""
+"あなたに送られてきたリプライを取得する間隔。\n"
+"上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"
+msgstr ""
+
+#: ../basic_settings.rb:12
+msgid "保存した検索"
+msgstr ""
+
+#: ../basic_settings.rb:13
+msgid "保存した検索を確認しに行く間隔"
+msgstr ""
+
+#: ../basic_settings.rb:15
+msgid "リストのタイムライン"
+msgstr ""
+
+#: ../basic_settings.rb:16
+msgid "表示中のリストのタイムラインを確認しに行く間隔"
+msgstr ""
+
+#: ../basic_settings.rb:18 ../basic_settings.rb:31
+msgid "フォロー"
+msgstr ""
+
+#: ../basic_settings.rb:19
+msgid "フォロー一覧を確認しに行く間隔。mikutterを使わずにフォローした場合、この時に同期される"
+msgstr ""
+
+#: ../basic_settings.rb:21 ../basic_settings.rb:32 ../basic_settings.rb:39
+msgid "フォロワー"
+msgstr ""
+
+#: ../basic_settings.rb:22
+msgid "フォロワー一覧を確認しに行く間隔"
+msgstr ""
+
+#: ../basic_settings.rb:24 ../basic_settings.rb:33 ../basic_settings.rb:40
+msgid "ダイレクトメッセージ"
+msgstr ""
+
+#: ../basic_settings.rb:25
+msgid "ダイレクトメッセージを確認しに行く間隔"
+msgstr ""
+
+#: ../basic_settings.rb:28
+msgid "一度に取得するつぶやきの件数(1-200)"
+msgstr ""
+
+#: ../basic_settings.rb:36
+msgid "イベントの発生頻度(ミリ秒単位)"
+msgstr ""
+
+#: ../basic_settings.rb:37
+msgid "タイムラインとリプライとリツイート"
+msgstr ""
+
+#: ../basic_settings.rb:38
+msgid "ふぁぼられ"
+msgstr ""
+
+#: ../basic_settings.rb:43
+msgid "リアルタイム更新"
+msgstr ""
+
+#: ../basic_settings.rb:44
+msgid "ホームタイムライン(UserStream)"
+msgstr ""
+
+#: ../basic_settings.rb:45
+msgid "Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります"
+msgstr ""
+
+#: ../basic_settings.rb:46
+msgid "リスト(Streaming API)"
+msgstr ""
+
+#: ../basic_settings.rb:47
+msgid "Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります"
+msgstr ""
+
+#: ../basic_settings.rb:50
+msgid "リプライ元をサーバに問い合わせて取得する"
+msgstr ""
+
+#: ../basic_settings.rb:51
+msgid "つぶやきの取得漏れを防止する（遅延対策）"
+msgstr ""
+
+#: ../basic_settings.rb:52
+msgid "遅延に強くなりますが、ちょっと遅くなります。"
+msgstr ""
+
+#: ../basic_settings.rb:54
+msgid "%s について"
+msgstr ""
+
+#: ../basic_settings.rb:57
+msgid "2009-%s Toshiaki Asai"
+msgstr ""
+
+#: ../basic_settings.rb:58
+msgid ""
+"全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n"
+"略して至高のTwitter Client。\n"
+"圧倒的なかわいさではないか我がミクは\n"
+"\n"
+"このソフトウェアは GPL3 によって浄化されています。"
+msgstr ""
+
+#: ../basic_settings.rb:60
+msgid "http://mikutter.hachune.net/"
+msgstr ""

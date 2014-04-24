@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the achievement package.
+# 
+# Translators:
+# Klearchos-Angelos Gkountras <kag@grrlz.net>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:34+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Greek (http://www.transifex.com/projects/p/mikutter/language/el/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../achievement.rb:98
+msgid "実績"
+msgstr "Έπιδοση"
+
+#: ../achievement.rb:101
+msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
+msgstr ""
+
+#: ../achievement.rb:108
+msgid "設定画面で、mikutterをカスタマイズしましょう。"
+msgstr "Ρυθμίσεις , mikutter , Ήρθε η ώρα για να προσαρμόσεις το mikutter"
+
+#: ../achievement.rb:109
+msgid "画面右下にあるレンチのアイコンをクリックしよう"
+msgstr "Κάνε κλικ στο γρανάζι κάτω δεξιά για να το αλλάξεις"
+
+#: ../achievement.rb:116
+msgid "ヾ(＠⌒ー⌒＠)ノ"
+msgstr ""
+
+#: ../achievement.rb:117
+msgid "https://github.com/toshia/display_requirements"
+msgstr "https://github.com/toshia/display_requirements"
+
+#: ../achievement.rb:125
+msgid "新規ペインを追加コマンドでペインを増やせます"
+msgstr "Μπορεί να αυξήσει το παράθυρο για μια πρόσθετη εντολή σε μια νέα σελίδα"
+
+#: ../achievement.rb:126
+msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
+msgstr "Κάντε δεξί κλικ στην καρτέλα, και μετά πατήστε το κουμπί \"Μετακίνηση σε νέο παράθυρο\""
+
+#: ../achievement.rb:134
+msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
+msgstr "Εάν σύρετε το παράθυρο σε μια άλλη καρτέλα, μπορείτε να μετακινηθείτε στο παράθυρο"
+
+#: ../achievement.rb:135
+msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
+msgstr "Όταν υπάρχουν δύο ή περισσότερους καρτέλες, ήρθε η ώρα να drag and drop το παράθυρο σε μια άλλη καρτέλα"
+
+#: ../achievement.rb:145
+msgid "クラッシュレポートの報告ありがとうございます"
+msgstr "Σας ευχαριστούμε που αναφέρετε το κρασάρισμα"
+
+#: ../achievement.rb:160
+msgid "実績 %s を達成しました！おめでとう♪"
+msgstr "Έχουμε αρχειοτεθήσει το αίτιμα σας% s! "

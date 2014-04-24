@@ -1,0 +1,93 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# 
+# Translators:
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-20 16:19+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../profile.rb:45
+msgid "%{user} のプロフィール"
+msgstr "%{user} 的用户信息"
+
+#: ../profile.rb:62
+msgid "最近のツイート"
+msgstr "最近的推"
+
+#: ../profile.rb:71
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr "@{user} 最近的发言获取失败。大概是不想让你看到吧"
+
+#: ../profile.rb:74 ../profile.rb:127
+msgid "ユーザについて"
+msgstr "关于此用户"
+
+#: ../profile.rb:91
+msgid "Web: %{url}"
+msgstr "主页：%{url}"
+
+#: ../profile.rb:94
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr "加入推圈时间: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day} 推/日)"
+
+#: ../profile.rb:123
+msgid "%{screen_name}(%{name})について"
+msgstr "关于 %{screen_name}(%{name})"
+
+#: ../profile.rb:144
+msgid "ミュート"
+msgstr "静音"
+
+#: ../profile.rb:172
+msgid "関係を取得中"
+msgstr "载入关系网"
+
+#: ../profile.rb:177
+msgid "それはあなたです！"
+msgstr "这不是你吗！"
+
+#: ../profile.rb:202
+msgid "ﾌｮﾛｰしている"
+msgstr "已关~注"
+
+#: ../profile.rb:202
+msgid "ﾌｮﾛｰしていない"
+msgstr "没有关~注"
+
+#: ../profile.rb:203
+msgid "ﾌｮﾛｰ"
+msgstr "关~注"
+
+#: ../profile.rb:203
+msgid "解除"
+msgstr "解除"
+
+#: ../profile.rb:212
+msgid "ﾌｮﾛｰされていない"
+msgstr "没有被关~注"
+
+#: ../profile.rb:212
+msgid "ﾌｮﾛｰされている"
+msgstr "被关~注"
+
+#: ../profile.rb:238
+msgid "取得できませんでした"
+msgstr "获取失败"
+
+#: ../profile.rb:294
+msgid "ふぁぼが取得できませんでした"
+msgstr "星星获取失败"

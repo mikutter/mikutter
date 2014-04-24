@@ -1,0 +1,108 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the change_account package.
+# 
+# Translators:
+# Klearchos-Angelos Gkountras <kag@grrlz.net>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-01-01 11:41+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Greek (http://www.transifex.com/projects/p/mikutter/language/el/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../change_account.rb:8
+msgid "アカウントエラー (@{user})"
+msgstr ""
+
+#: ../change_account.rb:9
+msgid ""
+"ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
+"設定から、認証をやり直してください。"
+msgstr ""
+
+#: ../change_account.rb:16
+msgid "前のアカウント"
+msgstr ""
+
+#: ../change_account.rb:30
+msgid "次のアカウント"
+msgstr ""
+
+#: ../change_account.rb:42
+msgid "アカウント情報"
+msgstr "Πληροφορίες λογαριασμού"
+
+#: ../change_account.rb:82
+msgid "インストールお疲れ様！"
+msgstr ""
+
+#: ../change_account.rb:83
+msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
+msgstr ""
+
+#: ../change_account.rb:98
+msgid "確定"
+msgstr ""
+
+#: ../change_account.rb:101
+msgid "コードを入力→"
+msgstr ""
+
+#: ../change_account.rb:118
+msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
+msgstr ""
+
+#: ../change_account.rb:119
+msgid "実績は新しい機能を使うと達成されるよ。たまに私が達成してない実績を教えてあげるから、その時は試してみてね。"
+msgstr ""
+
+#: ../change_account.rb:120
+msgid "改めて！%{name}さん、よろしくね！"
+msgstr ""
+
+#: ../change_account.rb:132
+msgid ""
+"コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
+"(%{code} %{message})"
+msgstr ""
+
+#: ../change_account.rb:135
+msgid ""
+"何かがおかしいよ。\n"
+"(%{code} %{message})"
+msgstr ""
+
+#: ../change_account.rb:140
+msgid ""
+"何かがおかしいよ。\n"
+"(%{error})"
+msgstr ""
+
+#: ../change_account.rb:148
+msgid ""
+"登録方法は、\n"
+"1. %{authorize_url} にアクセスする\n"
+"2. mikutterに登録したいTwitterアカウントでログイン\n"
+"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
+"だよ。"
+msgstr ""
+
+#: ../change_account.rb:163
+msgid "mikutterのチュートリアルを見た"
+msgstr ""
+
+#: ../change_account.rb:171
+msgid "前回の続きから説明するね"
+msgstr ""
+
+#: ../interactive.rb:5
+msgid "次へ"
+msgstr ""

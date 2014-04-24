@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the search package.
+# 
+# Translators:
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-20 16:28+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../search.rb:6 ../search.rb:16
+msgid "検索"
+msgstr "搜索"
+
+#: ../search.rb:7
+msgid "保存"
+msgstr "保存"
+
+#: ../search.rb:39
+msgid "検索中にエラーが発生しました (%{error})"
+msgstr "搜索中发生错误 (%{error})"
+
+#: ../search.rb:46
+msgid "検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
+msgstr "搜索关键词「%{query}」保存失败。请稍候再试"

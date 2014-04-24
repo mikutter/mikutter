@@ -1,0 +1,182 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the set_view package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2013-07-28 17:40+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../set_view.rb:36
+msgid "表示"
+msgstr ""
+
+#: ../set_view.rb:37
+msgid "フォント"
+msgstr ""
+
+#: ../set_view.rb:38
+msgid "デフォルト"
+msgstr ""
+
+#: ../set_view.rb:39
+msgid "リプライ元"
+msgstr ""
+
+#: ../set_view.rb:40
+msgid "ヘッダ（左）"
+msgstr ""
+
+#: ../set_view.rb:41
+msgid "ヘッダ（右）"
+msgstr ""
+
+#: ../set_view.rb:44
+msgid "背景色"
+msgstr ""
+
+#: ../set_view.rb:45
+msgid "つぶやき"
+msgstr ""
+
+#: ../set_view.rb:46
+msgid "自分宛"
+msgstr ""
+
+#: ../set_view.rb:47
+msgid "自分のつぶやき"
+msgstr ""
+
+#: ../set_view.rb:48
+msgid "選択中"
+msgstr ""
+
+#: ../set_view.rb:51
+msgid "Mentions"
+msgstr ""
+
+#: ../set_view.rb:52
+msgid "リプライを返したつぶやきにはアイコンを表示"
+msgstr ""
+
+#: ../set_view.rb:53
+msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
+msgstr ""
+
+#: ../set_view.rb:56
+msgid "Retweets"
+msgstr ""
+
+#: ../set_view.rb:57
+msgid "リツイートを表示する"
+msgstr ""
+
+#: ../set_view.rb:58
+msgid "TL上にリツイートを表示します"
+msgstr ""
+
+#: ../set_view.rb:59
+msgid "リツイートされたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:60
+msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:61
+msgid "自分がリツイートしたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:62
+msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:65
+msgid "ふぁぼふぁぼ"
+msgstr ""
+
+#: ../set_view.rb:66
+msgid "ふぁぼられを表示する"
+msgstr ""
+
+#: ../set_view.rb:67
+msgid "ふぁぼられたつぶやきの下に、ふぁぼった人のアイコンを表示します"
+msgstr ""
+
+#: ../set_view.rb:68
+msgid "ふぁぼられをリプライの受信として処理する"
+msgstr ""
+
+#: ../set_view.rb:69
+msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
+msgstr ""
+
+#: ../set_view.rb:70
+msgid "ふぁぼられたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:71
+msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:72
+msgid "自分がふぁぼったつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:73
+msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:76
+msgid "短縮URL"
+msgstr ""
+
+#: ../set_view.rb:77
+msgid "短縮URLを展開して表示"
+msgstr ""
+
+#: ../set_view.rb:78
+msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
+msgstr ""
+
+#: ../set_view.rb:81
+msgid "タブの位置"
+msgstr ""
+
+#: ../set_view.rb:81
+msgid "上"
+msgstr ""
+
+#: ../set_view.rb:81
+msgid "下"
+msgstr ""
+
+#: ../set_view.rb:81
+msgid "右"
+msgstr ""
+
+#: ../set_view.rb:81
+msgid "左"
+msgstr ""
+
+#: ../set_view.rb:83
+msgid "URLを開く方法"
+msgstr ""
+
+#: ../set_view.rb:84
+msgid "デフォルトブラウザを使う"
+msgstr ""
+
+#: ../set_view.rb:86
+msgid "次のコマンドを使う"
+msgstr ""

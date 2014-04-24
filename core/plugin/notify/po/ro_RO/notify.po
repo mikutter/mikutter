@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the notify package.
+# 
+# Translators:
+# ArianServ <arianserv@gmail.com>, 2014
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-04-13 18:13+0000\n"
+"Last-Translator: ArianServ <arianserv@gmail.com>\n"
+"Language-Team: Romanian (Romania) (http://www.transifex.com/projects/p/mikutter/language/ro_RO/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ro_RO\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));\n"
+
+#: ../notify.rb:8
+msgid "通知"
+msgstr "Notificare"
+
+#: ../notify.rb:11
+msgid "ポップアップ"
+msgstr "Popup"
+
+#: ../notify.rb:12
+msgid "サウンド"
+msgstr "Sunet"
+
+#: ../notify.rb:14
+msgid "フレンドタイムライン"
+msgstr "Cronologia prietenilor"
+
+#: ../notify.rb:15
+msgid "リプライ"
+msgstr "Răspuns"
+
+#: ../notify.rb:16
+msgid "フォローされたとき"
+msgstr "Când eşti urmărit de către oricine."
+
+#: ../notify.rb:17
+msgid "フォロー解除されたとき"
+msgstr "Când nu mai eşti urmărit de către oricine."
+
+#: ../notify.rb:18
+msgid "リツイートされたとき"
+msgstr "Când tweet-ul este retweeted de către oricine."
+
+#: ../notify.rb:19
+msgid "ふぁぼられたとき"
+msgstr "Când tweet-ul meu este marcat ca favorit de către oricine."
+
+#: ../notify.rb:20
+msgid "ダイレクトメッセージ受信"
+msgstr "Când este primit un mesaj direct."
+
+#: ../notify.rb:21
+msgid "通知を表示し続ける秒数"
+msgstr "Păstrează notificările afişate pentru un număr de secunde"
+
+#: ../notify.rb:46
+msgid "%{users} にフォローされました。"
+msgstr "Urmat de %{users}."
+
+#: ../notify.rb:53
+msgid "%{users} にリムーブされました。"
+msgstr "Anulare urmărire de către %{users}."
+
+#: ../notify.rb:60
+msgid "fav by %{from_user} \"%{tweet}\""
+msgstr "fav de %{from_user} \"%{tweet}\""
+
+#: ../notify.rb:71
+msgid "ReTweet: %{tweet}"
+msgstr "ReTweet: %{tweet}"
