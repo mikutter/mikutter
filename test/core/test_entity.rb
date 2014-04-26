@@ -67,6 +67,13 @@ class TC_Message < Test::Unit::TestCase
     Message::Entity.refresh
   end
 
+  def test_index_to_escaped_index
+    assert_equal(5, Message::Entity.index_to_escaped_index("foobar", 5))
+    assert_equal(2, Message::Entity.index_to_escaped_index("<foobar>", 5))
+    assert_equal(5, Message::Entity.index_to_escaped_index("<foo><bar>", 11))
+    assert_equal(5, Message::Entity.index_to_escaped_index("<&>abc", 15))
+  end
+
   def test_1
     mes = stub
     mes.stubs(:to_show).returns(THE_TWEET)
@@ -184,6 +191,50 @@ class TC_Message < Test::Unit::TestCase
 
     assert_kind_of(String, entity.to_s)
     assert_equal(tweet, entity.to_s.inspect)
+  end
+
+  def test_8
+    Plugin.stubs(:filtering).with(:expand_url, 'http://t.co/zYaNWyebgm').returns(["http://goo.gl/HDK5i"])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://t.co/zYaNWyebgm').returns([false])
+    Plugin.stubs(:filtering).with(:is_expanded, 'http://goo.gl/HDK5i').returns([true])
+    Plugin.stubs(:filtering).with(:expand_url, 'https://t.co/DCbLaYFXeu').returns(["http://twitter.com/ph_toei/status/352644565875974144/photo/1"])
+    Plugin.stubs(:filtering).with(:is_expanded, 'https://t.co/DCbLaYFXeu').returns([false])
+    mes = stub
+    mes.stubs(:to_show).returns("【特価品】Celeron C1037U&HM77、デュアルLAN(82574L)を搭載したNAS向miniITXマザー Giada N70E-DR V2 14980円 http://t.co/zYaNWyebgm https://t.co/DCbLaYFXeu")
+    mes.stubs(:[]).with(:id).returns(429203799404593152)
+    mes.stubs(:[]).with(:message).returns("【特価品】Celeron C1037U&amp;HM77、デュアルLAN(82574L)を搭載したNAS向miniITXマザー Giada N70E-DR V2 14980円 http://t.co/zYaNWyebgm https://t.co/DCbLaYFXeu")
+    mes.stubs(:[]).with(:entities).
+      returns({ hashtags: [],
+                symbols: [],
+                urls: 
+                [{ url: "http://t.co/zYaNWyebgm",
+                   expanded_url: "http://goo.gl/HDK5i",
+                   display_url: "goo.gl/HDK5i",
+                   indices: [88, 110]}],
+                user_mentions: [],
+                media: 
+                [{ id: 352644565880168448,
+                   id_str: "352644565880168448",
+                   indices: [111, 134],
+                   media_url: "http://pbs.twimg.com/media/BOTYXUFCYAAGmf_.jpg",
+                   media_url_https: "https://pbs.twimg.com/media/BOTYXUFCYAAGmf_.jpg",
+                   url: "https://t.co/DCbLaYFXeu",
+                   display_url: "pic.twitter.com/DCbLaYFXeu",
+                   expanded_url: 
+                   "http://twitter.com/ph_toei/status/352644565875974144/photo/1",
+                   type: "photo",
+                   sizes: 
+                   { medium: {w: 480, h: 437, resize: "fit"},
+                     thumb: {w: 150, h: 150, resize: "crop"},
+                     small: {w: 340, h: 310, resize: "fit"},
+                     large: {w: 480, h: 437, resize: "fit"}},
+                   source_status_id: 352644565875974144,
+                   source_status_id_str: "352644565875974144"}]})
+    mes.stubs(:is_a?).with(Message).returns(true)
+    entity = Message::Entity.new(mes)
+
+    assert_kind_of(String, entity.to_s)
+    assert_equal("【特価品】Celeron C1037U&HM77、デュアルLAN(82574L)を搭載したNAS向miniITXマザー Giada N70E-DR V2 14980円 goo.gl/HDK5i pic.twitter.com/DCbLaYFXeu", entity.to_s.inspect)
   end
 
 end

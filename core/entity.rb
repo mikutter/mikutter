@@ -4,6 +4,12 @@ miquire :core, 'userconfig'
 miquire :lib, 'addressable/uri'
 
 class Message::Entity
+  ESCAPE_RULE = {'&' => '&amp;'.freeze ,'>' => '&gt;'.freeze, '<' => '&lt;'.freeze}.freeze
+  UNESCAPE_RULE = ESCAPE_RULE.invert.freeze
+  REGEXP_EACH_CHARACTER = //u.freeze
+  REGEXP_ENTITY_ENCODE_TARGET = Regexp.union(*ESCAPE_RULE.keys.map(&Regexp.method(:escape))).freeze
+  REGEXP_ENTITY_DECODE_TARGET = Regexp.union(*ESCAPE_RULE.values.map(&Regexp.method(:escape))).freeze
+
   include Enumerable
 
   attr_reader :message
@@ -121,17 +127,14 @@ class Message::Entity
           return nil end end }
     nil end
 
-  private
-
   # "look http://example.com/" のようなツイートに対して、
   #  ["l", "o", "o", "k", " ", {エンティティのURLの値}]
   # のように、エンティティの情報を間に入れた配列にして返す。
   def segment_splitted
-    result = message.to_show.split(//u)
+    result = message.to_show.split(REGEXP_EACH_CHARACTER)
     reverse_each{ |segment|
       result[segment[:range]] = segment }
     result.freeze end
-  memoize :segment_splitted
 
   def segment_text
     result = []
@@ -144,7 +147,6 @@ class Message::Entity
       elsif segment.is_a? Hash
         result << segment end }
     result.freeze end
-  memoize :segment_text
 
   def generate_value
     @generate_thread.join if @generate_thread
@@ -196,13 +198,30 @@ class Message::Entity
       indices_to_range(link[:indices]) end end
 
   def indices_to_range(indices)
-    Range.new(index_to_escaped_index(indices[0]), index_to_escaped_index(indices[1]), true) end
+    Range.new(self.class.index_to_escaped_index(message.to_show, indices[0]),
+              self.class.index_to_escaped_index(message.to_show, indices[1]), true) end
 
-  def index_to_escaped_index(index)
-    escape_rule = {'>' => '&gt;', '<' => '&lt;'}
-    message.to_show.split(//u).map{ |s|
-      escape_rule[s] || s }.join.split(//u)[0, index].join.gsub(/&.+?;/, '.').size
-  end
+  # to_showで得たエンティティデコードされた文字列の index が、
+  # エンティティエンコードされた文字列ではどうなるかを返す。
+  # ==== Args
+  # [decoded_string] String デコードされた文字列
+  # [encoded_index] Fixnum エンコード済み文字列でのインデックス
+  # ==== Return
+  # Fixnum デコード済み文字列でのインデックス
+  def self.index_to_escaped_index(decoded_string, encoded_index)
+    decoded_string
+      .gsub(REGEXP_ENTITY_ENCODE_TARGET, &ESCAPE_RULE.method(:[]))
+      .slice(0, encoded_index)
+      .gsub(REGEXP_ENTITY_DECODE_TARGET, &UNESCAPE_RULE.method(:[]))
+      .size end
+    # decoded_string
+    #   .split(REGEXP_EACH_CHARACTER)
+    #   .map{ |s| ESCAPE_RULE[s] || s }
+    #   .join
+    #   .split(REGEXP_EACH_CHARACTER)[0, encoded_index]
+    #   .join
+    #   .gsub(/&.+?;/, '.'.freeze)
+    #   .size end
 
   class InvalidEntityError < Message::MessageError
   end

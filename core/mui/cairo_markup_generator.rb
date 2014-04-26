@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 require 'gtk2'
+miquire :core, 'entity'
 
 module Pango
-  ESCAPE_RULE = {'&' => '&amp;' ,'>' => '&gt;', '<' => '&lt;'}.freeze
   class << self
 
     # テキストをPango.parse_markupで安全にパースできるようにエスケープする。
     def escape(text)
-      text.gsub(/[<>&]/){|m| Pango::ESCAPE_RULE[m] } end
+      text.gsub(/[<>&]/){|m| Message::Entity::ESCAPE_RULE[m] } end
 
     alias old_parse_markup parse_markup
 
@@ -26,8 +26,8 @@ module Pango
 
 module Gdk::MarkupGenerator
 
-  ESCAPE_KEYS = Regexp::union(*Pango::ESCAPE_RULE.keys)
-  ESCAPE_KV = Pango::ESCAPE_RULE.method(:[])
+  ESCAPE_KEYS = Regexp::union(*Message::Entity::ESCAPE_RULE.keys)
+  ESCAPE_KV = Message::Entity::ESCAPE_RULE.method(:[])
 
   # 本文を返す
   def main_text
