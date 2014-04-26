@@ -145,12 +145,13 @@ class Gtk::IntelligentTextview < Gtk::TextView
   def apply_links
     @@linkrule.each{ |param|
       reg, left, right = param
-      buffer.text.scan(reg) { |match|
-        match = match.to_s
-        index = buffer.text[0, Regexp.last_match.begin(0)].size
-        create_tag_ifnecessary(match, buffer, left, right) if not buffer.tag_table.lookup(match)
-        range = buffer.get_range(index, match.size)
-        buffer.apply_tag(match, *range)
+      buffer.text.scan(reg) {
+        match = Regexp.last_match
+        index = buffer.text[0, match.begin(0)].size
+        body = match.to_s.freeze
+        create_tag_ifnecessary(body, buffer, left, right) if not buffer.tag_table.lookup(body)
+        range = buffer.get_range(index, body.size)
+        buffer.apply_tag(body, *range)
       } } end
 
   def apply_inner_widget
@@ -158,10 +159,11 @@ class Gtk::IntelligentTextview < Gtk::TextView
     @@widgetrule.each{ |param|
       reg, widget_generator = param
       buffer.text.scan(reg) { |match|
-        match = match.to_s
-        index = [buffer.text.size, Regexp.last_match.begin(0)].min
-        range = buffer.get_range(index, match.size + offset)
-        widget = widget_generator.call(match)
+        match = Regexp.last_match
+        index = [buffer.text.size, match.begin(0)].min
+        body = match.to_s.freeze
+        range = buffer.get_range(index, body.size + offset)
+        widget = widget_generator.call(body)
         if widget
           self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))
           offset += 1 end } } end
