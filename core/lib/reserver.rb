@@ -26,7 +26,7 @@ class Reserver < Delegator
     else
       raise ArgumentError.new('first argument must be Integer, String or Time')
     end
-    Reserver.regist(self)
+    Reserver.register(self)
   end
 
   def call
@@ -39,22 +39,22 @@ class Reserver < Delegator
   class << self
     WakeUp = Class.new(TimeoutError)
 
-    def regist(new)
+    def register(new)
       atomic do
-        (@recervers ||= SortedSet.new) << new
+        (@reservers ||= SortedSet.new) << new
         waiter.run end end
 
     def waiter
       atomic do
         @waiter = nil if @waiter and not @waiter.alive?
         @waiter ||= Thread.new do
-          while !@recervers.empty?
+          while !@reservers.empty?
             begin
-              recerver = @recervers.first
-              sleep_time = recerver.time - Time.now
+              reserver = @reservers.first
+              sleep_time = reserver.time - Time.now
               if sleep_time <= 0
-                @recervers.delete recerver
-                Thread.new(&recerver)
+                @reservers.delete reserver
+                Thread.new(&reserver)
               else
                 timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
             rescue WakeUp
