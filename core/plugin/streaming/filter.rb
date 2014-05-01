@@ -51,21 +51,23 @@ Plugin.create :streaming do
             notice "filter stream: disconnected #{r}"
             streamerror r
           end
-        rescue Net::HTTPError => e
-          notice "filter stream: disconnected: #{e.code} #{e.body}"
-          streamerror e
-          warn e
-        rescue Exception => e
-          notice "filter stream: disconnected: exception #{e}"
-          streamerror e
-          warn e end
+        rescue Net::HTTPError => exception
+          notice "filter stream: disconnected: #{exception.code} #{exception.body}"
+          streamerror exception
+          warn exception
+        rescue Net::ReadTimeout => exception
+          streamerror exception
+        rescue Exception => exception
+          notice "filter stream: disconnected: exception #{exception}"
+          streamerror exception
+          warn exception end
         notice "retry wait #{@fail.wait_time}, fail_count #{@fail.fail_count}"
         sleep @fail.wait_time } }
   end
 
-  def streamerror(e)
+  def streamerror(exception)
     @success_flag = false
-    @fail.notify(e) end
+    @fail.notify(exception) end
 
   Delayer.new {
     thread = start if UserConfig[:filter_realtime_rewind]

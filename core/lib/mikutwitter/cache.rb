@@ -19,7 +19,6 @@ module MikuTwitter::Cache
   def cache_write(path, body)
     begin
       cachefn = cache_file_path(path)
-      notice "write cache #{cachefn}"
       FileUtils.mkdir_p(File::dirname(cachefn))
       FileUtils.rm_rf(cachefn) if FileTest.exist?(cachefn) and not FileTest.file?(cachefn)
       file_put_contents(cachefn, body)
@@ -89,14 +88,12 @@ module MikuTwitter::Cache
     else
       cached_value = get_cache(path)
       if cached_value
-        notice "cache hit #{url}"
         return cached_value end end
     result
   rescue => e
-    notice e
+    warn e
     cached_value = get_cache(path)
     if cached_value
-      notice "cache hit #{url}"
       cached_value
     else
       raise e end end
@@ -105,7 +102,6 @@ module MikuTwitter::Cache
     path = "#{api}.json" + get_args(options)
     cached_value = get_cache(path)
     if cached_value
-      notice "cache hit #{url}"
       return cached_value end
     result = yield
     if result and '200' == result.code

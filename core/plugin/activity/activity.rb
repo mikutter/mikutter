@@ -79,20 +79,14 @@ Plugin.create(:activity) do
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
-    notice "reset activity registered"
     Reserver.new(60) {
       Delayer.new {
         if not model.destroyed?
-          notice "reset activity start"
           iters = model.to_enum(:each).to_a
           remove_count = iters.size - UserConfig[:activity_max]
-          notice "remove count #{remove_count}"
           if remove_count > 0
             iters[-remove_count, remove_count].each{ |mpi|
-              notice "activity deleted: #{mpi[2][ActivityView::TITLE]}"
-              model.remove(mpi[2]) }
-          else
-            notice "nothing to remove activity" end
+              model.remove(mpi[2]) } end
           reset_activity(model) end } }
   end
 

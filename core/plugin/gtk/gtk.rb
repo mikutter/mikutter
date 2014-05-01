@@ -216,11 +216,7 @@ Plugin.create :gtk do
       false } end
 
   on_gui_pane_join_window do |i_pane, i_window|
-    puts "gui_pane_join_window #{i_pane.slug.inspect}, #{i_window.slug.inspect}"
     window = widgetof(i_window)
-    unless window
-      pp @slug_dictionary
-    end
     pane = widgetof(i_pane)
     if pane.parent
       if pane.parent != window.panes

@@ -172,18 +172,10 @@ module MikuTwitter::APIShortcuts
   #
 
   def userstream(params={}, &chunk)
-    begin
-      stream("https://userstream.twitter.com/1.1/user.json", params, &chunk)
-    rescue Exception => e
-      warn e
-      raise e end end
+    stream("https://userstream.twitter.com/1.1/user.json", params, &chunk) end
 
   def filter_stream(params={}, &chunk)
-    begin
-      stream("https://stream.twitter.com/1.1/statuses/filter.json", params, &chunk)
-    rescue Exception => e
-      warn e
-      raise e end end
+    stream("https://stream.twitter.com/1.1/statuses/filter.json", params, &chunk) end
 
   private
 
