@@ -63,16 +63,21 @@ module Miquire::Plugin
     def get_spec(path)
       type_strict path => String
       plugin_dir = FileTest.directory?(path) ? path : File.dirname(path)
-      spec_filename = File.join(plugin_dir, "spec")
+      spec_filename = File.join(plugin_dir, ".mikutter.yml")
+      deprecated_spec = false
+      unless FileTest.exist? spec_filename
+        spec_filename = File.join(plugin_dir, "spec")
+        deprecated_spec = true end
       if FileTest.exist? spec_filename
-        spec = YAML.load_file(spec_filename).symbolize
-        spec[:path] = plugin_dir
-        spec[:kind] = get_kind(path)
-        spec
+        YAML.load_file(spec_filename).symbolize
+          .merge(kind: get_kind(path),
+                 path: plugin_dir,
+                 deprecated_spec: deprecated_spec)
       elsif FileTest.exist? path
         { slug: File.basename(path, ".rb").to_sym,
           kind: get_kind(path),
-          path: plugin_dir } end end
+          path: plugin_dir,
+          deprecated_spec: deprecated_spec } end end
 
     def get_spec_by_slug(slug)
       type_strict slug => Symbol
@@ -131,6 +136,14 @@ module Miquire::Plugin
       ::Plugin.create(spec[:slug].to_sym) do
         self.spec = spec end
       Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
+      if spec[:deprecated_spec]
+        title = "#{spec[:slug]}: specファイルは非推奨になりました。"
+        Plugin.call(:modify_activity,
+                    { plugin: spec[:slug],
+                      kind: "system",
+                      title: title,
+                      date: Time.now,
+                      description: "#{title}\n代わりに.mikutter.ymlを使ってください。"}) end
       true end
   end
 end
