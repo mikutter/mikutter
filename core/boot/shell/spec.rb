@@ -73,9 +73,12 @@ class Depend < Ripper::Filter
 end
 
 def spec_generate(dir)
-  specfile = File.join(dir, "spec")
+  specfile = File.join(dir, ".mikutter.yml")
+  legacy_specfile = File.join(dir, "spec")
   spec = if FileTest.exist?(specfile)
            YAML.load_file(specfile)
+         elsif FileTest.exist?(legacy_specfile)
+           YAML.load_file(legacy_specfile)
          else
            user = UserConfig[:verify_credentials] || {}
            idname = user[:idname]
