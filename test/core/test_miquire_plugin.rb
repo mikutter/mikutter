@@ -11,6 +11,10 @@ class TC_MiquirePlugin < Test::Unit::TestCase
     Plugin.clear!
   end
 
+  def teardown
+    Delayer.run while not Delayer.empty?
+  end
+
   must "to_hash return all spec" do
     hash = Miquire::Plugin.to_hash
     assert_equal :standalone, hash[:standalone][:slug]
@@ -93,6 +97,31 @@ class TC_MiquirePlugin < Test::Unit::TestCase
       Miquire::Plugin.load(:parent_not_found)
     }
     assert(!Plugin.instance_exist?(:parent_not_found), "依存しているプラグインがない場合ロードに失敗する")
+  end
+
+  must "legacy spec file raise warning" do
+    last_notification = {}
+    listener = EventListener.new(Event[:modify_activity]) { |param|
+      last_notification = param }
+    begin
+      assert(Miquire::Plugin.load(:legacyspec),
+             "古いspecファイルをもつプラグインはロードできる")
+      Delayer.run while not Delayer.empty?
+      assert_equal(:legacyspec, last_notification[:plugin], '古いspecファイルをもつプラグインは警告が出る')
+
+      last_notification = nil
+      assert(Miquire::Plugin.load(:child),
+             ".mikutter.ymlファイルをもつプラグインはロードできる")
+      Delayer.run while not Delayer.empty?
+      assert_nil(last_notification, '.mikutter.ymlファイルをもつプラグインは警告が出ない')
+
+      last_notification = nil
+      assert(Miquire::Plugin.load(:standalone),
+             "specファイルをもつプラグインはロードできる")
+      Delayer.run while not Delayer.empty?
+      assert_nil(last_notification, 'specファイルを持たないプラグインは警告が出ない')
+    ensure
+      listener.detach end
   end
 
 end

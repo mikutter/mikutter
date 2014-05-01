@@ -77,7 +77,7 @@ module Miquire::Plugin
         { slug: File.basename(path, ".rb").to_sym,
           kind: get_kind(path),
           path: plugin_dir,
-          deprecated_spec: deprecated_spec } end end
+          deprecated_spec: false } end end
 
     def get_spec_by_slug(slug)
       type_strict slug => Symbol
@@ -140,9 +140,10 @@ module Miquire::Plugin
         title = "#{spec[:slug]}: specファイルは非推奨になりました。"
         Plugin.call(:modify_activity,
                     { plugin: spec[:slug],
-                      kind: "system",
+                      kind: "error",
                       title: title,
                       date: Time.now,
+                      spec: spec,
                       description: "#{title}\n代わりに.mikutter.ymlを使ってください。"}) end
       true end
   end

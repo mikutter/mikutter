@@ -1,0 +1,9 @@
+---
+slug: :legacyspec
+depends:
+  mikutter: 0.2.2.1150
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: legacy spec plugin
+description: legacy spec plugin
