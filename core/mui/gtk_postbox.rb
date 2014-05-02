@@ -138,7 +138,6 @@ module Gtk
         text = widget_post.buffer.text
         text += UserConfig[:footer] if add_footer?
         @posting = service.post(:message => text){ |event, msg|
-          notice [event, msg].inspect
           case event
           when :start
             Delayer.new{ start_post }
