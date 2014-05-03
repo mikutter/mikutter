@@ -86,8 +86,8 @@ Plugin.create :openimg do
 
   def get_tag_by_attributes(tag)
     attribute = {}
-    tag.scan(/([^\s=]+)=(?:['"])(.*?)\2/){ |pair|
-      key, val = pair
+    tag.scan(/([^\s=]+)=(['"])(.*?)\2/){ |pair|
+      key, val = pair[0], pair[2]
       attribute[key] = val }
     attribute.freeze end
 
