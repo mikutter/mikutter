@@ -64,14 +64,14 @@ def gen_counter(count=0, increment=1)
 
 # ファイルの内容を文字列に読み込む
 def file_get_contents(fn)
-  open(fn, 'r:utf-8'){ |input|
+  open(fn, 'rb:utf-8'.freeze){ |input|
     input.read
   }
 end
 
 # 文字列をファイルに書き込む
 def file_put_contents(fn, body)
-  File.open(fn, 'w'){ |put|
+  File.open(fn, 'wb'.freeze){ |put|
     put.write body
     body
   }
@@ -80,7 +80,7 @@ end
 # ファイル _fn_ の内容からオブジェクトを読み込む。
 # _fn_ は、object_put_contents() で保存されたファイルでなければならない。
 def object_get_contents(fn)
-  File.open(fn, 'r'){ |input|
+  File.open(fn, 'rb'.freeze){ |input|
     Marshal.load input
   }
 end

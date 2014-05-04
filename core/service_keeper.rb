@@ -23,7 +23,7 @@ class Service
     def accounts
       @account_data ||= @@service_lock.synchronize do
         if FileTest.exist? ACCOUNT_FILE
-          File.open(ACCOUNT_FILE) do |file|
+          File.open(ACCOUNT_FILE, 'rb'.freeze) do |file|
             YAML.load(decrypt(file.read)) end
         else
           # 旧データの引き継ぎ
@@ -107,7 +107,7 @@ class Service
     # アカウント情報をファイルに保存する
     def account_write(account_data = @account_data)
       FileUtils.mkdir_p File.dirname(ACCOUNT_FILE)
-      File.open(ACCOUNT_TMP, 'w'.freeze) do |file|
+      File.open(ACCOUNT_TMP, 'wb'.freeze) do |file|
         file << encrypt(YAML.dump(account_data)) end
       FileUtils.mv(ACCOUNT_TMP, ACCOUNT_FILE)
       account_data end
