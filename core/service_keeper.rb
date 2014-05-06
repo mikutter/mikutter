@@ -4,6 +4,7 @@ miquire :core, 'environment'
 
 require 'fileutils'
 require 'openssl'
+require 'securerandom'
 
 class Service
   module SaveData
