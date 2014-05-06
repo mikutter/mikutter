@@ -24,7 +24,7 @@ Plugin.create :core do
   # フィルタのプロシージャ(Proc)
   def gen_message_filter
     appeared = Set.new
-    -> (messages){
+    ->(messages){
       [messages.select{ |message|
          appeared.add(message.id) unless appeared.include?(message.id) }] } end
 
