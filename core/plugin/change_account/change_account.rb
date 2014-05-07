@@ -20,8 +20,7 @@ Plugin.create :change_account do
     index = Service.instances.index(Service.primary)
     if index
       max = Service.instances.size
-      bound = max - 1
-      Service.set_primary(Service.instances[(bound - (bound - index - 1)) % max])
+      Service.set_primary(Service.instances[(max + index - 1) % max])
     elsif not Service.instances.empty?
       Service.set_primary(Service.instances.first) end
   end
