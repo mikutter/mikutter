@@ -4,15 +4,15 @@
 # 
 # Translators:
 # akkiesoft <akkiesoft@marokun.net>, 2013
-# polamjag <indirectgeeks@gmail.com>, 2013
+# polamjag <indirectgeeks@gmail.com>, 2013-2014
 # Hotaka Hitagi, 2013
 # Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:42+0000\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-06 16:27+0000\n"
 "Last-Translator: Hotaka Hitagi\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -45,7 +45,7 @@ msgstr "Replies from users you aren't following"
 msgid ""
 "あなたに送られてきたリプライを取得する間隔。\n"
 "上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"
-msgstr ""
+msgstr "Interval between retrieving replies sent to you.\\nThis includes the retrieval of replies from people you don't follow as well as those you do."
 
 #: ../basic_settings.rb:12
 msgid "保存した検索"
@@ -149,7 +149,7 @@ msgid ""
 "略して至高のTwitter Client。\n"
 "圧倒的なかわいさではないか我がミクは\n"
 "\n"
-"このソフトウェアは GPL3 によって浄化されています。"
+"このソフトウェアは %{license} によって浄化されています。"
 msgstr ""
 
 #: ../basic_settings.rb:60

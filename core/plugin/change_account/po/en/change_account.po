@@ -7,6 +7,7 @@
 # polamjag <indirectgeeks@gmail.com>, 2014
 # iorivur <fivo.11235813@gmail.com>, 2013
 # Hotaka Hitagi, 2013
+# きゃれっと <mtakeda.enigsol@gmail.com>, 2014
 # numpad0 <triphenylmethane@gmail.com>, 2013
 # roobre <roobre@roobre.es>, 2013
 # Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2014
@@ -14,9 +15,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-03 15:30+0000\n"
-"Last-Translator: polamjag <indirectgeeks@gmail.com>\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-06 16:27+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,7 +33,7 @@ msgstr "Account error (@{user})"
 msgid ""
 "ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
 "設定から、認証をやり直してください。"
-msgstr "OAuth for @{user} failed"
+msgstr "OAuth for @{user} failed (@{response})\nPlease retry authentication from the settings."
 
 #: ../change_account.rb:16
 msgid "前のアカウント"
@@ -42,70 +43,80 @@ msgstr "Previous account"
 msgid "次のアカウント"
 msgstr "Next account"
 
-#: ../change_account.rb:42
+#: ../change_account.rb:49
+msgid "@%{screen_name}(%{name}) に切り替える"
+msgstr ""
+
+#: ../change_account.rb:59
 msgid "アカウント情報"
 msgstr "Account information"
 
-#: ../change_account.rb:82
+#: ../change_account.rb:99
 msgid "インストールお疲れ様！"
-msgstr ""
+msgstr "Well done on the installation!"
 
-#: ../change_account.rb:83
+#: ../change_account.rb:100
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
 msgstr ""
 
-#: ../change_account.rb:98
+#: ../change_account.rb:115
 msgid "確定"
 msgstr "Confirm"
 
-#: ../change_account.rb:101
+#: ../change_account.rb:118
 msgid "コードを入力→"
 msgstr "Enter the code→"
 
-#: ../change_account.rb:118
+#: ../change_account.rb:135
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
 msgstr ""
 
-#: ../change_account.rb:119
-msgid "実績は新しい機能を使うと達成されるよ。たまに私が達成してない実績を教えてあげるから、その時は試してみてね。"
-msgstr ""
-
-#: ../change_account.rb:120
-msgid "改めて！%{name}さん、よろしくね！"
-msgstr ""
-
-#: ../change_account.rb:132
+#: ../change_account.rb:147
 msgid ""
 "コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
 "(%{code} %{message})"
-msgstr ""
+msgstr "It seems that the code is wrong. Please authenticate again with the new URL.\n(%{code} %{message})"
 
-#: ../change_account.rb:135
+#: ../change_account.rb:150
 msgid ""
 "何かがおかしいよ。\n"
 "(%{code} %{message})"
-msgstr "Something wrong.\n(%{code} %{message})"
+msgstr "Something's wrong.\n(%{code} %{message})"
 
-#: ../change_account.rb:140
+#: ../change_account.rb:155
 msgid ""
 "何かがおかしいよ。\n"
 "(%{error})"
-msgstr "Something wrong.\n(%{error})"
+msgstr "Something's wrong.\n(%{error})"
 
-#: ../change_account.rb:148
+#: ../change_account.rb:163
 msgid ""
 "登録方法は、\n"
 "1. %{authorize_url} にアクセスする\n"
 "2. mikutterに登録したいTwitterアカウントでログイン\n"
 "3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
 "だよ。"
+msgstr "1. Click the link %{authorize_url}\n2. Login with the Twitter account you wish to use.\n3. Go along until you see a 7-digit code and type it in at the top."
+
+#: ../change_account.rb:169
+msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
 msgstr ""
 
-#: ../change_account.rb:163
+#: ../change_account.rb:175
+msgid ""
+"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
+"をインストールしてくれたんだもんね。"
+msgstr ""
+
+#: ../change_account.rb:176
+msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
+msgstr ""
+
+#: ../change_account.rb:187
 msgid "mikutterのチュートリアルを見た"
 msgstr ""
 
-#: ../change_account.rb:171
+#: ../change_account.rb:198
 msgid "前回の続きから説明するね"
 msgstr ""
 

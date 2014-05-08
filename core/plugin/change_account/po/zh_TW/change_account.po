@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:41+0000\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-06 16:27+0000\n"
 "Last-Translator: Hotaka Hitagi\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -36,57 +36,53 @@ msgstr ""
 msgid "次のアカウント"
 msgstr ""
 
-#: ../change_account.rb:42
+#: ../change_account.rb:49
+msgid "@%{screen_name}(%{name}) に切り替える"
+msgstr ""
+
+#: ../change_account.rb:59
 msgid "アカウント情報"
 msgstr "賬戶信息"
 
-#: ../change_account.rb:82
+#: ../change_account.rb:99
 msgid "インストールお疲れ様！"
 msgstr ""
 
-#: ../change_account.rb:83
+#: ../change_account.rb:100
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
 msgstr ""
 
-#: ../change_account.rb:98
+#: ../change_account.rb:115
 msgid "確定"
 msgstr ""
 
-#: ../change_account.rb:101
+#: ../change_account.rb:118
 msgid "コードを入力→"
 msgstr ""
 
-#: ../change_account.rb:118
+#: ../change_account.rb:135
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
 msgstr ""
 
-#: ../change_account.rb:119
-msgid "実績は新しい機能を使うと達成されるよ。たまに私が達成してない実績を教えてあげるから、その時は試してみてね。"
-msgstr ""
-
-#: ../change_account.rb:120
-msgid "改めて！%{name}さん、よろしくね！"
-msgstr ""
-
-#: ../change_account.rb:132
+#: ../change_account.rb:147
 msgid ""
 "コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
 "(%{code} %{message})"
 msgstr ""
 
-#: ../change_account.rb:135
+#: ../change_account.rb:150
 msgid ""
 "何かがおかしいよ。\n"
 "(%{code} %{message})"
 msgstr ""
 
-#: ../change_account.rb:140
+#: ../change_account.rb:155
 msgid ""
 "何かがおかしいよ。\n"
 "(%{error})"
 msgstr ""
 
-#: ../change_account.rb:148
+#: ../change_account.rb:163
 msgid ""
 "登録方法は、\n"
 "1. %{authorize_url} にアクセスする\n"
@@ -95,11 +91,25 @@ msgid ""
 "だよ。"
 msgstr ""
 
-#: ../change_account.rb:163
+#: ../change_account.rb:169
+msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
+msgstr ""
+
+#: ../change_account.rb:175
+msgid ""
+"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
+"をインストールしてくれたんだもんね。"
+msgstr ""
+
+#: ../change_account.rb:176
+msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
+msgstr ""
+
+#: ../change_account.rb:187
 msgid "mikutterのチュートリアルを見た"
 msgstr ""
 
-#: ../change_account.rb:171
+#: ../change_account.rb:198
 msgid "前回の続きから説明するね"
 msgstr ""
 

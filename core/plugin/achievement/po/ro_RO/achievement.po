@@ -4,13 +4,14 @@
 # 
 # Translators:
 # ArianServ <arianserv@gmail.com>, 2014
+# Hotaka Hitagi, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-04-12 07:35+0000\n"
-"Last-Translator: ArianServ <arianserv@gmail.com>\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-04-25 15:26+0000\n"
+"Last-Translator: Hotaka Hitagi\n"
 "Language-Team: Romanian (Romania) (http://www.transifex.com/projects/p/mikutter/language/ro_RO/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,7 +37,7 @@ msgstr "Apăsaţi pe pictograma cheie, din colţul dreapta jos al ecranului"
 
 #: ../achievement.rb:116
 msgid "ヾ(＠⌒ー⌒＠)ノ"
-msgstr "suzu (@ ⌒ over ⌒ @) Bruno "
+msgstr "ヾ(＠⌒ー⌒＠)ノ"
 
 #: ../achievement.rb:117
 msgid "https://github.com/toshia/display_requirements"
@@ -62,6 +63,6 @@ msgstr "Încercaţi fixarea şi glisarea filei între panouri, când există dou
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "Vă mulţumim pentru trimiterea raportului de erori"
 
-#: ../achievement.rb:160
+#: ../achievement.rb:163
 msgid "実績 %s を達成しました！おめでとう♪"
 msgstr "Felicitări ♪ Aţi obținut realizarea %s!"

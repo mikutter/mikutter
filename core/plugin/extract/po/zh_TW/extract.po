@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-28 17:40+0000\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-06 16:27+0000\n"
 "Last-Translator: Hotaka Hitagi\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -17,22 +17,79 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../extract.rb:16
+#: ../edit_window.rb:12 ../edit_window.rb:123
+msgid "%{name} - 抽出タブ - %{application_name}"
+msgstr ""
+
+#: ../edit_window.rb:15
+msgid "データソース"
+msgstr ""
+
+#: ../edit_window.rb:16
+msgid "絞り込み条件"
+msgstr ""
+
+#: ../edit_window.rb:17
+msgid "オプション"
+msgstr ""
+
+#: ../edit_window.rb:67 ../edit_window.rb:108 ../extract.rb:103
+#: ../extract_tab_list.rb:19
+msgid "名前"
+msgstr ""
+
+#: ../edit_window.rb:109
+msgid "アイコン"
+msgstr ""
+
+#: ../edit_window.rb:110
+msgid "通知"
+msgstr ""
+
+#: ../edit_window.rb:111
+msgid "サウンド"
+msgstr ""
+
+#: ../edit_window.rb:112
+msgid "ポップアップ"
+msgstr ""
+
+#: ../edit_window.rb:115
+msgid "閉じる"
+msgstr ""
+
+#: ../extract.rb:19
 msgid "抽出タブ"
 msgstr ""
 
-#: ../extract.rb:115
+#: ../extract.rb:49
+msgid "抽出条件を編集"
+msgstr ""
+
+#: ../extract.rb:85
+msgid "本当に抽出タブ「%{name}」を削除しますか？"
+msgstr ""
+
+#: ../extract.rb:97
+msgid "抽出タブを作成 - %{mikutter}"
+msgstr ""
+
+#: ../extract.rb:141
 msgid "受信したすべての投稿"
 msgstr ""
 
-#: ../extract.rb:116
-msgid "フレンドタイムライン"
+#: ../extract.rb:142
+msgid "ホームタイムライン(全てのアカウント)"
 msgstr ""
 
-#: ../extract.rb:117
-msgid "自分宛のリプライ"
+#: ../extract.rb:143
+msgid "自分宛ての投稿(全てのアカウント)"
 msgstr ""
 
-#: ../extract.rb:118
-msgid "自分が投稿したメッセージ"
+#: ../extract.rb:147
+msgid "Home Timeline"
+msgstr ""
+
+#: ../extract.rb:148
+msgid "Mentions"
 msgstr ""

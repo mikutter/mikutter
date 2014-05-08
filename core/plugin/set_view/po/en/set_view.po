@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-21 21:38+0000\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-06 16:27+0000\n"
 "Last-Translator: Hotaka Hitagi\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -21,166 +21,170 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../set_view.rb:36
+#: ../set_view.rb:40
 msgid "表示"
 msgstr "View"
 
-#: ../set_view.rb:37
+#: ../set_view.rb:41
 msgid "フォント"
 msgstr "Font"
 
-#: ../set_view.rb:38
+#: ../set_view.rb:42
 msgid "デフォルト"
 msgstr "Default"
 
-#: ../set_view.rb:39
+#: ../set_view.rb:43
 msgid "リプライ元"
 msgstr "Source of reply"
 
-#: ../set_view.rb:40
+#: ../set_view.rb:44
 msgid "ヘッダ（左）"
 msgstr "Left header"
 
-#: ../set_view.rb:41
+#: ../set_view.rb:45
 msgid "ヘッダ（右）"
 msgstr "Right header"
 
-#: ../set_view.rb:44
+#: ../set_view.rb:48
 msgid "背景色"
 msgstr "Background color"
 
-#: ../set_view.rb:45
+#: ../set_view.rb:49
 msgid "つぶやき"
 msgstr "Tweet"
 
-#: ../set_view.rb:46
+#: ../set_view.rb:50
 msgid "自分宛"
 msgstr "Addressing to myeself"
 
-#: ../set_view.rb:47
+#: ../set_view.rb:51
 msgid "自分のつぶやき"
 msgstr "My tweet"
 
-#: ../set_view.rb:48
+#: ../set_view.rb:52
+msgid "システムメッセージ"
+msgstr ""
+
+#: ../set_view.rb:53
 msgid "選択中"
 msgstr "Selected tweets"
 
-#: ../set_view.rb:51
+#: ../set_view.rb:56
 msgid "Mentions"
 msgstr "Mentions"
 
-#: ../set_view.rb:52
+#: ../set_view.rb:57
 msgid "リプライを返したつぶやきにはアイコンを表示"
 msgstr "Show icon on tweets which already replied"
 
-#: ../set_view.rb:53
+#: ../set_view.rb:58
 msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
 msgstr "Show reply button on the icon of tweet already replied all along"
 
-#: ../set_view.rb:56
+#: ../set_view.rb:61
 msgid "Retweets"
 msgstr "Retweets"
 
-#: ../set_view.rb:57
+#: ../set_view.rb:62
 msgid "リツイートを表示する"
 msgstr "Show retweet"
 
-#: ../set_view.rb:58
+#: ../set_view.rb:63
 msgid "TL上にリツイートを表示します"
 msgstr "Show retweet on timeline"
 
-#: ../set_view.rb:59
+#: ../set_view.rb:64
 msgid "リツイートされたつぶやきをTL上でageる"
 msgstr "Re-order Retweeted to top on Timeline"
 
-#: ../set_view.rb:60
+#: ../set_view.rb:65
 msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
 msgstr "Your Retweeted post will show up on top of your timeline"
 
-#: ../set_view.rb:61
+#: ../set_view.rb:66
 msgid "自分がリツイートしたつぶやきをTL上でageる"
 msgstr "Re-order my Retweet to top on Timeline"
 
-#: ../set_view.rb:62
+#: ../set_view.rb:67
 msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
 msgstr "Reweets you make will show up on top of your timeline"
 
-#: ../set_view.rb:65
+#: ../set_view.rb:70
 msgid "ふぁぼふぁぼ"
 msgstr "Fav fav"
 
-#: ../set_view.rb:66
+#: ../set_view.rb:71
 msgid "ふぁぼられを表示する"
 msgstr "Show favorited"
 
-#: ../set_view.rb:67
+#: ../set_view.rb:72
 msgid "ふぁぼられたつぶやきの下に、ふぁぼった人のアイコンを表示します"
 msgstr "Show user icon below your fav'd tweets"
 
-#: ../set_view.rb:68
+#: ../set_view.rb:73
 msgid "ふぁぼられをリプライの受信として処理する"
 msgstr "Process my favs as reply"
 
-#: ../set_view.rb:69
+#: ../set_view.rb:74
 msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
 msgstr "Your fav'd tweet will show up on Reply tab."
 
-#: ../set_view.rb:70
+#: ../set_view.rb:75
 msgid "ふぁぼられたつぶやきをTL上でageる"
 msgstr "Re-order my fav'd to top of Timeline"
 
-#: ../set_view.rb:71
+#: ../set_view.rb:76
 msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
 msgstr "Your fav'd tweet will show up on top of your timeline"
 
-#: ../set_view.rb:72
+#: ../set_view.rb:77
 msgid "自分がふぁぼったつぶやきをTL上でageる"
 msgstr "Re-order my favorites to top on Timeline"
 
-#: ../set_view.rb:73
+#: ../set_view.rb:78
 msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
 msgstr "Tweets you favorite will show up on top of your timeline"
 
-#: ../set_view.rb:76
+#: ../set_view.rb:81
 msgid "短縮URL"
 msgstr "Short URL"
 
-#: ../set_view.rb:77
+#: ../set_view.rb:82
 msgid "短縮URLを展開して表示"
 msgstr "Replace short URL to original URL."
 
-#: ../set_view.rb:78
+#: ../set_view.rb:83
 msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
 msgstr "Always un-shorten URLs in received tweets."
 
-#: ../set_view.rb:81
+#: ../set_view.rb:86
 msgid "タブの位置"
 msgstr "Position of tab"
 
-#: ../set_view.rb:81
+#: ../set_view.rb:86
 msgid "上"
 msgstr "Top"
 
-#: ../set_view.rb:81
+#: ../set_view.rb:86
 msgid "下"
 msgstr "Bottom"
 
-#: ../set_view.rb:81
+#: ../set_view.rb:86
 msgid "右"
 msgstr "Right"
 
-#: ../set_view.rb:81
+#: ../set_view.rb:86
 msgid "左"
 msgstr "Left"
 
-#: ../set_view.rb:83
+#: ../set_view.rb:88
 msgid "URLを開く方法"
 msgstr "Method of opening URL"
 
-#: ../set_view.rb:84
+#: ../set_view.rb:89
 msgid "デフォルトブラウザを使う"
 msgstr "Use default web browser"
 
-#: ../set_view.rb:86
+#: ../set_view.rb:91
 msgid "次のコマンドを使う"
 msgstr "Use following command"
