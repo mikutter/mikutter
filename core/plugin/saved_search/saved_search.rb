@@ -60,7 +60,7 @@ Plugin.create :saved_search do
   # [saved_search] saved search
   def rewind_timeline(saved_search)
     type_strict saved_search => SavedSearch
-    Service.primary.search(q: saved_search.query, rpp: 100).next{ |res|
+    Service.primary.search(q: saved_search.query, count: 100).next{ |res|
       timeline(saved_search.slug) << res if res.is_a? Array
     }.trap{ |e|
       timeline(saved_search.slug) << Message.new(message: _("更新中にエラーが発生しました (%{error})") % {error: e.to_s}, system: true) } end
