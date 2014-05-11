@@ -360,6 +360,7 @@ Plugin.create :gtk do
         if pane
           pane.n_pages.times{ |pagenum|
             if widget == pane.get_tab_label(pane.get_nth_page(pagenum))
+              Plugin.call(:rewind_window_order, i_widget.parent.parent)
               pane.remove_page(pagenum)
               break end } end
       else

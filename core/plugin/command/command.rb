@@ -176,7 +176,6 @@ Plugin.create :command do
           icon: Skin.get("close.png"),
           role: :tab) do |opt|
     opt.widget.destroy
-    Plugin.call(:rewind_window_order, opt.widget.ancestor_of(Plugin::GUI::Window))
   end
 
   command(:focus_right_tab,
