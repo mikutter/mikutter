@@ -82,6 +82,7 @@ module Gdk::IconOverButton
   # icon over buttonがクリックされたことを通知する。
   # 最後に point_moved_main_icon() が呼ばれた箇所がクリックされたことになる
   def iob_clicked
+    return if message.to_message.system?
     if(current_icon_pos)
       __send__([ [:iob_reply_clicked, :iob_etc_clicked],
                  [:iob_retweet_clicked, :iob_fav_clicked]][current_icon_pos[0]][current_icon_pos[1]]) end end

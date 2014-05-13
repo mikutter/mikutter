@@ -381,7 +381,8 @@ class Gdk::MiraclePainter < Gtk::Object
       context.set_source_pixbuf(main_icon)
       context.paint
     }
-    render_icon_over_button(context)
+    if not (message.to_message.system?)
+      render_icon_over_button(context) end
   end
 
   def render_main_text(context)
