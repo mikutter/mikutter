@@ -248,7 +248,7 @@ def log(prefix, object)
   end
 end
 
-FOLLOW_DIR = File.expand_path('..')
+FOLLOW_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 def __write_stderr (msg)
   $stderr.write(msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')+"\n")
 end
