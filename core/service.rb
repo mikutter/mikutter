@@ -33,6 +33,8 @@ class Service
 
     # 現在アクティブになっているサービスを返す。
     # 基本的に、あるアクションはこれが返すServiceに対して行われなければならない。
+    # ==== Return
+    # アクティブなServiceか、存在しない場合はnil
     def primary
       if @primary
         @primary
@@ -40,10 +42,19 @@ class Service
         nil
       else
         set_primary(services.first)
-        @primary
-      end
-    end
+        @primary end end
     alias primary_service primary
+
+    # 現在アクティブになっているサービスを返す。
+    # Service.primary とちがって、サービスが一つも登録されていない時、例外を発生させる。
+    # ==== Exceptions
+    # Service::NotExistError :: (選択されている)Serviceが存在しない
+    # ==== Return
+    # アクティブなService
+    def primary!
+      result = primary
+      raise Service::NotExistError, 'Services does not exists.' unless result
+      result end
 
     def set_primary(service)
       type_strict service => Service
@@ -320,6 +331,9 @@ class Service
         messages
       else
         @post.scan(@api, :id => id) end end end
+
+  class Error < RuntimeError; end
+  class NotExistError < Error; end
 
   services_refresh
 end
