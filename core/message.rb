@@ -108,8 +108,9 @@ class Message < Retriever::Model
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
-    favorited_by.include?(Service.primary.user_obj)
-  end
+    favorited_by.include?(Service.primary!.user_obj)
+  rescue Service::NotExistError
+    false end
 
   # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
@@ -300,7 +301,9 @@ class Message < Retriever::Model
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
   def retweeted?
-    retweeted_by.include?(Service.primary.user_obj) end
+    retweeted_by.include?(Service.primary!.user_obj)
+  rescue Service::NotExistError
+    false end
 
   # この投稿を「自分」がリツイートしていれば真
   def retweeted_by_me?(me = Service.services)
