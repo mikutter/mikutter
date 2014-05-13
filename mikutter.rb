@@ -43,31 +43,32 @@ Plugin.call(:boot, Post.primary_service)
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する
 def boot!(profile)
-  Mainloop.before_mainloop
-  if profile
-    require 'ruby-prof'
-    begin
-      notice 'start profiling'
-      RubyProf.start
-      Mainloop.mainloop
-    ensure
-      result = RubyProf.stop
-      printer = RubyProf::CallTreePrinter.new(result)
-      profile_out = File.join(File.expand_path(Environment::TMPDIR), 'profile-'+Time.new.strftime('%Y-%m-%d-%H%M%S')+'.out')
-      notice "profile: writing to #{profile_out}"
-      printer.print(File.open(profile_out, 'w'), {})
-      notice "profile: done."
-    end
-  else
-    Mainloop.mainloop end
-rescue => e
-  into_debug_mode(e)
-  raise e
-rescue Exception => e
-  e = Mainloop.exception_filter(e)
-  notice e.class
-  raise e
-end
+  begin
+    Mainloop.before_mainloop
+    if profile
+      require 'ruby-prof'
+      begin
+        notice 'start profiling'
+        RubyProf.start
+        Mainloop.mainloop
+      ensure
+        result = RubyProf.stop
+        printer = RubyProf::CallTreePrinter.new(result)
+        profile_out = File.join(File.expand_path(Environment::TMPDIR), 'profile-'+Time.new.strftime('%Y-%m-%d-%H%M%S')+'.out')
+        notice "profile: writing to #{profile_out}"
+        printer.print(File.open(profile_out, 'w'), {})
+        notice "profile: done."
+      end
+    else
+      Mainloop.mainloop end
+  rescue => exception
+    into_debug_mode(exception)
+    raise exception
+  rescue Exception => exception
+    exception = Mainloop.exception_filter(exception)
+    raise exception end
+  exception = Mainloop.exception_filter(nil)
+  raise exception if exception end
 
 begin
   errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
