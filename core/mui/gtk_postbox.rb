@@ -66,11 +66,8 @@ module Gtk
       post_set_default_text(@post)
       @post.wrap_mode = Gtk::TextTag::WRAP_CHAR
       @post.border_width = 2
-      @post.ssc('key_release_event'){ |textview, event|
+      @post.buffer.ssc('changed') { |textview|
         refresh_buttons(false)
-        false }
-      @post.ssc('paste-clipboard'){ |this|
-        Delayer.new{ refresh_buttons(false) }
         false }
       @post.signal_connect_after('focus_out_event', &method(:focus_out_event))
       @post end
