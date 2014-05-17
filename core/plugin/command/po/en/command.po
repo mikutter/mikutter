@@ -4,14 +4,15 @@
 # 
 # Translators:
 # akkiesoft <akkiesoft@marokun.net>, 2013
+# shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 # roobre <roobre@roobre.es>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:41+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-05-11 07:05+0000\n"
+"Last-Translator: shinmili <rmsk.pl.ur.lpt@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -85,7 +86,7 @@ msgstr "Open this link"
 
 #: ../command.rb:143
 msgid "リンクをコピー"
-msgstr ""
+msgstr "Copy URL"
 
 #: ../command.rb:152
 msgid "新規ペインに移動"
@@ -95,30 +96,30 @@ msgstr "Move to new pane"
 msgid "タブを閉じる"
 msgstr "Close tab"
 
-#: ../command.rb:182
+#: ../command.rb:183
 msgid "右のタブを選択"
 msgstr "Select right tab"
 
-#: ../command.rb:190
+#: ../command.rb:191
 msgid "左のタブを選択"
 msgstr "Select left tab"
 
-#: ../command.rb:198
+#: ../command.rb:199
 msgid "右のペインを選択"
 msgstr "Select right pane"
 
-#: ../command.rb:206
+#: ../command.rb:207
 msgid "左のペインを選択"
 msgstr "Select left pane"
 
-#: ../command.rb:214
+#: ../command.rb:215
 msgid "投稿ボックスにフォーカス"
 msgstr "Focus to post box"
 
-#: ../command.rb:226
+#: ../command.rb:227
 msgid "タブにフォーカス"
 msgstr "Focus to tab"
 
-#: ../command.rb:234
+#: ../command.rb:235
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "Jump to top of timeline!"

@@ -5,13 +5,14 @@
 # Translators:
 # akkiesoft <akkiesoft@marokun.net>, 2013
 # きゃれっと <mtakeda.enigsol@gmail.com>, 2014
+# shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-04-29 02:24+0000\n"
-"Last-Translator: きゃれっと <mtakeda.enigsol@gmail.com>\n"
+"PO-Revision-Date: 2014-05-11 06:22+0000\n"
+"Last-Translator: shinmili <rmsk.pl.ur.lpt@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +26,7 @@ msgstr "Achievement"
 
 #: ../achievement.rb:101
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
-msgstr ""
+msgstr "Your twitter account has got connected to mikutter. This will be much helpful to your twitter life!"
 
 #: ../achievement.rb:108
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
@@ -65,4 +66,4 @@ msgstr "Thank you for sending your crash report."
 
 #: ../achievement.rb:163
 msgid "実績 %s を達成しました！おめでとう♪"
-msgstr "Congratulation♪ You attained achievement of %s!"
+msgstr "Congratulations♪ You have attained achievement %s!"

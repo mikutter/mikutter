@@ -4,15 +4,16 @@
 # 
 # Translators:
 # akkiesoft <akkiesoft@marokun.net>, 2013
-# polamjag <indirectgeeks@gmail.com>, 2013
+# オーストラリア <s@polamjag.info>, 2013
+# shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 # Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"PO-Revision-Date: 2014-05-11 08:34+0000\n"
+"Last-Translator: shinmili <rmsk.pl.ur.lpt@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,44 +23,44 @@ msgstr ""
 
 #: ../edit_window.rb:12 ../edit_window.rb:123
 msgid "%{name} - 抽出タブ - %{application_name}"
-msgstr ""
+msgstr "%{name} - filtered tab - %{application_name}"
 
 #: ../edit_window.rb:15
 msgid "データソース"
-msgstr ""
+msgstr "Data source"
 
 #: ../edit_window.rb:16
 msgid "絞り込み条件"
-msgstr ""
+msgstr "Criteria"
 
 #: ../edit_window.rb:17
 msgid "オプション"
-msgstr ""
+msgstr "Options"
 
 #: ../edit_window.rb:67 ../edit_window.rb:108 ../extract.rb:103
 #: ../extract_tab_list.rb:19
 msgid "名前"
-msgstr ""
+msgstr "Name"
 
 #: ../edit_window.rb:109
 msgid "アイコン"
-msgstr ""
+msgstr "Icon"
 
 #: ../edit_window.rb:110
 msgid "通知"
-msgstr ""
+msgstr "Notification"
 
 #: ../edit_window.rb:111
 msgid "サウンド"
-msgstr ""
+msgstr "Sound"
 
 #: ../edit_window.rb:112
 msgid "ポップアップ"
-msgstr ""
+msgstr "Popup"
 
 #: ../edit_window.rb:115
 msgid "閉じる"
-msgstr ""
+msgstr "Close"
 
 #: ../extract.rb:19
 msgid "抽出タブ"
@@ -67,15 +68,15 @@ msgstr "Filtered tab"
 
 #: ../extract.rb:49
 msgid "抽出条件を編集"
-msgstr ""
+msgstr "Edit criteria"
 
 #: ../extract.rb:85
 msgid "本当に抽出タブ「%{name}」を削除しますか？"
-msgstr ""
+msgstr "Are you sure you want to remove filtered tab \"%{name}\" ?"
 
 #: ../extract.rb:97
 msgid "抽出タブを作成 - %{mikutter}"
-msgstr ""
+msgstr "Create a new filtered tab - %{mikutter}"
 
 #: ../extract.rb:141
 msgid "受信したすべての投稿"
@@ -83,16 +84,16 @@ msgstr "All posts received"
 
 #: ../extract.rb:142
 msgid "ホームタイムライン(全てのアカウント)"
-msgstr ""
+msgstr "Home Timeline (all accounts)"
 
 #: ../extract.rb:143
 msgid "自分宛ての投稿(全てのアカウント)"
-msgstr ""
+msgstr "Mentions (all accounts)"
 
 #: ../extract.rb:147
 msgid "Home Timeline"
-msgstr ""
+msgstr "Home Timeline"
 
 #: ../extract.rb:148
 msgid "Mentions"
-msgstr ""
+msgstr "Mentions"
