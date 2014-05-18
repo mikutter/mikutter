@@ -5,7 +5,7 @@
             "tag": "img",
             "src": {
                 "json_class": "Regexp",
-				"data": "http://.*?\\.cloudfront\\.net/photos/(?:large|full)/.*"
+				"data": "https?://.*?\\.cloudfront\\.net/photos/(?:large|full)/.*"
             }
         }
     },
