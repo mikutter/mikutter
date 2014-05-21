@@ -19,12 +19,18 @@ module MikuTwitter::Connect
   TIMESTAMP_TOOLATE = 135
   BAD_AUTHENTICATION_DATA = 215
 
+  IDENTITY_SEED = 'r.A3%Z83n84GDw@KyN-mH-%+_&TnTJ2/'.freeze
+
   attr_accessor :consumer_key, :consumer_secret, :a_token, :a_secret, :oauth_url
 
   def initialize(*a, &b)
     @oauth_url = 'https://twitter.com'
     super(*a, &b)
   end
+
+  # キャッシュのキーなどで使う、アカウント毎の一意なID
+  def account_identity
+    Digest::MD5.hexdigest([consumer_key, consumer_secret, a_token, a_secret, IDENTITY_SEED].join) end
 
   def consumer(url=oauth_url)
     OAuth::Consumer.new(consumer_key, consumer_secret,
