@@ -42,10 +42,14 @@ Plugin.create :search do
   savebtn.signal_connect('clicked'){ |elm|
     query = querybox.text
     Service.primary.search_create(query: query).next{ |saved_search|
-      Plugin.call(:saved_search_regist, saved_search[:id], query)
+      Plugin.call(:saved_search_register, saved_search[:id], query, Service.primary)
     }.terminate(_("検索キーワード「%{query}」を保存できませんでした。あとで試してみてください" % {query: query})) }
 
   Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :search_hashtag){ |segment|
     Plugin.call(:search_start, '#' + segment[:url].match(/\A(?:#|＃)?(.+)\Z/)[1])
   }
 end
+
+
+
+

@@ -1,19 +1,29 @@
 # -*- coding: utf-8 -*-
 
+module Plugin::SavedSearch
+  SavedSearch = Struct.new(:id,      # Saved Search ID (Twitter APIが採番するもの)
+                           :query,   # 検索クエリ文字列
+                           :name,    # 検索の名前
+                           :slug,    # Timeline, Tabのスラッグ
+                           :service) # この検索を作成したService
+  DEFAULT_ICON = Skin.get('savedsearch.png').freeze
+end
+
 Plugin.create :saved_search do
-  SavedSearch = Struct.new(:id, :query, :name, :slug)
 
   counter = gen_counter
 
   on_period do |service|
     if counter.call >= UserConfig[:retrieve_interval_search]
       counter = gen_counter
-      timelines.values.each{ |saved_search|
-        rewind_timeline(saved_search) } end end
+      refresh end end
 
-  on_saved_search_regist do |id, query|
-    add_tab(SavedSearch.new(id, query, query, ("savedsearch_" + id.to_s).to_sym))
-  end
+  on_saved_search_register do |id, query, service|
+    add_tab(Plugin::SavedSearch::SavedSearch.new(id,
+                                                 query,
+                                                 query,
+                                                 :"savedsearch_#{id.to_s}",
+                                                 service)) end
 
   command(:saved_search_destroy,
           name: _('保存した検索を削除'),
@@ -22,7 +32,7 @@ Plugin.create :saved_search do
           role: :tab) do |opt|
     saved_search = timelines.values.find{ |s| s.slug == opt.widget.slug }
     if saved_search
-      Service.primary.search_destroy(id: saved_search.id)
+      saved_search.service.search_destroy(id: saved_search.id)
       opt.widget.destroy end end
 
   on_gui_destroy do |i_tab|
@@ -39,11 +49,10 @@ Plugin.create :saved_search do
   # ==== Args
   # [saved_search] saved search
   def add_tab(saved_search)
-    type_strict saved_search => SavedSearch
+    type_strict saved_search => Plugin::SavedSearch::SavedSearch
     tab(saved_search.slug, saved_search.name) do
-      set_icon Skin.get("savedsearch.png")
+      set_icon Plugin::SavedSearch::DEFAULT_ICON
       timeline saved_search.slug end
-    rewind_timeline(saved_search)
     register_cache(saved_search)
     timelines[saved_search.id] = saved_search end
 
@@ -53,58 +62,91 @@ Plugin.create :saved_search do
   def delete_tab(id)
     type_strict id => Integer
     saved_search = timelines[id]
+    timelines.delete(id)
     tab(saved_search.slug).destroy if saved_search.slug end
 
   # タイムラインを更新する
   # ==== Args
   # [saved_search] saved search
   def rewind_timeline(saved_search)
-    type_strict saved_search => SavedSearch
-    Service.primary.search(q: saved_search.query, count: 100).next{ |res|
+    type_strict saved_search => Plugin::SavedSearch::SavedSearch
+    saved_search.service.search(q: saved_search.query, count: 100).next{ |res|
       timeline(saved_search.slug) << res if res.is_a? Array
     }.trap{ |e|
       timeline(saved_search.slug) << Message.new(message: _("更新中にエラーが発生しました (%{error})") % {error: e.to_s}, system: true) } end
 
-  # saved search を取得する
+  # 全 Service について saved search を取得する
   # ==== Args
   # [cache] キャッシュの利用方法
   # ==== Return
   # deferred
   def refresh(cache=:keep)
-    service = Service.primary
-    if service
-      service.saved_searches(cache: cache).next{ |res|
-        if res
-          saved_searches = {}
-          res.each{ |record|
-            saved_searches[record[:id]] = SavedSearch.new(record[:id], URI.decode(record[:query]), URI.decode(record[:name]), "savedsearch_#{record[:id]}".to_sym) }
-          new_ids, old_ids = saved_searches.keys, timelines.keys
-          (new_ids - old_ids).each{ |id| add_tab(saved_searches[id]) }
-          (old_ids - new_ids).each{ |id| delete_tab(id) } end }.terminate end end
+    Deferred.when(*Service.map { |service| refresh_for_service(service, cache) }) end
+
+  # あるServiceに対してのみ saved search 一覧を取得する
+  # ==== Args
+  # [service] Service 対象となるService
+  # [cache] キャッシュの利用方法
+  # ==== Return
+  # deferred
+  def refresh_for_service(service, cache=:keep)
+    service.saved_searches(cache: cache).next{ |res|
+      if res
+        saved_searches = {}
+        res.each{ |record|
+          saved_searches[record[:id]] = Plugin::SavedSearch::SavedSearch.new(record[:id],
+                                                                             URI.decode(record[:query]),
+                                                                             URI.decode(record[:name]),
+                                                                             :"savedsearch_#{record[:id]}",
+                                                                             service) }
+        new_ids = saved_searches.keys
+        old_ids = timelines.values.select{|s| s.service == service }.map(&:id)
+        (new_ids - old_ids).each{ |id| add_tab(saved_searches[id]) }
+        (old_ids - new_ids).each{ |id| delete_tab(id) }
+        new_ids.each{ |id| rewind_timeline(saved_searches[id]) } end }.terminate end
 
   # 保存した検索の情報をキャッシュに登録する
   # ==== Args
   # [saved_search] 保存した検索
   def register_cache(saved_search)
-    type_strict saved_search => SavedSearch
-    cache = at(:cache, {}).melt
+    type_strict saved_search => Plugin::SavedSearch::SavedSearch
+    cache = at(:last_saved_search_state, {}).melt
     cache[saved_search.id] = {
       id: saved_search.id,
       query: saved_search.query,
       name: saved_search.name,
-      slug: saved_search.slug }
-    store(:cache, cache) end
+      slug: saved_search.slug,
+      service_id: saved_search.service.user_obj.id
+    }
+    store(:last_saved_search_state, cache) end
 
   # 保存した検索の情報をキャッシュから削除
   # ==== Args
   # [id] 削除するID
   def delete_cache(id)
-    cache = at(:cache, {}).melt
+    cache = at(:last_saved_search_state, {}).melt
     cache.delete(id)
-    store(:cache, cache) end
+    store(:last_saved_search_state, cache) end
 
-  at(:cache, {}).values.each{ |s|
-    add_tab(SavedSearch.new(s[:id], URI.decode(s[:query]), URI.decode(s[:name]), s[:slug])) }
+  # ユーザIDから対応する Service を返す
+  # ==== Args
+  # [user_id] ユーザID
+  # ==== Return
+  # Service か、見つからなければnil
+  def service_by_user_id(user_id)
+    Service.find{ |service| service.user_obj.id == user_id } end
+
+  at(:last_saved_search_state, {}).values.each{ |s|
+    service = service_by_user_id(s[:service_id])
+    if service
+      add_tab(Plugin::SavedSearch::SavedSearch.new(s[:id],
+                                                   URI.decode(s[:query]),
+                                                   URI.decode(s[:name]),
+                                                   s[:slug],
+                                                   service))
+    elsif s[:slug]
+      zombie_tab = tab(s[:slug])
+      zombie_tab.destroy if zombie_tab end }
 
   Delayer.new{ refresh(true) }
 
