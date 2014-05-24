@@ -84,7 +84,14 @@ Plugin.create :profile do
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
     scrolledwindow.style = container.style
-    nativewidget scrolledwindow.show_all
+    wrapper = Gtk::EventBox.new
+    wrapper.no_show_all = true
+    wrapper.show
+    nativewidget wrapper.add(scrolledwindow)
+    wrapper.ssc(:expose_event) do
+      wrapper.no_show_all = false
+      wrapper.show_all
+      false end
     user_complete do
       biotext = (user[:detail] || "")
       if user[:url]
