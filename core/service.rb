@@ -323,12 +323,8 @@ class Service
 
     def findbyid(id)
       if id.is_a? Enumerable
-        front = id.to_a.slice(0, 100)
-        remain = id.to_a.slice(100,id.size)
-        messages = @post.scan(:user_lookup, :id => front.join(','))
-        messages = Messages.new if not messages.is_a? Array
-        messages += findbyid(remain) if remain and not remain.empty?
-        messages
+        id.each_slice(100).map{|id_list|
+          @post.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
       else
         @post.scan(@api, :id => id) end end end
 
