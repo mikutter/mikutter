@@ -213,15 +213,14 @@ module Retriever
       ids.freeze
       catch(:found){
         rs = self.retrievers
-        count = rs.length + count + 1 if(count <= -1)
-        rs = rs.slice(0, [count, 1].max)
-        rs.each{ |retriever|
+        count = rs.length + count + 1 if count <= -1
+        rs.slice(0, [count, 1].max).each{ |retriever|
           detection = retriever.findbyid_timer(remain)
           if detection
             detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
             result.concat(detection)
             remain -= detection.map{ |x| x[:id].to_i }
-            throw :found if ids.empty? end } }
+            throw :found if remain.empty? end } }
       self.retrievers_reorder
       result.sort_by{ |user| ids.index(user[:id].to_i) || 1.0/0 } end
 
