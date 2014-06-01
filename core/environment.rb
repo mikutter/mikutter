@@ -52,7 +52,7 @@ module Environment
 
     attr_reader :mejor, :minor, :debug, :devel
 
-    def initialize(mejor, minor, debug, devel)
+    def initialize(mejor, minor, debug, devel=0)
       @mejor = mejor
       @minor = minor
       @debug = debug
@@ -64,7 +64,11 @@ module Environment
     end
 
     def to_s
-      self.to_a.join('.')
+      if 9999 == @devel
+        [@mejor, @minor, @debug].join('.')
+      else
+        [@mejor, @minor, @debug, @devel].join('.')
+      end
     end
 
     def to_i
@@ -80,13 +84,11 @@ module Environment
     end
 
     def size
-      4
+      to_a.size
     end
 
     def <=>(other)
-      if other.size == 4 then
-        self.to_a <=> other.to_a
-      end
+      self.to_a <=> other.to_a
     end
 
   end
