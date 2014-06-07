@@ -208,7 +208,7 @@ class Plugin::Settings < Gtk::VBox
   #   _:artists_ :: デザイナとかの名前。通常Twitter screen name（Array）
   #   _:documenters_ :: ドキュメントかいた人とかの名前。通常Twitter screen name（Array）
   def about(label, options={})
-    about = Gtk::Button.new("#{Environment::NAME} について")
+    about = Gtk::Button.new(label)
     about.signal_connect("clicked"){
       dialog = Gtk::AboutDialog.new.show
       options.each { |key, value|
