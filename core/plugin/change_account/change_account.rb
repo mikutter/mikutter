@@ -86,12 +86,15 @@ Plugin.create :change_account do
         @sequence[:first].call
       end end end
 
-  def request_token
-    @request_token ||= parallel {
-      twitter = MikuTwitter.new
-      twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
-      twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-      twitter.request_oauth_token } end
+  def request_token(reset = false)
+    if !@request_token || reset
+      @request_token = parallel {
+        twitter = MikuTwitter.new
+        twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
+        twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
+        twitter.request_oauth_token } end 
+
+    @request_token end
 
   defsequence :first do
     sequence.
@@ -159,7 +162,7 @@ Plugin.create :change_account do
       false
     }
     sequence.
-      say(_("登録方法は、\n1. %{authorize_url} にアクセスする\n2. mikutterに登録したいTwitterアカウントでログイン\n3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\nだよ。") % {authorize_url: request_token.authorize_url}, nil)
+      say(_("登録方法は、\n1. %{authorize_url} にアクセスする\n2. mikutterに登録したいTwitterアカウントでログイン\n3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\nだよ。") % {authorize_url: request_token(true).authorize_url}, nil)
   end
 
   defsequence :achievement do
