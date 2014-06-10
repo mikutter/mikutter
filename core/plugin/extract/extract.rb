@@ -162,13 +162,16 @@ Plugin.create :extract do
   def compile(tab_id, code)
     atomic do
       @compiled ||= {}
-      @compiled[tab_id] ||= ->(assign,evaluated){
-        assign += "  user = message.idname\n"     if evaluated.include? "user"
-        assign += "  body = message.to_s\n"       if evaluated.include? "body"
-        assign += "  source = message[:source]\n" if evaluated.include? "source"
-        notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
-        eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
-      }.("",MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, code)) end end
+      if code.empty?
+        @compiled[tab_id] ||= ret_nth
+      else
+        @compiled[tab_id] ||= ->(assign,evaluated){
+          assign += "  user = message.idname\n"     if evaluated.include? "user"
+          assign += "  body = message.to_s\n"       if evaluated.include? "body"
+          assign += "  source = message[:source]\n" if evaluated.include? "source"
+          notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
+          eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
+        }.("",MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, code)) end end end
 
   def destroy_compile_cache
     atomic do
