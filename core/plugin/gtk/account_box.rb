@@ -40,13 +40,18 @@ class Gtk::AccountBox < Gtk::EventBox
           @face.pixbuf = pixbuf end } end end
 
   def open_menu(event)
-    menu = Gtk::Menu.new
-    Service.each do |service|
-      item = Gtk::ImageMenuItem.new(service.user, false)
-      item.set_image Gtk::WebIcon.new(service.user_obj[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
-      item.ssc(:activate) { |w|
-        Service.set_primary(service)
-        false }
-      menu.append item end
-    menu.show_all.popup(nil, nil, event.button, event.time) end
+    @menu_last_services ||= Service.to_a.hash
+    if @menu_last_services != Service.to_a.hash
+      @menu.destroy if @menu
+      @menu_last_services = @menu = nil end
+    @menu ||= Gtk::Menu.new.tap do |menu|
+      Service.each do |service|
+        item = Gtk::ImageMenuItem.new(service.user, false)
+        item.set_image Gtk::WebIcon.new(service.user_obj[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
+        item.ssc(:activate) { |w|
+          Service.set_primary(service)
+          false }
+        menu.append item end
+      menu end
+    @menu.show_all.popup(nil, nil, event.button, event.time) end
 end
