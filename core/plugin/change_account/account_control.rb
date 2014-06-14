@@ -9,8 +9,8 @@ module ::Plugin::ChangeAccount
 
     def column_schemer
       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => ''},
-       {:kind => :text, :type => String, :label => 'SN'},
-       {:kind => :text, :type => String, :label => '名前'},
+       {:kind => :text, :type => String, :label => Plugin[:change_account]._('SN')},
+       {:kind => :text, :type => String, :label => Plugin[:change_account]._('名前')},
        {:type => Object},
       ].freeze
     end
@@ -63,7 +63,7 @@ module ::Plugin::ChangeAccount
             dialog.hide_all.destroy
             Gtk::main_quit
           }.trap { |e|
-            alert = ::Gtk::Dialog.new("エラー - " + Environment::NAME)
+            alert = ::Gtk::Dialog.new(Plugin[:change_account]._("エラー - %{name}") % {name: Environment::NAME})
             alert.set_size_request(420, 90)
             alert.window_position = ::Gtk::Window::POS_CENTER
             alert.vbox.add(::Gtk::Label.new(e.to_s))
