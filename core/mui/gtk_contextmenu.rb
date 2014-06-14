@@ -18,7 +18,18 @@ module Gtk
       else
         registmenu(nil){ |a,b| } end end
 
-    def build!(widget, optional, menu = Gtk::Menu.new)
+    # メニューが閉じられた時、自身を自動的に破棄する Gtk::Menu を作成して返す
+    def temporary_menu
+      menu = Gtk::Menu.new
+      menu.ssc(:selection_done) do
+        menu.destroy
+        false end
+      menu.ssc(:cancel) do
+        menu.destroy
+        false end
+      menu end
+
+    def build!(widget, optional, menu = temporary_menu)
      @contextmenu.each{ |param|
         label, cond, proc, icon = param
         if cond.call(*[optional, widget][0, (cond.arity == -1 ? 1 : cond.arity)])
