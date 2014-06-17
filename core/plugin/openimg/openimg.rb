@@ -206,7 +206,7 @@ Plugin.create :openimg do
     if $~
       imgurlresolver($1 + "image" + $2, {'tag' => 'img', 'id' => 'content-image', 'attribute' => 'data-src'})
     else
-      warn "たんぶらの記事ページじゃないっぽい"
+      warn "not a tumblr image page"
       nil
     end
   }
