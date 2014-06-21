@@ -1,3 +1,10 @@
+alias __source_distinct__ source
+def source(url)
+  @loaded ||= {}
+  unless @loaded[url]
+    @loaded[url] = true
+    __source_distinct__(url) end end
+
 source 'https://rubygems.org'
 
 group :default do
