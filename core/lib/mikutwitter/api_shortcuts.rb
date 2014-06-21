@@ -223,8 +223,8 @@ module MikuTwitter::APIShortcuts
         cursor_pager(api, parser, key, args.merge(cursor: res[:next_cursor])).next{ |nex|
           res[key] + nex } end } end
 
-  def idlist2userlist(promise)
-    promise.next{ |ids|
+  def idlist2userlist(deferred)
+    deferred.next{ |ids|
       promise = Deferred.new(true)
       Thread.new{
         begin
