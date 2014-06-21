@@ -26,7 +26,7 @@ class Plugin::Achievement::Achievement
       @events.each{ |e| plugin.detach(*e) }
       @events.clear
       if @options[:depends] and not @options[:depends].empty?
-        unachievements = Plugin.filtering(:unachievements, {}).first.values_at(*@options[:depends]).select(&ret_nth)
+        unachievements = Plugin.filtering(:unachievements, {}).first.values_at(*@options[:depends]).compact
         notice unachievements
         if not unachievements.empty?
           on_achievement_took do |ach|
@@ -43,7 +43,7 @@ class Plugin::Achievement::Achievement
   def notachieved_parent
     unachievements = Plugin.filtering(:unachievements, {}).first
     if @options[:depends]
-    result = @options[:depends].map{ |slug| unachievements[slug] }.find(&ret_nth)
+    result = @options[:depends].map{ |slug| unachievements[slug] }.any?
       if result
         result.notachieved_parent
       else

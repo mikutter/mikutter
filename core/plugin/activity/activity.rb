@@ -75,7 +75,7 @@ Plugin.create(:activity) do
       else
         storage << id
         result << false end }
-    not result.all?(&ret_nth) end
+    not result.all? end
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)

@@ -73,46 +73,51 @@ class Gtk::Object
     Gtk.main_quit end end
 
 module Gtk
+  NO_ACTION = '(割り当てなし)'.freeze
+  PRESS_WITH_CONTROL = 'Control + '.freeze
+  PRESS_WITH_SHIFT = 'Shift + '.freeze
+  PRESS_WITH_ALT = 'Alt + '.freeze
+  PRESS_WITH_SUPER = 'Super + '.freeze
+  PRESS_WITH_HYPER = 'Hyper + '.freeze
+
+
   class << self
     attr_accessor :exception
   end
 
   def self.keyname(key)
     type_strict key => Array
-    if key.empty? or key[0] == 0 or not key.all?(&ret_nth)
-      return '(割り当てなし)'
-    else
-      r = ""
-      r << 'Control + ' if (key[1] & Gdk::Window::CONTROL_MASK) != 0
-      r << 'Shift + ' if (key[1] & Gdk::Window::SHIFT_MASK) != 0
-      r << 'Alt + ' if (key[1] & Gdk::Window::MOD1_MASK) != 0
-      r << 'Super + ' if (key[1] & Gdk::Window::SUPER_MASK) != 0
-      r << 'Hyper + ' if (key[1] & Gdk::Window::HYPER_MASK) != 0
-      return r + Gdk::Keyval.to_name(key[0]) end end
+    return NO_ACTION if key.empty? or key[0] == 0 or not key.all?
+
+    r = ""
+    r << PRESS_WITH_CONTROL if (key[1] & Gdk::Window::CONTROL_MASK) != 0
+    r << PRESS_WITH_SHIFT if (key[1] & Gdk::Window::SHIFT_MASK) != 0
+    r << PRESS_WITH_ALT if (key[1] & Gdk::Window::MOD1_MASK) != 0
+    r << PRESS_WITH_SUPER if (key[1] & Gdk::Window::SUPER_MASK) != 0
+    r << PRESS_WITH_HYPER if (key[1] & Gdk::Window::HYPER_MASK) != 0
+    return r + Gdk::Keyval.to_name(key[0]) end
 
   def self.buttonname(key)
     type_strict key => Array
     type, button, state = key
-    if key.empty? or type == 0 or not key.all?(&ret_nth)
-      return '(割り当てなし)'
+    return NO_ACTION if key.empty? or type == 0 or not key.all?
+    r = ""
+    r << PRESS_WITH_CONTROL if (state & Gdk::Window::CONTROL_MASK) != 0
+    r << PRESS_WITH_SHIFT if (state & Gdk::Window::SHIFT_MASK) != 0
+    r << PRESS_WITH_ALT if (state & Gdk::Window::MOD1_MASK) != 0
+    r << PRESS_WITH_SUPER if (state & Gdk::Window::SUPER_MASK) != 0
+    r << PRESS_WITH_HYPER if (state & Gdk::Window::HYPER_MASK) != 0
+    r << "Button #{button} "
+    case type
+    when Gdk::Event::BUTTON_PRESS
+      r << 'Click'.freeze
+    when Gdk::Event::BUTTON2_PRESS
+      r << 'Double Click'.freeze
+    when Gdk::Event::BUTTON3_PRESS
+      r << 'Triple Click'.freeze
     else
-      r = ""
-      r << 'Control + ' if (state & Gdk::Window::CONTROL_MASK) != 0
-      r << 'Shift + ' if (state & Gdk::Window::SHIFT_MASK) != 0
-      r << 'Alt + ' if (state & Gdk::Window::MOD1_MASK) != 0
-      r << 'Super + ' if (state & Gdk::Window::SUPER_MASK) != 0
-      r << 'Hyper + ' if (state & Gdk::Window::HYPER_MASK) != 0
-      r << "Button #{button} "
-      case type
-      when Gdk::Event::BUTTON_PRESS
-          r << 'Click'
-      when Gdk::Event::BUTTON2_PRESS
-          r << 'Double Click'
-      when Gdk::Event::BUTTON3_PRESS
-          r << 'Triple Click'
-      else
-        return '(割り当てなし)' end
-      return r end end
+      return NO_ACTION end
+    return r end
 
 end
 

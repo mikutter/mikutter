@@ -297,7 +297,7 @@ class Message < Retriever::Model
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].select(&ret_nth) end
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].to_a.compact end
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
   def retweeted?
@@ -393,7 +393,7 @@ class Message < Retriever::Model
 
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(defined?(@retweets) ? @retweets : []).map{ |x| x.modified }].select(&ret_nth).max
+    @value[:modified] ||= [self[:created], *(defined?(@retweets) ? @retweets : []).map{ |x| x.modified }].compact.max
   end
 
   private

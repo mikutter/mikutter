@@ -154,12 +154,12 @@ class Plugin::Settings < Gtk::VBox
       btn_add = Gtk::Button.new(Gtk::Stock::ADD)
       array_converter = lambda {
         c = Listener[config].get || []
-        (c.is_a?(Array) ? c : [c]).select(&ret_nth) }
+        (c.is_a?(Array) ? c : [c]).compact }
       add_button = lambda { |content|
         input = Gtk::Entry.new
         input.text = content.to_s
         input.ssc(:changed) { |w|
-          Listener[config].set w.parent.children.map(&:text).select(&ret_nth) }
+          Listener[config].set w.parent.children.map(&:text).compact }
         input.ssc('focus_out_event'){ |w|
           w.parent.remove(w) if w.text.empty?
           false }

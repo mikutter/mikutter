@@ -215,7 +215,7 @@ module Retriever
         rs.slice(0, [count, 1].max).each{ |retriever|
           detection = retriever.findbyid_timer(remain)
           if detection
-            detection = detection.select(&ret_nth).map(&method(:new_ifnecessary))
+            detection = detection.compact.map(&method(:new_ifnecessary))
             result.concat(detection)
             remain -= detection.map{ |x| x[:id].to_i }
             throw :found if remain.empty? end } }
