@@ -23,7 +23,6 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
         case e.button
         when 1
           if(x >= @icon_ofst)
-            index = @avatar_rect.bsearch_first {|range| range.include?(x) ? 0 : range.first <=> x}
             user = get_user_by_point(x)
             if user
               Plugin.call(:show_profile, Service.primary, user) end end end end
@@ -59,9 +58,9 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
 
   def get_user_by_point(x)
     if(x >= @icon_ofst)
-      index = @avatar_rect.bsearch_first {|range| range.include?(x) ? 0 : range.first <=> x}
-      if index
-        @votes[index] end end end
+      node = @avatar_rect.each_with_index.to_a.bsearch{|_| _[0].last > x }
+      if node
+        @votes[node.last] end end end
 
   def render(context)
     if get_vote_count != 0

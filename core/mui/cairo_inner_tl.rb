@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 miquire :mui, 'timeline', 'tree_view_pretty_scroll', 'dark_matter_prification'
-miquire :lib, 'bsearch'
 miquire :lib, 'uithreadonly'
 require 'gtk2'
 

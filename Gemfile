@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 group :default do
   gem 'oauth', '~> 0.4'
   gem 'json_pure', '~> 1.8'
-  gem 'bsearch', '~> 1.5'
   gem 'addressable', '~> 2.3'
   gem 'memoize', '~> 1.3'
   gem 'ruby-hmac', '~> 0.4'
