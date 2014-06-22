@@ -79,7 +79,7 @@ module Gtk
       Delayer.new{
         if not @remain.destroyed?
           @remain.set_text(remain_charcount.to_s) end }
-      widget_post.ssc(:key_release_event){ |textview, event|
+      widget_post.buffer.ssc(:changed){ |textview, event|
         @remain.set_text(remain_charcount.to_s) }
       @remain end
 
