@@ -63,12 +63,23 @@ def boot!(profile)
       Mainloop.mainloop end
   rescue => exception
     into_debug_mode(exception)
+    notice "catch exception `#{exception.class}'"
     raise exception
   rescue Exception => exception
+    notice "catch exception `#{exception.class}'"
     exception = Mainloop.exception_filter(exception)
+    notice "=> `#{exception.class}'"
     raise exception end
   exception = Mainloop.exception_filter(nil)
-  raise exception if exception end
+  if exception
+    notice "raise mainloop exception `#{exception.class}'"
+    raise exception end
+  notice "boot! exited normally." end
+
+def error_handling!(exception)
+  notice "catch #{exception.class}"
+  File.open(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception')), 'w'){ |io| Marshal.dump(exception, io) }
+  raise exception end
 
 begin
   errfile = File.join(File.expand_path(Environment::TMPDIR), 'mikutter_dump')
@@ -81,13 +92,13 @@ begin
   boot!(Mopt.profile)
   if(Delayer.exception)
     raise Delayer.exception end
-rescue Interrupt, SystemExit => e
-  File.delete(errfile) if File.exist?(errfile)
-  raise e
-rescue SignalException => e
-  File.delete(errfile) if File.exist?(errfile)
-  raise e
-rescue Exception => e
-  File.open(File.join(File.expand_path(Environment::TMPDIR), 'crashed_exception'), 'w'){ |io| Marshal.dump(e, io) }
-  raise e
-end
+rescue Interrupt, SystemExit, SignalException => exception
+  notice "catch #{exception.class}"
+  if Delayer.exception
+    error_handling! Delayer.exception
+  else
+    File.delete(errfile) if File.exist?(errfile)
+    raise exception end
+rescue Exception => exception
+  error_handling! exception end
+notice "mainloop exited normally."
