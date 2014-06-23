@@ -82,6 +82,7 @@ module Gtk
   self.konami = false
 
   def self.konami_load
+    return if @konami
     if FileTest.exist? KonamiCache
       @konami_image = Gdk::Pixbuf.new(KonamiCache, 41, 52)
       @konami = true
