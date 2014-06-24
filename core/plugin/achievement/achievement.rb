@@ -149,6 +149,14 @@ Plugin.create :achievement do
     on_send_bugreport do |report|
       ach.take! end end
 
+  defachievement(:hidden_command,
+                 description: "隠しコマンドを入力した",
+                 hidden: true,
+                 depends: [:tutorial]
+                 ) do |ach|
+    on_konami_activate do
+      ach.take! end end
+
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?

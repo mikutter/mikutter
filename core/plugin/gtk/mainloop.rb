@@ -8,6 +8,8 @@ module Mainloop
 
   def mainloop
     Gtk.main
+  rescue Interrupt,SystemExit,SignalException => exception
+    raise exception
   rescue Exception => exception
     Gtk.exception = exception
   end

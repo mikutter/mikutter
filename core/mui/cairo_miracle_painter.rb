@@ -368,12 +368,15 @@ class Gdk::MiraclePainter < Gtk::Object
     render_parts context end
 
   def render_background(context)
-    context.save{
+    context.save do
       context.set_source_rgb(*get_backgroundcolor)
       context.rectangle(0,0,width,height)
       context.fill
-    }
-  end
+      if Gtk.konami
+        context.save do
+          context.translate(width - 48, height - 54)
+          context.set_source_pixbuf(Gtk.konami_image)
+          context.paint end end end end
 
   def render_main_icon(context)
     context.save{

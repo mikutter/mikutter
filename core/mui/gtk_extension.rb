@@ -80,10 +80,32 @@ module Gtk
   PRESS_WITH_SUPER = 'Super + '.freeze
   PRESS_WITH_HYPER = 'Hyper + '.freeze
 
+  KonamiCache = File.expand_path(File.join(Environment::CACHE, 'core', 'konami.png'))
 
   class << self
-    attr_accessor :exception
+    attr_accessor :exception, :konami
+    attr_reader :konami_image
   end
+
+  self.konami = false
+
+  def self.konami_load
+    return if @konami
+    if FileTest.exist? KonamiCache
+      @konami_image = Gdk::Pixbuf.new(KonamiCache, 41, 52)
+      @konami = true
+    else
+      Thread.new do
+        begin
+          tmpfile = File.join(Environment::TMPDIR, '600eur')
+          open('http://mikutter.hachune.net/img/konami.png', 'rb') { |konami|
+            open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache } }
+          FileUtils.mkdir_p(File.dirname(KonamiCache))
+          FileUtils.mv(tmpfile, KonamiCache)
+          @konami_image = Gdk::Pixbuf.new(KonamiCache, 41, 52)
+          @konami = true
+        rescue => exception
+          error exception end end end end
 
   def self.keyname(key)
     type_strict key => Array

@@ -17,6 +17,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
 require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
 require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
+require File.expand_path File.join(File.dirname(__FILE__), 'konami_watcher')
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}
@@ -438,6 +439,10 @@ Plugin.create :gtk do
     if(user.is_me?)
       Gdk::MiraclePainter.findbymessage(message).each{ |mp|
         mp.on_modify } end end
+
+  on_konami_activate do
+    Gtk.konami_load
+  end
 
   filter_gui_postbox_input_editable do |i_postbox, editable|
     postbox = widgetof(i_postbox)
