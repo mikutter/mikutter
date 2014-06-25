@@ -68,7 +68,7 @@ module Plugin::Gtk
     # ==== Args
     # [gtk_widget] Gtkウィジェットのインスタンス
     # ==== Return
-    # 対応するウィジェット
+    # 対応するウィジェット、または存在しない場合はnil
     def imaginally_by_gtk(gtk_widget)
       type_strict gtk_widget => ::Gtk::Widget
       Plugin::Gtk::SlugDictionary.nameklass.each{ |i_widget_klass, gtk_widget_klass|
@@ -76,7 +76,8 @@ module Plugin::Gtk
           next if not i_widget_klass
           slug = @widget_of_gtk[i_widget_klass].key(gtk_widget)
           next if not slug
-          return i_widget_klass.instance(slug) end }
+          if i_widget_klass.exist?(slug)
+            return i_widget_klass.instance(slug) end end }
       error "not found (#{gtk_widget.inspect})"
       nil end
 
