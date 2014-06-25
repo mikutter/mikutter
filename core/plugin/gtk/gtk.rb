@@ -95,9 +95,7 @@ Plugin.create :gtk do
       false }
     pane.ssc(:switch_page){ |this, page, pagenum|
       if pagenum == pane.page
-        i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab, true)
-      else
-        notice "switch_page: pagenum(#{pagenum}) != pane.page(#{pane.page})" end }
+        i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab, true) end }
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => ::Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
