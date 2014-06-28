@@ -91,30 +91,6 @@ class TC_Message < Test::Unit::TestCase
     splited
   end
 
-
-  def test_2
-    mes = stub
-    mes.stubs(:to_show).returns(THE_TWEET2)
-    mes.stubs(:[]).with(:entities).returns(THE_ENTITY2)
-    mes.stubs(:is_a?).with(Message).returns(true)
-
-    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/3YP9Hq').returns(['http://www.last.fm/music/Rihanna/_/Unfaithful'])
-    Plugin.stubs(:filtering).with(:expand_url, 'http://bit.ly/1tmPYb').returns(['http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA'])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/3YP9Hq').returns([false])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://bit.ly/1tmPYb').returns([false])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://www.last.fm/music/Rihanna/_/Unfaithful').returns([true])
-    Plugin.stubs(:filtering).with(:is_expanded, 'http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA').returns([true])
-
-    entity = Message::Entity.new(mes)
-
-    # pp entity.to_a
-
-    a = entity.to_a.map{ |x| x.dup.tap{|n|n.delete(:regexp)} }
-
-    assert_kind_of(String, entity.to_s)
-    assert_equal('&#9829; Unfaithful by Rihanna #lastfm: http://www.last.fm/music/Rihanna/_/Unfaithful amazon: http://www.amazon.com/A-Girl-Like-Me/dp/B001144EBA?SubscriptionId=12CBBK5SPFDF9BJG9N82&tag=nickelscom-20&linkCode=xm2&camp=2025&creative=165953&creativeASIN=B001144EBA', entity.to_s.inspect)
-  end
-
   def test_3
     mes = stub
     mes.stubs(:to_show).returns(THE_TWEET3)

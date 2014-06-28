@@ -5,35 +5,38 @@
 require 'uri'
 require 'net/http'
 
-class TCo < MessageConverters
+module Plugin::TCo
+  SHRINKED_MATCHER = /\Ahttps?:\/\/t\.co\//.freeze
 
-  def plugin_name()
-    :tco
-  end
-
-  def shrink_url(url)
-    # 未対応
-    return url
-  end
-
-  def shrinked_url?(url)
-    !!(url =~ /http:\/\/t\.co\//)
-  end
+  extend self
 
   def expand_url(url)
-    type_strict url => :to_s
-    hash = Hash.new
-    begin
-      res = timeout(5){ Net::HTTP.get_response(URI.parse(url.to_s)) }
-      if res.is_a?(Net::HTTPRedirection)
-        res["location"]
-      else
-        url.to_s end
-    rescue Exception => e
-      warn e
-      url.to_s
-    end
-  end
+    parallel do
+      begin
+        res = timeout(5){ Net::HTTP.get_response(URI.parse(url)) }
+        if res.is_a?(Net::HTTPRedirection)
+          res["location"]
+        else
+          url end
+      rescue Exception => e
+        warn e
+        url end end end
+end
 
-  regist
+Plugin.create :tco do
+  on_gui_timeline_add_messages do |i_timeline, messages|
+    messages.map(&:entity).each do |entity|
+      entity.select{|_|
+        :urls == _[:slug] and Plugin::TCo::SHRINKED_MATCHER =~ _[:url]
+      }.each do |link|
+        notice "detect tco shrinked url: #{link[:url]} by #{entity.message}"
+        expanded = Plugin::TCo.expand_url(link[:url])
+        entity.add link.merge(url: expanded, face: expanded)
+      end end end
+
+  filter_expand_url do |urlset|
+    divided = urlset.group_by{|url| !!(Plugin::TCo::SHRINKED_MATCHER =~ url) }
+    divided[false] ||= []
+    divided[true] ||= []
+    [divided[false] + divided[true].map(&Plugin::TCo.method(:expand_url))] end
 end

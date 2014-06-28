@@ -152,13 +152,13 @@ Plugin.create :openimg do
     element_rule.freeze
     if block == nil
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
-        url = MessageConverters.expand_url_one(shrinked_url)
+        url = (Plugin.filtering(:expand_url, [shrinked_url]).first.first rescue shrinked_url)
         Delayer.new(:ui_response){
           display(Thread.new{
                     imgurlresolver(url, element_rule) }, cancel) } }
     else
       ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
-        url = MessageConverters.expand_url_one(shrinked_url)
+        url = (Plugin.filtering(:expand_url, shrinked_url).first.first rescue shrinked_url)
         Delayer.new(:ui_response) {
           display(Thread.new{
                     imgurlresolver(url, element_rule){ |image_url|
@@ -227,7 +227,7 @@ Plugin.create :openimg do
   end
 
   ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)\Z/) { |shrinked_url, cancel|
-    url = MessageConverters.expand_url_one(shrinked_url)
+    url = (Plugin.filtering(:expand_url, shrinked_url).first.first rescue shrinked_url)
     Delayer.new { display(url, cancel) }
   }
 
