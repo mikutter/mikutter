@@ -143,7 +143,7 @@ class Message < Retriever::Model
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?
-    system? or (service and receive_to?(service.user_obj)) end
+    system? or Service.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿の投稿主を返す
   def user
