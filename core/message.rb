@@ -143,7 +143,7 @@ class Message < Retriever::Model
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?
-    system? or (service and receive_to?(service.user_obj)) end
+    system? or Service.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿の投稿主を返す
   def user
@@ -177,14 +177,7 @@ class Message < Retriever::Model
   # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
   def receive_to?(other)
     type_strict other => :[]
-    if self[:receiver].is_a? User
-      other[:id] == self[:receiver][:id]
-    elsif self[:receiver]
-      other[:id] == self[:receiver]
-    else
-      match = MentionMatcher.match(self[:message].to_s)
-      if match
-        match[1] == other[:idname] end end end
+    (self[:receiver].is_a?(User) and other[:id] == self[:receiver][:id]) or receive_user_screen_names.include? other[:idname] end
 
   # このツイートが宛てられたユーザを可能な限り推測して、その idname(screen_name) を配列で返す。
   # 例えばツイート本文内に「@a @b @c」などと書かれていたら、["a", "b", "c"]を返す。

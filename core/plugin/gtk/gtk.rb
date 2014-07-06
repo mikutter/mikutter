@@ -95,9 +95,7 @@ Plugin.create :gtk do
       false }
     pane.ssc(:switch_page){ |this, page, pagenum|
       if pagenum == pane.page
-        i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab, true)
-      else
-        notice "switch_page: pagenum(#{pagenum}) != pane.page(#{pane.page})" end }
+        i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab, true) end }
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => ::Gtk::TabContainer
       notice "on_pane_created: page_added: #{i_pane.inspect}"
@@ -122,6 +120,7 @@ Plugin.create :gtk do
   # タブ作成。
   # タブには実体が無いので、タブのアイコンのところをGtk::EventBoxにしておいて、それを実体ということにしておく
   on_tab_created do |i_tab|
+    notice "tab_created: #{i_tab.slug.inspect}"
     tab = create_tab(i_tab)
     if @tabs_promise[i_tab.slug]
       @tabs_promise[i_tab.slug].call(tab)
@@ -131,6 +130,7 @@ Plugin.create :gtk do
     create_pane(i_profile) end
 
   on_profiletab_created do |i_profiletab|
+    notice "profiletab_created: #{i_profiletab.slug.inspect}"
     create_tab(i_profiletab) end
 
   # タブを作成する
@@ -139,7 +139,6 @@ Plugin.create :gtk do
   # ==== Return
   # Tab(Gtk::EventBox)
   def create_tab(i_tab)
-    notice "create tab #{i_tab.slug.inspect}"
     tab = ::Gtk::EventBox.new.tooltip(i_tab.name)
     @slug_dictionary.add(i_tab, tab)
     tab_update_icon(i_tab)

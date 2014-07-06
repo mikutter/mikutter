@@ -68,6 +68,18 @@ class TC_Message < Test::Unit::TestCase
     assert message.receive_user_screen_names.empty?
   end
 
+  must "message to me" do
+    toshi = User.new_ifnecessary(:id => 156, :idname => 'toshi', :name => 'toshi')
+    toshi_a = User.new_ifnecessary(:id => 123456, :idname => 'toshi_a', :name => 'toshi_a')
+    toshi_b = User.new_ifnecessary(:id => 1234567, :idname => 'toshi_b', :name => 'toshi_b')
+    toshi_a_a = User.new_ifnecessary(:id => 156156, :idname => 'toshi_a_a', :name => 'toshi_a_a')
+    message = Message.new_ifnecessary(id: 11, message: "krile で where user == @toshi_a | user == @toshi_a_a だけのタブ作っただけでわずかにタブ切り替えが遅くなってるのわかると思うしアカウント切り替えは極端に遅くなってる", system: true, created: Time.now, receiver: toshi_b)
+    assert !message.receive_to?(toshi), 'toshi宛てのメッセージではない'
+    assert message.receive_to?(toshi_a), 'toshi_a宛てのメッセージ'
+    assert message.receive_to?(toshi_a_a), 'toshi_a_a宛てのメッセージ'
+    assert message.receive_to?(toshi_b), 'toshi_b宛てのメッセージ'
+  end
+
 end
 # ~> notice: ./post.rb:61:in `initialize': -:14:in `new'
 # ~> ./retriever.rb:345: warning: instance variable @time not initialized
