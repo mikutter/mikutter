@@ -150,7 +150,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
       localpath = Gdk::WebImageLoader.local_path(url)
     }.join
-    assert_equal("/home/toshi/.mikutter/tmp/e9183b9265dcf0728fceceb07444e8c1.png.png", localpath)
+    assert_equal(File.join(Environment::TMPDIR, "e9183b9265dcf0728fceceb07444e8c1.png.png"), localpath)
   end
 
   must "is local path" do
