@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'rubygems'
-require 'mocha'
+require 'mocha/setup'
 require 'pp'
 listener = File.expand_path File.join(File.dirname(__FILE__), 'listener')
 require File.expand_path(File.dirname(__FILE__) + '/../../utils')

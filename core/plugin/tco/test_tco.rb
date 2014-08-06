@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'rubygems'
-require 'mocha' # !> global variable `$openimg' not initialized
+require 'mocha/setup' # !> global variable `$openimg' not initialized
 require File.expand_path(File.dirname(__FILE__) + '/../../utils') # !> redefine call_routine
 miquire :addon, 'tco'
 
