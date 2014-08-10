@@ -3,17 +3,18 @@
 # This file is distributed under the same license as the settings package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013
-# polamjag <indirectgeeks@gmail.com>, 2013-2014
+# Akkiesoft <akkiesoft@marokun.net>, 2013
+# polamjag <s@polamjag.info>, 2013-2014
 # Hotaka Hitagi, 2013
-# Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
+# mt_caret <mtakeda.enigsol@gmail.com>, 2014
+# Yuki Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"PO-Revision-Date: 2014-07-05 11:15+0000\n"
+"Last-Translator: mt_caret <mtakeda.enigsol@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -150,7 +151,7 @@ msgid ""
 "圧倒的なかわいさではないか我がミクは\n"
 "\n"
 "このソフトウェアは %{license} によって浄化されています。"
-msgstr ""
+msgstr "Presenting the supreme Twitter Client for Miku fans and Twitter junkies.\nIsn't Miku so cute.\n\nThis program is purified by %{license}."
 
 #: ../basic_settings.rb:60
 msgid "http://mikutter.hachune.net/"

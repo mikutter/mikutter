@@ -3,23 +3,24 @@
 # This file is distributed under the same license as the change_account package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013-2014
-# オーストラリア <s@polamjag.info>, 2014
-# iorivur <fivo.11235813@gmail.com>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013-2014
+# polamjag <s@polamjag.info>, 2014
+# Iori Y <fivo.11235813@gmail.com>, 2013
 # Hotaka Hitagi, 2013
-# きゃれっと <mtakeda.enigsol@gmail.com>, 2014
+# mt_caret <mtakeda.enigsol@gmail.com>, 2014
 # numpad0 <triphenylmethane@gmail.com>, 2013
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
-# roobre <roobre@roobre.es>, 2013
-# 魚の目玉人形 <toshi.alternative@gmail.com>, 2014
-# Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2014
+# Roberto Santalla <roobre@roobre.es>, 2013
+# polamjag <s@polamjag.info>, 2014
+# Toshiaki Asai <toshi.alternative@gmail.com>, 2014
+# Yuki Shira <shirayuking@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-21 15:24+0000\n"
-"Last-Translator: 魚の目玉人形 <toshi.alternative@gmail.com>\n"
+"PO-Revision-Date: 2014-07-15 03:24+0000\n"
+"Last-Translator: mt_caret <mtakeda.enigsol@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -59,7 +60,7 @@ msgstr "Well done on the installation!"
 
 #: ../change_account.rb:100
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
-msgstr ""
+msgstr "Hi! I'm mikutter-chan, the mascot character for mikutter. First, please authenticate your Twitter account."
 
 #: ../change_account.rb:115
 msgid "確定"
@@ -71,7 +72,7 @@ msgstr "Enter the code→"
 
 #: ../change_account.rb:135
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
-msgstr ""
+msgstr "Great! Seems like you authenticated your account and unlocked an achievement!"
 
 #: ../change_account.rb:147
 msgid ""
@@ -102,13 +103,13 @@ msgstr "1. Click the link %{authorize_url}\n2. Login with the Twitter account yo
 
 #: ../change_account.rb:169
 msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
-msgstr "Achievements are a feature to sometimes show you features %{name}-san haven't used yet."
+msgstr "Achievements are a feature to sometimes show you features you haven't used yet."
 
 #: ../change_account.rb:175
 msgid ""
 "……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
 "をインストールしてくれたんだもんね。"
-msgstr "...... Though it was really brief, maybe that's all I should tell you now. You have installed %{mikutter} for the sake of twitter, haven't you?"
+msgstr "...... Though that was pretty quick, that's it for now. After all, you installed %{mikutter} for the sake of tweeting!"
 
 #: ../change_account.rb:176
 msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
