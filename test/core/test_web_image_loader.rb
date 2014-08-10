@@ -8,24 +8,12 @@ ICON_TEST = File.expand_path(File.dirname(__FILE__) + "/icon_test.png")
 
 miquire :mui, 'web_image_loader'
 miquire :lib, 'delayer'
-
-Plugin = Class.new do
-  def self.call(*args); end
-end
+miquire :core, 'plugin'
 
 class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   def setup
-    Gdk::WebImageLoader::ImageCache.clear
-    urls = ['http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png',
-            'http://a0.twimg.com/profile_images/1522298893/みくかわいい.png',
-            'http://internal.server.error/',
-            'http://notfound/']
-    urls.each{ |u|
-      Plugin.stubs(:filtering).with(:image_cache, u, nil).returns([u, nil]) }
-    urls.each{ |u|
-      Plugin.stubs(:filtering).with(:web_image_loader_url_filter, u, nil).returns([u, nil]) }
-  end
+    Gdk::WebImageLoader::ImageCache.clear end
 
   must "not found" do
     WebMock.stub_request(:get, "notfound").to_return(:status => 404)
@@ -86,7 +74,6 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   must "successfully load local image" do
     url = File.join(File.dirname(__FILE__), '../../core/skin/data/icon.png')
-    Plugin.stubs(:filtering).with(:web_image_loader_url_filter, url).returns([url])
     response = Gdk::WebImageLoader.pixbuf(url, 48, 48)
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
@@ -95,7 +82,6 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   end
 
   must "local file not found" do
-    Plugin.stubs(:filtering).with(:web_image_loader_url_filter, 'notfound-file').returns(['notfound-file'])
     response = Gdk::WebImageLoader.pixbuf('notfound-file', 48, 48)
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
@@ -150,7 +136,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
       localpath = Gdk::WebImageLoader.local_path(url)
     }.join
-    assert_equal("/home/toshi/.mikutter/tmp/e9183b9265dcf0728fceceb07444e8c1.png.png", localpath)
+    assert_equal(File.join(Environment::TMPDIR, "e9183b9265dcf0728fceceb07444e8c1.png.png"), localpath)
   end
 
   must "is local path" do

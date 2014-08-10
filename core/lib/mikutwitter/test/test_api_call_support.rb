@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require "#{File.dirname(__FILE__)}/extension"
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'webmock/test_unit'
 require 'pp'
 require 'utils'

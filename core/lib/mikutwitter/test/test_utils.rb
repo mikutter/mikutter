@@ -2,7 +2,7 @@
 require "#{File.dirname(__FILE__)}/extension"
 
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'webmock'
 require 'mikutwitter/connect'
 require 'test_unit_extensions'

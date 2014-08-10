@@ -209,7 +209,7 @@ module Gtk
       if UserConfig[:legacy_retweet_act_as_reply]
         @postable
       else
-        (retweet? ? @postable.service : @postable) end end
+        (retweet? ? Service.primary : @postable) end end
 
     def post_is_empty?
       widget_post.buffer.text.empty? or

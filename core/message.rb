@@ -80,27 +80,27 @@ class Message < Retriever::Model
   def post(other, &proc)
     other[:replyto] = self
     other[:receiver] = self[:user]
-    if self.service
-      self.service.post(other){|*a| yield *a if block_given? }
-    elsif self.receive_message
-      self.receive_message.post(other){|*a| yield *a if block_given? }
-    end
-  end
+    service = Service.primary
+    if service.is_a? Service
+      service.post(other){|*a| yield(*a) if block_given? } end end
 
   # リツイートする
   def retweet
-    if retweetable?
-      self.service.retweet(self){|*a| yield *a if block_given? } if self.service end end
+    service = Service.primary
+    if retweetable? and service
+      service.retweet(self){|*a| yield(*a) if block_given? } end end
 
   # この投稿を削除する
   def destroy
-    if deletable?
-      self.service.destroy(self){|*a| yield *a if block_given? } if self.service end end
+    service = Service.primary
+    if deletable? and service
+      service.destroy(self){|*a| yield(*a) if block_given? } end end
 
   # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
   def favorite(fav = true)
-    if favoritable?
-      self.service.favorite(self, fav) end end
+    service = Service.primary
+    if favoritable? and service
+      service.favorite(self, fav) end end
 
   # お気に入りから削除する
   def unfavorite
@@ -119,17 +119,16 @@ class Message < Retriever::Model
 
   # この投稿にリプライする権限があればtrueを返す
   def repliable?
-    service and self.service != nil
-  end
+    !!Service.primary end
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
   def favoritable?
-    service and not(system?) end
+    Service.primary and not(system?) end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    service and not system? and not from_me? and not user[:protected] end
+    Service.primary and not system? and not from_me? and not user[:protected] end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
@@ -137,9 +136,8 @@ class Message < Retriever::Model
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?
-    return false if not service
-    return false if self.system?
-    self[:user] == self.service.user if self.service end
+    return false if system?
+    Service.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?
@@ -152,12 +150,8 @@ class Message < Retriever::Model
   # この投稿のServiceオブジェクトを返す。
   # 設定されてなければnilを返す
   def service
-    if self[:post]
-      self[:post]
-    elsif self.receive_message
-      @value[:post] = self.receive_message.service
-    else
-    Service.primary end end
+    warn "Message#service is obsolete method. use `Service.primary'."
+    Service.primary end
 
   # この投稿を宛てられたユーザを返す
   def receiver
@@ -354,6 +348,7 @@ class Message < Retriever::Model
   # :nodoc:
   def add_favorited_by(user, time=Time.now)
     type_strict user => User, time => Time
+    service = Service.primary
     if service
       set_modified(time) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or service.user != user.idname)
       favorited_by.add(user)
@@ -362,6 +357,7 @@ class Message < Retriever::Model
   # :nodoc:
   def remove_favorited_by(user)
     type_strict user => User
+    service = Service.primary
     if service
       favorited_by.delete(user)
       Plugin.call(:unfavorite, service, user, self) end end
@@ -395,7 +391,8 @@ class Message < Retriever::Model
     type_strict child => Message
     @retweets = [] if not defined? @retweets
     @retweets << child
-    set_modified(child[:created]) if UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
+    service = Service.primary
+    set_modified(child[:created]) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
     @children << child
