@@ -137,7 +137,7 @@ class Message < Retriever::Model
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?
     return false if system?
-    Service.map(&:user).include?(self[:user]) end
+    Service.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?
