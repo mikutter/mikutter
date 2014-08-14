@@ -15,8 +15,6 @@ Plugin.create :list do
 
   profiletab :list, _("リスト") do
     set_icon Skin.get("list.png")
-    bio = ::Gtk::IntelligentTextview.new(user[:detail])
-    ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
     container = ProfileTab.new(Plugin.create(:list), user)
     nativewidget container.show_all end
 
@@ -29,6 +27,15 @@ Plugin.create :list do
           list_modify_member(list) } }
     end
   end
+
+  filter_extract_datasources do |datasources|
+    result = available_lists.inject(datasources||{}) do |_datasources, list|
+      _datasources.merge datasource_slug(list) => "@#{list.user.idname}/list/#{list[:name]}" end
+    [result] end
+
+  def datasource_slug(list)
+    type_strict list => UserList
+    :"#{list.user.idname}_list_#{list[:slug]}" end
 
   # available_list の同期をとる。外的要因でリストが追加されたのを検出した場合。
   on_list_created do |service, lists|
@@ -51,6 +58,7 @@ Plugin.create :list do
     messages.each{ |message|
       timelines.each{ |slug, list|
         if list.related?(message)
+          Plugin.call(:extract_receive_message, datasource_slug(list), [message])
           timeline(slug) << message end } } end
 
   on_service_registered do |service|
