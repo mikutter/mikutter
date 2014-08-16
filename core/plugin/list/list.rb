@@ -39,12 +39,12 @@ Plugin.create :list do
   # available_list の同期をとる。外的要因でリストが追加されたのを検出した場合。
   on_list_created do |service, lists|
     created = lists.reject{ |list| available_lists.include?(list) }
-    set_available_lists(available_lists + created) if not created.empty? end
+    set_available_lists(service, available_lists(service) + created) if not created.empty? end
 
   # available_list の同期をとる。外的要因でリストが削除されたのを検出した場合。
   on_list_destroy do |service, lists|
     deleted = lists.select{ |list| available_lists.include?(list) }
-    set_available_lists(available_lists - deleted) if not deleted.empty? end
+    set_available_lists(service, available_lists(service) - deleted) if not deleted.empty? end
 
   # フォローしているリストを返す
   filter_following_lists do |lists|
@@ -60,8 +60,8 @@ Plugin.create :list do
   on_service_registered do |service|
     if service
       fetch_list_of_service(service, true).next {
-        Deferred.when using_lists.map{ |list|
-          list_modify_member(list) } }.terminate end end
+        Deferred.when(*using_lists.map{ |list|
+                        list_modify_member(list) }) }.terminate end end
 
   on_service_destroyed do |service|
     service.lists(cache: true, user: service.user_obj).next{ |lists|
@@ -96,7 +96,7 @@ Plugin.create :list do
     type_strict service => Service
     service.lists(cache: cache, user: service.user_obj).next{ |lists|
       if lists
-        set_available_lists(lists) end } end
+        set_available_lists(service, lists) end } end
 
   # リストのメンバーを取得する
   # ==== Args
@@ -144,25 +144,36 @@ Plugin.create :list do
   def using?(list)
     using_lists.include? list end
 
-  # 自分がフォローしているリストを返す
-  # ==== Return
-  # 自分が作成したリストの配列(TypedArray)
-  def available_lists
-    @available_lists ||= UserLists.new.freeze end
-
-  # 自分がフォローしているリストを新しく設定する
+  # 自分がフォローしているリストを返す。
+  # _service_ を指定すると、そのアカウントでフォローしているリストに結果を限定する。
+  # 結果は重複する可能性がある
   # ==== Args
-  # [newlist] 新しいリスト(Enumerable)
+  # [service] Service|nil リストのフォロイーで絞り込む場合、そのService
   # ==== Return
-  # _newlist_
-  def set_available_lists(newlist)
-    created = newlist - available_lists
-    deleted = available_lists - newlist
-    Plugin.call(:list_created, Service.primary, UserLists.new(created)) if not created.empty?
-    Plugin.call(:list_destroy, Service.primary, UserLists.new(deleted)) if not deleted.empty?
-    @available_lists = UserLists.new(newlist).freeze
-    Plugin.call(:list_data, Service.primary, @available_lists) if not(created.empty? and deleted.empty?)
-    @available_lists end
+  # Enumerable 自分がフォローしているリスト(UserList)を列挙する
+  def available_lists(service = nil)
+    @available_lists ||= Hash.new
+    if service
+      @available_lists[service.user_obj] ||= UserLists.new.freeze
+    else
+      @all_available_lists ||= UserLists.new(@available_lists.flat_map{|k,v| v}.uniq.compact).freeze end end
+
+  # _service_ がフォローしているリストを新しく設定する
+  # ==== Args
+  # [service] Service リストのフォロイー TODO: これ実装する
+  # [newlist] Enumerable 新しいリスト
+  # ==== Return
+  # self
+  def set_available_lists(service, newlist)
+    type_strict service => Service, newlist => Enumerable
+    created = newlist - available_lists(service)
+    deleted = available_lists(service) - newlist
+    Plugin.call(:list_created, service, UserLists.new(created)) if not created.empty?
+    Plugin.call(:list_destroy, service, UserLists.new(deleted)) if not deleted.empty?
+    @available_lists[service.user_obj] = UserLists.new(newlist).freeze
+    @all_available_lists = nil
+    Plugin.call(:list_data, service, available_lists(service)) if not(created.empty? and deleted.empty?)
+    self end
 
   ->(service) {
     if service
