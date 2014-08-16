@@ -289,7 +289,7 @@ Plugin.create :gtk do
 
       menu.append(Gtk::SeparatorMenuItem.new) if items.length != 0
       menu2 = Gtk::ContextMenu.new(*items).build!(i_postbox, event, menu)
-      menu2.show_all 
+      menu2.show_all
 
       true }
 

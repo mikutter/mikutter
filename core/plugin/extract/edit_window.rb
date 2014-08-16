@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'observer'
+miquire :mui, 'hierarchycal_selectbox'
 
 module Plugin::Extract
 end
@@ -80,7 +81,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
 
   def source_widget
     datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first
-    datasources_box = Gtk::SelectBox.new(datasources, sources.map(&:to_sym)){
+    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources.map(&:to_sym)){
       modify_value sources: datasources_box.selected }
     scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
     @source_widget ||= Gtk::HBox.new().

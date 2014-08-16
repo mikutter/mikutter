@@ -23,19 +23,23 @@ class Gtk::SelectBox < Gtk::CRUD
     @selected = ((selected.dup or []) rescue [])
     @changed_hook = changed_hook
     super()
-    creatable = updatable = deletable = false
-    values.each{ |pair|
-      id, string = *pair
-      iter = model.append
-      iter[ITER_ID] = id
-      iter[ITER_STRING] = string
-      iter[ITER_CHECK] = (selected and @selected.include?(id)) } end
+    self.creatable = self.updatable = self.deletable = false
+    setting_values values, selected end
 
   def selected
     @selected.freeze
   end
 
   private
+
+  # 初期設定。コンストラクタに渡された項目をListViewに登録する
+  def setting_values(values, selected)
+    values.each{ |pair|
+      id, string = *pair
+      iter = model.append
+      iter[ITER_ID] = id
+      iter[ITER_STRING] = string
+      iter[ITER_CHECK] = (selected and @selected.include?(id)) } end
 
   def column_schemer
     [ { :kind => :active, :widget => :boolean, :type => TrueClass, :label => '選択' },
