@@ -7,11 +7,6 @@ Plugin.create :list do
   defevent :list_destroy, priority: :routine_passive, prototype: [Service, Array]
 
   crawl_count = 0
-  this = self
-
-  settings _("リスト") do
-    pack_start(this.setting_container, true)
-  end
 
   profiletab :list, _("リスト") do
     set_icon Skin.get("list.png")
@@ -72,19 +67,6 @@ Plugin.create :list do
   # FILTER stream で、タイムラインを表示しているユーザをフォロー
   filter_filter_stream_follow do |users|
     [using_lists.inject(users){ |r, list| r.merge(list.member) }] end
-
-  # 設定のGtkウィジェット
-  def setting_container
-    tab = Tab.new(Plugin.create(:list))
-    tab.plugin = self
-    available_lists.each{ |list|
-      iter = tab.model.append
-      iter[Tab::SLUG] = list[:full_name]
-      iter[Tab::LIST] = list
-      iter[Tab::NAME] = list[:name]
-      iter[Tab::DESCRIPTION] = list[:description]
-      iter[Tab::PUBLICITY] = list[:mode] }
-    Gtk::HBox.new.add(tab).closeup(tab.buttons(Gtk::VBox)).show_all end
 
   # _service_ が作成した全てのリストを取得する
   # ==== Args
@@ -183,64 +165,6 @@ Plugin.create :list do
         }.terminate } end }.(Service.primary)
 
   class IDs < TypedArray(Integer); end
-
-  class Tab < ::Gtk::ListList
-    attr_accessor :plugin
-
-    SLUG = 0
-    LIST = 1
-    NAME = 2
-    DESCRIPTION = 3
-    PUBLICITY = 4
-
-    def initialize(plugin)
-      type_strict plugin => Plugin
-      @plugin = plugin
-      super()
-      self.dialog_title = "リスト" end
-
-    def column_schemer
-      [{:kind => :text, :type => String, :label => @plugin._('リスト名')},
-       {:type => UserList},
-       {:type => String, :widget => :input, :label => @plugin._('リストの名前')},
-       {:type => String, :widget => :input, :label => @plugin._('リスト説明')},
-       {:type => TrueClass, :widget => :boolean, :label => @plugin._('公開')},
-      ].freeze
-    end
-
-    def on_created(iter)
-      iter[SLUG] = "@#{Service.primary.user}/#{iter[NAME]}"
-      Service.primary.add_list(user: Service.primary.user_obj,
-                               mode: iter[PUBLICITY],
-                               name: iter[NAME],
-                               description: iter[DESCRIPTION]){ |event, list|
-        if :success == event and list
-          Plugin.call(:list_created, Service.primary, UserLists.new([list]))
-          if not(destroyed?)
-            iter[LIST] = list
-            iter[SLUG] = list[:full_name] end end } end
-
-    def on_updated(iter)
-      list = iter[LIST]
-      if list
-        if list[:name] != iter[NAME] || list[:description] != iter[DESCRIPTION] || list[:mode] != iter[PUBLICITY]
-          notice "list updated. #{iter[NAME]} #{iter[DESCRIPTION]} #{iter[PUBLICITY]}"
-          Service.primary.update_list(id: list[:id],
-                               name: iter[NAME],
-                               description: iter[DESCRIPTION],
-                               mode: iter[PUBLICITY]){ |event, list|
-            if not(destroyed?) and event == :success and list
-              iter[SLUG] = list[:full_name] end } end end end
-
-    def on_deleted(iter)
-      list = iter[LIST]
-      if list
-        Service.primary.delete_list(list_id: list[:id]){ |event, list|
-          if event == :success
-            Plugin.call(:list_destroy, Service.primary, UserLists.new([list]))
-            model.remove(iter) if not destroyed? end } end end
-
-  end
 
   class ProfileTab < ::Gtk::ListList
     MEMBER = 0
