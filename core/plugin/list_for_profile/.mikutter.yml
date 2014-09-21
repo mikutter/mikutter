@@ -1,0 +1,12 @@
+---
+slug: :list_for_profile
+depends:
+  mikutter: 3.0.4
+  plugin:
+  - list
+  - gtk
+  - gui
+version: '1.0'
+author: toshi_a
+name: プロフィール用リストタブ
+description: ユーザのプロフィール画面に、リスト管理用のタブを表示します
