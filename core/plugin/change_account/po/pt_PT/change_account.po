@@ -1,0 +1,117 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the change_account package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2013-07-20 11:48+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Portuguese (Portugal) (http://www.transifex.com/projects/p/mikutter/language/pt_PT/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_PT\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../change_account.rb:8
+msgid "アカウントエラー (@{user})"
+msgstr ""
+
+#: ../change_account.rb:9
+msgid ""
+"ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
+"設定から、認証をやり直してください。"
+msgstr ""
+
+#: ../change_account.rb:16
+msgid "前のアカウント"
+msgstr ""
+
+#: ../change_account.rb:30
+msgid "次のアカウント"
+msgstr ""
+
+#: ../change_account.rb:49
+msgid "@%{screen_name}(%{name}) に切り替える"
+msgstr ""
+
+#: ../change_account.rb:59
+msgid "アカウント情報"
+msgstr ""
+
+#: ../change_account.rb:99
+msgid "インストールお疲れ様！"
+msgstr ""
+
+#: ../change_account.rb:100
+msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
+msgstr ""
+
+#: ../change_account.rb:115
+msgid "確定"
+msgstr ""
+
+#: ../change_account.rb:118
+msgid "コードを入力→"
+msgstr ""
+
+#: ../change_account.rb:135
+msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
+msgstr ""
+
+#: ../change_account.rb:147
+msgid ""
+"コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
+"(%{code} %{message})"
+msgstr ""
+
+#: ../change_account.rb:150
+msgid ""
+"何かがおかしいよ。\n"
+"(%{code} %{message})"
+msgstr ""
+
+#: ../change_account.rb:155
+msgid ""
+"何かがおかしいよ。\n"
+"(%{error})"
+msgstr ""
+
+#: ../change_account.rb:163
+msgid ""
+"登録方法は、\n"
+"1. %{authorize_url} にアクセスする\n"
+"2. mikutterに登録したいTwitterアカウントでログイン\n"
+"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
+"だよ。"
+msgstr ""
+
+#: ../change_account.rb:169
+msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
+msgstr ""
+
+#: ../change_account.rb:175
+msgid ""
+"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
+"をインストールしてくれたんだもんね。"
+msgstr ""
+
+#: ../change_account.rb:176
+msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
+msgstr ""
+
+#: ../change_account.rb:187
+msgid "mikutterのチュートリアルを見た"
+msgstr ""
+
+#: ../change_account.rb:198
+msgid "前回の続きから説明するね"
+msgstr ""
+
+#: ../interactive.rb:5
+msgid "次へ"
+msgstr ""

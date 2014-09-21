@@ -1,0 +1,130 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the activity package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2013-07-20 11:47+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Portuguese (Portugal) (http://www.transifex.com/projects/p/mikutter/language/pt_PT/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_PT\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../activity.rb:36
+msgid "種類"
+msgstr ""
+
+#: ../activity.rb:37
+msgid "説明"
+msgstr ""
+
+#: ../activity.rb:38
+msgid "時刻"
+msgstr ""
+
+#: ../activity.rb:144 ../activity.rb:279 ../activity.rb:282
+msgid "アクティビティ"
+msgstr ""
+
+#: ../activity.rb:187
+msgid "@%{user} がふぁぼふぁぼしました"
+msgstr ""
+
+#: ../activity.rb:197
+msgid "@%{user} があんふぁぼしました"
+msgstr ""
+
+#: ../activity.rb:209
+msgid "@%{user} がリツイートしました"
+msgstr ""
+
+#: ../activity.rb:215
+msgid "リツイートソースが取得できませんでした"
+msgstr ""
+
+#: ../activity.rb:220
+msgid "@%{user}が%{list}に追加されました"
+msgstr ""
+
+#: ../activity.rb:228 ../activity.rb:245
+msgid "%{description} (by @%{user})"
+msgstr ""
+
+#: ../activity.rb:237
+msgid "@%{user}が%{list}から削除されました"
+msgstr ""
+
+#: ../activity.rb:257
+msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
+msgstr ""
+
+#: ../activity.rb:266
+msgid "ダイレクトメッセージを送信しました"
+msgstr ""
+
+#: ../activity.rb:266
+msgid "ダイレクトメッセージを受信しました"
+msgstr ""
+
+#: ../activity.rb:267
+msgid "D %{recipient} %{text}"
+msgstr ""
+
+#: ../activity.rb:295
+msgid "表示しないイベント"
+msgstr ""
+
+#: ../activity.rb:296
+msgid "以下の自分に関係ないイベント"
+msgstr ""
+
+#: ../activity.rb:300
+msgid "以下の全てのイベント"
+msgstr ""
+
+#: ../activity.rb:304
+msgid "タイムラインに表示"
+msgstr ""
+
+#: ../activity.rb:308
+msgid "ステータスバーに表示"
+msgstr ""
+
+#: ../activity.rb:312
+msgid "リツイート"
+msgstr ""
+
+#: ../activity.rb:313
+msgid "ふぁぼ"
+msgstr ""
+
+#: ../activity.rb:314
+msgid "フォロー"
+msgstr ""
+
+#: ../activity.rb:315
+msgid "リストに追加"
+msgstr ""
+
+#: ../activity.rb:316
+msgid "リストから削除"
+msgstr ""
+
+#: ../activity.rb:317
+msgid "ダイレクトメッセージ"
+msgstr ""
+
+#: ../activity.rb:318
+msgid "システムメッセージ"
+msgstr ""
+
+#: ../activity.rb:319
+msgid "エラー"
+msgstr ""

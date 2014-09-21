@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the notify package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2013-07-20 11:57+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Portuguese (Portugal) (http://www.transifex.com/projects/p/mikutter/language/pt_PT/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_PT\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../notify.rb:8
+msgid "通知"
+msgstr ""
+
+#: ../notify.rb:11
+msgid "ポップアップ"
+msgstr ""
+
+#: ../notify.rb:12
+msgid "サウンド"
+msgstr ""
+
+#: ../notify.rb:14
+msgid "フレンドタイムライン"
+msgstr ""
+
+#: ../notify.rb:15
+msgid "リプライ"
+msgstr ""
+
+#: ../notify.rb:16
+msgid "フォローされたとき"
+msgstr ""
+
+#: ../notify.rb:17
+msgid "フォロー解除されたとき"
+msgstr ""
+
+#: ../notify.rb:18
+msgid "リツイートされたとき"
+msgstr ""
+
+#: ../notify.rb:19
+msgid "ふぁぼられたとき"
+msgstr ""
+
+#: ../notify.rb:20
+msgid "ダイレクトメッセージ受信"
+msgstr ""
+
+#: ../notify.rb:21
+msgid "通知を表示し続ける秒数"
+msgstr ""
+
+#: ../notify.rb:46
+msgid "%{users} にフォローされました。"
+msgstr ""
+
+#: ../notify.rb:53
+msgid "%{users} にリムーブされました。"
+msgstr ""
+
+#: ../notify.rb:60
+msgid "fav by %{from_user} \"%{tweet}\""
+msgstr ""
+
+#: ../notify.rb:71
+msgid "ReTweet: %{tweet}"
+msgstr ""
