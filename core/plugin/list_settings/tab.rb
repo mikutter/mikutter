@@ -47,17 +47,23 @@ module Plugin::ListSettings
           Service.primary.update_list(id: list[:id],
                                       name: iter[NAME],
                                       description: iter[DESCRIPTION],
-                                      mode: iter[PUBLICITY]){ |event, list|
-            if not(destroyed?) and event == :success and list
-              iter[SLUG] = list[:full_name] end } end end end
+                                      mode: iter[PUBLICITY]){ |event, updated_list|
+            if not(destroyed?) and event == :success and updated_list
+              iter[SLUG] = updated_list[:full_name]
+              iter[LIST] = updated_list
+              iter[NAME] = updated_list[:name]
+              iter[DESCRIPTION] = updated_list[:description]
+              iter[PUBLICITY] = updated_list[:mode] end
+          }.terminate end end end
 
     def on_deleted(iter)
       list = iter[LIST]
       if list
-        Service.primary.delete_list(list_id: list[:id]){ |event, list|
+        Service.primary.delete_list(list_id: list[:id]){ |event, deleted_list|
           if event == :success
-            Plugin.call(:list_destroy, Service.primary, UserLists.new([list]))
-            model.remove(iter) if not destroyed? end } end end
+            Plugin.call(:list_destroy, Service.primary, UserLists.new([deleted_list]))
+            model.remove(iter) if not destroyed? end
+        }.terminate end end
 
   end
 end
