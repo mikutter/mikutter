@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'observer'
+miquire :mui, 'hierarchycal_selectbox'
 
 module Plugin::Extract
 end
@@ -20,6 +21,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
                     closeup(ok_button).right)))
     ssc(:destroy) do
       Plugin.call :extract_tab_update, self.to_h end
+    set_size_request 480, 320
     show_all end
 
   def name
@@ -79,10 +81,12 @@ class Plugin::Extract::EditWindow < Gtk::Window
 
   def source_widget
     datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first
-    datasources_box = Gtk::SelectBox.new(datasources, sources.map(&:to_sym)){
+    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources.map(&:to_sym)){
       modify_value sources: datasources_box.selected }
-    @source_widget ||= Gtk::VBox.new().
-      add(datasources_box) end
+    scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
+    @source_widget ||= Gtk::HBox.new().
+      add(datasources_box).
+      closeup(scrollbar) end
 
   def condition_widget
     @condition_widget ||= Gtk::VBox.new().

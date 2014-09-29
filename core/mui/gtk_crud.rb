@@ -11,7 +11,7 @@ class Gtk::CRUD < Gtk::TreeView
 
   def initialize
     super()
-    set_model(Gtk::ListStore.new(*column_schemer.flatten.map{|x| x[:type]}))
+    initialize_model
     @creatable = @updatable = @deletable = true
     set_columns
     # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
@@ -70,6 +70,10 @@ class Gtk::CRUD < Gtk::TreeView
   end
 
   private
+
+  def initialize_model
+    set_model(Gtk::ListStore.new(*column_schemer.flatten.map{|x| x[:type]}))
+  end
 
   def set_columns
     column_schemer.inject(0){ |index, scheme|

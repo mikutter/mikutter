@@ -3,9 +3,6 @@ slug: :list
 depends:
   mikutter: '0.2'
   plugin:
-  - gtk
-  - settings
-  - gui
   - change_account
 version: '1.0'
 author: toshi_a

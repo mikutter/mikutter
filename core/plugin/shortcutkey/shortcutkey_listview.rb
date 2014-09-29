@@ -183,7 +183,7 @@ module Plugin::Shortcutkey
           iter[COL_NAME] = k.to_s
           iter
         }
-        commands = Plugin.filtering(:command, Hash.new).first.map{ |slug, command|
+        Plugin.filtering(:command, Hash.new).first.map{ |slug, command|
           iter = model.model.append(parents[command[:role]])
           icon = command[:icon]
           icon = icon.call(nil) if icon.is_a? Proc
@@ -223,9 +223,3 @@ module Plugin::Shortcutkey
 
   end
 end
-
-
-
-
-
-
