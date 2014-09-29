@@ -59,8 +59,6 @@ Plugin::create(:set_view) do
     end
 
     settings(_('Retweets')) do
-      boolean(_('リツイートを表示する'), :retweeted_by_anyone_show_timeline).
-        tooltip(_("TL上にリツイートを表示します"))
       boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).
         tooltip(_("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"))
       boolean(_('自分がリツイートしたつぶやきをTL上でageる'), :retweeted_by_myself_age).
@@ -68,8 +66,6 @@ Plugin::create(:set_view) do
     end
 
     settings(_('ふぁぼふぁぼ')) do
-      boolean(_('ふぁぼられを表示する'), :favorited_by_anyone_show_timeline).
-        tooltip(_("ふぁぼられたつぶやきの下に、ふぁぼった人のアイコンを表示します"))
       boolean(_('ふぁぼられをリプライの受信として処理する'), :favorited_by_anyone_act_as_reply).
         tooltip(_("ふぁぼられたつぶやきが、リプライタブに現れるようになります。"))
       boolean(_('ふぁぼられたつぶやきをTL上でageる'), :favorited_by_anyone_age).

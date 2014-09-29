@@ -84,7 +84,11 @@ module ConfigLoader
   # _key_ に対応するオブジェクトを取り出す。
   # _key_ が存在しない場合は nil か _ifnone_ を返す
   def at(key, ifnone=nil)
-    @@configloader_cache[configloader_key(key)] || ifnone end
+    ckey = configloader_key(key)
+    if @@configloader_cache.has_key? ckey
+      @@configloader_cache[ckey]
+    else
+      ifnone end end
 
   # _key_ にたいして _val_ を関連付ける。
   def store(key, val)

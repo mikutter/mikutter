@@ -35,7 +35,6 @@ class Plugin::Settings::Select
   # ==== Return
   # ウィジェット
   def build(label, config)
-    type_strict label => String, config => Symbol
     if has_widget?
       group = Gtk::Frame.new.set_border_width(8)
       group.set_label(label)
@@ -85,6 +84,7 @@ class Plugin::Settings::Select
 
   # すべてテキストなら、コンボボックスで要素を描画する
   def build_combobox(listener)
+    type_strict listener => Plugin::Settings::Listener
     input = Gtk::ComboBox.new(true)
     sorted = @options.map{ |o| o.first }.sort_by(&:to_s).freeze
     sorted.each{ |x|
