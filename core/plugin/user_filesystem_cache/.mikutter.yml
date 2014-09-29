@@ -1,0 +1,9 @@
+---
+slug: :user_filesystem_cache
+depends:
+  mikutter: 3.0.1
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: User Filesystem Cache
+description: ユーザ情報をファイルシステムにキャッシュして、できるだけAPIに問い合わせないようにします
