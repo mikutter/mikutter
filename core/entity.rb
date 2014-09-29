@@ -46,18 +46,8 @@ class Message::Entity
     @@linkrule = {}
     @@filter = Hash.new(filter_wrap(&ret_nth))
     filter(:urls){ |segment|
-      segment[:face] ||= segment[:url]
-      if UserConfig[:shrinkurl_expand]
-        url = segment[:expanded_url] || segment[:url]
-        if MessageConverters.shrinked_url? url
-          segment[:face] = MessageConverters.expand_url([url])[url]
-        elsif segment[:expanded_url]
-          begin
-            normalized = Addressable::URI.parse('//'+segment[:display_url]).display_uri.to_s
-            segment[:face] = normalized[2, normalized.size]
-          rescue => e
-            error e
-            segment[:face] = segment[:display_url] end end end
+      segment[:face] = (segment[:display_url] or segment[:url])
+      segment[:url] = (segment[:expanded_url] or segment[:url])
       segment }
 
     filter(:media){ |segment|
@@ -111,6 +101,28 @@ class Message::Entity
         s[:face]
       else
         s end }.join end
+
+  # 外部からエンティティを書き換える。
+  # これでエンティティが書き換えられた場合、イベントで書き換えが通知される。
+  # また、エンティティの範囲が被った場合それを削除する
+  # ==== Args
+  # [addition] Hash 以下の要素を持つ配列
+  #   - :slug (required) :: Symbol エンティティの種類。:urls 等
+  #   - :url (required) :: String 実際のクエリ(リンク先URL等)
+  #   - :face (required) :: String 表示する文字列
+  #   - :range (required) :: Range message上の置き換える範囲
+  #   - :message :: Message 親Message
+  # ==== Return
+  # self
+  def add(addition)
+    type_strict addition[:slug] => Symbol, addition[:url] => String, addition[:face] => String, addition[:range] => Range
+    links = select{|link|
+      (link[:range].to_a & addition[:range].to_a).empty?
+    }
+    links.push addition
+    @generate_value = links.sort_by{ |r| r[:range].first }.freeze
+    Plugin.call(:message_modified, message)
+  end
 
   # _index_ 文字目のエンティティの要素を返す。エンティティでなければnilを返す
   def segment_by_index(index)
@@ -214,14 +226,6 @@ class Message::Entity
       .slice(0, encoded_index)
       .gsub(REGEXP_ENTITY_DECODE_TARGET, &UNESCAPE_RULE.method(:[]))
       .size end
-    # decoded_string
-    #   .split(REGEXP_EACH_CHARACTER)
-    #   .map{ |s| ESCAPE_RULE[s] || s }
-    #   .join
-    #   .split(REGEXP_EACH_CHARACTER)[0, encoded_index]
-    #   .join
-    #   .gsub(/&.+?;/, '.'.freeze)
-    #   .size end
 
   class InvalidEntityError < Message::MessageError
   end

@@ -46,8 +46,7 @@ module Gtk::TimeLineUtils
 
       def gen_openurl_proc(url, way_of_open_link = wayofopenlink)
         way_of_open_link.freeze
-        expanded = MessageConverters.expand_url_one(url)
-        notice "try to open url '#{url}' expanded '#{expanded}'"
+        expanded = (Plugin.filtering(:expand_url, [url]).first.first rescue url)
         lambda{
           way_of_open_link.each_with_index{ |way, index|
             condition, open = *way

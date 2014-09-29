@@ -126,6 +126,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     iter = get_iter_by_message(message)
     if iter
       iter[column] = value
+      # 更新の結果、高さが変わる可能性がある
+      iter[MIRACLE_PAINTER].reset_height
       value end end
 
   # タイムラインの内容を全て削除する

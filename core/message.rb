@@ -2,7 +2,6 @@
 
 miquire :core, 'user'
 miquire :core, 'retriever'
-miquire :core, 'messageconverters'
 
 require 'net/http'
 require 'delegate'
