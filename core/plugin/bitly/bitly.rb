@@ -59,10 +59,11 @@ Plugin.create :bitly do
     }.trap{|exception|
       warn exception
       set.each do |url|
-        waiting_expand_entities[shrinked].each do
+        waiting_expand_entities[url].each do
           query.call nil end end
     }.next {
-      waiting_expand_entities[shrinked] = Set.new
+      set.each do |url|
+        waiting_expand_entities[url] = Set.new end
     }.terminate end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
@@ -82,4 +83,3 @@ Plugin.create :bitly do
     divided[true] ||= []
     [divided[false] + divided[true].each_slice(15).map{|chunk|Plugin::Bitly.expand_url_many(chunk).values}.flatten] end
 end
-
