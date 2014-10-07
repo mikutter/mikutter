@@ -43,7 +43,7 @@ class Plugin::Achievement::Achievement
   def notachieved_parent
     unachievements = Plugin.filtering(:unachievements, {}).first
     if @options[:depends]
-    result = @options[:depends].map{ |slug| unachievements[slug] }.any?
+      result = @options[:depends].map{ |slug| unachievements[slug] }.compact.first
       if result
         result.notachieved_parent
       else
@@ -160,7 +160,7 @@ Plugin.create :achievement do
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?
-      not_achieved = unachievements.values[rand(unachievements.size)].notachieved_parent
+      not_achieved = unachievements.values.sample.notachieved_parent
       unless not_achieved.hidden?
         if Mopt.debug?
           activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})"
@@ -171,10 +171,3 @@ Plugin.create :achievement do
     activity :achievement, (_("実績 %s を達成しました！おめでとう♪") % achievement.slug.to_s) end
 
 end
-
-
-
-
-
-
-
