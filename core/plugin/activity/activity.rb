@@ -188,7 +188,7 @@ Plugin.create(:activity) do
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
                           message.parma_link),
              icon: user[:profile_image_url],
-             related: message.user.is_me? || user.is_me?,
+             related: message.user.me? || user.me?,
              service: service)
   end
 
@@ -198,7 +198,7 @@ Plugin.create(:activity) do
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
                           message.parma_link),
              icon: user[:profile_image_url],
-             related: message.user.is_me? || user.is_me?,
+             related: message.user.me? || user.me?,
              service: service)
   end
 
@@ -211,7 +211,7 @@ Plugin.create(:activity) do
                               source.parma_link),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
-                 related: (retweet.user.is_me? || source && source.user.is_me?),
+                 related: (retweet.user.me? || source && source.user.me?),
                  service: Service.primary) }.terminate(_ 'リツイートソースが取得できませんでした') }
   end
 
@@ -228,7 +228,7 @@ Plugin.create(:activity) do
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
-               related: user.is_me? || source_user.is_me?,
+               related: user.me? || source_user.me?,
                service: service) end
   end
 
@@ -245,7 +245,7 @@ Plugin.create(:activity) do
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
                icon: user[:profile_image_url],
-               related: user.is_me? || source_user.is_me?,
+               related: user.me? || source_user.me?,
                service: service) end
   end
 
@@ -255,15 +255,15 @@ Plugin.create(:activity) do
         followee: by[:idname],
         follower: to[:idname] }
       activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
-               related: by.is_me? || to.is_me?,
-               icon: (to.is_me? ? by : to)[:profile_image_url]) end
+               related: by.me? || to.me?,
+               icon: (to.me? ? by : to)[:profile_image_url]) end
   end
 
   on_direct_messages do |service, dms|
     dms.each{ |dm|
       date = Time.parse(dm[:created_at])
       if date > BOOT_TIME
-        first_line = dm[:sender].is_me? ? _("ダイレクトメッセージを送信しました") : _("ダイレクトメッセージを受信しました")
+        first_line = dm[:sender].me? ? _("ダイレクトメッセージを送信しました") : _("ダイレクトメッセージを受信しました")
         title = _("D %{recipient} %{text}") % {
           recipient: dm[:recipient][:idname],
           text: dm[:text] }

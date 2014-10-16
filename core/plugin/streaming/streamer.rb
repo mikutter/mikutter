@@ -135,9 +135,9 @@ module ::Plugin::Streaming
     defevent(:follow) do |json|
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
-      if(target.is_me?)
+      if(target.me?)
         Plugin.call(:followers_created, @service, Users.new([source]))
-      elsif(source.is_me?)
+      elsif(source.me?)
         Plugin.call(:followings_created, @service, Users.new([target])) end end
 
     defevent(:list_member_added) do |json|

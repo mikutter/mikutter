@@ -51,9 +51,9 @@ Module.new do
       when json['event'] == 'follow' then
         source = @service.__send__(:parse_json, json['source'], :user_show).first
         target = @service.__send__(:parse_json, json['target'], :user_show).first
-        if(target.is_me?)
+        if(target.me?)
           Plugin.call(:followers_created, @service, [source])
-        elsif(source.is_me?)
+        elsif(source.me?)
           Plugin.call(:followings_created, @service, [target])
         end
       when json['delete'] then

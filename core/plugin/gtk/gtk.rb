@@ -435,7 +435,7 @@ Plugin.create :gtk do
           mp.on_modify } end } end
 
   on_favorite do |service, user, message|
-    if(user.is_me?)
+    if(user.me?)
       Gdk::MiraclePainter.findbymessage(message).each{ |mp|
         mp.on_modify } end end
 

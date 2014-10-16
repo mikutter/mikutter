@@ -42,7 +42,7 @@ class Gtk::ListList < Gtk::CRUD
   # [lists] リストの配列(UserLists)
   def add_hook(service, own, lists, &proc)
     type_strict service => Service, lists => UserLists, proc => Proc
-    (own ? lists.select{ |list| list[:user].is_me? } : lists).each{ |list|
+    (own ? lists.select{ |list| list[:user].me? } : lists).each{ |list|
       proc.call(service, list, model.append) } end
 
 end

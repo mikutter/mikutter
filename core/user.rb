@@ -105,11 +105,15 @@ class User < Retriever::Model
     elsif other.is_a?(User) then
       other[:id] == self[:id] end end
 
-  def is_me?(service = Service.instances)
+  # このUserオブジェクトが、登録されているアカウントのうちいずれかのものであるなら true を返す
+  def me?(service = Service.instances)
     if service.is_a? Enumerable
-      service.any?(&method(:is_me?))
+      service.any?(&method(:me?))
     elsif service.is_a? Service
       service.user_obj == self end end
+
+  # 互換性のため
+  alias is_me? me?
 
   # ユーザのメッセージが今までお気に入りにされた回数を返す
   def count_favorite_by

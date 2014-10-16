@@ -79,7 +79,7 @@ Plugin.create :profile do
       closeup(bio).
       closeup(label_since.left).
       closeup(plugin.relation_bar(user))
-    container.closeup(plugin.mutebutton(user)) if not user.is_me?
+    container.closeup(plugin.mutebutton(user)) if not user.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
