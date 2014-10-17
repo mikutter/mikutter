@@ -179,7 +179,7 @@ Plugin.create :command do
   end
 
   command(:focus_right_tab,
-          name: _('右のタブを選択'),
+          name: _('次のタブを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
@@ -187,7 +187,7 @@ Plugin.create :command do
   end
 
   command(:focus_left_tab,
-          name: _('左のタブを選択'),
+          name: _('前のタブを選択'),
           condition: lambda{ |opt| true },
           visible: false,
           role: :tab) do |opt|
