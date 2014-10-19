@@ -5,6 +5,9 @@ module Plugin::GUI::HierarchyChild
 
   class << self
     def included(klass)
+      if klass.include?(Plugin::GUI::HierarchyParent)
+        raise "Plugin::GUI::HierarchyChild must be included before the Plugin::GUI::HierarchyParent."
+      end
       klass.extend(Extended)
     end
   end
@@ -84,4 +87,3 @@ module Plugin::GUI::HierarchyChild
   end
 
 end
-

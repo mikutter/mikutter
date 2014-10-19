@@ -1,5 +1,5 @@
 {
-    "twitpic": {
+   "twitpic": {
         "url": "^http://twitpic\\.com/[a-zA-Z0-9]+",
         "attribute": {
             "tag": "img",
@@ -79,12 +79,12 @@
 	},
 	"via me": {
 		"url": "^http://via\\.me/-[a-zA-Z0-9]+",
-	 	"attribute": { 
+		"attribute": {
 			"tag": "meta",
 			"attribute": "content",
 			"property": "og:image"
 		}
- 	},
+	},
 	"twitgoo": {
 		"url": "^http://twitgoo\\.com/[a-zA-Z0-9]+",
 		"attribute": {

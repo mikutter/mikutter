@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the achievement package.
 # 
 # Translators:
-# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:34+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-10-15 05:01+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,7 +24,7 @@ msgstr "成就"
 
 #: ../achievement.rb:101
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
-msgstr ""
+msgstr "您的Twitter账户已成功登录进mikutter。这下刷推爽啦"
 
 #: ../achievement.rb:108
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
@@ -62,6 +62,6 @@ msgstr "在一栏中有两个以上标签的时候，试试拖动标签到其他
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "谢谢您发送崩溃报告"
 
-#: ../achievement.rb:160
+#: ../achievement.rb:163
 msgid "実績 %s を達成しました！おめでとう♪"
 msgstr "成就已达成 %s ！祝贺你♪"

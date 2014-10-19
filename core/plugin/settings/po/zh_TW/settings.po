@@ -3,13 +3,14 @@
 # This file is distributed under the same license as the settings package.
 # 
 # Translators:
+# Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"PO-Revision-Date: 2014-10-15 07:49+0000\n"
+"Last-Translator: Hsiao-Ting Wang <hsiaoting.wang@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,19 +20,19 @@ msgstr ""
 
 #: ../basic_settings.rb:4
 msgid "基本設定"
-msgstr ""
+msgstr "基本設定"
 
 #: ../basic_settings.rb:5
 msgid "各情報を取りに行く間隔。単位は分"
-msgstr ""
+msgstr "更新各種消息的時間間隔。以分為單位計。"
 
 #: ../basic_settings.rb:6 ../basic_settings.rb:29
 msgid "タイムラインとリプライ"
-msgstr ""
+msgstr "時間軸和回覆"
 
 #: ../basic_settings.rb:7
 msgid "あなたがフォローしている人からのリプライとつぶやきの取得間隔"
-msgstr ""
+msgstr "你關注對象的回覆及推文更新時間間隔"
 
 #: ../basic_settings.rb:9 ../basic_settings.rb:30
 msgid "フォローしていない人からのリプライ"
@@ -45,7 +46,7 @@ msgstr ""
 
 #: ../basic_settings.rb:12
 msgid "保存した検索"
-msgstr ""
+msgstr "已存檔之搜尋條件"
 
 #: ../basic_settings.rb:13
 msgid "保存した検索を確認しに行く間隔"
@@ -61,7 +62,7 @@ msgstr ""
 
 #: ../basic_settings.rb:18 ../basic_settings.rb:31
 msgid "フォロー"
-msgstr ""
+msgstr "關注"
 
 #: ../basic_settings.rb:19
 msgid "フォロー一覧を確認しに行く間隔。mikutterを使わずにフォローした場合、この時に同期される"
@@ -69,7 +70,7 @@ msgstr ""
 
 #: ../basic_settings.rb:21 ../basic_settings.rb:32 ../basic_settings.rb:39
 msgid "フォロワー"
-msgstr ""
+msgstr "關注者"
 
 #: ../basic_settings.rb:22
 msgid "フォロワー一覧を確認しに行く間隔"
@@ -101,7 +102,7 @@ msgstr ""
 
 #: ../basic_settings.rb:43
 msgid "リアルタイム更新"
-msgstr ""
+msgstr "即時更新"
 
 #: ../basic_settings.rb:44
 msgid "ホームタイムライン(UserStream)"
@@ -113,7 +114,7 @@ msgstr ""
 
 #: ../basic_settings.rb:46
 msgid "リスト(Streaming API)"
-msgstr ""
+msgstr "使用者列表 (串流 API)"
 
 #: ../basic_settings.rb:47
 msgid "Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります"
@@ -133,11 +134,11 @@ msgstr ""
 
 #: ../basic_settings.rb:54
 msgid "%s について"
-msgstr ""
+msgstr "與 %s 相關"
 
 #: ../basic_settings.rb:57
 msgid "2009-%s Toshiaki Asai"
-msgstr ""
+msgstr "2009-%s Toshiaki Asai"
 
 #: ../basic_settings.rb:58
 msgid ""
@@ -150,4 +151,4 @@ msgstr ""
 
 #: ../basic_settings.rb:60
 msgid "http://mikutter.hachune.net/"
-msgstr ""
+msgstr "http://mikutter.hachune.net/"

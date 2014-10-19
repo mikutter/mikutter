@@ -181,7 +181,7 @@ Plugin.create :openimg do
       nil
     end
   }
-  
+
   # Tumblr image
   # http://tmblr.co/[-\w]+ http://tumblr.com/[[:36進数:]]+
   # http://{screen-name}.tumblr.com/post/\d+
@@ -200,7 +200,7 @@ Plugin.create :openimg do
         nil
       end
     end
-    
+
     t = fetch(url)
     /\A(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
     if $~
@@ -225,6 +225,14 @@ Plugin.create :openimg do
       nil
     end
   end
+
+  # d250g2
+  addsupport(%r#\Ahttp://twitpic.com/d250g2#) { |url, cancel|
+    'http://d250g2.com/d250g2.jpg'.freeze
+  }
+  addsupport(%r#\Ahttp://d250g2.com#) { |url, cancel|
+    'http://d250g2.com/d250g2.jpg'.freeze
+  }
 
   ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)\Z/) { |shrinked_url, cancel|
     url = (Plugin.filtering(:expand_url, shrinked_url).first.first rescue shrinked_url)

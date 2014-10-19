@@ -10,8 +10,8 @@ require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 class Plugin::GUI::Profile
 
   include Plugin::GUI::Cuscadable
-  include Plugin::GUI::HierarchyParent
   include Plugin::GUI::HierarchyChild
+  include Plugin::GUI::HierarchyParent
   include Plugin::GUI::Widget
 
   role :profile

@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the settings package.
 # 
 # Translators:
-# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"PO-Revision-Date: 2014-10-15 05:27+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -42,7 +42,7 @@ msgstr "没有关注的人的回复"
 msgid ""
 "あなたに送られてきたリプライを取得する間隔。\n"
 "上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"
-msgstr ""
+msgstr "获取对你的回复的发言的时间间隔。\n于上面那条不同的是，这个还能获取你没有关注的用户的回复信息。"
 
 #: ../basic_settings.rb:12
 msgid "保存した検索"
@@ -147,7 +147,7 @@ msgid ""
 "圧倒的なかわいさではないか我がミクは\n"
 "\n"
 "このソフトウェアは %{license} によって浄化されています。"
-msgstr ""
+msgstr "赠送给全球所有的Miku厨和Twitter中毒者的，以至高无上的推特客户端为目标的推特客户端。\n简称“至高无上的推特客户端”。\n看看咱们的Miku是不是超级压倒性地可爱呢～\n\n这个客户端由%{license} 进行净化。"
 
 #: ../basic_settings.rb:60
 msgid "http://mikutter.hachune.net/"
