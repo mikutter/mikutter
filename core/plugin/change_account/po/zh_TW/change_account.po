@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the change_account package.
 # 
 # Translators:
+# Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
 # Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"PO-Revision-Date: 2014-10-15 10:24+0000\n"
+"Last-Translator: Hsiao-Ting Wang <hsiaoting.wang@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,11 +31,11 @@ msgstr ""
 
 #: ../change_account.rb:16
 msgid "前のアカウント"
-msgstr ""
+msgstr "前一帳號"
 
 #: ../change_account.rb:30
 msgid "次のアカウント"
-msgstr ""
+msgstr "下一帳號"
 
 #: ../change_account.rb:49
 msgid "@%{screen_name}(%{name}) に切り替える"
@@ -42,7 +43,7 @@ msgstr ""
 
 #: ../change_account.rb:59
 msgid "アカウント情報"
-msgstr "賬戶信息"
+msgstr "帳號資訊"
 
 #: ../change_account.rb:99
 msgid "インストールお疲れ様！"
@@ -54,7 +55,7 @@ msgstr ""
 
 #: ../change_account.rb:115
 msgid "確定"
-msgstr ""
+msgstr "確定"
 
 #: ../change_account.rb:118
 msgid "コードを入力→"

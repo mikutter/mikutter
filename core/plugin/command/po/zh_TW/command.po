@@ -3,13 +3,14 @@
 # This file is distributed under the same license as the command package.
 # 
 # Translators:
+# Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:41+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-10-16 09:57+0000\n"
+"Last-Translator: Hsiao-Ting Wang <hsiaoting.wang@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,104 +20,104 @@ msgstr ""
 
 #: ../command.rb:12
 msgid "コピー"
-msgstr ""
+msgstr "複製"
 
 #: ../command.rb:20
 msgid "本文をコピー"
-msgstr ""
+msgstr "複製文字"
 
 #: ../command.rb:28
 msgid "返信"
-msgstr ""
+msgstr "回覆"
 
 #: ../command.rb:37
 msgid "全員に返信"
-msgstr ""
+msgstr "回覆所有人"
 
 #: ../command.rb:47
 msgid "引用"
-msgstr ""
+msgstr "引用"
 
 #: ../command.rb:54
 msgid "リツイート"
-msgstr ""
+msgstr "轉推"
 
 #: ../command.rb:62
 msgid "リツイートをキャンセル"
-msgstr ""
+msgstr "取消轉推"
 
 #: ../command.rb:72
 msgid "ふぁぼふぁぼする"
-msgstr ""
+msgstr "打星"
 
 #: ../command.rb:80
 msgid "あんふぁぼ"
-msgstr ""
+msgstr "取消打星"
 
 #: ../command.rb:88
 msgid "削除"
-msgstr ""
+msgstr "刪除"
 
 #: ../command.rb:94
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
-msgstr ""
+msgstr "即使無法返回失去的信任，您仍要刪除推文嗎？"
 
 #: ../command.rb:97
 msgid "一つ上のメッセージを選択"
-msgstr ""
+msgstr "選擇上一個訊息"
 
 #: ../command.rb:104
 msgid "一つ下のメッセージを選択"
-msgstr ""
+msgstr "選擇下一個訊息"
 
 #: ../command.rb:111
 msgid "投稿する"
-msgstr ""
+msgstr "發推"
 
 #: ../command.rb:119
 msgid "ggrks"
-msgstr ""
+msgstr "為何不 google (ggrks)"
 
 #: ../command.rb:127
 msgid "リンクを開く"
-msgstr ""
+msgstr "開啟連結"
 
 #: ../command.rb:143
 msgid "リンクをコピー"
-msgstr ""
+msgstr "複製連結"
 
 #: ../command.rb:152
 msgid "新規ペインに移動"
-msgstr ""
+msgstr "移往新建窗格"
 
 #: ../command.rb:172
 msgid "タブを閉じる"
-msgstr ""
+msgstr "關閉頁籤"
 
-#: ../command.rb:182
+#: ../command.rb:183
 msgid "右のタブを選択"
-msgstr ""
+msgstr "選擇右方頁籤"
 
-#: ../command.rb:190
+#: ../command.rb:191
 msgid "左のタブを選択"
-msgstr ""
+msgstr "選擇左方頁籤"
 
-#: ../command.rb:198
+#: ../command.rb:199
 msgid "右のペインを選択"
-msgstr ""
+msgstr "選擇右方窗格"
 
-#: ../command.rb:206
+#: ../command.rb:207
 msgid "左のペインを選択"
-msgstr ""
+msgstr "選擇左方窗格"
 
-#: ../command.rb:214
+#: ../command.rb:215
 msgid "投稿ボックスにフォーカス"
-msgstr ""
+msgstr "聚焦於發推欄位"
 
-#: ../command.rb:226
+#: ../command.rb:227
 msgid "タブにフォーカス"
-msgstr ""
+msgstr "聚焦於頁籤"
 
-#: ../command.rb:234
+#: ../command.rb:235
 msgid "タイムラインの一番上にジャーンプ！"
-msgstr ""
+msgstr "跳到時間軸頂端！"

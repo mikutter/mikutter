@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the command package.
 # 
 # Translators:
-# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
+# Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:41+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2014-05-07 01:14+0900\n"
+"PO-Revision-Date: 2014-10-15 05:03+0000\n"
+"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -84,7 +84,7 @@ msgstr "打开链接"
 
 #: ../command.rb:143
 msgid "リンクをコピー"
-msgstr ""
+msgstr "复制链接"
 
 #: ../command.rb:152
 msgid "新規ペインに移動"
@@ -94,30 +94,30 @@ msgstr "移动至新栏"
 msgid "タブを閉じる"
 msgstr "关闭标签"
 
-#: ../command.rb:182
+#: ../command.rb:183
 msgid "右のタブを選択"
 msgstr "选择右边的标签"
 
-#: ../command.rb:190
+#: ../command.rb:191
 msgid "左のタブを選択"
 msgstr "选择左边标签"
 
-#: ../command.rb:198
+#: ../command.rb:199
 msgid "右のペインを選択"
 msgstr "选择右栏"
 
-#: ../command.rb:206
+#: ../command.rb:207
 msgid "左のペインを選択"
 msgstr "选择左栏"
 
-#: ../command.rb:214
+#: ../command.rb:215
 msgid "投稿ボックスにフォーカス"
 msgstr "聚焦至发言框"
 
-#: ../command.rb:226
+#: ../command.rb:227
 msgid "タブにフォーカス"
 msgstr "聚焦至标签"
 
-#: ../command.rb:234
+#: ../command.rb:235
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "纵身一跃至时间线最上方！"
