@@ -90,6 +90,24 @@ Plugin.create(:activity) do
           reset_activity(model) end } }
   end
 
+  def gen_listener_for_visible_check(uc, kind)
+    Plugin::Settings::Listener.new \
+      get: ->(){ UserConfig[uc].include? kind },\
+      set: ->(value) do
+        if value
+          UserConfig[uc] += [kind]
+        else
+          UserConfig[uc] -= [kind] end end end
+
+  def gen_listener_for_invisible_check(uc, kind)
+    Plugin::Settings::Listener.new \
+      get: ->(){ not UserConfig[uc].include?(kind) },\
+      set: ->(value) do
+        unless value
+          UserConfig[uc] += [kind]
+        else
+          UserConfig[uc] -= [kind] end end end
+
   # アクティビティを更新する。
   # ==== Args
   # [kind] Symbol イベントの種類
@@ -292,22 +310,17 @@ Plugin.create(:activity) do
       activity_kind_order = []
       activity_kind = {} end
 
-    settings _("表示しないイベント") do
-      multiselect(_("以下の自分に関係ないイベント"), :activity_mute_kind_related) do
-        activity_kind_order.each{ |kind|
-          option kind, activity_kind[kind] } end
-
-      multiselect(_("以下の全てのイベント"), :activity_mute_kind) do
-        activity_kind_order.each{ |kind|
-          option kind, activity_kind[kind] } end end
-
-    multiselect(_("タイムラインに表示"), :activity_show_timeline) do
-      activity_kind_order.each{ |kind|
-        option kind, activity_kind[kind] } end
-
-    multiselect(_("ステータスバーに表示"), :activity_show_statusbar) do
-      activity_kind_order.each{ |kind|
-        option kind, activity_kind[kind] } end end
+    activity_kind_order.each do |kind|
+      name = activity_kind[kind]
+      ml_param = {name: name}
+      settings name do
+        boolean(_('%{name}を表示する') % ml_param, gen_listener_for_invisible_check(:activity_mute_kind, kind)).tooltip(_('%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。') % ml_param)
+        boolean(_('自分に関係ない%{name}も表示する') % ml_param, gen_listener_for_invisible_check(:activity_mute_kind_related, kind)).tooltip(_('自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。') % ml_param)
+        boolean(_('タイムラインに表示'), gen_listener_for_visible_check(:activity_show_timeline, kind)).tooltip(_('%{name}が通知された時に、システムメッセージで%{name}を通知します') % ml_param)
+        boolean(_('ステータスバーに表示'), gen_listener_for_visible_check(:activity_show_statusbar, kind)).tooltip(_('%{name}が通知された時に、ステータスバーにしばらく表示します') % ml_param)
+      end
+    end
+  end
 
   defactivity "retweet", _("リツイート")
   defactivity "favorite", _("ふぁぼ")
