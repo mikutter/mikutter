@@ -347,9 +347,7 @@ Plugin.create :gtk do
 
   filter_gui_timeline_has_messages do |i_timeline, messages|
     [i_timeline,
-     (widgetof(i_timeline).map(&:id) & messages.map(&:id)).map{|id|
-       messages.find{|m| m.id == id }}] end
-
+     messages.select(&widgetof(i_timeline).method(:include?))] end
 
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)

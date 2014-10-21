@@ -72,6 +72,9 @@ class Gtk::TimeLine
     @tl.model.each{ |model,path,iter|
       yield(iter[index]) } end
 
+  def include?(message)
+    @tl.include? message end
+
   # TLのログを全て消去する
   def clear
     @tl.clear
