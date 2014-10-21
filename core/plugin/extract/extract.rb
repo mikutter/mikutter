@@ -184,10 +184,10 @@ Plugin.create :extract do
     converted_messages = Messages.new(messages.map{ |message| message.retweet_source ? message.retweet_source : message })
     tabs.deach{ |record|
       begin
-        filtered_messages = converted_messages.select(&compile(record[:id], record[:sexp])).freeze
+        filtered_messages = timeline(record[:slug]).not_in_message(converted_messages.select(&compile(record[:id], record[:sexp]))).freeze
         unless filtered_messages.empty?
           timeline(record[:slug]) << filtered_messages
-          notificate_messages = lazy{ filtered_messages.select{|message| message[:created] > DEFINED_TIME} }
+          notificate_messages = filtered_messages.lazy.select{|message| message[:created] > DEFINED_TIME}
           if record[:popup]
             notificate_messages.each do |message|
               notice message.user.idname + " " + message.to_show
@@ -195,8 +195,9 @@ Plugin.create :extract do
           if record[:sound].is_a?(String) and not notificate_messages.empty? and FileTest.exist?(record[:sound])
             Plugin.call(:play_sound, record[:sound]) end
         end
-      rescue Exception => e
-        error "filter '#{record[:name]}' crash: #{e.to_s}" end } end
+      rescue Exception => exception
+        error "filter '#{record[:name]}' crash: #{exception.to_s}"
+        error exception end } end
 
   (UserConfig[:extract_tabs] or []).each{ |record|
     extract_tabs[record[:id]] = record.freeze
@@ -210,4 +211,3 @@ Plugin.create :extract do
     UserConfig.disconnect(extract_tabs_watcher) end
 
 end
-
