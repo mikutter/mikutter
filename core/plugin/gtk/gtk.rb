@@ -345,6 +345,12 @@ Plugin.create :gtk do
   on_gui_timeline_set_order do |i_timeline, order|
     widgetof(i_timeline).set_order(&order) end
 
+  filter_gui_timeline_has_messages do |i_timeline, messages|
+    [i_timeline,
+     (widgetof(i_timeline).map(&:id) & messages.map(&:id)).map{|id|
+       messages.find{|m| m.id == id }}] end
+
+
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
     if postbox
