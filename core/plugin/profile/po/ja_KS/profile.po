@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: profile 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 22:35+0900\n"
+"PO-Revision-Date: 2014-10-21 23:08+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../profile.rb:45
+msgid "%{user} のプロフィール"
+msgstr "%{user} のプロフィール"
+
+#: ../profile.rb:62
+msgid "最近のツイート"
+msgstr "最近のツイート"
+
+#: ../profile.rb:71
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr ""
+"@%{user} の最近のツイート取れへんかったわ。まあ巨人ファンの言うことなんか見い"
+"ひんほうがええよ。"
+
+#: ../profile.rb:74 ../profile.rb:133
+msgid "ユーザについて"
+msgstr "ユーザについて"
+
+#: ../profile.rb:98
+msgid "Web: %{url}"
+msgstr "Web: %{url}"
+
+#: ../profile.rb:101
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+
+#: ../profile.rb:129
+msgid "%{screen_name}(%{name})について"
+msgstr "%{screen_name}(%{name})について"
+
+#: ../profile.rb:150
+msgid "ミュート"
+msgstr "巨人ファン"
+
+#: ../profile.rb:177
+msgid "関係を取得中"
+msgstr "関係を取得中"
+
+#: ../profile.rb:182
+msgid "それはあなたです！"
+msgstr "自分やで"
+
+#: ../profile.rb:207
+msgid "ﾌｮﾛｰしている"
+msgstr "ﾌｮﾛｰしとる"
+
+#: ../profile.rb:207
+msgid "ﾌｮﾛｰしていない"
+msgstr "ﾌｮﾛｰしてへん"
+
+#: ../profile.rb:208
+msgid "ﾌｮﾛｰ"
+msgstr "ﾌｮﾛｰ"
+
+#: ../profile.rb:208
+msgid "解除"
+msgstr "解除"
+
+#: ../profile.rb:217
+msgid "ﾌｮﾛｰされていない"
+msgstr "ﾌｮﾛｰされとらん"
+
+#: ../profile.rb:217
+msgid "ﾌｮﾛｰされている"
+msgstr "ﾌｮﾛｰされとる"
+
+#: ../profile.rb:243
+msgid "取得できませんでした"
+msgstr "取得できひんかったわ"
+
+#: ../profile.rb:299
+msgid "ふぁぼが取得できませんでした"
+msgstr "ふぁぼが取得できひんかったわ"

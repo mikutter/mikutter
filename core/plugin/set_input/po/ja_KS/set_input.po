@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the set_input package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: set_input 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-21 23:17+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../set_input.rb:4
+msgid "入力"
+msgstr "入力"
+
+#: ../set_input.rb:5
+msgid "投稿をリトライする回数"
+msgstr "投稿なんべんやり直すか"
+
+#: ../set_input.rb:6
+msgid "非公式Retweetにin_reply_to_statusを付与する"
+msgstr "非公式Retweetにin_reply_to_statusを付与する"
+
+#: ../set_input.rb:7
+msgid "短縮URL"
+msgstr "短縮URL"
+
+#: ../set_input.rb:8
+msgid "常にURLを短縮する"
+msgstr "常にURLを短縮する"
+
+#: ../set_input.rb:9
+msgid "フッタ"
+msgstr "フッタ"
+
+#: ../set_input.rb:10
+msgid "デフォルトで挿入するフッタ"
+msgstr "デフォルトで挿入するフッタ"
+
+#: ../set_input.rb:11
+msgid "リプライの場合はフッタを付与しない"
+msgstr "リプライの場合はフッタを付与せえへん"
+
+#: ../set_input.rb:12
+msgid ""
+"リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"
+msgstr "リプライん時に[試験3日前]とか入っとったらあれやろ"
+
+#: ../set_input.rb:13
+msgid "引用(非公式ReTweet)の場合はフッタを付与しない"
+msgstr "引用(非公式ReTweet)の場合はフッタを付与せえへん"
+
+#: ../set_input.rb:14
+msgid ""
+"関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えない"
+"し邪魔ですよねぇ"
+msgstr "関西弁の翻訳ほんましんどい…。もういやや。"

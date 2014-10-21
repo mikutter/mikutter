@@ -1,0 +1,96 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the extract package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: extract 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 22:35+0900\n"
+"PO-Revision-Date: 2014-10-21 22:48+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../edit_window.rb:13 ../edit_window.rb:127
+msgid "%{name} - 抽出タブ - %{application_name}"
+msgstr "%{name} - 抽出タブ - %{application_name}"
+
+#: ../edit_window.rb:16
+msgid "データソース"
+msgstr "データソース"
+
+#: ../edit_window.rb:17
+msgid "絞り込み条件"
+msgstr "絞り込み条件"
+
+#: ../edit_window.rb:18
+msgid "オプション"
+msgstr "オプション"
+
+#: ../edit_window.rb:69 ../edit_window.rb:112 ../extract.rb:103
+#: ../extract_tab_list.rb:19
+msgid "名前"
+msgstr "名前"
+
+#: ../edit_window.rb:113
+msgid "アイコン"
+msgstr "アイコン"
+
+#: ../edit_window.rb:114
+msgid "通知"
+msgstr "通知"
+
+#: ../edit_window.rb:115
+msgid "サウンド"
+msgstr "サウンド"
+
+#: ../edit_window.rb:116
+msgid "ポップアップ"
+msgstr "ポップアップ"
+
+#: ../edit_window.rb:119
+msgid "閉じる"
+msgstr "閉じる"
+
+#: ../extract.rb:19
+msgid "抽出タブ"
+msgstr "抽出タブ"
+
+#: ../extract.rb:49
+msgid "抽出条件を編集"
+msgstr "抽出条件を編集"
+
+#: ../extract.rb:85
+msgid "本当に抽出タブ「%{name}」を削除しますか？"
+msgstr "ほんまに抽出タブ「%{name}」消すんか？"
+
+#: ../extract.rb:97
+msgid "抽出タブを作成 - %{mikutter}"
+msgstr "抽出タブを作成 - %{mikutter}"
+
+#: ../extract.rb:141
+msgid "受信したすべての投稿"
+msgstr "受信したすべての投稿"
+
+#: ../extract.rb:142
+msgid "ホームタイムライン(全てのアカウント)"
+msgstr "ホームタイムライン(全てのアカウント)"
+
+#: ../extract.rb:143
+msgid "自分宛ての投稿(全てのアカウント)"
+msgstr "自分宛ての投稿(全てのアカウント)"
+
+#: ../extract.rb:147
+msgid "Home Timeline"
+msgstr "Home Timeline"
+
+#: ../extract.rb:148
+msgid "Mentions"
+msgstr "Mentions"
