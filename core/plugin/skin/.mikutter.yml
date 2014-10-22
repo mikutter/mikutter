@@ -1,0 +1,12 @@
+---
+slug: :skin
+depends:
+  mikutter: 3.1.0
+  plugin:
+  - settings
+  - uitranslator
+version: '1.0'
+author: moguno
+name: skin
+description: mikutterの見た目を変更するプラグイン
+
