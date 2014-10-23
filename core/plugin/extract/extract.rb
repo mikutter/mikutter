@@ -192,7 +192,7 @@ Plugin.create :extract do
             notificate_messages.each do |message|
               notice message.user.idname + " " + message.to_show
               Plugin.call(:popup_notify, message.user, message.to_show) end end
-          if record[:sound].is_a?(String) and not notificate_messages.empty? and FileTest.exist?(record[:sound])
+          if record[:sound].is_a?(String) and notificate_messages.first and FileTest.exist?(record[:sound])
             Plugin.call(:play_sound, record[:sound]) end
         end
       rescue Exception => exception
