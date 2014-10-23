@@ -92,7 +92,7 @@ Plugin.create(:activity) do
 
   def gen_listener_for_visible_check(uc, kind)
     Plugin::Settings::Listener.new \
-      get: ->(){ UserConfig[uc].include? kind },\
+      get: ->(){ UserConfig[uc].include?(kind) rescue false },
       set: ->(value) do
         if value
           UserConfig[uc] += [kind]
@@ -101,7 +101,7 @@ Plugin.create(:activity) do
 
   def gen_listener_for_invisible_check(uc, kind)
     Plugin::Settings::Listener.new \
-      get: ->(){ not UserConfig[uc].include?(kind) },\
+      get: ->(){ (not UserConfig[uc].include?(kind)) rescue true },
       set: ->(value) do
         unless value
           UserConfig[uc] += [kind]
