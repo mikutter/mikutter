@@ -69,15 +69,7 @@ class Message::Entity
   def initialize(message)
     type_strict message => Message
     @message = message
-    @generate_thread = Thread.new {
-      begin
-        @generate_value = _generate_value || []
-      rescue TimeoutError => e
-        error "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})"
-        raise RuntimeError, "entity parse timeout. ##{message[:id]}(@#{message.user[:idname]}: #{message.to_show})"
-      rescue Exception => e
-        error e end
-      @generate_thread = nil } end
+    @generate_value = _generate_value || [] end
 
   def each
     to_a.each(&Proc.new)
@@ -161,7 +153,6 @@ class Message::Entity
     result.freeze end
 
   def generate_value
-    @generate_thread.join if @generate_thread
     @generate_value end
 
   def _generate_value
