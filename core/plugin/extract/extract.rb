@@ -63,13 +63,13 @@ Plugin.create :extract do
     record[:slug] = slug
     extract_tabs[record[:id]] = record.freeze
     tab(slug, record[:name]) do
-      set_icon record[:icon] if record[:icon].is_a? String
+      set_icon record[:icon] if record[:icon].is_a? String and not record[:icon].empty?
       timeline slug end
     modify_extract_tabs end
 
   on_extract_tab_update do |record|
     extract_tabs[record[:id]] = record.freeze
-    tab(record[:slug]).set_icon record[:icon] if record[:icon].is_a? String
+    tab(record[:slug]).set_icon record[:icon] if record[:icon].is_a? String and not record[:icon].empty?
     modify_extract_tabs end
 
   on_extract_tab_delete do |id|
@@ -210,4 +210,3 @@ Plugin.create :extract do
     UserConfig.disconnect(extract_tabs_watcher) end
 
 end
-
