@@ -242,4 +242,3 @@ module MikuTwitter::APIShortcuts
 end
 
 class MikuTwitter; include MikuTwitter::APIShortcuts end
-
