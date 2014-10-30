@@ -7,7 +7,7 @@ module Plugin::ListForProfile
     include Gtk::TreeViewPrettyScroll
 
     MEMBER = 0
-    SLUG = 1
+    NAME = 1
     LIST = 2
     SERVICE = 3
 
@@ -20,7 +20,7 @@ module Plugin::ListForProfile
       self.creatable = self.updatable = self.deletable = false
       set_auto_getter(@plugin, true) do |service, list, iter|
         iter[MEMBER] = list.member?(@dest_user)
-        iter[SLUG] = list[:slug]
+        iter[NAME] = "@#{list[:user].idname}/#{list[:name]}"
         iter[LIST] = list
         iter[SERVICE] = service end
       toggled = get_column(0).cell_renderers[0]
@@ -41,13 +41,13 @@ module Plugin::ListForProfile
 
     def on_updated(iter)
       if iter[LIST].member?(@dest_user) != iter[MEMBER]
-        if not @locked[iter[SLUG]]
-          @locked[iter[SLUG]] = true
-          flag, slug, list, service = iter[MEMBER], iter[SLUG], iter[LIST], iter[SERVICE]
+        if not @locked[iter[LIST].id]
+          @locked[iter[LIST].id] = true
+          flag, list, service = iter[MEMBER], iter[LIST], iter[SERVICE]
           service.__send__(flag ? :add_list_member : :delete_list_member,
-                           :list_id => list['id'],
+                           :list_id => list.id,
                            :user_id => @dest_user[:id]).next{ |result|
-            @locked[slug] = false
+            @locked[list.id] = false
             if flag
               list.add_member(@dest_user)
               Plugin.call(:list_member_added, service, @dest_user, list, service.user_obj)
@@ -56,7 +56,7 @@ module Plugin::ListForProfile
               Plugin.call(:list_member_removed, service, @dest_user, list, service.user_obj) end
           }.terminate{ |e|
             iter[MEMBER] = !flag if not destroyed?
-            @locked[iter[SLUG]] = false
+            @locked[iter[LIST].id] = false
             @plugin._("@%{user} をリスト %{list_name} に追加できませんでした") % {
               user: @dest_user[:idname],
               list_name: list[:full_name] } } end end end
