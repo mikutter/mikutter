@@ -4,6 +4,8 @@ require 'gtk2'
 
 module Plugin::ListForProfile
   class ProfileTab < ::Gtk::ListList
+    include Gtk::TreeViewPrettyScroll
+
     MEMBER = 0
     SLUG = 1
     LIST = 2
@@ -15,7 +17,7 @@ module Plugin::ListForProfile
       @dest_user = dest
       @locked = {}
       super()
-      creatable = updatable = deletable = false
+      self.creatable = self.updatable = self.deletable = false
       set_auto_getter(@plugin, true) do |service, list, iter|
         iter[MEMBER] = list.member?(@dest_user)
         iter[SLUG] = list[:slug]
