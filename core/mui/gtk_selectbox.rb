@@ -15,6 +15,8 @@ class Gtk::SelectBox < Gtk::CRUD
   ITER_STRING = 1
   ITER_ID = 2
 
+  include Gtk::TreeViewPrettyScroll
+
   # _values_ は、{結果に含む値 => 表示される文字列}のHashか、
   # [[結果に含む値, 表示される文字列]]のような配列。
   # _selected_ は、選択されている項目のリスト。<<とdeleteとinclude?を実装している必要がある
