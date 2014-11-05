@@ -5,8 +5,6 @@ require File.expand_path File.join(File.dirname(__FILE__), 'extract_tab_list')
 
 Plugin.create :extract do
 
-  DEFINED_TIME = Time.new.freeze
-
   # 抽出タブオブジェクト。各キーは抽出タブIDで、値は以下のようなオブジェクト
   # name :: タブの名前
   # sexp :: 条件式（S式）
@@ -187,7 +185,7 @@ Plugin.create :extract do
         filtered_messages = timeline(record[:slug]).not_in_message(converted_messages.select(&compile(record[:id], record[:sexp]))).freeze
         unless filtered_messages.empty?
           timeline(record[:slug]) << filtered_messages
-          notificate_messages = filtered_messages.lazy.select{|message| message[:created] > DEFINED_TIME}
+          notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
           if record[:popup]
             notificate_messages.each do |message|
               notice message.user.idname + " " + message.to_show

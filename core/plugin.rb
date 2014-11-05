@@ -83,10 +83,14 @@ class Plugin
   # spec
   attr_accessor :spec
 
+  # 最初にプラグインがロードされた時刻(uninstallされるとリセットする)
+  attr_reader :defined_time
+
   # ==== Args
   # [plugin_name] プラグイン名
   def initialize(*args)
     super
+    @defined_time = Time.new.freeze
     @events = Set.new
     @filters = Set.new end
 

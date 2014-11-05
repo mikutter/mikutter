@@ -3,7 +3,6 @@
 Plugin.create(:notify) do
 
   DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
-  DEFINED_TIME = Time.new.freeze
 
   settings(_("通知")) do
     def self.defnotify(label, kind)
@@ -22,7 +21,7 @@ Plugin.create(:notify) do
   end
 
   onupdate do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > DEFINED_TIME }).first
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > defined_time }).first
     if not(messages.empty?)
       if(UserConfig[:notify_friend_timeline])
         messages.each{ |message|
@@ -31,7 +30,7 @@ Plugin.create(:notify) do
         self.notify_sound(UserConfig[:notify_sound_friend_timeline]) end end end
 
   onmention do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m[:retweet]) and m[:created] > DEFINED_TIME }).first
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m[:retweet]) and m[:created] > defined_time }).first
     if not(messages.empty?)
       if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention])
         messages.each{ |message|
@@ -73,7 +72,7 @@ Plugin.create(:notify) do
         self.notify_sound(UserConfig[:notify_sound_retweeted]) end end end
 
   on_direct_messages do |post, dms|
-    newer_dms = dms.select{ |dm| Time.parse(dm[:created_at]) > DEFINED_TIME }
+    newer_dms = dms.select{ |dm| Time.parse(dm[:created_at]) > defined_time }
     if not(newer_dms.empty?)
       if(UserConfig[:notify_direct_message])
         newer_dms.each{ |dm|
