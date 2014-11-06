@@ -32,7 +32,7 @@ class Gtk::HierarchycalSelectBox < Gtk::SelectBox
           if node.nil?
             node = model.append(nil)
             root_nodes << node end end
-        node[ITER_ID] = -1
+        node[ITER_ID] = @none
         node[ITER_STRING] = hierarchy
         node
       end
@@ -42,3 +42,4 @@ class Gtk::HierarchycalSelectBox < Gtk::SelectBox
   end
 
 end
+

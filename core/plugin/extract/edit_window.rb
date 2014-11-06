@@ -82,7 +82,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
   def source_widget
     datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first
     datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources.map(&:to_sym)){
-      modify_value sources: datasources_box.selected }
+      modify_value sources: datasources_box.selected.to_a }
     scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
     @source_widget ||= Gtk::HBox.new().
       add(datasources_box).
