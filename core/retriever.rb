@@ -15,7 +15,9 @@ module Retriever
   class Model
     include Comparable
 
-    @@storage = WeakStorage.new(Integer, Model) # id => <Model>
+    def self.inherited(subclass)
+      subclass.instance_eval do
+        @storage = WeakStorage.new(Integer, subclass) end end
 
     def initialize(args)
       type_strict args => Hash
@@ -48,7 +50,7 @@ module Retriever
           hash
         elsif hash[:id] and hash[:id] != 0
           atomic{
-            @@storage[hash[:id].to_i] or self.new(hash) }
+            @storage[hash[:id].to_i] or self.new(hash) }
         else
           raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
 
@@ -248,7 +250,7 @@ module Retriever
     # 保存は、全てのデータソースに対して行われます
     def self.store_datum(datum)
       atomic{
-        @@storage[datum[:id].to_i] = result_strict(self){ datum } }
+        @storage[datum[:id].to_i] = result_strict(self){ datum } }
       return datum if datum[:system]
       converted = datum.filtering
       self.retrievers.each{ |retriever|
@@ -287,14 +289,10 @@ module Retriever
     def self.memory_class
       Memory end
 
-    # メモリキャッシュオブジェクトのインスタンス
-    def self.memory
-      @memory ||= memory_class.new(@@storage) end
-
     # DataSourceの配列を返します。
     def self.retrievers
       atomic{
-        @retrievers = [memory] if not defined? @retrievers }
+        @retrievers = [memory_class.new(@storage)] if not defined? @retrievers }
       @retrievers
     end
 
