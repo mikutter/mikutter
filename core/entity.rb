@@ -111,7 +111,7 @@ class Message::Entity
     links = select{|link|
       (link[:range].to_a & addition[:range].to_a).empty?
     }
-    links.push addition
+    links.push @@linkrule[addition[:slug]].merge(addition)
     @generate_value = links.sort_by{ |r| r[:range].first }.freeze
     Plugin.call(:message_modified, message)
   end
