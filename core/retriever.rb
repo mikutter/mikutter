@@ -30,7 +30,7 @@ module Retriever
     def self.generate(args, count=-1)
       return args if args.is_a?(self)
       return self.findbyid(args, count) if not(args.is_a? Hash)
-      sresult = self.findbyid(args[:id], count)
+      result = self.findbyid(args[:id], count)
       return result.merge(args) if result
       self.new(args)
     end
