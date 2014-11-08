@@ -50,6 +50,6 @@ module CHIConfig
   REVISION = 9999
 
   # このソフトのバージョン。
-  VERSION = [3,0,8, REVISION]
+  VERSION = [3,0,9, REVISION]
 
 end
