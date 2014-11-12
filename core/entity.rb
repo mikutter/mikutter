@@ -180,12 +180,22 @@ class Message::Entity
         children.each{ |link|
           begin
             rule = @@linkrule[slug] || {}
-            entity = @@filter[slug].call(rule.merge({ :message => message,
-                                                      :from => :message_entities}.merge(link)))
-            entity[:range] = get_range_by_face(entity) #indices_to_range(link[:indices])
-            result << entity.freeze
+            extended_entities = matched_extended_entites(slug, link[:display_url])
+            if extended_entities.empty?
+              entity = @@filter[slug].call(rule.merge({ message: message,
+                                                        from: :message_entities
+                                                      }.merge(link)))
+              entity[:range] = get_range_by_face(entity)
+              result << entity.freeze
+            else
+              entities_from_extended_entities(link, extended_entities, message: message, slug: slug, rule: rule).each do |converted_entity|
+                converted_entity[:range] = get_range_by_face(converted_entity)
+                result << converted_entity.freeze end
+            end
           rescue InvalidEntityError, RuntimeError => exception
-            error exception end } } end
+            error exception end } }
+
+    end
     result.sort_by{ |r| r[:range].first }.freeze end
 
   def get_range_by_face(link)
@@ -203,6 +213,43 @@ class Message::Entity
   def indices_to_range(indices)
     Range.new(self.class.index_to_escaped_index(message.to_show, indices[0]),
               self.class.index_to_escaped_index(message.to_show, indices[1]), true) end
+
+  # source_entity に対する extended_entity を、通常のエンティティに変換して返す。
+  # source_entity のテキスト上の表現の1文字にextended_entityの1つを割り当て、最後のextended_entity
+  # には残りの全てを割り当てる。
+  # ==== Args
+  # [source_entity] Hash 元となるエンティティ
+  # [extended_entities] Array Extended Entity
+  # ==== Return
+  # entityの配列
+  def entities_from_extended_entities(source_entity, extended_entities, slug: source_entity[:slug], rule: @@linkrule[slug] || {}, message: nil)
+    type_strict source_entity => Hash, extended_entities => Array, slug => Symbol, rule => Hash, message => Message
+    result = extended_entities.map.with_index do |extended_entity, index|
+                entity_rewrite = {
+                  display_url: extended_entity[:media_url],
+                  indices: [source_entity[:indices][0]+index, source_entity[:indices][0]+index+1] }
+                if 0 != index
+                  entity_rewrite[:display_url] = "\n#{entity_rewrite[:display_url]}" end
+                @@filter[slug].call(rule.merge({ message: message,
+                                                 from: :message_entities
+                                               }.merge(extended_entity).
+                                                merge(entity_rewrite))) end
+    result.last[:indices][1] = source_entity[:indices][1]
+    result end
+
+  # slug と　display_url が一致するextended entitiesを返す
+  # ==== Args
+  # [slug] Symbol Entityのスラッグ
+  # [display_url] String 探すExtended Entityのdisplay_url
+  # ==== Return
+  # Extended Entityの配列。見つからなかった場合は空の配列
+  def matched_extended_entites(slug, display_url)
+    if defined?(message[:extended_entities][slug]) and message[:extended_entities][slug].is_a? Array
+      message[:extended_entities][slug].select do |link|
+        display_url == link[:display_url] end
+    else
+    [] end end
+
 
   # to_showで得たエンティティデコードされた文字列の index が、
   # エンティティエンコードされた文字列ではどうなるかを返す。
