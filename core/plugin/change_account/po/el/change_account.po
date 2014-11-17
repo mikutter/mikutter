@@ -3,20 +3,32 @@
 # This file is distributed under the same license as the change_account package.
 # 
 # Translators:
-# Klearchos-Angelos Gkountras <kag@grrlz.net>, 2013
+# jemadux <kag@grrlz.net>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-06 16:27+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-19 13:26+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Greek (http://www.transifex.com/projects/p/mikutter/language/el/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: el\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../account_control.rb:12
+msgid "SN"
+msgstr ""
+
+#: ../account_control.rb:13
+msgid "名前"
+msgstr ""
+
+#: ../account_control.rb:66
+msgid "エラー - %{name}"
+msgstr ""
 
 #: ../change_account.rb:8
 msgid "アカウントエラー (@{user})"
@@ -32,57 +44,57 @@ msgstr ""
 msgid "前のアカウント"
 msgstr ""
 
-#: ../change_account.rb:30
+#: ../change_account.rb:29
 msgid "次のアカウント"
 msgstr ""
 
-#: ../change_account.rb:49
+#: ../change_account.rb:48
 msgid "@%{screen_name}(%{name}) に切り替える"
 msgstr ""
 
-#: ../change_account.rb:59
+#: ../change_account.rb:58
 msgid "アカウント情報"
 msgstr "Πληροφορίες λογαριασμού"
 
-#: ../change_account.rb:99
+#: ../change_account.rb:101
 msgid "インストールお疲れ様！"
 msgstr ""
 
-#: ../change_account.rb:100
+#: ../change_account.rb:102
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
 msgstr ""
 
-#: ../change_account.rb:115
+#: ../change_account.rb:117
 msgid "確定"
 msgstr ""
 
-#: ../change_account.rb:118
+#: ../change_account.rb:120
 msgid "コードを入力→"
 msgstr ""
 
-#: ../change_account.rb:135
+#: ../change_account.rb:137
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
 msgstr ""
 
-#: ../change_account.rb:147
+#: ../change_account.rb:149
 msgid ""
 "コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
 "(%{code} %{message})"
 msgstr ""
 
-#: ../change_account.rb:150
+#: ../change_account.rb:152
 msgid ""
 "何かがおかしいよ。\n"
 "(%{code} %{message})"
 msgstr ""
 
-#: ../change_account.rb:155
+#: ../change_account.rb:157
 msgid ""
 "何かがおかしいよ。\n"
 "(%{error})"
 msgstr ""
 
-#: ../change_account.rb:163
+#: ../change_account.rb:165
 msgid ""
 "登録方法は、\n"
 "1. %{authorize_url} にアクセスする\n"
@@ -91,25 +103,25 @@ msgid ""
 "だよ。"
 msgstr ""
 
-#: ../change_account.rb:169
+#: ../change_account.rb:171
 msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
 msgstr ""
 
-#: ../change_account.rb:175
+#: ../change_account.rb:177
 msgid ""
 "……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
 "をインストールしてくれたんだもんね。"
 msgstr ""
 
-#: ../change_account.rb:176
+#: ../change_account.rb:178
 msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
 msgstr ""
 
-#: ../change_account.rb:187
+#: ../change_account.rb:189
 msgid "mikutterのチュートリアルを見た"
 msgstr ""
 
-#: ../change_account.rb:198
+#: ../change_account.rb:200
 msgid "前回の続きから説明するね"
 msgstr ""
 

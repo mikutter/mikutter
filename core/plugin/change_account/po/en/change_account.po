@@ -4,29 +4,43 @@
 # 
 # Translators:
 # Akkiesoft <akkiesoft@marokun.net>, 2013-2014
-# polamjag <s@polamjag.info>, 2014
+# ABE Satoru <s@polamjag.info>, 2014
+# Craig9173 <info@craigdrury.org>, 2014
 # Iori Y <fivo.11235813@gmail.com>, 2013
 # Hotaka Hitagi, 2013
 # mt_caret <mtakeda.enigsol@gmail.com>, 2014
 # numpad0 <triphenylmethane@gmail.com>, 2013
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 # Roberto Santalla <roobre@roobre.es>, 2013
-# polamjag <s@polamjag.info>, 2014
+# ABE Satoru <s@polamjag.info>, 2014
+# Toshiaki Asai <toshi.alternative@gmail.com>, 2014
 # Toshiaki Asai <toshi.alternative@gmail.com>, 2014
 # Yuki Shira <shirayuking@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-07-15 03:24+0000\n"
-"Last-Translator: mt_caret <mtakeda.enigsol@gmail.com>\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-11-11 13:45+0000\n"
+"Last-Translator: Craig9173 <info@craigdrury.org>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../account_control.rb:12
+msgid "SN"
+msgstr "SN"
+
+#: ../account_control.rb:13
+msgid "名前"
+msgstr "Name"
+
+#: ../account_control.rb:66
+msgid "エラー - %{name}"
+msgstr "Error - %{name}"
 
 #: ../change_account.rb:8
 msgid "アカウントエラー (@{user})"
@@ -42,57 +56,57 @@ msgstr "OAuth for @{user} failed (@{response})\nPlease retry authentication from
 msgid "前のアカウント"
 msgstr "Previous account"
 
-#: ../change_account.rb:30
+#: ../change_account.rb:29
 msgid "次のアカウント"
 msgstr "Next account"
 
-#: ../change_account.rb:49
+#: ../change_account.rb:48
 msgid "@%{screen_name}(%{name}) に切り替える"
 msgstr "Change to @%{screen_name}(%{name})"
 
-#: ../change_account.rb:59
+#: ../change_account.rb:58
 msgid "アカウント情報"
 msgstr "Account information"
 
-#: ../change_account.rb:99
+#: ../change_account.rb:101
 msgid "インストールお疲れ様！"
 msgstr "Well done on the installation!"
 
-#: ../change_account.rb:100
+#: ../change_account.rb:102
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
 msgstr "Hi! I'm mikutter-chan, the mascot character for mikutter. First, please authenticate your Twitter account."
 
-#: ../change_account.rb:115
+#: ../change_account.rb:117
 msgid "確定"
 msgstr "Confirm"
 
-#: ../change_account.rb:118
+#: ../change_account.rb:120
 msgid "コードを入力→"
 msgstr "Enter the code→"
 
-#: ../change_account.rb:135
+#: ../change_account.rb:137
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
 msgstr "Great! Seems like you authenticated your account and unlocked an achievement!"
 
-#: ../change_account.rb:147
+#: ../change_account.rb:149
 msgid ""
 "コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
 "(%{code} %{message})"
 msgstr "It seems that the code is wrong. Please authenticate again with the new URL.\n(%{code} %{message})"
 
-#: ../change_account.rb:150
+#: ../change_account.rb:152
 msgid ""
 "何かがおかしいよ。\n"
 "(%{code} %{message})"
 msgstr "Something's wrong.\n(%{code} %{message})"
 
-#: ../change_account.rb:155
+#: ../change_account.rb:157
 msgid ""
 "何かがおかしいよ。\n"
 "(%{error})"
 msgstr "Something's wrong.\n(%{error})"
 
-#: ../change_account.rb:163
+#: ../change_account.rb:165
 msgid ""
 "登録方法は、\n"
 "1. %{authorize_url} にアクセスする\n"
@@ -101,25 +115,25 @@ msgid ""
 "だよ。"
 msgstr "1. Click the link %{authorize_url}\n2. Login with the Twitter account you wish to use.\n3. Go along until you see a 7-digit code and type it in at the top."
 
-#: ../change_account.rb:169
+#: ../change_account.rb:171
 msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
 msgstr "Achievements are a feature to sometimes show you features you haven't used yet."
 
-#: ../change_account.rb:175
+#: ../change_account.rb:177
 msgid ""
 "……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
 "をインストールしてくれたんだもんね。"
 msgstr "...... Though that was pretty quick, that's it for now. After all, you installed %{mikutter} for the sake of tweeting!"
 
-#: ../change_account.rb:176
+#: ../change_account.rb:178
 msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
 msgstr "I'd like to show you how to use mikutter little by little. See you later!"
 
-#: ../change_account.rb:187
+#: ../change_account.rb:189
 msgid "mikutterのチュートリアルを見た"
 msgstr "I have read the mikutter tutorial"
 
-#: ../change_account.rb:198
+#: ../change_account.rb:200
 msgid "前回の続きから説明するね"
 msgstr "I'll explain from where we left off"
 

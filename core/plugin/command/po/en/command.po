@@ -3,16 +3,17 @@
 # This file is distributed under the same license as the command package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013-2014
+# Akkiesoft <akkiesoft@marokun.net>, 2013-2014
+# Craig9173 <info@craigdrury.org>, 2014
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
-# roobre <roobre@roobre.es>, 2013
+# Roberto Santalla <roobre@roobre.es>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-20 16:34+0000\n"
-"Last-Translator: akkiesoft <akkiesoft@marokun.net>\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-11-11 13:48+0000\n"
+"Last-Translator: Craig9173 <info@craigdrury.org>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -96,30 +97,30 @@ msgstr "Move to new pane"
 msgid "タブを閉じる"
 msgstr "Close tab"
 
-#: ../command.rb:183
-msgid "右のタブを選択"
-msgstr "Select right tab"
+#: ../command.rb:182
+msgid "次のタブを選択"
+msgstr "Select the next tab"
 
-#: ../command.rb:191
-msgid "左のタブを選択"
-msgstr "Select left tab"
+#: ../command.rb:190
+msgid "前のタブを選択"
+msgstr "Select the previous tab"
 
-#: ../command.rb:199
+#: ../command.rb:198
 msgid "右のペインを選択"
 msgstr "Select right pane"
 
-#: ../command.rb:207
+#: ../command.rb:206
 msgid "左のペインを選択"
 msgstr "Select left pane"
 
-#: ../command.rb:215
+#: ../command.rb:214
 msgid "投稿ボックスにフォーカス"
 msgstr "Focus to post box"
 
-#: ../command.rb:227
+#: ../command.rb:226
 msgid "タブにフォーカス"
 msgstr "Focus to tab"
 
-#: ../command.rb:235
+#: ../command.rb:234
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "Jump to top of timeline!"

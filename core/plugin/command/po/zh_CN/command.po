@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-10-15 05:03+0000\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-23 08:11+0000\n"
 "Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -60,7 +60,7 @@ msgstr "删除"
 
 #: ../command.rb:94
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
-msgstr "丧失的信赖是无法挽回滴，真的要删除这个发言吗？"
+msgstr "真的要删除这个发言吗？注：就算你删除了，失去的信赖已无法挽回。"
 
 #: ../command.rb:97
 msgid "一つ上のメッセージを選択"
@@ -94,30 +94,30 @@ msgstr "移动至新栏"
 msgid "タブを閉じる"
 msgstr "关闭标签"
 
-#: ../command.rb:183
-msgid "右のタブを選択"
-msgstr "选择右边的标签"
+#: ../command.rb:182
+msgid "次のタブを選択"
+msgstr "选择下一个标签"
 
-#: ../command.rb:191
-msgid "左のタブを選択"
-msgstr "选择左边标签"
+#: ../command.rb:190
+msgid "前のタブを選択"
+msgstr "选择上一个标签"
 
-#: ../command.rb:199
+#: ../command.rb:198
 msgid "右のペインを選択"
 msgstr "选择右栏"
 
-#: ../command.rb:207
+#: ../command.rb:206
 msgid "左のペインを選択"
 msgstr "选择左栏"
 
-#: ../command.rb:215
+#: ../command.rb:214
 msgid "投稿ボックスにフォーカス"
 msgstr "聚焦至发言框"
 
-#: ../command.rb:227
+#: ../command.rb:226
 msgid "タブにフォーカス"
 msgstr "聚焦至标签"
 
-#: ../command.rb:235
+#: ../command.rb:234
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "纵身一跃至时间线最上方！"
