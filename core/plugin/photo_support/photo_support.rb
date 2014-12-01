@@ -157,4 +157,13 @@ Plugin.create :photo_support do
   defimageopener('d250g2(Twitpicが消えたとき用)', %r#\Ahttp://twitpic.com/d250g2\Z#) do
     open('http://d250g2.com/d250g2.jpg')
   end
+
+  # totori.dip.jp
+  defimageopener('totori.dip.jp', %r#\Ahttp://totori.dip.jp/?\Z#) do |display_url|
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    open(doc.css('meta[property="og:image"]').first.attribute('content'))
+  end
 end
