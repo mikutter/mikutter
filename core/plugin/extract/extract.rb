@@ -11,6 +11,14 @@ module Plugin::Extract
 
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
+
+  ExtensibleOperator = Struct.new(:slug, :name, :args) do
+    def initialize(*_args, &block)
+      super
+      @block = block end
+
+    def call(*_args, **_named, &block)
+      @block.(*_args, **_named, &block) end end
 end
 
 Plugin.create :extract do
@@ -68,6 +76,16 @@ Plugin.create :extract do
     filter_extract_condition do |conditions|
       conditions << Plugin::Extract::ExtensibleCondition.new(slug, name, operator, args, &block).freeze
       [conditions] end end
+
+  defdsl :defextractoperator do |slug, name: raise, args: 1, &block|
+    filter_extract_operator do |operators|
+      operators << Plugin::Extract::ExtensibleOperator.new(slug, name, args, &block).freeze
+      [operators] end end
+
+  defextractoperator(:==, name: '＝', args: 1, &:==)
+  defextractoperator(:!=, name: '≠', args: 1, &:!=)
+  defextractoperator(:match_regexp, name: '正規表現', args: 1, &:match_regexp)
+  defextractoperator(:include?, name: '含む', args: 1, &:include?)
 
   defextractcondition(:user, name: 'ユーザ名', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
     compare.(message.user.idname, arg)

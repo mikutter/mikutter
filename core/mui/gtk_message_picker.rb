@@ -116,10 +116,7 @@ class Gtk::MessagePicker < Gtk::EventBox
                                  call end
                                @condition.to_s },
                              nil,
-                             '==' => '＝',
-                             '!=' => '≠',
-                             'include?' => '含む',
-                             'match_regexp' => '正規表現'))
+                             Hash[Plugin.filtering(:extract_operator, []).first.map{ |eo| [eo.slug.to_s, eo.name] }]))
       add(Mtk::input(lambda{ |new|
                        unless new === nil
                          @expr = new.freeze
@@ -130,5 +127,3 @@ class Gtk::MessagePicker < Gtk::EventBox
   end
 
 end
-
-
