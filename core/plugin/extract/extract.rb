@@ -3,6 +3,16 @@
 require File.expand_path File.join(File.dirname(__FILE__), 'edit_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'extract_tab_list')
 
+module Plugin::Extract
+  ExtensibleCondition = Struct.new(:slug, :name, :operator, :args) do
+    def initialize(*_args, &block)
+      super
+      @block = block end
+
+    def call(*_args, **_named, &block)
+      @block.(*_args, **_named, &block) end end
+end
+
 Plugin.create :extract do
 
   # 抽出タブオブジェクト。各キーは抽出タブIDで、値は以下のようなオブジェクト
@@ -54,6 +64,20 @@ Plugin.create :extract do
     Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
   end
 
+  defdsl :defextractcondition do |slug, name: raise, operator: true, args: 0, &block|
+    filter_extract_condition do |conditions|
+      conditions << Plugin::Extract::ExtensibleCondition.new(slug, name, operator, args, &block).freeze
+      [conditions] end end
+
+  defextractcondition(:user, name: 'ユーザ名', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
+    compare.(message.user.idname, arg)
+  end
+  defextractcondition(:body, name: '本文', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
+    compare.(message[:body], arg)
+  end
+  defextractcondition(:source, name: 'Twitterクライアント', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
+    compare.(message[:source], arg)
+  end
   on_extract_tab_create do |record|
     record[:id] = Time.now.to_i unless record[:id]
     slug = "extract_#{record[:id]}".to_sym

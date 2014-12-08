@@ -109,9 +109,7 @@ class Gtk::MessagePicker < Gtk::EventBox
                                  call end
                                @subject.to_s },
                              nil,
-                             'user' => 'ユーザ名',
-                             'body' => '本文',
-                             'source' => 'Twitterクライアント'))
+                             Hash[Plugin.filtering(:extract_condition, []).first.map{ |ec| [ec.slug.to_s, ec.name] }]))
       closeup(Mtk::chooseone(lambda{ |new|
                                unless new === nil
                                  @condition = new.to_sym
