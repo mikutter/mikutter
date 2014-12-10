@@ -9,6 +9,9 @@ module Plugin::Extract
       super
       @block = block end
 
+    def to_proc
+      @block end
+
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
 
@@ -17,8 +20,25 @@ module Plugin::Extract
       super
       @block = block end
 
+    def to_proc
+      @block end
+
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
+
+  class Calc
+    def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
+      type_strict message => Message, condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
+      @message, @condition, @operators = message, condition, operators
+    end
+
+    def method_missing(method_name, *args)
+      operator = @operators.find{ |_| _.slug == method_name }
+      if operator
+        @condition.(*args, message: @message, operator: operator.slug, &operator)
+      else
+        super end end
+  end
 end
 
 Plugin.create :extract do
@@ -91,11 +111,12 @@ Plugin.create :extract do
     compare.(message.user.idname, arg)
   end
   defextractcondition(:body, name: '本文', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
-    compare.(message[:body], arg)
+    compare.(message.to_s, arg)
   end
   defextractcondition(:source, name: 'Twitterクライアント', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
     compare.(message[:source], arg)
   end
+
   on_extract_tab_create do |record|
     record[:id] = Time.now.to_i unless record[:id]
     slug = "extract_#{record[:id]}".to_sym
@@ -206,11 +227,14 @@ Plugin.create :extract do
         @compiled[tab_id] ||= ret_nth
       else
         @compiled[tab_id] ||= ->(assign,evaluated){
-          assign += "  user = message.idname\n"     if evaluated.include? "user"
-          assign += "  body = message.to_s\n"       if evaluated.include? "body"
-          assign += "  source = message[:source]\n" if evaluated.include? "source"
+          extract_condition = Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
+          extract_condition.select{ |slug,_|
+            evaluated.include? slug.to_s
+          }.each do |slug,condition|
+            assign += "  #{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])\n"
+          end
           notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
-          eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
+          instance_eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
         }.("",MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, code)) end end end
 
   def destroy_compile_cache
