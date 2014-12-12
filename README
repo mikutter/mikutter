@@ -7,8 +7,8 @@ file:core/skin/data/icon.png
 * 用件
 
 ** 必須アプリケーション:
-- ruby (1.9.3 - 2.1.1)
-- ruby gtk (2.2.0)
+- ruby (2.0 - 2.1.5)
+- ruby gtk (2.2.3)
 - rcairo (1.12.9)
 - Open SSL
 
