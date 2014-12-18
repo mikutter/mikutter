@@ -4,6 +4,8 @@ require File.expand_path File.join(File.dirname(__FILE__), 'edit_window')
 require File.expand_path File.join(File.dirname(__FILE__), 'extract_tab_list')
 
 module Plugin::Extract
+  class ConditionNotFoundError < RuntimeError; end
+
   ExtensibleCondition = Struct.new(:slug, :name, :operator, :args) do
     def initialize(*_args, &block)
       super
@@ -14,6 +16,14 @@ module Plugin::Extract
 
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
+
+  class ExtensibleSexpCondition < ExtensibleCondition
+    attr_reader :sexp
+
+    def initialize(*args)
+      @sexp = args.pop
+      super(*args) end
+  end
 
   ExtensibleOperator = Struct.new(:slug, :name, :args) do
     def initialize(*_args, &block)
@@ -92,10 +102,15 @@ Plugin.create :extract do
     Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
   end
 
-  defdsl :defextractcondition do |slug, name: raise, operator: true, args: 0, &block|
-    filter_extract_condition do |conditions|
-      conditions << Plugin::Extract::ExtensibleCondition.new(slug, name, operator, args, &block).freeze
-      [conditions] end end
+  defdsl :defextractcondition do |slug, name: raise, operator: true, args: 0, sexp: nil, &block|
+    if sexp
+      filter_extract_condition do |conditions|
+        conditions << Plugin::Extract::ExtensibleSexpCondition.new(slug, name, operator, args, sexp).freeze
+        [conditions] end
+    else
+      filter_extract_condition do |conditions|
+        conditions << Plugin::Extract::ExtensibleCondition.new(slug, name, operator, args, &block).freeze
+        [conditions] end end end
 
   defdsl :defextractoperator do |slug, name: raise, args: 1, &block|
     filter_extract_operator do |operators|
@@ -107,15 +122,11 @@ Plugin.create :extract do
   defextractoperator(:match_regexp, name: '正規表現', args: 1, &:match_regexp)
   defextractoperator(:include?, name: '含む', args: 1, &:include?)
 
-  defextractcondition(:user, name: 'ユーザ名', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
-    compare.(message.user.idname, arg)
-  end
-  defextractcondition(:body, name: '本文', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
-    compare.(message.to_s, arg)
-  end
-  defextractcondition(:source, name: 'Twitterクライアント', operator: true, args: 1) do |arg, message:raise, operator:raise, &compare|
-    compare.(message[:source], arg)
-  end
+  defextractcondition(:user, name: 'ユーザ名', operator: true, args: 1, sexp: MIKU.parse("`(,compare (idname (user message)) ,(car args))"))
+
+  defextractcondition(:body, name: '本文', operator: true, args: 1, sexp: MIKU.parse("`(,compare (to_s message) ,(car args))"))
+
+  defextractcondition(:source, name: 'Twitterクライアント', operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
   on_extract_tab_create do |record|
     record[:id] = Time.now.to_i unless record[:id]
@@ -223,19 +234,61 @@ Plugin.create :extract do
   def compile(tab_id, code)
     atomic do
       @compiled ||= {}
-      if code.empty?
-        @compiled[tab_id] ||= ret_nth
+      @compiled[tab_id] ||=
+        if code.empty?
+          ret_nth
+        else
+          begin
+            before = Set.new
+            extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
+            evaluated = MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, metamorphose(code: code, assign: before))
+            assign = before.to_a.join("\n")
+            notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
+            instance_eval("lambda{ |message|\n" + assign + "\n  " + evaluated + "\n}")
+          rescue Plugin::Extract::ConditionNotFoundError => exception
+            Plugin.call(:modify_activity,
+                        plugin: self,
+                        kind: 'error'.freeze,
+                        title: "抽出タブ条件エラー",
+                        date: Time.new,
+                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_id][:name], error_string: exception.to_s})
+            warn exception
+            ret_nth end end end end
+
+  # 条件をこう、くいっと変形させてな
+  def metamorphose(code: raise, assign: Set.new, extract_condition: nil)
+    extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
+    case code
+    when MIKU::Atom
+      return code
+    when MIKU::List
+      condition = extract_condition[code.cdr.car]
+      case condition
+      when Plugin::Extract::ExtensibleSexpCondition
+        miku_context = MIKU::SymbolTable.new
+        miku_context[:compare] = MIKU::Cons.new(code.car, nil)
+        if condition[:operator].is_a?(Array)
+          cur = code.cdr.cdr
+          miku_context[:operator].each do |variable|
+            miku_context[valiables] = MIKU::Cons.new(cur.car, nil)
+            cur = cur.cdr end
+        else
+          miku_context[:args] = MIKU::Cons.new(code.cdr.cdr, nil) end
+        begin
+          miku(condition.sexp, miku_context)
+        rescue => exception
+          error "error occured in code #{MIKU.unparse(condition.sexp)}"
+          notice miku_context
+          raise exception end
+      when Plugin::Extract::ExtensibleCondition
+        assign << "#{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])"
+        code
       else
-        @compiled[tab_id] ||= ->(assign,evaluated){
-          extract_condition = Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
-          extract_condition.select{ |slug,_|
-            evaluated.include? slug.to_s
-          }.each do |slug,condition|
-            assign += "  #{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])\n"
-          end
-          notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
-          instance_eval("lambda{ |message|\n" + assign + "  " + evaluated + "\n}")
-        }.("",MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, code)) end end end
+        if code.cdr.car.is_a? Symbol and not %i[and or not].include?(code.car)
+          raise Plugin::Extract::ConditionNotFoundError, _('抽出条件 `%{condition}\' が見つかりませんでした') % {condition: code.cdr.car} end
+        code.map{|node| metamorphose(code: node,
+                                     assign: assign,
+                                     extract_condition: extract_condition) } end end end
 
   def destroy_compile_cache
     atomic do
