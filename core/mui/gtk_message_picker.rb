@@ -103,26 +103,33 @@ class Gtk::MessagePicker < Gtk::EventBox
         @changed_hook.call end end
 
     def build
-      closeup(Mtk::chooseone(lambda{ |new|
-                               unless new === nil
-                                 @subject = new.to_sym
-                                 call end
-                               @subject.to_s },
-                             nil,
-                             Hash[Plugin.filtering(:extract_condition, []).first.map{ |ec| [ec.slug.to_s, ec.name] }]))
-      closeup(Mtk::chooseone(lambda{ |new|
-                               unless new === nil
-                                 @condition = new.to_sym
-                                 call end
-                               @condition.to_s },
-                             nil,
-                             Hash[Plugin.filtering(:extract_operator, []).first.map{ |eo| [eo.slug.to_s, eo.name] }]))
-      add(Mtk::input(lambda{ |new|
-                       unless new === nil
-                         @expr = new.freeze
-                         call end
-                       @expr },
-                             nil))
+      extract_condition = Hash[Plugin.filtering(:extract_condition, []).first.map{|ec| [ec.slug, ec]}]
+      w_argument = Mtk::input(lambda{ |new|
+                                unless new === nil
+                                  @expr = new.freeze
+                                  call end
+                                @expr },
+                              nil)
+      w_operator = Mtk::chooseone(lambda{ |new|
+                                    unless new === nil
+                                      @condition = new.to_sym
+                                      call end
+                                    @condition.to_s },
+                                  nil,
+                                  Hash[Plugin.filtering(:extract_operator, []).first.map{ |eo| [eo.slug.to_s, eo.name] }])
+      w_condition = Mtk::chooseone(lambda{ |new|
+                                     unless new === nil
+                                       @subject = new.to_sym
+                                       call end
+                                     sensitivity = extract_condition[@subject][:operator] && 0 != extract_condition[@subject][:args]
+                                     w_argument.set_sensitive(sensitivity)
+                                     w_operator.set_sensitive(sensitivity)
+                                     @subject.to_s },
+                                   nil,
+                                   Hash[extract_condition.map{ |slug, ec| [slug.to_s, ec.name] }])
+      closeup(w_condition)
+      closeup(w_operator)
+      add(w_argument)
     end
   end
 
