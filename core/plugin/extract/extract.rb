@@ -48,6 +48,9 @@ module Plugin::Extract
         @condition.(*args, message: @message, operator: operator.slug, &operator)
       else
         super end end
+
+    def call(*args)
+      @condition.(*args, message: @message) end
   end
 end
 
@@ -241,10 +244,10 @@ Plugin.create :extract do
           begin
             before = Set.new
             extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
-            evaluated = MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, metamorphose(code: code, assign: before))
-            assign = before.to_a.join("\n")
-            notice "tab code: lambda{ |message|\n" + assign + "  " + evaluated + "\n}"
-            instance_eval("lambda{ |message|\n" + assign + "\n  " + evaluated + "\n}")
+            evaluated = MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, metamorphose(code: code, assign: before, extract_condition: extract_condition))
+            code_string = "lambda{ |message|\n" + before.to_a.join("\n") + "\n  " + evaluated + "\n}"
+            notice code_string
+            instance_eval(code_string)
           rescue Plugin::Extract::ConditionNotFoundError => exception
             Plugin.call(:modify_activity,
                         plugin: self,
@@ -262,33 +265,38 @@ Plugin.create :extract do
     when MIKU::Atom
       return code
     when MIKU::List
-      condition = extract_condition[code.cdr.car]
+      condition = if code.size <= 2
+                    extract_condition[code.car]
+                  else
+                    extract_condition[code.cdr.car] end
       case condition
       when Plugin::Extract::ExtensibleSexpCondition
-        miku_context = MIKU::SymbolTable.new
-        miku_context[:compare] = MIKU::Cons.new(code.car, nil)
-        if condition[:operator].is_a?(Array)
-          cur = code.cdr.cdr
-          miku_context[:operator].each do |variable|
-            miku_context[valiables] = MIKU::Cons.new(cur.car, nil)
-            cur = cur.cdr end
-        else
-          miku_context[:args] = MIKU::Cons.new(code.cdr.cdr, nil) end
-        begin
-          miku(condition.sexp, miku_context)
-        rescue => exception
-          error "error occured in code #{MIKU.unparse(condition.sexp)}"
-          notice miku_context
-          raise exception end
+        metamorphose_sexp(code: code, condition: condition)
       when Plugin::Extract::ExtensibleCondition
         assign << "#{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])"
-        code
+        if condition.operator
+          code
+        else
+          # MIKU::Cons.new(:call, MIKU::Cons.new(condition.slug, nil))
+          [:call, condition.slug]
+        end
       else
         if code.cdr.car.is_a? Symbol and not %i[and or not].include?(code.car)
           raise Plugin::Extract::ConditionNotFoundError, _('抽出条件 `%{condition}\' が見つかりませんでした') % {condition: code.cdr.car} end
         code.map{|node| metamorphose(code: node,
                                      assign: assign,
                                      extract_condition: extract_condition) } end end end
+
+  def metamorphose_sexp(code: raise, condition: raise)
+    miku_context = MIKU::SymbolTable.new
+    miku_context[:compare] = MIKU::Cons.new(code.car, nil)
+    miku_context[:args] = MIKU::Cons.new(code.cdr.cdr, nil)
+    begin
+      miku(condition.sexp, miku_context)
+    rescue => exception
+      error "error occured in code #{MIKU.unparse(condition.sexp)}"
+      notice miku_context
+      raise exception end end
 
   def destroy_compile_cache
     atomic do
