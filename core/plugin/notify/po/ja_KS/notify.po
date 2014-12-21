@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the notify package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: notify 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-21 23:05+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../notify.rb:8
+msgid "通知"
+msgstr "通知"
+
+#: ../notify.rb:11
+msgid "ポップアップ"
+msgstr "ポップアップ"
+
+#: ../notify.rb:12
+msgid "サウンド"
+msgstr "サウンド"
+
+#: ../notify.rb:14
+msgid "フレンドタイムライン"
+msgstr "フレンドタイムライン"
+
+#: ../notify.rb:15
+msgid "リプライ"
+msgstr "リプライ"
+
+#: ../notify.rb:16
+msgid "フォローされたとき"
+msgstr "フォローされたとき"
+
+#: ../notify.rb:17
+msgid "フォロー解除されたとき"
+msgstr "フォロー解除されたとき"
+
+#: ../notify.rb:18
+msgid "リツイートされたとき"
+msgstr "リツイートされたとき"
+
+#: ../notify.rb:19
+msgid "ふぁぼられたとき"
+msgstr "ふぁぼられたとき"
+
+#: ../notify.rb:20
+msgid "ダイレクトメッセージ受信"
+msgstr "ダイレクトメッセージ受信"
+
+#: ../notify.rb:21
+msgid "通知を表示し続ける秒数"
+msgstr "通知を表示し続ける秒数"
+
+#: ../notify.rb:46
+msgid "%{users} にフォローされました。"
+msgstr "%{users} にフォローされたで"
+
+#: ../notify.rb:53
+msgid "%{users} にリムーブされました。"
+msgstr "%{users} にリムーブされました。"
+
+#: ../notify.rb:60
+msgid "fav by %{from_user} \"%{tweet}\""
+msgstr "fav by %{from_user} \"%{tweet}\""
+
+#: ../notify.rb:71
+msgid "ReTweet: %{tweet}"
+msgstr "ReTweet: %{tweet}"

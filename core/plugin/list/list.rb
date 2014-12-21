@@ -17,7 +17,7 @@ Plugin.create :list do
 
   filter_extract_datasources do |datasources|
     result = available_lists.inject(datasources||{}) do |_datasources, list|
-      _datasources.merge datasource_slug(list) => "@#{list.user.idname}/list/#{list[:name]}" end
+      _datasources.merge datasource_slug(list) => ["@#{list.user.idname}", 'list'.freeze, list[:name]] end
     [result] end
 
   def datasource_slug(list)

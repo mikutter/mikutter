@@ -1,0 +1,38 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the search package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: search 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-21 23:13+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../search.rb:6 ../search.rb:16
+msgid "検索"
+msgstr "検索"
+
+#: ../search.rb:7
+msgid "保存"
+msgstr "保存"
+
+#: ../search.rb:39
+msgid "検索中にエラーが発生しました (%{error})"
+msgstr "検索中にエラー出よったで (%{error})"
+
+#: ../search.rb:46
+msgid ""
+"検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
+msgstr ""
+"検索キーワード「%{query}」を保存できひんかったで。あとでもういっぺんやってみ"
+"い"

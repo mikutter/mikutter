@@ -122,6 +122,10 @@ module Gtk
     def posting?
       !!@posting end
 
+    # このPostBoxを使って投稿したとき、delegateを作成するように設定されていれば真を返す
+    def delegatable?
+      @options[:delegate_other] end
+
     # このPostBoxにフォーカスを合わせる
     def active
       get_ancestor(Gtk::Window).set_focus(widget_post) if(get_ancestor(Gtk::Window)) end
@@ -227,7 +231,7 @@ module Gtk
     # フォーカスが外れたことによって削除して良いなら真を返す。
     def destructible?
       if(@options.has_key?(:postboxstorage))
-        return false if lonely? or (brothers - [self]).any?{ |w| w.posting? }
+        return false if lonely? or (brothers - [self]).all?{ |w| !w.delegatable? }
         post_is_empty?
       else
         true end end

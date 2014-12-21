@@ -160,6 +160,14 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     else
       @force_retrieve_in_reply_to end end
 
+  # _message_ が含まれているかを返す
+  # ==== Args
+  # [message] Message タイムラインに含まれているかどうかを確認するMessage
+  # ==== Return
+  # 含まれていれば真
+  def include?(message)
+    @id_dict.has_key?(message.id) end
+
   # IDとGtk::TreeIterの対を登録する
   # ==== Args
   # [id] メッセージID
@@ -212,7 +220,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     signal_connect(:focus_in_event){
       @@current_tl.selection.unselect_all if not(@@current_tl.destroyed?) and @@current_tl and @@current_tl != self
       @@current_tl = self
-      
       false } end
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。

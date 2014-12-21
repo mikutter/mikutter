@@ -48,6 +48,37 @@ class Plugin::GUI::Timeline
     set_active_child(nil, by_toolkit) if just_this
     super end
 
+  # タイムラインに _messages_ が含まれているなら真を返す
+  # ==== Args
+  # [*messages] Message タイムラインに含まれているか確認するMessageオブジェクト。配列や引数で複数指定した場合は、それら全てが含まれているかを返す
+  # ==== Return
+  # _messages_ が含まれているなら真
+  def include?(*messages)
+    args = Messages.new([messages].flatten).freeze
+    detected = Plugin.filtering(:gui_timeline_has_messages, self, args)
+    detected.is_a? Array and detected[1].size == args.size end
+
+  # _messages_ のうち、Timelineに含まれているMessageを返す
+  # ==== Args
+  # [*messages] Message タイムラインに含まれているか確認するMessageオブジェクト
+  # ==== Return
+  # _messages_ で指定された中で、selfに含まれるもの
+  def in_message(*messages)
+    args = Messages.new([messages].flatten).freeze
+    detected = Plugin.filtering(:gui_timeline_has_messages, self, args)
+    if detected.is_a? Array
+      Messages.new(detected[1])
+    else
+      Messages.new([]) end end
+
+  # _messages_ のうち、Timelineに含まれていないMessageを返す
+  # ==== Args
+  # [*messages] Message タイムラインに含まれているか確認するMessageオブジェクト
+  # ==== Return
+  # _messages_ で指定された中で、selfに含まれていないもの
+  def not_in_message(*messages)
+    Messages.new([messages].flatten - in_message(messages)) end
+
   # 選択されているMessageを返す
   # ==== Return
   # 選択されているMessage

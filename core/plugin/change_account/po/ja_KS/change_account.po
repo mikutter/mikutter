@@ -1,0 +1,149 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the change_account package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: change_account 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2014-10-21 22:40+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../account_control.rb:12
+msgid "SN"
+msgstr "SN"
+
+#: ../account_control.rb:13
+msgid "名前"
+msgstr "名前"
+
+#: ../account_control.rb:66
+msgid "エラー - %{name}"
+msgstr "エラー - %{name}"
+
+#: ../change_account.rb:8
+msgid "アカウントエラー (@{user})"
+msgstr "アカウントエラー (@{user})"
+
+#: ../change_account.rb:9
+msgid ""
+"ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
+"設定から、認証をやり直してください。"
+msgstr ""
+"ユーザ @{user} のOAuth 認証が失敗したで (@{response})\n"
+"設定から、もういっぺんやり直しいや。"
+
+#: ../change_account.rb:16
+msgid "前のアカウント"
+msgstr "前のアカウント"
+
+#: ../change_account.rb:29
+msgid "次のアカウント"
+msgstr "次のアカウント"
+
+#: ../change_account.rb:48
+msgid "@%{screen_name}(%{name}) に切り替える"
+msgstr "@%{screen_name}(%{name}) に切り替える"
+
+#: ../change_account.rb:58
+msgid "アカウント情報"
+msgstr "アカウント情報"
+
+#: ../change_account.rb:101
+msgid "インストールお疲れ様！"
+msgstr "毎度！えらいおおきに！"
+
+#: ../change_account.rb:102
+msgid ""
+"はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まず"
+"はTwitterアカウントを登録しようね。"
+msgstr "うちみくったーちゃん言うねん、飴ちゃんやるわ。"
+
+#: ../change_account.rb:117
+msgid "確定"
+msgstr "確定"
+
+#: ../change_account.rb:120
+msgid "コードを入力→"
+msgstr "コードを入力→"
+
+#: ../change_account.rb:137
+msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
+msgstr "おおえらいこっちゃ、実績解除されてもうたな。"
+
+#: ../change_account.rb:149
+msgid ""
+"コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおして"
+"ね。\n"
+"(%{code} %{message})"
+msgstr ""
+"何さらしてケツ噛んどんじゃ。間違うとるで、もっかいやり直しや。\n"
+"(%{code} %{message})"
+
+#: ../change_account.rb:152
+msgid ""
+"何かがおかしいよ。\n"
+"(%{code} %{message})"
+msgstr ""
+"なんかおかしいんちゃんか\n"
+"(%{code} %{message})"
+
+#: ../change_account.rb:157
+msgid ""
+"何かがおかしいよ。\n"
+"(%{error})"
+msgstr ""
+"なんかおかしいんちゃんか\n"
+"(%{error})"
+
+#: ../change_account.rb:165
+msgid ""
+"登録方法は、\n"
+"1. %{authorize_url} にアクセスする\n"
+"2. mikutterに登録したいTwitterアカウントでログイン\n"
+"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
+"だよ。"
+msgstr ""
+"登録のやり方わかる？\n"
+"1. %{authorize_url} にアクセスする\n"
+"2. mikutterに登録したいTwitterアカウントでログイン\n"
+"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
+"やで。"
+
+#: ../change_account.rb:171
+msgid ""
+"実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だ"
+"よ。"
+msgstr ""
+"実績ゆーて、まだ %{name} さんが使うたことない機能をうちが教えたるさかい。"
+
+#: ../change_account.rb:177
+msgid ""
+"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするた"
+"めに %{mikutter} をインストールしてくれたんだもんね。"
+msgstr "どうせイラチやし説明とか見ぃひんやろ、かまへんかまへん。"
+
+#: ../change_account.rb:178
+msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
+msgstr "ほなうちぼちぼち玉出のセールいくさかい、またな！"
+
+#: ../change_account.rb:189
+msgid "mikutterのチュートリアルを見た"
+msgstr "mikutterのチュートリアルを見た"
+
+#: ../change_account.rb:200
+msgid "前回の続きから説明するね"
+msgstr "前やったとこの続きから始めるで"
+
+#: ../interactive.rb:5
+msgid "次へ"
+msgstr "次へ"

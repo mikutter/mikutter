@@ -132,6 +132,14 @@ module ::Plugin::Streaming
       if(to.respond_to?(:remove_favorited_by))
         to.remove_favorited_by(by) end end
 
+    defevent(:favorited_retweet) do |json|
+      by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
+      to = Message.findbyid(json['target_object']['id'].to_i)
+      if to.is_a? Message
+        source_message = to.retweet_source
+        if(to.respond_to?(:add_favorited_by))
+          source_message.add_favorited_by(by, Time.parse(json['created_at'])) end end end
+
     defevent(:follow) do |json|
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)

@@ -1,0 +1,39 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the list_settings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: list_settings 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-19 22:35+0900\n"
+"PO-Revision-Date: 2014-10-21 22:59+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 1.6.9\n"
+"Language: ja_JP\n"
+
+#: ../list_settings.rb:9
+msgid "リスト"
+msgstr "リスト"
+
+#: ../tab.rb:23
+msgid "リスト名"
+msgstr "リスト名"
+
+#: ../tab.rb:25
+msgid "リストの名前"
+msgstr "リストの名前"
+
+#: ../tab.rb:26
+msgid "リスト説明"
+msgstr "リスト説明"
+
+#: ../tab.rb:27
+msgid "公開"
+msgstr "公開"

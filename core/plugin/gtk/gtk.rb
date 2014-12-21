@@ -345,6 +345,10 @@ Plugin.create :gtk do
   on_gui_timeline_set_order do |i_timeline, order|
     widgetof(i_timeline).set_order(&order) end
 
+  filter_gui_timeline_has_messages do |i_timeline, messages|
+    [i_timeline,
+     messages.select(&widgetof(i_timeline).method(:include?))] end
+
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
     if postbox
@@ -559,20 +563,21 @@ Plugin.create :gtk do
 
   # ウィンドウ内のペイン、タブの現在の順序を設定に保存する
   on_rewind_window_order do |i_window|
-    panes_order = {}
-    i_window.children.each{ |i_pane|
-      if i_pane.is_a? Plugin::GUI::Pane
-        tab_order = []
-        pane = widgetof(i_pane)
-        if pane
-          pane.n_pages.times{ |page_num|
-            i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
-            if i_widget and not i_widget.temporary_tab? and i_widget.children.any?{ |child| not child.is_a? Plugin::GUI::TabToolbar }
-              tab_order << i_widget.slug end } end
-        panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
-    ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
-    ui_tab_order[i_window.slug] = panes_order
-    UserConfig[:ui_tab_order] = ui_tab_order end
+    if :default == i_window.slug
+      panes_order = {}
+      i_window.children.each{ |i_pane|
+        if i_pane.is_a? Plugin::GUI::Pane
+          tab_order = []
+          pane = widgetof(i_pane)
+          if pane
+            pane.n_pages.times{ |page_num|
+              i_widget = find_implement_widget_by_gtkwidget(pane.get_tab_label(pane.get_nth_page(page_num)))
+              if i_widget and not i_widget.temporary_tab? and i_widget.children.any?{ |child| not child.is_a? Plugin::GUI::TabToolbar }
+                tab_order << i_widget.slug end } end
+          panes_order[i_pane.slug] = tab_order if not tab_order.empty? end }
+      ui_tab_order = (UserConfig[:ui_tab_order] || {}).melt
+      ui_tab_order[i_window.slug] = panes_order
+      UserConfig[:ui_tab_order] = ui_tab_order end end
 
   # ペインを順序リストから削除する
   # ==== Args

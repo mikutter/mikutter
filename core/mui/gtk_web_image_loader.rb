@@ -122,7 +122,7 @@ module Gdk::WebImageLoader
     url.freeze
     promise = Deferred.new true
     Thread.new {
-      result = get_raw_data(url){ |raw, e, url|
+      result = get_raw_data(url){ |raw, e|
         begin
           if e
             promise.fail(e)
@@ -249,25 +249,31 @@ module Gdk::WebImageLoader
     else
       notfound_pixbuf(rect) end end
 
-  def http(host, port)
+  def http(host, port, scheme)
     result = nil
     atomic{
-      @http_pool = Hash.new{|h, k|h[k] = {} } if not defined? @http_pool
-      if not @http_pool[host][port]
+      @http_pool = Hash.new{|h, k|h[k] = Hash.new{|_h, _k|_h[_k] = {} } } if not defined? @http_pool
+      if not @http_pool[host][port][scheme]
         pool = []
-        @http_pool[host][port] = Queue.new
+        @http_pool[host][port][scheme] = Queue.new
         4.times { |index|
-          http = Net::HTTP.new(host, port)
+          http = case scheme
+                 when 'http'.freeze
+                   Net::HTTP.new(host, port || 80)
+                 when 'https'.freeze
+                   Net::HTTP.new(host, port || 443).tap{|_h|
+                     _h.use_ssl = true
+                     _h.ssl_version = 'TLSv1' } end
           http.open_timeout=5
           http.read_timeout=30
           pool << http
-          @http_pool[host][port].push(pool) } end }
-    pool = @http_pool[host][port].pop
+          @http_pool[host][port][scheme].push(pool) } end }
+    pool = @http_pool[host][port][scheme].pop
     http = pool.pop
     result = yield(http)
   ensure
     pool.push(http) if defined? http
-    @http_pool[host][port].push(pool) if defined? pool
+    @http_pool[host][port][scheme].push(pool) if defined? pool
     result
   end
 
@@ -275,7 +281,7 @@ module Gdk::WebImageLoader
     uri = Addressable::URI.parse(url)
     request = Net::HTTP::Get.new(uri.request_uri)
     request['Connection'] = 'Keep-Alive'
-    http(uri.host, uri.port) do |http|
+    http(uri.host, uri.port, uri.scheme) do |http|
       begin
         http.request(request)
       rescue EOFError => e
@@ -292,4 +298,3 @@ module Gdk::WebImageLoader
     @local_path_files << path
   end
 end
-
