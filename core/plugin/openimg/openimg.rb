@@ -1,242 +1,220 @@
 # -*- coding: utf-8 -*-
-# Preview Image
 
 require 'gtk2'
+require 'cairo'
+
+module Plugin::Openimg
+  ImageOpener = Struct.new(:name, :condition, :open)
+end
 
 Plugin.create :openimg do
-  DEFAULT_SIZE = [640, 480].freeze
-  USER_AGENT = (Environment::NAME + '/' + Environment::VERSION.to_s).freeze
-  @size = DEFAULT_SIZE
-  @position = [Gdk.screen_width/2 - @size[0]/2, Gdk.screen_height/2 - @size[1]/2].freeze
+  # 画像アップロードサービスの画像URLから実際の画像を得る。
+  # サービスによってはリファラとかCookieで制御してる場合があるので、
+  # "http://twitpic.com/d250g2" みたいなURLから直接画像の内容を返す。
+  # String url 画像URL
+  # String|nil 画像
+  defevent :openimg_raw_image_from_display_url,
+           prototype: [String, tcor(IO, nil)]
 
-  def move(window)
-    @position = window.position.freeze end
+  # 画像アップロードサービスの画像URLから画像のPixbufを得る。
+  defevent :openimg_pixbuf_from_display_url,
+           prototype: [String, tcor(:pixbuf, nil), tcor(Thread, nil)]
 
-  def changesize(eb, w, url)
-    eb.remove(eb.children.first)
-    @size = w.window.geometry[2,2].freeze
-    eb.add(::Gtk::WebIcon.new(url, *@size).show_all)
-    @size end
+  # 画像を取得できるURLの条件とその方法を配列で返す
+  defevent :openimg_image_openers,
+           prototype: [Array]
 
-  def redraw(eb, pb)
-    ew, eh = eb.window.geometry[2,2]
-    return if(ew == 0 or eh == 0)
-    pb = pb.dup
-    pb = pb.scale(*Gdk::WebImageLoader.calc_fitclop(pb, Gdk::Rectangle.new(0, 0, ew, eh)))
-    eb.window.draw_pixbuf(nil, pb, 0, 0, (ew - pb.width)/2, (eh - pb.height)/2, -1, -1, Gdk::RGB::DITHER_NORMAL, 0, 0) end
+  # 画像を新しいウィンドウで開く
+  defevent :openimg_open,
+           priority: :ui_response,
+           prototype: [String, Message]
 
-  def display(url, cancel = nil)
-    w = ::Gtk::Window.new.set_title(_("（読み込み中）"))
-    w.set_size_request(320, 240)
-    w.set_default_size(*@size).move(*@position)
-    w.signal_connect(:destroy){ w.destroy }
-    eventbox = ::Gtk::EventBox.new
-    w.add(eventbox)
-    size = DEFAULT_SIZE
-    Thread.new{
-      url = url.value if url.is_a? Thread
-      if not(url) or not(url.respond_to?(:to_s))
-        Delayer.new(:ui_response).new{
-          unless w.destroyed?
-            if cancel
-              w.destroy
-              cancel.call
-            else
-              w.set_title(_("URLの取得に失敗")) end end }
-      else
-        pixbuf = Gdk::WebImageLoader.loading_pixbuf(*@size)
-        raw = Gdk::WebImageLoader.get_raw_data(url){ |data|
-          if not eventbox.destroyed?
-            if data
-              begin
-                loader = Gdk::PixbufLoader.new
-                loader.write data
-                loader.close
-                pixbuf = loader.pixbuf
-              rescue => _
-                pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
-            else
-              pixbuf = Gdk::WebImageLoader.notfound_pixbuf(*@size) end
-            eventbox.queue_draw_area(0, 0, *eventbox.window.geometry[2,2]) end }
-        if raw and raw != :wait
-          loader = Gdk::PixbufLoader.new
-          loader.write raw
-          loader.close
-          pixbuf = loader.pixbuf end
-        Delayer.new(:ui_passive){
-          unless w.destroyed?
-            w.set_title(url.to_s)
-            eventbox.signal_connect("event"){ |ev, event|
-              if event.is_a?(Gdk::EventButton) and (event.state.button1_mask?) and event.button == 1
-                w.destroy
-                cancel.call if cancel
-              end
-              false }
-            eventbox.signal_connect("expose_event"){ |ev, event|
-              redraw(eventbox, pixbuf)
-              move(w)
-              true }
-            eventbox.signal_connect(:"size-allocate"){
-              if w.window and size != w.window.geometry[2,2]
-                redraw(eventbox, pixbuf)
-                size = w.window.geometry[2,2] end }
-            redraw(eventbox, pixbuf)
-            eventbox end } end }
-    w.show_all end
+  defdsl :defimageopener do |name, condition, &proc|
+    type_strict condition => :===, name => String
+    opener = Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze
+    filter_openimg_image_openers do |openers|
+      openers << opener
+      [openers] end end
 
-  def get_tag_by_attributes(tag)
-    attribute = {}
-    tag.scan(/([^\s=]+)=(['"])(.*?)\2/){ |pair|
-      key, val = pair[0], pair[2]
-      attribute[key] = val }
-    attribute.freeze end
-
-  def get_tagattr(dom, element_rule)
-    element_rule = element_rule.melt
-    tag_name = element_rule['tag'] or 'img'
-    attr_name = element_rule.has_key?('attribute') ? element_rule['attribute'] : 'src'
-    element_rule.delete('tag')
-    element_rule.delete('attribute')
-    if dom
-      attribute = {}
-      catch(:imgtag_match){
-        dom.gsub("\n", ' ').scan(Regexp.new("<#{tag_name}.*?>")){ |str|
-          attr = get_tag_by_attributes(str)
-          if element_rule.all?{ |k, v| v === attr[k] }
-            attribute = attr.freeze
-            throw :imgtag_match end } }
-      unless attribute.empty?
-        return attr_name ? attribute[attr_name.to_s] : attribute end end
-    notice 'not matched'
-    nil end
-
-  def imgurlresolver(url, element_rule, limit=5, &block)
-    return nil if limit <= 0
-    return block.call(url) if block != nil
-    res = nil
+  defimageopener(_('画像直リンク'), /.*\.(?:jpg|png|gif|)\Z/) do |display_url|
     begin
-      uri = URI.parse(url)
-      path = uri.path + (uri.query ? "?"+uri.query : "")
-      res = Net::HTTP.new(uri.host).get(path, "User-Agent" => USER_AGENT)
-      case(res)
-      when Net::HTTPSuccess
-        address = get_tagattr(res.body, element_rule)
-        case address
-        when /\Ahttps?:/
-          # Complete URL
-          result = address
-        when /\A\/\//
-          # No scheme
-          result = "http:" + address
-        when /\A\//
-          # Absolute path
-          result = uri.dup
-          result.path = address
-        else
-          # Relative path
-          result = uri.dup
-          result.merge!(address)
-        end
-        notice result.inspect
-        result.to_s
-      when Net::HTTPRedirection
-        return imgurlresolver(res['Location'], element_rule, limit - 1, &block)
-      else
-        warn "#{res.code} failed"
-        nil end
-    rescue Timeout::Error, StandardError => e
-      warn e
+      open(display_url)
+    rescue => _
+      error _
       nil end end
 
-  def addsupport(cond, element_rule = {}, &block)
-    element_rule.freeze
-    if block == nil
-      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
-        url = (Plugin.filtering(:expand_url, [shrinked_url]).first.first rescue shrinked_url)
-        Delayer.new(:ui_response){
-          display(Thread.new{
-                    imgurlresolver(url, element_rule) }, cancel) } }
+  filter_openimg_pixbuf_from_display_url do |display_url, loader, thread|
+    raw  = Plugin.filtering(:openimg_raw_image_from_display_url, display_url, nil).last
+    if raw
+      begin
+        loader = Gdk::PixbufLoader.new
+        thread = Thread.new do
+          begin
+            loop do
+              Thread.pass
+              partial = raw.readpartial(1024*HYDE)
+              atomic{ loader.write partial }
+            end
+            nil
+          rescue EOFError
+            true
+          ensure
+            raw.close rescue nil
+            loader.close rescue nil end end
+        [display_url, loader, thread]
+      rescue => _
+        error _
+        [display_url, loader, thread] end
     else
-      ::Gtk::TimeLine.addopenway(cond){ |shrinked_url, cancel|
-        url = (Plugin.filtering(:expand_url, shrinked_url).first.first rescue shrinked_url)
-        Delayer.new(:ui_response) {
-          display(Thread.new{
-                    imgurlresolver(url, element_rule){ |image_url|
-                      block.call(image_url, cancel) }
-                  }, cancel) } } end end
+      notice "image url is not found in #{display_url}"
+      [display_url, loader, thread] end end
 
-  pattern = JSON.parse(file_get_contents(File.expand_path(File.join(File.dirname(__FILE__), 'pattern_file.json'))), create_additions: true)
-  pattern.each{ |name, config|
-    addsupport(Regexp.new(config["url"]), config["attribute"])
-  }
+  filter_openimg_raw_image_from_display_url do |display_url, content|
+    unless content
+      openers = Plugin.filtering(:openimg_image_openers, Set.new).first
+      content = openers.lazy.select{ |opener|
+        opener.condition === display_url
+      }.map{ |opener|
+        opener.open.(display_url)
+      }.select(&ret_nth).take(1).force.first end
+    [display_url, content] end
 
-  # plixi 参考: http://groups.google.com/group/plixi/web/fetch-photos-from-url
-  addsupport(/\Ahttp:\/\/plixi\.com\/p\/\d+/, 'id' => 'photo') { |url, cancel|
-    addr = "http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=" + url
-    response = Net::HTTP.get_response(URI.parse(addr))
-    if response.is_a?(Net::HTTPRedirection)
-      response['location']
-    else
-      warn "plixi url failed"
-      nil
-    end
-  }
+  on_openimg_open do |display_url|
+    image_surface = loading_surface
 
-  # Tumblr image
-  # http://tmblr.co/[-\w]+ http://tumblr.com/[[:36進数:]]+
-  # http://{screen-name}.tumblr.com/post/\d+
-  # 上記を展開し、記事タイプがphotoかphotosetなら /post/ を /image/ にすると
-  # 単一画像ページが得られることを利用した画像展開
-  addsupport(/\Ahttp:\/\/([-0-9a-z]+\.tumblr\.com\/post\/\d+|tmblr\.co\/[-\w]+$|tumblr\.com\/[0-9a-z]+\Z)/, nil) { |url, cancel|
-    def fetch(t)
-      req = URI.parse(t)
-      res = Net::HTTP.new(req.host).request_head(req.path)
-      case res
-      when Net::HTTPSuccess
-        t
-      when Net::HTTPRedirection
-        fetch(res['location'])
+    window = ::Gtk::Window.new().
+             set_title(display_url).
+             set_role('mikutter_image_preview'.freeze).
+             set_type_hint(Gdk::Window::TYPE_HINT_DIALOG).
+             set_default_size(*default_size)
+    w_wrap = ::Gtk::DrawingArea.new
+    w_toolbar = ::Gtk::Toolbar.new
+    w_browser = ::Gtk::ToolButton.new(Gtk::Image.new(Gdk::Pixbuf.new(Skin.get('forward.png'), 24, 24)))
+    w_save = ::Gtk::ToolButton.new(Gtk::Stock::SAVE)
+
+    window.ssc(:destroy, &:destroy)
+    last_size = nil
+    w_wrap.ssc(:size_allocate) do
+      if w_wrap.window && last_size != w_wrap.window.geometry[2,2]
+        last_size = w_wrap.window.geometry[2,2]
+        redraw(w_wrap, image_surface) end
+      false end
+    w_wrap.ssc(:expose_event) do
+      redraw(w_wrap, image_surface)
+      true end
+    w_browser.ssc(:clicked) do
+      Gtk.openurl(display_url)
+      false end
+
+    w_toolbar.insert(0, w_browser)
+    w_toolbar.insert(1, w_save)
+    window.add(Gtk::VBox.new.closeup(w_toolbar).add(w_wrap))
+    notice 'loading thread generate'
+    Thread.new {
+      notice 'start loading'
+      Plugin.filtering(:openimg_pixbuf_from_display_url, display_url, nil, nil)
+    }.next { |result|
+      if result[1].is_a? Gdk::PixbufLoader
+        _, pixbufloader, thread = result
+        pixbufloader.ssc(:area_updated, window) do |_, x, y, width, height|
+          Delayer.new do
+            if thread.alive?
+              image_surface = progress(w_wrap, pixbufloader.pixbuf, image_surface, x: x, y: y, width: width, height: height) end end
+          true end
+
+        pixbufloader.ssc(:closed, window) do
+          notice "closed"
+          image_surface = progress(w_wrap, pixbufloader.pixbuf, image_surface, paint: true)
+          true end
+
+        thread.next { |flag|
+          Deferred.fail flag unless flag
+        }.trap { |exception|
+          error exception
+          image_surface = error_surface
+        }
       else
-        nil
-      end
-    end
+        notice "cant open: #{display_url}"
+        image_surface = error_surface
+        redraw(w_wrap, image_surface) end
+    }.trap{ |exception|
+      warn exception
+      image_surface = error_surface
+      redraw(w_wrap, image_surface)
+    }
+    notice 'loading thread generated.'
+    window.show_all end
 
-    t = fetch(url)
-    /\A(http:\/\/[^\/]+\/)post(\/\d+)/ =~ t
-    if $~
-      imgurlresolver($1 + "image" + $2, {'tag' => 'img', 'id' => 'content-image', 'attribute' => 'data-src'})
-    else
-      warn "not a tumblr image page"
-      nil
-    end
-  }
+  def progress(w_wrap, pixbuf, image_surface, x: 0, y: 0, width: 0, height: 0, paint: false)
+    return unless pixbuf
+    context = nil
+    size_changed = false
+    unless image_surface.width == pixbuf.width and image_surface.height == pixbuf.height
+      size_changed = true
+      image_surface = Cairo::ImageSurface.new(pixbuf.width, pixbuf.height)
+      context = Cairo::Context.new(image_surface)
+      context.save do
+        context.set_source_color(Cairo::Color::BLACK)
+        context.paint end end
+    context ||= Cairo::Context.new(image_surface)
+    context.save do
+      context.set_source_pixbuf(pixbuf)
+      if paint
+        context.paint
+      else
+        context.rectangle(x, y, width, height)
+        context.fill end end
+    redraw(w_wrap, image_surface, repaint: paint || size_changed)
+    image_surface end
 
-  INSTAGRAM_PATTERN = %r{^http://(?:instagr\.am/p/([a-zA-Z0-9_]+)|instagram\.com/p/([a-zA-Z0-9_-]+))}
-  addsupport(INSTAGRAM_PATTERN) do |url, cancel|
-    m = url.match(INSTAGRAM_PATTERN)
-    shortcode = m[1] || m[2]
-    # http://instagram.com/developer/embedding/
-    uri = URI.parse "http://instagram.com/p/#{shortcode}/media/?size=l"
-    res = Net::HTTP.new(uri.host).get uri.request_uri, 'User-Agent' => USER_AGENT
-    if res.is_a? Net::HTTPRedirection
-      res['Location']
-    else
-      warn 'instagram url failed'
-      nil
-    end
-  end
+  def default_size
+    @size || [640, 480] end
 
-  # d250g2
-  addsupport(%r#\Ahttp://twitpic.com/d250g2#) { |url, cancel|
-    'http://d250g2.com/d250g2.jpg'.freeze
-  }
-  addsupport(%r#\Ahttp://d250g2.com#) { |url, cancel|
-    'http://d250g2.com/d250g2.jpg'.freeze
-  }
+  def changesize(w_wrap, window, url)
+    w_wrap.remove(w_wrap.children.first)
+    @size = window.window.geometry[2,2].freeze
+    w_wrap.add(::Gtk::WebIcon.new(url, *@size).show_all)
+    @size end
 
-  ::Gtk::TimeLine.addopenway(/.*\.(?:jpg|png|gif|)\Z/) { |shrinked_url, cancel|
-    url = (Plugin.filtering(:expand_url, shrinked_url).first.first rescue shrinked_url)
-    Delayer.new { display(url, cancel) }
-  }
+  def redraw(w_wrap, image_surface, repaint: true)
+    gdk_window = w_wrap.window
+    return unless gdk_window
+    ew, eh = gdk_window.geometry[2,2]
+    return if(ew == 0 or eh == 0)
+    context = gdk_window.create_cairo_context
+    context.save do
+      if repaint
+        context.set_source_color(Cairo::Color::BLACK)
+        context.paint end
+      if (ew * image_surface.height) > (eh * image_surface.width)
+        rate = eh.to_f / image_surface.height
+        context.translate((ew - image_surface.width*rate)/2, 0)
+      else
+        rate = ew.to_f / image_surface.width
+        context.translate(0, (eh - image_surface.height*rate)/2) end
+      context.scale(rate, rate)
+      context.set_source(Cairo::SurfacePattern.new(image_surface))
+      context.paint end
+  rescue => _
+    error _ end
+
+  ::Gtk::TimeLine.addopenway(->_{
+                               openers = Plugin.filtering(:openimg_image_openers, Set.new).first
+                               openers.any?{ |opener| opener.condition === _ }
+                             }) do |shrinked_url, cancel|
+    Thread.new do
+      url = (Plugin.filtering(:expand_url, [shrinked_url]).first.first rescue shrinked_url)
+      notice url
+      Plugin.call(:openimg_open, url) end end
+
+  def addsupport(cond, element_rule = {}, &block); end
+
+  def loading_surface
+    surface = Cairo::ImageSurface.from_png(Skin.get('loading.png'))
+    surface end
+
+  def error_surface
+    surface = Cairo::ImageSurface.from_png(Skin.get('notfound.png'))
+    surface end
 
 end

@@ -1,0 +1,9 @@
+---
+slug: :photo_support
+depends:
+  mikutter: 3.2.0
+  plugin: [openimg]
+version: '1.0'
+author: toshi_a
+name: photo support
+description: basic services
