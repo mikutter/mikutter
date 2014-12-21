@@ -202,6 +202,19 @@ class Plugin
     add_event_filter(:defined_settings) do |tabs|
       [tabs.melt << [name, place, @name]] end end
 
+  # 画像ファイルのパスを得る
+  # ==== Args
+  # - String filename ファイル名
+   def get_skin(filename)
+    plugin_skin_dir = File.join(spec[:path], "skin")
+
+    if File.exist?(plugin_skin_dir)
+      Skin.get(filename, [plugin_skin_dir])
+    else
+      Skin.get(filename)
+    end
+  end
+
   # マジックメソッドを追加する。
   # on_?name :: add_event(name)
   # filter_?name :: add_event_filter(name)
