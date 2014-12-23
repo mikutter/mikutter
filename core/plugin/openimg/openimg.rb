@@ -90,7 +90,6 @@ Plugin.create :openimg do
     w_wrap = ::Gtk::DrawingArea.new
     w_toolbar = ::Gtk::Toolbar.new
     w_browser = ::Gtk::ToolButton.new(Gtk::Image.new(Gdk::Pixbuf.new(Skin.get('forward.png'), 24, 24)))
-    w_save = ::Gtk::ToolButton.new(Gtk::Stock::SAVE)
 
     window.ssc(:destroy, &:destroy)
     last_size = nil
@@ -107,7 +106,6 @@ Plugin.create :openimg do
       false end
 
     w_toolbar.insert(0, w_browser)
-    w_toolbar.insert(1, w_save)
     window.add(Gtk::VBox.new.closeup(w_toolbar).add(w_wrap))
     notice 'loading thread generate'
     Thread.new {
