@@ -40,7 +40,7 @@ Plugin.create :photo_support do
   end
 
   # gyazo
-  defimageopener('gyazo',n: %r<^http://gyazo.com/[a-zA-Z0-9]+>) do |display_url|
+  defimageopener('gyazo', %r<^http://gyazo.com/[a-zA-Z0-9]+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -50,7 +50,7 @@ Plugin.create :photo_support do
   end
 
   # 携帯百景
-  defimageopener('携帯百景',n: %r<^http://movapic.com/(?:[a-zA-Z0-9]+/pic/\d+|pic/[a-zA-Z0-9]+)>) do |display_url|
+  defimageopener('携帯百景', %r<^http://movapic.com/(?:[a-zA-Z0-9]+/pic/\d+|pic/[a-zA-Z0-9]+)>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -62,7 +62,7 @@ Plugin.create :photo_support do
   end
 
   # piapro
-  defimageopener('piapro',n: %r<^http://piapro.jp/t/[a-zA-Z0-9]+>) do |display_url|
+  defimageopener('piapro', %r<^http://piapro.jp/t/[a-zA-Z0-9]+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -75,7 +75,7 @@ Plugin.create :photo_support do
   end
 
   # img.ly
-  defimageopener('img.ly',n: %r<^http://img\.ly/[a-zA-Z0-9_]+>) do |display_url|
+  defimageopener('img.ly', %r<^http://img\.ly/[a-zA-Z0-9_]+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -85,12 +85,12 @@ Plugin.create :photo_support do
   end
 
   # twitgoo
-  defimageopener('twitgoo',n: %r<^http://twitgoo\.com/[a-zA-Z0-9]+>) do |display_url|
+  defimageopener('twitgoo', %r<^http://twitgoo\.com/[a-zA-Z0-9]+>) do |display_url|
     open(display_url)
   end
 
   # jigokuno.com
-  defimageopener('jigokuno.com',n: %r<^http://jigokuno\.com/\?eid=\d+>) do |display_url|
+  defimageopener('jigokuno.com', %r<^http://jigokuno\.com/\?eid=\d+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -99,7 +99,7 @@ Plugin.create :photo_support do
   end
 
   # はてなフォトライフ
-  defimageopener('はてなフォトライフ',n: %r<^http://f\.hatena\.ne\.jp/[-\w]+/\d{9,}>) do |display_url|
+  defimageopener('はてなフォトライフ', %r<^http://f\.hatena\.ne\.jp/[-\w]+/\d{9,}>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -109,7 +109,7 @@ Plugin.create :photo_support do
   end
 
   # imgur
-  defimageopener('imgur',n: %r<http://imgur\.com(/gallery)?/\w+>) do |display_url|
+  defimageopener('imgur', %r<http://imgur\.com(/gallery)?/\w+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -121,7 +121,7 @@ Plugin.create :photo_support do
   end
 
   # Fotolog
-  defimageopener('Fotolog',n: %r<http://(?:www\.)fotolog\.com/\w+/\d+/?>) do |display_url|
+  defimageopener('Fotolog', %r<http://(?:www\.)fotolog\.com/\w+/\d+/?>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -133,7 +133,7 @@ Plugin.create :photo_support do
   end
 
   # フォト蔵
-  defimageopener('フォト蔵',n: %r<^http://photozou\.jp/photo/show/\d+/\d+>) do |display_url|
+  defimageopener('フォト蔵', %r<^http://photozou\.jp/photo/show/\d+/\d+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
@@ -142,7 +142,7 @@ Plugin.create :photo_support do
   end
 
   # instagram
-  defimageopener('instagram',n: Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
+  defimageopener('instagram', Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
     m = display_url.match(Plugin::PhotoSupport::INSTAGRAM_PATTERN)
     shortcode = m[1]
     open("http://instagram.com/p/#{shortcode}/media/?size=l")
