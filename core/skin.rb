@@ -25,6 +25,10 @@ class Skin
     end
   end
 
+  def self.path
+    user_dir || default_dir
+  end
+
   def self.get(filename, fallback_dirs = [])
     search_path = [ user_dir, fallback_dirs, default_dir ].flatten.compact
 
