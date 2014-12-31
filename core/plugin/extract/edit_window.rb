@@ -111,7 +111,7 @@ class Plugin::Extract::EditWindow < Gtk::Window
     popup_modifier = generate_modifier :popup
     Plugin::Settings.new(Plugin[:extract]) do
       input _('名前'), name_modifier
-      fileselect _('アイコン'), icon_modifier, File.join(Skin.path)
+      fileselect _('アイコン'), icon_modifier, Skin.user_dir
       settings _('通知') do
         fileselect _('サウンド'), sound_modifier
         boolean _('ポップアップ'), popup_modifier end end end
