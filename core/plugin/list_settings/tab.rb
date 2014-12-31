@@ -28,6 +28,29 @@ module Plugin::ListSettings
       ].freeze
     end
 
+    def buttons(box_klass)
+      box_klass.new(false, 4).closeup(create_button).closeup(update_button).closeup(delete_button).closeup(extract_button) end
+
+    def menu_pop(widget, event)
+      _p = Plugin[:list_settings]
+      contextmenu = Gtk::ContextMenu.new
+      contextmenu.registmenu(_p._("新規作成"), &method(:record_create))
+      contextmenu.registmenu(_p._("編集"), &method(:record_update))
+      contextmenu.registmenu(_p._("削除"), &method(:record_delete))
+      contextmenu.registmenu(_p._("タブを作成"), &method(:record_extract))
+      contextmenu.popup(widget, widget) end
+
+    def extract_button
+      if not defined? @extract_button
+        @extract_button = Gtk::Button.new(Plugin[:list_settings]._("タブを作成"))
+        @extract_button.ssc(:clicked) {
+          record_extract(nil, nil) } end
+      @extract_button end
+
+    def record_extract(optional, widget)
+      self.selection.selected_each {|model, path, iter|
+        on_extract(iter) } end
+
     def on_created(iter)
       iter[SLUG] = "@#{Service.primary.user}/#{iter[NAME]}"
       Service.primary.add_list(user: Service.primary.user_obj,
@@ -64,6 +87,31 @@ module Plugin::ListSettings
             Plugin.call(:list_destroy, Service.primary, UserLists.new([deleted_list]))
             model.remove(iter) if not destroyed? end
         }.terminate end end
+
+    def on_extract(iter)
+      list = iter[LIST]
+      if list
+        dialog = Gtk::Dialog.new(Plugin[:list_settings]._("リスト「%{list_name}」の抽出タブを作成 - %{mikutter}") % {
+                                   mikutter: Environment::NAME,
+                                   list_name: list[:name]
+                                 }, nil, nil,
+                                 [Gtk::Stock::OK, Gtk::Dialog::RESPONSE_ACCEPT],
+                                 [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_REJECT])
+        prompt = Gtk::Entry.new
+        prompt.text = list[:name]
+        dialog.vbox.
+          add(Gtk::HBox.new(false, 8).
+               closeup(Gtk::Label.new(Plugin[:list_settings]._("タブの名前"))).
+               add(prompt).show_all)
+        dialog.run{ |response|
+          if Gtk::Dialog::RESPONSE_ACCEPT == response
+            Plugin.call :extract_tab_create,
+                        name: prompt.text,
+                        icon: Skin.get('list.png'),
+                        sources: [:"#{list.user.idname}_list_#{list[:id]}"] end
+          dialog.destroy
+          prompt = dialog = nil } end
+    end
 
   end
 end
