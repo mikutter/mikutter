@@ -103,9 +103,11 @@ Plugin.create :list do
   # ==== Return
   # Enumerable データソースで使われているリスト
   def using_lists
-    list_ids = Plugin.filtering(:extract_tabs_get, []).first.inject(Set.new){ |r,tab|
-      r.merge tab[:sources]
-    }.map{ |source|
+    list_ids = Plugin.filtering(:extract_tabs_get, []).first.map{|tab|
+      tab[:sources]
+    }.select{ |sources|
+      sources.is_a? Enumerable
+    }.inject(Set.new, &:merge).map{ |source|
       $1.to_i if source.to_s =~ /[a-zA-Z0-9_]+_list_(\d+)/
     }.compact
     available_lists.select do |list|
