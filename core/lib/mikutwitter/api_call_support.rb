@@ -105,7 +105,7 @@ module MikuTwitter::ApiCallSupport
                               :in_reply_to_user_id => :receiver,
                               :in_reply_to_status_id => :replyto)
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
-        cnv[:created] = (Time.parse(msg[:created_at]) rescue Time.now)
+        cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
         cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
@@ -117,7 +117,7 @@ module MikuTwitter::ApiCallSupport
 
       def user(u)
         cnv = u.convert_key(:screen_name =>:idname, :url => :url)
-        cnv[:created] = Time.parse(u[:created_at])
+        cnv[:created] = Time.parse(u[:created_at]).localtime
         cnv[:detail] = u[:description]
         cnv[:protected] = !!u[:protected]
         cnv[:followers_count] = u[:followers_count].to_i
