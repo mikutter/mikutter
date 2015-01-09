@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 # require File.expand_path(File.dirname(__FILE__) + '/../utils')
 miquire :core, 'retriever'
@@ -25,5 +24,5 @@ end
 # >> Started
 # >> .
 # >> Finished in 0.000582 seconds.
-# >> 
+# >>
 # >> 1 tests, 1 assertions, 0 failures, 0 errors

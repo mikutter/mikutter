@@ -18,6 +18,7 @@ group :default do
 end
 
 group :test do
+  gem 'test-unit', '~> 3.0'
   gem 'rake', '~> 10.1'
   gem 'watch', '~> 0.1'
   gem 'mocha', '~> 0.14'

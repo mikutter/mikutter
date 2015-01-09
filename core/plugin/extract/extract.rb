@@ -232,7 +232,12 @@ Plugin.create :extract do
 
   # 使用されているデータソースのSetを返す
   def active_datasources
-    @active_datasources ||= extract_tabs.values.inject(Set.new){|set,tab| set.merge(tab[:sources]) }.freeze end
+    @active_datasources ||=
+      extract_tabs.values.map{|tab|
+        tab[:sources]
+      }.select{|sources|
+        sources.is_a? Enumerable
+      }.inject(Set.new, &:merge).freeze end
 
   def compile(tab_id, code)
     atomic do

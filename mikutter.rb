@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 =begin rdoc
 = mikutter - the moest twitter client
-Copyright (C) 2009-2014 Toshiaki Asai
+Copyright (C) 2009-2015 Toshiaki Asai
 
 This software is released under the MIT License.
 
