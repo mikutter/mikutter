@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'test/unit'
 $cairo = true
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 
