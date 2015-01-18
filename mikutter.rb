@@ -21,7 +21,6 @@ unless ENV['DISABLE_BUNDLER_SETUP']
   end
 end
 
-Thread.abort_on_exception = true
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
 
 require 'benchmark'

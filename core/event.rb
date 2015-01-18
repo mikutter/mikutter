@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'observer'
-miquire :lib, "instance_storage", "delayer"
+miquire :lib, "instance_storage", "delayer", 'deferred', 'serialthread'
 
 # イベントの定義。イベントの種類を識別するためのオブジェクト。
 class Event
@@ -34,7 +34,7 @@ class Event
   # ==== Args
   # [*args] イベントの引数
   # ==== Return
-  # Delayerか、イベントを待ち受けているリスナがない場合はnil
+  # self
   def call(*args)
     prototype = @options.has_key? :prototype
     type_strict args.zip(@options[:prototype]) if prototype
@@ -45,19 +45,15 @@ class Event
           changed
           catch(:plugin_exit){ notify_observers(*args) } }
       else
-        promise = Deferred.new true
-        SerialThread.new{
-          filtered_args = filtering(*args)
+        filter_thread = Thread.new do
+          filtering(*args) end
+        Delayer.new do
+          filtered_args = filter_thread.join.value
+          filter_thread = nil
           if filtered_args.is_a? Array
-            Delayer.new(priority) {
-              begin
-                changed
-                catch(:plugin_exit){ notify_observers(*filtered_args) }
-                promise.call
-              rescue Exception => e
-                promise.fail e
-              end } end }
-        promise end
+            changed
+            catch(:plugin_exit){ notify_observers(*filtered_args) } end end
+      end
     else
       Delayer.new(priority) {
         changed

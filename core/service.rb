@@ -3,8 +3,6 @@
 miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'service_keeper'
 miquire :lib, "mikutwitter", 'reserver', 'delayer', 'instance_storage'
 
-Thread.abort_on_exception = true
-
 =begin rdoc
 Twitter APIとmikutterプラグインのインターフェイス
 =end
@@ -25,7 +23,7 @@ class Service
 
     # 存在するServiceオブジェクトをSetで返す。
     # つまり、投稿権限のある「自分」のアカウントを全て返す。
-    alias services instances  
+    alias services instances
 
     # Service.instances.eachと同じ
     def each(*args, &proc)
@@ -103,7 +101,7 @@ class Service
       __destroy_e3de__("twitter#{service.user_obj.id}".to_sym)
       Plugin.call(:service_destroyed, service) end
     def remove_service(service)
-      destroy(service) end    
+      destroy(service) end
   end
 
   # プラグインには、必要なときにはこのインスタンスが渡るようになっているので、インスタンスを

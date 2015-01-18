@@ -34,7 +34,7 @@ class SerialThreadGroup
   alias new push
 
   # 処理中なら真
-  def self.busy?
+  def busy?
     @thread_pool.any?{ |t| :run == t.status.to_sym } end
 
   # 全てのserial threadの実行をキャンセルする。終了時の処理用
@@ -82,4 +82,3 @@ end
 # SerialThreadGroup のインスタンス。
 # 同時実行数は1固定
 SerialThread = SerialThreadGroup.new
-

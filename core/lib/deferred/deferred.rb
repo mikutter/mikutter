@@ -73,6 +73,7 @@ class Thread
         result
       rescue Exception => e
         self.fail(e)
+        raise e
       end
     }
   end
@@ -103,5 +104,3 @@ end
 def deferred(&proc)
   Deferred.new.next(&proc) end
 # ~> -:4: uninitialized constant Deferred::Deferredable (NameError)
-
-
