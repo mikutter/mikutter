@@ -37,13 +37,15 @@ class TC_Event < Test::Unit::TestCase
     r = 0
     EventListener.new(Event[:call_event]) do |v|
       r = v end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     wait
     assert_equal 1, r, 'イベントを呼び出すことができる'
     r = 0
     EventFilter.new(Event[:call_event]) do |v|
       [v + 1] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     wait
     assert_equal 2, r, 'フィルタがあるイベントを呼び出すことができる'
   end
@@ -53,13 +55,15 @@ class TC_Event < Test::Unit::TestCase
     r = 0
     EventListener.new(Event[:call_event]) do |v|
       r = v end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     Delayer.run while not Delayer.empty?
     assert_equal 1, r, 'フィルタを別スレッドで実行する設定の時、フィルタのないイベントを呼び出すことができる'
     r = 0
     EventFilter.new(Event[:call_event]) do |v|
       [v + 1] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     wait
     assert_equal 2, r, 'フィルタがバックグラウンドスレッドで実行される'
   end
@@ -69,14 +73,16 @@ class TC_Event < Test::Unit::TestCase
     EventListener.new(Event[:call_event]) do |v|
       r = v
       raise end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise('イベント中で例外が起こった時、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(1, r)
     r = 0
     EventFilter.new(Event[:call_event]) do |v|
       [v + 1] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise('フィルタがあるイベント中で例外が起こった時、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(2, r)
@@ -84,7 +90,8 @@ class TC_Event < Test::Unit::TestCase
     EventFilter.new(Event[:call_event]) do |v|
       raise
       [v] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise('フィルタで例外が起こった場合、EventListenerは実行されず、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(0, r)
@@ -98,14 +105,16 @@ class TC_Event < Test::Unit::TestCase
     EventListener.new(Event[:call_event]) do |v|
       r = v
       raise exception end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise(exception, 'イベント中で例外が起こった時、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(1, r)
     r = 0
     EventFilter.new(Event[:call_event]) do |v|
       [v + 1] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise(exception, 'フィルタがあるイベント中で例外が起こった時、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(2, r)
@@ -114,7 +123,8 @@ class TC_Event < Test::Unit::TestCase
     EventFilter.new(Event[:call_event]) do |v|
       raise filter_exception
       [v] end
-    Event[:call_event].call(1)
+    event = Event[:call_event].call(1)
+    assert_equal Event[:call_event], event, 'Event#call は self を返す'
     assert_raise(filter_exception, 'フィルタで例外が起こった場合、EventListenerは実行されず、Delayer#runがその例外を投げる') {
       wait }
     assert_equal(0, r)

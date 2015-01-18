@@ -36,7 +36,7 @@ class Plugin
     # [event_name] イベント名
     # [*args] イベントの引数
     # ==== Return
-    # Delayer
+    # _event_name_ に対応する Event のインスタンス
     def call(event_name, *args)
       type_strict event_name => Symbol
       Event[event_name].call(*args) end

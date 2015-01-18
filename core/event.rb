@@ -58,7 +58,8 @@ class Event
       Delayer.new(priority) {
         changed
         args = filtering(*args) if not @filters.empty?
-        catch(:plugin_exit){ notify_observers(*args) } if args.is_a? Array } end end
+        catch(:plugin_exit){ notify_observers(*args) } if args.is_a? Array } end
+    self end
 
   # 引数 _args_ をフィルタリングした結果を返す
   # ==== Args
