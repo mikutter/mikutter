@@ -166,4 +166,13 @@ Plugin.create :photo_support do
     doc = Nokogiri::HTML(page)
     open(doc.css('meta[property="og:image"]').first.attribute('content'))
   end
+
+  # 600eur.gochiusa.net
+  defimageopener('600eur.gochiusa.net', %r#\Ahttp://600eur\.gochiusa\.net/?\Z#) do |display_url|
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    open(doc.css('meta[name="twitter:image:src"]').first.attribute('content'))
+  end
 end
