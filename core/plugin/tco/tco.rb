@@ -11,16 +11,16 @@ module Plugin::TCo
   extend self
 
   def expand_url(url)
-    parallel do
-      begin
-        res = timeout(5){ Net::HTTP.get_response(URI.parse(url)) }
-        if res.is_a?(Net::HTTPRedirection)
-          res["location"]
-        else
-          url end
-      rescue Exception => e
-        warn e
-        url end end end
+    no_mainthread
+    begin
+      res = timeout(5){ Net::HTTP.get_response(URI.parse(url)) }
+      if res.is_a?(Net::HTTPRedirection)
+        res["location"]
+      else
+        url end
+    rescue Exception => e
+      warn e
+      url end end
 end
 
 Plugin.create :tco do
@@ -29,9 +29,10 @@ Plugin.create :tco do
       entity.select{|_|
         :urls == _[:slug] and Plugin::TCo::SHRINKED_MATCHER =~ _[:url]
       }.each do |link|
-        notice "detect tco shrinked url: #{link[:url]} by #{entity.message}"
-        expanded = Plugin::TCo.expand_url(link[:url])
-        entity.add link.merge(url: expanded, face: expanded)
+        SerialThread.new do
+          notice "detect tco shrinked url: #{link[:url]} by #{entity.message}"
+          expanded = Plugin::TCo.expand_url(link[:url])
+          entity.add link.merge(url: expanded, face: expanded) end
       end end end
 
   filter_expand_url do |urlset|
