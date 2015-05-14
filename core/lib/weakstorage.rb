@@ -192,8 +192,8 @@ class WeakStorage < WeakStore
 
   def []=(key, val)
     type_strict key => @key_class, val => @val_class
-    ObjectSpace.define_finalizer(val, &gen_deleter)
     atomic{
+      ObjectSpace.define_finalizer(val, &gen_deleter)
       storage[key] = val.object_id } end
   alias store []=
 
@@ -208,7 +208,7 @@ class WeakStorage < WeakStore
   private
 
   def gen_deleter
-    @deleter ||= lambda{ |objid| atomic{ storage.delete_if{ |key, val| val == objid } } }
+    @deleter ||= lambda{ |objid| @_storage.delete_if{ |key, val| val == objid } }
   end
 
   def gen_storage
