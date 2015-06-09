@@ -120,16 +120,16 @@ Plugin.create :extract do
       operators << Plugin::Extract::ExtensibleOperator.new(slug, name, args, &block).freeze
       [operators] end end
 
-  defextractoperator(:==, name: '＝', args: 1, &:==)
-  defextractoperator(:!=, name: '≠', args: 1, &:!=)
-  defextractoperator(:match_regexp, name: '正規表現', args: 1, &:match_regexp)
-  defextractoperator(:include?, name: '含む', args: 1, &:include?)
+  defextractoperator(:==, name: _('＝'), args: 1, &:==)
+  defextractoperator(:!=, name: _('≠'), args: 1, &:!=)
+  defextractoperator(:match_regexp, name: _('正規表現'), args: 1, &:match_regexp)
+  defextractoperator(:include?, name: _('含む'), args: 1, &:include?)
 
-  defextractcondition(:user, name: 'ユーザ名', operator: true, args: 1, sexp: MIKU.parse("`(,compare (idname (user message)) ,(car args))"))
+  defextractcondition(:user, name: _('ユーザ名'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (idname (user message)) ,(car args))"))
 
-  defextractcondition(:body, name: '本文', operator: true, args: 1, sexp: MIKU.parse("`(,compare (to_s message) ,(car args))"))
+  defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (to_s message) ,(car args))"))
 
-  defextractcondition(:source, name: 'Twitterクライアント', operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
+  defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
   on_extract_tab_create do |record|
     record[:id] = Time.now.to_i unless record[:id]
@@ -257,7 +257,7 @@ Plugin.create :extract do
             Plugin.call(:modify_activity,
                         plugin: self,
                         kind: 'error'.freeze,
-                        title: "抽出タブ条件エラー",
+                        title: _("抽出タブ条件エラー"),
                         date: Time.new,
                         description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_id][:name], error_string: exception.to_s})
             warn exception
