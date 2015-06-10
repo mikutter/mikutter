@@ -3,7 +3,10 @@
 miquire :lib, "gettext"
 
 module Plugin::UITranslate
-  LocaleDirectory = File.join(CHIConfig::CACHE, "uitranslator", "locale")
+  LocaleDirectory = File.join(CHIConfig::CACHE, "uitranslator", "locale").freeze
+  PODirectoryPrefix = 'po'.freeze
+  LanguageMatcher = %r<#{PODirectoryPrefix}#{File::SEPARATOR}(\w+)#{File::SEPARATOR}.+?\.po\Z>.freeze
+  LanguageFileInfo = Struct.new(:po, :mo)
 end
 
 Plugin.create :uitranslator do
@@ -17,27 +20,25 @@ class Plugin
   def spec=(spec)
 	__spec_uitranslate__(spec)
 
-    po_root = File.join spec[:path], "po"
-    mo_root = Plugin::UITranslate::LocaleDirectory
-    mo = File.join(mo_root, "#{spec[:slug]}.mo")
+    po_root = File.join spec[:path], Plugin::UITranslate::PODirectoryPrefix
     if FileTest.exist?(po_root)
-      bound = lazy{ File.mtime(mo) }
-      if !FileTest.exist?(mo) or Dir.glob(File.join(po_root, "*/*.po")).any?{ |po| File.mtime(po) > bound }
-        miquire :lib, "gettext/tools"
-        notice "generate mo file: #{po_root} to #{mo_root}"
-
-        Dir.glob(File.join(po_root, "*/*.po")) do |po_file|
-          lang, textdomain = %r[/([^/]+?)/(.*)\.po].match(po_file[po_root.size..-1]).to_a[1,2]
-          mo_file = File.join(mo_root, "#{lang}/LC_MESSAGES", "#{textdomain}.mo")
-          FileUtils.mkdir_p(File.dirname(mo_file))
-          GetText::Tools::MsgFmt.run(po_file, "-o", mo_file)
-        end
-
-      end
+      Dir.glob(File.join(po_root, '*/*.po'.freeze)).map{|po_path|
+        lang = po_path.match(Plugin::UITranslate::LanguageMatcher)[1]
+        mo_path = File.join(Plugin::UITranslate::LocaleDirectory, lang, 'LC_MESSAGES'.freeze, "#{spec[:slug]}.mo")
+        Plugin::UITranslate::LanguageFileInfo.new(po_path, mo_path)
+      }.select{|info|
+        if File.exist?(info.mo)
+          File.mtime(info.po) > File.mtime(info.mo)
+        else
+          true end
+      }.each{|info|
+        miquire :lib, 'gettext/tools'.freeze
+        FileUtils.mkdir_p(File.dirname(info.mo))
+        GetText::Tools::MsgFmt.run(info.po, '-o'.freeze, info.mo)
+        notice "generated mo file #{info.po} => #{info.mo}"
+      }
       bindtextdomain(to_s, path: Plugin::UITranslate::LocaleDirectory)
     end
     spec
   end
 end
-
-
