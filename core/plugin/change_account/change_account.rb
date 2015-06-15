@@ -92,7 +92,7 @@ Plugin.create :change_account do
         twitter = MikuTwitter.new
         twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
         twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-        twitter.request_oauth_token } end 
+        twitter.request_oauth_token } end
 
     @request_token end
 
@@ -203,4 +203,3 @@ Plugin.create :change_account do
         jump_seq(:first) end end end
 
 end
-
