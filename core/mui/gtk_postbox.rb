@@ -164,7 +164,7 @@ module Gtk
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
     def before_post
-      if(@options[:postboxstorage])
+      if @options[:postboxstorage] && @options[:delegate_other]
         return false if delegate
         if not @options[:delegated_by]
           postbox = Gtk::PostBox.new(@postable, @options)
