@@ -19,11 +19,19 @@ Plugin.create :profile do
         Plugin.call(:show_profile, Service.primary, user) if user } end }
 
   Delayer.new do
-    Thread.new do
-      (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
-        user = User.findbyid(user_id)
-        if user
-          show_profile(user, true) end end end end
+    (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
+      retrieve_user(user_id).next{|user|
+        user ||= User.findbyid(user_id)
+        show_profile(user, true) if user
+      }.terminate end end
+
+  def retrieve_user(user_id, services = Service.services.shuffle)
+    if services.nil? or services.empty?
+      return nil end
+    service = services.car
+    (service/:users/:show).user(user_id: user_id,
+                                cache: false).trap{
+      retrieve_user(user_id, services.cdr) } end
 
   filter_show_filter do |messages|
     muted_users = UserConfig[:muted_users]

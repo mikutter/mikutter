@@ -24,13 +24,19 @@ class Gtk::ListList < Gtk::CRUD
     type_strict plugin => Plugin, proc => Proc
     add_hook(Service.primary, own, UserLists.new(Plugin.filtering(:following_lists, UserLists.new).first), &proc)
     create = plugin.add_event(:list_created) { |service, lists|
-      add_hook(service, own, UserLists.new(lists), &proc) }
+      if destroyed?
+        error "gtk widget already destroyed."
+      else
+        add_hook(service, own, UserLists.new(lists), &proc) end }
     destroy = plugin.add_event(:list_destroy){ |service, list_ids|
-      unless destroyed?
+      if destroyed?
+        error "gtk widget already destroyed."
+      else
         each{ |model, path, iter|
           remove(iter) if list_ids.include?(iter[2][:id]) } end }
-    signal_connect('destroy-event'){ |w, event|
-      plugin.detach(create).detach(destroy) }
+    signal_connect(:destroy){ |w, event|
+      plugin.detach(create).detach(destroy)
+      true }
     self end
 
   private

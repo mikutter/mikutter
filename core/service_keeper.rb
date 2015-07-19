@@ -85,15 +85,12 @@ class Service
       name = name.to_sym
       @@service_lock.synchronize do
         raise ArgumentError, "account #{name} is not exists." unless accounts.has_key? name
-        @account_data = account_write accounts.merge name => accounts[name].merge({
-          token: (options[:token] or raise ArgumentError, 'options requires key `token\'.'),
-          secret: (options[:token] or raise ArgumentError, 'options requires key `secret\'.'),
-          user: (options[:token] or raise ArgumentError, 'options requires key `user\'.') }) end
+        @account_data = account_write accounts.merge name => accounts[name].merge(options) end
       self end
 
     # 垢消しの時間だ
     # ==== Args
-    # [name] 
+    # [name]
     # ==== Return
     # Service
     def account_destroy(name)
@@ -116,7 +113,7 @@ class Service
       cipher = OpenSSL::Cipher.new('bf-ecb').encrypt
       cipher.key = key
       cipher.update(str) << cipher.final end
-    
+
     def decrypt(binary_data)
       cipher = OpenSSL::Cipher.new('bf-ecb').decrypt
       cipher.key = key

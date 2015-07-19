@@ -259,7 +259,7 @@ class Service
   def user_initialize
     if defined? Service::SaveData.account_data(name.to_sym)[:user]
       @user_obj = User.new_ifnecessary(Service::SaveData.account_data(name.to_sym)[:user])
-      (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed))
+      (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed)).terminate
     else
       res = twitter.query!('account/verify_credentials', cache: true)
       if "200" == res.code
@@ -271,17 +271,20 @@ class Service
 
   def user_data_received(user)
     @user_obj = user
-    Service.account_modify name, {
+    Service::SaveData.account_modify name, {
       user: {
         id: @user_obj[:id],
         idname: @user_obj[:idname],
         name: @user_obj[:name],
         profile_image_url: @user_obj[:profile_image_url] } } end
 
-  def user_data_failed(e)
-    if e.is_a? MikuTwitter::Error
+  def user_data_failed(exception)
+    case exception
+    when MikuTwitter::Error
       if not UserConfig[:verify_credentials]
-        user_data_failed_crash!(e.httpresponse) end end end
+        user_data_failed_crash!(exception.httpresponse) end
+    else
+      raise exception end end
 
   def user_data_failed_crash!(res)
     if '400' == res.code

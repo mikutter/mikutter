@@ -18,7 +18,7 @@ class Gtk::AccountBox < Gtk::EventBox
     ssc_atonce(:realize) do
       change_user Service.primary end
   end
-  
+
   def refresh
     if 1 < Service.to_a.size
       if not @face
