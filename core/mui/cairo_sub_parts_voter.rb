@@ -28,7 +28,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
               Plugin.call(:show_profile, Service.primary, user) end end end end
       false }
     last_motion_user = nil
-    usertip = Gtk::Tooltips.new
+    usertip = Gtk::Tooltips.instance
     helper.ssc(:motion_notify_event){ |this, x, y|
       if 0 != height
         tipset = ''
