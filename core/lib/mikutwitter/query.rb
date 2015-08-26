@@ -5,7 +5,7 @@ require "mikutwitter/connect"
 require "mikutwitter/utils"
 require "mikutwitter/cache"
 require "mikutwitter/error"
-require "deferred"
+require "delayer/deferred"
 require "monitor"
 
 miquire :lib, "weakstorage"
