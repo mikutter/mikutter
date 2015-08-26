@@ -124,7 +124,7 @@ module Miquire::Plugin
           return false end end
 
       if defined? spec[:depends][:plugin]
-        spec[:depends][:plugin].map(&:to_sym).each{ |depended_plugin_slug|
+        Array(spec[:depends][:plugin]).map(&:to_sym).each{ |depended_plugin_slug|
           begin
             ::Plugin.instance_exist?(depended_plugin_slug) or
               load(depended_plugin_slug) or
@@ -148,9 +148,3 @@ module Miquire::Plugin
       true end
   end
 end
-
-
-
-
-
-
