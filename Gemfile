@@ -15,6 +15,7 @@ group :default do
   gem 'ruby-hmac', '~> 0.4'
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'
+  gem 'pluggaloid', '>= 1.0.1', '< 2.0'
 end
 
 group :test do
