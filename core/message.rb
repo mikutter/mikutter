@@ -403,7 +403,12 @@ class Message < Retriever::Model
   def add_retweet_in_this_thread(child, created_at=child[:created])
     type_strict child => tcor(Message, User)
     unless @retweets.include? child
-      @retweets << child end
+      case child
+      when Message
+        @retweets << child
+        @retweets.delete(child.user) if @retweets.include?(child.user)
+      when User
+        @retweets << child if retweeted_users.include?(child) end end
     service = Service.primary
     set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
