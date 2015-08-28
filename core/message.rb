@@ -398,6 +398,10 @@ class Message < Retriever::Model
     @value[:modified] ||= [self[:created], *(@retweets || []).map{ |x| x.modified }].compact.max
   end
 
+  def inspect
+    "#<#{self.class.name}: #{id} #{user.inspect} #{to_show}>"
+  end
+
   private
 
   def add_retweet_in_this_thread(child, created_at=child[:created])
