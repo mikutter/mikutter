@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+require 'instance_storage'
+
 miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'service_keeper'
-miquire :lib, "mikutwitter", 'reserver', 'delayer', 'instance_storage'
+miquire :lib, "mikutwitter", 'reserver', 'delayer'
 
 =begin rdoc
 Twitter APIとmikutterプラグインのインターフェイス
