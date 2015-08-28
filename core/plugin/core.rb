@@ -42,7 +42,7 @@ Plugin.create :core do
         if source
           notice "retweet #{source[:id]} #{message.to_s}(##{message[:id]})"
           Plugin.call(:retweet_destroyed, source, message.user, message[:id])
-          source.retweeted_statuses.delete(message) end end } end
+          source.retweeted_sources.delete(message) end end } end
 
   on_entity_linkrule_added(&Message::Entity.method(:on_entity_linkrule_added))
 

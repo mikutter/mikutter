@@ -254,7 +254,7 @@ class Message < Retriever::Model
 
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_statuses end
+    @children ||= Plugin.filtering(:replied_by, self, Set.new(retweeted_statuses))[1] end
 
   # childrenを再帰的に遡り全てのMessageを返す
   # ==== Return
@@ -278,16 +278,20 @@ class Message < Retriever::Model
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
-    retweeted_statuses.map{ |x| x.user }.uniq
-  end
+    retweeted_sources.lazy.map(&:user) end
+  alias retweeted_users retweeted_by
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].to_a.compact end
+    retweeted_sources.lazy.select{|m| m.is_a?(Message) } end
+
+  # この投稿に対するリツイートまたはユーザを返す
+  def retweeted_sources
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new())[1].to_a.compact end
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
   def retweeted?
-    retweeted_by.include?(Service.primary!.user_obj)
+    retweeted_users.include?(Service.primary!.user_obj)
   rescue Service::NotExistError
     false end
 
@@ -295,9 +299,9 @@ class Message < Retriever::Model
   def retweeted_by_me?(me = Service.services)
     case me
     when Service
-      retweeted_by.include? me.user_obj
+      retweeted_users.include? me.user_obj
     when Enumerable
-      not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+      not (Set.new(retweeted_users.map(&:idname)) & Set.new(me.map(&:idname))).empty?
     else
       raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
@@ -369,7 +373,7 @@ class Message < Retriever::Model
         add_retweet_in_this_thread(child)
       else
         SerialThread.new{
-          retweeted_by
+          retweeted_sources
           add_retweet_in_this_thread(child) } end
     else
       if defined? @children
@@ -379,19 +383,38 @@ class Message < Retriever::Model
           children
           add_child_in_this_thread(child) } end end end
 
+  # :nodoc:
+  def add_retweet_user(retweet_user, created_at)
+    type_strict retweet_user => User
+    if defined? @retweets
+      add_retweet_in_this_thread(retweet_user, created_at)
+    else
+      SerialThread.new{
+        retweeted_sources
+        add_retweet_in_this_thread(retweet_user, created_at) } end end
+
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(defined?(@retweets) ? @retweets : []).map{ |x| x.modified }].compact.max
+    @value[:modified] ||= [self[:created], *(@retweets || []).map{ |x| x.modified }].compact.max
+  end
+
+  def inspect
+    "#<#{self.class.name}: #{id} #{user.inspect} #{to_show}>"
   end
 
   private
 
-  def add_retweet_in_this_thread(child)
-    type_strict child => Message
-    @retweets = [] if not defined? @retweets
-    @retweets << child
+  def add_retweet_in_this_thread(child, created_at=child[:created])
+    type_strict child => tcor(Message, User)
+    unless @retweets.include? child
+      case child
+      when Message
+        @retweets << child
+        @retweets.delete(child.user) if @retweets.include?(child.user)
+      when User
+        @retweets << child if retweeted_users.include?(child) end end
     service = Service.primary
-    set_modified(child[:created]) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
+    set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
     @children << child
