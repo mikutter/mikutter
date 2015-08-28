@@ -254,7 +254,7 @@ class Message < Retriever::Model
 
   # この投稿に宛てられた投稿をSetオブジェクトにまとめて返す。
   def children
-    @children ||= Plugin.filtering(:replied_by, self, Set.new())[1] + retweeted_statuses end
+    @children ||= Plugin.filtering(:replied_by, self, Set.new(retweeted_statuses))[1] end
 
   # childrenを再帰的に遡り全てのMessageを返す
   # ==== Return
@@ -278,20 +278,20 @@ class Message < Retriever::Model
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
-    retweeted_sources.map(&:user).uniq end
+    retweeted_sources.lazy.map(&:user) end
   alias retweeted_users retweeted_by
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    retweeted_sources.select{|m| m.is_a?(Message) }.uniq end
+    retweeted_sources.lazy.select{|m| m.is_a?(Message) } end
 
   # この投稿に対するリツイートまたはユーザを返す
   def retweeted_sources
-    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].to_a.compact end
+    @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new())[1].to_a.compact end
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
   def retweeted?
-    retweeted_by.include?(Service.primary!.user_obj)
+    retweeted_users.include?(Service.primary!.user_obj)
   rescue Service::NotExistError
     false end
 
@@ -299,9 +299,9 @@ class Message < Retriever::Model
   def retweeted_by_me?(me = Service.services)
     case me
     when Service
-      retweeted_by.include? me.user_obj
+      retweeted_users.include? me.user_obj
     when Enumerable
-      not (Set.new(retweeted_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+      not (Set.new(retweeted_users.map(&:idname)) & Set.new(me.map(&:idname))).empty?
     else
       raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
