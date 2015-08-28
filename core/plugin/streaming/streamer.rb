@@ -140,6 +140,13 @@ module ::Plugin::Streaming
         if(to.respond_to?(:add_favorited_by))
           source_message.add_favorited_by(by, Time.parse(json['created_at'])) end end end
 
+    defevent(:retweeted_retweet) do |json|
+      by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
+      #to = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
+      target_object = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      source_object = target_object.retweet_source
+      source_object.add_retweet_user(by, Time.parse(json['created_at'])) end
+
     defevent(:follow) do |json|
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)

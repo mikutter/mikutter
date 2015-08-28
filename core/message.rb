@@ -278,11 +278,15 @@ class Message < Retriever::Model
 
   # この投稿をリツイートしたユーザを返す
   def retweeted_by
-    retweeted_statuses.map{ |x| x.user }.uniq
-  end
+    retweeted_sources.map(&:user).uniq end
+  alias retweeted_users retweeted_by
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
+    retweeted_sources.select{|m| m.is_a?(Message) }.uniq end
+
+  # この投稿に対するリツイートまたはユーザを返す
+  def retweeted_sources
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new)[1].to_a.compact end
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
@@ -369,7 +373,7 @@ class Message < Retriever::Model
         add_retweet_in_this_thread(child)
       else
         SerialThread.new{
-          retweeted_by
+          retweeted_sources
           add_retweet_in_this_thread(child) } end
     else
       if defined? @children
@@ -379,19 +383,29 @@ class Message < Retriever::Model
           children
           add_child_in_this_thread(child) } end end end
 
+  # :nodoc:
+  def add_retweet_user(retweet_user, created_at)
+    type_strict retweet_user => User
+    if defined? @retweets
+      add_retweet_in_this_thread(retweet_user, created_at)
+    else
+      SerialThread.new{
+        retweeted_sources
+        add_retweet_in_this_thread(retweet_user, created_at) } end end
+
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(defined?(@retweets) ? @retweets : []).map{ |x| x.modified }].compact.max
+    @value[:modified] ||= [self[:created], *(@retweets || []).map{ |x| x.modified }].compact.max
   end
 
   private
 
-  def add_retweet_in_this_thread(child)
-    type_strict child => Message
-    @retweets = [] if not defined? @retweets
-    @retweets << child
+  def add_retweet_in_this_thread(child, created_at=child[:created])
+    type_strict child => tcor(Message, User)
+    unless @retweets.include? child
+      @retweets << child end
     service = Service.primary
-    set_modified(child[:created]) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
+    set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
     @children << child

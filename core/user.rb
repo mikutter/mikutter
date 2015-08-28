@@ -126,6 +126,10 @@ class User < Retriever::Model
   def count_favorite_given
     @value[:favourites_count] end
 
+  def user
+    self end
+  alias to_user user
+
   def marshal_dump
     raise RuntimeError, 'User cannot marshalize'
   end
