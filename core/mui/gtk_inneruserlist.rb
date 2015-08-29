@@ -27,7 +27,7 @@ class Gtk::InnerUserList < Gtk::TreeView
   # self
   def add_user(users)
     type_strict users => Users
-    (users - Enumerator.new(model).map{ |model,path,iter| iter[COL_USER] }).deach { |user|
+    (users - model.to_enum.map{ |model,path,iter| iter[COL_USER] }).deach { |user|
       iter = model.append
       iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
         if not destroyed?
