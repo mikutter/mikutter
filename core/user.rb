@@ -59,6 +59,10 @@ class User < Retriever::Model
     self[:idname] end
   alias to_s idname
 
+  def protected?
+    !!self[:protected]
+  end
+
   # 大きいサイズのアイコンのURLを返す
   # ==== Return
   # 元のサイズのアイコンのURL

@@ -183,15 +183,18 @@ class Gdk::MiraclePainter < Gtk::Object
     textselector_unselect end
 
   def iob_icon_pixbuf
-    [ ["reply.png", "etc.png"],
-      ["retweet.png",
-       message.favorite? ? "unfav.png" : "fav.png"] ] end
+    [ ["reply.png".freeze, "etc.png".freeze],
+      [if message.user.protected?; then "protected.png".freeze else "retweet.png".freeze end,
+       message.favorite? ? "unfav.png".freeze : "fav.png".freeze] ] end
 
   def iob_icon_pixbuf_off
-    [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png"),
+    [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png".freeze),
        nil],
-      [message.retweeted? ? "retweet.png" : nil,
-       message.favorite? ? "unfav.png" : nil]
+      [ if UserConfig[:show_protected_icon] and message.user.protected?
+          "protected.png".freeze
+        elsif message.retweeted?
+          "retweet.png".freeze end,
+       message.favorite? ? "unfav.png".freeze : nil]
     ]
   end
 
@@ -426,4 +429,3 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
 end
-

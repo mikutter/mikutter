@@ -74,6 +74,11 @@ Plugin::create(:set_view) do
         tooltip(_("自分がふぁぼったつぶやきを、TLの一番上に上げます"))
     end
 
+    settings(_('非公開アカウント')) do
+      boolean(_('非公開アカウントのつぶやきにはアイコンを表示'), :show_protected_icon).
+        tooltip(_("非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"))
+    end
+
     settings(_('短縮URL')) do
       boolean(_('短縮URLを展開して表示'), :shrinkurl_expand).
         tooltip(_("受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"))
