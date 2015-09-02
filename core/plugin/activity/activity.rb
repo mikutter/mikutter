@@ -66,16 +66,10 @@ Plugin.create(:activity) do
   # ==== Return
   # 初めて表示するキーなら真
   def show_once(event, *ids)
-    @show_once ||= Hash.new{ |h, k| h[k] = [] }
-    result = []
-    ids.each_with_index{ |id, index|
-      storage = @show_once[event][index] ||= Set.new
-      if storage.include? id
-        result << true
-      else
-        storage << id
-        result << false end }
-    not result.all? end
+    @show_once ||= Set.new
+    result = @show_once.member?(ids)
+    @show_once << ids
+    !result end
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
