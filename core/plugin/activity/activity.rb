@@ -61,11 +61,10 @@ Plugin.create(:activity) do
 
   # このIDの組み合わせが出現したことがないなら真
   # ==== Args
-  # [event] イベント名
-  # [ids] ID
+  # [ids] イベント(Symbol),ID,...
   # ==== Return
   # 初めて表示するキーなら真
-  def show_once(event, *ids)
+  def show_once(*ids)
     @show_once ||= Set.new
     result = @show_once.member?(ids)
     @show_once << ids
