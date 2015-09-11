@@ -110,23 +110,6 @@ Plugin.create(:activity) do
         else
           UserConfig[uc] -= [kind] end end end
 
-  # アクティビティを更新する。
-  # ==== Args
-  # [kind] Symbol イベントの種類
-  # [title] タイトル
-  # [args] その他オプション。主に以下の値
-  #   icon :: String|Gdk::Pixbuf アイコン
-  #   date :: Time イベントの発生した時刻
-  #   service :: Service 関係するServiceオブジェクト
-  #   related :: 自分に関係するかどうかのフラグ
-  defdsl :activity do |kind, title, args = {}|
-    Plugin.call(:modify_activity,
-                { plugin: self,
-                  kind: kind,
-                  title: title,
-                  date: Time.new,
-                  description: title }.merge(args)) end
-
   # 新しいアクティビティの種類を定義する。設定に表示されるようになる
   # ==== Args
   # [kind] 種類

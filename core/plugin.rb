@@ -13,6 +13,14 @@ class Plugin < Pluggaloid::Plugin
   include ConfigLoader
 
   class << self
+    # ユーザに向けて通知を発生させる。
+    # 通知は、activityプラグインなど、通知の表示に対応するプラグインが
+    # 入っていればユーザがそれを確認することができるが、そのようなプラグインがない場合は
+    # 通知は単に無視される。
+    # プラグインから通知を発生させたい場合は、 Plugin.Activity のかわりに
+    # Plugin#activity を使えば、通知を発生させたプラグインを特定できるようになる
+    #
+    # 引数は、 Plugin#activityを参照
     def activity(kind, title, args = {})
       Plugin.call(:modify_activity,
                   { plugin: nil,
@@ -20,6 +28,27 @@ class Plugin < Pluggaloid::Plugin
                     title: title,
                     date: Time.new,
                     description: title }.merge(args)) end
+  end
+
+  # ユーザに向けて通知を発生させる。
+  # 通知は、activityプラグインなど、通知の表示に対応するプラグインが
+  # 入っていればユーザがそれを確認することができるが、そのようなプラグインがない場合は
+  # 通知は単に無視される。
+  # ==== Args
+  # [kind] Symbol 通知の種類
+  # [title] String 通知のタイトル
+  # [args] Hash その他オプション。主に以下の値
+  #   icon :: String|Gdk::Pixbuf アイコン
+  #   date :: Time イベントの発生した時刻
+  #   service :: Service 関係するServiceオブジェクト
+  #   related :: 自分に関係するかどうかのフラグ
+  def activity(kind, title, args)
+    Plugin.call(:modify_activity,
+                { plugin: self,
+                  kind: kind,
+                  title: title,
+                  date: Time.new,
+                  description: title }.merge(args))
   end
 
   # プラグインストレージの _key_ の値を取り出す

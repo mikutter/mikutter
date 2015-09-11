@@ -3,7 +3,6 @@ slug: :streaming
 depends:
   mikutter: '0.2'
   plugin:
-  - gui
   - uitranslator
 version: '1.0'
 author: toshi_a
