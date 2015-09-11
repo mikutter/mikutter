@@ -42,7 +42,7 @@ class Plugin < Pluggaloid::Plugin
   #   date :: Time イベントの発生した時刻
   #   service :: Service 関係するServiceオブジェクト
   #   related :: 自分に関係するかどうかのフラグ
-  def activity(kind, title, args)
+  def activity(kind, title, args={})
     Plugin.call(:modify_activity,
                 { plugin: self,
                   kind: kind,

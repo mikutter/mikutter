@@ -173,8 +173,12 @@ class UserConfig
     if last_boot_version < Environment::VERSION.to_a
       UserConfig[:last_boot_version] = Environment::VERSION.to_a
       if last_boot_version == [0, 0, 0, 0]
-        key_add "Alt + x", "コンソールを開く", :console_open
-      end
+        key_add "Alt + x", "コンソールを開く", :console_open end
+      if last_boot_version < [3, 3, 0, 0]
+        activity_show_statusbar = (UserConfig[:activity_show_statusbar] || []).map(&:to_s)
+        unless activity_show_statusbar.include? 'streaming_status'
+          activity_show_statusbar << 'streaming_status'
+          UserConfig[:activity_show_statusbar] = activity_show_statusbar end end
     end
   end
 
@@ -190,5 +194,3 @@ class UserConfig
   setup
 
 end
-
-

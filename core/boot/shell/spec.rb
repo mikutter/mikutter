@@ -55,12 +55,14 @@ class Depend < Ripper::Filter
   # commandプラグインで使われている条件クラスを使っていたら、on_constで依存してると判断される。
   def on_ex_ident(tok)
     case tok
-      when /tab|timeline|nativewidget/ # UIっぽい単語があったらguiに依存してそう
+    when 'defactivity'
+      depend :activity
+    when 'tab', 'timeline', 'nativewidget' # UIっぽい単語があったらguiに依存してそう
       depend :gui
-      when 'profiletab'         # profiletabはプロフィールにも依存する
+    when 'profiletab'         # profiletabはプロフィールにも依存する
       depend :gui
       depend :profile
-      when 'settings'            # 設定DSLの開始。settingsプラグイン。
+    when 'settings'            # 設定DSLの開始。settingsプラグイン。
       depend :settings
     end end
 

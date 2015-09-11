@@ -39,7 +39,7 @@ class MikuTwitter::StreamingFailedActions
         end
       end
       httperror
-      @last_code = e.code
+      @last_code = e.code.freeze
     elsif e.is_a?(Exception) or e.is_a?(Thread)
       tcperror
     end
@@ -49,46 +49,33 @@ class MikuTwitter::StreamingFailedActions
   # ==== Args
   # [e] レスポンス(Net::HTTPResponse)
   def success
-    title = "#{@name}: 接続できました。"
-    desc = ""
-    if @last_code[0] == '5'.freeze
-      desc = "まだTwitterサーバが完全には復旧していないかも知れません。\n"+
-        "Twitterサーバの情報は以下のWebページで確認することができます。\nhttps://dev.twitter.com/status"
-    elsif @last_code == '420'.freeze
-      desc = "規制解除されたみたいですね。よかったですね。" end
-    if @last_code != '200'.freeze
-      @plugin.activity(:status, title,
-                       description: title + "\n" + desc) end
+    Plugin.call(:streaming_connection_status_connected,
+                @name, @last_code)
     @wait_time = @fail_count = 0
-    @last_code = '200'.freeze
-  end
+    @last_code = '200'.freeze end
 
   # こちらの問題が原因でTwitterサーバからエラーが返って来ている場合の処理。
   # ただし、過去には何度もサーバ側の不具合で4xx系のエラーが返って来ていたことが
   # あったのであまり宛てにするべきではない
   # ==== Args
-  # [e] レスポンス(Net::HTTPResponse)
-  def client_bug(e)
-    title = "#{@name}: 切断されました。再接続します"
-    @plugin.activity(:status, title,
-                     description: "#{title}\n接続できませんでした(#{get_error_str(e)})") end
+  # [res] レスポンス(Net::HTTPResponse)
+  def client_bug(res)
+    Plugin.call(:streaming_connection_status_failed,
+                @name, get_error_str(res)) end
 
   # 規制された時の処理
   # ==== Args
-  # [e] レスポンス(Net::HTTPResponse)
-  def rate_limit(e)
-    title = "#{@name}: API実行回数制限を超えました。しばらくしてから自動的に再接続します。"
-    @plugin.activity(:status, title,
-                     description: "#{title}\n複数のTwitterクライアントを起動している場合は、それらを終了してください。\n(#{get_error_str(e)})") end
+  # [res] レスポンス(Net::HTTPResponse)
+  def rate_limit(res)
+    Plugin.call(:streaming_connection_status_ratelimit,
+                @name, get_error_str(res)) end
 
   # サーバエラー・過負荷時の処理
   # ==== Args
   # [e] レスポンス(Net::HTTPResponse)
   def flying_whale(e)
-    title = "#{@name}: 切断されました。しばらくしてから自動的に再接続します。"
-    @plugin.activity(:status, title,
-                     description: "#{title}\nTwitterサーバが応答しません。また何かあったのでしょう(#{get_error_str(e)})。\n"+
-                     "Twitterサーバの情報は以下のWebページで確認することができます。\nhttps://dev.twitter.com/status") end
+    Plugin.call(:streaming_connection_status_flying_whale,
+                @name, get_error_str(res)) end
 
   private
 
