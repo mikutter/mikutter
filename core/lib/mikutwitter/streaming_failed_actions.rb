@@ -8,7 +8,7 @@ class MikuTwitter::StreamingFailedActions
   def initialize(name, plugin)
     @name = name
     @plugin = plugin
-    @last_code = '200'
+    @last_code = '200'.freeze
     @wait_time = @fail_count = 0
   end
 
@@ -16,25 +16,25 @@ class MikuTwitter::StreamingFailedActions
     if e.respond_to?(:code)
       if e.code != @last_code
         case e.code
-        when '200'
+        when '200'.freeze
           success
-        when '401'                # unauthorized
+        when '401'.freeze         # unauthorized
           client_bug e
-        when '403'                # forbidden
+        when '403'.freeze         # forbidden
           client_bug e
-        when '404'                # unknown
+        when '404'.freeze         # unknown
           client_bug e
-        when '406'                # not accepptable
+        when '406'.freeze         # not accepptable
           client_bug e
-        when '413'                # too long
+        when '413'.freeze         # too long
           client_bug e
-        when '416'                # range unacceptable
+        when '416'.freeze         # range unacceptable
           client_bug e
-        when '420'                # rate limited
+        when '420'.freeze         # rate limited
           rate_limit e
-        when '500'                # server internal error
+        when '500'.freeze         # server internal error
           flying_whale e
-        when '503'                # service overloaded
+        when '503'.freeze         # service overloaded
           flying_whale e
         end
       end
@@ -51,16 +51,16 @@ class MikuTwitter::StreamingFailedActions
   def success
     title = "#{@name}: 接続できました。"
     desc = ""
-    if @last_code[0] == '5'
+    if @last_code[0] == '5'.freeze
       desc = "まだTwitterサーバが完全には復旧していないかも知れません。\n"+
         "Twitterサーバの情報は以下のWebページで確認することができます。\nhttps://dev.twitter.com/status"
-    elsif @last_code == '420'
+    elsif @last_code == '420'.freeze
       desc = "規制解除されたみたいですね。よかったですね。" end
-    if @last_code != '200'
+    if @last_code != '200'.freeze
       @plugin.activity(:status, title,
                        description: title + "\n" + desc) end
     @wait_time = @fail_count = 0
-    @last_code = "200"
+    @last_code = '200'.freeze
   end
 
   # こちらの問題が原因でTwitterサーバからエラーが返って来ている場合の処理。
