@@ -53,29 +53,22 @@ Plugin.create(:activity) do
   def mute?(params)
     mute_kind = UserConfig[:activity_mute_kind]
     if mute_kind.is_a? Array
-      return true if mute_kind.include? params[:kind].to_s end
+      return true if mute_kind.map(&:to_s).include? params[:kind].to_s end
     mute_kind_related = UserConfig[:activity_mute_kind_related]
     if mute_kind_related
-      return true if mute_kind_related.include?(params[:kind].to_s) and !params[:related] end
+      return true if mute_kind_related.map(&:to_s).include?(params[:kind].to_s) and !params[:related] end
     false end
 
   # このIDの組み合わせが出現したことがないなら真
   # ==== Args
-  # [event] イベント名
-  # [ids] ID
+  # [ids] イベント(Symbol),ID,...
   # ==== Return
   # 初めて表示するキーなら真
-  def show_once(event, *ids)
-    @show_once ||= Hash.new{ |h, k| h[k] = [] }
-    result = []
-    ids.each_with_index{ |id, index|
-      storage = @show_once[event][index] ||= Set.new
-      if storage.include? id
-        result << true
-      else
-        storage << id
-        result << false end }
-    not result.all? end
+  def show_once(*ids)
+    @show_once ||= Set.new
+    result = @show_once.member?(ids)
+    @show_once << ids
+    !result end
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
@@ -132,6 +125,7 @@ Plugin.create(:activity) do
   # [kind] 種類
   # [name] 表示する名前
   defdsl :defactivity do |kind, name|
+    kind, name = kind.to_sym, name.to_s
     filter_activity_kind do |data|
       data[kind] = name
       [data] end end
@@ -193,10 +187,10 @@ Plugin.create(:activity) do
       iter[ActivityView::ID] = 0
       iter[ActivityView::SERVICE] = params[:service]
       iter[ActivityView::EVENT] = params
-      if (UserConfig[:activity_show_timeline] || []).include?(params[:kind].to_s)
+      if (UserConfig[:activity_show_timeline] || []).map(&:to_s).include?(params[:kind].to_s)
         Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
       end
-      if (UserConfig[:activity_show_statusbar] || []).include?(params[:kind].to_s)
+      if (UserConfig[:activity_show_statusbar] || []).map(&:to_s).include?(params[:kind].to_s)
         Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{params[:kind]}: #{params[:title]}", 10)
       end
     end
@@ -313,7 +307,7 @@ Plugin.create(:activity) do
       activity_kind = {} end
 
     activity_kind_order.each do |kind|
-      name = activity_kind[kind]
+      name = activity_kind[kind.to_sym]
       ml_param = {name: name}
       settings name do
         boolean(_('%{name}を表示する') % ml_param, gen_listener_for_invisible_check(:activity_mute_kind, kind)).tooltip(_('%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。') % ml_param)
@@ -324,13 +318,13 @@ Plugin.create(:activity) do
     end
   end
 
-  defactivity "retweet", _("リツイート")
-  defactivity "favorite", _("ふぁぼ")
-  defactivity "follow", _("フォロー")
-  defactivity "list_member_added", _("リストに追加")
-  defactivity "list_member_removed", _("リストから削除")
-  defactivity "dm", _("ダイレクトメッセージ")
-  defactivity "system", _("システムメッセージ")
-  defactivity "error", _("エラー")
+  defactivity :retweet, _("リツイート")
+  defactivity :favorite, _("ふぁぼ")
+  defactivity :follow, _("フォロー")
+  defactivity :list_member_added, _("リストに追加")
+  defactivity :list_member_removed, _("リストから削除")
+  defactivity :dm, _("ダイレクトメッセージ")
+  defactivity :system, _("システムメッセージ")
+  defactivity :error, _("エラー")
 
 end
