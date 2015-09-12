@@ -1,34 +1,42 @@
 # -*- coding: utf-8 -*-
 
-require 'set'
+require 'moneta'
+
+module Plugin::ImageFileCache
+  CacheThread = SerialThreadGroup.new
+end
 
 Plugin.create :image_file_cache do
 
-  CacheWriteThread = SerialThreadGroup.new
+  @queue = Delayer.generate_class(priority: %i[none check_subdirs check_dirs],
+                                  default: :none,
+                                  expire: 0.02)
+  @cache_directory = File.join(Environment::CACHE, 'image_file_cache').freeze
+  @db = ::Moneta.build(&->(dir){ ->(this){
+                                   this.use :Transformer, key: %i[md5 spread]
+                                   this.adapter(:File, dir: dir)
+                                 } }.(@cache_directory))
 
   # appear_limit 回TLに出現したユーザはキャッシュに登録する
   # (30分ツイートしなければカウンタはリセット)
-  onappear do |messages|
-    messages.deach { |message|
+  on_appear do |messages|
+    messages.deach do |message|
       image_url = message.user[:profile_image_url]
-      if not j_include?(image_url)
+      if not @db.key?(image_url)
         appear_counter[image_url] ||= 0
         appear_counter[image_url] += 1
-        cache_it(image_url) if(appear_counter[image_url] > appear_limit) end } end
+        if appear_counter[image_url] > appear_limit
+          Plugin.call(:image_file_cache_cache, image_url) end end end end
+
+  on_image_file_cache_cache do |url|
+    cache_it(url) end
 
   # キャッシュがあれば画像を返す
   filter_image_cache do |url, image, &stop|
     begin
-      if j_get(url)
-        path = get_local_image_name(url)
-        if FileTest.exist?(path)
-          body = file_get_contents(path)
-          if(j_get(url)+cache_expire < Time.new)
-            j_delete(url)
-            FileUtils.rm(path) end
-          stop.call([url, body])
-        else
-          j_delete(url) end end
+      body = @db[url]
+      if body
+        stop.call([url, body]) end
       [url, image]
     rescue => e
       error e
@@ -45,52 +53,52 @@ Plugin.create :image_file_cache do
   def cache_expire
     (UserConfig[:image_file_cache_expire] || 7) * 24 * 60 * 60 end
 
-  # _url_ からキャッシュを取得した日時を返す。
-  # キャッシュがなければ _nil_ を返す。
-  def j_get(url)
-    at(:journaling_data, {})[url] end
-
-  # _url_ のキャッシュがあれば真
-  def j_include?(url)
-    j_data = at(:journaling_data)
-    j_data.include? url if j_data end
-
-  # _url_ のキャッシュの日時を現在に設定する。
-  def j_set(url, time = Time.now)
-    atomic {
-      j_data = at(:journaling_data, {}).melt
-      j_data[url.freeze] = time.freeze
-      store(:journaling_data, j_data)
-      Reserver.new(time + cache_expire){ j_delete(url) } } end
-
-  # _url_ のキャッシュの日時を削除する。
-  def j_delete(url)
-    atomic {
-      j_data = at(:journaling_data)
-      if j_data and j_data.include?(url)
-        j_data = j_data.melt
-        j_data.delete(url)
-        store(:journaling_data, j_data) end } end
-
   def cache_it(image_url)
-    notice "cache image to #{get_local_image_name(image_url)}"
-    CacheWriteThread.new {
+    Plugin::ImageFileCache::CacheThread.new do
       raw = Gdk::WebImageLoader.get_raw_data(image_url)
-      if(raw)
-        notice "broken image. cache failed"
-        j_set(image_url)
-        image_dir = get_local_dir_name(image_url)
-        FileUtils.mkdir_p(image_dir)
-        file_put_contents(get_local_image_name(image_url), raw) end } end
+      if raw
+        @db[image_url] = raw end end end
 
-  def get_local_image_name(image_url)
-    image_name = Digest::MD5.hexdigest(image_url)
-    File.join(get_local_dir_name(image_url, image_name), image_name) end
+  def check_subdirs(dir)
+    @queue.new(:check_subdirs) do
+      Dir.foreach(dir)
+        .map{|x| File.join(dir, x) }
+        .select{|x| FileTest.file?(x) }
+        .each{|x|
+        Reserver.new((File.atime(x) rescue File.mtime(x)) + cache_expire) do
+          notice "cache deleted #{x}"
+          File.delete(x) if FileTest.file?(x)
+          if Dir.foreach(dir).select{|y| File.file? File.join(dir, y) }.empty?
+            Dir.delete(dir) rescue nil end end
+      }
+    end
+  end
 
-  def get_local_dir_name(image_url, image_name = Digest::MD5.hexdigest(image_url))
-    File.expand_path(File.join(Environment::CACHE, 'icon', image_name[0], image_name[1])) end
+  def check_dirs
+    @queue.new(:check_dirs) do
+      Dir.foreach(@cache_directory)
+        .select{|x| x =~ %r<\A[a-fA-F0-9]{2}\Z> }
+        .shuffle
+        .each{|subdir|
+        check_subdirs(File.join(@cache_directory, subdir))
+      }
+      Reserver.new(cache_expire) do
+        check_dirs end
+    end
+  end
 
-  at(:journaling_data, {}).each { |url, time|
-    Reserver.new(time + cache_expire){ j_delete(url) } }
+  def _loop
+    Reserver.new(60) do
+      if @queue
+        @queue.run
+        _loop  end end end
+
+  on_unload do
+    @db.close
+    @db = @queue = nil
+  end
+
+  check_dirs
+  _loop
 
 end
