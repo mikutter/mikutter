@@ -6,7 +6,7 @@ miquire :mui, 'tree_view_pretty_scroll'
 require "set"
 
 # アクティビティの設定の並び順
-UserConfig[:activity_kind_order] ||= ["retweet", "favorite", "follow", "list_member_added", "list_member_removed", "dm", "system", "error"]
+UserConfig[:activity_kind_order] ||= %s[retweet favorite follow list_member_added list_member_removed dm system ratelimit streaming_status error]
 # アクティビティタブに保持する通知の数
 UserConfig[:activity_max] ||= 1000
 
@@ -102,23 +102,6 @@ Plugin.create(:activity) do
           UserConfig[uc] += [kind]
         else
           UserConfig[uc] -= [kind] end end end
-
-  # アクティビティを更新する。
-  # ==== Args
-  # [kind] Symbol イベントの種類
-  # [title] タイトル
-  # [args] その他オプション。主に以下の値
-  #   icon :: String|Gdk::Pixbuf アイコン
-  #   date :: Time イベントの発生した時刻
-  #   service :: Service 関係するServiceオブジェクト
-  #   related :: 自分に関係するかどうかのフラグ
-  defdsl :activity do |kind, title, args = {}|
-    Plugin.call(:modify_activity,
-                { plugin: self,
-                  kind: kind,
-                  title: title,
-                  date: Time.new,
-                  description: title }.merge(args)) end
 
   # 新しいアクティビティの種類を定義する。設定に表示されるようになる
   # ==== Args

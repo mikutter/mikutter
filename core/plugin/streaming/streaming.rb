@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-require File.expand_path File.join(File.dirname(__FILE__), 'parma_streamer')
-require File.expand_path File.join(File.dirname(__FILE__), 'filter')
+require File.join(__dir__, 'parma_streamer')
+require File.join(__dir__, 'filter')
 
 Plugin.create :streaming do
   streamers = {}                # service_id => ParmaStreamer
@@ -16,7 +16,6 @@ Plugin.create :streaming do
       Service.instances.each{ |service|
         streamers[service.name] ||= Plugin::Streaming::ParmaStreamer.new(service) }
     else
-      Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), _('UserStream: 接続を切りました'), 10)
       streamers.values.each(&:kill)
       streamers = {}
     end
