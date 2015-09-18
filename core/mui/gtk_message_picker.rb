@@ -24,7 +24,6 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
     add(Gtk::Frame.new.set_border_width(8).set_label_widget(option_widgets).add(shell))
-    p "#{self}: #{to_a}"
   end
 
   def function(new = @function)
