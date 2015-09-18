@@ -65,10 +65,13 @@ class Gtk::MessagePicker < Gtk::EventBox
     @container.closeup(pack) end
 
   def to_a
-    result = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
-    if(@not)
-      result = [:not, result].freeze end
-    result end
+    result = [@function, *@container.children.map{|x| x.children.last.to_a}.reject(&:empty?)].freeze
+    if result.size == 1
+      [].freeze
+    else
+      if @not
+        result = [:not, result].freeze end
+      result end end
 
   private
 

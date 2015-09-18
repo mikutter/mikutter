@@ -270,6 +270,7 @@ Plugin.create :extract do
     when MIKU::Atom
       return code
     when MIKU::List
+      return true if code.empty?
       condition = if code.size <= 2
                     extract_condition[code.car]
                   else
