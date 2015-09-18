@@ -57,7 +57,8 @@ class Gtk::MessagePicker < Gtk::EventBox
       call
       false }
     pack.closeup(close.top)
-    if(expr.first == :and or expr.first == :or or expr.first == :not)
+    case expr.first
+    when :and, :or, :not
       pack.add(Gtk::MessagePicker.new(expr, &method(:call)))
     else
       pack.add(Gtk::MessagePicker::PickCondition.new(expr, &method(:call))) end
