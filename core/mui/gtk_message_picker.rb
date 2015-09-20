@@ -8,6 +8,7 @@ miquire :mui, 'webicon'
 miquire :miku, 'miku'
 
 class Gtk::MessagePicker < Gtk::EventBox
+  DEFAULT_CONDITION = [:==, :user, ''.freeze].freeze
 
   def initialize(conditions, &block)
     conditions = [] unless conditions.is_a? MIKU::List
@@ -24,7 +25,6 @@ class Gtk::MessagePicker < Gtk::EventBox
     shell.closeup(add_button.center)
     exprs.each{|x| add_condition(x) }
     add(Gtk::Frame.new.set_border_width(8).set_label_widget(option_widgets).add(shell))
-    p "#{self}: #{to_a}"
   end
 
   def function(new = @function)
@@ -48,7 +48,7 @@ class Gtk::MessagePicker < Gtk::EventBox
   def add_button
     @add_button ||= gen_add_button end
 
-  def add_condition(expr = [:==, :user, ''])
+  def add_condition(expr = DEFAULT_CONDITION)
     pack = Gtk::HBox.new
     close = Gtk::Button.new.add(Gtk::WebIcon.new(Skin.get('close.png'), 16, 16)).set_relief(Gtk::RELIEF_NONE)
     close.signal_connect(:clicked){
@@ -57,17 +57,21 @@ class Gtk::MessagePicker < Gtk::EventBox
       call
       false }
     pack.closeup(close.top)
-    if(expr.first == :and or expr.first == :or or expr.first == :not)
+    case expr.first
+    when :and, :or, :not
       pack.add(Gtk::MessagePicker.new(expr, &method(:call)))
     else
       pack.add(Gtk::MessagePicker::PickCondition.new(expr, &method(:call))) end
     @container.closeup(pack) end
 
   def to_a
-    result = [@function, *@container.children.map{|x| x.children.last.to_a}].freeze
-    if(@not)
-      result = [:not, result].freeze end
-    result end
+    result = [@function, *@container.children.map{|x| x.children.last.to_a}.reject(&:empty?)].freeze
+    if result.size == 1
+      [].freeze
+    else
+      if @not
+        result = [:not, result].freeze end
+      result end end
 
   private
 
@@ -82,11 +86,11 @@ class Gtk::MessagePicker < Gtk::EventBox
       add_condition.show_all }
     btn2 = Gtk::Button.new('サブフィルタを追加')
     btn2.signal_connect(:clicked){
-      add_condition([:and, [:==, :user, '']]).show_all }
+      add_condition([:and, DEFAULT_CONDITION]).show_all }
     container.closeup(btn).closeup(btn2) end
 
   class PickCondition < Gtk::HBox
-    def initialize(conditions = [:==, :user, ''], *args, &block)
+    def initialize(conditions = DEFAULT_CONDITION, *args, &block)
       super(*args)
       @changed_hook = block
       @condition, @subject, @expr = *conditions.to_a
