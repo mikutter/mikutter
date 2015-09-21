@@ -3,7 +3,7 @@ require 'nokogiri'
 require 'httpclient'
 
 module Plugin::PhotoSupport
-  INSTAGRAM_PATTERN = %r{^http://(?:instagr\.am|instagram\.com)/p/([a-zA-Z0-9_\-]+)}
+  INSTAGRAM_PATTERN = %r{^https?://(?:instagr\.am|instagram\.com)/p/([a-zA-Z0-9_\-]+)}
 end
 
 Plugin.create :photo_support do
@@ -145,7 +145,7 @@ Plugin.create :photo_support do
   defimageopener('instagram', Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
     m = display_url.match(Plugin::PhotoSupport::INSTAGRAM_PATTERN)
     shortcode = m[1]
-    open("http://instagram.com/p/#{shortcode}/media/?size=l")
+    open("https://instagram.com/p/#{shortcode}/media/?size=l")
   end
 
   # d250g2
