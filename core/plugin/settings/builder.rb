@@ -284,7 +284,7 @@ class Plugin::Settings < Gtk::VBox
   def fsselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label)
     container = input(label, config)
     input = container.children.last.children.first
-    button = Gtk::Button.new('参照')
+    button = Gtk::Button.new(_('参照'))
     container.pack_start(button, false)
     button.signal_connect('clicked'){ |widget|
       dialog = Gtk::FileChooserDialog.new(title,
@@ -302,6 +302,9 @@ class Plugin::Settings < Gtk::VBox
     }
     container
   end
+
+  def _(text)
+    Plugin[:settings]._(text) end
 
   def method_missing(*args, &block)
     @plugin.__send__(*args, &block)
