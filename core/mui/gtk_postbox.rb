@@ -285,10 +285,7 @@ module Gtk
     # ==== Return
     # Fixnum URLの長さ
     def posted_url_length(url)
-      if url.start_with?('https://'.freeze)
-        23
-      else
-        22 end end
+      Plugin.filtering(:tco_url_length, url, 0).last end
 
     def focus_out_event(widget, event=nil)
       options = @options
