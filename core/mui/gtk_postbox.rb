@@ -6,6 +6,7 @@
 
 require 'gtk2'
 require 'thread'
+require 'twitter-text'
 miquire :mui, 'miracle_painter'
 miquire :mui, 'intelligent_textview'
 
@@ -269,7 +270,22 @@ module Gtk
     def remain_charcount
       if not widget_post.destroyed?
         footer = if add_footer? then UserConfig[:footer].size else 0 end
-        140 - widget_post.buffer.text.size - footer end end
+        text = widget_post.buffer.text
+        Twitter::Extractor.extract_urls(text).map{|url|
+          if url.length < posted_url_length(url)
+            -(posted_url_length(url) - url.length)
+          else
+            url.length - posted_url_length(url) end
+        }.inject(140 - text.size - footer, &:+)
+      end end
+
+    # URL _url_ がTwitterに投稿された時に何文字としてカウントされるかを返す
+    # ==== Args
+    # [url] String URL
+    # ==== Return
+    # Fixnum URLの長さ
+    def posted_url_length(url)
+      Plugin.filtering(:tco_url_length, url, 0).last end
 
     def focus_out_event(widget, event=nil)
       options = @options
