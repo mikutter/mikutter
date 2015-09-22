@@ -86,9 +86,9 @@ class Plugin::Settings < Gtk::VBox
   # ==== Args
   # [label] ラベル
   # [config] 設定のキー
-  # [current] 初期のディレクトリ
-  def fileselect(label, config, current=Dir.pwd)
-    fsselect(label, config, current, Gtk::FileChooser::ACTION_OPEN)
+  # [dir] 初期のディレクトリ
+  def fileselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
+    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
   end
 
   # ディレクトリを選択する
@@ -96,8 +96,8 @@ class Plugin::Settings < Gtk::VBox
   # [label] ラベル
   # [config] 設定のキー
   # [current] 初期のディレクトリ
-  def dirselect(label, config, current=Dir.pwd)
-    fsselect(label, config, current, Gtk::FileChooser::ACTION_SELECT_FOLDER)
+  def dirselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
+    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_SELECT_FOLDER, title: title)
   end
 
   # 一行テキストボックス
@@ -281,19 +281,19 @@ class Plugin::Settings < Gtk::VBox
       Listener[config].set w.font_name }
     button end
 
-  def fsselect(label, config, current=Dir.pwd, action)
+  def fsselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label)
     container = input(label, config)
     input = container.children.last.children.first
     button = Gtk::Button.new('参照')
     container.pack_start(button, false)
     button.signal_connect('clicked'){ |widget|
-      dialog = Gtk::FileChooserDialog.new("Open File",
+      dialog = Gtk::FileChooserDialog.new(title,
                                           widget.get_ancestor(Gtk::Window),
                                           action,
                                           nil,
                                           [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
-      dialog.current_folder = File.expand_path(current)
+      dialog.current_folder = File.expand_path(dir)
       if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
         Listener[config].set dialog.filename
         input.text = dialog.filename
