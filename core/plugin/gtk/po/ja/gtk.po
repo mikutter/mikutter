@@ -20,4 +20,4 @@ msgstr ""
 
 #: ../mikutter_window.rb:55
 msgid "Statusbar default message"
-msgstr "見るからに、史上最強のmikutterです。"
+msgstr "mikutter 果てしないTwitterライフのために。"
