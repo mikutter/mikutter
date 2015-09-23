@@ -84,7 +84,7 @@ class Gtk::TimeLine
   def block_add_all(messages)
     removes, appends = *messages.partition{ |m| m[:rule] == :destroy }
     remove_if_exists_all(removes)
-    retweets, appends = *messages.partition{ |m| m[:retweet] }
+    retweets, appends = *appends.partition{ |m| m[:retweet] }
     add_retweets(retweets)
     appends.sort_by{ |m| -get_order(m) }.deach(&method(:block_add))
   end
