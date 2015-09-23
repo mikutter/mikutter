@@ -38,10 +38,8 @@ Plugin.create :list do
 
   # リストのタイムラインをリアルタイム更新する
   on_appear do |messages|
-    messages.each{ |message|
-      using_lists.each{ |list|
-        if list.related?(message)
-          Plugin.call(:extract_receive_message, datasource_slug(list), [message]) end } } end
+    using_lists.each do |list|
+      Plugin.call(:extract_receive_message, datasource_slug(list), messages.lazy.select(&list.method(:related?))) end end
 
   on_service_registered do |service|
     if service
