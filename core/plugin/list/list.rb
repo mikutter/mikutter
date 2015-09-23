@@ -108,14 +108,14 @@ Plugin.create :list do
   # ==== Return
   # Enumerable データソースで使われているリスト
   def using_lists
-    list_ids = Plugin.filtering(:extract_tabs_get, []).first.map{|tab|
+    list_ids = Set.new Plugin.filtering(:extract_tabs_get, []).first.map{|tab|
       tab[:sources]
     }.select{ |sources|
       sources.is_a? Enumerable
     }.inject(Set.new, &:merge).map{ |source|
       $1.to_i if source.to_s =~ /[a-zA-Z0-9_]+_list_(\d+)/
     }.compact
-    available_lists.select do |list|
+    available_lists.lazy.select do |list|
       list_ids.include? list[:id] end end
 
   # list が抽出タブで使われていて、更新を要求されているなら真を返す
