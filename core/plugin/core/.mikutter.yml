@@ -1,0 +1,8 @@
+---
+name: mikutter core
+slug: core
+depends:
+  mikutter: '3.2'
+  plugin: []
+version: '1.0'
+description: mikutterのTwitterにおける基本的な機能を提供します
