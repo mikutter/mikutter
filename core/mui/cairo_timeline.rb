@@ -91,12 +91,10 @@ class Gtk::TimeLine
 
   # リツイートを追加する。 _messages_ には Message の配列を指定し、それらはretweetでなければならない
   def add_retweets(messages)
-    messages.each{ |message|
-      if not include?(message.retweet_source)
-        block_add(message.retweet_source)
-      end
-    }
-  end
+    messages.reject{|message|
+      include?(message.retweet_source)
+    }.deach do |message|
+      block_add(message.retweet_source) end end
 
   # Messageオブジェクト _message_ が更新されたときに呼ばれる
   def modified(message)
