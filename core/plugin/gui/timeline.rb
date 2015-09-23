@@ -22,11 +22,15 @@ class Plugin::GUI::Timeline
     Plugin.call(:timeline_created, self)
   end
 
-  def <<(messages)
-    if messages.is_a? Enumerable
-      messages = Messages.new(messages)
-    else
-      messages = Messages.new([messages]) end
+  def <<(argument)
+    messages =
+      case argument
+      when Enumerator::Lazy, Messages
+        argument
+      when Enumerable
+        Messages.new(argument)
+      else
+        Messages.new([argument]) end
     Plugin.call(:gui_timeline_add_messages, self, messages)
   rescue TypedArray::UnexpectedTypeException => e
     error "type mismatch!"
