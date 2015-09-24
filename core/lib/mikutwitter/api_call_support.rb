@@ -5,6 +5,8 @@ require "mikutwitter/query"
 require "json"
 require "timelimitedqueue"
 
+miquire :core, "message", "user", "userlist"
+
 module MikuTwitter::ApiCallSupport
   HTML_ATTR_UNESCAPE_HASH = {
     '&amp;' => '&',
