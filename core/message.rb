@@ -18,6 +18,12 @@ class Message < Retriever::Model
   # screen nameのみから構成される文字列から、@などを切り取るための正規表現
   MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
 
+  PermalinkMatcher = Regexp.union(
+    %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
+    %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
+    %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)].freeze
+  )
+
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
@@ -220,6 +226,46 @@ class Message < Retriever::Model
   # Message#receive_message と同じ。ただし、ReTweetedのみをさがす。
   define_source_getter(:retweet, -> t { t.start_with? 'RT'.freeze }){ |this, result|
     result.add_child(this) unless result.retweeted_statuses.include?(this) }
+
+  # このMessageが引用した投稿を全て返す
+  # ==== Return
+  # Enumerable このMessageが引用したMessageのid(Fixnum)
+  def quoted_ids
+    entity.lazy.select{ |entity|
+      :urls == entity[:slug]
+    }.map{ |entity|
+      PermalinkMatcher.match(entity[:expanded_url])
+    }.select(&ret_nth).map do |matched|
+      matched[:id].to_i end end
+
+  # このMessageが引用した投稿を全て返す。
+  # _force_retrieve_ に真が指定されたらこのメソッドはTwitter APIをリクエストする可能性がある。
+  # そのため _force_retrieve_ が真なら、Messageを取得してから返し、
+  # 偽ならAPIリクエストが必要ないので、Messageオブジェクトの取得を遅延する。
+  # Twitter APIリクエストを行ったがツイートが削除されていた、メモリ上に存在しないなどの理由で
+  # 取得できなかったツイートに関しては、戻り値に含まれない
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Enumerable このMessageが引用したMessage
+  def quoted_message(force_retrieve=false)
+    if force_retrieve
+      quoted_ids.to_a.map{|quoted_id|
+        Message.findbyid(quoted_id, -1) }.select(&ret_nth)
+    else
+      quoted_ids.map{|quoted_id|
+        Message.findbyid(quoted_id, 0) }.select(&ret_nth) end end
+
+  # このMessageが引用した投稿を全て返す。
+  # _force_retrieve_ に真が指定されたらこのメソッドはTwitter APIをリクエストする可能性がある。
+  # Twitter APIリクエストを行ったがツイートが削除されていた、メモリ上に存在しないなどの理由で
+  # 取得できなかったツイートに関しては、結果がnilとなる
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Deferredable
+  def quoted_message_d(force_retrieve=false)
+    Thread.new{ quoted_message(force_retrieve) } end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。
