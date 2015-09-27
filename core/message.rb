@@ -248,10 +248,13 @@ class Message < Retriever::Model
   # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
   # ==== Return
   # Enumerable このMessageが引用したMessage
-  def quoted_message(force_retrieve=false)
+  def quoted_messages(force_retrieve=false)
     if force_retrieve
-      quoted_ids.to_a.map{|quoted_id|
-        Message.findbyid(quoted_id, -1) }.select(&ret_nth)
+      @quoted_messages ||= quoted_ids.map{|quoted_id|
+        Message.findbyid(quoted_id, -1)
+      }.to_a.compact.tap do |qs|
+        qs.each do |q|
+          q.add_quoted_by(self) end  end
     else
       quoted_ids.map{|quoted_id|
         Message.findbyid(quoted_id, 0) }.select(&ret_nth) end end
@@ -264,8 +267,33 @@ class Message < Retriever::Model
   # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
   # ==== Return
   # Deferredable
-  def quoted_message_d(force_retrieve=false)
-    Thread.new{ quoted_message(force_retrieve) } end
+  def quoted_messages_d(force_retrieve=false)
+    Thread.new{ quoted_messages(force_retrieve) } end
+
+  # selfを引用しているツイート _message_ を登録する
+  # ==== Args
+  # [message] Message selfを引用しているMessage
+  # ==== Return
+  # self
+  def add_quoted_by(message)
+    atomic do
+      @quoted_by ||= Messages.new
+      unless @quoted_by.include? message
+        if @quoted_by.frozen?
+          @quoted_by = Messages.new(@quoted_by + [message])
+        else
+          @quoted_by << message end end
+      self end end
+
+  # selfを引用しているツイートを返す
+  # ==== Return
+  # Messages selfを引用しているMessageの配列
+  def quoted_by
+    if defined? @quoted_by
+      @quoted_by
+    else
+      atomic do
+        @quoted_by ||= Messages.new end end.freeze end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。
