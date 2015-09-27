@@ -36,7 +36,7 @@ Plugin.create :openimg do
       openers << opener
       [openers] end end
 
-  defimageopener(_('画像直リンク'), /.*\.(?:jpg|png|gif|)\Z/) do |display_url|
+  defimageopener(_('画像直リンク'), /.*\.(?:jpg|png|gif|)\Z/i) do |display_url|
     begin
       open(display_url)
     rescue => _

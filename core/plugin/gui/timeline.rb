@@ -22,11 +22,15 @@ class Plugin::GUI::Timeline
     Plugin.call(:timeline_created, self)
   end
 
-  def <<(messages)
-    if messages.is_a? Enumerable
-      messages = Messages.new(messages)
-    else
-      messages = Messages.new([messages]) end
+  def <<(argument)
+    messages =
+      case argument
+      when Enumerator::Lazy, Messages
+        argument
+      when Enumerable
+        Messages.new(argument)
+      else
+        Messages.new([argument]) end
     Plugin.call(:gui_timeline_add_messages, self, messages)
   rescue TypedArray::UnexpectedTypeException => e
     error "type mismatch!"
@@ -55,29 +59,32 @@ class Plugin::GUI::Timeline
   # _messages_ が含まれているなら真
   def include?(*messages)
     args = Messages.new([messages].flatten).freeze
-    detected = Plugin.filtering(:gui_timeline_has_messages, self, args)
+    detected = Plugin.filtering(:gui_timeline_select_messages, self, args)
     detected.is_a? Array and detected[1].size == args.size end
 
   # _messages_ のうち、Timelineに含まれているMessageを返す
   # ==== Args
-  # [*messages] Message タイムラインに含まれているか確認するMessageオブジェクト
+  # [messages] Enumerable タイムラインに含まれているか確認するMessage
   # ==== Return
-  # _messages_ で指定された中で、selfに含まれるもの
-  def in_message(*messages)
-    args = Messages.new([messages].flatten).freeze
-    detected = Plugin.filtering(:gui_timeline_has_messages, self, args)
-    if detected.is_a? Array
-      Messages.new(detected[1])
+  # Enumerable _messages_ で指定された中で、selfに含まれるもの
+  def in_message(messages)
+    detected = Plugin.filtering(:gui_timeline_select_messages, self, messages)
+    if detected.is_a? Enumerable
+      detected[1]
     else
       Messages.new([]) end end
 
   # _messages_ のうち、Timelineに含まれていないMessageを返す
   # ==== Args
-  # [*messages] Message タイムラインに含まれているか確認するMessageオブジェクト
+  # [messages] Enumerable タイムラインに含まれているか確認するMessageオブジェクト
   # ==== Return
-  # _messages_ で指定された中で、selfに含まれていないもの
-  def not_in_message(*messages)
-    Messages.new([messages].flatten - in_message(messages)) end
+  # Enumerable _messages_ で指定された中で、selfに含まれていないもの
+  def not_in_message(messages)
+    detected = Plugin.filtering(:gui_timeline_reject_messages, self, messages)
+    if detected.is_a? Enumerable
+      detected[1]
+    else
+      Messages.new([]) end end
 
   # 選択されているMessageを返す
   # ==== Return

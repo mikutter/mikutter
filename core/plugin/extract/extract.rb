@@ -312,20 +312,17 @@ Plugin.create :extract do
     type_strict source => Symbol, messages => Enumerable
     tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
     return if tabs.empty?
-    converted_messages = Messages.new(messages.map{ |message| message.retweet_source ? message.retweet_source : message })
+    converted_messages = messages.map{ |message| message.retweet_source ? message.retweet_source : message }
     tabs.deach{ |record|
       begin
-        filtered_messages = timeline(record[:slug]).not_in_message(converted_messages.select(&compile(record[:id], record[:sexp]))).freeze
-        unless filtered_messages.empty?
-          timeline(record[:slug]) << filtered_messages
-          notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
-          if record[:popup]
-            notificate_messages.each do |message|
-              notice message.user.idname + " " + message.to_show
-              Plugin.call(:popup_notify, message.user, message.to_show) end end
-          if record[:sound].is_a?(String) and notificate_messages.first and FileTest.exist?(record[:sound])
-            Plugin.call(:play_sound, record[:sound]) end
-        end
+        filtered_messages = timeline(record[:slug]).not_in_message(converted_messages.select(&compile(record[:id], record[:sexp])))
+        timeline(record[:slug]) << filtered_messages
+        notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
+        if record[:popup]
+          notificate_messages.deach do |message|
+            Plugin.call(:popup_notify, message.user, message.to_show) end end
+        if record[:sound].is_a?(String) and notificate_messages.first and FileTest.exist?(record[:sound])
+          Plugin.call(:play_sound, record[:sound]) end
       rescue Exception => exception
         error "filter '#{record[:name]}' crash: #{exception.to_s}"
         error exception end } end

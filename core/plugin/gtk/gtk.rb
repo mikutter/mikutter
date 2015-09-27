@@ -345,9 +345,13 @@ Plugin.create :gtk do
   on_gui_timeline_set_order do |i_timeline, order|
     widgetof(i_timeline).set_order(&order) end
 
-  filter_gui_timeline_has_messages do |i_timeline, messages|
+  filter_gui_timeline_select_messages do |i_timeline, messages|
     [i_timeline,
      messages.select(&widgetof(i_timeline).method(:include?))] end
+
+  filter_gui_timeline_reject_messages do |i_timeline, messages|
+    [i_timeline,
+     messages.reject(&widgetof(i_timeline).method(:include?))] end
 
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
