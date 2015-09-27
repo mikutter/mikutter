@@ -249,10 +249,11 @@ class Message < Retriever::Model
   # ==== Return
   # Enumerable このMessageが引用したMessage
   def quoted_messages(force_retrieve=false)
+    return @quoted_messages if defined? @quoted_messages
     if force_retrieve
       @quoted_messages ||= quoted_ids.map{|quoted_id|
         Message.findbyid(quoted_id, -1)
-      }.to_a.compact.tap do |qs|
+      }.to_a.compact.freeze.tap do |qs|
         qs.each do |q|
           q.add_quoted_by(self) end  end
     else
