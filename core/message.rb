@@ -230,7 +230,7 @@ class Message < Retriever::Model
   # このMessageが引用した投稿を全て返す
   # ==== Return
   # Enumerable このMessageが引用したMessageのid(Fixnum)
-  def quoted_ids
+  def quoting_ids
     entity.lazy.select{ |entity|
       :urls == entity[:slug]
     }.map{ |entity|
@@ -248,16 +248,16 @@ class Message < Retriever::Model
   # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
   # ==== Return
   # Enumerable このMessageが引用したMessage
-  def quoted_messages(force_retrieve=false)
-    return @quoted_messages if defined? @quoted_messages
+  def quoting_messages(force_retrieve=false)
+    return @quoting_messages if defined? @quoting_messages
     if force_retrieve
-      @quoted_messages ||= quoted_ids.map{|quoted_id|
+      @quoting_messages ||= quoting_ids.map{|quoted_id|
         Message.findbyid(quoted_id, -1)
       }.to_a.compact.freeze.tap do |qs|
         qs.each do |q|
           q.add_quoted_by(self) end  end
     else
-      quoted_ids.map{|quoted_id|
+      quoting_ids.map{|quoted_id|
         Message.findbyid(quoted_id, 0) }.select(&ret_nth) end end
 
   # このMessageが引用した投稿を全て返す。
@@ -268,8 +268,14 @@ class Message < Retriever::Model
   # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
   # ==== Return
   # Deferredable
-  def quoted_messages_d(force_retrieve=false)
-    Thread.new{ quoted_messages(force_retrieve) } end
+  def quoting_messages_d(force_retrieve=false)
+    Thread.new{ quoting_messages(force_retrieve) } end
+
+  # self が、何らかのツイートを引用しているなら真を返す
+  # ==== Return
+  # TrueClass|FalseClass
+  def quoting?
+    !!quoting_ids.first end
 
   # selfを引用しているツイート _message_ を登録する
   # ==== Args
