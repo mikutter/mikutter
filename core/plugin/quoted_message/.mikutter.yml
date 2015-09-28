@@ -1,0 +1,12 @@
+---
+slug: quoted_message
+depends:
+  mikutter: 3.0.0
+  plugin:
+  - gtk
+  - gui
+  - command
+version: '0.1'
+author: toshi_a
+name: 引用ツイート
+description: 引用ツイートに関するmikutterコマンドとデータソースを提供します
