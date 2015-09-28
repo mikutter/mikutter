@@ -10,6 +10,7 @@ miquire :mui, 'sub_parts_helper'
 miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
+miquire :mui, 'sub_parts_quote'
 miquire :mui, 'markup_generator'
 miquire :lib, 'uithreadonly'
 
