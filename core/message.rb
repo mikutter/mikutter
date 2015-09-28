@@ -302,6 +302,12 @@ class Message < Retriever::Model
       atomic do
         @quoted_by ||= Messages.new end end.freeze end
 
+  # self が、何らかのツイートから引用されているなら真を返す
+  # ==== Return
+  # TrueClass|FalseClass
+  def quoted_by?
+    !quoted_by.empty? end
+
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。
   # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
