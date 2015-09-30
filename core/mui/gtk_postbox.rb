@@ -147,7 +147,7 @@ module Gtk
       if postable?
         return unless before_post
         text = widget_post.buffer.text
-        text += UserConfig[:footer] if add_footer?
+        text += UserConfig[:footer] if add_blind_footer?
         @posting = service.post(:message => text){ |event, msg|
           case event
           when :start
@@ -270,7 +270,7 @@ module Gtk
       @@ringlock.synchronize{
         @@postboxes << self } end
 
-    def add_footer?
+    def add_blind_footer?
       if retweet?
         not UserConfig[:footer_exclude_retweet]
       elsif reply?
@@ -280,7 +280,7 @@ module Gtk
 
     def remain_charcount
       if not widget_post.destroyed?
-        footer = if add_footer? then UserConfig[:footer].size else 0 end
+        footer = if add_blind_footer? then UserConfig[:footer].size else 0 end
         text = widget_post.buffer.text
         Twitter::Extractor.extract_urls(text).map{|url|
           if url.length < posted_url_length(url)
