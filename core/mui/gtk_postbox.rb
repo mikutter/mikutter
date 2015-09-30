@@ -22,6 +22,17 @@ module Gtk
       return @@postboxes
     end
 
+    # ==== Args
+    # [postable] Service|Message リプライ先か、投稿するアカウント
+    # [options] Hash 以下の値から成る連想配列
+    #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
+    #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
+    #   - delegate_other :: true|false 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される
+    #   - before_post_hook :: Proc 投稿前に、 _self_ を引数に呼び出される
+    #   - retweet :: true|false 非公式リツイート
+    #   - subreplies :: Enumerable 投稿を宛てるMessage
+    #   - exclude_myself :: true|false 真なら、宛先に投稿者が入っている場合にそれを除外する
+    #   - footer :: String テキストフィールドのカーソルの後ろに最初から入力されている文字列
     def initialize(postable = PostToPrimaryService.new, options = {})
       type_strict postable => :post, options => Hash
       mainthread_only
