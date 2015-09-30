@@ -5,13 +5,13 @@ Plugin.create :quoted_message do
   # ==== Return
   # Hash データソース
   def datasources
-    ds = {nested_quoted_myself: "ナウい引用(全てのアカウント)".freeze}
+    ds = {nested_quoted_myself: _("ナウい引用(全てのアカウント)".freeze)}
     Service.each do |service|
-      ds["nested_quote_quotedby_#{service.user_obj.id}".to_sym] = "@#{service.user_obj.idname}/ナウい引用" end
+      ds["nested_quote_quotedby_#{service.user_obj.id}".to_sym] = "@#{service.user_obj.idname}/" + _('ナウい引用'.freeze) end
     ds end
 
   command(:copy_tweet_url,
-          name: 'ツイートのURLをコピー',
+          name: _('ツイートのURLをコピー'.freeze),
           condition: Proc.new{ |opt|
             not opt.messages.any?(&:system?)},
           visible: true,
