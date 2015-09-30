@@ -72,22 +72,6 @@ module Gtk
       set_border_width(2)
       register end
 
-    def generate_box
-      @replies = []
-      result = Gtk::HBox.new(false, 0).closeup(widget_tool).pack_start(widget_post).closeup(widget_remain).closeup(widget_send)
-      w_replies = Gtk::VBox.new.add(result)
-      @to.select{|m|m.is_a?(Message)}.each{ |message|
-        w_reply = Gtk::HBox.new
-        itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
-        itv.get_background = lambda{ get_backgroundstyle(message) }
-        itv.bg_modifier
-        ev = Gtk::EventBox.new
-        ev.style = get_backgroundstyle(message)
-        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
-        @replies << itv
-      }
-      w_replies end
-
     def widget_post
       return @post if defined?(@post)
       @post = gen_widget_post
@@ -187,6 +171,21 @@ module Gtk
           self.freeze end } end
 
     private
+
+    def generate_box
+      @reply_widgets = []
+      result = Gtk::HBox.new(false, 0).closeup(widget_tool).pack_start(widget_post).closeup(widget_remain).closeup(widget_send)
+      w_replies = Gtk::VBox.new.add(result)
+      @to.select{|m|m.is_a?(Message)}.each{ |message|
+        w_reply = Gtk::HBox.new
+        itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
+        itv.get_background = lambda{ get_backgroundstyle(message) }
+        itv.bg_modifier
+        ev = Gtk::EventBox.new
+        ev.style = get_backgroundstyle(message)
+        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
+        @reply_widgets << itv }
+      w_replies end
 
     def gen_widget_post
       Gtk::TextView.new end
@@ -313,7 +312,7 @@ module Gtk
       options = @options
       Delayer.new{
         if(not(frozen?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
-          destroy_if_necessary(widget_send, widget_tool, *@replies) end }
+          destroy_if_necessary(widget_send, widget_tool, *@reply_widgets) end }
       false end
 
     # Initialize Methods
