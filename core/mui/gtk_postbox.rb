@@ -23,23 +23,42 @@ module Gtk
     end
 
     # ==== Args
-    # [postable] Service|Message リプライ先か、投稿するアカウント
-    # [options] Hash 以下の値から成る連想配列
+    # [postable] Service|Message リプライ先か、投稿するアカウント(3.3 obsolete)
+    # [to] Enumerable 返信するMessage
+    # [from] Service|nil 送信者。nilを指定すると、その時のプライマリアカウントになる
+    # [header] String テキストフィールドのカーソルの前に最初から入力されている文字列
+    # [footer] String テキストフィールドのカーソルの後ろに最初から入力されている文字列
+    # [to_display_only] true|false toに宛てたリプライを送るなら偽。真ならUI上にtoが表示されるだけ
+    # [use_blind_footer] true|false blind footerを追加するか否か
+    # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
     #   - delegate_other :: true|false 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される
     #   - before_post_hook :: Proc 投稿前に、 _self_ を引数に呼び出される
-    #   - retweet :: true|false 非公式リツイート
-    #   - subreplies :: Enumerable 投稿を宛てるMessage
-    #   - exclude_myself :: true|false 真なら、宛先に投稿者が入っている場合にそれを除外する
-    #   - footer :: String テキストフィールドのカーソルの後ろに最初から入力されている文字列
-    def initialize(postable = PostToPrimaryService.new, options = {})
-      type_strict postable => :post, options => Hash
+    def initialize(postable = PostToPrimaryService.new,
+                   to: [],
+                   from: nil,
+                   header: ''.freeze,
+                   footer: ''.freeze,
+                   to_display_only: false,
+                   use_blind_footer: true,
+                   **kwrest)
       mainthread_only
       @posting = nil
       @return_to_top = nil
-      @options = options
-      @postable = postable
+      @options = kwrest
+
+      @from = from
+      @to = (Array(to) + Array(@options[:subreplies])).uniq.freeze
+      case postable
+      when Service
+        @from = postable
+      when Message
+        @to = [postable, *@to].freeze unless @to.include? postable end
+      @header = (header || '').freeze
+      @footer = (footer || '').freeze
+      @to_display_only = !!to_display_only
+      @use_blind_footer = !!use_blind_footer
       super()
       signal_connect('parent-set'){
         if parent
@@ -51,26 +70,23 @@ module Gtk
           post_it if @options[:delegated_by] end }
       add(generate_box)
       set_border_width(2)
-      regist end
+      register end
 
     def generate_box
       @replies = []
       result = Gtk::HBox.new(false, 0).closeup(widget_tool).pack_start(widget_post).closeup(widget_remain).closeup(widget_send)
-      if(reply?)
-        w_replies = Gtk::VBox.new.add(result)
-        in_reply_to_all.each{ |message|
-          w_reply = Gtk::HBox.new
-          itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
-          itv.get_background = lambda{ get_backgroundstyle(message) }
-          itv.bg_modifier
-          ev = Gtk::EventBox.new
-          ev.style = get_backgroundstyle(message)
-          w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
-          @replies << itv
-        }
-        w_replies
-      else
-        result end end
+      w_replies = Gtk::VBox.new.add(result)
+      @to.select{|m|m.is_a?(Message)}.each{ |message|
+        w_reply = Gtk::HBox.new
+        itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
+        itv.get_background = lambda{ get_backgroundstyle(message) }
+        itv.bg_modifier
+        ev = Gtk::EventBox.new
+        ev.style = get_backgroundstyle(message)
+        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
+        @replies << itv
+      }
+      w_replies end
 
     def widget_post
       return @post if defined?(@post)
@@ -147,8 +163,12 @@ module Gtk
       if postable?
         return unless before_post
         text = widget_post.buffer.text
-        text += UserConfig[:footer] if add_blind_footer?
-        @posting = service.post(:message => text){ |event, msg|
+        text += UserConfig[:footer] if use_blind_footer?
+        from = if to_display_only?
+                 service
+               else
+                 @to.first || service end
+        @posting = from.post(:message => text){ |event, msg|
           case event
           when :start
             Delayer.new{ start_post }
@@ -179,7 +199,7 @@ module Gtk
       if @options[:postboxstorage] && @options[:delegate_other]
         return false if delegate
         if not @options[:delegated_by]
-          postbox = Gtk::PostBox.new(@postable, @options)
+          postbox = Gtk::PostBox.new(nil, all_options)
           @options[:postboxstorage].
             pack_start(postbox).
             show_all.
@@ -215,21 +235,17 @@ module Gtk
 
     def delegate
       if(@options[:postboxstorage] and @options[:delegate_other])
-        options = @options.clone
+        options = all_options
         options[:delegate_other] = false
         options[:delegated_by] = self
-        @options[:postboxstorage].pack_start(Gtk::PostBox.new(@postable, options)).show_all
+        @options[:postboxstorage].pack_start(Gtk::PostBox.new(nil, options)).show_all
         true end end
 
     def service
-      if UserConfig[:legacy_retweet_act_as_reply]
-        @postable
-      else
-        (retweet? ? Service.primary : @postable) end end
+      @from || Service.primary end
 
     def post_is_empty?
-      widget_post.buffer.text.empty? or
-        (defined?(@postable[:user]) ? widget_post.buffer.text == "@#{@postable[:user][:idname]} " : false) end
+      widget_post.buffer.text.empty? or widget_post.buffer.text == @header + @footer end
 
     def brothers
       if(@options[:postboxstorage])
@@ -261,26 +277,21 @@ module Gtk
         @on_delete.call end end
 
     def reply?
-      @postable.is_a?(Retriever::Model) end
+      !@to.empty? and !to_display_only? end
 
-    def retweet?
-      @options[:retweet] end
-
-    def regist
+    def register
       @@ringlock.synchronize{
         @@postboxes << self } end
 
-    def add_blind_footer?
-      if retweet?
-        not UserConfig[:footer_exclude_retweet]
-      elsif reply?
-        not UserConfig[:footer_exclude_reply]
-      else
-        true end end
+    # blind footer を投稿につけるかどうかを返す
+    # ==== Return
+    # TrueClass|FalseClass
+    def use_blind_footer?
+      @use_blind_footer end
 
     def remain_charcount
       if not widget_post.destroyed?
-        footer = if add_blind_footer? then UserConfig[:footer].size else 0 end
+        footer = if use_blind_footer? then UserConfig[:footer].size else 0 end
         text = widget_post.buffer.text
         Twitter::Extractor.extract_urls(text).map{|url|
           if url.length < posted_url_length(url)
@@ -326,34 +337,26 @@ module Gtk
       if @options[:delegated_by]
         post.buffer.text = @options[:delegated_by].post.buffer.text
         @options[:delegated_by].post.buffer.text = ''
-      elsif @options[:footer]
-        post.buffer.text = @options[:footer]
-        post.buffer.place_cursor(post.buffer.start_iter)
-      elsif retweet?
-        post.buffer.text = " RT @" + @postable.idname + ": " + @postable.to_show
-        post.buffer.place_cursor(post.buffer.start_iter)
-      elsif reply?
-        post.buffer.text = reply_users + ' ' + post.buffer.text end
+      elsif !(@header.empty? and @footer.empty?)
+        post.buffer.text = @header + @footer
+        post.buffer.place_cursor(post.buffer.get_iter_at_offset(@header.size)) end
       post.accepts_tab = false end
 
-    def reply_users
-      replies = [@postable.idname]
-      if(@options[:subreplies].is_a? Enumerable)
-        replies += @options[:subreplies].map{ |m| m.to_message.idname } end
-      if @options[:exclude_myself]
-        replies = replies.select{|x| x != @postable.service.idname }
-      end
-      replies.uniq.map{ |x| "@#{x}" }.join(' ')
-    end
+    # PostBoxを複製するときのために、このPostBoxを生成した時に指定された全ての名前付き引数と値のペアを返す
+    # ==== Return
+    # Hash
+    def all_options
+      { from: @from,
+        to: @to,
+        footer: @footer,
+        to_display_only: to_display_only?,
+        **@options } end
 
-    # 全てのリプライ元を返す
-    def in_reply_to_all
-      result = Set.new
-      if reply?
-        result << @postable
-        if @options[:subreplies].is_a? Enumerable
-          result += @options[:subreplies] end end
-      result end
+    # 真を返すなら、 @to の要素はPostBoxの下に表示するのみで、投稿時にリプライにしない
+    # ==== Return
+    # TrueClass|FalseClass
+    def to_display_only?
+      @to_display_only end
 
     class PostToPrimaryService
       def post(*args, &proc)

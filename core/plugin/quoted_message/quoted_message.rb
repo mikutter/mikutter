@@ -25,7 +25,10 @@ Plugin.create :quoted_message do
             not opt.messages.any?(&:system?)},
           visible: true,
           role: :timeline) do |opt|
-    opt.widget.create_postbox(footer: ' ' + opt.messages.map(&:message).map(&:parma_link).join(' '.freeze))
+    messages = opt.messages.map(&:message)
+    opt.widget.create_postbox(to: messages,
+                              footer: ' ' + messages.map(&:parma_link).join(' '.freeze),
+                              to_display_only: true)
   end
 
   filter_extract_datasources do |ds|
