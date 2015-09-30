@@ -87,7 +87,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
         get_ancestor(Gtk::Window).set_focus(self) unless self.destroyed? }
       message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
       message = message[1] if(message.is_a?(Gtk::TreeIter))
-      type_strict message => Message
+      type_strict message => tcor(Message, Service)
       pb = Gtk::PostBox.new(message, options).show_all
       postbox.closeup(pb)
       pb.on_delete(&Proc.new) if block_given?

@@ -315,6 +315,9 @@ module Gtk
       if @options[:delegated_by]
         post.buffer.text = @options[:delegated_by].post.buffer.text
         @options[:delegated_by].post.buffer.text = ''
+      elsif @options[:footer]
+        post.buffer.text = @options[:footer]
+        post.buffer.place_cursor(post.buffer.start_iter)
       elsif retweet?
         post.buffer.text = " RT @" + @postable.idname + ": " + @postable.to_show
         post.buffer.place_cursor(post.buffer.start_iter)

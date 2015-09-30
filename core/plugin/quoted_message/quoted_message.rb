@@ -19,6 +19,15 @@ Plugin.create :quoted_message do
     Gtk::Clipboard.copy(opt.messages.map(&:parma_link).join("\n".freeze))
   end
 
+  command(:quoted_tweet,
+          name: _('コメント付きリツイート'.freeze),
+          condition: Proc.new{ |opt|
+            not opt.messages.any?(&:system?)},
+          visible: true,
+          role: :timeline) do |opt|
+    opt.widget.create_postbox(footer: ' ' + opt.messages.map(&:message).map(&:parma_link).join(' '.freeze))
+  end
+
   filter_extract_datasources do |ds|
     [ds.merge(datasources)] end
 

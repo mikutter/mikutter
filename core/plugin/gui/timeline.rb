@@ -105,6 +105,16 @@ class Plugin::GUI::Timeline
     self.add_child i_postbox
   end
 
+  # _in_reply_to_message_ に対するリプライを入力するPostboxを作成してタイムライン上に表示する
+  # ==== Args
+  # [options] Postboxのオプション
+  def create_postbox(options = {})
+    i_postbox = Plugin::GUI::Postbox.instance
+    i_postbox.options = options
+    notice "created postbox: #{i_postbox.inspect}"
+    self.add_child i_postbox
+  end
+
   # Postboxを作成してこの中に入れる
   # ==== Args
   # [options] 設定値
