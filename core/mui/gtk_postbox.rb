@@ -148,11 +148,7 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        from = if to_display_only?
-                 service
-               else
-                 @to.first || service end
-        @posting = from.post(:message => text){ |event, msg|
+        @posting = self.service.post(:message => text){ |event, msg|
           case event
           when :start
             Delayer.new{ start_post }
@@ -241,7 +237,10 @@ module Gtk
         true end end
 
     def service
-      @from || Service.primary end
+      if to_display_only?
+        @from || Service.primary
+      else
+        @to.first || @from || Service.primary end end
 
     def post_is_empty?
       widget_post.buffer.text.empty? or widget_post.buffer.text == @header + @footer end
