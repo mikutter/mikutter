@@ -147,6 +147,9 @@ module ::Plugin::Streaming
       source_object = target_object.retweet_source
       source_object.add_retweet_user(by, Time.parse(json['created_at'])) end
 
+    defevent(:quoted_tweet) do |json|
+      MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize) end
+
     defevent(:follow) do |json|
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
