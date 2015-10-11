@@ -78,17 +78,14 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def handle_row_activated
   end
 
-  def reply(message, options = {})
+  def reply(options = {})
     ctl = Gtk::TimeLine::InnerTL.current_tl
     pb = nil
     if(ctl)
       options = options.dup
       options[:before_post_hook] = lambda{ |this|
         get_ancestor(Gtk::Window).set_focus(self) unless self.destroyed? }
-      message = model.get_iter(message) if(message.is_a?(Gtk::TreePath))
-      message = message[1] if(message.is_a?(Gtk::TreeIter))
-      type_strict message => tcor(Message, Service)
-      pb = Gtk::PostBox.new(message, options).show_all
+      pb = Gtk::PostBox.new(options).show_all
       postbox.closeup(pb)
       pb.on_delete(&Proc.new) if block_given?
       get_ancestor(Gtk::Window).set_focus(pb.post)
@@ -96,7 +93,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     pb end
 
   def add_postbox(i_postbox)
-    reply(i_postbox.poster || Service.primary, i_postbox.options)
+    reply(i_postbox.options)
   end
 
   def set_cursor_to_display_top

@@ -19,7 +19,7 @@ class Plugin::GUI::Postbox
 
   set_parent_class Plugin::GUI::Postbox::PostboxParent
 
-  attr_accessor :options, :poster
+  attr_accessor :options
 
   class << self
     # Postboxは、他のウィジェットと違ってキー入力中に他のロールに対するmikutterコマンドを実行すべきでない。

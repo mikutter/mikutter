@@ -32,7 +32,7 @@ module Plugin::DirectMessage
 
     profiletab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
-      nativewidget Plugin.create(:direct_message).dm_list_widget(user)
+      nativewidget Plugin[:direct_message].dm_list_widget(user)
     end
 
     onperiod do
@@ -114,7 +114,9 @@ module Plugin::DirectMessage
         detach(:direct_message, event)
       }
       mumbles = ::Gtk::VBox.new(false, 0)
-      postbox = ::Gtk::PostBox.new(Sender.new(user), :postboxstorage => mumbles, :delegate_other => true)
+      postbox = ::Gtk::PostBox.new(from: Sender.new(user),
+                                   postboxstorage: mumbles,
+                                   delegate_other: true)
       mumbles.pack_start(postbox)
       container.closeup(mumbles).add(::Gtk::HBox.new.add(tl).closeup(scrollbar))
       container
@@ -124,4 +126,3 @@ module Plugin::DirectMessage
 
   end
 end
-

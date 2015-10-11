@@ -35,7 +35,7 @@ module Gtk
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
     #   - delegate_other :: true|false 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される
     #   - before_post_hook :: Proc 投稿前に、 _self_ を引数に呼び出される
-    def initialize(postable = PostToPrimaryService.new,
+    def initialize(postable = nil,
                    to: [],
                    from: nil,
                    header: ''.freeze,
@@ -355,16 +355,6 @@ module Gtk
     # TrueClass|FalseClass
     def to_display_only?
       @to_display_only end
-
-    class PostToPrimaryService
-      def post(*args, &proc)
-        Service.primary.post(*args, &proc)
-      end
-
-      def service
-        self
-      end
-    end
 
   end
 end
