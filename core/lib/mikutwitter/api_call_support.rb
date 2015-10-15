@@ -112,7 +112,8 @@ module MikuTwitter::ApiCallSupport
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
         message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
-        if msg[:quoted_status]
+        # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
+        if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
           message(msg[:quoted_status]).add_quoted_by(message) end
         message end
 
