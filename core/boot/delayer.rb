@@ -11,7 +11,7 @@ Delayer.default = Delayer.generate_class(priority: [:ui_response,
                                          default: :routine_passive,
                                          expire: 0.02)
 
-Deferred = Delayer::Deferred
+Deferred = Delayer::Deferred::Deferred
 
 module Delayer::Deferred::Deferredable
   # エラーをキャッチして、うまい具合にmikutterに表示する。
