@@ -88,12 +88,10 @@ Plugin.create :change_account do
 
   def request_token(reset = false)
     if !@request_token || reset
-      @request_token = parallel {
-        twitter = MikuTwitter.new
-        twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
-        twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-        twitter.request_oauth_token } end
-
+      twitter = MikuTwitter.new
+      twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
+      twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
+      @request_token = twitter.request_oauth_token end
     @request_token end
 
   defsequence :first do
