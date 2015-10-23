@@ -148,7 +148,7 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        @posting = self.service.post(:message => text){ |event, msg|
+        @posting = service.post(:message => text){ |event, msg|
           case event
           when :start
             Delayer.new{ start_post }
