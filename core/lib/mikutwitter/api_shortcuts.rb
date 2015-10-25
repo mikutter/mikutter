@@ -118,9 +118,11 @@ module MikuTwitter::APIShortcuts
     text = message[:message]
     replyto = message[:replyto]
     receiver = message[:receiver]
+    iolist = message[:mediaiolist]
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
+    data[:media_ids] = iolist.collect{ |io| upload_media(io) }.join(",") if iolist
     (self/'statuses/update').message(data) end
   alias post update
 
@@ -239,6 +241,16 @@ module MikuTwitter::APIShortcuts
         else
           users end } } end
 
+  # upload.twitter.comに画像等をアップロードし、
+  # アップロードしたファイルのmedia_idを返す。
+  # ==== Args
+  # [io] アップロードする画像ファイルのIO
+  # ==== Return
+  # media_id(Integer) or nil
+  def upload_media(io)
+    JSON.parse(self.query!('media/upload',
+                           { host: 'upload.twitter.com/1.1',
+                             media: Base64.encode64(io.read) }).body)['media_id'] end
 end
 
 class MikuTwitter; include MikuTwitter::APIShortcuts end
