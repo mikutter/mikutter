@@ -62,7 +62,7 @@ module MikuTwitter::Query
       raise MikuTwitter::RateLimitError.new("Rate limit #{resource.endpoint}", nil) end
     method = get_api_property(api, options, method_of_api) || :get
     url = if options[:host]
-            "http://#{options[:host]}/#{api}.json"
+            "https://#{options[:host]}/#{api}.json"
           else
             "#{@base_path}/#{api}.json" end
     res = _query!(api, options, method, url)
@@ -187,6 +187,8 @@ module MikuTwitter::Query
         'destroy' => aster_post },
       'geo' => {
         'place' => :post },
+      'media' => {
+        'upload' => :post },
       'blocks' => create_destroy_post,
       'report_spam' => :post,
       'oauth' => {
