@@ -1,6 +1,7 @@
 # coding: utf-8
 require 'nokogiri'
 require 'httpclient'
+require 'totoridipjp'
 
 module Plugin::PhotoSupport
   INSTAGRAM_PATTERN = %r{^https?://(?:instagr\.am|instagram\.com)/p/([a-zA-Z0-9_\-]+)}
@@ -160,11 +161,9 @@ Plugin.create :photo_support do
 
   # totori.dip.jp
   defimageopener('totori.dip.jp', %r#\Ahttp://totori.dip.jp/?\Z#) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    open(doc.css('meta[property="og:image"]').first.attribute('content'))
+    iwashi = Totoridipjp.イワシがいっぱいだあ…ちょっとだけもらっていこうかな
+    if iwashi.url
+      open(iwashi.url) end
   end
 
   # 600eur.gochiusa.net
