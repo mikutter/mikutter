@@ -2,7 +2,8 @@
 slug: :notification
 depends:
   mikutter: '3.2'
-  plugin: []
+  plugin:
+    - settings
 version: '1.0'
 author: toshi_a
 name: お知らせ
