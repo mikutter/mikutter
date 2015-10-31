@@ -1,0 +1,9 @@
+---
+slug: :notification
+depends:
+  mikutter: '3.2'
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: お知らせ
+description: mikutterに関するお知らせをステータスバーに表示する
