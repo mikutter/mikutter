@@ -122,7 +122,7 @@ module MikuTwitter::APIShortcuts
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
-    data[:media_ids] = iolist.collect{ |io| upload_media(io) }.join(",") if iolist
+    data[:media_ids] = iolist.collect{ |io| upload_media(io) }.join(",") if iolist and !iolist.empty?
     (self/'statuses/update').message(data) end
   alias post update
 
