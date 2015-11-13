@@ -122,8 +122,12 @@ module MikuTwitter::APIShortcuts
     data = {:status => text }
     data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
     data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
-    data[:media_ids] = iolist.collect{ |io| upload_media(io) }.join(",") if iolist and !iolist.empty?
-    (self/'statuses/update').message(data) end
+    if iolist and !iolist.empty?
+      Deferred.when(*iolist.collect{ |io| upload_media(io) }).next{|media_list|
+        data[:media_ids] = media_list.map{|media| media['media_id'] }.join(",")
+        (self/'statuses/update').message(data) }
+    else
+      (self/'statuses/update').message(data) end end
   alias post update
 
   def retweet(args = {})
@@ -246,11 +250,14 @@ module MikuTwitter::APIShortcuts
   # ==== Args
   # [io] アップロードする画像ファイルのIO
   # ==== Return
-  # media_id(Integer) or nil
+  # Deferred
   def upload_media(io)
-    JSON.parse(self.query!('media/upload',
-                           { host: 'upload.twitter.com/1.1',
-                             media: Base64.encode64(io.read) }).body)['media_id'] end
+    api('media/upload',
+        host: 'upload.twitter.com/1.1',
+        media: Base64.encode64(io.read)).next{|res|
+      JSON.parse(res.body)
+    }
+  end
 end
 
 class MikuTwitter; include MikuTwitter::APIShortcuts end
