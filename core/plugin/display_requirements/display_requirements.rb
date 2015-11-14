@@ -46,13 +46,79 @@ Plugin.create :display_requirements do
     [url, image] end
 
   filter_entity_linkrule_added do |options|
-    Plugin.filter_cancel! if :search_hashtag == options[:filter_id]
-    [options]
-  end
+    EventFilter.cancel! if :search_hashtag == options[:filter_id]
+    [options] end
 
   Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
     Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/\A(?:#|＃)?.+\Z/)[0]))
   }
+
+  # いいね
+  filter_skin_get do |filename, fallback_dirs|
+    case filename
+    when 'fav.png'
+      filename = 'like.png'
+    when 'unfav.png'
+      filename = 'dont_like.png' end
+    [filename, fallback_dirs] end
+
+  filter_command do |menu|
+    menu.delete(:favorite)
+    menu.delete(:delete_favorite)
+    [menu]
+  end
+
+  command(:like,
+          name: _('いいねいいねする'),
+          condition: Plugin::Command[:CanFavoriteAny],
+          visible: true,
+          icon: Skin.get("dont_like.png"),
+          role: :timeline) do |opt|
+    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
+
+  command(:delete_like,
+          name: _('あんいいね'),
+          condition: Plugin::Command[:IsFavoritedAll],
+          visible: true,
+          icon: Skin.get("like.png"),
+          role: :timeline) do |opt|
+    opt.messages.each(&:unfavorite) end
+
+  defactivity :like, _("いいね")
+  defactivity :dont_like, _("あんいいね")
+
+  on_favorite do |service, user, message|
+    activity(:like, "#{message.user[:idname]}: #{message.to_s}",
+             description:(_("@%{user} がいいねいいねしました") % {user: user[:idname]} + "\n" +
+                          "@#{message.user[:idname]}: #{message.to_s}\n"+
+                          message.parma_link),
+             icon: user[:profile_image_url],
+             related: message.user.me? || user.me?,
+             service: service)
+  end
+
+  on_unfavorite do |service, user, message|
+    activity(:dont_like, "#{message.user[:idname]}: #{message.to_s}",
+             description:(_("@%{user} があんいいねしました") % {user: user[:idname]} + "\n" +
+                          "@#{message.user[:idname]}: #{message.to_s}\n"+
+                          message.parma_link),
+             icon: user[:profile_image_url],
+             related: message.user.me? || user.me?,
+             service: service)
+  end
+
+  filter_modify_activity do |options|
+    if %i<favorite unfavorite>.include?(options[:kind])
+      EventFilter.cancel!
+    end
+    [options]
+  end
+
+  filter_activity_kind do |activities|
+    activities.delete(:favorite)
+    activities.delete(:unfavorite)
+    [activities]
+  end
 
   # DR実績が解除されていたら差し戻す
   if defined?(UserConfig[:achievement_took].include?) and UserConfig[:achievement_took].include?(:display_requirements)
@@ -141,5 +207,3 @@ class ::Gdk::SubPartsVoter
     icon_width + layout.size[0] / Pango::SCALE + margin
   end
 end
-
-

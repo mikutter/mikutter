@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, "userconfig"
+miquire :core, "userconfig", "plugin"
 
 class Skin
   SKIN_ROOT = File.join(CHIConfig::CONFROOT, "skin")
@@ -30,6 +30,7 @@ class Skin
   end
 
   def self.get(filename, fallback_dirs = [])
+    filename, fallback_dirs = Plugin.filtering(:skin_get, filename, fallback_dirs)
     search_path = [ user_dir, fallback_dirs, default_dir ].flatten.compact
 
     valid_path = search_path.map { |_|
