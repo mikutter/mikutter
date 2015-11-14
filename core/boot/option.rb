@@ -40,6 +40,12 @@ module Mopt
       puts "delete "+File.expand_path(Environment::CACHE)
       FileUtils.rm_rf(File.expand_path(Environment::CACHE))
       exit }
+    opt.on('-v', '--version', "Show mikutter version"){ |v|
+      require 'fileutils'
+      require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
+      miquire :core, 'environment'
+      puts Environment::NAME + ' ' +  Environment::VERSION.to_s
+      exit }
     opt.on('-h', '--help', "Show this message"){
       puts opt
       puts "command are:"
