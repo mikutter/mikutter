@@ -30,8 +30,10 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("reply.png"),
           role: :timeline) do |opt|
-    opt.widget.create_reply_postbox(opt.messages.first.message,
-                                    subreplies: opt.messages.map(&:message)) end
+    messages = opt.messages.map(&:message)
+    opt.widget.create_postbox(to: messages,
+                              header: messages.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
+                              use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:reply_all,
           name: _('全員に返信'),
@@ -39,16 +41,21 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("reply.png"),
           role: :timeline) do |opt|
-    opt.widget.create_reply_postbox(opt.messages.first.message,
-                                    subreplies: opt.messages.map{ |m| m.message.ancestors }.flatten,
-                                    exclude_myself: true) end
+    messages = opt.messages.map{ |m| m.message.ancestors }.flatten
+    opt.widget.create_postbox(to: messages,
+                              header: messages.map(&:user).uniq.reject(&:me?).map{|x| "@#{x.idname}"}.join(' ') + ' ',
+                              use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:legacy_retweet,
           name: _('引用'),
           condition: Plugin::Command[:HasOneMessage, :CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
-    opt.widget.create_reply_postbox(opt.messages.first.message, retweet: true) end
+    m = opt.messages.first.message
+    opt.widget.create_postbox(to: [m],
+                              footer: " RT @#{m.idname}: #{m.to_show}",
+                              to_display_only: !UserConfig[:legacy_retweet_act_as_reply],
+                              use_blind_footer: !UserConfig[:footer_exclude_retweet]) end
 
   command(:retweet,
           name: _('リツイート'),

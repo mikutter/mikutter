@@ -130,7 +130,8 @@ Plugin.create :list do
   # [service] Service
   def fetch_and_modify_for_using_lists(service, cache=:keep)
     fetch_list_of_service(service, cache).next{|service_that_has_list|
-      Deferred.when(*(Set.new(service_that_has_list) & Set.new(using_lists)).map{|list| list_modify_member(list, service: service, cache: cache)})
+      modifier = (Set.new(service_that_has_list) & Set.new(using_lists)).map{|list| list_modify_member(list, service: service, cache: cache)}
+      Deferred.when(*modifier) unless modifier.empty?
     }.terminate(_('%{user_name}がフォローしているリストを取得できませんでした') % {user_name: service.user_obj.idname}) end
 
   # 自分がフォローしているリストを返す。

@@ -18,6 +18,12 @@ class Message < Retriever::Model
   # screen nameのみから構成される文字列から、@などを切り取るための正規表現
   MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
 
+  PermalinkMatcher = Regexp.union(
+    %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
+    %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
+    %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)].freeze
+  )
+
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
@@ -220,6 +226,87 @@ class Message < Retriever::Model
   # Message#receive_message と同じ。ただし、ReTweetedのみをさがす。
   define_source_getter(:retweet, -> t { t.start_with? 'RT'.freeze }){ |this, result|
     result.add_child(this) unless result.retweeted_statuses.include?(this) }
+
+  # このMessageが引用した投稿を全て返す
+  # ==== Return
+  # Enumerable このMessageが引用したMessageのid(Fixnum)
+  def quoting_ids
+    entity.lazy.select{ |entity|
+      :urls == entity[:slug]
+    }.map{ |entity|
+      PermalinkMatcher.match(entity[:expanded_url])
+    }.select(&ret_nth).map do |matched|
+      matched[:id].to_i end end
+
+  # このMessageが引用した投稿を全て返す。
+  # _force_retrieve_ に真が指定されたらこのメソッドはTwitter APIをリクエストする可能性がある。
+  # そのため _force_retrieve_ が真なら、Messageを取得してから返し、
+  # 偽ならAPIリクエストが必要ないので、Messageオブジェクトの取得を遅延する。
+  # Twitter APIリクエストを行ったがツイートが削除されていた、メモリ上に存在しないなどの理由で
+  # 取得できなかったツイートに関しては、戻り値に含まれない
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Enumerable このMessageが引用したMessage
+  def quoting_messages(force_retrieve=false)
+    return @quoting_messages if defined? @quoting_messages
+    if force_retrieve
+      @quoting_messages ||= quoting_ids.map{|quoted_id|
+        Message.findbyid(quoted_id, -1)
+      }.to_a.compact.freeze.tap do |qs|
+        qs.each do |q|
+          q.add_quoted_by(self) end  end
+    else
+      quoting_ids.map{|quoted_id|
+        Message.findbyid(quoted_id, 0) }.select(&ret_nth) end end
+
+  # このMessageが引用した投稿を全て返す。
+  # _force_retrieve_ に真が指定されたらこのメソッドはTwitter APIをリクエストする可能性がある。
+  # Twitter APIリクエストを行ったがツイートが削除されていた、メモリ上に存在しないなどの理由で
+  # 取得できなかったツイートに関しては、結果がnilとなる
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Deferredable
+  def quoting_messages_d(force_retrieve=false)
+    Thread.new{ quoting_messages(force_retrieve) } end
+
+  # self が、何らかのツイートを引用しているなら真を返す
+  # ==== Return
+  # TrueClass|FalseClass
+  def quoting?
+    !!quoting_ids.first end
+
+  # selfを引用しているツイート _message_ を登録する
+  # ==== Args
+  # [message] Message selfを引用しているMessage
+  # ==== Return
+  # self
+  def add_quoted_by(message)
+    atomic do
+      @quoted_by ||= Messages.new
+      unless @quoted_by.include? message
+        if @quoted_by.frozen?
+          @quoted_by = Messages.new(@quoted_by + [message])
+        else
+          @quoted_by << message end end
+      self end end
+
+  # selfを引用しているツイートを返す
+  # ==== Return
+  # Messages selfを引用しているMessageの配列
+  def quoted_by
+    if defined? @quoted_by
+      @quoted_by
+    else
+      atomic do
+        @quoted_by ||= Messages.new end end.freeze end
+
+  # self が、何らかのツイートから引用されているなら真を返す
+  # ==== Return
+  # TrueClass|FalseClass
+  def quoted_by?
+    !quoted_by.empty? end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
   # ブロックが呼ばれる。

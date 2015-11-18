@@ -50,6 +50,19 @@ Plugin.create :smartthread do
     @timelines.keys.each{ |slug|
       scan slug, messages } end
 
+  # 引用ツイートをsmartthreadに含める処理。
+  # 会話に新しいMessageが登録される時点で、そのMessageの引用ツイートを取得して格納していく
+  on_gui_timeline_add_messages do |widget, messages|
+    if widget.is_a?(Plugin::GUI::Timeline) and @timelines.include?(widget.slug)
+      messages.deach do |message|
+        message.quoting_messages_d(true).next{|quoting_messages|
+          widget << widget.not_in_message(quoting_messages) unless quoting_messages.empty?
+        }.terminate(_('引用ツイートが取得できませんでした'))
+        widget << widget.not_in_message(message.quoted_by) if message.quoted_by?
+      end
+    end
+  end
+
   on_gui_destroy do |widget|
     if widget.is_a? Plugin::GUI::Timeline
       if @timelines.delete(widget.slug)

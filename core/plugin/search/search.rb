@@ -36,6 +36,7 @@ Plugin.create :search do
       timeline(:search) << res if res.is_a? Array
       elm.sensitive = querybox.sensitive = true
     }.trap{ |e|
+      error e
       timeline(:search) << Message.new(message: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}), system: true)
       elm.sensitive = querybox.sensitive = true } }
 

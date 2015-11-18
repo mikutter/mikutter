@@ -10,7 +10,9 @@ miquire :mui, 'sub_parts_helper'
 miquire :mui, 'replyviewer'
 miquire :mui, 'sub_parts_favorite'
 miquire :mui, 'sub_parts_retweet'
+miquire :mui, 'sub_parts_quote'
 miquire :mui, 'markup_generator'
+miquire :mui, 'special_edge'
 miquire :lib, 'uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
@@ -382,11 +384,39 @@ class Gdk::MiraclePainter < Gtk::Object
           context.paint end end end end
 
   def render_main_icon(context)
+    case Plugin.filtering(:main_icon_form, :square)[0]
+    when :aspectframe
+      render_main_icon_aspectframe(context)
+    else
+      render_main_icon_square(context)
+    end
+  end
+
+  def render_main_icon_square(context)
     context.save{
-      context.translate(pos.main_icon.x, pos.main_icon.x)
+      context.translate(pos.main_icon.x, pos.main_icon.y)
       context.set_source_pixbuf(main_icon)
       context.paint
     }
+    if not (message.to_message.system?)
+      render_icon_over_button(context) end
+  end
+
+  def render_main_icon_aspectframe(context)
+    context.save do
+      context.save do
+        context.translate(pos.main_icon.x, pos.main_icon.y + icon_height*13/14)
+        context.set_source_pixbuf(Gdk::WebImageLoader.pixbuf(Cairo::SpecialEdge::FOOTER_URL, icon_width, icon_width*9/20){|_pb, _s| on_modify })
+        context.paint
+      end
+      context.translate(pos.main_icon.x, pos.main_icon.y)
+      context.append_path(Cairo::SpecialEdge.path(icon_width, icon_height))
+      context.set_source_rgb(0,0,0)
+      context.stroke
+      context.append_path(Cairo::SpecialEdge.path(icon_width, icon_height))
+      context.set_source_pixbuf(main_icon)
+      context.fill
+    end
     if not (message.to_message.system?)
       render_icon_over_button(context) end
   end
