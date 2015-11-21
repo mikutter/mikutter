@@ -14,10 +14,12 @@ class Gdk::SubPartsQuote < Gdk::SubParts
     super
     @icon_width, @icon_height, @margin, @edge = 32, 32, 2, 8
     if helper.message.quoting?
-      Thread.new {
-        @messages = Messages.new(helper.message.quoting_messages(true)).freeze
-        Delayer.new {
-          render_messages } } end end
+      Thread.new(helper.message) { |m|
+        m.quoting_messages(true)
+      }.next{ |quoting|
+        @messages = Messages.new(quoting).freeze
+        render_messages
+      }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
 
   def render_messages
     if not helper.destroyed?
