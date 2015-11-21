@@ -21,8 +21,8 @@ class Message < Retriever::Model
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
-    %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)].freeze
-  )
+    %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)] # Hey, Twitter. Please BAN me rhenium!
+  ).freeze
 
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
@@ -152,8 +152,6 @@ class Message < Retriever::Model
   def user
     self.get(:user, -1) end
 
-  # この投稿のServiceオブジェクトを返す。
-  # 設定されてなければnilを返す
   def service
     warn "Message#service is obsolete method. use `Service.primary'."
     Service.primary end
