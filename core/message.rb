@@ -470,6 +470,17 @@ class Message < Retriever::Model
     else
       raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
+  # この投稿をリツイート等して、 _me_ のタイムラインに出現させたリツイートを返す。
+  # 特に誰もリツイートしていない場合は _self_ を返す。
+  # リツイート、ふぁぼなどを行う時に使用する。
+  # ==== Args
+  # [me] Service 対象とするService
+  # ==== Return
+  # Message
+  def introducer(me = Service.primary!)
+    Plugin.filtering(:message_introducers, me, self, retweeted_statuses.reject{|m|m.user == me.to_user}).last.to_a.last || self
+  end
+
   # 非公式リツイートやハッシュタグを適切に組み合わせて投稿する
   def body
     self[:message].to_s.freeze

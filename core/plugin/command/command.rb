@@ -63,7 +63,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("retweet.png"),
           role: :timeline) do |opt|
-    opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.each(&:retweet) end
+    opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer).each(&:retweet) end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),
@@ -81,7 +81,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("unfav.png"),
           role: :timeline) do |opt|
-    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
+    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.map(&:introducer).each(&:favorite) end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),
