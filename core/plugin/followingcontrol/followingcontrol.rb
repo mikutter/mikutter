@@ -39,6 +39,13 @@ Plugin.create :followingcontrol do
     if users
       relation.followers[user] = users - destroyed end end
 
+  filter_message_introducers do |service, source, messages|
+    followings = relation.followings[service.user]
+    if followings
+      [service, source, messages.select{|m| followings.include?(m.user) }]
+    else
+      [service, source, messages] end end
+
   profiletab(:followings, _('フォローしている')) do
     set_icon Skin.get("followings.png")
     container = Gtk::EventBox.new
