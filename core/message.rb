@@ -189,7 +189,8 @@ class Message < Retriever::Model
 
   # このメッセージが何かしらの別のメッセージに宛てられたものなら真
   def has_receive_message?
-    self[:replyto] end
+    !!self[:replyto] end
+  alias reply? has_receive_message?
 
   # このメッセージが何かに対するリツイートなら真
   def retweet?
@@ -206,24 +207,57 @@ class Message < Retriever::Model
   def receive_message_d(force_retrieve=false)
     Thread.new{ receive_message(force_retrieve) } end
 
-  def self.define_source_getter(key, condition=ret_nth, &onfound)
-    define_method("#{key}_source"){ |*args|
-      force_retrieve = args.first
-      if(condition === self[:message].to_s)
-        result = get(key, (force_retrieve ? -1 : 1))
-        if result.is_a?(Message)
-          onfound.call(self, result)
-          result end end }
-    define_method("#{key}_source_d"){ |*args|
-      Thread.new{ __send__("#{key}_source", *args) } } end
+  # このMessageの宛先になっているMessageを取得して返す。
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Message|nil 宛先のMessage。宛先がなければnil
+  def replyto_source(force_retrieve=false)
+    if reply?
+      result = get(:replyto, (force_retrieve ? -1 : 1))
+      if result.is_a?(Message)
+        result.add_child(self) unless result.children.include?(self)
+        result end end end
 
-  # Message#receive_message と同じ。ただし、リプライ元のみをさがす。
-  define_source_getter(:replyto, /@[a-zA-Z0-9_]/){ |this, result|
-    result.add_child(this) unless result.children.include?(this) }
+  # replyto_source の戻り値をnextに渡すDeferredableを返す
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Deferredable nextの引数に宛先のMessageを渡す。宛先が無い場合は失敗し、trap{}にnilを渡す
+  def replyto_source_d(force_retrieve=true)
+    Thread.new do
+      result = replyto_source(force_retrieve)
+      if result.is_a? Message
+        result
+      else
+        Deferred.fail(result) end end end
 
-  # Message#receive_message と同じ。ただし、ReTweetedのみをさがす。
-  define_source_getter(:retweet, -> t { t.start_with? 'RT'.freeze }){ |this, result|
-    result.add_child(this) unless result.retweeted_statuses.include?(this) }
+  # このMessageがリツイートであるなら、リツイート元のツイートを返す。
+  # リツイートではないならnilを返す。リツイートであるかどうかを確認するには、
+  # このメソッドの代わりに Message#retweet? を使う。
+  # ==== Args
+  # [force_retrieve]
+  # ==== Return
+  # Message|nil リツイート元のMessage。リツイートではないならnil
+  def retweet_parent(force_retrieve=false)
+    if retweet?
+      result = get(:retweet, (force_retrieve ? -1 : 1))
+      if result.is_a?(Message)
+        result.add_child(self) unless result.retweeted_statuses.include?(self)
+        result end end end
+
+  # retweet_parent の戻り値をnextに渡すDeferredableを返す
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Deferredable nextの引数にリプライ元のMessageを渡す。リツイートではない場合は失敗し、trap{}にnilを渡す
+  def retweet_parent_d(force_retrieve=true)
+    Thread.new do
+      result = retweet_source(force_retrieve)
+      if result.is_a? Message
+        result
+      else
+        Deferred.fail(result) end end end
 
   # このMessageが引用した投稿を全て返す
   # ==== Return
@@ -319,15 +353,61 @@ class Message < Retriever::Model
   # 配列インデックスが大きいものほど、早く投稿された投稿になる。
   # （[0]は[1]へのリプライ）
   def ancestors(force_retrieve=false)
-    parent = receive_message(force_retrieve)
-    return [self, *parent.ancestors(force_retrieve)] if parent
-    [self] end
-  memoize :ancestors
+    Enumerator.new do |yielder|
+      message = self
+      while message
+        yielder << message
+        message = message.receive_message(force_retrieve) end end end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、何にも宛てられていない投稿を返す。
   # つまり、一番祖先を返す。
   def ancestor(force_retrieve=false)
-    ancestors(force_retrieve).last end
+    ancestors(force_retrieve).to_a.last end
+
+  # retweet元を再帰的に遡り、それらを配列にして返す。
+  # 配列の最初の要素は必ずselfになり、以降は直前の要素のリツイート元となる。
+  # ([0]は[1]へのリツイート)
+  # ==== Return
+  # Enumerator
+  def retweet_ancestors(force_retrieve=false)
+    Enumerator.new do |yielder|
+      message = self
+      while message
+        yielder << message
+        message = message.retweet_parent(force_retrieve)
+      end end end
+
+  # リツイート元を再帰的に遡り、リツイートではないツイートを返す。
+  # selfがリツイートでない場合は、selfを返す。
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Message
+  def retweet_ancestor(force_retrieve=false)
+    retweet_ancestors(force_retrieve).to_a.last end
+
+  # このMessageがリツイートなら、何のリツイートであるかを返す。
+  # 返される値の retweet? は常に false になる
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Message|nil リツイートであればリツイート元のMessage、リツイートでなければnil
+  def retweet_source(force_retrieve=false)
+    if retweet?
+      retweet_ancestor(force_retrieve) end end
+
+  # retweet_source の戻り値をnextに渡すDeferredableを返す
+  # ==== Args
+  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # ==== Return
+  # Deferredable nextの引数にリプライ元のMessageを渡す。リツイートではない場合は失敗し、trap{}にnilを渡す
+  def retweet_source_d(force_retrieve=true)
+    Thread.new do
+      result = retweet_source(force_retrieve)
+      if result.is_a? Message
+        result
+      else
+        Deferred.fail(result) end end end
 
   # このMessageが属する親子ツリーに属する全てのMessageを含むSetを返す
   # ==== Args
@@ -436,6 +516,7 @@ class Message < Retriever::Model
   # :nodoc:
   def add_favorited_by(user, time=Time.now)
     type_strict user => User, time => Time
+    return retweet_source.add_favorited_by(user, time) if retweet?
     service = Service.primary
     if service
       set_modified(time) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or service.user != user.idname)
@@ -445,6 +526,7 @@ class Message < Retriever::Model
   # :nodoc:
   def remove_favorited_by(user)
     type_strict user => User
+    return retweet_source.remove_favorited_by(user) if retweet?
     service = Service.primary
     if service
       favorited_by.delete(user)
@@ -471,6 +553,7 @@ class Message < Retriever::Model
   # :nodoc:
   def add_retweet_user(retweet_user, created_at)
     type_strict retweet_user => User
+    return retweet_source.add_retweet_user(retweet_user, created_at) if retweet?
     if defined? @retweets
       add_retweet_in_this_thread(retweet_user, created_at)
     else
