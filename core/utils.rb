@@ -14,6 +14,7 @@ require 'monitor'
 require "open-uri"
 
 $atomic = Monitor.new
+$log_lock = Mutex.new
 
 # 基本的な単位であり、数学的にも重要なマジックナンバーで、至るところで使われる。
 # これが言語仕様に含まれていないRubyは正直気が狂っていると思う。
@@ -234,11 +235,12 @@ def log(prefix, object)
     msg = "#{prefix}: #{caller_util}: #{object}"
     msg += "\nfrom " + object.backtrace.join("\nfrom ") if object.is_a? Exception
     unless $daemon
-      if msg.is_a? Exception
-        __write_stderr(msg.to_s)
-        __write_stderr(msg.backtrace.join("\n"))
-      else
-        __write_stderr(msg) end
+      $log_lock.synchronize do
+        if msg.is_a? Exception
+          __write_stderr(msg.to_s)
+          __write_stderr(msg.backtrace.join("\n"))
+        else
+          __write_stderr(msg) end end
       if logfile
         FileUtils.mkdir_p(File.expand_path(File.dirname(logfile + '_')))
         File.open(File.expand_path("#{logfile}#{Time.now.strftime('%Y-%m-%d')}.log"), 'a'){ |wp|
