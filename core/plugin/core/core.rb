@@ -76,7 +76,7 @@ Module.new do
     @twitter_configuration = JSON.parse(file_get_contents(File.join(__dir__, 'configuration.json'.freeze)), symbolize_names: true)
 
     onappear do |messages|
-      retweets = messages.select(&:retweet?)
+      retweets = messages.select(&:retweet?).map{|m|m.retweet_ancestors.to_a[-2]}
       if not(retweets.empty?)
         Plugin.call(:retweet, retweets) end end
 

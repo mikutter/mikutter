@@ -234,17 +234,19 @@ class Service
   alias post update
 
   define_postal(:favorite) { |parent, service, message, fav = true|
+    base = message.retweet? ? message[:retweet] : message
     if fav
-      Plugin.call(:before_favorite, service, service.user_obj, message)
-      parent.call(message).next{ |message|
-        Plugin.call(:favorite, service, service.user_obj, message)
-        message
+      Plugin.call(:before_favorite, service, service.user_obj, base)
+      parent.call(message).next{
+        Plugin.call(:favorite, service, service.user_obj, base)
+        base
       }.trap{ |e|
-        Plugin.call(:fail_favorite, service, service.user_obj, message)
-        Deferred.fail(e) } else
-      service.unfavorite(message).next{ |message|
-        Plugin.call(:unfavorite, service, service.user_obj, message)
-        message } end }
+        Plugin.call(:fail_favorite, service, service.user_obj, base)
+        Deferred.fail(e) }
+    else
+      service.unfavorite(message).next{
+        Plugin.call(:unfavorite, service, service.user_obj, base)
+        base } end }
 
   define_postal :unfavorite
 
