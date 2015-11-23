@@ -132,6 +132,7 @@ class Service
   # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
   def user_obj
     @user_obj end
+  alias to_user user_obj
 
   # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
   def user
