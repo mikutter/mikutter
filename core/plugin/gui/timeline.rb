@@ -98,10 +98,8 @@ class Plugin::GUI::Timeline
   # [in_reply_to_message] リプライ先のツイート
   # [options] Postboxのオプション
   def create_reply_postbox(in_reply_to_message, options = {})
-    i_postbox = Plugin::GUI::Postbox.instance
-    i_postbox.options = options.merge(to: [in_reply_to_message])
-    notice "created postbox: #{i_postbox.inspect}"
-    self.add_child i_postbox
+    create_postbox(options.merge(to: [in_reply_to_message],
+                                 header: "@#{in_reply_to_message.user.idname} "))
   end
 
   # _in_reply_to_message_ に対するリプライを入力するPostboxを作成してタイムライン上に表示する
