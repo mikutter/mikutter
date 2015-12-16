@@ -144,7 +144,7 @@ class Gdk::MiraclePainter < Gtk::Object
     signal_emit(:click, event, x, y)
     case event.button
     when 1
-      iob_clicked
+      iob_clicked(x, y)
       if not textselector_range
         index = main_pos_to_index(x, y)
         if index
@@ -426,4 +426,3 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
 end
-
