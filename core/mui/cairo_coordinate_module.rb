@@ -42,7 +42,7 @@ module Gdk::Coordinate
   # 高さを計算して返す
   def height
     @height ||= Hash.new
-    @height[width] ||= 
+    @height[width] ||=
       [(main_message.size[1] + header_left.size[1]) / Pango::SCALE, icon_height].max + icon_margin*2 + subparts_height
   end
 

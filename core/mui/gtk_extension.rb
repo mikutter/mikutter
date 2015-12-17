@@ -314,7 +314,6 @@ module Gtk
             command = o
             throw :urlopen end } end
       command end
-    memoize :url_open_command
   end
 end
 

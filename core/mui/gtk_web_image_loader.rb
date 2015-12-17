@@ -3,7 +3,7 @@
 
 miquire :core, 'serialthread', 'skin'
 miquire :mui, 'web_image_loader_image_cache'
-miquire :lib, 'memoize', 'addressable/uri'
+miquire :lib, 'addressable/uri'
 require 'net/http'
 require 'uri'
 require 'thread'

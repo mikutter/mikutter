@@ -35,8 +35,8 @@ require File.join(File::dirname(__FILE__), 'miquire')
 miquire :lib, 'lazy'
 
 # すべてのクラスにメモ化機能を
-miquire :lib, 'memoize'
-include Memoize
+miquire :lib, 'memoist'
+include Memoist
 
 # Environment::CONFROOT内のファイル名を得る。
 #   confroot(*path)
