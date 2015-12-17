@@ -6,6 +6,7 @@ require "mikutwitter/utils"
 # OAuthに失敗した時の処理
 module MikuTwitter::AuthenticationFailedAction
   class << self
+    extend Gem::Deprecate
     # Twitterから401が帰ってきた時に、OAuthトークンを取得するためのブロック
     # &callback を登録する。
     # ==== Args
@@ -17,8 +18,11 @@ module MikuTwitter::AuthenticationFailedAction
     #   [res] API問い合わせの結果(Net::HTTPResponse)
     # ==== Return
     # 登録したProcオブジェクト
-    def regist(&callback)
+    def register(&callback)
       @authentication_failed_action = callback end
+
+    alias :regist :register
+    deprecate :regist, "register", 2016, 12
 
     # register_authentication_faileded_action で登録されたProcを返す。
     # 何も登録されていない時は、abortするProcを返す。

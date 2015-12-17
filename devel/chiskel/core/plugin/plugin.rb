@@ -23,6 +23,7 @@ require 'thread'
 # イベントリスナ(*フィルタ(*引数))というかんじ。
 # リスナもフィルタも、実行される順序は特に規定されていない。
 module Plugin
+  extend Gem::Deprecate
 
   @@eventqueue = Queue.new
 
@@ -369,8 +370,11 @@ class Plugin::PluginTag
 
   private
 
-  def regist
+  def register
     @@plugins.push(self) end
+  alias :regist :register
+  deprecate :regist, "register", 2016, 12
+
 end
 
 Module.new do

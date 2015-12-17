@@ -45,9 +45,16 @@ class Gdk::SubParts
 
   attr_reader :helper
 
-  def self.regist
-    index = where_should_insert_it(self.to_s, Gdk::SubPartsHelper.subparts_classes.map(&:to_s), UserConfig[:subparts_order] || [])
-    Gdk::SubPartsHelper.subparts_classes.insert(index, self)
+  class << self
+    extend Gem::Deprecate
+
+    def register
+      index = where_should_insert_it(self.to_s, Gdk::SubPartsHelper.subparts_classes.map(&:to_s), UserConfig[:subparts_order] || [])
+      Gdk::SubPartsHelper.subparts_classes.insert(index, self)
+    end
+
+    alias :regist :register
+    deprecate :regist, "register", 2016, 12
   end
 
   def initialize(helper)

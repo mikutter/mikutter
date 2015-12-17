@@ -44,6 +44,7 @@ module Plugin::GUI::Cuscadable
     values[index] end
 
   module ExtendedCuscadable
+    extend Gem::Deprecate
 
     # タブ _slug_ に対するインターフェイスを作成。
     # _slug_ に対応するタブがない場合は作成する。
@@ -70,9 +71,11 @@ module Plugin::GUI::Cuscadable
     # [tab] タブ
     # ==== Return
     # self
-    def regist(tab)
+    def register(tab)
       cuscaded[tab.slug] ||= tab
       self end
+    alias :regist :register
+    deprecate :regist, "register", 2016, 12
 
     # インスタンスの一覧を取得する
     # ==== Return
@@ -92,4 +95,3 @@ module Plugin::GUI::Cuscadable
   end
 
 end
-
