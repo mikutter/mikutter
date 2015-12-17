@@ -506,9 +506,10 @@ Plugin.create :gtk do
     pane = widgetof(i_pane)
     return false if not pane
     is_tab = i_tab.is_a?(Plugin::GUI::Tab)
-    is_parmatab = is_tab and not(i_tab.temporary_tab?)
-    has_child = is_parmatab and not(i_tab.children.any?{ |child|
-                                      not child.is_a? Plugin::GUI::TabToolbar })
+    has_child = is_tab and
+      not(i_tab.temporary_tab?) and
+      not(i_tab.children.any?{ |child|
+            not child.is_a? Plugin::GUI::TabToolbar })
     notice "widget_join_tab: #{widget} join #{i_tab}"
     if has_child
       Plugin.call(:rewind_window_order, i_pane.parent) end

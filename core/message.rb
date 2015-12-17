@@ -18,6 +18,8 @@ class Message < Retriever::Model
   # screen nameのみから構成される文字列から、@などを切り取るための正規表現
   MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
 
+  extend Gem::Deprecate
+
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
@@ -335,9 +337,12 @@ class Message < Retriever::Model
   # このMessageのパーマリンクを取得する
   # ==== Return
   # パーマリンクのURL(String)か、存在しない場合はnil
-  def parma_link
+  def perma_link
     if not system?
-      @parma_link ||= "https://twitter.com/#{user[:idname]}/status/#{self[:id]}".freeze end end
+      "https://twitter.com/#{user[:idname]}/status/#{self[:id]}".freeze end end
+  memoize :perma_link
+  alias :parma_link :perma_link
+  deprecate :parma_link, "perma_link", 2016, 12
 
   # :nodoc:
   def marshal_dump
