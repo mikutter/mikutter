@@ -6,7 +6,7 @@ require 'gtk2'
 require 'cairo'
 
 class Gdk::SubPartsQuote < Gdk::SubParts
-  regist
+  register
 
   attr_reader :icon_width, :icon_height
 

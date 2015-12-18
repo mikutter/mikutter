@@ -16,7 +16,7 @@ Plugin.create :quoted_message do
             not opt.messages.any?(&:system?)},
           visible: true,
           role: :timeline) do |opt|
-    Gtk::Clipboard.copy(opt.messages.map(&:parma_link).join("\n".freeze))
+    Gtk::Clipboard.copy(opt.messages.map(&:perma_link).join("\n".freeze))
   end
 
   command(:quoted_tweet,
@@ -28,7 +28,7 @@ Plugin.create :quoted_message do
           role: :timeline) do |opt|
     messages = opt.messages.map(&:message)
     opt.widget.create_postbox(to: messages,
-                              footer: ' ' + messages.map(&:parma_link).join(' '.freeze),
+                              footer: ' ' + messages.map(&:perma_link).join(' '.freeze),
                               to_display_only: true)
   end
 
