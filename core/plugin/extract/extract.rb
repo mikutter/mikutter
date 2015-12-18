@@ -251,7 +251,6 @@ Plugin.create :extract do
             extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
             evaluated = MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, metamorphose(code: code, assign: before, extract_condition: extract_condition))
             code_string = "lambda{ |message|\n" + before.to_a.join("\n") + "\n  " + evaluated + "\n}"
-            notice code_string
             instance_eval(code_string)
           rescue Plugin::Extract::ConditionNotFoundError => exception
             Plugin.call(:modify_activity,
@@ -301,7 +300,7 @@ Plugin.create :extract do
       miku(condition.sexp, miku_context)
     rescue => exception
       error "error occured in code #{MIKU.unparse(condition.sexp)}"
-      notice miku_context
+      error miku_context
       raise exception end end
 
   def destroy_compile_cache

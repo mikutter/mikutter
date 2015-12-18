@@ -33,7 +33,6 @@ module Plugin::Bitly
                rescue Exception
                  nil end
       if result and result['status_code'].to_i == 200
-        notice result['data']['expand']
         return Hash[ *result['data']['expand'].map{|token|
                        [token['short_url'], token['long_url']] }.flatten ] end
     end
@@ -71,7 +70,6 @@ Plugin.create :bitly do
       entity.select{|_|
         :urls == _[:slug] and Plugin::Bitly::SHRINKED_MATCHER =~ _[:url]
       }.each do |link|
-        notice "detect bitly shrinked url: #{link[:url]} by #{entity.message}"
         expand_mutex.synchronize do
           (waiting_expand_entities[link[:url]] ||= Set.new) << ->expanded{
             entity.add link.merge(url: expanded, face: expanded) }

@@ -67,19 +67,14 @@ module MikuTwitter::Connect
       case res.code
       when '200'
       when '401'
-        notice "#{res.code} Authorization failed."
-        notice res.body
-        notice "trigger request: #{path}"
         begin
           errors = (JSON.parse(res.body)["errors"] rescue nil)
           errors.each { |error|
-            notice error
             if [INVALID_OR_EXPIRED_TOKEN].include? error["code"]
               atoken = authentication_failed_action(method, url, options, res)
-              notice atoken
               return query_with_oauth!(method, url, options) if atoken end }
         rescue Exception => e
-          notice e end
+          warn e end
       when '429'
         raise MikuTwitter::RateLimitError.new("Rate limit #{url}", nil)
       end

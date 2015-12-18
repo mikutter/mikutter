@@ -100,10 +100,8 @@ module MikuTwitter::Query
                   :start_time => start_time,
                   :mikutwitter => self)
     end
-    notice "access(#{serial}): #{output_url}"
     res = yield
   ensure
-    notice "quit(#{serial.to_s}): #{res.code} #{output_url} (#{(Time.new - start_time).to_s}s)" rescue nil
     if defined? Plugin
       Plugin.call(:query_end,
                   :serial     => serial,

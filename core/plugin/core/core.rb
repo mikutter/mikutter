@@ -51,7 +51,6 @@ Plugin.create :core do
       if message.retweet?
         source = message.retweet_source(false)
         if source
-          notice "retweet #{source[:id]} #{message.to_s}(##{message[:id]})"
           Plugin.call(:retweet_destroyed, source, message.user, message[:id])
           source.retweeted_sources.delete(message) end end } end
 

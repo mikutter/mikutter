@@ -25,11 +25,9 @@ Plugin.create :streaming do
     @fail = MikuTwitter::StreamingFailedActions.new("Filter Stream", self)
     Thread.new{
       loop{
-        notice 'filter stream: connect'
         begin
           follow = Plugin.filtering(:filter_stream_follow, Set.new).first || Set.new
           track = Plugin.filtering(:filter_stream_track, "").first || ""
-          notice "followings #{follow.size} people, track keyword '#{track}'"
           if follow.empty? && track.empty?
             sleep(60)
           else
@@ -52,13 +50,13 @@ Plugin.create :streaming do
             streamerror r
           end
         rescue Net::HTTPError => exception
-          notice "filter stream: disconnected: #{exception.code} #{exception.body}"
+          warn "filter stream: disconnected: #{exception.code} #{exception.body}"
           streamerror exception
           warn exception
         rescue Net::ReadTimeout => exception
           streamerror exception
         rescue Exception => exception
-          notice "filter stream: disconnected: exception #{exception}"
+          warn "filter stream: disconnected: exception #{exception}"
           streamerror exception
           warn exception end
         notice "retry wait #{@fail.wait_time}, fail_count #{@fail.fail_count}"

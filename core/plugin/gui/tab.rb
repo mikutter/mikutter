@@ -29,10 +29,9 @@ class Plugin::GUI::Tab
     @temporary_tab = false
     position = Plugin::GUI.get_tab_order(slug)
     if position
-      window_slug, pane_slug, order = position
+      _, pane_slug, order = position
       pane = Plugin::GUI::Pane.instance(pane_slug)
       index = where_should_insert_it(slug, pane.children.map(&:slug), order)
-      notice "tab initialize #{slug} #{position.inspect} #{index}"
       pane.add_child(self, index)
     else
       Plugin::GUI::Pane.add_default << self

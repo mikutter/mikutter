@@ -68,7 +68,6 @@ module Plugin::GUI::HierarchyParent
     type_strict child => tcor(Plugin::GUI::HierarchyChild, NilClass)
     @active_child = child
     Plugin.call(:gui_child_activated, self, child, by_toolkit) if child
-    notice "active child set #{self.inspect} => #{child.inspect}"
     self end
 
   # このインスタンス以下の、アクティブな祖先のリストを返す。

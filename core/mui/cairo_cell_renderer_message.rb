@@ -103,7 +103,6 @@ module Gtk
         now_selecting = Set.new(this.to_enum(:selected_each).map{ |m, p, i| i[3] }).freeze
         new_selected = now_selecting - last_selected
         unselected = last_selected - now_selecting
-        notice "now: #{now_selecting.size} last: #{last_selected.size}"
         new_selected.each(&:on_selected)
         unselected.each(&:on_unselected)
         last_selected = now_selecting

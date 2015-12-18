@@ -77,7 +77,6 @@ class Plugin::Settings::Select
           radio.signal_connect('toggled'){ |widget|
             listener.set value if widget.active?
             setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
-          notice "#{listener.get.inspect} == #{value.inspect}"
           radio.active = listener.get == value
           face.sensitive = radio.active? if face.is_a? Gtk::Widget end } }
     box end

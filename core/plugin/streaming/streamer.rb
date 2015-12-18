@@ -50,9 +50,9 @@ module ::Plugin::Streaming
         if q and not q.empty?
           parsed = JSON.parse(q) rescue nil
           event_factory parsed if parsed end }
-    rescue => e
-      notice e
-      raise e end
+    rescue => exception
+      error exception
+      raise exception end
 
     # UserStreamを終了する
     def kill

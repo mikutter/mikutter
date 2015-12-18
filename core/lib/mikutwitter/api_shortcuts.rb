@@ -206,7 +206,6 @@ module MikuTwitter::APIShortcuts
                                                'accept-encoding' => "identity;q=1"})
     proc = line_accumlator("\x0D\x0A", &chunk)
     http.request(request){ |res|
-      notice "response #{url} #{res.code} #{res}"
       if res.code == '200'
         res.read_body(&proc)
       end } end
@@ -221,7 +220,6 @@ module MikuTwitter::APIShortcuts
   # ==== Return
   # Deferred (nextの引数に、全ページの結果をすべて連結した配列)
   def cursor_pager(api, parser, key, args)
-    require_if_exist 'pry'
     api.__send__(parser, args).next{ |res|
       if res[:next_cursor] == 0
         res[key]

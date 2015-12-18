@@ -21,10 +21,7 @@ module Plugin::GUI::Cuscadable
     if plugin_name
       plugin = Plugin.instance(plugin_name)
       if plugin
-        notice "attach unload hook. plugin:#{plugin}, widget: #{self}"
-        @unload_hook = plugin.onunload{
-          notice "widget destroy triggered off detach plugin #{@plugin}. widget: #{self}"
-          destroy } end end
+        @unload_hook = plugin.onunload(&method(:destroy)) end end
     self.class.register(self) end
 
   # 次のインスタンスを返す。このインスタンスが最後だった場合は最初に戻る

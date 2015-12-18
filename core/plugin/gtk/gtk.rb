@@ -28,7 +28,6 @@ Plugin.create :gtk do
   # ウィンドウ作成。
   # PostBoxとか複数のペインを持つための処理が入るので、Gtk::MikutterWindowクラスを新設してそれを使う
   on_window_created do |i_window|
-    notice "create window #{i_window.slug.inspect}"
     window = ::Gtk::MikutterWindow.new(i_window, self)
     @slug_dictionary.add(i_window, window)
     window.title = i_window.name
@@ -82,13 +81,10 @@ Plugin.create :gtk do
     pane.set_tab_border(0).set_group_id(0).set_scrollable(true)
     pane.set_tab_pos(TABPOS[UserConfig[:tab_position]])
     tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
-      notice "change tab pos to #{TABPOS[val]}"
       pane.set_tab_pos(TABPOS[val]) unless pane.destroyed? }
     pane.ssc(:page_reordered){ |this, tabcontainer, index|
-      notice "on_pane_created: page_reordered: #{i_pane.inspect}"
         Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
-      notice "tabcontainer #{tabcontainer} => #{i_tab.inspect}"
       if i_tab
         i_pane.reorder_child(i_tab, index) end
       Plugin.call(:after_gui_tab_reordered, i_tab)
@@ -98,17 +94,14 @@ Plugin.create :gtk do
         i_pane.set_active_child(pane.get_nth_page(pagenum).i_tab, true) end }
     pane.signal_connect(:page_added){ |this, tabcontainer, index|
       type_strict tabcontainer => ::Gtk::TabContainer
-      notice "on_pane_created: page_added: #{i_pane.inspect}"
       Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
       next false if i_tab.parent == i_pane
-      notice "on_pane_created: reparent"
       Plugin.call(:after_gui_tab_reparent, i_tab, i_tab.parent, i_pane)
       i_pane.add_child(i_tab, index)
       false }
     # 子が無くなった時 : このpaneを削除
     pane.signal_connect(:page_removed){
-      notice "on_pane_created: page_removed: #{i_pane.inspect}"
       if not(pane.destroyed?) and pane.children.empty? and pane.parent
         pane.parent.remove(pane)
         UserConfig.disconnect(tab_position_hook_id)
@@ -120,7 +113,6 @@ Plugin.create :gtk do
   # タブ作成。
   # タブには実体が無いので、タブのアイコンのところをGtk::EventBoxにしておいて、それを実体ということにしておく
   on_tab_created do |i_tab|
-    notice "tab_created: #{i_tab.slug.inspect}"
     tab = create_tab(i_tab)
     if @tabs_promise[i_tab.slug]
       @tabs_promise[i_tab.slug].call(tab)
@@ -130,7 +122,6 @@ Plugin.create :gtk do
     create_pane(i_profile) end
 
   on_profiletab_created do |i_profiletab|
-    notice "profiletab_created: #{i_profiletab.slug.inspect}"
     create_tab(i_profiletab) end
 
   # タブを作成する
@@ -161,7 +152,6 @@ Plugin.create :gtk do
     tab.show_all end
 
   on_tab_toolbar_created do |i_tab_toolbar|
-    notice "create tab toolbar #{i_tab_toolbar.inspect}"
     tab_toolbar = ::Gtk::TabToolbar.new(i_tab_toolbar).show_all
     @slug_dictionary.add(i_tab_toolbar, tab_toolbar)
   end
@@ -174,7 +164,6 @@ Plugin.create :gtk do
   # タイムライン作成。
   # Gtk::TimeLine
   on_timeline_created do |i_timeline|
-    notice "create timeline #{i_timeline.slug.inspect}"
     gtk_timeline = ::Gtk::TimeLine.new(i_timeline)
     @slug_dictionary.add(i_timeline, gtk_timeline)
     gtk_timeline.tl.ssc(key_press_event: timeline_key_press_event(i_timeline),
@@ -191,9 +180,7 @@ Plugin.create :gtk do
   def timeline_focus_in_event(i_timeline)
     lambda { |this, event|
       if this.focus?
-        i_timeline.active!(true, true)
-      else
-        notice "timeline_created: focus_in_event: event receive but not has focus #{i_timeline}" end
+        i_timeline.active!(true, true) end
       false } end
 
   # Timelineウィジェットのkey_press_eventのコールバックを返す
@@ -220,38 +207,28 @@ Plugin.create :gtk do
     pane = widgetof(i_pane)
     if pane.parent
       if pane.parent != window.panes
-        notice "pane parent already exists. removing"
         pane.parent.remove(pane)
-        notice "packing"
-        window.panes.pack_end(pane, false).show_all
-        notice "done" end
+        window.panes.pack_end(pane, false).show_all end
     else
-      notice "pane doesn't have a parent"
       window.panes.pack_end(pane, false).show_all
     end
   end
 
   on_gui_tab_join_pane do |i_tab, i_pane|
-    notice "gui_tab_join_pane(#{i_tab}, #{i_pane})"
     i_widget = i_tab.children.first
-    notice "#{i_tab} children #{i_tab.children}"
     next if not i_widget
     widget = widgetof(i_widget)
-    notice "widget: #{widget}"
     next if not widget
     tab = widgetof(i_tab)
     pane = widgetof(i_pane)
     old_pane = widget.get_ancestor(::Gtk::Notebook)
-    notice "pane: #{pane}, old_pane: #{old_pane}"
     if tab and pane and old_pane and pane != old_pane
-      notice "#{widget} removes by #{old_pane}"
       if tab.parent
         page_num = tab.parent.get_tab_pos_by_tab(tab)
         if page_num
           tab.parent.remove_page(page_num)
         else
           raise Plugin::Gtk::GtkError, "#{tab} not found in #{tab.parent}" end end
-      notice "#{widget} pack to #{tab}"
       i_tab.children.each{ |i_child|
         w_child = widgetof(i_child)
         w_child.parent.remove(w_child)
@@ -273,7 +250,6 @@ Plugin.create :gtk do
     gtk_timeline.add(messages) if gtk_timeline and not gtk_timeline.destroyed? end
 
   on_gui_postbox_join_widget do |i_postbox|
-    notice "create postbox #{i_postbox.slug.inspect}"
     type_strict i_postbox => Plugin::GUI::Postbox
     i_postbox_parent = i_postbox.parent
     next if not i_postbox_parent
@@ -319,7 +295,6 @@ Plugin.create :gtk do
       timeline.clear end end
 
   on_gui_timeline_scroll_to_top do |i_timeline|
-    notice "called"
     timeline = widgetof(i_timeline)
     if timeline
       timeline.set_cursor_to_display_top end end
@@ -328,7 +303,6 @@ Plugin.create :gtk do
     tl = widgetof(i_timeline)
     if tl
       path, column = tl.cursor
-      notice "path: #{path}, column: #{column}"
       if path and column
         case message
         when :prev
@@ -388,12 +362,10 @@ Plugin.create :gtk do
 
   # Gtkオブジェクトをタブに入れる
   on_gui_nativewidget_join_tab do |i_tab, i_container, container|
-    notice "nativewidget: #{container} => #{i_tab}"
     @slug_dictionary.add(i_container, container)
     widget_join_tab(i_tab, container.show_all) end
 
   on_gui_nativewidget_join_profiletab do |i_profiletab, i_container, container|
-    notice "nativewidget: #{container} => #{i_profiletab}"
     @slug_dictionary.add(i_container, container)
     widget_join_tab(i_profiletab, container.show_all) end
 
@@ -404,21 +376,17 @@ Plugin.create :gtk do
     statusbar = window.statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
-    notice "rewind statusbar to #{text}, #{expire.inspect}, #{cid}"
     if expire != 0
       Reserver.new(expire){
         if not statusbar.destroyed?
           statusbar.remove(cid, mid) end } end end
 
-  on_gui_child_activated do |i_parent, i_child, by_toolkit|
+  on_gui_child_activated do |i_parent, i_child, activated_by_toolkit|
     type_strict i_parent => Plugin::GUI::HierarchyParent, i_child => Plugin::GUI::HierarchyChild
-    if by_toolkit
-      notice "activate by toolkit. ignore."
-    else
+    if !activated_by_toolkit
       if i_child.is_a?(Plugin::GUI::TabLike)
         i_pane = i_parent
         i_tab = i_child
-        notice "gui_child_activated: tab active #{i_pane} => #{i_tab}"
         pane = widgetof(i_pane)
         tab = widgetof(i_tab)
         if pane and tab
@@ -430,7 +398,6 @@ Plugin.create :gtk do
           window = widgetof(i_parent)
           widget = widgetof(i_term)
           if window and widget
-            notice "ACTIVATE! #{window} => #{widget}"
             if widget.respond_to? :active
               widget.active
             else
@@ -510,7 +477,6 @@ Plugin.create :gtk do
       not(i_tab.temporary_tab?) and
       not(i_tab.children.any?{ |child|
             not child.is_a? Plugin::GUI::TabToolbar })
-    notice "widget_join_tab: #{widget} join #{i_tab}"
     if has_child
       Plugin.call(:rewind_window_order, i_pane.parent) end
     container_index = pane.get_tab_pos_by_tab(tab)
@@ -556,7 +522,6 @@ Plugin.create :gtk do
   # ==== Return
   # ペイン(Gtk::Notebook)
   def create_pane(i_pane)
-    notice "create pane #{i_pane.slug.inspect}"
     pane = ::Gtk::Notebook.new
     @slug_dictionary.add(i_pane, pane)
     pane.ssc('key_press_event'){ |widget, event|

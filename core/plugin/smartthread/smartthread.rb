@@ -65,7 +65,6 @@ Plugin.create :smartthread do
 
   on_gui_destroy do |widget|
     if widget.is_a? Plugin::GUI::Timeline
-      if @timelines.delete(widget.slug)
-        notice "smartthread removed :#{widget.slug}" end end end
+      @timelines.delete(widget.slug) end end
 
 end

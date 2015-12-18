@@ -62,7 +62,6 @@ class Service
       return self if before_primary != @primary || @primary == service
       @primary = service
       Plugin.call(:primary_service_changed, service)
-      notice "current active service: #{service.name}"
       self end
 
     # 新しくサービスを認証する
@@ -206,13 +205,11 @@ class Service
 
   define_postal(:update){ |parent, service, options|
     parent.call(options).next{ |message|
-      notice 'event fire :posted and :update by statuses/update'
       Plugin.call(:posted, service, [message])
       Plugin.call(:update, service, [message])
       message } }
   define_postal(:retweet){ |parent, service, options|
     parent.call(options).next{ |message|
-      notice 'event fire :posted and :update by statuses/retweet'
       Plugin.call(:posted, service, [message])
       Plugin.call(:update, service, [message])
       message } }

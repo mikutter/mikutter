@@ -56,8 +56,7 @@ module Gtk
     def popup(widget, optional)
       menu = build!(widget, optional)
 
-       if not menu.children.empty?
-        menu.attach_to_widget(widget) {|attach_widgt, mnu| notice "detached" }
+      if not menu.children.empty?
         menu.show_all.popup(nil, nil, 0, 0) end end
   end
 end

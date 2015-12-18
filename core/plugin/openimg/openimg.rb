@@ -66,7 +66,6 @@ Plugin.create :openimg do
         error _
         [display_url, loader, thread] end
     else
-      notice "image url is not found in #{display_url}"
       [display_url, loader, thread] end end
 
   filter_openimg_raw_image_from_display_url do |display_url, content|
@@ -107,9 +106,7 @@ Plugin.create :openimg do
 
     w_toolbar.insert(0, w_browser)
     window.add(Gtk::VBox.new.closeup(w_toolbar).add(w_wrap))
-    notice 'loading thread generate'
     Thread.new {
-      notice 'start loading'
       Plugin.filtering(:openimg_pixbuf_from_display_url, display_url, nil, nil)
     }.next { |result|
       if result[1].is_a? Gdk::PixbufLoader
@@ -121,7 +118,6 @@ Plugin.create :openimg do
           true end
 
         pixbufloader.ssc(:closed, window) do
-          notice "closed"
           image_surface = progress(w_wrap, pixbufloader.pixbuf, image_surface, paint: true)
           true end
 
@@ -132,15 +128,14 @@ Plugin.create :openimg do
           image_surface = error_surface
         }
       else
-        notice "cant open: #{display_url}"
+        warn "cant open: #{display_url}"
         image_surface = error_surface
         redraw(w_wrap, image_surface) end
     }.trap{ |exception|
-      warn exception
+      error exception
       image_surface = error_surface
       redraw(w_wrap, image_surface)
     }
-    notice 'loading thread generated.'
     window.show_all end
 
   def progress(w_wrap, pixbuf, image_surface, x: 0, y: 0, width: 0, height: 0, paint: false)
@@ -202,7 +197,6 @@ Plugin.create :openimg do
                              }) do |shrinked_url, cancel|
     Thread.new do
       url = (Plugin.filtering(:expand_url, [shrinked_url]).first.first rescue shrinked_url)
-      notice url
       Plugin.call(:openimg_open, url) end end
 
   def addsupport(cond, element_rule = {}, &block); end

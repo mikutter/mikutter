@@ -108,7 +108,6 @@ class Plugin::GUI::Timeline
   def create_postbox(options = {})
     i_postbox = Plugin::GUI::Postbox.instance
     i_postbox.options = options
-    notice "created postbox: #{i_postbox.inspect}"
     self.add_child i_postbox
   end
 

@@ -51,7 +51,6 @@ class Gtk::MikutterWindow < Gtk::Window
   # Gtk::Statusbar
   def create_statusbar
     statusbar = Gtk::Statusbar.new
-    notice "statusbar: context id: #{statusbar.get_context_id("system")}"
     statusbar.push(statusbar.get_context_id("system"), @plugin._("Statusbar default message"))
     @statusbar = statusbar.closeup(status_button(Gtk::HBox.new)) end
 

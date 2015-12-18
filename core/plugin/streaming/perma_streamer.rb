@@ -15,21 +15,18 @@ module ::Plugin::Streaming
     def mainloop
       loop do
         begin
-          notice "PermaStreamer start"
           streamer = Plugin::Streaming::Streamer.new(@service){
             @fail.success
           }
           result = streamer.thread.value
-        rescue Net::HTTPError => e
-          notice "PermaStreamer caught exception"
-          notice e
-          notice "redume..."
-          @fail.notify(e)
-        rescue Exception => e
-          notice "PermaStreamer caught exception"
-          notice e
-          notice "redume..."
-          @fail.notify(e)
+        rescue Net::HTTPError => exception
+          warn "PermaStreamer caught exception"
+          warn exception
+          @fail.notify(exception)
+        rescue Exception => exception
+          warn "PermaStreamer caught exception"
+          warn exception
+          @fail.notify(exception)
         else
           notice "PermaStreamer exit"
           notice result

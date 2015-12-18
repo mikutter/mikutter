@@ -98,7 +98,7 @@ def require_if_exist(file)
     require file
     true
   rescue LoadError
-    notice "require-if-exist: file not found: #{file}"
+    warn "require-if-exist: file not found: #{file}"
     false end end
 
 # _insertion_ を、 _src_ の挿入するべき場所のインデックスを返す。

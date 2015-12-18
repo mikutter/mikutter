@@ -159,12 +159,10 @@ Plugin.create :command do
           name: _('新規ペインに移動'),
           condition: lambda{ |opt|
             pane = opt.widget.parent
-            notice "pane: #{pane}"
             pane.is_a?(Plugin::GUI::Pane) and pane.children.size != 1 },
           visible: true,
           role: :tab) do |opt|
     tab = opt.widget.is_a?(Plugin::GUI::Tab) ? opt.widget : opt.widget.ancestor_of(Plugin::GUI::Tab)
-    notice "new_pane: move tab :#{tab.slug}"
     window = tab.ancestor_of(Plugin::GUI::Window)
     if window
       pane = Plugin::GUI::Pane.instance
@@ -256,7 +254,6 @@ Plugin.create :command do
     term = children[(index + distance) % children.size]
     term = term.active_chain.last if term.respond_to? :active_chain
     term.active! if term
-    notice "activate #{term} #{widget.class} #{term.class}"
     src_tl = widget.active_chain.last
     if widget.is_a?(Plugin::GUI::Pane) and src_tl.is_a?(Plugin::GUI::Timeline) and term.is_a?(Plugin::GUI::Timeline)
       slide_timeline_focus(src_tl, term) end end
@@ -269,7 +266,6 @@ Plugin.create :command do
   def slide_timeline_focus(src, dest)
     type_strict src => Plugin::GUI::Timeline, dest => Plugin::GUI::Timeline
     y = Plugin.filtering(:gui_timeline_cursor_position, src, nil).last
-    notice "y = #{y}"
     if y
       Plugin.call(:gui_timeline_move_cursor_to, dest, y) end end
 
@@ -277,10 +273,8 @@ Plugin.create :command do
   # ==== Args
   # [widget] 基準となるウィジェット
   def focus_move_to_nearest_postbox(widget)
-    notice "called: given widget #{widget.inspect}"
     if widget.is_a? Plugin::GUI::HierarchyParent
       postbox = widget.children.find{ |w| w.is_a? Plugin::GUI::Postbox }
-      notice "found postbox: #{postbox.inspect}"
       if postbox
         return postbox.active! end end
     if widget.is_a? Plugin::GUI::HierarchyChild

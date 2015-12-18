@@ -79,7 +79,6 @@ Plugin.create :change_account do
   def jump_seq(name)
     if defined? @sequence[name]
       store(:tutorial_sequence, name)
-      notice "sequence move to #{name}"
       if @sequence.has_key? name
         @sequence[name].call
       else

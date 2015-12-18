@@ -45,7 +45,7 @@ module Plugin::GUI::TabLike
   def timeline(slug, &proc)
     timeline = Plugin::GUI::Timeline.instance(slug)
     self << timeline
-    timeline.instance_eval &proc if proc
+    timeline.instance_eval(&proc) if proc
     timeline end
 
   # プロフィールを作成してこの中に入れる
@@ -58,8 +58,7 @@ module Plugin::GUI::TabLike
     profile = Plugin::GUI::Profile.instance(slug)
     self << profile
     pack_rule.push(expand?)
-    notice "pack_rule: #{pack_rule.inspect}"
-    profile.instance_eval &proc if proc
+    profile.instance_eval(&proc) if proc
     profile end
 
   # UIツールキットのウィジェット(Gtk等)をタブに入れる

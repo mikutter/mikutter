@@ -210,7 +210,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   def set_events
     @destroy_child_miraclepainters = signal_connect(:destroy) {
-      notice "destroy child miracle painters"
       model.each{ |m, p, iter|
         iter[MIRACLE_PAINTER].destroy }
     }

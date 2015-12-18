@@ -14,7 +14,6 @@ Plugin::create(:libnotify) do
         command << "-i" << Gdk::WebImageLoader.local_path(user[:profile_image_url])
         command << "@#{user[:idname]} (#{user[:name]})" end
       command << text
-      notice command
       begin
         bg_system(*command)
       rescue => e

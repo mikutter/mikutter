@@ -27,18 +27,14 @@ Plugin.create :console do
     gen_tags(widget_result.buffer)
 
     widget_input.ssc('key_press_event'){ |widget, event|
-      notice "console key press #{::Gtk::keyname([event.keyval ,event.state])}"
       if "Control + Return" == ::Gtk::keyname([event.keyval ,event.state])
-        notice "console eval #{widget.buffer.text}"
         iter = widget_result.buffer.end_iter
         begin
           result = Kernel.instance_eval(widget.buffer.text)
-          notice "console result #{result.inspect}"
           widget_result.buffer.insert(iter, ">>> ", "prompt")
           widget_result.buffer.insert(iter, "#{widget.buffer.text}\n", "echo")
           widget_result.buffer.insert(iter, "#{result.inspect}\n", "result")
         rescue Exception => e
-          notice "console error occur #{e}"
           widget_result.buffer.insert(iter, ">>> ", "prompt")
           widget_result.buffer.insert(iter, "#{widget.buffer.text}\n", "echo")
           widget_result.buffer.insert(iter, "#{e.class}: ", "errorclass")
