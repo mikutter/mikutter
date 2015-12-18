@@ -308,7 +308,7 @@ class Plugin::PluginTag
   def initialize(name = :anonymous)
     @name = name
     active!
-    regist end
+    register end
 
   # 新しくプラグインを作成する。もしすでに同じ名前で作成されていれば、新しく作成せずにそれを返す。
   def self.create(name)

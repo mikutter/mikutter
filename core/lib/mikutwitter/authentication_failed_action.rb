@@ -57,7 +57,7 @@ module MikuTwitter::AuthenticationFailedAction
 end
 
 # デフォルトの認証メソッド: ターミナルでPINコードを入力させる
-MikuTwitter::AuthenticationFailedAction.regist{ |service, method, url, options, res|
+MikuTwitter::AuthenticationFailedAction.register{ |service, method, url, options, res|
   begin
     request_token = service.request_oauth_token
     puts "go to #{request_token.authorize_url}"

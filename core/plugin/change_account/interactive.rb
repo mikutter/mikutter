@@ -41,7 +41,7 @@ module Plugin::ChangeAccount
     ButtonBottom = 6            # わかるよね
     ButtonMargin = 3            # ボタンとボタンの距離
 
-    regist
+    register
 
     def initialize(*args)
       super

@@ -6,7 +6,7 @@ require 'gtk2'
 require 'cairo'
 
 class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
-  regist
+  register
 
   def get_vote_count
     [helper.message[:favorite_count] || 0, super].max
