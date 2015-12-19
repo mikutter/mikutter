@@ -359,12 +359,14 @@ class Message < Retriever::Model
   # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
   # ==== Return
   # obj|Enumerator
-  def each_ancestors(force_retrieve=false, &proc)
+  def each_ancestor(force_retrieve=false, &proc)
     e = ancestors_enumerator(force_retrieve)
     if block_given?
       e.each(&proc)
     else
       e end end
+  alias :each_ancestors :each_ancestor
+  deprecate :each_ancestors, "each_ancestor", 2016, 12
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、それらを配列にして返す。
   # 配列インデックスが大きいものほど、早く投稿された投稿になる。
@@ -397,12 +399,14 @@ class Message < Retriever::Model
   # _force_retrieve_ は、 Message#retweet_parent の引数にそのまま渡される
   # ==== Return
   # obj|Enumerator
-  def each_retweet_ancestors(force_retrieve=false, &proc)
+  def each_retweet_ancestor(force_retrieve=false, &proc)
     e = retweet_ancestors_enumerator(force_retrieve)
     if block_given?
       e.each(&proc)
     else
       e end end
+  alias :each_retweet_ancestors :each_retweet_ancestor
+  deprecate :each_retweet_ancestors, "each_retweet_ancestor", 2016, 12
 
   # retweet元を再帰的に遡り、それらを配列にして返す。
   # 配列の最初の要素は必ずselfになり、以降は直前の要素のリツイート元となる。

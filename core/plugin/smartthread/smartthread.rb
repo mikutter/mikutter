@@ -17,7 +17,7 @@ Plugin.create :smartthread do
     if i_timeline and seeds
       SerialThread.new do
         messages.each{ |message|
-          message.each_ancestors { |cur|
+          message.each_ancestor { |cur|
             if seeds.include? cur
               i_timeline << message end } } end end end
 
@@ -41,7 +41,7 @@ Plugin.create :smartthread do
     tl = timeline(slug)
     @timelines[slug].each{ |message|
       Thread.new{
-        message.each_ancestors(true){ |child|
+        message.each_ancestor(true){ |child|
           tl << child } }.trap{|e| error e} }
     timeline(slug).active!
   }
