@@ -183,7 +183,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.parma_link),
+                          message.perma_link),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
@@ -193,7 +193,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.parma_link),
+                          message.perma_link),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
@@ -205,7 +205,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
                               "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              source.parma_link),
+                              source.perma_link),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),

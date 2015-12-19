@@ -3,7 +3,7 @@
 require File.expand_path File.join(File.dirname(__FILE__), 'streamer')
 
 module ::Plugin::Streaming
-  class ParmaStreamer
+  class PermaStreamer
 
     # ==== Args
     # [service] 接続するService
@@ -15,23 +15,23 @@ module ::Plugin::Streaming
     def mainloop
       loop do
         begin
-          notice "ParmaStreamer start"
+          notice "PermaStreamer start"
           streamer = Plugin::Streaming::Streamer.new(@service){
             @fail.success
           }
           result = streamer.thread.value
         rescue Net::HTTPError => e
-          notice "ParmaStreamer caught exception"
+          notice "PermaStreamer caught exception"
           notice e
           notice "redume..."
           @fail.notify(e)
         rescue Exception => e
-          notice "ParmaStreamer caught exception"
+          notice "PermaStreamer caught exception"
           notice e
           notice "redume..."
           @fail.notify(e)
         else
-          notice "ParmaStreamer exit"
+          notice "PermaStreamer exit"
           notice result
           @fail.notify(result)
         ensure
