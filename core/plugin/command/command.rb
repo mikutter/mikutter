@@ -41,7 +41,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("reply.png"),
           role: :timeline) do |opt|
-    messages = opt.messages.map{ |m| m.message.ancestors }.flatten
+    messages = opt.messages.map{ |m| m.message.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
                               header: messages.map(&:user).uniq.reject(&:me?).map{|x| "@#{x.idname}"}.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
