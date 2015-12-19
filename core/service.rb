@@ -155,7 +155,7 @@ class Service
     wait = Queue.new
     __send__(kind, args).next{ |res|
       wait.push res
-    }.terminate.trap{ |e|
+    }.terminate.trap{
       wait.push nil }
     wait.pop end
 

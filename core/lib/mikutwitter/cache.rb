@@ -91,7 +91,6 @@ module MikuTwitter::Cache
         return cached_value end end
     result
   rescue => e
-    warn e
     cached_value = get_cache(path)
     if cached_value
       cached_value

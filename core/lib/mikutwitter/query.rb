@@ -39,7 +39,18 @@ module MikuTwitter::Query
   def api(api, options = {}, force_oauth = false)
     type_strict options => Hash
     promise = Thread.new do
-      query!(api, options, force_oauth) end
+      begin
+        query!(api, options, force_oauth)
+      rescue MikuTwitter::RateLimitError => exception
+        raise exception
+      rescue MikuTwitter::Error => exception
+        httpresponse = exception.httpresponse
+        if httpresponse and httpresponse.body.is_a?(String)
+          body = JSON.parse(httpresponse.body, symbolize_names: true)
+          if body[:errors].is_a?(Array)
+            errobj = body[:errors].first
+            raise MikuTwitter::TwitterError(errobj[:code]).new(errobj[:message] || exception.message, httpresponse) end end
+        raise exception end end
     promise.abort_on_exception = false
     promise end
 
@@ -69,7 +80,7 @@ module MikuTwitter::Query
     if('2' == res.code[0])
       res
     else
-      raise MikuTwitter::Error.new("#{res.code} #{res.to_s}", res) end
+      raise MikuTwitter::Error.new("#{method} #{api} => #{res.code} #{res.message}", res) end
   rescue MikuTwitter::RateLimitError => e
     # 変数 resource の情報は振るい可能性がある（他のTwitterクライアントが同じエンドポイントを使用した時等）
     Plugin.call(:mikutwitter_ratelimit, self, ratelimit(api.to_s))

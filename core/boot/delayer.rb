@@ -23,19 +23,27 @@ module Delayer::Deferred::Deferredable
   # ==== Return
   # Deferred
   def terminate(message = nil, &message_generator)
-    self.trap{ |e|
-      begin
-        notice e
-        message = message_generator.call(e) if message_generator
-        if(message)
-          if(e.is_a?(Net::HTTPResponse))
-            Plugin.activity :error, "#{message} (#{e.code} #{e.body})"
-          else
-            e = 'error' if not e.respond_to?(:to_s)
-            Plugin.activity :error, "#{message} (#{e})", exception: e end end
-      rescue Exception => inner_error
-        error inner_error end
-      Deferred.fail(e) } end
+    message = message_generator.call(exception) if message_generator
+    self.trap{|exception|
+      case exception
+      when MikuTwitter::RateLimitError
+        Deferred.fail(exception)
+      when MikuTwitter::TwitterError
+        notice "#{exception.class}: #{exception.to_s}"
+        if message
+          Plugin.activity :error, "#{message} (#{exception.message} #{exception.code})", exception: exception end
+      else
+        begin
+          notice exception
+          if(message)
+            if(exception.is_a?(Net::HTTPResponse))
+              Plugin.activity :error, "#{message} (#{exception.code} #{exception.body})"
+            else
+              exception = 'error' if not exception.respond_to?(:to_s)
+              Plugin.activity :error, "#{message} (#{exception})", exception: exception end end
+        rescue Exception => inner_error
+          error inner_error end end
+      Deferred.fail(exception) } end
 end
 
 Delayer.register_remain_hook do
