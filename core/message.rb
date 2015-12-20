@@ -135,7 +135,7 @@ class Message < Retriever::Model
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    Service.primary and not system? and not from_me? and not user[:protected] end
+    Service.primary and not system? and not from_me? and not protected? end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
@@ -149,6 +149,10 @@ class Message < Retriever::Model
   # この投稿が自分宛ならばtrueを返す
   def to_me?
     system? or Service.map(&:user_obj).find(&method(:receive_to?)) end
+
+  # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
+  def protected?
+    user.protected? end
 
   # この投稿の投稿主を返す
   def user
