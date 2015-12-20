@@ -26,6 +26,7 @@ class User < Retriever::Model
                [:profile_image_url, :string],
                [:url, :string],
                [:protected, :bool],
+               [:verified, :bool],
                [:followers_count, :int],
                [:statuses_count, :int],
                [:friends_count, :int],
@@ -61,6 +62,10 @@ class User < Retriever::Model
 
   def protected?
     !!self[:protected]
+  end
+
+  def verified?
+    !!self[:verified]
   end
 
   # 大きいサイズのアイコンのURLを返す

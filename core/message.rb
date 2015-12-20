@@ -154,6 +154,10 @@ class Message < Retriever::Model
   def protected?
     user.protected? end
 
+  # この投稿が承認されているものならtrueを返す。
+  def verified?
+    user.verified? end
+
   # この投稿の投稿主を返す
   def user
     self.get(:user, -1) end
