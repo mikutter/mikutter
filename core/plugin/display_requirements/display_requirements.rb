@@ -172,8 +172,8 @@ class ::Gdk::MiraclePainter
     [ [ nil] ] end
 
   # アイコンをクリックしたら必ずプロフィールを表示しなければならない
-  def iob_clicked
-    if(current_icon_pos)
+  def iob_clicked(gx, gy)
+    if globalpos2iconpos(gx, gy)
       Plugin.call(:show_profile, Service.primary, message.user) end end
 
   # 名前からはプロフィールに、タイムスタンプからはツイートのパーマリンクにリンクしなければならない
