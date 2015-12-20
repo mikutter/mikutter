@@ -350,29 +350,71 @@ class Message < Retriever::Model
   def quoted_by?
     !quoted_by.empty? end
 
-  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
-  # ブロックが呼ばれる。
-  # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
-  def each_ancestors(force_retrieve=false, &proc)
-    proc.call(self)
-    parent = receive_message(force_retrieve)
-    parent.each_ancestors(force_retrieve, &proc) if parent
-  end
-
-  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それらを配列にして返す。
-  # 配列インデックスが大きいものほど、早く投稿された投稿になる。
-  # （[0]は[1]へのリプライ）
-  def ancestors(force_retrieve=false)
+  # 投稿の宛先になっている投稿を再帰的にさかのぼるような _Enumerator_ を返す。
+  # ==== Return
+  # Enumerator
+  def ancestors_enumerator(force_retrieve=false)
     Enumerator.new do |yielder|
       message = self
       while message
         yielder << message
         message = message.receive_message(force_retrieve) end end end
+  private :ancestors_enumerator
+
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
+  # ブロックが呼ばれる。
+  # ブロックが渡されていない場合、 _Enumerator_ を返す。
+  # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
+  # ==== Return
+  # obj|Enumerator
+  def each_ancestor(force_retrieve=false, &proc)
+    e = ancestors_enumerator(force_retrieve)
+    if block_given?
+      e.each(&proc)
+    else
+      e end end
+  alias :each_ancestors :each_ancestor
+  deprecate :each_ancestors, "each_ancestor", 2016, 12
+
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それらを配列にして返す。
+  # 配列インデックスが大きいものほど、早く投稿された投稿になる。
+  # （[0]は[1]へのリプライ）
+  def ancestors(force_retrieve=false)
+    ancestors_enumerator(force_retrieve).to_a end
 
   # 投稿の宛先になっている投稿を再帰的にさかのぼり、何にも宛てられていない投稿を返す。
   # つまり、一番祖先を返す。
   def ancestor(force_retrieve=false)
-    ancestors(force_retrieve).to_a.last end
+    ancestors(force_retrieve).last end
+
+  # retweet元を再帰的にさかのぼるような _Enumerator_ を返す。
+  # この _Enumerator_ は最初にこの _Message_ 自身を yield し、以降は直前に yield した
+  # 要素のretweet元を yield する。
+  # ==== Return
+  # Enumerator
+  def retweet_ancestors_enumerator(force_retrieve=false)
+    Enumerator.new do |yielder|
+      message = self
+      while message
+        yielder << message
+        message = message.retweet_parent(force_retrieve)
+      end end end
+  private :retweet_ancestors_enumerator
+
+  # retweet元を再帰的にさかのぼり、それぞれを引数に取って
+  # ブロックが呼ばれる。
+  # ブロックが渡されていない場合、 _Enumerator_ を返す。
+  # _force_retrieve_ は、 Message#retweet_parent の引数にそのまま渡される
+  # ==== Return
+  # obj|Enumerator
+  def each_retweet_ancestor(force_retrieve=false, &proc)
+    e = retweet_ancestors_enumerator(force_retrieve)
+    if block_given?
+      e.each(&proc)
+    else
+      e end end
+  alias :each_retweet_ancestors :each_retweet_ancestor
+  deprecate :each_retweet_ancestors, "each_retweet_ancestor", 2016, 12
 
   # retweet元を再帰的に遡り、それらを配列にして返す。
   # 配列の最初の要素は必ずselfになり、以降は直前の要素のリツイート元となる。
@@ -380,12 +422,7 @@ class Message < Retriever::Model
   # ==== Return
   # Enumerator
   def retweet_ancestors(force_retrieve=false)
-    Enumerator.new do |yielder|
-      message = self
-      while message
-        yielder << message
-        message = message.retweet_parent(force_retrieve)
-      end end end
+    retweet_ancestors_enumerator(force_retrieve).to_a end
 
   # リツイート元を再帰的に遡り、リツイートではないツイートを返す。
   # selfがリツイートでない場合は、selfを返す。
@@ -394,7 +431,7 @@ class Message < Retriever::Model
   # ==== Return
   # Message
   def retweet_ancestor(force_retrieve=false)
-    retweet_ancestors(force_retrieve).to_a.last end
+    retweet_ancestors(force_retrieve).last end
 
   # このMessageがリツイートなら、何のリツイートであるかを返す。
   # 返される値の retweet? は常に false になる
