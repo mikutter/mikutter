@@ -79,6 +79,11 @@ Plugin::create(:set_view) do
         tooltip(_("非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"))
     end
 
+    settings(_('承認済みアカウント')) do
+      boolean(_('承認済みアカウントのつぶやきにはアイコンを表示'), :show_verified_icon).
+        tooltip(_("Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"))
+    end
+
     settings(_('短縮URL')) do
       boolean(_('短縮URLを展開して表示'), :shrinkurl_expand).
         tooltip(_("受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"))
