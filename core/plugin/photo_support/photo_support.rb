@@ -155,12 +155,12 @@ Plugin.create :photo_support do
   end
 
   # d250g2(Twitpicが消えたとき用)
-  defimageopener('d250g2(Twitpicが消えたとき用)', %r#\Ahttp://twitpic.com/d250g2\Z#) do
+  defimageopener('d250g2(Twitpicが消えたとき用)', %r#\Ahttp://twitpic\.com/d250g2\Z#) do
     open('http://d250g2.com/d250g2.jpg')
   end
 
   # totori.dip.jp
-  defimageopener('totori.dip.jp', %r#\Ahttp://totori.dip.jp/?\Z#) do |display_url|
+  defimageopener('totori.dip.jp', %r#\Ahttp://totori\.dip\.jp/?\Z#) do |display_url|
     iwashi = Totoridipjp.イワシがいっぱいだあ…ちょっとだけもらっていこうかな
     if iwashi.url
       open(iwashi.url) end
