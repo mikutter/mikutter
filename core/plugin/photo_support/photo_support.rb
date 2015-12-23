@@ -188,4 +188,10 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.d250g2(display_url)
     open(img) if img
   end
+
+  # yfrog
+  defimageopener('yfrog', %r#\Ahttps?://yfrog\.com/es3bcstj\Z#) do
+    img = Plugin::PhotoSupport.d250g2('http://router-cake.d250g2.com/')
+    open(img) if img
+  end
 end
