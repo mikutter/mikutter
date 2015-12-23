@@ -185,10 +185,7 @@ Plugin.create :photo_support do
 
   # 600eur.gochiusa.net
   defimageopener('600eur.gochiusa.net', %r#\Ahttp://600eur\.gochiusa\.net/?\Z#) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    open(doc.css('meta[name="twitter:image:src"]').first.attribute('content'))
+    img = Plugin::PhotoSupport.d250g2(display_url)
+    open(img) if img
   end
 end
