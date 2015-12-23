@@ -5,6 +5,22 @@ require 'totoridipjp'
 
 module Plugin::PhotoSupport
   INSTAGRAM_PATTERN = %r{^https?://(?:instagr\.am|instagram\.com)/p/([a-zA-Z0-9_\-]+)}
+
+  class << self
+    # Twitter cardsのURLを画像のURLに置き換える。
+    # HTMLを頻繁にリクエストしないように、このメソッドを通すことでメモ化している。
+    # ==== Args
+    # [display_url] http://d250g2.com/
+    # ==== Return
+    # String 画像URL(http://d250g2.com/d250g2.jpg)
+    def d250g2(display_url)
+      connection = HTTPClient.new
+      page = connection.get_content(display_url)
+      unless page.empty?
+        doc = Nokogiri::HTML(page)
+        doc.css('meta[name="twitter:image:src"]').first.attribute('content') end end
+    memoize :d250g2
+  end
 end
 
 Plugin.create :photo_support do
@@ -150,8 +166,9 @@ Plugin.create :photo_support do
   end
 
   # d250g2
-  defimageopener('d250g2', %r#\Ahttp://d250g2.com/?\Z#) do
-    open('http://d250g2.com/d250g2.jpg')
+  defimageopener('d250g2', %r#\Ahttps?://(?:[\w\-]+\.)?d250g2\.com/?\Z#) do |display_url|
+    img = Plugin::PhotoSupport.d250g2(display_url)
+    open(img) if img
   end
 
   # d250g2(Twitpicが消えたとき用)
