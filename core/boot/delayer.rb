@@ -23,8 +23,8 @@ module Delayer::Deferred::Deferredable
   # ==== Return
   # Deferred
   def terminate(message = nil, &message_generator)
-    message = message_generator.call(exception) if message_generator
     self.trap{|exception|
+      message = message_generator.call(exception) if message_generator
       case exception
       when MikuTwitter::RateLimitError
         Deferred.fail(exception)
