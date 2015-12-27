@@ -20,7 +20,7 @@ Plugin.create(:streaming_connection_status) do
     title = _("%{streaming_kind}: 切断されました。再接続します".freeze) % {streaming_kind: streaming_kind}
     activity(:streaming_status, title,
              description: _("%{title}\n接続できませんでした(%{error_string})".freeze) % {
-               error_string: get_error_str(e),
+               error_string: error_string,
                title: title })
   end
 
