@@ -6,6 +6,7 @@ miquire :mui, 'tree_view_pretty_scroll'
 require "set"
 
 # アクティビティの設定の並び順
+UserConfig[:activity_kind_order] = nil unless UserConfig[:activity_kind_order].is_a? Array
 UserConfig[:activity_kind_order] ||= %w(
 	retweet
 	favorite
