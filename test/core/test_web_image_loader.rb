@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 
-require 'webmock'
+require 'webmock/test_unit'
 require 'gtk2'
 
 ICON_TEST = File.expand_path(File.dirname(__FILE__) + "/icon_test.png")
@@ -41,7 +41,10 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   must "successfully load image" do
     url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
-    WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
+    stub_request(:get, url).
+      to_return(
+        status: 200,
+        body: File.new(ICON_TEST, 'rb'))
     response_pixbuf = response_success = nil
     Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
       response_pixbuf, response_success = [pixbuf, success]
@@ -60,7 +63,10 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     # URI::InvalidURIError
     # url = 'http://a1.twimg.com/profile_images/80925056/クリップボード01_normal.jpg'
     url = 'http://a0.twimg.com/profile_images/1522298893/みくかわいい.png'
-    WebMock.stub_request(:get, url).to_return{ File.open(ICON_TEST, 'rb'){ |io| io.read } }
+    stub_request(:get, url).
+      to_return(
+        status: 200,
+        body: File.new(ICON_TEST, 'rb'))
     response = nil
     Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf, success, url|
       response = success
@@ -90,11 +96,11 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
 
   must "multi thread load image" do
     url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
-    access_count = 0
-    WebMock.stub_request(:get, url).to_return{
-      atomic{ access_count += 1 }
-      File.open(ICON_TEST){ |io| io.read }
-    }
+    stub_request(:get, url).
+      to_return(
+        status: 200,
+        body: File.new(ICON_TEST, 'rb')).then.
+      to_raise(RuntimeError)
     response = Array.new(20)
     20.times{ |cnt|
       response[cnt] = Gdk::WebImageLoader.pixbuf(url, 48, 48){ |pixbuf|
@@ -110,16 +116,17 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
       assert_kind_of(Gdk::Pixbuf, r)
       assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), r)
       assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), r) }
-    assert_equal(1, access_count)
   end
 
   must "get raw data success" do
     raw = response = nil
     Thread.new {
       url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
-      http_raw = File.open(ICON_TEST){ |io| io.read }.force_encoding('ASCII-8BIT').freeze
-      raw = http_raw[http_raw.index("\211PNG".force_encoding('ASCII-8BIT')), http_raw.size]
-      WebMock.stub_request(:get, url).to_return(http_raw)
+      raw = File.open(ICON_TEST, 'rb'){ |io| io.read }.force_encoding('ASCII-8BIT').freeze
+      stub_request(:get, url).
+        to_return(
+          status: 200,
+          body: raw)
       Gdk::WebImageLoader.get_raw_data(url){ |data, success, url|
         response = [data, success] } }.join
     (Thread.list - [Thread.current]).each &:join
@@ -132,8 +139,11 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
   must "local path" do
     localpath = nil
     url = 'http://a0.twimg.com/profile_images/1522298893/itiiti_hitono_icon_no_file_mei_mirutoka_teokure_desune.png'
+    stub_request(:get, url).
+      to_return(
+        status: 200,
+        body: File.new(ICON_TEST, 'rb'))
     Thread.new {
-      WebMock.stub_request(:get, url).to_return(File.open(ICON_TEST){ |io| io.read })
       localpath = Gdk::WebImageLoader.local_path(url)
     }.join
     assert_equal(File.join(Environment::TMPDIR, "e9183b9265dcf0728fceceb07444e8c1.png.png"), localpath)
