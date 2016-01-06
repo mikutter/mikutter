@@ -12,7 +12,7 @@ require 'timeout'
 class TimeLimitedQueue < Queue
 
   TLQGroup = ThreadGroup.new
-  WaitingExpire = Class.new(TimeoutError)
+  WaitingExpire = Class.new(Timeout::Error)
 
   # 一度にキューを処理する上限を取得設定する
   attr_accessor :max
