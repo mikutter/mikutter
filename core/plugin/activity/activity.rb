@@ -6,7 +6,18 @@ miquire :mui, 'tree_view_pretty_scroll'
 require "set"
 
 # アクティビティの設定の並び順
-UserConfig[:activity_kind_order] ||= %s[retweet favorite follow list_member_added list_member_removed dm system ratelimit streaming_status error]
+UserConfig[:activity_kind_order] = nil unless UserConfig[:activity_kind_order].is_a? Array
+UserConfig[:activity_kind_order] ||= %w(
+	retweet
+	favorite
+	follow
+	list_member_added
+	list_member_removed
+	dm
+	system
+	ratelimit
+	streaming_status
+	error)
 # アクティビティタブに保持する通知の数
 UserConfig[:activity_max] ||= 1000
 
