@@ -3,15 +3,16 @@
 # This file is distributed under the same license as the achievement package.
 # 
 # Translators:
+# Vel <veloci85@gmail.com>, 2015
 # Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:34+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
-"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2015-10-30 13:22+0000\n"
+"Last-Translator: Vel <veloci85@gmail.com>\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -24,15 +25,15 @@ msgstr "成就"
 
 #: ../achievement.rb:101
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
-msgstr ""
+msgstr "Twitter 帳號已在 mikutter 完成登錄。可以順利刷推囉！"
 
 #: ../achievement.rb:108
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
-msgstr "進入設定界面定製你自己的mikutter吧"
+msgstr "進入設定介面自訂你專屬的 mikutter 吧！"
 
 #: ../achievement.rb:109
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
-msgstr "點擊窗口右下角的扳手圖標吧"
+msgstr "請點擊視窗右下角的扳手圖示"
 
 #: ../achievement.rb:116
 msgid "ヾ(＠⌒ー⌒＠)ノ"
@@ -44,24 +45,24 @@ msgstr "https://github.com/toshia/display_requirements"
 
 #: ../achievement.rb:125
 msgid "新規ペインを追加コマンドでペインを増やせます"
-msgstr "通过命令“添加新欄”来增加欄數"
+msgstr "以「新增窗格」指令來增加窗格"
 
 #: ../achievement.rb:126
 msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
-msgstr "右擊標籤後選擇“移動至新欄”看看吧"
+msgstr "右鍵點擊頁籤後選擇「移動至新窗格」試試吧"
 
 #: ../achievement.rb:134
 msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
-msgstr "拖動標籤到其他欄，就可以把該標籤移動至該欄"
+msgstr "將頁籤拖曳到其他窗格，就可以移動到該窗格去"
 
 #: ../achievement.rb:135
 msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
-msgstr "在一欄中有兩個以上標籤的時候，試試拖動標籤到其他欄上吧"
+msgstr "已有兩個以上窗格的話，試試將頁籤拖放到其他窗格吧"
 
 #: ../achievement.rb:145
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "謝謝您發送崩潰報告"
 
-#: ../achievement.rb:160
+#: ../achievement.rb:171
 msgid "実績 %s を達成しました！おめでとう♪"
-msgstr "成就已達成 %s ！祝賀你♪"
+msgstr "取得成就：%s！恭喜你♪"

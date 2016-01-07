@@ -1,9 +1,10 @@
-# Japanese translations for extract package.
-# Copyright (C) 2015 THE PACKAGE'S COPYRIGHT HOLDER
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the extract package.
 # 
 # Translators:
-# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013,2015
+# Alice Takashina <cannorin@gmail.com>, 2016
 # ABE Satoru <s@polamjag.info>, 2013
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 # Toshiaki Asai <toshi.alternative@gmail.com>, 2015
@@ -12,10 +13,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-11 01:10+0900\n"
-"PO-Revision-Date: 2015-06-10 16:23+0000\n"
-"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2016-01-05 06:58+0000\n"
+"Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -127,16 +128,16 @@ msgstr "Home Timeline"
 msgid "Mentions"
 msgstr "Mentions"
 
-#: ../extract.rb:260
+#: ../extract.rb:259
 msgid "抽出タブ条件エラー"
 msgstr "Extract condition error"
 
-#: ../extract.rb:262
+#: ../extract.rb:261
 msgid ""
 "抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n"
 "%{error_string}"
-msgstr ""
+msgstr "Criteria that used in filtered tab '%{tab_name}' not found:\n%{error_string}"
 
 #: ../extract.rb:290
 msgid "抽出条件 `%{condition}' が見つかりませんでした"
-msgstr ""
+msgstr "Criteria '%{condition}' not found"

@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the profile package.
 # 
 # Translators:
+# Vel <veloci85@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-28 17:40+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
-"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"POT-Creation-Date: 2014-10-19 22:35+0900\n"
+"PO-Revision-Date: 2015-10-31 09:23+0000\n"
+"Last-Translator: Vel <veloci85@gmail.com>\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,74 +20,74 @@ msgstr ""
 
 #: ../profile.rb:45
 msgid "%{user} のプロフィール"
-msgstr ""
+msgstr "%{user} 的個人資料"
 
 #: ../profile.rb:62
 msgid "最近のツイート"
-msgstr ""
+msgstr "最新的推文"
 
 #: ../profile.rb:71
 msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
-msgstr ""
+msgstr "無法取得 @%{user} 的最新推文，他不想給人看的樣子"
 
-#: ../profile.rb:74 ../profile.rb:127
+#: ../profile.rb:74 ../profile.rb:133
 msgid "ユーザについて"
-msgstr ""
+msgstr "關於使用者"
 
-#: ../profile.rb:91
+#: ../profile.rb:98
 msgid "Web: %{url}"
-msgstr ""
+msgstr "Web: %{url}"
 
-#: ../profile.rb:94
+#: ../profile.rb:101
 msgid ""
 "Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
 "(%{tweets_per_day}tweets/day)"
-msgstr ""
+msgstr "開始上推: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)"
 
-#: ../profile.rb:123
+#: ../profile.rb:129
 msgid "%{screen_name}(%{name})について"
-msgstr ""
+msgstr "關於 %{screen_name}(%{name})"
 
-#: ../profile.rb:144
+#: ../profile.rb:150
 msgid "ミュート"
-msgstr ""
-
-#: ../profile.rb:172
-msgid "関係を取得中"
-msgstr ""
+msgstr "消音"
 
 #: ../profile.rb:177
+msgid "関係を取得中"
+msgstr "關係取得中"
+
+#: ../profile.rb:182
 msgid "それはあなたです！"
-msgstr ""
+msgstr "這是你自己唷！"
 
-#: ../profile.rb:202
+#: ../profile.rb:207
 msgid "ﾌｮﾛｰしている"
-msgstr ""
+msgstr "正在關注"
 
-#: ../profile.rb:202
+#: ../profile.rb:207
 msgid "ﾌｮﾛｰしていない"
-msgstr ""
+msgstr "並未關注"
 
-#: ../profile.rb:203
+#: ../profile.rb:208
 msgid "ﾌｮﾛｰ"
-msgstr ""
+msgstr "關注"
 
-#: ../profile.rb:203
+#: ../profile.rb:208
 msgid "解除"
-msgstr ""
+msgstr "取消關注"
 
-#: ../profile.rb:212
+#: ../profile.rb:217
 msgid "ﾌｮﾛｰされていない"
-msgstr ""
+msgstr "已取消關注"
 
-#: ../profile.rb:212
+#: ../profile.rb:217
 msgid "ﾌｮﾛｰされている"
-msgstr ""
+msgstr "已關注"
 
-#: ../profile.rb:238
+#: ../profile.rb:243
 msgid "取得できませんでした"
-msgstr ""
+msgstr "取得失敗"
 
-#: ../profile.rb:294
+#: ../profile.rb:299
 msgid "ふぁぼが取得できませんでした"
-msgstr ""
+msgstr "收藏取得失敗"

@@ -4,14 +4,15 @@
 # 
 # Translators:
 # Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
+# Vel <veloci85@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-10-15 06:30+0000\n"
-"Last-Translator: Hsiao-Ting Wang <hsiaoting.wang@gmail.com>\n"
-"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"POT-Creation-Date: 2014-10-19 21:35+0900\n"
+"PO-Revision-Date: 2015-11-13 13:44+0000\n"
+"Last-Translator: Vel <veloci85@gmail.com>\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: ../profiletab.rb:40
 msgid "%{user} のユーザ情報が取得できませんでした"
-msgstr "無法取得 %{user} 的新資訊"
+msgstr "無法取得 %{user} 的使用者資訊"
 
 #: ../window.rb:31
 msgid "デフォルト"

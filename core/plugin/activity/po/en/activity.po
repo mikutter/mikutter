@@ -3,18 +3,19 @@
 # This file is distributed under the same license as the activity package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013
-# roobre <roobre@roobre.es>, 2013
-# 魚の目玉人形 <toshi.alternative@gmail.com>, 2014
-# Shirayuki/しらゆき Shira <shirayuking@gmail.com>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Alice Takashina <cannorin@gmail.com>, 2016
+# Roberto Santalla <roobre@roobre.es>, 2013
+# Toshiaki Asai <toshi.alternative@gmail.com>, 2014
+# Yuki Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-04-24 00:31+0000\n"
-"Last-Translator: 魚の目玉人形 <toshi.alternative@gmail.com>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2016-01-06 00:53+0000\n"
+"Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -33,102 +34,115 @@ msgstr "Description"
 msgid "時刻"
 msgstr "Time"
 
-#: ../activity.rb:150 ../activity.rb:285 ../activity.rb:288
+#: ../activity.rb:141 ../activity.rb:276 ../activity.rb:279
 msgid "アクティビティ"
 msgstr "Activities"
 
-#: ../activity.rb:193
+#: ../activity.rb:184
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr "@%{user} favorited"
 
-#: ../activity.rb:203
+#: ../activity.rb:194
 msgid "@%{user} があんふぁぼしました"
 msgstr "@%{user} unfavorited"
 
-#: ../activity.rb:215
+#: ../activity.rb:206
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} retweeted"
 
-#: ../activity.rb:221
+#: ../activity.rb:212
 msgid "リツイートソースが取得できませんでした"
 msgstr "Failed to retrieve the retweet source"
 
-#: ../activity.rb:226
+#: ../activity.rb:217
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user} was added to list %{list}"
 
-#: ../activity.rb:234 ../activity.rb:251
+#: ../activity.rb:225 ../activity.rb:242
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (by @%{user})"
 
-#: ../activity.rb:243
+#: ../activity.rb:234
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user} was removed from list %{list}"
 
-#: ../activity.rb:263
+#: ../activity.rb:254
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} followed @%{follower}"
 
-#: ../activity.rb:272
+#: ../activity.rb:263
 msgid "ダイレクトメッセージを送信しました"
-msgstr "Sent Direct Message"
+msgstr "Direct Message sent"
 
-#: ../activity.rb:272
+#: ../activity.rb:263
 msgid "ダイレクトメッセージを受信しました"
-msgstr "Received new Direct Message"
+msgstr "New Direct Message received"
 
-#: ../activity.rb:273
+#: ../activity.rb:264
 msgid "D %{recipient} %{text}"
 msgstr "D %{recipient} %{text}"
 
-#: ../activity.rb:301
-msgid "表示しないイベント"
-msgstr "Events that won't be displayed"
+#: ../activity.rb:296
+msgid "%{name}を表示する"
+msgstr "Show %{name}"
 
-#: ../activity.rb:302
-msgid "以下の自分に関係ないイベント"
-msgstr "Events below which have nothing to do with me"
+#: ../activity.rb:296
+msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
+msgstr "Show %{name} in the activity timeline. If unchecked, any other settings in %{name} section will be disabled."
 
-#: ../activity.rb:306
-msgid "以下の全てのイベント"
-msgstr "All events below"
+#: ../activity.rb:297
+msgid "自分に関係ない%{name}も表示する"
+msgstr "Show %{name} which are not related to me"
 
-#: ../activity.rb:310
+#: ../activity.rb:297
+msgid ""
+"自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
+msgstr "If checked, any %{name} which are not related to you will show up in the activity timeline. Uncheck this to disable it."
+
+#: ../activity.rb:298
 msgid "タイムラインに表示"
 msgstr "Display on timeline"
 
-#: ../activity.rb:314
+#: ../activity.rb:298
+msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
+msgstr "Notify %{name} as system message."
+
+#: ../activity.rb:299
 msgid "ステータスバーに表示"
 msgstr "Display on status bar"
 
-#: ../activity.rb:318
+#: ../activity.rb:299
+msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
+msgstr "When you received %{name}, leave it being shown in the status bar for several seconds"
+
+#: ../activity.rb:304
 msgid "リツイート"
-msgstr "Retweet"
+msgstr "Retweets"
 
-#: ../activity.rb:319
+#: ../activity.rb:305
 msgid "ふぁぼ"
-msgstr "Fav"
+msgstr "Favs"
 
-#: ../activity.rb:320
+#: ../activity.rb:306
 msgid "フォロー"
-msgstr "Follow"
+msgstr "Followings"
 
-#: ../activity.rb:321
+#: ../activity.rb:307
 msgid "リストに追加"
-msgstr "Add to list"
+msgstr "Additon to list"
 
-#: ../activity.rb:322
+#: ../activity.rb:308
 msgid "リストから削除"
-msgstr "Remove from list"
+msgstr "Removal from list"
 
-#: ../activity.rb:323
+#: ../activity.rb:309
 msgid "ダイレクトメッセージ"
-msgstr "Direct message"
+msgstr "Direct messages"
 
-#: ../activity.rb:324
+#: ../activity.rb:310
 msgid "システムメッセージ"
-msgstr "System message"
+msgstr "System messages"
 
-#: ../activity.rb:325
+#: ../activity.rb:311
 msgid "エラー"
-msgstr "Error"
+msgstr "Errors"

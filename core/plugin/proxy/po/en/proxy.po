@@ -3,16 +3,17 @@
 # This file is distributed under the same license as the proxy package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013
-# roobre <roobre@roobre.es>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Alice Takashina <cannorin@gmail.com>, 2016
+# Roberto Santalla <roobre@roobre.es>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-31 01:04+0000\n"
-"Last-Translator: roobre <roobre@roobre.es>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2016-01-05 04:44+0000\n"
+"Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -25,7 +26,7 @@ msgstr "Proxy"
 
 #: ../proxy.rb:36
 msgid "自分で設定する"
-msgstr "Set myself"
+msgstr "Manual configuration"
 
 #: ../proxy.rb:37
 msgid "サーバ"

@@ -3,16 +3,17 @@
 # This file is distributed under the same license as the bugreport package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Alice Takashina <cannorin@gmail.com>, 2016
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-05-11 07:16+0000\n"
-"Last-Translator: shinmili <rmsk.pl.ur.lpt@gmail.com>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2016-01-05 06:00+0000\n"
+"Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,15 +22,15 @@ msgstr ""
 
 #: ../bugreport.rb:50
 msgid "%{mikutter} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ"
-msgstr "ヽ('ω')ﾉ三ヽ('ω')ﾉ I'm sorry to crash %{mikutter} suddenly."
+msgstr "It looks like %{mikutter} suddenly crashed. ヽ('ω')ﾉ三ヽ('ω')ﾉ Sorry about that!"
 
 #: ../bugreport.rb:51
 msgid "OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても役に立つんですよ。よかったら送ってくれません？"
-msgstr "If you press OK, the following text will be sent automatically. This is very useful to fix bugs. Would you send me?"
+msgstr "If you press the OK button, the following text will be sent. This helps us greatly when we fix bugs for future releases, so we'd appreciate it if you do so."
 
 #: ../bugreport.rb:86
 msgid "エラー報告を送信しました。ありがとう♡"
-msgstr "Error reporting was transmitted. Thank you♡"
+msgstr "Error report successfully sent. Thank you ♡"
 
 #: ../bugreport.rb:89
 msgid "ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww"
