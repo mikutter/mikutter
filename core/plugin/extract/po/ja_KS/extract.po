@@ -7,18 +7,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: extract 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 22:35+0900\n"
-"PO-Revision-Date: 2014-10-21 22:48+0900\n"
+"POT-Creation-Date: 2016-01-08 16:49+0900\n"
+"PO-Revision-Date: 2016-01-08 17:06+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: ja_JP\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.6.9\n"
-"Language: ja_JP\n"
+"X-Generator: Poedit 1.5.4\n"
 
-#: ../edit_window.rb:13 ../edit_window.rb:127
+#: ../edit_window.rb:13 ../edit_window.rb:128
 msgid "%{name} - 抽出タブ - %{application_name}"
 msgstr "%{name} - 抽出タブ - %{application_name}"
 
@@ -34,63 +34,107 @@ msgstr "絞り込み条件"
 msgid "オプション"
 msgstr "オプション"
 
-#: ../edit_window.rb:69 ../edit_window.rb:112 ../extract.rb:103
+#: ../edit_window.rb:69 ../edit_window.rb:113 ../extract.rb:178
 #: ../extract_tab_list.rb:19
 msgid "名前"
 msgstr "名前"
 
-#: ../edit_window.rb:113
+#: ../edit_window.rb:114
 msgid "アイコン"
 msgstr "アイコン"
 
-#: ../edit_window.rb:114
+#: ../edit_window.rb:115
 msgid "通知"
 msgstr "通知"
 
-#: ../edit_window.rb:115
+#: ../edit_window.rb:116
 msgid "サウンド"
 msgstr "サウンド"
 
-#: ../edit_window.rb:116
+#: ../edit_window.rb:117
 msgid "ポップアップ"
 msgstr "ポップアップ"
 
-#: ../edit_window.rb:119
+#: ../edit_window.rb:120
 msgid "閉じる"
 msgstr "閉じる"
 
-#: ../extract.rb:19
+#: ../extract.rb:68
 msgid "抽出タブ"
 msgstr "抽出タブ"
 
-#: ../extract.rb:49
+#: ../extract.rb:98
 msgid "抽出条件を編集"
 msgstr "抽出条件を編集"
 
-#: ../extract.rb:85
+#: ../extract.rb:123
+msgid "＝"
+msgstr "＝"
+
+#: ../extract.rb:124
+msgid "≠"
+msgstr "≠"
+
+#: ../extract.rb:125
+msgid "正規表現"
+msgstr "正規表現"
+
+#: ../extract.rb:126
+msgid "含む"
+msgstr "含む"
+
+#: ../extract.rb:128
+msgid "ユーザ名"
+msgstr "ユーザ名"
+
+#: ../extract.rb:130
+msgid "本文"
+msgstr "本文"
+
+#: ../extract.rb:132
+msgid "Twitterクライアント"
+msgstr "Twitterクライアント"
+
+#: ../extract.rb:160
 msgid "本当に抽出タブ「%{name}」を削除しますか？"
 msgstr "ほんまに抽出タブ「%{name}」消すんか？"
 
-#: ../extract.rb:97
+#: ../extract.rb:172
 msgid "抽出タブを作成 - %{mikutter}"
 msgstr "抽出タブを作成 - %{mikutter}"
 
-#: ../extract.rb:141
+#: ../extract.rb:216
 msgid "受信したすべての投稿"
 msgstr "受信したすべての投稿"
 
-#: ../extract.rb:142
+#: ../extract.rb:217
 msgid "ホームタイムライン(全てのアカウント)"
 msgstr "ホームタイムライン(全てのアカウント)"
 
-#: ../extract.rb:143
+#: ../extract.rb:218
 msgid "自分宛ての投稿(全てのアカウント)"
 msgstr "自分宛ての投稿(全てのアカウント)"
 
-#: ../extract.rb:147
+#: ../extract.rb:222
 msgid "Home Timeline"
 msgstr "Home Timeline"
 
-#: ../extract.rb:148
+#: ../extract.rb:223
 msgid "Mentions"
 msgstr "Mentions"
+
+#: ../extract.rb:259
+msgid "抽出タブ条件エラー"
+msgstr "抽出タブ条件エラー"
+
+#: ../extract.rb:261
+msgid ""
+"抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n"
+"%{error_string}"
+msgstr ""
+"抽出タブ「%{tab_name}」で使われとる条件が見つからへんかったで:\n"
+"%{error_string}"
+
+#: ../extract.rb:290
+msgid "抽出条件 `%{condition}' が見つかりませんでした"
+msgstr "抽出条件 `%{condition}' が見つからへんかったで"
