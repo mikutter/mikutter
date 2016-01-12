@@ -6,7 +6,7 @@ Plugin::create(:set_view) do
 
   filter_message_background_color do |message, color|
     if !color
-      color = if(message.selected)
+      color = if(message.respond_to?(:selected) && message.selected)
                 UserConfig[:mumble_selected_bg]
               elsif(message.to_message.system?)
                 UserConfig[:mumble_system_bg]

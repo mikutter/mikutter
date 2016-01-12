@@ -14,4 +14,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
         @messages = Messages.new([reply]).freeze
         render_messages
       }.terminate('リプライ描画中にエラーが発生しました') end end
+
+  def badge
+    Gdk::Pixbuf.new(Skin.get('reply.png'), @badge_radius*2, @badge_radius*2) end
 end

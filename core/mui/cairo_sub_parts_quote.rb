@@ -2,9 +2,6 @@
 
 miquire :mui, 'sub_parts_message_base'
 
-require 'gtk2'
-require 'cairo'
-
 class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   register
 
@@ -15,7 +12,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     case e.button
     when 1
       Plugin.filtering(:command, {}).first[:smartthread][:exec].call(Struct.new(:messages).new([message]))
-      end end
+    end end
 
   def initialize(*args)
     super
@@ -25,4 +22,8 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
       }.next{ |quoting|
         @messages = Messages.new(quoting).freeze
         render_messages
-      }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end end
+      }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
+
+  def badge
+    Gdk::Pixbuf.new(Skin.get('quote.png'), @badge_radius*2, @badge_radius*2) end
+end

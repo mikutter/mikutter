@@ -13,13 +13,19 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def messages
     nil end
 
+  # 左上に表示するバッジ。nilを還した場合は何も表示しない。
+  # ==== Return
+  # Gdk::Pixbuf 表示する画像
+  def badge
+    nil end
+
   # サブクラスで領域をクリックした時の処理を実装すること
-  def on_click(this, e, x, y, message)
+  def on_click(e, message)
   end
 
   def initialize(*args)
     super
-    @icon_width, @icon_height, @margin, @edge = 32, 32, 2, 8 end
+    @icon_width, @icon_height, @margin, @edge, @badge_radius = 32, 32, 2, 8, 6 end
 
   def render_messages
     if not helper.destroyed?
@@ -54,13 +60,15 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def render_single_message(message, context, base_y)
     render_outline(message, context, base_y)
     render_header(message, context, base_y)
-    context.save {
+    context.save do
       context.translate(@margin + @edge, @margin + @edge + base_y)
       context.set_source_pixbuf(main_icon(message))
       context.paint
-      context.translate(icon_width + @margin*2, header_left(message).size[1] / Pango::SCALE)
-      context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
-      context.show_pango_layout(main_message(message, context)) }
+      context.save do
+        context.translate(icon_width + @margin*2, header_left(message).size[1] / Pango::SCALE)
+        context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
+        context.show_pango_layout(main_message(message, context)) end
+      render_badge(message, context) end
 
     base_y + message_height(message) end
 
@@ -103,7 +111,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.save{
         context.translate(header_w - hr_layout.size[0] / Pango::SCALE, 0)
         if (hl_layout.size[0] / Pango::SCALE) > header_w - hr_layout.size[0] / Pango::SCALE - 20
-          r, g, b = get_backgroundcolor
+          r, g, b = backgroundcolor(message)
           grad = Cairo::LinearPattern.new(-20, base_y, hr_layout.size[0] / Pango::SCALE + 20, base_y)
           grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
           grad.add_color_stop_rgba(20.0 / (hr_layout.size[0] / Pango::SCALE + 20), r, g, b, 1.0)
@@ -134,17 +142,41 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         }
       }
       context.fill {
-        context.set_source_rgb(*([65535, 65535, 65535]).map{ |c| c.to_f / 65536 })
+        context.set_source_rgb(*backgroundcolor(message))
         context.rounded_rectangle(@edge, @edge + base_y, width - @edge*2, mh - @edge*2, 4)
       }
     }
+  end
+
+  def render_badge(message, context)
+    badge_pixbuf = badge()
+    if badge_pixbuf
+      context.save {
+        context.pseudo_blur(4) {
+          context.fill {
+            context.set_source_rgb(*([32767, 32767, 32767]).map{ |c| c.to_f / 65536 })
+            context.circle(0, 0, @badge_radius)
+          }
+        }
+        context.fill {
+          context.set_source_rgb(*backgroundcolor(message))
+          context.circle(0, 0, @badge_radius)
+        }
+      }
+      
+      context.translate(-@badge_radius, -@badge_radius)
+      context.set_source_pixbuf(badge_pixbuf)
+      context.paint end
   end
 
   def main_icon(message)
     Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
       helper.on_modify } end
 
-  def get_backgroundcolor
-    [1.0, 1.0, 1.0]
-  end
+  def backgroundcolor(message)
+    color = Plugin.filtering(:message_background_color, message, nil).last
+    if color.is_a? Array and 3 == color.size
+      color.map{ |c| c.to_f / 65536 }
+    else
+      [1.0]*3 end end
 end
