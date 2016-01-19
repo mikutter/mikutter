@@ -60,7 +60,7 @@ class TimeLimitedQueue < Queue
           if @stock.size > max
             throw :write end
           begin
-            timeout(expire, WaitingExpire){ @stock << (pop) }
+            Timeout.timeout(expire, WaitingExpire){ @stock << (pop) }
           rescue WaitingExpire
             throw :write end } }
       callback if not @stock.empty?
