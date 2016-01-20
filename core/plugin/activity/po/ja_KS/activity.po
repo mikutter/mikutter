@@ -7,125 +7,151 @@ msgid ""
 msgstr ""
 "Project-Id-Version: activity 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 22:35+0900\n"
-"PO-Revision-Date: 2014-10-21 22:21+0900\n"
+"POT-Creation-Date: 2016-01-08 16:49+0900\n"
+"PO-Revision-Date: 2016-01-08 16:59+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: ja_JP\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.6.9\n"
-"Language: ja_JP\n"
+"X-Generator: Poedit 1.5.4\n"
 
-#: ../activity.rb:36
+#: ../activity.rb:47
 msgid "種類"
 msgstr "種類"
 
-#: ../activity.rb:37
+#: ../activity.rb:48
 msgid "説明"
 msgstr "説明"
 
-#: ../activity.rb:38
+#: ../activity.rb:49
 msgid "時刻"
 msgstr "時刻"
 
-#: ../activity.rb:144 ../activity.rb:279 ../activity.rb:282
+#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
 msgid "アクティビティ"
 msgstr "アクティビティ"
 
-#: ../activity.rb:187
+#: ../activity.rb:195
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr "@%{user} がふぁぼふぁぼしたやで"
 
-#: ../activity.rb:197
+#: ../activity.rb:205
 msgid "@%{user} があんふぁぼしました"
 msgstr "@%{user} があんふぁぼしたやで"
 
-#: ../activity.rb:209
+#: ../activity.rb:217
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} がリツイートしたやで"
 
-#: ../activity.rb:215
+#: ../activity.rb:223
 msgid "リツイートソースが取得できませんでした"
 msgstr "リツイートソースが取得できひんかったで"
 
-#: ../activity.rb:220
+#: ../activity.rb:228
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user}が%{list}に追加されたやで"
 
-#: ../activity.rb:228 ../activity.rb:245
+#: ../activity.rb:236 ../activity.rb:253
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (by @%{user})"
 
-#: ../activity.rb:237
+#: ../activity.rb:245
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user}が%{list}から削除されたやで"
 
-#: ../activity.rb:257
+#: ../activity.rb:265
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} が @%{follower} をﾌｮﾛｰしたやで"
 
-#: ../activity.rb:266
+#: ../activity.rb:274
 msgid "ダイレクトメッセージを送信しました"
 msgstr "ダイレクトメッセージを送信したやで"
 
-#: ../activity.rb:266
+#: ../activity.rb:274
 msgid "ダイレクトメッセージを受信しました"
-msgstr ""
+msgstr "ダイレクトメッセージを受信したやで"
 
-#: ../activity.rb:267
+#: ../activity.rb:275
 msgid "D %{recipient} %{text}"
 msgstr "D %{recipient} %{text}"
 
-#: ../activity.rb:295
-msgid "表示しないイベント"
-msgstr "表示せえへんイベント"
+#: ../activity.rb:307
+msgid "%{name}を表示する"
+msgstr "%{name}を表示やで"
 
-#: ../activity.rb:296
-msgid "以下の自分に関係ないイベント"
-msgstr "以下の自分に関係ないイベント"
+#: ../activity.rb:307
+msgid ""
+"%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}"
+"の他の設定は無効になります。"
+msgstr ""
+"%{name}を、アクティビティタイムラインに表示するで。チェックを外すと、%{name}"
+"の他の設定は無効になるで。"
 
-#: ../activity.rb:300
-msgid "以下の全てのイベント"
-msgstr "以下の全てのイベント"
+#: ../activity.rb:308
+msgid "自分に関係ない%{name}も表示する"
+msgstr "自分に関係ない%{name}も表示するで"
 
-#: ../activity.rb:304
+#: ../activity.rb:308
+msgid ""
+"自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。"
+"チェックを外すと、自分に関係ない%{name}は表示されません。"
+msgstr ""
+"自分に関係ない%{name}もアクティビティタイムラインに表示するで。チェックを外す"
+"と、自分に関係ない%{name}は表示せえへんで。"
+
+#: ../activity.rb:309
 msgid "タイムラインに表示"
 msgstr "タイムラインに表示"
 
-#: ../activity.rb:308
+#: ../activity.rb:309
+msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
+msgstr "%{name}が通知された時に、システムメッセージで%{name}を通知するで"
+
+#: ../activity.rb:310
 msgid "ステータスバーに表示"
 msgstr "ステータスバーに表示"
 
-#: ../activity.rb:312
+#: ../activity.rb:310
+msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
+msgstr "%{name}が通知された時に、ステータスバーにしばらく表示するで"
+
+#: ../activity.rb:315
 msgid "リツイート"
 msgstr "リツイート"
 
-#: ../activity.rb:313
+#: ../activity.rb:316
 msgid "ふぁぼ"
 msgstr "ふぁぼ"
 
-#: ../activity.rb:314
+#: ../activity.rb:317
 msgid "フォロー"
 msgstr "フォロー"
 
-#: ../activity.rb:315
+#: ../activity.rb:318
 msgid "リストに追加"
 msgstr "リストに追加"
 
-#: ../activity.rb:316
+#: ../activity.rb:319
 msgid "リストから削除"
 msgstr "リストから削除"
 
-#: ../activity.rb:317
+#: ../activity.rb:320
 msgid "ダイレクトメッセージ"
 msgstr "ダイレクトメッセージ"
 
-#: ../activity.rb:318
+#: ../activity.rb:321
 msgid "システムメッセージ"
 msgstr "システムメッセージ"
 
-#: ../activity.rb:319
+#: ../activity.rb:322
 msgid "エラー"
 msgstr "エラー"
+
+#~ msgid "表示しないイベント"
+#~ msgstr "表示せえへんイベント"
+
+#~ msgid "以下の全てのイベント"
+#~ msgstr "以下の全てのイベント"

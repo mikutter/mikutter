@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: command 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 22:35+0900\n"
-"PO-Revision-Date: 2014-10-21 22:43+0900\n"
+"POT-Creation-Date: 2016-01-08 16:49+0900\n"
+"PO-Revision-Date: 2016-01-08 17:03+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: ja_JP\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.6.9\n"
-"Language: ja_JP\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: ../command.rb:12
 msgid "コピー"
@@ -30,94 +30,94 @@ msgstr "本文をコピー"
 msgid "返信"
 msgstr "返信"
 
-#: ../command.rb:37
+#: ../command.rb:39
 msgid "全員に返信"
 msgstr "全員に返信"
 
-#: ../command.rb:47
+#: ../command.rb:50
 msgid "引用"
 msgstr "引用"
 
-#: ../command.rb:54
+#: ../command.rb:61
 msgid "リツイート"
 msgstr "リツイート"
 
-#: ../command.rb:62
+#: ../command.rb:69
 msgid "リツイートをキャンセル"
 msgstr "リツイートをキャンセル"
 
-#: ../command.rb:72
+#: ../command.rb:79
 msgid "ふぁぼふぁぼする"
 msgstr "ふぁぼふぁぼする"
 
-#: ../command.rb:80
+#: ../command.rb:87
 msgid "あんふぁぼ"
 msgstr "あんふぁぼ"
 
-#: ../command.rb:88
+#: ../command.rb:95
 msgid "削除"
 msgstr "削除"
 
-#: ../command.rb:94
+#: ../command.rb:101
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
-msgstr "もうあんたが巨人ファンなんバレてもうてるで？ホンマに消すんか？"
+msgstr "もうあんたが巨人ファンなんバレとるで？ホンマに消すんか？"
 
-#: ../command.rb:97
+#: ../command.rb:104
 msgid "一つ上のメッセージを選択"
 msgstr "一つ上のメッセージを選択"
 
-#: ../command.rb:104
+#: ../command.rb:111
 msgid "一つ下のメッセージを選択"
 msgstr "一つ下のメッセージを選択"
 
-#: ../command.rb:111
+#: ../command.rb:118
 msgid "投稿する"
 msgstr "投稿する"
 
-#: ../command.rb:119
+#: ../command.rb:126
 msgid "ggrks"
 msgstr "ggrks"
 
-#: ../command.rb:127
+#: ../command.rb:134
 msgid "リンクを開く"
 msgstr "リンクを開く"
 
-#: ../command.rb:143
+#: ../command.rb:150
 msgid "リンクをコピー"
 msgstr "リンクをコピー"
 
-#: ../command.rb:152
+#: ../command.rb:159
 msgid "新規ペインに移動"
 msgstr "新規ペインに移動"
 
-#: ../command.rb:172
+#: ../command.rb:177
 msgid "タブを閉じる"
 msgstr "タブを閉じる"
 
-#: ../command.rb:182
+#: ../command.rb:187
 msgid "次のタブを選択"
 msgstr "次のタブを選択"
 
-#: ../command.rb:190
+#: ../command.rb:195
 msgid "前のタブを選択"
 msgstr "前のタブを選択"
 
-#: ../command.rb:198
+#: ../command.rb:203
 msgid "右のペインを選択"
 msgstr "右のペインを選択"
 
-#: ../command.rb:206
+#: ../command.rb:211
 msgid "左のペインを選択"
 msgstr "左のペインを選択"
 
-#: ../command.rb:214
+#: ../command.rb:219
 msgid "投稿ボックスにフォーカス"
 msgstr "投稿ボックスにフォーカス"
 
-#: ../command.rb:226
+#: ../command.rb:231
 msgid "タブにフォーカス"
 msgstr "タブにフォーカス"
 
-#: ../command.rb:234
+#: ../command.rb:239
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "タイムラインの一番上にジャーンプ！"

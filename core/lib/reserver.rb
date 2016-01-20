@@ -37,7 +37,7 @@ class Reserver < Delegator
     @proc end
 
   class << self
-    WakeUp = Class.new(TimeoutError)
+    WakeUp = Class.new(Timeout::Error)
 
     def register(new)
       atomic do
@@ -56,7 +56,7 @@ class Reserver < Delegator
                 @reservers.delete reserver
                 Thread.new(&reserver)
               else
-                timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
+                Timeout.timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
             rescue WakeUp
               ;
             rescue Exception => e
