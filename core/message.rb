@@ -152,7 +152,10 @@ class Message < Retriever::Model
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
-    user.protected? end
+    if retweet?
+      retweet_ancestor.user.protected?
+    else
+      user.protected? end end
 
   # この投稿が承認されているものならtrueを返す。
   def verified?
