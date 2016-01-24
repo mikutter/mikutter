@@ -153,7 +153,7 @@ class Message < Retriever::Model
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
     if retweet?
-      retweet_ancestor.user.protected?
+      retweet_ancestor.protected?
     else
       user.protected? end end
 
