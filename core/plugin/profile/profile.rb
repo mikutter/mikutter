@@ -67,7 +67,7 @@ Plugin.create :profile do
           i_profile.active! end }
     end end
 
-  profiletab :usertimeline, _("最近のツイート") do
+  user_fragment :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")
     uid = user.id
     i_timeline = timeline nil do
@@ -79,7 +79,7 @@ Plugin.create :profile do
     }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: user[:idname]})
     timeline_storage[i_timeline.slug] = user end
 
-  profiletab :aboutuser, _("ユーザについて") do
+  user_fragment :aboutuser, _("ユーザについて") do
     set_icon user[:profile_image_url]
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new

@@ -30,7 +30,7 @@ module Plugin::DirectMessage
       nativewidget ul
     end
 
-    profiletab(:directmessage, _("DM")) do
+    user_fragment(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       nativewidget Plugin[:direct_message].dm_list_widget(user)
     end

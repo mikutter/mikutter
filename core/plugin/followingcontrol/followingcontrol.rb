@@ -46,7 +46,7 @@ Plugin.create :followingcontrol do
     else
       [service, source, messages] end end
 
-  profiletab(:followings, _('フォローしている')) do
+  user_fragment(:followings, _('フォローしている')) do
     set_icon Skin.get("followings.png")
     container = Gtk::EventBox.new
     userlist = gen_userlist
@@ -82,7 +82,7 @@ Plugin.create :followingcontrol do
     end
   end
 
-  profiletab(:followers, _('フォローされている')) do
+  user_fragment(:followers, _('フォローされている')) do
     set_icon Skin.get("followers.png")
     container = Gtk::EventBox.new
     userlist = gen_userlist

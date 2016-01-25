@@ -43,7 +43,7 @@ Plugin.create :gui do
   # ==== Args
   # [slug] タブスラッグ
   # [title] タブのタイトル
-  defdsl :profiletab do |slug, title, &proc|
+  defdsl :user_fragment do |slug, title, &proc|
     filter_profiletab do |tabs, i_profile, user|
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
@@ -54,6 +54,12 @@ Plugin.create :gui do
                      i_profiletab.instance_eval{ @user = user }
                      i_profiletab.instance_eval_with_delegate(self, &proc)} ])
       [tabs, i_profile, user] end end
+
+  # obsolete
+  defdsl :profiletab do |slug, title, &proc|
+    warn 'Plugin#profiletab is obsolete. use Plugin#user_fragment'
+    user_fragment slug, title, &proc
+  end
 
   # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
