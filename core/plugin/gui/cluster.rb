@@ -14,7 +14,7 @@ class Plugin::GUI::Cluster
   include Plugin::GUI::HierarchyParent
   include Plugin::GUI::Widget
 
-  role :profile
+  role :cluster
 
   set_parent_event :gui_profile_join_tab
 
@@ -24,3 +24,4 @@ class Plugin::GUI::Cluster
     Plugin.call(:profile_created, self)
   end
 end
+
