@@ -7,7 +7,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'window')
 require File.expand_path File.join(File.dirname(__FILE__), 'tablike')
 require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 
-class Plugin::GUI::ProfileTab
+class Plugin::GUI::Fragment
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyChild
   include Plugin::GUI::HierarchyParent
