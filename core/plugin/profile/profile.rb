@@ -50,7 +50,7 @@ Plugin.create :profile do
     else
       UserConfig[:profile_opened_tabs] = ((UserConfig[:profile_opened_tabs] || []) + [user.id]).uniq
       container = profile_head(user)
-      i_profile = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
+      i_cluster = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
         set_icon user[:profile_image_url]
         set_deletable true
         shrink
@@ -58,13 +58,13 @@ Plugin.create :profile do
         expand
         profile nil end
       Thread.new {
-        Plugin.filtering(:profiletab, [], i_profile, user).first
+        Plugin.filtering(:profiletab, [], i_cluster, user).first
       }.next { |tabs|
         tabs.map(&:last).each(&:call)
       }.next {
         Plugin.call(:filter_stream_reconnect_request)
         if !force
-          i_profile.active! end }
+          i_cluster.active! end }
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do

@@ -44,16 +44,16 @@ Plugin.create :gui do
   # [slug] タブスラッグ
   # [title] タブのタイトル
   defdsl :user_fragment do |slug, title, &proc|
-    filter_profiletab do |tabs, i_profile, user|
+    filter_profiletab do |tabs, i_cluster, user|
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
                      i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
                      i_profiletab.profile_slug = slug
-                     i_profile << i_profiletab
+                     i_cluster << i_profiletab
                      i_profiletab.instance_eval{ @user = user }
                      i_profiletab.instance_eval_with_delegate(self, &proc)} ])
-      [tabs, i_profile, user] end end
+      [tabs, i_cluster, user] end end
 
   # obsolete
   defdsl :profiletab do |slug, title, &proc|

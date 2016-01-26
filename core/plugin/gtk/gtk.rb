@@ -118,8 +118,8 @@ Plugin.create :gtk do
       @tabs_promise[i_tab.slug].call(tab)
       @tabs_promise.delete(i_tab.slug) end end
 
-  on_profile_created do |i_profile|
-    create_pane(i_profile) end
+  on_profile_created do |i_cluster|
+    create_pane(i_cluster) end
 
   on_profiletab_created do |i_profiletab|
     create_tab(i_profiletab) end
@@ -241,8 +241,8 @@ Plugin.create :gtk do
     widget = widgetof(i_timeline)
     widget_join_tab(i_tab, widget) if widget end
 
-  on_gui_profile_join_tab do |i_profile, i_tab|
-    widget = widgetof(i_profile)
+  on_gui_profile_join_tab do |i_cluster, i_tab|
+    widget = widgetof(i_cluster)
     widget_join_tab(i_tab, widget) if widget end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
