@@ -7,7 +7,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
 require File.expand_path File.join(File.dirname(__FILE__), 'window')
 require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 
-class Plugin::GUI::Profile
+class Plugin::GUI::Cluster
 
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyChild

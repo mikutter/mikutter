@@ -55,7 +55,7 @@ module Plugin::GUI::TabLike
   # ==== Return
   # 新しく作成したプロフィール
   def profile(slug, &proc)
-    profile = Plugin::GUI::Profile.instance(slug)
+    profile = Plugin::GUI::Cluster.instance(slug)
     self << profile
     pack_rule.push(expand?)
     profile.instance_eval(&proc) if proc

@@ -22,7 +22,7 @@ module Plugin::Gtk
     register_widget Plugin::GUI::Tab,            ::Gtk::EventBox
     register_widget Plugin::GUI::TabToolbar,     ::Gtk::TabToolbar
     register_widget Plugin::GUI::Timeline,       ::Gtk::TimeLine
-    register_widget Plugin::GUI::Profile,        ::Gtk::Notebook
+    register_widget Plugin::GUI::Cluster,        ::Gtk::Notebook
     register_widget Plugin::GUI::ProfileTab,     ::Gtk::EventBox
     register_widget Plugin::GUI::TabChildWidget, ::Gtk::TabContainer
     register_widget Plugin::GUI::Postbox,        ::Gtk::PostBox
