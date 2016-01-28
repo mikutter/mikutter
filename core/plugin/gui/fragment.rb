@@ -14,7 +14,7 @@ class Plugin::GUI::Fragment
   include Plugin::GUI::Widget
   include Plugin::GUI::TabLike
 
-  role :profiletab
+  role :fragment
 
   set_parent_event :gui_profiletab_join_profile
 

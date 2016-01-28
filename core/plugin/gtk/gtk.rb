@@ -365,7 +365,7 @@ Plugin.create :gtk do
     @slug_dictionary.add(i_container, container)
     widget_join_tab(i_tab, container.show_all) end
 
-  on_gui_nativewidget_join_profiletab do |i_fragment, i_container, container|
+  on_gui_nativewidget_join_fragment do |i_fragment, i_container, container|
     @slug_dictionary.add(i_container, container)
     widget_join_tab(i_fragment, container.show_all) end
 
