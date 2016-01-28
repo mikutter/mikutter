@@ -48,11 +48,11 @@ Plugin.create :gui do
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     i_profiletab = Plugin::GUI::Fragment.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
-                     i_profiletab.profile_slug = slug
-                     i_cluster << i_profiletab
-                     i_profiletab.instance_eval{ @user = user }
-                     i_profiletab.instance_eval_with_delegate(self, &proc)} ])
+                     i_fragment = Plugin::GUI::Fragment.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     i_fragment.profile_slug = slug
+                     i_cluster << i_fragment
+                     i_fragment.instance_eval{ @user = user }
+                     i_fragment.instance_eval_with_delegate(self, &proc)} ])
       [tabs, i_cluster, user] end end
 
   # obsolete
