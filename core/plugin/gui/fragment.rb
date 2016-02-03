@@ -18,7 +18,7 @@ class Plugin::GUI::Fragment
 
   role :fragment
 
-  set_parent_event :gui_profiletab_join_profile
+  set_parent_event :gui_fragment_join_cluster
 
   attr_reader :retriever
   attr_accessor :profile_slug
