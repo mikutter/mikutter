@@ -16,7 +16,7 @@ class Plugin::GUI::Cluster
 
   role :cluster
 
-  set_parent_event :gui_profile_join_tab
+  set_parent_event :gui_cluster_join_tab
 
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(*args)
@@ -24,4 +24,6 @@ class Plugin::GUI::Cluster
     Plugin.call(:cluster_created, self)
   end
 end
+
+
 

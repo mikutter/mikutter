@@ -241,7 +241,7 @@ Plugin.create :gtk do
     widget = widgetof(i_timeline)
     widget_join_tab(i_tab, widget) if widget end
 
-  on_gui_profile_join_tab do |i_cluster, i_tab|
+  on_gui_cluster_join_tab do |i_cluster, i_tab|
     widget = widgetof(i_cluster)
     widget_join_tab(i_tab, widget) if widget end
 
