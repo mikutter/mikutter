@@ -118,7 +118,7 @@ Plugin.create :gtk do
       @tabs_promise[i_tab.slug].call(tab)
       @tabs_promise.delete(i_tab.slug) end end
 
-  on_profile_created do |i_cluster|
+  on_cluster_created do |i_cluster|
     create_pane(i_cluster) end
 
   on_profiletab_created do |i_fragment|

@@ -21,7 +21,7 @@ class Plugin::GUI::Cluster
   # instanceから呼ばれる。勝手に作成しないこと
   def initialize(*args)
     super
-    Plugin.call(:profile_created, self)
+    Plugin.call(:cluster_created, self)
   end
 end
 
