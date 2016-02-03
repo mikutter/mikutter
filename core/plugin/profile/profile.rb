@@ -69,25 +69,25 @@ Plugin.create :profile do
 
   user_fragment :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")
-    uid = user.id
+    user_id = retriever.id
     i_timeline = timeline nil do
       order do |message|
-        retweet = message.retweeted_statuses.find{ |r| uid == r.user.id }
+        retweet = message.retweeted_statuses.find{ |r| user_id == r.user.id }
         (retweet || message)[:created].to_i end end
-    Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
+    Service.primary.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
-    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: user[:idname]})
-    timeline_storage[i_timeline.slug] = user end
+    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: retriever[:idname]})
+    timeline_storage[i_timeline.slug] = retriever end
 
   user_fragment :aboutuser, _("ユーザについて") do
-    set_icon user[:profile_image_url]
+    set_icon retriever[:profile_image_url]
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new
     container = ::Gtk::VBox.new.
       closeup(bio).
       closeup(label_since.left).
-      closeup(plugin.relation_bar(user))
-    container.closeup(plugin.mutebutton(user)) if not user.me?
+      closeup(plugin.relation_bar(retriever))
+    container.closeup(plugin.mutebutton(retriever)) if not retriever.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
@@ -100,7 +100,7 @@ Plugin.create :profile do
       wrapper.no_show_all = false
       wrapper.show_all
       false end
-    user_complete do
+    retriever_complete do
       biotext = (user[:detail] || "")
       if user[:url]
         biotext += "\n\n" + _('Web: %{url}') % {url: user[:url]} end

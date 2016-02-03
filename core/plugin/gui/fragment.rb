@@ -8,6 +8,8 @@ require File.expand_path File.join(File.dirname(__FILE__), 'tablike')
 require File.expand_path File.join(File.dirname(__FILE__), 'widget')
 
 class Plugin::GUI::Fragment
+  extend Gem::Deprecate
+
   include Plugin::GUI::Cuscadable
   include Plugin::GUI::HierarchyChild
   include Plugin::GUI::HierarchyParent
@@ -18,7 +20,7 @@ class Plugin::GUI::Fragment
 
   set_parent_event :gui_profiletab_join_profile
 
-  attr_reader :user
+  attr_reader :retriever
   attr_accessor :profile_slug
 
   def initialize(*args)
@@ -26,20 +28,23 @@ class Plugin::GUI::Fragment
     Plugin.call(:profiletab_created, self)
   end
 
+  alias :user :retriever
+  deprecate :user, "retriever", 2017, 2
+
   # 完全なユーザ情報が取得できたらコールバックする
-  def user_complete(&callback)
-    type_strict user => User, callback => Proc
-    if user[:exact]
-      yield user
+  def retriever_complete(&callback)
+    type_strict retriever => Retriever::Model, callback => Proc
+    if retriever[:exact]
+      yield retriever
     else
       atomic {
-        if not(defined?(@user_promise) and @user_promise)
-          @user_promise = Service.primary.user_show(user_id: user[:id]).next{ |u|
-            @user_promise = false
+        if not(defined?(@retriever_promise) and @retriever_promise)
+          @retriever_promise = Service.primary.user_show(user_id: retriever[:id]).next{ |u|
+            @retriever_promise = false
             u }.terminate{
-            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: user[:idname]}
+            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: retriever[:idname]}
           } end
-        @user_promise = @user_promise.next{ |u| callback.call(u); u } } end
+        @retriever_promise = @retriever_promise.next{ |u| callback.call(u); u } } end
   end
 
 end
