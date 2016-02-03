@@ -25,7 +25,7 @@ class Plugin::GUI::Fragment
 
   def initialize(*args)
     super
-    Plugin.call(:profiletab_created, self)
+    Plugin.call(:fragment_created, self)
   end
 
   alias :user :retriever

@@ -121,7 +121,7 @@ Plugin.create :gtk do
   on_cluster_created do |i_cluster|
     create_pane(i_cluster) end
 
-  on_profiletab_created do |i_fragment|
+  on_fragment_created do |i_fragment|
     create_tab(i_fragment) end
 
   # タブを作成する
