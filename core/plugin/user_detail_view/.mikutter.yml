@@ -1,7 +1,7 @@
 ---
-slug: :profile
+slug: :user_detail_view
 depends:
-  mikutter: '0.2'
+  mikutter: '3.3'
   plugin:
   - gui
   - gtk

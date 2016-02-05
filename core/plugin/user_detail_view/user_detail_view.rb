@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-Plugin.create :profile do
+Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
   plugin = self
   def timeline_storage # {slug: user}
