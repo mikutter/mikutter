@@ -21,7 +21,6 @@ class Plugin::GUI::Fragment
   set_parent_event :gui_fragment_join_cluster
 
   attr_reader :retriever
-  attr_accessor :profile_slug
 
   def initialize(*args)
     super

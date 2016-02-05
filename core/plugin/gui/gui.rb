@@ -49,7 +49,6 @@ Plugin.create :gui do
                   [slug,
                    -> {
                      i_fragment = Plugin::GUI::Fragment.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
-                     i_fragment.profile_slug = slug
                      i_cluster << i_fragment
                      i_fragment.instance_eval{ @retriever = user }
                      i_fragment.instance_eval_with_delegate(self, &proc)} ])
