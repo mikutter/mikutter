@@ -44,7 +44,7 @@ Plugin.create :gui do
   # [slug] タブスラッグ
   # [title] タブのタイトル
   defdsl :user_fragment do |slug, title, &proc|
-    filter_profiletab do |tabs, i_cluster, user|
+    filter_user_detail_view_fragments do |tabs, i_cluster, user|
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {

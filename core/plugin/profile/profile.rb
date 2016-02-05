@@ -58,7 +58,7 @@ Plugin.create :profile do
         expand
         profile nil end
       Thread.new {
-        Plugin.filtering(:profiletab, [], i_cluster, user).first
+        Plugin.filtering(:user_detail_view_fragments, [], i_cluster, user).first
       }.next { |tabs|
         tabs.map(&:last).each(&:call)
       }.next {
