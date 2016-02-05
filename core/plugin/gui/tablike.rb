@@ -54,12 +54,12 @@ module Plugin::GUI::TabLike
   # [&proc] 処理
   # ==== Return
   # 新しく作成したプロフィール
-  def profile(slug, &proc)
-    profile = Plugin::GUI::Cluster.instance(slug)
-    self << profile
+  def cluster(slug, &proc)
+    cluster = Plugin::GUI::Cluster.instance(slug)
+    self << cluster
     pack_rule.push(expand?)
-    profile.instance_eval(&proc) if proc
-    profile end
+    cluster.instance_eval(&proc) if proc
+    cluster end
 
   # UIツールキットのウィジェット(Gtk等)をタブに入れる
   # ==== Args

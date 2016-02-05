@@ -56,7 +56,7 @@ Plugin.create :user_detail_view do
         shrink
         nativewidget container
         expand
-        profile nil end
+        cluster nil end
       Thread.new {
         Plugin.filtering(:user_detail_view_fragments, [], i_cluster, user).first
       }.next { |tabs|

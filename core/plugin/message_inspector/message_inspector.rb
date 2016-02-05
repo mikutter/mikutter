@@ -26,7 +26,7 @@ Plugin.create(:message_inspector) do
         shrink
         nativewidget container
         expand
-        profile nil end
+        cluster nil end
       Thread.new {
         Plugin.filtering(:message_inspector_tab, [], i_message_inspector, message).first
       }.next { |tabs|
