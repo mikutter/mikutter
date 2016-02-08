@@ -54,6 +54,21 @@ Plugin.create :gui do
                      i_fragment.instance_eval_with_delegate(self, &proc)} ])
       [tabs, i_cluster, user] end end
 
+  # 投稿詳細タブを定義する
+  # ==== Args
+  # [slug] タブスラッグ
+  # [title] タブのタイトル
+  defdsl :message_fragment do |slug, title, &proc|
+    filter_message_detail_view_fragments do |tabs, i_cluster, message|
+      tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
+                  [slug,
+                   -> {
+                     i_fragment = Plugin::GUI::Fragment.instance("#{slug}_#{message.id}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     i_cluster << i_fragment
+                     i_fragment.instance_eval{ @retriever = message }
+                     i_fragment.instance_eval_with_delegate(self, &proc)} ])
+      [tabs, i_cluster, message] end end
+
   # obsolete
   defdsl :profiletab do |slug, title, &proc|
     warn 'Plugin#profiletab is obsolete. use Plugin#user_fragment'

@@ -10,8 +10,7 @@ module Plugin::MessageInspector
                      closeup(Gtk::WebIcon.new(message.user.profile_image_url_large, 48, 48).top).
                      closeup(Gtk::VBox.new(false, 0).
                               closeup(Gtk::Label.new(message.user.idname).left).
-                              closeup(Gtk::Label.new(message.user[:name]).left))).
-           closeup(Gtk::IntelligentTextview.new(message.to_s, 'font' => :mumble_basic_font)))
+                              closeup(Gtk::Label.new(message.user[:name]).left))))
     end
 
     private
