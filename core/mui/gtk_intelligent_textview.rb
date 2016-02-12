@@ -7,11 +7,12 @@ require 'gtk2'
 require 'uri'
 
 class Gtk::IntelligentTextview < Gtk::TextView
+  extend Gem::Deprecate
 
-  attr_accessor :fonts, :get_background
-
-  # @@wayofopenlink = MIKU::Cons.list([URI.regexp(['http','https']), lambda{ |url, cancel|
-  #                                      Gtk.openurl(url) }].freeze).freeze
+  attr_accessor :fonts
+  attr_writer :style_generator
+  alias :get_background= :style_generator=
+  deprecate :get_background=, "style_generator=", 2017, 02
 
   @@linkrule = MIKU::Cons.list([URI.regexp(['http','https']),
                                 lambda{ |u, clicked| self.openurl(u) },
@@ -20,13 +21,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
                                                        ['開く', ret_nth, lambda{ |opt, w| self.openurl(u) }]).
                                   popup(clicked, true)}])
   @@widgetrule = []
-
-  # URLを開く方法を追加する。
-  # 追加に成功したらtrueを返す。
-  # def self.addopenway(condition, &open)
-  #   if(type_check(condition => :===, open => :call))
-  #     @@wayofopenlink = MIKU::Cons.new([condition, open].freeze, @@wayofopenlink).freeze
-  #     true end end
 
   def self.addlinkrule(reg, leftclick, rightclick=nil)
     @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick].freeze, @@linkrule).freeze end
@@ -40,31 +34,37 @@ class Gtk::IntelligentTextview < Gtk::TextView
     Gtk::TimeLine.openurl(url)
     false end
 
-  # def self.gen_openurl_proc(url, way_of_open_link = @@wayofopenlink)
-  #   way_of_open_link.freeze
-  #   lambda{
-  #     way_of_open_link.each_with_index{ |way, index|
-  #     condition, open = *way
-  #     if(condition === url)
-  #       open.call(url, gen_openurl_proc(url, way_of_open_link[(index+1)..(way_of_open_link.size)]))
-  #       break end } } end
-
-  def initialize(msg = nil, default_fonts = {}, *args)
+  def initialize(msg = nil, default_fonts = {}, *rest, style: nil)
+    super(*rest)
     @fonts = default_fonts
-    @get_background = lambda{ parent.style.bg(Gtk::STATE_NORMAL) }
-    super(*args)
+    @style_generator = style
     self.editable = false
     self.cursor_visible = false
     self.wrap_mode = Gtk::TextTag::WRAP_CHAR
     gen_body(msg) if msg
   end
 
+  # このウィジェットの背景色を返す
+  # ==== Return
+  # Gtk::Style
+  def style_generator
+    if @style_generator.respond_to? :to_proc
+      @style_generator.to_proc.call
+    elsif @style_generator
+      @style_generator
+    else
+      parent.style.bg(Gtk::STATE_NORMAL)
+    end
+  end
+  alias :get_background :style_generator
+  deprecate :get_background, "style_generator", 2017, 02
+
   # TODO プライベートにする
   def set_cursor(textview, cursor)
     textview.get_window(Gtk::TextView::WINDOW_TEXT).set_cursor(Gdk::Cursor.new(cursor))
   end
 
-  def bg_modifier(color = @get_background.call)
+  def bg_modifier(color = style_generator)
     if color.is_a? Gtk::Style
       self.style = color
     elsif get_window(Gtk::TextView::WINDOW_TEXT).respond_to?(:background=)
