@@ -38,7 +38,23 @@ Plugin.create(:message_detail_view) do
     end
   end
 
+  style = -> do
+    Gtk::Style.new().tap do |bg_style|
+      color = UserConfig[:mumble_basic_bg]
+      bg_style.set_bg(Gtk::STATE_ACTIVE, *color)
+      bg_style.set_bg(Gtk::STATE_NORMAL, *color)
+      bg_style.set_bg(Gtk::STATE_SELECTED, *color)
+      bg_style.set_bg(Gtk::STATE_PRELIGHT, *color)
+      bg_style.set_bg(Gtk::STATE_INSENSITIVE, *color) end end
+
   message_fragment :body, "body" do
-    nativewidget Gtk::IntelligentTextview.new(retriever.to_s, 'font' => :mumble_basic_font)
+    container = Gtk::HBox.new
+    textview = Gtk::IntelligentTextview.new(retriever.to_s, 'font' => :mumble_basic_font, style: style)
+    vscrollbar = Gtk::VScrollbar.new
+    textview.set_scroll_adjustment(nil, vscrollbar.adjustment)
+    container.add textview
+    container.closeup vscrollbar
+    nativewidget container
   end
 end
+
