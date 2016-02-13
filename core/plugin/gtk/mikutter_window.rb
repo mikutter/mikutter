@@ -31,14 +31,24 @@ class Gtk::MikutterWindow < Gtk::Window
   end
 
   def add_postbox(i_postbox)
-    postbox = Gtk::PostBox.new({postboxstorage: @postboxes, delegate_other: true}.merge(i_postbox.options||{}))
+    options = {postboxstorage: @postboxes, delegate_other: true}.merge(i_postbox.options||{})
+    if options[:delegate_other]
+      i_window = i_postbox.ancestor_of(Plugin::GUI::Window)
+      options[:delegate_other] = postbox_delegation_generator(i_window) end
+    postbox = Gtk::PostBox.new(options)
     @postboxes.pack_start(postbox)
-    set_focus(postbox.post)
+    set_focus(postbox.post) unless options[:delegated_by]
     postbox.no_show_all = false
     postbox.show_all if not Service.to_a.empty?
     postbox end
 
   private
+
+  def postbox_delegation_generator(window)
+    ->(params) do
+      postbox = Plugin::GUI::Postbox.instance
+      postbox.options = params
+      window << postbox end end
 
   def refresh
     if Service.to_a.empty?
