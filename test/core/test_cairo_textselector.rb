@@ -23,8 +23,26 @@ class TC_TextSelector < Test::Unit::TestCase
   S3 = 'にほんごもじれつ'
   S4 = 'エンティティのテスト &lt;&lt;&lt;&lt; &amp;&amp;&amp;&amp; &gt;&gt;&gt; ておくれ'
   S5 = 'f<a><b>a</b>v</a>'
+  S6 = <<EOM
+　　し
+　じ　　    ／￣￣￣＼
+ん　　　  /　　ー 、　　   \
+｜　　　  \　　　   )　　  ｜
+  \　　　　ヽーー~　　　 /
+　＼　　　　　　　　　／
+　　＼　　　　　　　／
+　　　ヽーーーーー~
+EOM
 
   def setup
+  end
+
+  def test_new_line
+    mp = MockPainter.new
+
+    s6 = S6.scan(Gdk::TextSelector::CHUNK_PATTERN)
+    assert_equal 'し', s6[mp.get_aindex(s6, 2)]
+    assert_equal "\n", s6[mp.get_aindex(s6, 3)]
   end
 
   def test_get_aindex

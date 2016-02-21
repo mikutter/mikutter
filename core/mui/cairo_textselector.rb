@@ -7,7 +7,7 @@ module Gdk
     START_TAG_PATTERN = /<\s*\w+.*?>/
     END_TAG_PATTERN = %r{</.*?>}
     ENTITY_ENCODED_PATTERN = /&(?:gt|lt|amp);/
-    CHARACTER_PATTERN = /./
+    CHARACTER_PATTERN = /./m
     CHUNK_PATTERN = Regexp.union(START_TAG_PATTERN,
                                  END_TAG_PATTERN,
                                  ENTITY_ENCODED_PATTERN,
@@ -16,7 +16,7 @@ module Gdk
     START_TAG_PATTERN_EXACT = /\A<\s*\w+.*?>\Z/
     END_TAG_PATTERN_EXACT = %r{\A</.*?>\Z}
     ENTITY_ENCODED_PATTERN_EXACT = /\A&(?:gt|lt|amp);\Z/
-    CHARACTER_PATTERN_EXACT = /\A.\Z/
+    CHARACTER_PATTERN_EXACT = /\A.\Z/m
     NON_TAG_PATTERN_EXACT = Regexp.union(ENTITY_ENCODED_PATTERN_EXACT,
                                          CHARACTER_PATTERN_EXACT)
 
