@@ -10,7 +10,8 @@ module Plugin::MessageInspector
                      closeup(icon(message.user).top).
                      closeup(Gtk::VBox.new(false, 0).
                               closeup(idname(message.user).left).
-                              closeup(Gtk::Label.new(message.user[:name]).left))))
+                              closeup(Gtk::Label.new(message.user[:name]).left))).
+           closeup(post_date(message).right))
     end
 
     private
@@ -38,6 +39,14 @@ module Plugin::MessageInspector
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
 
+    def post_date(message)
+      label = Gtk::EventBox.new.
+              add(Gtk::Label.new(message.created.strftime('%Y/%m/%d %H:%M:%S')))
+      label.ssc(:button_press_event, &message_opener(message))
+      label.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
+      label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
+      label end
+
     def icon_opener(url)
       type_strict url => String
       proc do
@@ -48,6 +57,12 @@ module Plugin::MessageInspector
       type_strict user => User
       proc do
         Plugin.call(:show_profile, Service.primary, user)
+        true end end
+
+    def message_opener(message)
+      type_strict message => Message
+      proc do
+        Gtk.openurl(message.perma_link)
         true end end
 
     memoize def cursor_changer(cursor)
