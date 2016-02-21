@@ -190,9 +190,11 @@ module Gtk
       not(widget_post.buffer.text.empty?) and (/[^\s]/ === widget_post.buffer.text) end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
+    # ==== Return
+    # true :: 投稿を続ける
+    # false :: 別の Gtk::Postbox で投稿を開始した
     def before_post
-      if @options[:postboxstorage] && @options[:delegate_other]
-        return false if delegate end
+      return false if delegate
       if @options[:before_post_hook]
         @options[:before_post_hook].call(self) end
       Plugin.call(:before_postbox_post, widget_post.buffer.text)
@@ -222,7 +224,7 @@ module Gtk
           end_post end end end
 
     def delegate
-      if @options[:postboxstorage] and @options[:delegate_other]
+      if @options[:postboxstorage] and delegatable?
         options = all_options
         options[:delegate_other] = false
         options[:delegated_by] = self
