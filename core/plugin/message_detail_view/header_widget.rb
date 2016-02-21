@@ -14,10 +14,6 @@ module Plugin::MessageInspector
     end
 
     private
-    memoize def widget_style_setter
-      ->(widget, *_rest) do
-        widget.style = background_color
-        false end end
 
     def background_color
       style = Gtk::Style.new()
@@ -44,17 +40,24 @@ module Plugin::MessageInspector
     def icon_opener(url)
       type_strict url => String
       proc do
-        Plugin.call(:openimg_open, url) end end
+        Plugin.call(:openimg_open, url)
+        true end end
 
     def profile_opener(user)
       type_strict user => User
       proc do
-        Plugin.call(:show_profile, Service.primary, user) end end
+        Plugin.call(:show_profile, Service.primary, user)
+        true end end
 
     memoize def cursor_changer(cursor)
       proc do |w|
         w.window.cursor = cursor
-      end
-    end
+        false end end
+
+    memoize def widget_style_setter
+      ->(widget, *_rest) do
+        widget.style = background_color
+        false end end
+
   end
 end
