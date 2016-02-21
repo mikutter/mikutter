@@ -31,7 +31,8 @@ module Plugin::MessageInspector
 
     def idname(user)
       label = Gtk::EventBox.new.
-              add(Gtk::Label.new(user.idname))
+              add(Gtk::Label.new.
+                   set_markup("<b><u><span foreground=\"#0000ff\">#{Pango.escape(user.idname)}</span></u></b>"))
       label.ssc(:button_press_event, &profile_opener(user))
       label.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
