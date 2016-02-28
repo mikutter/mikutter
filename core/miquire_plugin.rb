@@ -104,15 +104,14 @@ module Miquire::Plugin
                         exception: e,
                         description: e.to_s) end } end
 
-    def load(_spec)
-      spec = _spec.to_spec
-      return false unless spec
-      return true if ::Plugin.instance_exist?(spec[:slug])
+    def satisfy_mikutter_version?(spec)
       if defined?(spec[:depends][:mikutter]) and spec[:depends][:mikutter]
         version = Environment::Version.new(*(spec[:depends][:mikutter].split(".").map(&:to_i) + ([0]*4))[0...4])
         if Environment::VERSION < version
           raise Miquire::LoadError, "plugin #{spec[:slug]}: #{Environment::NAME} version too old (#{spec[:depends][:mikutter]} required, but #{Environment::NAME} version is #{Environment::VERSION})"
           return false end end
+      true
+    end
 
       if defined? spec[:depends][:plugin]
         Array(spec[:depends][:plugin]).map(&:to_sym).each{ |depended_plugin_slug|
@@ -122,6 +121,11 @@ module Miquire::Plugin
               raise Miquire::LoadError
           rescue Miquire::LoadError
             raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depended_plugin_slug} was not loaded." end } end
+    def load(_spec)
+      spec = _spec.to_spec
+      return false unless spec
+      return true if ::Plugin.instance_exist?(spec[:slug])
+      return false unless satisfy_mikutter_version?(spec)
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
       ::Plugin.create(spec[:slug].to_sym) do
