@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-miquire :core, "miquire", "plugin"
+miquire :core, "miquire", "plugin", "miquire_to_spec"
 
 # プラグインのロードに関すること
 module Miquire::Plugin
   class << self
+    using Miquire::ToSpec
     include Enumerable
 
     # ロードパスの配列を返す。
@@ -103,20 +104,10 @@ module Miquire::Plugin
                         exception: e,
                         description: e.to_s) end } end
 
-    def load(spec)
-      type_strict spec => tcor(Hash, Symbol, String)
-      case spec
-      when Symbol, String
-        spec = spec.to_sym
-        if ::Plugin.instance_exist?(spec)
-          return true end
-        spec = get_spec_by_slug(spec)
-        if not spec
-          return false end
-      else
-        if ::Plugin.instance_exist?(spec[:slug])
-          return true end end
-
+    def load(_spec)
+      spec = _spec.to_spec
+      return false unless spec
+      return true if ::Plugin.instance_exist?(spec[:slug])
       if defined?(spec[:depends][:mikutter]) and spec[:depends][:mikutter]
         version = Environment::Version.new(*(spec[:depends][:mikutter].split(".").map(&:to_i) + ([0]*4))[0...4])
         if Environment::VERSION < version
