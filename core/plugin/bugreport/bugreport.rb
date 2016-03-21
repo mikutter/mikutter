@@ -85,7 +85,7 @@ Plugin.create :bugreport do
         File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
         Plugin.activity :system, _("エラー報告を送信しました。ありがとう♡")
         Plugin.call :send_bugreport, param
-      rescue TimeoutError, StandardError => e
+      rescue Timeout::Error, StandardError => e
         Plugin.activity :system, _("ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww")
         Plugin.activity :error, e.to_s, exception: e
       end } end

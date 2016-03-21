@@ -33,7 +33,7 @@ module Gtk
     # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
-    #   - delegate_other :: true|false 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される
+    #   - delegate_other :: true|false|Proc 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される。Procを指定した場合、新しいPostBoxを作る処理として、その無名関数を使う
     #   - before_post_hook :: Proc 投稿前に、 _self_ を引数に呼び出される
     def initialize(postable = nil,
                    to: [],
@@ -190,16 +190,11 @@ module Gtk
       not(widget_post.buffer.text.empty?) and (/[^\s]/ === widget_post.buffer.text) end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
+    # ==== Return
+    # true :: 投稿を続ける
+    # false :: 別の Gtk::Postbox で投稿を開始した
     def before_post
-      if @options[:postboxstorage] && @options[:delegate_other]
-        return false if delegate
-        if not @options[:delegated_by]
-          postbox = Gtk::PostBox.new(nil, all_options)
-          @options[:postboxstorage].
-            pack_start(postbox).
-            show_all.
-            get_ancestor(Gtk::Window).
-            set_focus(postbox.widget_post) end end
+      return false if delegate
       if @options[:before_post_hook]
         @options[:before_post_hook].call(self) end
       Plugin.call(:before_postbox_post, widget_post.buffer.text)
@@ -229,11 +224,14 @@ module Gtk
           end_post end end end
 
     def delegate
-      if(@options[:postboxstorage] and @options[:delegate_other])
+      if @options[:postboxstorage] and delegatable?
         options = all_options
         options[:delegate_other] = false
         options[:delegated_by] = self
-        @options[:postboxstorage].pack_start(Gtk::PostBox.new(nil, options)).show_all
+        if @options[:delegate_other].respond_to? :to_proc
+          @options[:delegate_other].to_proc.(options)
+        else
+          @options[:postboxstorage].pack_start(Gtk::PostBox.new(nil, options)).show_all end
         true end end
 
     def service

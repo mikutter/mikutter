@@ -329,23 +329,6 @@ class Numeric
   def freezable?
     false end end
 
-module Enumerable
-
-  # 各要素の[0]がキー、[1]が値のHashを返す。
-  # ブロックが渡された場合、mapしてからto_hashした結果を返す。
-  def to_hash
-    result = Hash.new
-    if(block_given?)
-      each{ |value|
-        key, val, = yield(value)
-        result[key] = val }
-    else
-      each{ |value|
-        result[value[0]] = value[1] } end
-    result end
-
-end
-
 #
 # Array
 #
