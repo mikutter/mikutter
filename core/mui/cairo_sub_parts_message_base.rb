@@ -3,30 +3,46 @@
 require 'gtk2'
 require 'cairo'
 
-# ナウい引用っぽくメッセージを作るサブパーツのベースクラス
-# 継承して使おう
+=begin rdoc
+ナウい引用っぽく _Cairo::MiraclePainter_ のSubPartsとして別の _Message_ を表示するSubPartsを作るときの基底クラス。
+
+= 使い方
+このクラスを継承しましょう。
+そして、以下のドキュメントを参考に、必要なメソッドをオーバライドします。
+=end
 class Gdk::SubPartsMessageBase < Gdk::SubParts
   attr_reader :icon_width, :icon_height
 
-  # サブクラスでMessagesを返すように実装すること
-  # このメソッドはサブパーツの描画中に何回も呼ばれるので、キャッシュなどで高速化に努めてください
-  def messages
-    nil end
-
-  # 左上に表示するバッジ。nilを還した場合は何も表示しない。
+  # SubPartsに表示する _Message_ 。
+  # 複数表示可能なので、それらを上に表示されるものから順番に返す。
+  # サブクラスで処理を実装すること。
+  # このメソッドはサブパーツの描画中に何回も呼ばれるので、キャッシュなどで高速化に努めること。
   # ==== Return
-  # Gdk::Pixbuf 表示する画像
+  # _Messages_ | _Array_ :: このSubParts上に表示する _Message_
+  def messages
+    [] end
+
+  # 左上に表示するバッジ。nilを返した場合は何も表示しない。
+  # サブクラスで処理を実装すること。
+  # ==== Return
+  # Gdk::Pixbuf :: 表示する画像
   def badge
     nil end
 
-  # サブクラスで領域をクリックした時の処理を実装すること
+  # 表示している _Message_ がクリックされた時、その _Message_ を引数に呼ばれる。
+  # サブクラスで処理を実装すること。
+  # ==== Args
+  # [e] Gdk::EventButton クリックイベント
+  # [message] Message クリックされた _Message_
   def on_click(e, message)
   end
 
+  # :nodoc:
   def initialize(*args)
     super
     @icon_width, @icon_height, @margin, @edge, @badge_radius = 32, 32, 2, 8, 6 end
 
+  # :nodoc:
   def render_messages
     if not helper.destroyed?
       helper.on_modify
@@ -44,11 +60,13 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
               on_click(e, m)
               break end } end } end end
 
+  # :nodoc:
   def render(context)
     if messages and not messages.empty?
       messages.inject(0) { |base_y, message|
         render_single_message(message, context, base_y) } end end
 
+  # :nodoc:
   def height
     if not helper.destroyed? and messages and not messages.empty?
       messages.inject(0) { |s, m| s + message_height(m) }
@@ -163,7 +181,6 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
           context.circle(0, 0, @badge_radius)
         }
       }
-      
       context.translate(-@badge_radius, -@badge_radius)
       context.set_source_pixbuf(badge_pixbuf)
       context.paint end
