@@ -22,11 +22,14 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def messages
     [] end
 
-  # 左上に表示するバッジ。nilを返した場合は何も表示しない。
+  # SubParts内の _Message_ の左上に表示するバッジ。
   # サブクラスで処理を実装すること。
+  # ==== Args
+  # [message] Message
   # ==== Return
-  # Gdk::Pixbuf :: 表示する画像
-  def badge
+  # Gdk::Pixbuf :: _message_ の左上に表示するバッジ画像
+  # nil :: バッジを表示しない
+  def badge(message)
     nil end
 
   # 表示している _Message_ がクリックされた時、その _Message_ を引数に呼ばれる。
@@ -167,7 +170,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   end
 
   def render_badge(message, context)
-    badge_pixbuf = badge()
+    badge_pixbuf = badge(message)
     if badge_pixbuf
       context.save {
         context.pseudo_blur(4) {

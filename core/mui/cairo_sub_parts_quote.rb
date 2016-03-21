@@ -24,6 +24,6 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
         render_messages
       }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
 
-  def badge
+  def badge(_message)
     Gdk::Pixbuf.new(Skin.get('quote.png'), @badge_radius*2, @badge_radius*2) end
 end
