@@ -19,6 +19,12 @@ Plugin::create(:set_view) do
     [message, color]
   end
 
+  filter_subparts_replyviewer_background_color do |message, color|
+    [message, color || UserConfig[:replyviewer_background_color]] end
+
+  filter_subparts_quote_background_color do |message, color|
+    [message, color || UserConfig[:quote_background_color]] end
+
   filter_message_font do |message, font|
     [message, font || UserConfig[:mumble_basic_font]] end
 
@@ -51,6 +57,10 @@ Plugin::create(:set_view) do
       color _('自分のつぶやき'), :mumble_self_bg
       color _('システムメッセージ'), :mumble_system_bg
       color _('選択中'), :mumble_selected_bg
+      color(_('リプライ先'), :replyviewer_background_color).
+        tooltip(_('他のつぶやきに返信すると、下に宛先が囲われて表示されるじゃないですか、あれです'))
+      color(_('コメント付きリツイート'), :quote_background_color).
+        tooltip(_('コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです'))
     end
 
     settings(_('Mentions')) do

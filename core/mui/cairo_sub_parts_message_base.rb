@@ -40,6 +40,18 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def on_click(e, message)
   end
 
+  # SubParts内の _Message_ の背景色を返す
+  # ==== Args
+  # [message] Message
+  # ==== Return
+  # Array :: red, green, blueの配列。各要素は0.0..1.0の範囲。
+  def background_color(message)
+    color = Plugin.filtering(:message_background_color, message, nil).last
+    if color.is_a? Array and 3 == color.size
+      color.map{ |c| c.to_f / 65536 }
+    else
+      [1.0]*3 end end
+
   # :nodoc:
   def initialize(*args)
     super
@@ -132,7 +144,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.save{
         context.translate(header_w - hr_layout.size[0] / Pango::SCALE, 0)
         if (hl_layout.size[0] / Pango::SCALE) > header_w - hr_layout.size[0] / Pango::SCALE - 20
-          r, g, b = backgroundcolor(message)
+          r, g, b = background_color(message)
           grad = Cairo::LinearPattern.new(-20, base_y, hr_layout.size[0] / Pango::SCALE + 20, base_y)
           grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
           grad.add_color_stop_rgba(20.0 / (hr_layout.size[0] / Pango::SCALE + 20), r, g, b, 1.0)
@@ -163,7 +175,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         }
       }
       context.fill {
-        context.set_source_rgb(*backgroundcolor(message))
+        context.set_source_rgb(*background_color(message))
         context.rounded_rectangle(@edge, @edge + base_y, width - @edge*2, mh - @edge*2, 4)
       }
     }
@@ -180,7 +192,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
           }
         }
         context.fill {
-          context.set_source_rgb(*backgroundcolor(message))
+          context.set_source_rgb(*background_color(message))
           context.circle(0, 0, @badge_radius)
         }
       }
@@ -192,11 +204,4 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_icon(message)
     Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
       helper.on_modify } end
-
-  def backgroundcolor(message)
-    color = Plugin.filtering(:message_background_color, message, nil).last
-    if color.is_a? Array and 3 == color.size
-      color.map{ |c| c.to_f / 65536 }
-    else
-      [1.0]*3 end end
 end
