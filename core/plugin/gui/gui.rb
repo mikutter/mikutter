@@ -48,10 +48,14 @@ Plugin.create :gui do
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     i_fragment = Plugin::GUI::Fragment.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     fragment_slug = "#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
                      i_fragment.instance_eval{ @retriever = user }
-                     i_fragment.instance_eval_with_delegate(self, &proc)} ])
+                     handler_tag(fragment_slug) do |tag|
+                       on_gui_destroy do |w|
+                         detach(tag) if w == i_fragment end
+                       i_fragment.instance_eval_with_delegate(self, &proc) end } ])
       [tabs, i_cluster, user] end end
 
   # 投稿詳細タブを定義する
@@ -63,10 +67,14 @@ Plugin.create :gui do
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     i_fragment = Plugin::GUI::Fragment.instance("#{slug}_#{message.id}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
+                     fragment_slug = "#{slug}_#{message.id}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
                      i_fragment.instance_eval{ @retriever = message }
-                     i_fragment.instance_eval_with_delegate(self, &proc)} ])
+                     handler_tag(fragment_slug) do |tag|
+                       on_gui_destroy do |w|
+                         detach(tag) if w == i_fragment end
+                       i_fragment.instance_eval_with_delegate(self, &proc) end } ])
       [tabs, i_cluster, message] end end
 
   # obsolete
