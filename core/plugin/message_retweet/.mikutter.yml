@@ -1,0 +1,10 @@
+---
+slug: :message_retweet
+depends:
+  mikutter: 3.3.5
+  plugin:
+    - message_detail_view
+version: '1.0'
+author: 
+name: ReTweet
+description: "リツイートの表示に関するプラグイン"
