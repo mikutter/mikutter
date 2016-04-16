@@ -2,6 +2,7 @@
 
 Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
+  UserConfig[:profile_icon_size] ||= 64
   plugin = self
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
@@ -263,7 +264,7 @@ Plugin.create :user_detail_view do
       eventbox.style = background_color
       false }
 
-    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, 128, 128))
+    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]))
     icon.ssc(:button_press_event) do |this, event|
       Plugin.call(:openimg_open, user.profile_image_url_large)
       true end
