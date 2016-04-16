@@ -262,14 +262,19 @@ Plugin.create :user_detail_view do
     eventbox.ssc('visibility-notify-event'){
       eventbox.style = background_color
       false }
+
+    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, 128, 128))
+    icon.ssc(:button_press_event) do |this, event|
+      Plugin.call(:openimg_open, user.profile_image_url_large)
+      true end
+    icon.ssc(:realize) do |this|
+      this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false end
+
     eventbox.add(::Gtk::VBox.new(false, 0).
-                 add(::Gtk::HBox.new(false, 16).
-                     closeup(::Gtk::WebIcon.new(user.profile_image_url_large, 128, 128).top).
-                     closeup(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
-    scrolledwindow = ::Gtk::ScrolledWindow.new
-    scrolledwindow.height_request = 128 + 24
-    scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_NEVER)
-    scrolledwindow.add_with_viewport(eventbox)
+                  add(::Gtk::HBox.new(false, 16).
+                       closeup(icon.top).
+                       closeup(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
   end
 
   # ユーザ名を表示する
