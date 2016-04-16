@@ -272,9 +272,12 @@ Plugin.create :user_detail_view do
       this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
       false end
 
+    icon_alignment = Gtk::Alignment.new(0.5, 0, 0, 0)
+                     .set_padding(*[UserConfig[:profile_icon_size]/4]*4)
+
     eventbox.add(::Gtk::VBox.new(false, 0).
-                  add(::Gtk::HBox.new(false, 16).
-                       closeup(icon.top).
+                  add(::Gtk::HBox.new.
+                       closeup(icon_alignment.add(icon)).
                        add(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
   end
 
