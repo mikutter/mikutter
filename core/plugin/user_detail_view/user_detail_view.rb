@@ -275,7 +275,7 @@ Plugin.create :user_detail_view do
     eventbox.add(::Gtk::VBox.new(false, 0).
                   add(::Gtk::HBox.new(false, 16).
                        closeup(icon.top).
-                       closeup(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
+                       add(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
   end
 
   # ユーザ名を表示する
@@ -284,18 +284,24 @@ Plugin.create :user_detail_view do
   # ==== Return
   # ユーザの名前の部分のGtkコンテナ
   def user_name(user)
-    w_screen_name = ::Gtk::Label.new.set_markup("<b><u><span foreground=\"#0000ff\">#{Pango.escape(user[:idname])}</span></u></b>")
-    w_ev = ::Gtk::EventBox.new
-    w_ev.modify_bg(::Gtk::STATE_NORMAL, Gdk::Color.new(0xffff, 0xffff, 0xffff))
-    w_ev.ssc(:realize) {
-      w_ev.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
-      false }
-    w_ev.ssc(:button_press_event) { |this, e|
-      if e.button == 1
-        ::Gtk.openurl("http://twitter.com/#{user[:idname]}")
-        true end }
-    ::Gtk::HBox.new(false, 16).closeup(w_ev.add(w_screen_name)).closeup(::Gtk::Label.new(user[:name]))
-  end
+    w_name = ::Gtk::TextView.new
+    w_name.editable = false
+    w_name.cursor_visible = false
+    w_name.wrap_mode = Gtk::TextTag::WRAP_CHAR
+    w_name.ssc(:event) do |this, event|
+      if event.is_a? ::Gdk::EventMotion
+        this.get_window(::Gtk::TextView::WINDOW_TEXT)
+          .set_cursor(::Gdk::Cursor.new(::Gdk::Cursor::XTERM)) end
+      false end
+
+    tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
+                                             weight: Pango::FontDescription::WEIGHT_BOLD,
+                                             underline: Pango::AttrUnderline::SINGLE})
+    tag_sn.ssc(:event, &user_screen_name_event_callback(user))
+
+    w_name.buffer.insert(w_name.buffer.start_iter, user[:idname], tag_sn)
+    w_name.buffer.insert(w_name.buffer.end_iter, "\n#{user[:name]}")
+    Gtk::VBox.new.add(w_name) end
 
   # プロフィールの上のところの格子になってる奴をかえす
   # ==== Args
@@ -332,4 +338,21 @@ Plugin.create :user_detail_view do
     style = ::Gtk::Style.new()
     style.set_bg(::Gtk::STATE_NORMAL, 0xFF ** 2, 0xFF ** 2, 0xFF ** 2)
     style end
+
+  def user_screen_name_event_callback(user)
+    lambda do |tag, textview, event, iter|
+      case event
+      when ::Gdk::EventButton
+        if event.event_type == ::Gdk::Event::BUTTON_RELEASE and event.button == 1
+          ::Gtk.openurl("https://twitter.com/#{user[:idname]}")
+          next true
+        end
+      when ::Gdk::EventMotion
+        textview
+          .get_window(::Gtk::TextView::WINDOW_TEXT)
+          .set_cursor(::Gdk::Cursor.new(::Gdk::Cursor::HAND2))
+      end
+      false
+    end
+  end
 end
