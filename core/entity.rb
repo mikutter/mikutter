@@ -51,14 +51,22 @@ class Message::Entity
       segment }
 
     filter(:media){ |segment|
-      if segment[:type] == "video" and segment[:video_info]
+      case segment[:video_info] and segment[:type]
+      when 'video'
         variant = Array(segment[:video_info][:variants])
                   .select{|v|v[:content_type] == "video/mp4"}
                   .sort_by{|v|v[:bitrate]}
                   .last
         segment[:face] = "#{segment[:display_url]} (%.1fs)" % (segment[:video_info][:duration_millis]/1000.0)
         segment[:url] = variant[:url]
-      else # photo
+      when 'animated_gif'
+        variant = Array(segment[:video_info][:variants])
+                  .select{|v|v[:content_type] == "video/mp4"}
+                  .sort_by{|v|v[:bitrate]}
+                  .last
+        segment[:face] = "#{segment[:display_url]} (GIF)"
+        segment[:url] = variant[:url]
+      else
         segment[:face] = segment[:display_url]
         segment[:url] = segment[:media_url]
       end
