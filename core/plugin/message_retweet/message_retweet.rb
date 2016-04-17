@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 Plugin.create :message_retweet do
+  error_message_get_retweeted_users = _('リツイートしたユーザの一覧が取得できませんでした')
   message_fragment :retweeted, "ReTweet" do
     message = retriever
 
@@ -18,11 +19,12 @@ Plugin.create :message_retweet do
         if retweet.retweet_source(true) == message
           user_list.add_user(Users.new([retweet.user])) end end end
 
-    Service.primary.retweeted_users(id: message.id).next{|users|
-      user_list.add_user(users)
-    }.terminate(_('リツイートしたユーザの一覧が取得できませんでした')).trap {|exception|
-      error exception
-    }
-
+    user_list.ssc_atonce :expose_event do
+      Service.primary.retweeted_users(id: message.id).next{|users|
+        user_list.add_user(users)
+      }.terminate(error_message_get_retweeted_users).trap {|exception|
+        error exception }
+      false end
   end
+
 end
