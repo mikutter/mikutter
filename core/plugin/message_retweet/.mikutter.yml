@@ -5,6 +5,6 @@ depends:
   plugin:
     - message_detail_view
 version: '1.0'
-author: 
+author: toshi_a
 name: ReTweet
 description: "リツイートの表示に関するプラグイン"
