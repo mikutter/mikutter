@@ -52,6 +52,9 @@ class User < Retriever::Model
     result.set_users_id(@@users_id)
     result end
 
+  def self.container_class
+    Users end
+
   def initialize(*args)
     super
     @@users_id[idname] = self end

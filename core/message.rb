@@ -57,6 +57,9 @@ class Message < Retriever::Model
                [:modified, :time],        # updated time
              ]
 
+  def self.container_class
+    Messages end
+
   # appearイベント
   def self.appear(message) # :nodoc:
     @@appear_queue.push(message)
