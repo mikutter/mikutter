@@ -106,6 +106,12 @@ module MikuTwitter::APIShortcuts
     request.messages(args)
   end
 
+  def retweeted_users(args = {})
+    args[:id] = args[:status_id] if args[:status_id]
+    request = self/:statuses/:retweeters/:ids
+    cursor_pager(request, :paged_ids, :ids, args).next do |ids|
+      Thread.new{ User.findbyid(ids) } end end
+
   defshortcut :rate_limit_status, "account/rate_limit_status", :json
 
   defshortcut :verify_credentials, "account/verify_credentials", :user
