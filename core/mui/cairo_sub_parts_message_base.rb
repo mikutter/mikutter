@@ -142,14 +142,14 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       hl_layout, hr_layout = header_left(message, context), header_right(message, context)
       context.show_pango_layout(hl_layout)
       context.save{
-        context.translate(header_w - hr_layout.size[0] / Pango::SCALE, 0)
-        if (hl_layout.size[0] / Pango::SCALE) > header_w - hr_layout.size[0] / Pango::SCALE - 20
+        context.translate(header_w - hr_layout.pixel_size[0], 0)
+        if hl_layout.pixel_size[0] > header_w - hr_layout.pixel_size[0] - 20
           r, g, b = background_color(message)
-          grad = Cairo::LinearPattern.new(-20, base_y, hr_layout.size[0] / Pango::SCALE + 20, base_y)
+          grad = Cairo::LinearPattern.new(-20, base_y, hr_layout.pixel_size[0] + 20, base_y)
           grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
-          grad.add_color_stop_rgba(20.0 / (hr_layout.size[0] / Pango::SCALE + 20), r, g, b, 1.0)
+          grad.add_color_stop_rgba(20.0 / (hr_layout.pixel_size[0] + 20), r, g, b, 1.0)
           grad.add_color_stop_rgba(1.0, r, g, b, 1.0)
-          context.rectangle(-20, base_y, hr_layout.size[0] / Pango::SCALE + 20, hr_layout.size[1] / Pango::SCALE + base_y)
+          context.rectangle(-20, 0, hr_layout.pixel_size[0] + 20, hr_layout.pixel_size[1])
           context.set_source(grad)
           context.fill() end
         context.show_pango_layout(hr_layout) } }
