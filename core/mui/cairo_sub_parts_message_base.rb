@@ -22,11 +22,72 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def messages
     [] end
 
+  # ヘッダの左の、Screen name、名前が表示されている場所に表示するテキスト。
+  # オーバライドしなければ、 _message_ の投稿者のscreen nameと名前が表示される。
+  # nilを返した場合、ヘッダは表示されない。この場合、ヘッダ右も表示されない。
+  # ==== Args
+  # [message] Message 表示するMessage
+  # ==== Return
+  # 次の3つの値またはnil（ヘッダ左を使用しない場合）
+  # [String] 表示する文字列
+  # [Pango::FontDescription] フォント情報
+  # [Pango::Attribute] マークアップ情報
+  def header_left_content(message)
+    attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    return text, header_left_font(message), attr_list end
+
+  # ヘッダ左に使用するフォントを返す
+  # ==== Args
+  # [message] Message 表示するMessage
+  # ==== Return
+  # [Pango::FontDescription] フォント情報
+  def header_left_font(message)
+    default_font end
+
+  # ヘッダの右の、タイムスタンプが表示されているところに表示するテキスト。
+  # オーバーライドしなければ、 _message_ のタイムスタンプが表示される。
+  # 表示される時に、 Pango.escape を通るので、この戻り値がエスケープを考慮する必要はないが、装飾を指定することはできない。
+  # ==== Args
+  # [message] Message 対象のMessage
+  # ==== Return
+  # [String] 表示する文字列。
+  def header_right_text(message)
+    now = Time.now
+    if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
+      message[:created].strftime('%H:%M:%S'.freeze)
+    else
+      message[:created].strftime('%Y/%m/%d %H:%M:%S'.freeze) end end
+
+  # Gdk::SubPartsMessageBase#header_right_text にマークアップを足した文字列を返す。
+  # 通常は header_right_text をオーバライドするようにし、
+  # テキストがエスケープされるのが問題になる場合は、こちらをオーバライドする。
+  # nilを返した場合、ヘッダ右は表示されない。この場合、ヘッダ左のみが表示される。
+  # ヘッダ自体を消す方法については、 Gdk::SubPartsMessageBase#header_left_text を参照
+  # ==== Args
+  # [message] Message 対象のMessage
+  # ==== Return
+  # 次の3つの値またはnil（ヘッダ右を使用しない場合）
+  # [String] 表示する文字列
+  # [Pango::FontDescription] フォント情報
+  # [Pango::Attribute] マークアップ情報
+  def header_right_content(message)
+    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(header_right_text(message))}</span>")
+    return text, header_right_font(message), attr_list end
+
+  # ヘッダ右に使用するフォントを返す
+  # ==== Args
+  # [message] Message 表示するMessage
+  # ==== Return
+  # [Pango::FontDescription] フォント情報
+  def header_right_font(message)
+    default_font end
+
   # SubParts内の _Message_ の左上に表示するバッジ。
   # サブクラスで処理を実装すること。
   # ==== Args
   # [message] Message
   # ==== Return
+  # 以下の値のいずれか一つ
   # Gdk::Pixbuf :: _message_ の左上に表示するバッジ画像
   # nil :: バッジを表示しない
   def badge(message)
@@ -51,6 +112,10 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       color.map{ |c| c.to_f / 65536 }
     else
       [1.0]*3 end end
+
+  # :nodoc:
+  memoize def default_font
+    Pango::FontDescription.new(UserConfig[:mumble_basic_font]) end
 
   # :nodoc:
   def initialize(*args)
@@ -92,13 +157,13 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   def render_single_message(message, context, base_y)
     render_outline(message, context, base_y)
-    render_header(message, context, base_y)
+    _header_width, header_height = render_header(message, context, base_y)
     context.save do
       context.translate(@margin + @edge, @margin + @edge + base_y)
       context.set_source_pixbuf(main_icon(message))
       context.paint
       context.save do
-        context.translate(icon_width + @margin*2, header_left(message).size[1] / Pango::SCALE)
+        context.translate(icon_width + @margin*2, header_height || 0)
         context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
         pango_layout = main_message(message, context)
         if pango_layout.line_count <= 3
@@ -127,39 +192,47 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(message, context = dummy_context)
-    attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
-    layout = context.create_pango_layout
-    layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = text
-    layout end
+    text, font, attr_list = header_left_content(message)
+    if text
+      layout = context.create_pango_layout
+      layout.attributes = attr_list if attr_list
+      layout.font_description = font if font
+      layout.text = text
+      layout end end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
   def header_right(message, context = dummy_context)
-    now = Time.now
-    hms = if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
-            message[:created].strftime('%H:%M:%S'.freeze)
-          else
-            message[:created].strftime('%Y/%m/%d %H:%M:%S'.freeze)
-          end
-    attr_list, text = Pango.parse_markup("<span foreground=\"#999999\">#{Pango.escape(hms)}</span>".freeze)
-    layout = context.create_pango_layout
-    layout.attributes = attr_list
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-    layout.text = text
-    layout.alignment = Pango::ALIGN_RIGHT
-    layout end
+    text, font, attr_list = header_right_content(message)
+    if text
+      layout = context.create_pango_layout
+      layout.attributes = attr_list if attr_list
+      layout.font_description = font if font
+      layout.text = text
+      layout.alignment = Pango::ALIGN_RIGHT
+      layout end end
 
   def render_header(message, context, base_y)
-    header_w = width - @icon_width - @margin*3 - @edge*2
-    context.save{
+    context.save do
       context.translate(@icon_width + @margin*2 + @edge, @margin + @edge + base_y)
       context.set_source_rgb(0,0,0)
-      hl_layout, hr_layout = header_left(message, context), header_right(message, context)
-      context.show_pango_layout(hl_layout)
-      context.save{
+      hl_layout = header_left(message, context)
+      if hl_layout
+        context.show_pango_layout(hl_layout)
+        hl_w, hl_h = hl_layout.pixel_size
+        hr_layout = render_header_right(message, context, base_y, hl_w)
+        if hr_layout
+          [[hl_w, hr_layout.pixel_size[0]].max,
+           [hl_h, hr_layout.pixel_size[1]].max]
+        else
+          [hl_w, hl_h] end end end end
+
+  def render_header_right(message, context, base_y, header_left_width)
+    header_w = width - @icon_width - @margin*3 - @edge*2
+    hr_layout = header_right(message, context)
+    if hr_layout
+      context.save do
         context.translate(header_w - hr_layout.pixel_size[0], 0)
-        if hl_layout.pixel_size[0] > header_w - hr_layout.pixel_size[0] - 20
+        if header_left_width > header_w - hr_layout.pixel_size[0] - 20
           r, g, b = background_color(message)
           grad = Cairo::LinearPattern.new(-20, base_y, hr_layout.pixel_size[0] + 20, base_y)
           grad.add_color_stop_rgba(0.0, r, g, b, 0.0)
@@ -168,8 +241,8 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
           context.rectangle(-20, 0, hr_layout.pixel_size[0] + 20, hr_layout.pixel_size[1])
           context.set_source(grad)
           context.fill() end
-        context.show_pango_layout(hr_layout) } }
-  end
+        context.show_pango_layout(hr_layout)
+        hr_layout end end end
 
   def main_message(message, context = dummy_context)
     attr_list, text = Pango.parse_markup(Pango.escape(message.to_show))
