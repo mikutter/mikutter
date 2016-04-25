@@ -100,14 +100,30 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.save do
         context.translate(icon_width + @margin*2, header_left(message).size[1] / Pango::SCALE)
         context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
-        context.show_pango_layout(main_message(message, context)) end
+        pango_layout = main_message(message, context)
+        if pango_layout.line_count <= 3
+          context.show_pango_layout(pango_layout)
+        else
+          line_height = pango_layout.pixel_size[1] / pango_layout.line_count + pango_layout.spacing / Pango::SCALE
+          context.translate(0, line_height*0.75)
+          (0...3).map(&pango_layout.method(:get_line)).each do |line|
+            context.show_pango_layout_line(line)
+            context.translate(0, line_height) end end end
       render_badge(message, context) end
 
     base_y + message_height(message) end
 
   def message_height(message)
-    [icon_height, (header_left(message).size[1] + main_message(message).size[1]) / Pango::SCALE].max + (@margin + @edge) * 2
+    [icon_height, (header_left(message).pixel_size[1] + main_message_height(message))].max + (@margin + @edge) * 2
   end
+
+  def main_message_height(message)
+    pango_layout = main_message(message)
+    result = pango_layout.pixel_size[1]
+    if pango_layout.line_count <= 3
+      result
+    else
+      (result / pango_layout.line_count + pango_layout.spacing/Pango::SCALE) * 3 end end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(message, context = dummy_context)
