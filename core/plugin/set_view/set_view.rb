@@ -66,7 +66,13 @@ Plugin::create(:set_view) do
     settings(_('Mentions')) do
       boolean(_('リプライを返したつぶやきにはアイコンを表示'), :show_replied_icon).
         tooltip(_("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"))
-    end
+
+      multiselect _('表示項目'), :reply_present_policy do
+        option(:header, _('ヘッダを表示する'))
+        option(:icon, _('アイコンを表示する')) do
+          select _('アイコンのサイズ'), :reply_icon_size do
+            [12,24,36,48,64,UserConfig[:reply_icon_size]||12].uniq.sort.each do |size|
+              option size, "#{size}px" if size end end end end end
 
     settings(_('Retweets')) do
       boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).

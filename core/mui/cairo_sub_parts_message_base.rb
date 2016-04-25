@@ -179,8 +179,9 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     base_y + message_height(message) end
 
   def message_height(message)
-    [icon_height, (header_left(message).pixel_size[1] + main_message_height(message))].max + (@margin + @edge) * 2
-  end
+    header_height = [0, *[header_left(message), header_right(message)].compact.map{|h|
+                       h.pixel_size[1]}].max
+    [icon_height, (header_height + main_message_height(message))].max + (@margin + @edge) * 2 end
 
   def main_message_height(message)
     pango_layout = main_message(message)
@@ -188,7 +189,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     if pango_layout.line_count <= 3
       result
     else
-      (result / pango_layout.line_count + pango_layout.spacing/Pango::SCALE) * 3 end end
+      (result / pango_layout.line_count) * 3 + pango_layout.spacing/Pango::SCALE * 2 end end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(message, context = dummy_context)

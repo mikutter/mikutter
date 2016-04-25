@@ -2,6 +2,8 @@
 
 miquire :mui, 'sub_parts_message_base'
 
+UserConfig[:reply_present_policy] ||= %i<header icon>
+
 class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   register
 
@@ -24,4 +26,16 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
       color.map{ |c| c.to_f / 65536 }
     else
       [1.0]*3 end end
+
+  def header_left_content(*args)
+    if (UserConfig[:reply_present_policy] || []).include?(:header)
+      super
+    end
+  end
+
+  def header_right_content(*args)
+    if (UserConfig[:reply_present_policy] || []).include?(:header)
+      super
+    end
+  end
 end
