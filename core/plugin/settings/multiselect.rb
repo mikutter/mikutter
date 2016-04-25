@@ -58,9 +58,9 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     container = Gtk::VBox.new
     state = listener.get || []
     @options.each{ |pair|
-      node, value = *pair
-      check = Gtk::CheckButton.new(value)
-      check.active = state.include?(node)
+      value, face = *pair
+      check = Gtk::CheckButton.new(face)
+      check.active = state.include?(value)
       check.ssc(:toggled, &generate_toggled_listener(listener, value))
       container.closeup check }
     container end
