@@ -78,7 +78,7 @@ class Plugin::Settings::Select
             listener.set value if widget.active?
             setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
           radio.active = listener.get == value
-          face.sensitive = radio.active? if face.is_a? Gtk::Widget end } }
+          setting.sensitive = radio.active? if setting.is_a? Gtk::Widget end } }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する

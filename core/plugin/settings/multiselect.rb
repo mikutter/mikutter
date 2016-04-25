@@ -31,13 +31,21 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
 
     options = @options
     box.instance_eval{
-      options.each{ |value, face|
-        if face.is_a? String
+      options.each{ |value, face, setting|
+        if (not setting) and face.is_a? String
           closeup check = Gtk::CheckButton.new(face)
-        elsif face.is_a? Plugin::Settings
-          container = Gtk::HBox.new
-          check = Gtk::CheckButton.new
-          closeup container.closeup(check).add(face)
+        elsif setting.is_a? Plugin::Settings
+          if face.is_a? String
+            container = Gtk::Table.new(2, 2)
+            check = Gtk::CheckButton.new
+            container.attach(check, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL)
+            container.attach(Gtk::Label.new(face).left, 1, 2, 0, 1, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
+            container.attach(setting, 1, 2, 1, 2, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND)
+            closeup container
+          else
+            container = Gtk::HBox.new
+            check = Gtk::CheckButton.new
+            closeup container.closeup(check).add(setting) end
         else
           raise ArgumentError, "multiselect option value should be instance of String or Plugin::Settings. but #{face.class} given (#{face.inspect})"
         end
@@ -46,9 +54,9 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
             listener.set((listener.get || []) + [value])
           else
             listener.set((listener.get || []) - [value]) end
-          face.sensitive = widget.active? if face.is_a? Gtk::Widget }
+          setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
         check.active = (listener.get || []).include? value
-        face.sensitive = check.active? if face.is_a? Gtk::Widget } }
+        setting.sensitive = check.active? if setting.is_a? Gtk::Widget } }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する
