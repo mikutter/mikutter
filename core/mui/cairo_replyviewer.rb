@@ -38,4 +38,10 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
       super
     end
   end
+
+  def icon_width
+    UserConfig[:reply_icon_size] || super end
+
+  def icon_height
+    UserConfig[:reply_icon_size] || super end
 end

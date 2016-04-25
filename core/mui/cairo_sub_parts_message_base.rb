@@ -11,7 +11,7 @@ require 'cairo'
 そして、以下のドキュメントを参考に、必要なメソッドをオーバライドします。
 =end
 class Gdk::SubPartsMessageBase < Gdk::SubParts
-  attr_reader :icon_width, :icon_height
+  DEFAULT_ICON_SIZE = 32
 
   # SubPartsに表示する _Message_ 。
   # 複数表示可能なので、それらを上に表示されるものから順番に返す。
@@ -113,6 +113,20 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     else
       [1.0]*3 end end
 
+  # アイコンの幅を返す。
+  # アイコンが正方形で良いなら、 Gdk::SubPartsMessageBase#icon_oneside をオーバライドする
+  # ==== Return
+  # [Fixnum] 横幅(px)
+  def icon_width
+    DEFAULT_ICON_SIZE end
+
+  # アイコンの高さを返す。
+  # アイコンが正方形で良いなら、 Gdk::SubPartsMessageBase#icon_oneside をオーバライドする
+  # ==== Return
+  # [Fixnum] 高さ(px)
+  def icon_height
+    DEFAULT_ICON_SIZE end
+
   # :nodoc:
   memoize def default_font
     Pango::FontDescription.new(UserConfig[:mumble_basic_font]) end
@@ -120,7 +134,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # :nodoc:
   def initialize(*args)
     super
-    @icon_width, @icon_height, @margin, @edge, @badge_radius = 32, 32, 2, 8, 6 end
+    @margin, @edge, @badge_radius = 2, 8, 6 end
 
   # :nodoc:
   def render_messages
@@ -214,7 +228,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   def render_header(message, context, base_y)
     context.save do
-      context.translate(@icon_width + @margin*2 + @edge, @margin + @edge + base_y)
+      context.translate(icon_width + @margin*2 + @edge, @margin + @edge + base_y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(message, context)
       if hl_layout
@@ -228,7 +242,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
           [hl_w, hl_h] end end end end
 
   def render_header_right(message, context, base_y, header_left_width)
-    header_w = width - @icon_width - @margin*3 - @edge*2
+    header_w = width - icon_width - @margin*3 - @edge*2
     hr_layout = header_right(message, context)
     if hr_layout
       context.save do
@@ -248,7 +262,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_message(message, context = dummy_context)
     attr_list, text = Pango.parse_markup(Pango.escape(message.to_show))
     layout = context.create_pango_layout
-    layout.width = (width - @icon_width - @margin*3 - @edge*2) * Pango::SCALE
+    layout.width = (width - icon_width - @margin*3 - @edge*2) * Pango::SCALE
     layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_reply_font])

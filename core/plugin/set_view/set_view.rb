@@ -71,7 +71,7 @@ Plugin::create(:set_view) do
         option(:header, _('ヘッダを表示する'))
         option(:icon, _('アイコンを表示する')) do
           select _('アイコンのサイズ'), :reply_icon_size do
-            [12,24,36,48,64,UserConfig[:reply_icon_size]||12].uniq.sort.each do |size|
+            [12,16,24,32,36,48,UserConfig[:reply_icon_size]].compact.uniq.sort.each do |size|
               option size, "#{size}px" if size end end end end end
 
     settings(_('Retweets')) do
