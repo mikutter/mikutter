@@ -28,20 +28,28 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
       [1.0]*3 end end
 
   def header_left_content(*args)
-    if (UserConfig[:reply_present_policy] || []).include?(:header)
-      super
-    end
-  end
+    if show_header?
+      super end end
 
   def header_right_content(*args)
-    if (UserConfig[:reply_present_policy] || []).include?(:header)
-      super
-    end
-  end
+    if show_header?
+      super end end
 
   def icon_width
-    UserConfig[:reply_icon_size] || super end
+    if show_icon?
+      UserConfig[:reply_icon_size] || super
+    else
+      0 end end
 
   def icon_height
-    UserConfig[:reply_icon_size] || super end
+    if show_icon?
+      UserConfig[:reply_icon_size] || super
+    else
+      0 end end
+
+  def show_header?
+    (UserConfig[:reply_present_policy] || []).include?(:header) end
+
+  def show_icon?
+    (UserConfig[:reply_present_policy] || []).include?(:icon) end
 end

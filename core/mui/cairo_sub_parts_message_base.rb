@@ -174,8 +174,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     _header_width, header_height = render_header(message, context, base_y)
     context.save do
       context.translate(@margin + @edge, @margin + @edge + base_y)
-      context.set_source_pixbuf(main_icon(message))
-      context.paint
+      render_icon(message, context)
       context.save do
         context.translate(icon_width + @margin*2, header_height || 0)
         context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
@@ -304,6 +303,11 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.set_source_pixbuf(badge_pixbuf)
       context.paint end
   end
+
+  def render_icon(message, context)
+    if icon_width != 0 and icon_height != 0
+      context.set_source_pixbuf(main_icon(message))
+      context.paint end end
 
   def main_icon(message)
     Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
