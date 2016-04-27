@@ -113,6 +113,14 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     else
       [1.0]*3 end end
 
+  # SubParts内の _Message_ の枠の色を返す
+  # ==== Args
+  # [message] Message
+  # ==== Return
+  # Array :: red, green, blueの配列。各要素は0.0..1.0の範囲。
+  def edge_color(message)
+    [0.5]*3 end
+
   # アイコンの幅を返す。
   # アイコンが正方形で良いなら、 Gdk::SubPartsMessageBase#icon_oneside をオーバライドする
   # ==== Return
@@ -134,7 +142,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # :nodoc:
   def initialize(*args)
     super
-    @margin, @edge, @badge_radius = 2, 8, 6 end
+    @margin, @edge, @border_weight, @badge_radius = 2, 8, 1, 6 end
 
   # :nodoc:
   def render_messages
@@ -269,40 +277,90 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     layout end
 
   def render_outline(message, context, base_y)
-    mh = message_height(message)
+    render_outline_floating(message, context, base_y) end
+
+  # エッジの描画。
+  # 影にblurを入れて、浮いているような感じに
+  def render_outline_floating(message, context, base_y, radius: 4, blur: 4)
+    x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
     context.save {
-      context.pseudo_blur(4) {
+      context.pseudo_blur(blur) {
         context.fill {
-          context.set_source_rgb(*([32767, 32767, 32767]).map{ |c| c.to_f / 65536 })
-          context.rounded_rectangle(@edge, @edge + base_y, width - @edge*2, mh - @edge*2, 4)
-        }
-      }
+          context.set_source_rgb(*edge_color(message))
+          context.rounded_rectangle(x,y,w,h, radius) } }
       context.fill {
         context.set_source_rgb(*background_color(message))
-        context.rounded_rectangle(@edge, @edge + base_y, width - @edge*2, mh - @edge*2, 4)
-      }
-    }
-  end
+        context.rounded_rectangle(x,y,w,h, radius) } } end
+
+  # エッジの描画。
+  # 細い線を入れる
+  def render_outline_solid(message, context, base_y, radius: 4)
+    context.save {
+      x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
+      #context.fill {
+        context.rounded_rectangle(x,y,w,h, radius)
+        context.set_source_rgb(*background_color(message))
+        context.fill_preserve
+        context.set_line_width(@border_weight)
+        context.set_source_rgb(*edge_color(message))
+        context.stroke } end
+
+  # エッジの描画。
+  # 枠線なし
+  def render_outline_flat(message, context, base_y, radius: 4)
+    context.save {
+      x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
+      context.fill {
+        context.set_source_rgb(*background_color(message))
+        context.rounded_rectangle(x,y,w,h, radius) } } end
 
   def render_badge(message, context)
+    render_badge_floating(message, context) end
+
+  # バッジの描画。
+  # 影にblurを入れて、浮いているような感じに
+  def render_badge_floating(message, context)
     badge_pixbuf = badge(message)
     if badge_pixbuf
       context.save {
         context.pseudo_blur(4) {
           context.fill {
-            context.set_source_rgb(*([32767, 32767, 32767]).map{ |c| c.to_f / 65536 })
-            context.circle(0, 0, @badge_radius)
-          }
-        }
+            context.set_source_rgb(*edge_color(message))
+            context.circle(0, 0, @badge_radius) } }
         context.fill {
           context.set_source_rgb(*background_color(message))
-          context.circle(0, 0, @badge_radius)
-        }
-      }
+          context.circle(0, 0, @badge_radius) } }
       context.translate(-@badge_radius, -@badge_radius)
       context.set_source_pixbuf(badge_pixbuf)
-      context.paint end
-  end
+      context.paint end end
+
+  # バッジの描画。
+  # 細い線を入れる
+  def render_badge_solid(message, context)
+    badge_pixbuf = badge(message)
+    if badge_pixbuf
+      context.save {
+        context.circle(0, 0, @badge_radius)
+        context.set_source_rgb(*background_color(message))
+        context.fill_preserve
+        context.set_source_rgb(*edge_color(message))
+        context.set_line_width(@border_weight)
+        context.stroke }
+      context.translate(-@badge_radius, -@badge_radius)
+      context.set_source_pixbuf(badge_pixbuf)
+      context.paint end end
+
+  # バッジの描画。
+  # 枠線を入れない
+  def render_badge_flat(message, context)
+    badge_pixbuf = badge(message)
+    if badge_pixbuf
+      context.fill {
+        context.set_source_rgb(*background_color(message))
+        context.circle(0, 0, @badge_radius) }
+      context.translate(-@badge_radius, -@badge_radius)
+      context.set_source_pixbuf(badge_pixbuf)
+      context.paint end end
 
   def render_icon(message, context)
     if icon_width != 0 and icon_height != 0
