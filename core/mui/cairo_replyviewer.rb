@@ -3,6 +3,7 @@
 miquire :mui, 'sub_parts_message_base'
 
 UserConfig[:reply_present_policy] ||= %i<header icon>
+UserConfig[:reply_edge] ||= :floating
 
 class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   register
@@ -27,6 +28,12 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     else
       [1.0]*3 end end
 
+  def main_text_color(message)
+    UserConfig[:reply_text_color].map{ |c| c.to_f / 65536 } end
+
+  def main_text_font(message)
+    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
+
   def header_left_content(*args)
     if show_header?
       super end end
@@ -47,9 +54,35 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     else
       0 end end
 
+  def render_outline(message, context, base_y)
+    unless show_edge?
+      @edge = 2
+      return
+    end
+    case UserConfig[:reply_edge]
+    when :floating
+      render_outline_floating(message, context, base_y)
+    when :solid
+      render_outline_solid(message, context, base_y)
+    when :flat
+      render_outline_flat(message, context, base_y) end end
+
+  def render_badge(message, context)
+    return unless show_edge?
+    case UserConfig[:reply_edge]
+    when :floating
+      render_badge_floating(message, context)
+    when :solid
+      render_badge_solid(message, context)
+    when :flat
+      render_badge_flat(message, context) end end
+
   def show_header?
     (UserConfig[:reply_present_policy] || []).include?(:header) end
 
   def show_icon?
     (UserConfig[:reply_present_policy] || []).include?(:icon) end
+
+  def show_edge?
+    (UserConfig[:reply_present_policy] || []).include?(:edge) end
 end

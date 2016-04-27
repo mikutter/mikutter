@@ -135,9 +135,25 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def icon_height
     DEFAULT_ICON_SIZE end
 
+  # _message_ の本文のテキスト色を返す
+  # ==== Args
+  # [message] Message
+  # ==== Return
+  # Array :: red, green, blueの配列。各要素は0.0..1.0の範囲。
+  def main_text_color(message)
+    ([0,0,0]).map{ |c| c.to_f / 65536 } end
+
+  # 本文使用するフォントを返す
+  # ==== Args
+  # [message] Message 表示するMessage
+  # ==== Return
+  # [Pango::FontDescription] フォント情報
+  def main_text_font(message)
+    default_font end
+
   # :nodoc:
   memoize def default_font
-    Pango::FontDescription.new(UserConfig[:mumble_basic_font]) end
+    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
 
   # :nodoc:
   def initialize(*args)
@@ -185,7 +201,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       render_icon(message, context)
       context.save do
         context.translate(icon_width + @margin*2, header_height || 0)
-        context.set_source_rgb(*([0,0,0]).map{ |c| c.to_f / 65536 })
+        context.set_source_rgb(*main_text_color(message))
         pango_layout = main_message(message, context)
         if pango_layout.line_count <= 3
           context.show_pango_layout(pango_layout)
@@ -272,7 +288,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     layout.width = (width - icon_width - @margin*3 - @edge*2) * Pango::SCALE
     layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_reply_font])
+    layout.font_description = default_font
     layout.text = text
     layout end
 

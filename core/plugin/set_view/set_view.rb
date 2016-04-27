@@ -46,7 +46,7 @@ Plugin::create(:set_view) do
   settings(_("表示")) do
     settings(_('フォント')) do
       fontcolor _('デフォルト'), :mumble_basic_font, :mumble_basic_color
-      fontcolor _('リプライ元'), :mumble_reply_font, :mumble_reply_color
+      fontcolor _('リプライ先'), :reply_text_font, :reply_text_color
       fontcolor _('ヘッダ（左）'), :mumble_basic_left_font, :mumble_basic_left_color
       fontcolor _('ヘッダ（右）'), :mumble_basic_right_font, :mumble_basic_right_color
     end
@@ -72,7 +72,10 @@ Plugin::create(:set_view) do
         option(:icon, _('アイコンを表示する')) do
           select _('アイコンのサイズ'), :reply_icon_size do
             [12,16,24,32,36,48,UserConfig[:reply_icon_size]].compact.uniq.sort.each do |size|
-              option size, "#{size}px" if size end end end end end
+              option size, "#{size}px" if size end end end
+        option(:edge, _('枠線を表示する')) do
+          select _('枠線の種類'), :reply_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end
+      end end
 
     settings(_('Retweets')) do
       boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).

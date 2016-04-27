@@ -91,8 +91,8 @@ class UserConfig
 
     :mumble_basic_font => 'Sans 10',
     :mumble_basic_color => [0, 0, 0],
-    :mumble_reply_font => 'Sans 8',
-    :mumble_reply_color => [0x6666, 0x6666, 0x6666],
+    :reply_text_font => 'Sans 8',
+    :reply_text_color => [0x6666, 0x6666, 0x6666],
     :mumble_basic_left_font => 'Sans 10',
     :mumble_basic_left_color => [0, 0, 0],
     :mumble_basic_right_font => 'Sans 10',
@@ -185,7 +185,9 @@ class UserConfig
           UserConfig[:activity_show_statusbar] = activity_show_statusbar end end
       if last_boot_version < [3, 4, 0, 0]
         UserConfig[:replyviewer_background_color] = UserConfig[:mumble_reply_bg]
-        UserConfig[:quote_background_color] = UserConfig[:mumble_basic_bg] end
+        UserConfig[:quote_background_color] = UserConfig[:mumble_basic_bg]
+        UserConfig[:reply_text_font] ||= UserConfig[:mumble_reply_font] || 'Sans 8'
+        UserConfig[:reply_text_color] ||= UserConfig[:mumble_reply_color] end
     end
   end
 
