@@ -151,6 +151,15 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_text_font(message)
     default_font end
 
+  # 本文の最大表示行数を返す。
+  # この行数を超えた行は表示されない
+  # ==== Args
+  # [message] Message 表示するMessage
+  # ==== Return
+  # Fixnum 行数
+  def text_max_line_count(message)
+    3 end
+
   # :nodoc:
   memoize def default_font
     Pango::FontDescription.new(UserConfig[:reply_text_font]) end
@@ -203,12 +212,12 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         context.translate(icon_width + @margin*2, header_height || 0)
         context.set_source_rgb(*main_text_color(message))
         pango_layout = main_message(message, context)
-        if pango_layout.line_count <= 3
+        if pango_layout.line_count <= text_max_line_count(message)
           context.show_pango_layout(pango_layout)
         else
           line_height = pango_layout.pixel_size[1] / pango_layout.line_count + pango_layout.spacing / Pango::SCALE
           context.translate(0, line_height*0.75)
-          (0...3).map(&pango_layout.method(:get_line)).each do |line|
+          (0...text_max_line_count(message)).map(&pango_layout.method(:get_line)).each do |line|
             context.show_pango_layout_line(line)
             context.translate(0, line_height) end end end
       render_badge(message, context) end
@@ -223,10 +232,10 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_message_height(message)
     pango_layout = main_message(message)
     result = pango_layout.pixel_size[1]
-    if pango_layout.line_count <= 3
+    if pango_layout.line_count <= text_max_line_count(message)
       result
     else
-      (result / pango_layout.line_count) * 3 + pango_layout.spacing/Pango::SCALE * 2 end end
+      (result / pango_layout.line_count) * text_max_line_count(message) + pango_layout.spacing/Pango::SCALE * 2 end end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(message, context = dummy_context)
