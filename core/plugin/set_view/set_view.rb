@@ -74,8 +74,10 @@ Plugin::create(:set_view) do
             [12,16,24,32,36,48,UserConfig[:reply_icon_size]].compact.uniq.sort.each do |size|
               option size, "#{size}px" if size end end end
         option(:edge, _('枠線を表示する')) do
-          select _('枠線の種類'), :reply_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end
-      end end
+          select _('枠線の種類'), :reply_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end end
+
+      adjustment _('本文の最大行数'), :reply_text_max_line_count, 1, 10
+    end
 
     settings(_('Retweets')) do
       boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).

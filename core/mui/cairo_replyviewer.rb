@@ -54,6 +54,9 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     else
       0 end end
 
+  def text_max_line_count(message)
+    UserConfig[:reply_text_max_line_count] || super end
+
   def render_outline(message, context, base_y)
     unless show_edge?
       @edge = 2
