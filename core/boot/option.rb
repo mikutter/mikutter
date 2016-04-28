@@ -53,6 +53,7 @@ module Mopt
       puts "        spec [directory]             generate plugin spec. ex) mikutter spec ~/.mikutter/plugin/test"
       puts "        makepot                      generate .pot file all plugins."
       puts "        account                      Register new Twitter account."
+      puts "        plugin_depends               Output plugin dependencies."
       exit }
 
     opt.parse!(ARGV)
