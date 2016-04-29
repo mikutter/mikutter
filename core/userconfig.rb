@@ -92,7 +92,7 @@ class UserConfig
     :mumble_basic_font => 'Sans 10',
     :mumble_basic_color => [0, 0, 0],
     :reply_text_font => 'Sans 8',
-    :reply_text_color => [0x6666, 0x6666, 0x6666],
+    :reply_text_color => [0, 0, 0],
     :mumble_basic_left_font => 'Sans 10',
     :mumble_basic_left_color => [0, 0, 0],
     :mumble_basic_right_font => 'Sans 10',
