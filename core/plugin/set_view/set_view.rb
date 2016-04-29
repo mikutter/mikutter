@@ -86,6 +86,21 @@ Plugin::create(:set_view) do
         tooltip(_("自分がリツイートしたつぶやきを、TLの一番上に上げます"))
     end
 
+    settings(_('コメント付きリツイート')) do
+      fontcolor _('フォント'), :quote_text_font, :quote_text_color
+
+      multiselect _('表示項目'), :quote_present_policy do
+        option(:header, _('ヘッダを表示する'))
+        option(:icon, _('アイコンを表示する')) do
+          select _('アイコンのサイズ'), :quote_icon_size do
+            [12,16,24,32,36,48,UserConfig[:quote_icon_size]].compact.uniq.sort.each do |size|
+              option size, "#{size}px" if size end end end
+        option(:edge, _('枠線を表示する')) do
+          select _('枠線の種類'), :quote_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end end
+
+      adjustment _('本文の最大行数'), :quote_text_max_line_count, 1, 10
+    end
+
     settings(_('ふぁぼふぁぼ')) do
       boolean(_('ふぁぼられをリプライの受信として処理する'), :favorited_by_anyone_act_as_reply).
         tooltip(_("ふぁぼられたつぶやきが、リプライタブに現れるようになります。"))

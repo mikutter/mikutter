@@ -93,6 +93,8 @@ class UserConfig
     :mumble_basic_color => [0, 0, 0],
     :reply_text_font => 'Sans 8',
     :reply_text_color => [0, 0, 0],
+    :quote_text_font => 'Sans 8',
+    :quote_text_color => [0, 0, 0],
     :mumble_basic_left_font => 'Sans 10',
     :mumble_basic_left_color => [0, 0, 0],
     :mumble_basic_right_font => 'Sans 10',
@@ -122,7 +124,10 @@ class UserConfig
     :activity_mute_kind => ["error"],
     :activity_show_timeline => ["system", "achievement"],
 
-    :notification_enable => true
+    :notification_enable => true,
+
+    :reply_text_max_line_count => 3,
+    :quote_text_max_line_count => 3
   }
 
   @@watcher = Hash.new{ [] }
@@ -187,7 +192,11 @@ class UserConfig
         UserConfig[:replyviewer_background_color] = UserConfig[:mumble_reply_bg]
         UserConfig[:quote_background_color] = UserConfig[:mumble_basic_bg]
         UserConfig[:reply_text_font] ||= UserConfig[:mumble_reply_font] || 'Sans 8'
-        UserConfig[:reply_text_color] ||= UserConfig[:mumble_reply_color] end
+        UserConfig[:reply_text_color] ||= UserConfig[:mumble_reply_color]
+        UserConfig[:quote_text_font] ||= UserConfig[:reply_text_font] || 'Sans 8'
+        UserConfig[:quote_text_color] ||= UserConfig[:reply_text_color]
+        UserConfig[:reply_text_max_line_count] ||= 3
+        UserConfig[:quote_text_max_line_count] ||= 10 end
     end
   end
 
