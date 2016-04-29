@@ -44,11 +44,31 @@ Plugin::create(:set_view) do
     [message, color || UserConfig[:mumble_basic_right_color]] end
 
   settings(_("表示")) do
-    settings(_('フォント')) do
-      fontcolor _('デフォルト'), :mumble_basic_font, :mumble_basic_color
-      fontcolor _('リプライ先'), :reply_text_font, :reply_text_color
-      fontcolor _('ヘッダ（左）'), :mumble_basic_left_font, :mumble_basic_left_color
-      fontcolor _('ヘッダ（右）'), :mumble_basic_right_font, :mumble_basic_right_color
+    settings(_('つぶやき')) do
+      settings(_('通常時')) do
+        settings(_('フォント')) do
+          fontcolor _('デフォルト'), :mumble_basic_font, :mumble_basic_color
+          fontcolor _('ヘッダ（左）'), :mumble_basic_left_font, :mumble_basic_left_color
+          fontcolor _('ヘッダ（右）'), :mumble_basic_right_font, :mumble_basic_right_color
+        end
+        color _('背景色'), :mumble_basic_bg
+      end
+
+      settings(_('自分宛')) do
+        color _('背景色'), :mumble_reply_bg
+      end
+
+      settings(_('自分のつぶやき')) do
+        color _('背景色'), :mumble_self_bg
+      end
+
+      settings(_('システムメッセージ')) do
+        color _('背景色'), :mumble_system_bg
+      end
+
+      settings('選択中') do
+        color _('背景色'), :mumble_selected_bg
+      end
     end
 
     settings(_('背景色')) do
@@ -57,15 +77,13 @@ Plugin::create(:set_view) do
       color _('自分のつぶやき'), :mumble_self_bg
       color _('システムメッセージ'), :mumble_system_bg
       color _('選択中'), :mumble_selected_bg
-      color(_('リプライ先'), :replyviewer_background_color).
-        tooltip(_('他のつぶやきに返信すると、下に宛先が囲われて表示されるじゃないですか、あれです'))
       color(_('コメント付きリツイート'), :quote_background_color).
         tooltip(_('コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです'))
     end
 
-    settings(_('Mentions')) do
-      boolean(_('リプライを返したつぶやきにはアイコンを表示'), :show_replied_icon).
-        tooltip(_("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"))
+    settings(_('リプライ先')) do
+      fontcolor _('フォント'), :reply_text_font, :reply_text_color
+      color(_('背景色'), :replyviewer_background_color)
 
       multiselect _('表示項目'), :reply_present_policy do
         option(:header, _('ヘッダを表示する'))
@@ -79,15 +97,9 @@ Plugin::create(:set_view) do
       adjustment _('本文の最大行数'), :reply_text_max_line_count, 1, 10
     end
 
-    settings(_('Retweets')) do
-      boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).
-        tooltip(_("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"))
-      boolean(_('自分がリツイートしたつぶやきをTL上でageる'), :retweeted_by_myself_age).
-        tooltip(_("自分がリツイートしたつぶやきを、TLの一番上に上げます"))
-    end
-
     settings(_('コメント付きリツイート')) do
       fontcolor _('フォント'), :quote_text_font, :quote_text_color
+      color(_('背景色'), :quote_background_color)
 
       multiselect _('表示項目'), :quote_present_policy do
         option(:header, _('ヘッダを表示する'))
@@ -101,6 +113,11 @@ Plugin::create(:set_view) do
       adjustment _('本文の最大行数'), :quote_text_max_line_count, 1, 10
     end
 
+    settings(_('Mentions')) do
+      boolean(_('リプライを返したつぶやきにはアイコンを表示'), :show_replied_icon).
+        tooltip(_("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"))
+    end
+
     settings(_('ふぁぼふぁぼ')) do
       boolean(_('ふぁぼられをリプライの受信として処理する'), :favorited_by_anyone_act_as_reply).
         tooltip(_("ふぁぼられたつぶやきが、リプライタブに現れるようになります。"))
@@ -108,6 +125,13 @@ Plugin::create(:set_view) do
         tooltip(_("つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"))
       boolean(_('自分がふぁぼったつぶやきをTL上でageる'), :favorited_by_myself_age).
         tooltip(_("自分がふぁぼったつぶやきを、TLの一番上に上げます"))
+    end
+
+    settings(_('Retweets')) do
+      boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).
+        tooltip(_("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"))
+      boolean(_('自分がリツイートしたつぶやきをTL上でageる'), :retweeted_by_myself_age).
+        tooltip(_("自分がリツイートしたつぶやきを、TLの一番上に上げます"))
     end
 
     settings(_('非公開アカウント')) do
