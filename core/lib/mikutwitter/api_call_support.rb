@@ -144,9 +144,10 @@ module MikuTwitter::ApiCallSupport
 
       def direct_message(dm)
         cnv = dm.dup
-        cnv[:sender] = user(dm[:sender])
+        cnv[:user] = cnv[:sender] = user(dm[:sender])
         cnv[:recipient] = user(dm[:recipient])
         cnv[:exact] = true
+        cnv[:created] = Time.parse(dm[:created_at]).localtime
         cnv end
 
       def id(id)

@@ -3,9 +3,13 @@
 require File.expand_path File.join(File.dirname(__FILE__), 'userlist')
 require File.expand_path File.join(File.dirname(__FILE__), 'sender')
 require File.expand_path File.join(File.dirname(__FILE__), 'dmlistview')
+require File.expand_path File.join(File.dirname(__FILE__), 'model')
 
 module Plugin::DirectMessage
   Plugin.create(:direct_message) do
+    Service.each do |service|
+      Model.add_data_retriever(ModelRetriever.new(service, :direct_messages))
+    end
 
     def userlist
       @userlist ||= UserList.new end
@@ -27,7 +31,23 @@ module Plugin::DirectMessage
 
     user_fragment(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
-      nativewidget Plugin[:direct_message].dm_list_widget(retriever)
+      timeline timeline_name_for(user)
+    end
+
+    on_direct_messages do |_, dms|
+      dm_distribution = Hash.new {|h,k| h[k] = []}
+      dms.each do |dm|
+        model = Model.new_ifnecessary(dm)
+        dm_distribution[timeline_name_for(model[:user])] << model
+        dm_distribution[timeline_name_for(model[:recipient])] << model
+      end
+      dm_distribution.each do |slug, dm_for_user|
+        Plugin::GUI::Timeline.instance(slug) << dm_for_user
+      end
+    end
+
+    def timeline_name_for(user)
+      :"direct_messages_from_#{user[:idname]}"
     end
 
     onperiod do

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'miracle_painter'
+miquire :mui, 'miracle_painter', 'miracle_paintable'
 
 require 'gtk2'
 
@@ -124,10 +124,12 @@ module Gtk
     end
 
     def message_id=(id)
-      if id && id.to_i > 0
-        message = Message.findbyid(id.to_i, -2)
-        if message
-          return render_message(message) end end
+      if id
+        spec = Gtk::MiraclePaintable.decode_painter_key(id)
+        if spec.id > 0
+          message = spec.klass.findbyid(spec.id, -2)
+          if message
+            return render_message(message) end end end
       self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png'))
     rescue Exception => e
       if Mopt.debug
