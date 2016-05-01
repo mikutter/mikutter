@@ -8,11 +8,11 @@ Plugin::create(:set_view) do
     if !color
       color = if(message.respond_to?(:selected) && message.selected)
                 UserConfig[:mumble_selected_bg]
-              elsif(message.to_message.system?)
+              elsif(message.message.system?)
                 UserConfig[:mumble_system_bg]
-              elsif(message.to_message.from_me?)
+              elsif(message.message.from_me?)
                 UserConfig[:mumble_self_bg]
-              elsif(message.to_message.to_me?)
+              elsif(message.message.to_me?)
                 UserConfig[:mumble_reply_bg]
               else
                 UserConfig[:mumble_basic_bg] end end
