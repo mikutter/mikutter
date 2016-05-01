@@ -553,6 +553,17 @@ class Message < Retriever::Model
   def to_i
     self[:id].to_i end
 
+  # :nodoc:
+  def message
+    self end
+
+  # :nodoc:
+  def to_message
+    self end
+
+  deprecate :message, :none, 2017, 05
+  deprecate :to_message, :none, 2017, 05
+
   # 本文を人間に読みやすい文字列に変換する
   def to_show
     @to_show ||= body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
