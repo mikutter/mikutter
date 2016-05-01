@@ -80,9 +80,7 @@ class TC_MiquirePlugin < Test::Unit::TestCase
     assert(Miquire::Plugin.load(Miquire::Plugin.get_spec_by_slug(:standalone)),
            "プラグインがロードできる")
     assert(Plugin.instance_exist?(:standalone), "プラグインがロードできる")
-    assert_raise(ArgumentError, "存在しないプラグインはロードできない") {
-      Miquire::Plugin.load(Miquire::Plugin.get_spec_by_slug(:not_exist))
-    }
+    refute(Miquire::Plugin.load(Miquire::Plugin.get_spec_by_slug(:not_exist)), "存在しないプラグインはロードできない")
   end
 
   must "load child plugin with parent" do

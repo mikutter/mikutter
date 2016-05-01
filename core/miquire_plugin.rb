@@ -127,12 +127,17 @@ module Miquire::Plugin
           }.flatten
           local_depends.uniq.map{|d| d.to_spec }
         else
-          Array(spec[:depends][:plugin]).map{ |s| Array(s).first.to_sym.to_spec }
-        end
+          Array(spec[:depends][:plugin]).map do |s|
+            slug = Array(s).first.to_sym
+            if slug
+              slug.to_spec
+            else
+              slug end end end
       else
         [] end end
 
     def load(_spec)
+      return false unless _spec
       spec = _spec.to_spec
       return false unless spec
       return true if ::Plugin.instance_exist?(spec[:slug])
@@ -142,7 +147,7 @@ module Miquire::Plugin
         begin
           raise Miquire::LoadError unless load(depend)
         rescue Miquire::LoadError
-          raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depended_plugin_slug} was not loaded." end end
+          raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depend} was not loaded." end end
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
       ::Plugin.create(spec[:slug].to_sym) do
