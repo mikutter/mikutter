@@ -42,8 +42,6 @@ class Gdk::MiraclePainter < Gtk::Object
   # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す。
   # ログ数によってはかなり重い処理なので注意
   def self.findbymessage(message)
-    type_strict message => :message
-    message = message.message
     result = Set.new
     Gtk::TimeLine.timelines.each{ |tl|
       found = tl.get_record_by_message(message)
@@ -53,8 +51,6 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # findbymessage のdeferred版。
   def self.findbymessage_d(message)
-    type_strict message => :message
-    message = message.message
     result = Set.new
     Gtk::TimeLine.timelines.deach{ |tl|
       if not tl.destroyed?
@@ -74,9 +70,8 @@ class Gdk::MiraclePainter < Gtk::Object
       false } end
 
   def initialize(message, *coodinate)
-    type_strict message => :message
     @p_message = message
-    @message = message.message
+    @message = message
     @selected = false
     @pixbuf = nil
     type_strict @message => Message
@@ -397,7 +392,7 @@ class Gdk::MiraclePainter < Gtk::Object
       context.set_source_pixbuf(main_icon)
       context.paint
     }
-    if not (message.message.system?)
+    if not (message.system?)
       render_icon_over_button(context) end
   end
 
@@ -416,7 +411,7 @@ class Gdk::MiraclePainter < Gtk::Object
       context.set_source_pixbuf(main_icon)
       context.fill
     end
-    if not (message.message.system?)
+    if not (message.system?)
       render_icon_over_button(context) end
   end
 

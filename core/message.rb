@@ -553,10 +553,6 @@ class Message < Retriever::Model
   def to_i
     self[:id].to_i end
 
-  # selfを返す
-  def message
-    self end
-
   # 本文を人間に読みやすい文字列に変換する
   def to_show
     @to_show ||= body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
