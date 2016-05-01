@@ -60,8 +60,8 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   def render_outline(message, context, base_y)
     unless show_edge?
       @edge = 2
-      return
-    end
+      return end
+    @edge = 8
     case UserConfig[:reply_edge]
     when :floating
       render_outline_floating(message, context, base_y)

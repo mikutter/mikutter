@@ -72,8 +72,8 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   def render_outline(message, context, base_y)
     unless show_edge?
       @edge = 2
-      return
-    end
+      return end
+    @edge = 8
     case UserConfig[:quote_edge]
     when :floating
       render_outline_floating(message, context, base_y)
