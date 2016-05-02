@@ -553,10 +553,16 @@ class Message < Retriever::Model
   def to_i
     self[:id].to_i end
 
-  # selfを返す
+  # :nodoc:
+  def message
+    self end
+
+  # :nodoc:
   def to_message
     self end
-  alias :message :to_message
+
+  deprecate :message, :none, 2017, 05
+  deprecate :to_message, :none, 2017, 05
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show
@@ -711,11 +717,11 @@ class Message < Retriever::Model
   # 例外を引き起こした原因となるMessageをセットにして例外を発生させることができる
   class MessageError < Retriever::RetrieverError
     # messageは、Exceptionクラスと名前が被る
-    attr_reader :to_message
+    attr_reader :message
 
     def initialize(body, message)
       super("#{body} occured by #{message[:id]}(#{message[:message]})")
-      @to_message = message end
+      @message = message end
 
   end
 

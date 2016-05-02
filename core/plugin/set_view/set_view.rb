@@ -4,19 +4,19 @@ Plugin::create(:set_view) do
 
   UserConfig[:mumble_system_bg] ||= [255*222, 65535, 255*176]
 
-  filter_message_background_color do |message, color|
+  filter_message_background_color do |miracle_painter, color|
     if !color
-      color = if(message.respond_to?(:selected) && message.selected)
+      color = if miracle_painter.selected
                 UserConfig[:mumble_selected_bg]
-              elsif(message.to_message.system?)
+              elsif(miracle_painter.message.system?)
                 UserConfig[:mumble_system_bg]
-              elsif(message.to_message.from_me?)
+              elsif(miracle_painter.message.from_me?)
                 UserConfig[:mumble_self_bg]
-              elsif(message.to_message.to_me?)
+              elsif(miracle_painter.message.to_me?)
                 UserConfig[:mumble_reply_bg]
               else
                 UserConfig[:mumble_basic_bg] end end
-    [message, color]
+    [miracle_painter, color]
   end
 
   filter_subparts_replyviewer_background_color do |message, color|

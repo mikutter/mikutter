@@ -85,7 +85,7 @@ module Gdk::IconOverButton
   # [gy] MiraclePainter全体から見たy座標
   def iob_clicked(gx, gy)
     icon_position = globalpos2iconpos(gx, gy)
-    return if message.to_message.system?
+    return if message.system?
     if icon_position
       __send__([ [:iob_reply_clicked, :iob_etc_clicked],
                  [:iob_retweet_clicked, :iob_fav_clicked]][icon_position[0]][icon_position[1]]) end end

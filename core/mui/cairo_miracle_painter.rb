@@ -36,15 +36,12 @@ class Gdk::MiraclePainter < Gtk::Object
   BLACK = [0, 0, 0].freeze
 
   attr_reader :message, :p_message, :tree, :selected
-  alias :to_message :message
 
   # @@miracle_painters = Hash.new
 
   # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す。
   # ログ数によってはかなり重い処理なので注意
   def self.findbymessage(message)
-    type_strict message => :to_message
-    message = message.to_message
     result = Set.new
     Gtk::TimeLine.timelines.each{ |tl|
       found = tl.get_record_by_message(message)
@@ -54,8 +51,6 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # findbymessage のdeferred版。
   def self.findbymessage_d(message)
-    type_strict message => :to_message
-    message = message.to_message
     result = Set.new
     Gtk::TimeLine.timelines.deach{ |tl|
       if not tl.destroyed?
@@ -75,9 +70,8 @@ class Gdk::MiraclePainter < Gtk::Object
       false } end
 
   def initialize(message, *coodinate)
-    type_strict message => :to_message
     @p_message = message
-    @message = message.to_message
+    @message = message
     @selected = false
     @pixbuf = nil
     type_strict @message => Message
@@ -261,7 +255,7 @@ class Gdk::MiraclePainter < Gtk::Object
   def destroy
     def self.tree
       raise DestroyedError.new end
-    def self.to_message
+    def self.message
       raise DestroyedError.new end
     def self.p_message
       raise DestroyedError.new end
@@ -398,7 +392,7 @@ class Gdk::MiraclePainter < Gtk::Object
       context.set_source_pixbuf(main_icon)
       context.paint
     }
-    if not (message.to_message.system?)
+    if not (message.system?)
       render_icon_over_button(context) end
   end
 
@@ -417,7 +411,7 @@ class Gdk::MiraclePainter < Gtk::Object
       context.set_source_pixbuf(main_icon)
       context.fill
     end
-    if not (message.to_message.system?)
+    if not (message.system?)
       render_icon_over_button(context) end
   end
 
