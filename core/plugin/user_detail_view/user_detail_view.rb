@@ -265,7 +265,7 @@ Plugin.create :user_detail_view do
       eventbox.style = background_color
       false }
 
-    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]))
+    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(_('アイコンを開く')))
     icon.ssc(:button_press_event) do |this, event|
       Plugin.call(:openimg_open, user.profile_image_url_large)
       true end

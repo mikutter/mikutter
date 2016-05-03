@@ -6,7 +6,7 @@ module Plugin::MessageInspector
       super(*args)
       ssc_atonce(:visibility_notify_event, &widget_style_setter)
       add(Gtk::VBox.new(false, 0).
-           closeup(Gtk::HBox.new(false, 8).
+           closeup(Gtk::HBox.new(false, 0).
                      closeup(icon(message.user).top).
                      closeup(Gtk::VBox.new(false, 0).
                               closeup(idname(message.user).left).
@@ -23,8 +23,12 @@ module Plugin::MessageInspector
 
     def icon(user)
       type_strict user.profile_image_url_large => String
+
+      icon_alignment = Gtk::Alignment.new(0.5, 0, 0, 0)
+                       .set_padding(*[UserConfig[:profile_icon_margin]]*4)
+
       icon = Gtk::EventBox.new.
-        add(Gtk::WebIcon.new(user.profile_image_url_large, 48, 48))
+             add(icon_alignment.add(Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(Plugin[:message_detail_view]._('アイコンを開く'))))
       icon.ssc(:button_press_event, &icon_opener(user.profile_image_url_large))
       icon.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       icon.ssc_atonce(:visibility_notify_event, &widget_style_setter)
