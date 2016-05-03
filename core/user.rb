@@ -5,6 +5,7 @@ miquire :core, 'retriever', 'skin'
 miquire :lib, 'typed-array'
 
 class User < Retriever::Model
+  extend Gem::Deprecate
 
   @@users_id = WeakStorage.new(String, User) # {idname => User}
 
@@ -126,13 +127,13 @@ class User < Retriever::Model
 
   # 互換性のため
   alias is_me? me?
+  deprecate :is_me?, "me?", 2017, 05
 
-  # ユーザのメッセージが今までお気に入りにされた回数を返す
+  # :nodoc:
   def count_favorite_by
-    Thread.new {
-      open("http://favstar.fm/users/#{idname}"){ |io|
-        m = io.read.match(/<div[\s]+class='fs-value'[\s]*>[\s]*([0-9,]+)[\s]*<\/div>[\s]*<div[\s]+class='fs-title'[\s]*>[\s]*Favs[\s]*Received[\s]*<\/div>/)
-        @value[:favouritesby_count] = m[1].gsub(",", "").to_i } } end
+    Thread.new {raise RuntimeError, 'Favstar is dead.'} end
+  deprecate :count_favorite_by, :none, 2017, 05
+
 
   # ユーザが今までにお気に入りにしたメッセージ数の概算を返す
   def count_favorite_given

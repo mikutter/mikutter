@@ -313,27 +313,20 @@ Plugin.create :user_detail_view do
   # ==== Return
   # プロフィールのステータス部を表すGtkコンテナ
   def profile_table(user)
-    w_tweets = ::Gtk::Label.new(user[:statuses_count].to_s)
-    w_favs = ::Gtk::Label.new(user[:favourites_count].to_s)
-    w_faved = ::Gtk::Label.new("...")
-    w_followings = ::Gtk::Label.new(user[:friends_count].to_s)
-    w_followers = ::Gtk::Label.new(user[:followers_count].to_s)
-    user.count_favorite_by.next{ |favs|
-      w_faved.text = favs.to_s
-    }.terminate(_("ふぁぼが取得できませんでした")).trap{
-      w_faved.text = '-' }
-    ::Gtk::Table.new(2, 5).
-      attach(w_tweets.right, 0, 1, 0, 1).
-      attach(::Gtk::Label.new("tweets").left, 1, 2, 0, 1).
-      attach(w_favs.right, 0, 1, 1, 2).
-      attach(::Gtk::Label.new("favs").left, 1, 2, 1, 2).
-      attach(w_faved.right, 0, 1, 2, 3).
-      attach(::Gtk::Label.new("faved").left, 1, 2, 2, 3).
-      attach(w_followings.right, 0, 1, 3, 4).
-      attach(::Gtk::Label.new("followings").left, 1, 2, 3, 4).
-      attach(w_followers.right, 0, 1, 4, 5).
-      attach(::Gtk::Label.new("followers").left, 1, 2, 4, 5).
-      set_row_spacing(0, 4).
+    _, profile_columns = Plugin.filtering(:user_detail_view_header_columns, user, [
+                                            ['tweets',     user[:statuses_count].to_s],
+                                            ['favs',       user[:favourites_count].to_s],
+                                            ['followings', user[:friends_count]],
+                                            ['followers',  user[:followers_count]],
+                                          ])
+    ::Gtk::Table.new(2, profile_columns.size).tap{|table|
+      profile_columns.each_with_index do |column, index|
+        key, value = column
+        table.
+          attach(::Gtk::Label.new(value.to_s).right, 0, 1, index, index+1).
+          attach(::Gtk::Label.new(key.to_s)  .left , 1, 2, index, index+1)
+      end
+    }.set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)
   end
