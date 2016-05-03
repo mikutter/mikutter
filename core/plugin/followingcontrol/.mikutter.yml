@@ -1,12 +1,12 @@
 ---
 slug: :followingcontrol
 depends:
-  mikutter: '0.2'
+  mikutter: '3.3'
   plugin:
   - gtk
   - gui
-  - profile
-version: '1.0'
+  - user_detail_view
+version: '1.1'
 author: toshi_a
 name: フォロー
 description: フォロイー、フォロワーを表示するタブを追加する

@@ -46,10 +46,10 @@ Plugin.create :followingcontrol do
     else
       [service, source, messages] end end
 
-  profiletab(:followings, _('フォローしている')) do
+  user_fragment(:followings, _('フォローしている')) do
     set_icon Skin.get("followings.png")
     container = Gtk::EventBox.new
-    userlist = gen_userlist
+    userlist = Gtk::UserList.new
     nativewidget container
     if Service.map(&:user_obj).include?(user)
       userlist.add_user(Users.new((relation.followings[user] || []).reverse))
@@ -82,10 +82,10 @@ Plugin.create :followingcontrol do
     end
   end
 
-  profiletab(:followers, _('フォローされている')) do
+  user_fragment(:followers, _('フォローされている')) do
     set_icon Skin.get("followers.png")
     container = Gtk::EventBox.new
-    userlist = gen_userlist
+    userlist = Gtk::UserList.new
     nativewidget container
     if Service.map(&:user_obj).include?(user)
     userlist.add_user(Users.new((relation.followers[user] || []).reverse))
@@ -124,15 +124,6 @@ Plugin.create :followingcontrol do
 
     Service.each(&method(:service_register))
   end
-
-  def gen_userlist
-    userlist = Gtk::UserList.new
-    userlist.listview.ssc(:row_activated) { |this, path, column|
-      iter = this.model.get_iter(path)
-      if iter
-        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
-    #userlist.listview.model.set_sort_column_id(Gtk::InnerUserList::COL_ORDER, Gtk::SORT_ASCENDING)
-    userlist end
 
   def relation
     @relation end

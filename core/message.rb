@@ -57,6 +57,9 @@ class Message < Retriever::Model
                [:modified, :time],        # updated time
              ]
 
+  def self.container_class
+    Messages end
+
   # appearイベント
   def self.appear(message) # :nodoc:
     @@appear_queue.push(message)
@@ -631,9 +634,15 @@ class Message < Retriever::Model
         retweeted_sources
         add_retweet_in_this_thread(retweet_user, created_at) } end end
 
+  # このMessageがサービスに投稿された時刻を返す
+  # ==== Return
+  # Time 投稿時刻
+  def created
+    self[:created] end
+
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(@retweets || []).map{ |x| x.modified }].compact.max
+    @value[:modified] ||= [created, *(@retweets || []).map{ |x| x.modified }].compact.max
   end
 
   def inspect

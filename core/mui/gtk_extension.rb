@@ -46,7 +46,7 @@ class GLib::Instantiatable
       unless called
         called = true
         signal_handler_disconnect(sid)
-        proc.call(args) end }
+        proc.call(*args) end }
     sid end
   alias ssc_atonce safety_signal_connect_atonce
 

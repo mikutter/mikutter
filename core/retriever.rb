@@ -222,7 +222,7 @@ module Retriever
             remain -= detection.map{ |x| x[:id].to_i }
             throw :found if remain.empty? end } }
       self.retrievers_reorder
-      result.sort_by{ |user| ids.index(user[:id].to_i) || 1.0/0 } end
+      container_class.new(result.sort_by{ |user| ids.index(user[:id].to_i) || 1.0/0 }) end
 
     def self.selectby(key, value, count=-1)
       key = key.to_sym
@@ -288,6 +288,9 @@ module Retriever
     # メモリキャッシュオブジェクトを返す
     def self.memory_class
       Memory end
+
+    def self.container_class
+      Array end
 
     # DataSourceの配列を返します。
     def self.retrievers

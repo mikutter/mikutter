@@ -19,18 +19,13 @@ module Plugin::DirectMessage
     @dm_lock = Mutex.new
     @counter = gen_counter
     ul = userlist
-    userlist.listview.ssc(:row_activated) { |this, path, column|
-      iter = this.model.get_iter(path)
-      if iter
-        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end }
-
     tab(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       expand
       nativewidget ul
     end
 
-    profiletab(:directmessage, _("DM")) do
+    user_fragment(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
       nativewidget Plugin[:direct_message].dm_list_widget(user)
     end

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-Plugin.create :profile do
+Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
+  UserConfig[:profile_icon_size] ||= 64
+  UserConfig[:profile_icon_margin] ||= 8
   plugin = self
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
@@ -50,44 +52,44 @@ Plugin.create :profile do
     else
       UserConfig[:profile_opened_tabs] = ((UserConfig[:profile_opened_tabs] || []) + [user.id]).uniq
       container = profile_head(user)
-      i_profile = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
+      i_cluster = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
         set_icon user[:profile_image_url]
         set_deletable true
         shrink
         nativewidget container
         expand
-        profile nil end
+        cluster nil end
       Thread.new {
-        Plugin.filtering(:profiletab, [], i_profile, user).first
+        Plugin.filtering(:user_detail_view_fragments, [], i_cluster, user).first
       }.next { |tabs|
         tabs.map(&:last).each(&:call)
       }.next {
         Plugin.call(:filter_stream_reconnect_request)
         if !force
-          i_profile.active! end }
+          i_cluster.active! end }
     end end
 
-  profiletab :usertimeline, _("最近のツイート") do
+  user_fragment :usertimeline, _("最近のツイート") do
     set_icon Skin.get("timeline.png")
-    uid = user.id
+    user_id = retriever.id
     i_timeline = timeline nil do
       order do |message|
-        retweet = message.retweeted_statuses.find{ |r| uid == r.user.id }
+        retweet = message.retweeted_statuses.find{ |r| user_id == r.user.id }
         (retweet || message)[:created].to_i end end
-    Service.primary.user_timeline(user_id: user[:id], include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
+    Service.primary.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
-    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: user[:idname]})
-    timeline_storage[i_timeline.slug] = user end
+    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: retriever[:idname]})
+    timeline_storage[i_timeline.slug] = retriever end
 
-  profiletab :aboutuser, _("ユーザについて") do
-    set_icon user[:profile_image_url]
+  user_fragment :aboutuser, _("ユーザについて") do
+    set_icon retriever[:profile_image_url]
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new
     container = ::Gtk::VBox.new.
       closeup(bio).
       closeup(label_since.left).
-      closeup(plugin.relation_bar(user))
-    container.closeup(plugin.mutebutton(user)) if not user.me?
+      closeup(plugin.relation_bar(retriever))
+    container.closeup(plugin.mutebutton(retriever)) if not retriever.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
@@ -100,7 +102,7 @@ Plugin.create :profile do
       wrapper.no_show_all = false
       wrapper.show_all
       false end
-    user_complete do
+    retriever_complete do
       biotext = (user[:detail] || "")
       if user[:url]
         biotext += "\n\n" + _('Web: %{url}') % {url: user[:url]} end
@@ -262,14 +264,22 @@ Plugin.create :profile do
     eventbox.ssc('visibility-notify-event'){
       eventbox.style = background_color
       false }
+
+    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(_('アイコンを開く')))
+    icon.ssc(:button_press_event) do |this, event|
+      Plugin.call(:openimg_open, user.profile_image_url_large)
+      true end
+    icon.ssc(:realize) do |this|
+      this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false end
+
+    icon_alignment = Gtk::Alignment.new(0.5, 0, 0, 0)
+                     .set_padding(*[UserConfig[:profile_icon_margin]]*4)
+
     eventbox.add(::Gtk::VBox.new(false, 0).
-                 add(::Gtk::HBox.new(false, 16).
-                     closeup(::Gtk::WebIcon.new(user.profile_image_url_large, 128, 128).top).
-                     closeup(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
-    scrolledwindow = ::Gtk::ScrolledWindow.new
-    scrolledwindow.height_request = 128 + 24
-    scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_NEVER)
-    scrolledwindow.add_with_viewport(eventbox)
+                  add(::Gtk::HBox.new.
+                       closeup(icon_alignment.add(icon)).
+                       add(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
   end
 
   # ユーザ名を表示する
@@ -278,18 +288,24 @@ Plugin.create :profile do
   # ==== Return
   # ユーザの名前の部分のGtkコンテナ
   def user_name(user)
-    w_screen_name = ::Gtk::Label.new.set_markup("<b><u><span foreground=\"#0000ff\">#{Pango.escape(user[:idname])}</span></u></b>")
-    w_ev = ::Gtk::EventBox.new
-    w_ev.modify_bg(::Gtk::STATE_NORMAL, Gdk::Color.new(0xffff, 0xffff, 0xffff))
-    w_ev.ssc(:realize) {
-      w_ev.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
-      false }
-    w_ev.ssc(:button_press_event) { |this, e|
-      if e.button == 1
-        ::Gtk.openurl("http://twitter.com/#{user[:idname]}")
-        true end }
-    ::Gtk::HBox.new(false, 16).closeup(w_ev.add(w_screen_name)).closeup(::Gtk::Label.new(user[:name]))
-  end
+    w_name = ::Gtk::TextView.new
+    w_name.editable = false
+    w_name.cursor_visible = false
+    w_name.wrap_mode = Gtk::TextTag::WRAP_CHAR
+    w_name.ssc(:event) do |this, event|
+      if event.is_a? ::Gdk::EventMotion
+        this.get_window(::Gtk::TextView::WINDOW_TEXT)
+          .set_cursor(::Gdk::Cursor.new(::Gdk::Cursor::XTERM)) end
+      false end
+
+    tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
+                                             weight: Pango::FontDescription::WEIGHT_BOLD,
+                                             underline: Pango::AttrUnderline::SINGLE})
+    tag_sn.ssc(:event, &user_screen_name_event_callback(user))
+
+    w_name.buffer.insert(w_name.buffer.start_iter, user[:idname], tag_sn)
+    w_name.buffer.insert(w_name.buffer.end_iter, "\n#{user[:name]}")
+    Gtk::VBox.new.add(w_name) end
 
   # プロフィールの上のところの格子になってる奴をかえす
   # ==== Args
@@ -326,4 +342,21 @@ Plugin.create :profile do
     style = ::Gtk::Style.new()
     style.set_bg(::Gtk::STATE_NORMAL, 0xFF ** 2, 0xFF ** 2, 0xFF ** 2)
     style end
+
+  def user_screen_name_event_callback(user)
+    lambda do |tag, textview, event, iter|
+      case event
+      when ::Gdk::EventButton
+        if event.event_type == ::Gdk::Event::BUTTON_RELEASE and event.button == 1
+          ::Gtk.openurl("https://twitter.com/#{user[:idname]}")
+          next true
+        end
+      when ::Gdk::EventMotion
+        textview
+          .get_window(::Gtk::TextView::WINDOW_TEXT)
+          .set_cursor(::Gdk::Cursor.new(::Gdk::Cursor::HAND2))
+      end
+      false
+    end
+  end
 end

@@ -118,11 +118,11 @@ Plugin.create :gtk do
       @tabs_promise[i_tab.slug].call(tab)
       @tabs_promise.delete(i_tab.slug) end end
 
-  on_profile_created do |i_profile|
-    create_pane(i_profile) end
+  on_cluster_created do |i_cluster|
+    create_pane(i_cluster) end
 
-  on_profiletab_created do |i_profiletab|
-    create_tab(i_profiletab) end
+  on_fragment_created do |i_fragment|
+    create_tab(i_fragment) end
 
   # タブを作成する
   # ==== Args
@@ -241,8 +241,8 @@ Plugin.create :gtk do
     widget = widgetof(i_timeline)
     widget_join_tab(i_tab, widget) if widget end
 
-  on_gui_profile_join_tab do |i_profile, i_tab|
-    widget = widgetof(i_profile)
+  on_gui_cluster_join_tab do |i_cluster, i_tab|
+    widget = widgetof(i_cluster)
     widget_join_tab(i_tab, widget) if widget end
 
   on_gui_timeline_add_messages do |i_timeline, messages|
@@ -365,9 +365,9 @@ Plugin.create :gtk do
     @slug_dictionary.add(i_container, container)
     widget_join_tab(i_tab, container.show_all) end
 
-  on_gui_nativewidget_join_profiletab do |i_profiletab, i_container, container|
+  on_gui_nativewidget_join_fragment do |i_fragment, i_container, container|
     @slug_dictionary.add(i_container, container)
-    widget_join_tab(i_profiletab, container.show_all) end
+    widget_join_tab(i_fragment, container.show_all) end
 
   on_gui_window_rewindstatus do |i_window, text, expire|
     window = @slug_dictionary.get(Plugin::GUI::Window, :default)
