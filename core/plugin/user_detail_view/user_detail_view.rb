@@ -3,6 +3,7 @@
 Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
   UserConfig[:profile_icon_size] ||= 64
+  UserConfig[:profile_icon_margin] ||= 8
   plugin = self
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
@@ -273,7 +274,7 @@ Plugin.create :user_detail_view do
       false end
 
     icon_alignment = Gtk::Alignment.new(0.5, 0, 0, 0)
-                     .set_padding(*[UserConfig[:profile_icon_size]/4]*4)
+                     .set_padding(*[UserConfig[:profile_icon_margin]]*4)
 
     eventbox.add(::Gtk::VBox.new(false, 0).
                   add(::Gtk::HBox.new.
