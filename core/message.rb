@@ -694,6 +694,10 @@ class Message < Retriever::Model
     def [](key)
       @raw.has_key?(key.to_sym) ? @raw[key.to_sym] : @user[key] end
 
+    def is_me?
+      @user.me? end
+    deprecate :is_me?, "me?", 2017, 05
+
     def method_missing(*args)
       @user.__send__(*args) end end
 
