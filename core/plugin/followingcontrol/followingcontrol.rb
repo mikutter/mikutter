@@ -51,17 +51,17 @@ Plugin.create :followingcontrol do
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
-    if Service.map(&:user_obj).include?(user)
-      userlist.add_user(Users.new((relation.followings[user] || []).reverse))
+    if Service.map(&:user_obj).include?(retriever)
+      userlist.add_user(Users.new((relation.followings[retriever] || []).reverse))
       events = []
       events << on_followings_created do |service, created|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.add_user(Users.new(created)) end end
       events << on_followings_destroy do |service, destroyed|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.remove_user(Users.new(destroyed)) end end
       events << on_followings_modified do |service, modified|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.listview.model.clear
           userlist.add_user(Users.new(modified.reverse)) end end
       userlist.ssc(:destroy) do
@@ -71,7 +71,7 @@ Plugin.create :followingcontrol do
       container.ssc_atonce :expose_event do
         loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
         container.add(loading_image.show_all)
-        Service.primary.followings(cache: true, user_id: user[:id]).next{ |users|
+        Service.primary.followings(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)
@@ -87,17 +87,17 @@ Plugin.create :followingcontrol do
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
-    if Service.map(&:user_obj).include?(user)
-    userlist.add_user(Users.new((relation.followers[user] || []).reverse))
+    if Service.map(&:user_obj).include?(retriever)
+    userlist.add_user(Users.new((relation.followers[retriever] || []).reverse))
       events = []
       events << on_followers_created do |service, created|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.add_user(Users.new(created)) end end
       events << on_followers_destroy do |service, destroyed|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.remove_user(Users.new(destroyed)) end end
       events << on_followers_modified do |service, modified|
-        if service.user_obj == user
+        if service.user_obj == retriever
           userlist.listview.model.clear
           userlist.add_user(Users.new(modified.reverse)) end end
       userlist.ssc(:destroy) do
@@ -107,7 +107,7 @@ Plugin.create :followingcontrol do
       container.ssc_atonce :expose_event do
         loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
         container.add(loading_image.show_all)
-        Service.primary.followers(cache: true, user_id: user[:id]).next{ |users|
+        Service.primary.followers(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)

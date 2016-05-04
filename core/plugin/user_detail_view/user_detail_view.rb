@@ -103,19 +103,19 @@ Plugin.create :user_detail_view do
       wrapper.show_all
       false end
     retriever_complete do
-      biotext = (user[:detail] || "")
-      if user[:url]
-        biotext += "\n\n" + _('Web: %{url}') % {url: user[:url]} end
+      biotext = (retriever[:detail] || "")
+      if retriever[:url]
+        biotext += "\n\n" + _('Web: %{url}') % {url: retriever[:url]} end
       bio.rewind(biotext)
-      ago = (Time.now - (user[:created] or 1)).to_i / (60 * 60 * 24)
+      ago = (Time.now - (retriever[:created] or 1)).to_i / (60 * 60 * 24)
       label_since.text = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
-        year: user[:created].strftime('%Y'),
-        month: user[:created].strftime('%m'),
-        day: user[:created].strftime('%d'),
-        hour: user[:created].strftime('%H'),
-        minute: user[:created].strftime('%M'),
-        second: user[:created].strftime('%S'),
-        tweets_per_day: ago == 0 ? user[:statuses_count] : "%.2f" % (user[:statuses_count].to_f / ago)
+        year: retriever[:created].strftime('%Y'),
+        month: retriever[:created].strftime('%m'),
+        day: retriever[:created].strftime('%d'),
+        hour: retriever[:created].strftime('%H'),
+        minute: retriever[:created].strftime('%M'),
+        second: retriever[:created].strftime('%S'),
+        tweets_per_day: ago == 0 ? retriever[:statuses_count] : "%.2f" % (retriever[:statuses_count].to_f / ago)
       } + "\n" end
   end
 

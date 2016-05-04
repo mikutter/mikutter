@@ -27,7 +27,7 @@ module Plugin::DirectMessage
 
     user_fragment(:directmessage, _("DM")) do
       set_icon Skin.get("directmessage.png")
-      nativewidget Plugin[:direct_message].dm_list_widget(user)
+      nativewidget Plugin[:direct_message].dm_list_widget(retriever)
     end
 
     onperiod do
