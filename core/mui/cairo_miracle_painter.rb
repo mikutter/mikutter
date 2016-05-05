@@ -18,6 +18,7 @@ miquire :lib, 'uithreadonly'
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
 class Gdk::MiraclePainter < Gtk::Object
+  extend Gem::Deprecate
 
   type_register
   signal_new(:modified, GLib::Signal::RUN_FIRST, nil, nil)
@@ -36,6 +37,11 @@ class Gdk::MiraclePainter < Gtk::Object
   BLACK = [0, 0, 0].freeze
 
   attr_reader :message, :p_message, :tree, :selected
+
+  # :nodoc:
+  def to_message
+    message end
+  deprecate :to_message, :none, 2017, 5
 
   # @@miracle_painters = Hash.new
 
