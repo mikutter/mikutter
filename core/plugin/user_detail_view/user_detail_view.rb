@@ -15,9 +15,9 @@ Plugin.create :user_detail_view do
       Plugin.call(:show_profile, Service.primary, user)
     else
       Thread.new{
-        user = service.scan(:user_show,
-                            :no_auto_since_id => false,
-                            :screen_name => idname)
+        user = Service.primary.scan(:user_show,
+                                    :no_auto_since_id => false,
+                                    :screen_name => idname)
         Plugin.call(:show_profile, Service.primary, user) if user } end }
 
   Delayer.new do
