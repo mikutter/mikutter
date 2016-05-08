@@ -107,7 +107,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # ==== Return
   # Array :: red, green, blueの配列。各要素は0.0..1.0の範囲。
   def background_color(message)
-    color = Plugin.filtering(:message_background_color, message, nil).last
+    color = Plugin.filtering(:message_background_color, helper, nil).last
     if color.is_a? Array and 3 == color.size
       color.map{ |c| c.to_f / 65536 }
     else
