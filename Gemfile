@@ -8,7 +8,7 @@ def source(url)
 source 'https://rubygems.org'
 
 group :default do
-  gem 'oauth', '~> 0.4'
+  gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
   gem 'addressable', '~> 2.3'
   gem 'memoist', '~> 0.14'
