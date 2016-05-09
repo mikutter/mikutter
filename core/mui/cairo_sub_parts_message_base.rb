@@ -121,19 +121,12 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def edge_color(message)
     [0.5]*3 end
 
-  # アイコンの幅を返す。
-  # アイコンが正方形で良いなら、 Gdk::SubPartsMessageBase#icon_oneside をオーバライドする
+  # アイコンのサイズを返す。
   # ==== Return
-  # [Fixnum] 横幅(px)
-  def icon_width
-    DEFAULT_ICON_SIZE end
-
-  # アイコンの高さを返す。
-  # アイコンが正方形で良いなら、 Gdk::SubPartsMessageBase#icon_oneside をオーバライドする
-  # ==== Return
-  # [Fixnum] 高さ(px)
-  def icon_height
-    DEFAULT_ICON_SIZE end
+  # [Gdk::Rectangle] サイズ(px)。xとyは無視され、widthとheightのみが利用される
+  # [nil] アイコンを表示しない
+  def icon_size
+    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE) end
 
   # _message_ の本文のテキスト色を返す
   # ==== Args
@@ -201,6 +194,20 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       0 end end
 
   private
+
+  def icon_width
+    size = icon_size
+    if size
+      size.width
+    else
+      0 end end
+
+  def icon_height
+    size = icon_size
+    if size
+      size.height
+    else
+      0 end end
 
   def render_single_message(message, context, base_y)
     render_outline(message, context, base_y)
@@ -388,11 +395,19 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.paint end end
 
   def render_icon(message, context)
-    if icon_width != 0 and icon_height != 0
+    if icon_size
       context.set_source_pixbuf(main_icon(message))
       context.paint end end
 
   def main_icon(message)
-    Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
+    Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_size){ |pixbuf|
       helper.on_modify } end
 end
+
+
+
+
+
+
+
+

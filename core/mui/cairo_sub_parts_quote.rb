@@ -54,17 +54,12 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     if show_header?
       super end end
 
-  def icon_width
+  def icon_size
     if show_icon?
-      UserConfig[:quote_icon_size] || super
-    else
-      0 end end
-
-  def icon_height
-    if show_icon?
-      UserConfig[:quote_icon_size] || super
-    else
-      0 end end
+      if UserConfig[:quote_icon_size]
+        Gdk::Rectangle.new(0, 0, UserConfig[:quote_icon_size], UserConfig[:quote_icon_size])
+      else
+        super end end end
 
   def text_max_line_count(message)
     UserConfig[:quote_text_max_line_count] || super end
