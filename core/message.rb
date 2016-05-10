@@ -495,8 +495,13 @@ class Message < Retriever::Model
       raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
   # この投稿をリツイートしたユーザを返す
+  # ==== Return
+  # Enumerable リツイートしたユーザを、リツイートした順番に返す
   def retweeted_by
-    retweeted_sources.lazy.map(&:user) end
+    has_status_user_ids = Set.new(retweeted_statuses.map(&:user).map(&:id))
+    retweeted_sources.lazy.reject{|r|
+      r.is_a?(User) and has_status_user_ids.include?(r.id)
+    }.map(&:user) end
   alias retweeted_users retweeted_by
 
   # この投稿に対するリツイートを返す

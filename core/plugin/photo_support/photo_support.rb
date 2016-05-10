@@ -4,7 +4,7 @@ require 'httpclient'
 require 'totoridipjp'
 
 module Plugin::PhotoSupport
-  INSTAGRAM_PATTERN = %r{^https?://(?:instagr\.am|instagram\.com)/p/([a-zA-Z0-9_\-]+)}
+  INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
 
   class << self
     # Twitter cardsのURLを画像のURLに置き換える。
@@ -160,9 +160,13 @@ Plugin.create :photo_support do
 
   # instagram
   defimageopener('instagram', Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
-    m = display_url.match(Plugin::PhotoSupport::INSTAGRAM_PATTERN)
-    shortcode = m[1]
-    open("https://instagram.com/p/#{shortcode}/media/?size=l")
+    notice display_url
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    result = doc.xpath("//meta[@property='og:image']/@content").first
+    open(result)
   end
 
   # d250g2
