@@ -240,8 +240,10 @@ module Gtk
       else
         @to.first || @from || Service.primary end end
 
+    # テキストが編集前と同じ状態なら真を返す。
+    # ウィジェットが破棄されている場合は、常に真を返す
     def post_is_empty?
-      widget_post.buffer.text.empty? or widget_post.buffer.text == @header + @footer end
+      widget_post.destroyed? or widget_post.buffer.text.empty? or widget_post.buffer.text == @header + @footer end
 
     def brothers
       if(@options[:postboxstorage])
