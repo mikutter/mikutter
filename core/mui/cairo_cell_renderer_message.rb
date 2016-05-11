@@ -126,11 +126,14 @@ module Gtk
 
     def message_id=(id)
       if id && id.to_i > 0
-        message = Message.findbyid(id.to_i, -2)
+        message = Message.findbyid(id.to_i, Retriever::DataSource::USE_LOCAL_ONLY)
         if message
-          return render_message(message) end end
-      self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png'))
+          return render_message(message)
+        else
+          raise RuntimeError, "message##{id.inspect} was not found." end end
+      raise RuntimeError, "invalid id `#{id.inspect}'"
     rescue Exception => e
+      error e
       if Mopt.debug
         raise e end
       self.pixbuf = Gdk::Pixbuf.new(Skin.get('notfound.png')) end

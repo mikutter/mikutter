@@ -6,17 +6,16 @@ class Retriever::Model
   include Comparable
 
   class << self
-    def inherited(subclass)
-      subclass.instance_eval do
-        @storage = WeakStorage.new(Integer, subclass) end end
+    # def inherited(subclass)
+    # end
 
     # 新しいオブジェクトを生成します
     # 既にそのカラムのインスタンスが存在すればそちらを返します
     # また、引数のハッシュ値はmergeされます。
-    def generate(args, count=-1)
+    def generate(args, policy=Retriever::DataSource::USE_ALL)
       return args if args.is_a?(self)
-      return self.findbyid(args, count) if not(args.is_a? Hash)
-      result = self.findbyid(args[:id], count)
+      return self.findbyid(args, policy) if not(args.is_a? Hash)
+      result = self.findbyid(args[:id], policy)
       return result.merge(args) if result
       self.new(args)
     end
@@ -34,7 +33,7 @@ class Retriever::Model
           hash
         elsif hash[:id] and hash[:id] != 0
           atomic{
-            @storage[hash[:id].to_i] or self.new(hash) }
+            memory.findbyid(hash[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY) or self.new(hash) }
         else
           raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
 
@@ -61,70 +60,19 @@ class Retriever::Model
           return e.to_s + "\nin key '#{key}' value '#{src[key]}'" end }
       false end
 
-    # DataSourceのチェーンに、 _retriever_ を登録します
-    def add_data_retriever(retriever)
-      retriever.keys = self.keys
-      retrievers_add(retriever)
-      retriever end
+    def memory
+      @memory ||= Retriever::Model::Memory.new(self) end
 
-    # 特定のIDを持つオブジェクトを各データソースに問い合わせて返します。
-    # 何れのデータソースもそれを見つけられなかった場合、nilを返します。
-    def findbyid(id, count=-1)
-      return findbyid_ary(id, count) if id.is_a? Array
-      raise if id.is_a? Retriever::Model
-      result = nil
-      catch(:found){
-        rs = self.retrievers
-        count = rs.length + count + 1 if(count <= -1)
-        rs = rs.slice(0, [count, 1].max)
-        rs.each{ |retriever|
-          detection = retriever.findbyid_timer(id)
-          if detection
-            result = detection
-            throw :found end } }
-      self.retrievers_reorder
-      if result.is_a? Retriever::Model
-        result
-      elsif result.is_a? Hash
-        self.new_ifnecessary(result) end
-    rescue => e
-      error e
-      abort end
-
-    def findbyid_ary(ids, count=-1)
-      result = []
-      remain = ids.clone
-      ids.freeze
-      catch(:found){
-        rs = self.retrievers
-        count = rs.length + count + 1 if count <= -1
-        rs.slice(0, [count, 1].max).each{ |retriever|
-          detection = retriever.findbyid_timer(remain)
-          if detection
-            detection = detection.compact.map(&method(:new_ifnecessary))
-            result.concat(detection)
-            remain -= detection.map{ |x| x[:id].to_i }
-            throw :found if remain.empty? end } }
-      self.retrievers_reorder
-      container_class.new(result.sort_by{ |user| ids.index(user[:id].to_i) || 1.0/0 }) end
-
-    def selectby(key, value, count=-1)
-      key = key.to_sym
-      result = []
-      rs = self.retrievers
-      count = rs.length + count + 1 if(count <= -1)
-      rs = rs.slice(0, [count, 1].max)
-      rs.each{ |retriever|
-        detection = retriever.selectby_timer(key, value)
-        result += detection if detection }
-      self.retrievers_reorder
-      result.uniq.map{ |node|
-        if node.is_a? Hash
-          self.new_ifnecessary(node)
-        elsif node.is_a? Retriever::Model
-          node
-        else
-          self.findbyid(node) end } end
+    # idキーが _id_ のインスタンスを返す。
+    # ==== Args
+    # [id] Integer|Enumerable 検索するIDか、IDを列挙するEnumerable
+    # ==== Return
+    # 次のいずれか
+    # [nil] その条件で見つけられなかった場合
+    # [Retriever] 見つかった場合
+    # [Enumerable] _id_ にEnumerableを渡した場合。列挙される順番は、　_id_　の順番どおり。
+    def findbyid(id, policy=Retriever::DataSource::USE_ALL)
+      memory.findbyid(id, policy) end
 
     #
     # プライベートクラスメソッド
@@ -133,14 +81,7 @@ class Retriever::Model
     # データを一件保存します。
     # 保存は、全てのデータソースに対して行われます
     def store_datum(datum)
-      atomic{
-        @storage[datum[:id].to_i] = result_strict(self){ datum } }
-      return datum if datum[:system]
-      converted = datum.filtering
-      self.retrievers.each{ |retriever|
-        retriever.store_datum(converted) }
-      datum
-    end
+      memory.store_datum(datum) end
 
     # 値を、そのカラムの型にキャストします。
     # キャスト出来ない場合はInvalidTypeError例外を投げます
@@ -169,28 +110,8 @@ class Retriever::Model
       elsif self.cast(value, type.keys.assoc(:id)[1], true)
         value end end
 
-    # メモリキャッシュオブジェクトを返す
-    def memory_class
-      Memory end
-
     def container_class
       Array end
-
-    # DataSourceの配列を返します。
-    def retrievers
-      atomic{
-        @retrievers = [memory_class.new(@storage)] if not defined? @retrievers }
-      @retrievers
-    end
-
-    def retrievers_add(retriever)
-      self.retrievers << retriever end
-
-    #DataSourceの配列を、最後の取得が早かった順番に並び替えます
-    def retrievers_reorder
-      atomic{
-        @retrievers = self.retrievers.sort_by{ |r| r.time } }
-    end
   end
 
   def initialize(args)

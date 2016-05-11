@@ -65,6 +65,9 @@ class Message < Retriever::Model
     @@appear_queue.push(message)
   end
 
+  def self.memory
+    @memory ||= DataSource.new end
+
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
   # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
@@ -682,6 +685,28 @@ class Message < Retriever::Model
     { :id => @@system_id += 1,
       :user => User.system,
       :created => Time.now } end
+
+  class DataSource < Retriever::Model::Memory
+    def findbyid(id, policy)
+      if id.is_a? Enumerable
+        super.map do |v|
+          case v
+          when Message
+            v
+          else
+            findbyid(v) end end
+      else
+        result = super
+        if result
+          result
+        elsif policy == Retriever::DataSource::USE_ALL
+          result = Service.primary.scan(:status_show, id: id)
+          result end end
+    rescue Exception => err
+      error err
+      raise err
+    end
+  end
 
   #
   # Sub classes

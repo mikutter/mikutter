@@ -43,15 +43,8 @@ class User < Retriever::Model
     @@system
   end
 
-  def self.memory_class
-    result = Class.new do
-      def self.set_users_id(users)
-        @@users_id = users end
-
-      def self.new(storage)
-        UserMemory.new(storage, @@users_id) end end
-    result.set_users_id(@@users_id)
-    result end
+  def memory
+    @memory ||= UserMemory.new end
 
   def self.container_class
     Users end
@@ -90,13 +83,12 @@ class User < Retriever::Model
     "User(@#{@value[:idname]})"
   end
 
-  def self.findbyidname(idname, count=-1)
-    if(@@users_id.has_key?(idname))
-      @@users_id[idname]
-    elsif caller(1).include?(caller[0])
-      selectby(:idname, idname, count).first
-    end
-  end
+  # 投稿がシステムユーザだった場合にtrueを返す
+  def system?
+    self[:system] end
+
+  def self.findbyidname(idname, count=Retriever::DataSource::ALL)
+    memory.findbyidname(idname, count) end
 
   def self.store_datum(datum)
     return datum if datum[:id][0] == '+'[0]
@@ -142,16 +134,34 @@ class User < Retriever::Model
   end
 
   class UserMemory < Retriever::Model::Memory
-    def initialize(storage, idnames)
+    def initialize(storage)
       super(storage)
-      @idnames = idnames
+      @idnames = {}             # idname => User
     end
 
-    def selectby(key, value)
-      if key == :idname and @idnames[value].is_a?(User)
-        [@idnames[value]]
+    def findbyid(id, policy)
+      result = super
+      if !result and policy == Retriever::DataSource::ALL
+        if id.is_a? Enumerable
+          id.each_slice(100).map{|id_list|
+            Service.primary.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
+        else
+          Service.primary.scan(:user_show, id: id) end
       else
-        [] end end
+        result end end
+
+    def findbyidname(idname, policy)
+      if @idnames[idname.to_s]
+        @idnames[idname.to_s]
+      elsif policy == Retriever::DataSource::ALL
+        Service.primary.scan(:user_show, screen_name: idname)
+      end
+    end
+
+    def store_datum(retriever)
+      @idnames[retriever.idname.to_s] = retriever
+      super
+    end
   end
 
 end
