@@ -581,7 +581,7 @@ class Message < Retriever::Model
   # パーマリンクのURL(String)か、存在しない場合はnil
   def perma_link
     if not system?
-      "https://twitter.com/#{user[:idname]}/status/#{self[:id]}".freeze end end
+      URI.parse("https://twitter.com/#{user[:idname]}/status/#{self[:id]}").freeze end end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12
