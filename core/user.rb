@@ -90,15 +90,6 @@ class User < Retriever::Model
     "User(@#{@value[:idname]})"
   end
 
-  @@superof_new_ifnecessary = method(:new_ifnecessary)
-  def self.new_ifnecessary(args)
-    return args if args.is_a? User
-    type_check(args => Hash){
-      if args[:idname]
-        result = self.findbyidname(args[:idname])
-        return result if result end
-      @@superof_new_ifnecessary.call(args) } end
-
   def self.findbyidname(idname, count=-1)
     if(@@users_id.has_key?(idname))
       @@users_id[idname]
