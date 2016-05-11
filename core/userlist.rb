@@ -44,6 +44,9 @@ class UserList < Retriever::Model
   def user
     self[:user] end
 
+  memoize def perma_link
+    URI.parse("https://twitter.com/#{user.idname}/lists/#{slug}").freeze end
+
   def member
     self[:member] ||= Set.new end
 
