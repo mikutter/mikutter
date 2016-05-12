@@ -48,6 +48,9 @@ class User < Retriever::Model
   def self.container_class
     Users end
 
+  alias :to_i :id
+  deprecate :to_i, "id", 2017, 05
+
   def idname
     self[:idname] end
   alias to_s idname
