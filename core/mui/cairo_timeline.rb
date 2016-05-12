@@ -140,7 +140,6 @@ class Gtk::TimeLine
   # _message_ をTLに追加する
   def block_add(message)
     if not @tl.destroyed?
-      raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
       if(!any?{ |m| m[:id] == message[:id] })
         case
         when message[:rule] == :destroy
@@ -162,11 +161,11 @@ class Gtk::TimeLine
     scroll_to_zero_lator! if @tl.realized? and @tl.vadjustment.value == 0.0
     miracle_painter = @tl.cell_renderer_message.create_miracle_painter(message)
     iter = @tl.model.append
-    iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] = message[:id].to_s
+    iter[Gtk::TimeLine::InnerTL::PERMA_LINK] = message.perma_link.to_s
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::ORDER] = get_order(message)
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
-    @tl.set_id_dict(iter)
+    @tl.set_iter_dict(iter)
     @remover_queue.push(message) if @tl.realized?
     self
   end
