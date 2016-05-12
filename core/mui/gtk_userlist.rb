@@ -34,7 +34,7 @@ class Gtk::UserList < Gtk::EventBox
 
   # Userの配列 _users_ を追加する
   # ==== Args
-  # [users] ユーザの配列
+  # [users] Enumerable ユーザを繰り返すEnumerable
   # ==== Return
   # self
   def add_user(users)

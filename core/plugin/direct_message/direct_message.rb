@@ -48,7 +48,7 @@ module Plugin::DirectMessage
     on_direct_message_add_user do |user_id|
       user = User.findbyid(user_id)
       if user.is_a? User
-        userlist.add_user(Users.new([user])) end end
+        userlist.add_user([user]) end end
 
     def rewind
       service = Service.primary_service
