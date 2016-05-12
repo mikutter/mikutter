@@ -2,6 +2,9 @@
 =begin rdoc
   いろんなリソースの基底クラス
 =end
+
+miquire :lib, 'typed-array'
+
 class Retriever::Model
   include Comparable
 
@@ -91,8 +94,8 @@ class Retriever::Model
       elsif self.cast(value, type.keys.assoc(:id)[1], true)
         value end end
 
-    def container_class
-      Array end
+    memoize def container_class
+      TypedArray(Retriever::Model) end
   end
 
   def initialize(args)
@@ -194,3 +197,4 @@ class Retriever::Model
         raise Retriever::InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}" end }
     result end
 end
+

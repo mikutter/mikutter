@@ -23,7 +23,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
       Thread.new(helper.message) { |m|
         m.quoting_messages(true)
       }.next{ |quoting|
-        @messages = Messages.new(quoting).freeze
+        @messages = quoting.freeze
         render_messages
       }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
 

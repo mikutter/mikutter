@@ -18,7 +18,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # サブクラスで処理を実装すること。
   # このメソッドはサブパーツの描画中に何回も呼ばれるので、キャッシュなどで高速化に努めること。
   # ==== Return
-  # _Messages_ | _Array_ :: このSubParts上に表示する _Message_
+  # _Array_ :: このSubParts上に表示する _Message_
   def messages
     [] end
 

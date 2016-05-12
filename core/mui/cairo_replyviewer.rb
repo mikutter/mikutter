@@ -14,7 +14,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     super
     if helper.message.has_receive_message?
       helper.message.replyto_source_d(true).next{ |reply|
-        @messages = Messages.new([reply]).freeze
+        @messages = [reply].freeze
         render_messages
       }.terminate('リプライ描画中にエラーが発生しました') end end
 

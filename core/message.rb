@@ -329,30 +329,30 @@ class Message < Retriever::Model
   def quoting?
     !!quoting_ids.first end
 
-  # selfを引用しているツイート _message_ を登録する
+  # selfを引用している _retriever_ を登録する
   # ==== Args
-  # [message] Message selfを引用しているMessage
+  # [retriever] Retriever::Model selfを引用しているRetriever
   # ==== Return
   # self
-  def add_quoted_by(message)
+  def add_quoted_by(retriever)
     atomic do
-      @quoted_by ||= Messages.new
-      unless @quoted_by.include? message
+      @quoted_by ||= Retriever::Model.container_class.new
+      unless @quoted_by.include? retriever
         if @quoted_by.frozen?
-          @quoted_by = Messages.new(@quoted_by + [message])
+          @quoted_by = Retriever::Model.container_class.new(@quoted_by + [retriever])
         else
-          @quoted_by << message end end
+          @quoted_by << retriever end end
       self end end
 
-  # selfを引用しているツイートを返す
+  # selfを引用しているRetrieverを返す
   # ==== Return
-  # Messages selfを引用しているMessageの配列
+  # Retriever::Model.container_class selfを引用しているRetriever::Modelの配列
   def quoted_by
     if defined? @quoted_by
       @quoted_by
     else
       atomic do
-        @quoted_by ||= Messages.new end end.freeze end
+        @quoted_by ||= Retriever::Model.container_class.new end end.freeze end
 
   # self が、何らかのツイートから引用されているなら真を返す
   # ==== Return
@@ -482,7 +482,7 @@ class Message < Retriever::Model
   # ==== Return
   # このMessageの子全てをSetにまとめたもの
   def children_all
-    children.inject(Messages.new([self])){ |result, item| result.concat item.children_all } end
+    children.inject(Retriever::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
