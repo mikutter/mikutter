@@ -112,7 +112,6 @@ module Gtk
 
     # Messageに関連付けられた Gdk::MiraclePainter を取得する
     def miracle_painter(message)
-      type_strict message => Message
       record = @tree.get_record_by_message(message)
       if record and record.miracle_painter
         record.miracle_painter
@@ -142,7 +141,6 @@ module Gtk
     end
 
     def render_message(message)
-      type_strict message => Message
       if(@tree.realized?)
         h = miracle_painter(message).height
         miracle_painter(message).width = @tree.get_cell_area(nil, @tree.get_column(0)).width

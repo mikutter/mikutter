@@ -38,7 +38,7 @@ module Plugin::Extract
 
   class Calc
     def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
-      type_strict message => Message, condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
+      type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
       @message, @condition, @operators = message, condition, operators
     end
 
