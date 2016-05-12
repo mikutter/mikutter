@@ -25,6 +25,7 @@ class Message < Retriever::Model
   ).freeze
 
   extend Gem::Deprecate
+  include Retriever::Model::Identity
 
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|

@@ -6,8 +6,7 @@ miquire :lib, 'typed-array'
 
 class User < Retriever::Model
   extend Gem::Deprecate
-
-  @@users_id = WeakStorage.new(String, User) # {idname => User}
+  include Retriever::Model::Identity
 
   # args format
   # key     | value
@@ -48,10 +47,6 @@ class User < Retriever::Model
 
   def self.container_class
     Users end
-
-  def initialize(*args)
-    super
-    @@users_id[idname] = self end
 
   def idname
     self[:idname] end

@@ -12,11 +12,8 @@ class Retriever::Model
     # 新しいオブジェクトを生成します
     # 既にそのカラムのインスタンスが存在すればそちらを返します
     # また、引数のハッシュ値はmergeされます。
-    def generate(args, policy=Retriever::DataSource::USE_ALL)
+    def generate(args)
       return args if args.is_a?(self)
-      return self.findbyid(args, policy) if not(args.is_a? Hash)
-      result = self.findbyid(args[:id], policy)
-      return result.merge(args) if result
       self.new(args)
     end
 
@@ -29,11 +26,11 @@ class Retriever::Model
     def new_ifnecessary(hash)
       type_strict hash => tcor(self, Hash)
       result_strict(self) do
-        if hash.is_a?(self)
+        case hash
+        when self
           hash
-        elsif hash[:id] and hash[:id] != 0
-          atomic{
-            memory.findbyid(hash[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY) or self.new(hash) }
+        when Hash
+          self.new(hash)
         else
           raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
 
@@ -60,28 +57,12 @@ class Retriever::Model
           return e.to_s + "\nin key '#{key}' value '#{src[key]}'" end }
       false end
 
-    def memory
-      @memory ||= Retriever::Model::Memory.new(self) end
-
-    # idキーが _id_ のインスタンスを返す。
-    # ==== Args
-    # [id] Integer|Enumerable 検索するIDか、IDを列挙するEnumerable
-    # ==== Return
-    # 次のいずれか
-    # [nil] その条件で見つけられなかった場合
-    # [Retriever] 見つかった場合
-    # [Enumerable] _id_ にEnumerableを渡した場合。列挙される順番は、　_id_　の順番どおり。
-    def findbyid(id, policy=Retriever::DataSource::USE_ALL)
-      memory.findbyid(id, policy) end
-
     #
     # プライベートクラスメソッド
     #
 
-    # データを一件保存します。
-    # 保存は、全てのデータソースに対して行われます
-    def store_datum(datum)
-      memory.store_datum(datum) end
+    # Modelが生成・更新された時に呼ばれるコールバックメソッドです
+    def store_datum(retriever); end
 
     # 値を、そのカラムの型にキャストします。
     # キャスト出来ない場合はInvalidTypeError例外を投げます
@@ -173,7 +154,7 @@ class Retriever::Model
       type = column[1]
       if type.is_a? Symbol
         Retriever::cast_func(type).call(result)
-      elsif not result.is_a?(Retriever::Model)
+      elsif not result.is_a?(Retriever::Model::Identity)
         result = type.findbyid(result, count)
         if result
           return @value[key.to_sym] = result end end end

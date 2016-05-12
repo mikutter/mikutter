@@ -12,7 +12,7 @@ miquire :core, 'user', 'message', 'retriever'
 require 'set'
 
 class UserList < Retriever::Model
-  @@system_id = 0
+  include Retriever::Model::Identity
 
   # args format
   # key         | value(class)
