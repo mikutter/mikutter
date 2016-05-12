@@ -61,7 +61,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   end
 
   def get_order(m)
-    type_strict m => Message
     @order.call(m) end
 
   # レコードの並び順を決めるブロックを登録する。ブロックは一つの Message を受け取り、数値を返す

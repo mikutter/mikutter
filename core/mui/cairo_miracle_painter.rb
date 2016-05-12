@@ -80,7 +80,6 @@ class Gdk::MiraclePainter < Gtk::Object
     @message = message
     @selected = false
     @pixbuf = nil
-    type_strict @message => Message
     super()
     coordinator(*coodinate)
     ssc(:modified, &Gdk::MiraclePainter.mp_modifier)

@@ -130,7 +130,6 @@ class Plugin::GUI::Timeline
   # ==== Return
   # 選択されたテキスト
   def selected_text(message)
-    type_strict message => Message
     result = Plugin.filtering(:gui_timeline_selected_text, self, message, nil)
     result.last if result end
 
