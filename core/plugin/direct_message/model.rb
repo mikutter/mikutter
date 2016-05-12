@@ -40,6 +40,14 @@ module Plugin::DirectMessage
       []
     end
 
+    def favoritable?
+      false
+    end
+
+    def retweet
+      # Intentionally blank
+    end
+
     def retweet?
       nil
     end
@@ -50,6 +58,10 @@ module Plugin::DirectMessage
 
     def retweeted_by
       []
+    end
+
+    def retweetable?
+      false
     end
 
     def quoting?
@@ -67,6 +79,7 @@ module Plugin::DirectMessage
     def to_message
       self
     end
+    alias :message :to_message
 
     def system?
       false
@@ -89,11 +102,23 @@ module Plugin::DirectMessage
       self[:user]
     end
 
+    def idname
+      user[:idname]
+    end
+
     def post(args)
       Service.primary.send_direct_message({:text => args[:message], :user => self[:user]}, &Proc.new)
     end
+
+    def repliable?
+      true
+    end
+
+    def perma_link
+      nil
+    end
   end
 
-  class ModelRetriever < Service::ServiceRetriever
+  class Retriever < Service::ServiceRetriever
   end
 end

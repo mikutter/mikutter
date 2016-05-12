@@ -36,8 +36,10 @@ Plugin.create :gui do
   # [slug] タイムラインのスラッグ
   # ==== Return
   # Plugin::GUI::Timeline
-  defdsl :timeline do |slug|
-    Plugin::GUI::Timeline.instance(slug) end
+  defdsl :timeline do |slug, &proc|
+    tl = Plugin::GUI::Timeline.instance(slug)
+    tl.instance_eval(&proc) if proc
+    tl end
 
   # プロフィールタブを定義する
   # ==== Args
