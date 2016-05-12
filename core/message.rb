@@ -170,7 +170,7 @@ class Message < Retriever::Model
 
   # この投稿の投稿主を返す
   def user
-    self.get(:user, -1) end
+    self[:user] end
 
   def service
     warn "Message#service is obsolete method. use `Service.primary'."

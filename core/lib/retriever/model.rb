@@ -118,6 +118,15 @@ class Retriever::Model
     @value[:id]
   end
 
+  # このRetrieverが、登録されているアカウントのうちいずれかが作成したものであれば true を返す
+  # ==== Args
+  # [service] Service | Enumerable 「自分」のService
+  # ==== Return
+  # [true] 自分のによって作られたオブジェクトである
+  # [false] 自分のによって作られたオブジェクトではない
+  def me?(service=nil)
+    false end
+
   def eql?(other)
     other.is_a?(self.class) and other.id == self.id end
 

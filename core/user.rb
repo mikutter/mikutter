@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'retriever', 'skin'
-
+miquire :system, 'system'
 miquire :lib, 'typed-array'
 
 class User < Retriever::Model
@@ -33,14 +33,7 @@ class User < Retriever::Model
               ]
 
   def self.system
-    if not defined? @@system then
-      @@system = User.new({ :id => 0,
-                            :idname => 'mikutter_bot',
-                            :name => Environment::NAME,
-                            :profile_image_url => Skin.get("icon.png")})
-    end
-    @@system
-  end
+    Mikutter::System::User.system end
 
   def memory
     @memory ||= UserMemory.new end
@@ -83,7 +76,7 @@ class User < Retriever::Model
 
   # 投稿がシステムユーザだった場合にtrueを返す
   def system?
-    self[:system] end
+    false end
 
   def self.findbyidname(idname, count=Retriever::DataSource::ALL)
     memory.findbyidname(idname, count) end

@@ -51,10 +51,7 @@ class UserList < Retriever::Model
     self[:member] ||= Set.new end
 
   def member?(user)
-    if user.is_a? User
-      member.include?(user)
-    else
-      member.any?{ |m| m.id == user.to_i } end end
+    member.include?(user) if user.is_a? User end
 
   # リプライだった場合、投稿した人と宛先が一人でもリストメンバーだったら真。
   # リプライではない場合は、 UserList.member?(message.user) と同じ
