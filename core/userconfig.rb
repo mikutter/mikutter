@@ -107,6 +107,15 @@ class UserConfig
     :replyviewer_background_color => [0xffff, 0xdede, 0xdede],
     :quote_background_color => [0xffff, 0xffff, 0xffff],
 
+    :reply_icon_size => 32,
+    :quote_icon_size => 32,
+
+    :reply_present_policy => %i<header icon edge>,
+    :reply_edge => :solid,
+
+    :quote_present_policy => %i<header icon edge>,
+    :quote_edge => :solid,
+
     # 右クリックメニューの並び順
     :mumble_contextmenu_order => ['copy_selected_region',
                                   'copy_description',
@@ -126,8 +135,8 @@ class UserConfig
 
     :notification_enable => true,
 
-    :reply_text_max_line_count => 3,
-    :quote_text_max_line_count => 3
+    :reply_text_max_line_count => 10,
+    :quote_text_max_line_count => 10
   }
 
   @@watcher = Hash.new{ [] }
@@ -191,12 +200,14 @@ class UserConfig
       if last_boot_version < [3, 4, 0, 0]
         UserConfig[:replyviewer_background_color] = UserConfig[:mumble_reply_bg]
         UserConfig[:quote_background_color] = UserConfig[:mumble_basic_bg]
-        UserConfig[:reply_text_font] ||= UserConfig[:mumble_reply_font] || 'Sans 8'
-        UserConfig[:reply_text_color] ||= UserConfig[:mumble_reply_color]
-        UserConfig[:quote_text_font] ||= UserConfig[:reply_text_font] || 'Sans 8'
-        UserConfig[:quote_text_color] ||= UserConfig[:reply_text_color]
-        UserConfig[:reply_text_max_line_count] ||= 3
-        UserConfig[:quote_text_max_line_count] ||= 10 end
+        UserConfig[:reply_text_font] = UserConfig[:mumble_reply_font] || 'Sans 8'
+        UserConfig[:reply_text_color] = UserConfig[:mumble_reply_color] || [0x6666, 0x6666, 0x6666]
+        UserConfig[:reply_icon_size] = 24
+        UserConfig[:quote_text_font] = UserConfig[:reply_text_font] || 'Sans 8'
+        UserConfig[:quote_text_color] = UserConfig[:reply_text_color]
+        UserConfig[:reply_present_policy] = %i<icon>
+        UserConfig[:quote_edge] = :floating
+        UserConfig[:reply_text_max_line_count] = 3 end
     end
   end
 

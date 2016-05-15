@@ -2,9 +2,6 @@
 
 miquire :mui, 'sub_parts_message_base'
 
-UserConfig[:quote_present_policy] ||= %i<header icon edge>
-UserConfig[:quote_edge] ||= :floating
-
 class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   register
 

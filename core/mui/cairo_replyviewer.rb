@@ -2,9 +2,6 @@
 
 miquire :mui, 'sub_parts_message_base'
 
-UserConfig[:reply_present_policy] ||= %i<header icon>
-UserConfig[:reply_edge] ||= :floating
-
 class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   register
 
