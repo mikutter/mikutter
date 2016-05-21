@@ -4,3 +4,4 @@
 /vendor/
 *.pot
 *.mo
+core/plugin/*/po/ja/*.po

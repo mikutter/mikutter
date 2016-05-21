@@ -7,164 +7,241 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2014-10-19 13:43+0000\n"
+"POT-Creation-Date: 2016-05-17 04:14+0900\n"
+"PO-Revision-Date: 2016-05-16 17:25+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
-"Language-Team: German (http://www.transifex.com/projects/p/mikutter/language/de/)\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../set_view.rb:40
+#: ../set_view.rb:46
 msgid "表示"
 msgstr ""
 
-#: ../set_view.rb:41
-msgid "フォント"
-msgstr ""
-
-#: ../set_view.rb:42
-msgid "デフォルト"
-msgstr ""
-
-#: ../set_view.rb:43
-msgid "リプライ元"
-msgstr ""
-
-#: ../set_view.rb:44
-msgid "ヘッダ（左）"
-msgstr ""
-
-#: ../set_view.rb:45
-msgid "ヘッダ（右）"
-msgstr ""
-
-#: ../set_view.rb:48
-msgid "背景色"
-msgstr ""
-
-#: ../set_view.rb:49
+#: ../set_view.rb:47 ../set_view.rb:75
 msgid "つぶやき"
 msgstr ""
 
+#: ../set_view.rb:48
+msgid "通常時"
+msgstr ""
+
+#: ../set_view.rb:49 ../set_view.rb:85 ../set_view.rb:101
+msgid "フォント"
+msgstr ""
+
 #: ../set_view.rb:50
-msgid "自分宛"
+msgid "デフォルト"
 msgstr ""
 
 #: ../set_view.rb:51
-msgid "自分のつぶやき"
+msgid "ヘッダ（左）"
 msgstr ""
 
 #: ../set_view.rb:52
+msgid "ヘッダ（右）"
+msgstr ""
+
+#: ../set_view.rb:54 ../set_view.rb:58 ../set_view.rb:62 ../set_view.rb:66
+#: ../set_view.rb:70 ../set_view.rb:74 ../set_view.rb:86 ../set_view.rb:102
+msgid "背景色"
+msgstr ""
+
+#: ../set_view.rb:57 ../set_view.rb:76
+msgid "自分宛"
+msgstr ""
+
+#: ../set_view.rb:61 ../set_view.rb:77
+msgid "自分のつぶやき"
+msgstr ""
+
+#: ../set_view.rb:65 ../set_view.rb:78
 msgid "システムメッセージ"
 msgstr ""
 
-#: ../set_view.rb:53
+#: ../set_view.rb:79
 msgid "選択中"
 msgstr ""
 
-#: ../set_view.rb:56
-msgid "Mentions"
+#: ../set_view.rb:80 ../set_view.rb:100
+msgid "コメント付きリツイート"
 msgstr ""
 
-#: ../set_view.rb:57
-msgid "リプライを返したつぶやきにはアイコンを表示"
-msgstr ""
-
-#: ../set_view.rb:58
-msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
-msgstr ""
-
-#: ../set_view.rb:61
-msgid "Retweets"
-msgstr ""
-
-#: ../set_view.rb:62
-msgid "リツイートされたつぶやきをTL上でageる"
-msgstr ""
-
-#: ../set_view.rb:63
-msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
-msgstr ""
-
-#: ../set_view.rb:64
-msgid "自分がリツイートしたつぶやきをTL上でageる"
-msgstr ""
-
-#: ../set_view.rb:65
-msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
-msgstr ""
-
-#: ../set_view.rb:68
-msgid "ふぁぼふぁぼ"
-msgstr ""
-
-#: ../set_view.rb:69
-msgid "ふぁぼられをリプライの受信として処理する"
-msgstr ""
-
-#: ../set_view.rb:70
-msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
-msgstr ""
-
-#: ../set_view.rb:71
-msgid "ふぁぼられたつぶやきをTL上でageる"
-msgstr ""
-
-#: ../set_view.rb:72
-msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
-msgstr ""
-
-#: ../set_view.rb:73
-msgid "自分がふぁぼったつぶやきをTL上でageる"
-msgstr ""
-
-#: ../set_view.rb:74
-msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
-msgstr ""
-
-#: ../set_view.rb:77
-msgid "短縮URL"
-msgstr ""
-
-#: ../set_view.rb:78
-msgid "短縮URLを展開して表示"
-msgstr ""
-
-#: ../set_view.rb:79
-msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
-msgstr ""
-
-#: ../set_view.rb:82
-msgid "タブの位置"
-msgstr ""
-
-#: ../set_view.rb:82
-msgid "上"
-msgstr ""
-
-#: ../set_view.rb:82
-msgid "下"
-msgstr ""
-
-#: ../set_view.rb:82
-msgid "左"
-msgstr ""
-
-#: ../set_view.rb:82
-msgid "右"
+#: ../set_view.rb:81
+msgid "コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです"
 msgstr ""
 
 #: ../set_view.rb:84
+msgid "リプライ先"
+msgstr ""
+
+#: ../set_view.rb:88 ../set_view.rb:104
+msgid "表示項目"
+msgstr ""
+
+#: ../set_view.rb:89 ../set_view.rb:105
+msgid "ヘッダを表示する"
+msgstr ""
+
+#: ../set_view.rb:90 ../set_view.rb:106
+msgid "アイコンを表示する"
+msgstr ""
+
+#: ../set_view.rb:91 ../set_view.rb:107
+msgid "アイコンのサイズ"
+msgstr ""
+
+#: ../set_view.rb:94 ../set_view.rb:110
+msgid "枠線を表示する"
+msgstr ""
+
+#: ../set_view.rb:95 ../set_view.rb:111
+msgid "枠線の種類"
+msgstr ""
+
+#: ../set_view.rb:95 ../set_view.rb:111
+msgid "影"
+msgstr ""
+
+#: ../set_view.rb:95 ../set_view.rb:111
+msgid "線"
+msgstr ""
+
+#: ../set_view.rb:95 ../set_view.rb:111
+msgid "枠線なし"
+msgstr ""
+
+#: ../set_view.rb:97 ../set_view.rb:113
+msgid "本文の最大行数"
+msgstr ""
+
+#: ../set_view.rb:116
+msgid "Mentions"
+msgstr ""
+
+#: ../set_view.rb:117
+msgid "リプライを返したつぶやきにはアイコンを表示"
+msgstr ""
+
+#: ../set_view.rb:118
+msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
+msgstr ""
+
+#: ../set_view.rb:121
+msgid "ふぁぼふぁぼ"
+msgstr ""
+
+#: ../set_view.rb:122
+msgid "ふぁぼられをリプライの受信として処理する"
+msgstr ""
+
+#: ../set_view.rb:123
+msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
+msgstr ""
+
+#: ../set_view.rb:124
+msgid "ふぁぼられたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:125
+msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:126
+msgid "自分がふぁぼったつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:127
+msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:130
+msgid "Retweets"
+msgstr ""
+
+#: ../set_view.rb:131
+msgid "リツイートされたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:132
+msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:133
+msgid "自分がリツイートしたつぶやきをTL上でageる"
+msgstr ""
+
+#: ../set_view.rb:134
+msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
+msgstr ""
+
+#: ../set_view.rb:137
+msgid "非公開アカウント"
+msgstr ""
+
+#: ../set_view.rb:138
+msgid "非公開アカウントのつぶやきにはアイコンを表示"
+msgstr ""
+
+#: ../set_view.rb:139
+msgid "非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"
+msgstr ""
+
+#: ../set_view.rb:142
+msgid "承認済みアカウント"
+msgstr ""
+
+#: ../set_view.rb:143
+msgid "承認済みアカウントのつぶやきにはアイコンを表示"
+msgstr ""
+
+#: ../set_view.rb:144
+msgid "Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"
+msgstr ""
+
+#: ../set_view.rb:147
+msgid "短縮URL"
+msgstr ""
+
+#: ../set_view.rb:148
+msgid "短縮URLを展開して表示"
+msgstr ""
+
+#: ../set_view.rb:149
+msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
+msgstr ""
+
+#: ../set_view.rb:152
+msgid "タブの位置"
+msgstr ""
+
+#: ../set_view.rb:152
+msgid "上"
+msgstr ""
+
+#: ../set_view.rb:152
+msgid "下"
+msgstr ""
+
+#: ../set_view.rb:152
+msgid "左"
+msgstr ""
+
+#: ../set_view.rb:152
+msgid "右"
+msgstr ""
+
+#: ../set_view.rb:154
 msgid "URLを開く方法"
 msgstr ""
 
-#: ../set_view.rb:85
+#: ../set_view.rb:155
 msgid "デフォルトブラウザを使う"
 msgstr ""
 
-#: ../set_view.rb:87
+#: ../set_view.rb:157
 msgid "次のコマンドを使う"
 msgstr ""
