@@ -77,13 +77,18 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def handle_row_activated
   end
 
-  def reply(options = {})
+  def reply(options = {}, i_timeline = nil)
     ctl = Gtk::TimeLine::InnerTL.current_tl
     pb = nil
-    if(ctl)
+    if ctl
       options = options.dup
-      options[:before_post_hook] = lambda{ |this|
+      options[:before_post_hook] = ->(this) {
         get_ancestor(Gtk::Window).set_focus(self) unless self.destroyed? }
+      # ずっと表示される（投稿しても消えない）PostBoxの処理
+      # 既にprocっぽいものが入っているときはそのままにしておく
+      if options[:delegate_other] && !options[:delegate_other].respond_to?(:to_proc)
+        options[:delegate_other] = postbox_delegation_generator(i_timeline)
+        options[:postboxstorage] = postbox end
       pb = Gtk::PostBox.new(options).show_all
       postbox.closeup(pb)
       pb.on_delete(&Proc.new) if block_given?
@@ -91,8 +96,13 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       ctl.selection.unselect_all end
     pb end
 
+  def postbox_delegation_generator(i_timeline)
+    ->(params) {
+      i_timeline.create_postbox(params) } end
+  private :postbox_delegation_generator
+
   def add_postbox(i_postbox)
-    reply(i_postbox.options)
+    reply(i_postbox.options, i_postbox.ancestor_of(Plugin::GUI::Timeline))
   end
 
   def set_cursor_to_display_top
