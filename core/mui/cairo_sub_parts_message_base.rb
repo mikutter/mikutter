@@ -157,6 +157,16 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   memoize def default_font
     Pango::FontDescription.new(UserConfig[:reply_text_font]) end
 
+  attr_reader :margin
+
+  attr_reader :edge
+
+  # Fixnum 枠線の太さ(px)
+  attr_reader :border_weight
+
+  # Fixnum バッジの半径(px)
+  attr_reader :badge_radius
+
   # :nodoc:
   def initialize(*args)
     super
@@ -213,10 +223,10 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     render_outline(message, context, base_y)
     _header_width, header_height = render_header(message, context, base_y)
     context.save do
-      context.translate(@margin + @edge, @margin + @edge + base_y)
+      context.translate(margin + edge, margin + edge + base_y)
       render_icon(message, context)
       context.save do
-        context.translate(icon_width + @margin*2, header_height || 0)
+        context.translate(icon_width + margin*2, header_height || 0)
         context.set_source_rgb(*main_text_color(message))
         pango_layout = main_message(message, context)
         if pango_layout.line_count <= text_max_line_count(message)
@@ -234,7 +244,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def message_height(message)
     header_height = [0, *[header_left(message), header_right(message)].compact.map{|h|
                        h.pixel_size[1]}].max
-    [icon_height, (header_height + main_message_height(message))].max + (@margin + @edge) * 2 end
+    [icon_height, (header_height + main_message_height(message))].max + (margin + edge) * 2 end
 
   def main_message_height(message)
     pango_layout = main_message(message)
@@ -267,7 +277,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   def render_header(message, context, base_y)
     context.save do
-      context.translate(icon_width + @margin*2 + @edge, @margin + @edge + base_y)
+      context.translate(icon_width + margin*2 + edge, margin + edge + base_y)
       context.set_source_rgb(0,0,0)
       hl_layout = header_left(message, context)
       if hl_layout
@@ -281,7 +291,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
           [hl_w, hl_h] end end end end
 
   def render_header_right(message, context, base_y, header_left_width)
-    header_w = width - icon_width - @margin*3 - @edge*2
+    header_w = width - icon_width - margin*3 - edge*2
     hr_layout = header_right(message, context)
     if hr_layout
       context.save do
@@ -301,7 +311,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_message(message, context = dummy_context)
     attr_list, text = Pango.parse_markup(Pango.escape(message.to_show))
     layout = context.create_pango_layout
-    layout.width = (width - icon_width - @margin*3 - @edge*2) * Pango::SCALE
+    layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
     layout.attributes = attr_list
     layout.wrap = Pango::WRAP_CHAR
     layout.font_description = default_font
@@ -314,7 +324,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # エッジの描画。
   # 影にblurを入れて、浮いているような感じに
   def render_outline_floating(message, context, base_y, radius: 4, blur: 4)
-    x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
+    x,y,w,h = edge, edge + base_y, width - edge*2, message_height(message) - edge*2
     context.save {
       context.pseudo_blur(blur) {
         context.fill {
@@ -328,12 +338,12 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # 細い線を入れる
   def render_outline_solid(message, context, base_y, radius: 4)
     context.save {
-      x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
+      x,y,w,h = edge, edge + base_y, width - edge*2, message_height(message) - edge*2
       #context.fill {
         context.rounded_rectangle(x,y,w,h, radius)
         context.set_source_rgb(*background_color(message))
         context.fill_preserve
-        context.set_line_width(@border_weight)
+        context.set_line_width(border_weight)
         context.set_source_rgb(*edge_color(message))
         context.stroke } end
 
@@ -341,7 +351,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # 枠線なし
   def render_outline_flat(message, context, base_y, radius: 4)
     context.save {
-      x,y,w,h = @edge, @edge + base_y, width - @edge*2, message_height(message) - @edge*2
+      x,y,w,h = edge, edge + base_y, width - edge*2, message_height(message) - edge*2
       context.fill {
         context.set_source_rgb(*background_color(message))
         context.rounded_rectangle(x,y,w,h, radius) } } end
@@ -358,11 +368,11 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         context.pseudo_blur(4) {
           context.fill {
             context.set_source_rgb(*edge_color(message))
-            context.circle(0, 0, @badge_radius) } }
+            context.circle(0, 0, badge_radius) } }
         context.fill {
           context.set_source_rgb(*background_color(message))
-          context.circle(0, 0, @badge_radius) } }
-      context.translate(-@badge_radius, -@badge_radius)
+          context.circle(0, 0, badge_radius) } }
+      context.translate(-badge_radius, -badge_radius)
       context.set_source_pixbuf(badge_pixbuf)
       context.paint end end
 
@@ -372,13 +382,13 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     badge_pixbuf = badge(message)
     if badge_pixbuf
       context.save {
-        context.circle(0, 0, @badge_radius)
+        context.circle(0, 0, badge_radius)
         context.set_source_rgb(*background_color(message))
         context.fill_preserve
         context.set_source_rgb(*edge_color(message))
-        context.set_line_width(@border_weight)
+        context.set_line_width(border_weight)
         context.stroke }
-      context.translate(-@badge_radius, -@badge_radius)
+      context.translate(-badge_radius, -badge_radius)
       context.set_source_pixbuf(badge_pixbuf)
       context.paint end end
 
@@ -389,8 +399,8 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     if badge_pixbuf
       context.fill {
         context.set_source_rgb(*background_color(message))
-        context.circle(0, 0, @badge_radius) }
-      context.translate(-@badge_radius, -@badge_radius)
+        context.circle(0, 0, badge_radius) }
+      context.translate(-badge_radius, -badge_radius)
       context.set_source_pixbuf(badge_pixbuf)
       context.paint end end
 

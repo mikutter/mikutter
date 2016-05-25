@@ -3,20 +3,35 @@
 miquire :mui, 'sub_parts_message_base'
 
 class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
+  EDGE_ABSENT_SIZE = 2
+  EDGE_PRESENT_SIZE = 8
+
   register
 
   attr_reader :messages
 
   def initialize(*args)
     super
+    @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
     if helper.message.has_receive_message?
       helper.message.replyto_source_d(true).next{ |reply|
         @messages = Messages.new([reply]).freeze
         render_messages
       }.terminate('リプライ描画中にエラーが発生しました') end end
 
+  def edge
+    if show_edge?
+      unless @edge == EDGE_PRESENT_SIZE
+        @edge = EDGE_PRESENT_SIZE
+        helper.reset_height end
+    else
+      unless @edge == EDGE_ABSENT_SIZE
+        @edge = EDGE_ABSENT_SIZE
+        helper.reset_height end end
+    @edge end
+
   def badge(_message)
-    Gdk::Pixbuf.new(Skin.get('reply.png'), @badge_radius*2, @badge_radius*2) end
+    Gdk::Pixbuf.new(Skin.get('reply.png'), badge_radius*2, badge_radius*2) end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_replyviewer_background_color, message, nil).last
@@ -50,10 +65,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     UserConfig[:reply_text_max_line_count] || super end
 
   def render_outline(message, context, base_y)
-    unless show_edge?
-      @edge = 2
-      return end
-    @edge = 8
+    return unless show_edge?
     case UserConfig[:reply_edge]
     when :floating
       render_outline_floating(message, context, base_y)

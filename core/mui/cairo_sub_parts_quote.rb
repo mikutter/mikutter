@@ -3,6 +3,9 @@
 miquire :mui, 'sub_parts_message_base'
 
 class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
+  EDGE_ABSENT_SIZE = 2
+  EDGE_PRESENT_SIZE = 8
+
   register
 
   def messages
@@ -16,6 +19,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
 
   def initialize(*args)
     super
+    @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
     if helper.message.quoting?
       Thread.new(helper.message) { |m|
         m.quoting_messages(true)
@@ -23,6 +27,17 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
         @messages = Messages.new(quoting).freeze
         render_messages
       }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
+
+  def edge
+    if show_edge?
+      unless @edge == EDGE_PRESENT_SIZE
+        @edge = EDGE_PRESENT_SIZE
+        helper.reset_height end
+    else
+      unless @edge == EDGE_ABSENT_SIZE
+        @edge = EDGE_ABSENT_SIZE
+        helper.reset_height end end
+    @edge end
 
   def badge(_message)
     Gdk::Pixbuf.new(Skin.get('quote.png'), @badge_radius*2, @badge_radius*2) end
@@ -62,10 +77,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     UserConfig[:quote_text_max_line_count] || super end
 
   def render_outline(message, context, base_y)
-    unless show_edge?
-      @edge = 2
-      return end
-    @edge = 8
+    return unless show_edge?
     case UserConfig[:quote_edge]
     when :floating
       render_outline_floating(message, context, base_y)
