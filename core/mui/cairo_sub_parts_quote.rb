@@ -14,6 +14,11 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   def on_click(e, message)
     case e.button
     when 1
+      case UserConfig[:quote_clicked_action]
+      when :open
+        Plugin.call(:show_message, message)
+      when :smartthread
+        Plugin.call(:open_smartthread, [message]) end
       Plugin.filtering(:command, {}).first[:smartthread][:exec].call(Struct.new(:messages).new([message]))
     end end
 

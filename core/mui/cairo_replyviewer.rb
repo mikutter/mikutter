@@ -10,6 +10,16 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
 
   attr_reader :messages
 
+  def on_click(e, message)
+    case e.button
+    when 1
+      case UserConfig[:reply_clicked_action]
+      when :open
+        Plugin.call(:show_message, message)
+      when :smartthread
+        Plugin.call(:open_smartthread, [message]) end
+    end end
+
   def initialize(*args)
     super
     @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
