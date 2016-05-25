@@ -17,6 +17,8 @@ class Plugin::GUI::Postbox
 
   role :postbox
 
+  set_parent_event :gui_postbox_join_widget
+
   set_parent_class Plugin::GUI::Postbox::PostboxParent
 
   attr_accessor :options
@@ -36,12 +38,6 @@ class Plugin::GUI::Postbox
     super
     @options = {}
     Plugin.call(:postbox_created, self) end
-
-  alias __set_parent_postbox__ set_parent
-  def set_parent(parent)
-    Plugin.call(:gui_postbox_join_widget, self, parent)
-    __set_parent_postbox__(parent)
-  end
 
   # このPostboxの内容を投稿する
   # ==== Return
