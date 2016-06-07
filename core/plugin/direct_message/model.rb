@@ -117,6 +117,10 @@ module Plugin::DirectMessage
     def perma_link
       nil
     end
+
+    def receive_user_screen_names
+      [self[:recipient].idname]
+    end
   end
 
   class Retriever < Service::ServiceRetriever
