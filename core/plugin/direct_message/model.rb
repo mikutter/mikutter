@@ -106,8 +106,8 @@ module Plugin::DirectMessage
       user[:idname]
     end
 
-    def post(args)
-      Service.primary.send_direct_message({:text => args[:message], :user => self[:user]}, &Proc.new)
+    def post(args, &block)
+      Service.primary.send_direct_message({:text => args[:message], :user => self[:user]}, &block)
     end
 
     def repliable?
