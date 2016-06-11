@@ -13,7 +13,7 @@ Plugin.create :quoted_message do
   command(:copy_tweet_url,
           name: _('ツイートのURLをコピー'.freeze),
           condition: Proc.new{ |opt|
-            not opt.messages.any?(&:system?)},
+            opt.messages.all?(&:perma_link)},
           visible: true,
           role: :timeline) do |opt|
     Gtk::Clipboard.copy(opt.messages.map(&:perma_link).join("\n".freeze))
@@ -23,7 +23,7 @@ Plugin.create :quoted_message do
           name: _('コメント付きリツイート'.freeze),
           icon: MUI::Skin.get('quote.png'),
           condition: Proc.new{ |opt|
-            not opt.messages.any?(&:system?)},
+            opt.messages.all?(&:perma_link)},
           visible: true,
           role: :timeline) do |opt|
     messages = opt.messages

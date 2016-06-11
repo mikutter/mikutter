@@ -149,7 +149,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def get_record(path)
     iter = model.get_iter(path)
     if iter
-      Record.new(iter[0].to_i, iter[1], iter[2], iter[3]) end end
+      Record.new(iter[0], iter[1], iter[2], iter[3]) end end
 
   # _message_ に対応する Gtk::TreePath を返す。なければnilを返す。
   def get_path_by_message(message)
@@ -172,7 +172,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # 含まれていれば真
   def include?(message)
-    @id_dict.has_key?(message.id) end
+    @id_dict.has_key?(message.painter_key) end
 
   # IDとGtk::TreeIterの対を登録する
   # ==== Args
@@ -181,7 +181,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # self
   def set_id_dict(iter)
-    id = iter[MESSAGE_ID].to_i
+    id = iter[MESSAGE_ID]
     if not @id_dict.has_key?(id)
       @id_dict[id] = iter
       iters = @id_dict
@@ -233,7 +233,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ から [model, path, iter] の配列を返す。見つからなかった場合は空の配列を返す。
   def get_path_and_iter_by_message(message)
-    id = message[:id].to_i
+    id = message.painter_key
     if @id_dict[id]
       if @id_dict[id][MIRACLE_PAINTER].destroyed?
         warn "destroyed miracle painter in cache (##{id})"

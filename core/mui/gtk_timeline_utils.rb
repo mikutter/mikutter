@@ -80,7 +80,7 @@ module Gtk::TimeLineUtils
 
   # _message_ を追加する。配列で複数のMessageオブジェクトを渡すこともできる。
   def add(message)
-    if message.is_a?(Enumerable) then
+    if message.is_a?(Enumerable)
       self.block_add_all(Plugin.filtering(:show_filter, message).first)
     else
       m = Plugin.filtering(:show_filter, [message]).first.first
