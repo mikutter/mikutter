@@ -136,7 +136,9 @@ class UserConfig
     :notification_enable => true,
 
     :reply_text_max_line_count => 10,
-    :quote_text_max_line_count => 10
+    :quote_text_max_line_count => 10,
+    :reply_clicked_action => :open,
+    :quote_clicked_action => :open,
   }
 
   @@watcher = Hash.new{ [] }
@@ -207,7 +209,10 @@ class UserConfig
         UserConfig[:quote_text_color] = UserConfig[:reply_text_color]
         UserConfig[:reply_present_policy] = %i<icon>
         UserConfig[:quote_edge] = :floating
-        UserConfig[:reply_text_max_line_count] = 3 end
+        UserConfig[:reply_text_max_line_count] = 3
+        UserConfig[:reply_clicked_action] = nil
+        UserConfig[:quote_clicked_action] = :smartthread
+      end
     end
   end
 

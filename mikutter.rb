@@ -29,6 +29,7 @@ require 'thread'
 require 'fileutils'
 
 require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
+Mopt.parse exec_command: true
 require File.expand_path(File.join(mikutter_directory, 'core/utils'))
 
 miquire :boot, 'check_config_permission', 'mainloop', 'delayer'

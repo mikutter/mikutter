@@ -2,8 +2,7 @@
 slug: :streaming
 depends:
   mikutter: '0.2'
-  plugin:
-  - uitranslator
+  plugin: []
 version: '1.0'
 author: toshi_a
 name: Streaming
