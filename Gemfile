@@ -8,14 +8,14 @@ def source(url)
 source 'https://rubygems.org'
 
 group :default do
-  gem 'oauth', '0.4.7'
+  gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
   gem 'addressable', '~> 2.3'
   gem 'memoist', '~> 0.14'
   gem 'ruby-hmac', '~> 0.4'
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'
-  gem 'pluggaloid', '>= 1.0.1', '< 2.0'
+  gem 'pluggaloid', '>= 1.1.1', '< 2.0'
   gem 'delayer-deferred', '>= 1.0.3', '< 2.0'
   gem 'twitter-text'
 end

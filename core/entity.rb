@@ -51,8 +51,25 @@ class Message::Entity
       segment }
 
     filter(:media){ |segment|
-      segment[:face] = segment[:display_url]
-      segment[:url] = segment[:media_url]
+      case segment[:video_info] and segment[:type]
+      when 'video'
+        variant = Array(segment[:video_info][:variants])
+                  .select{|v|v[:content_type] == "video/mp4"}
+                  .sort_by{|v|v[:bitrate]}
+                  .last
+        segment[:face] = "#{segment[:display_url]} (%.1fs)" % (segment[:video_info][:duration_millis]/1000.0)
+        segment[:url] = variant[:url]
+      when 'animated_gif'
+        variant = Array(segment[:video_info][:variants])
+                  .select{|v|v[:content_type] == "video/mp4"}
+                  .sort_by{|v|v[:bitrate]}
+                  .last
+        segment[:face] = "#{segment[:display_url]} (GIF)"
+        segment[:url] = variant[:url]
+      else
+        segment[:face] = segment[:display_url]
+        segment[:url] = segment[:media_url]
+      end
       segment }
 
     filter(:hashtags){ |segment|
@@ -67,7 +84,6 @@ class Message::Entity
   end
 
   def initialize(message)
-    type_strict message => Message
     @message = message
     @generate_value = _generate_value || [] end
 
@@ -223,7 +239,7 @@ class Message::Entity
   # ==== Return
   # entityの配列
   def entities_from_extended_entities(source_entity, extended_entities, slug: source_entity[:slug], rule: @@linkrule[slug] || {}, message: nil)
-    type_strict source_entity => Hash, extended_entities => Array, slug => Symbol, rule => Hash, message => Message
+    type_strict source_entity => Hash, extended_entities => Array, slug => Symbol, rule => Hash
     result = extended_entities.map.with_index do |extended_entity, index|
                 entity_rewrite = {
                   display_url: extended_entity[:media_url],

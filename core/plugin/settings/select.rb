@@ -55,30 +55,27 @@ class Plugin::Settings::Select
     group = Gtk::RadioButton.new
 
     options = @options
-    box.instance_eval{
-      options.each{ |value, face, setting|
-        radio = nil
-        if (not setting) and face.is_a? String
-          closeup radio = Gtk::RadioButton.new(group, face)
-        elsif setting.is_a? Plugin::Settings
-          if face.is_a? String
-            container = Gtk::Table.new(2, 2)
-            radio = Gtk::RadioButton.new(group)
-            container.attach(radio, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL)
-            container.attach(Gtk::Label.new(face).left, 1, 2, 0, 1, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
-            container.attach(setting, 1, 2, 1, 2, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND)
-            closeup container
-          else
-            container = Gtk::HBox.new
-            radio = Gtk::RadioButton.new(group)
-            closeup container.closeup(radio).add(setting) end
-        end
-        if radio
-          radio.signal_connect('toggled'){ |widget|
-            listener.set value if widget.active?
-            setting.sensitive = widget.active? if setting.is_a? Gtk::Widget }
-          radio.active = listener.get == value
-          face.sensitive = radio.active? if face.is_a? Gtk::Widget end } }
+    options.each{ |value, face, setting|
+      radio = nil
+      if (not setting) and face.is_a? String
+        box.closeup radio = Gtk::RadioButton.new(group, face)
+      elsif setting.is_a? Plugin::Settings
+        if face.is_a? String
+          container = Gtk::Table.new(2, 2)
+          radio = Gtk::RadioButton.new(group)
+          container.attach(radio, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL)
+          container.attach(Gtk::Label.new(face).left, 1, 2, 0, 1, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
+          container.attach(setting, 1, 2, 1, 2, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND)
+          box.closeup container
+        else
+          container = Gtk::HBox.new
+          radio = Gtk::RadioButton.new(group)
+          box.closeup container.closeup(radio).add(setting) end
+      end
+      if radio
+        radio.ssc(:toggled, &generate_toggled_listener(listener, value, setting))
+        radio.active = listener.get == value
+        setting.sensitive = radio.active? if setting.is_a? Gtk::Widget end }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する
@@ -90,8 +87,19 @@ class Plugin::Settings::Select
       input.append_text(@options.assoc(x).last) }
     input.active = (sorted.index{ |i| i.to_s == listener.get.to_s } || 0)
     listener.set sorted[input.active]
-    input.signal_connect('changed'){ |widget|
+    input.ssc(:changed){ |widget|
       listener.set sorted[widget.active]
-      nil }
+      false }
     input end
+
+  def generate_toggled_listener(listener, value, setting=nil)
+    if setting.is_a? Gtk::Widget
+      ->(widget) do
+        listener.set value if widget.active?
+        setting.sensitive = widget.active?
+        false end
+    else
+      ->(widget) do
+        listener.set value if widget.active?
+        false end end end
 end

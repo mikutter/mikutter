@@ -57,6 +57,9 @@ class Message < Retriever::Model
                [:modified, :time],        # updated time
              ]
 
+  def self.container_class
+    Messages end
+
   # appearイベント
   def self.appear(message) # :nodoc:
     @@appear_queue.push(message)
@@ -558,10 +561,16 @@ class Message < Retriever::Model
   def to_i
     self[:id].to_i end
 
-  # selfを返す
+  # :nodoc:
+  def message
+    self end
+
+  # :nodoc:
   def to_message
     self end
-  alias :message :to_message
+
+  deprecate :message, :none, 2017, 05
+  deprecate :to_message, :none, 2017, 05
 
   # 本文を人間に読みやすい文字列に変換する
   def to_show
@@ -630,9 +639,15 @@ class Message < Retriever::Model
         retweeted_sources
         add_retweet_in_this_thread(retweet_user, created_at) } end end
 
+  # このMessageがサービスに投稿された時刻を返す
+  # ==== Return
+  # Time 投稿時刻
+  def created
+    self[:created] end
+
   # 最終更新日時を取得する
   def modified
-    @value[:modified] ||= [self[:created], *(@retweets || []).map{ |x| x.modified }].compact.max
+    @value[:modified] ||= [created, *(@retweets || []).map{ |x| x.modified }].compact.max
   end
 
   def inspect
@@ -684,6 +699,10 @@ class Message < Retriever::Model
     def [](key)
       @raw.has_key?(key.to_sym) ? @raw[key.to_sym] : @user[key] end
 
+    def is_me?
+      @user.me? end
+    deprecate :is_me?, "me?", 2017, 05
+
     def method_missing(*args)
       @user.__send__(*args) end end
 
@@ -716,11 +735,11 @@ class Message < Retriever::Model
   # 例外を引き起こした原因となるMessageをセットにして例外を発生させることができる
   class MessageError < Retriever::RetrieverError
     # messageは、Exceptionクラスと名前が被る
-    attr_reader :to_message
+    attr_reader :message
 
     def initialize(body, message)
       super("#{body} occured by #{message[:id]}(#{message[:message]})")
-      @to_message = message end
+      @message = message end
 
   end
 

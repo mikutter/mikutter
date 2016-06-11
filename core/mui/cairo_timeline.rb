@@ -6,7 +6,7 @@ require 'cairo'
 class Gtk::TimeLine < Gtk::VBox
 end
 
-miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'pseudo_message_widget', 'postbox'
+miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'postbox'
 miquire :mui, 'inner_tl', 'dark_matter_prification'
 
 miquire :core, 'message'
@@ -98,7 +98,6 @@ class Gtk::TimeLine
 
   # Messageオブジェクト _message_ が更新されたときに呼ばれる
   def modified(message)
-    type_strict message => Message
     path = @tl.get_path_by_message(message)
     if(path)
       @tl.update!(message, 2, get_order(message)) end
@@ -140,7 +139,6 @@ class Gtk::TimeLine
 
   # _message_ をTLに追加する
   def block_add(message)
-    type_strict message => Message
     if not @tl.destroyed?
       raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
       if(!any?{ |m| m[:id] == message[:id] })

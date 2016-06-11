@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-miquire :core, "miquire", "plugin"
+miquire :core, "miquire", "plugin", "miquire_to_spec"
 
 # プラグインのロードに関すること
 module Miquire::Plugin
   class << self
+    using Miquire::ToSpec
     include Enumerable
 
     # ロードパスの配列を返す。
@@ -103,34 +104,50 @@ module Miquire::Plugin
                         exception: e,
                         description: e.to_s) end } end
 
-    def load(spec)
-      type_strict spec => tcor(Hash, Symbol, String)
-      case spec
-      when Symbol, String
-        spec = spec.to_sym
-        if ::Plugin.instance_exist?(spec)
-          return true end
-        spec = get_spec_by_slug(spec)
-        if not spec
-          return false end
-      else
-        if ::Plugin.instance_exist?(spec[:slug])
-          return true end end
-
+    def satisfy_mikutter_version?(spec)
       if defined?(spec[:depends][:mikutter]) and spec[:depends][:mikutter]
         version = Environment::Version.new(*(spec[:depends][:mikutter].split(".").map(&:to_i) + ([0]*4))[0...4])
         if Environment::VERSION < version
           raise Miquire::LoadError, "plugin #{spec[:slug]}: #{Environment::NAME} version too old (#{spec[:depends][:mikutter]} required, but #{Environment::NAME} version is #{Environment::VERSION})"
           return false end end
+      true
+    end
 
+    def depended_plugins(_spec, recursive: false)
+      spec = _spec.to_spec
+      unless spec
+        error "spec #{_spec.inspect}"
+        return false
+      end
       if defined? spec[:depends][:plugin]
-        Array(spec[:depends][:plugin]).map(&:to_sym).each{ |depended_plugin_slug|
-          begin
-            ::Plugin.instance_exist?(depended_plugin_slug) or
-              load(depended_plugin_slug) or
-              raise Miquire::LoadError
-          rescue Miquire::LoadError
-            raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depended_plugin_slug} was not loaded." end } end
+        if recursive
+          local_depends = Array(spec[:depends][:plugin]).map{ |s| Array(s).first.to_sym }
+          local_depends += local_depends.map {|s|
+            depended_plugins(s, recursive: recursive).map{|d|d[:slug].to_sym}
+          }.flatten
+          local_depends.uniq.map{|d| d.to_spec }
+        else
+          Array(spec[:depends][:plugin]).map do |s|
+            slug = Array(s).first.to_sym
+            if slug
+              slug.to_spec
+            else
+              slug end end end
+      else
+        [] end end
+
+    def load(_spec)
+      return false unless _spec
+      spec = _spec.to_spec
+      return false unless spec
+      return true if ::Plugin.instance_exist?(spec[:slug])
+      return false unless satisfy_mikutter_version?(spec)
+
+      depended_plugins(spec).each do |depend|
+        begin
+          raise Miquire::LoadError unless load(depend)
+        rescue Miquire::LoadError
+          raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depend} was not loaded." end end
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
       ::Plugin.create(spec[:slug].to_sym) do

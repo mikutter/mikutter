@@ -56,13 +56,20 @@ module Plugin::GUI::Widget
     return true if defined?(@destroy) and @destroy
     Plugin.filtering(:gui_destroyed, self).first end
 
-  def instance_eval_with_delegate(delegatee, &proc)
-    before_delegatee = @delegatee
+  # ブロックをselfに対してinstance_evalする。
+  # その間、selfに対して呼ばれたメソッドで存在しないものは、 _delegate_ のものを呼ぶ。
+  # ==== Args
+  # [delegate] BasicObject 任意のオブジェクト
+  # [&proc] 実行するブロック
+  # ==== Return
+  # ブロックの戻り値
+  def instance_eval_with_delegate(delegate, &proc)
+    before_delegatee = @delegate
     begin
-      @delegatee = delegatee
-      instance_eval &proc
+      @delegate = delegate
+      instance_eval(&proc)
     ensure
-      @delegatee = before_delegatee
+      @delegate = before_delegatee
     end
   end
 
@@ -85,8 +92,8 @@ module Plugin::GUI::Widget
       result end end
 
   def method_missing(*args, &block)
-    if defined?(@delegatee) and @delegatee
-      @delegatee.__send__(*args, &block)
+    if defined?(@delegate) and @delegate
+      @delegate.__send__(*args, &block)
     else
       super end end
 

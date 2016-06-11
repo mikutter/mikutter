@@ -30,7 +30,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("reply.png"),
           role: :timeline) do |opt|
-    messages = opt.messages.map(&:message)
+    messages = opt.messages
     opt.widget.create_postbox(to: messages,
                               header: messages.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
@@ -41,7 +41,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("reply.png"),
           role: :timeline) do |opt|
-    messages = opt.messages.map{ |m| m.message.ancestors.to_a }.flatten
+    messages = opt.messages.map{ |m| m.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
                               header: messages.map(&:user).uniq.reject(&:me?).map{|x| "@#{x.idname}"}.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
@@ -51,7 +51,7 @@ Plugin.create :command do
           condition: Plugin::Command[:HasOneMessage, :CanReplyAll],
           visible: true,
           role: :timeline) do |opt|
-    m = opt.messages.first.message
+    m = opt.messages.first
     opt.widget.create_postbox(to: [m],
                               footer: " RT @#{m.idname}: #{m.to_show}",
                               to_display_only: !UserConfig[:legacy_retweet_act_as_reply],

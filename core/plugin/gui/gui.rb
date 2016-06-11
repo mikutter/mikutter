@@ -5,8 +5,8 @@ require File.expand_path File.join(File.dirname(__FILE__), 'dsl')
 require File.expand_path File.join(File.dirname(__FILE__), 'window')
 require File.expand_path File.join(File.dirname(__FILE__), 'pane')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab')
-require File.expand_path File.join(File.dirname(__FILE__), 'profile')
-require File.expand_path File.join(File.dirname(__FILE__), 'profiletab')
+require File.expand_path File.join(File.dirname(__FILE__), 'cluster')
+require File.expand_path File.join(File.dirname(__FILE__), 'fragment')
 require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
 require File.expand_path File.join(File.dirname(__FILE__), 'tab_child_widget')
 require File.expand_path File.join(File.dirname(__FILE__), 'postbox')
@@ -43,17 +43,45 @@ Plugin.create :gui do
   # ==== Args
   # [slug] タブスラッグ
   # [title] タブのタイトル
-  defdsl :profiletab do |slug, title, &proc|
-    filter_profiletab do |tabs, i_profile, user|
+  defdsl :user_fragment do |slug, title, &proc|
+    filter_user_detail_view_fragments do |tabs, i_cluster, user|
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     i_profiletab = Plugin::GUI::ProfileTab.instance("#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym, title)
-                     i_profiletab.profile_slug = slug
-                     i_profile << i_profiletab
-                     i_profiletab.instance_eval{ @user = user }
-                     i_profiletab.instance_eval_with_delegate(self, &proc)} ])
-      [tabs, i_profile, user] end end
+                     fragment_slug = "#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
+                     i_cluster << i_fragment
+                     i_fragment.instance_eval{ @retriever = user }
+                     handler_tag(fragment_slug) do |tag|
+                       on_gui_destroy do |w|
+                         detach(tag) if w == i_fragment end
+                       i_fragment.instance_eval_with_delegate(self, &proc) end } ])
+      [tabs, i_cluster, user] end end
+
+  # 投稿詳細タブを定義する
+  # ==== Args
+  # [slug] タブスラッグ
+  # [title] タブのタイトル
+  defdsl :message_fragment do |slug, title, &proc|
+    filter_message_detail_view_fragments do |tabs, i_cluster, message|
+      tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
+                  [slug,
+                   -> {
+                     fragment_slug = "#{slug}_#{message.id}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
+                     i_cluster << i_fragment
+                     i_fragment.instance_eval{ @retriever = message }
+                     handler_tag(fragment_slug) do |tag|
+                       on_gui_destroy do |w|
+                         detach(tag) if w == i_fragment end
+                       i_fragment.instance_eval_with_delegate(self, &proc) end } ])
+      [tabs, i_cluster, message] end end
+
+  # obsolete
+  defdsl :profiletab do |slug, title, &proc|
+    warn 'Plugin#profiletab is obsolete. use Plugin#user_fragment'
+    user_fragment slug, title, &proc
+  end
 
   # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|

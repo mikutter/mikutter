@@ -1,85 +1,105 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'sub_parts_helper'
+miquire :mui, 'sub_parts_message_base'
 
-require 'gtk2'
-require 'cairo'
+class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
+  EDGE_ABSENT_SIZE = 2
+  EDGE_PRESENT_SIZE = 8
 
-class Gdk::ReplyViewer < Gdk::SubParts
   register
 
-  attr_reader :icon_width, :icon_height
+  attr_reader :messages
+
+  def on_click(e, message)
+    case e.button
+    when 1
+      case UserConfig[:reply_clicked_action]
+      when :open
+        Plugin.call(:show_message, message)
+      when :smartthread
+        Plugin.call(:open_smartthread, [message]) end
+    end end
 
   def initialize(*args)
     super
-    @icon_width, @icon_height, @margin = 24, 24, 2
-    @message_got = false
-    if message and not helper.visible?
-      sid = helper.ssc(:expose_event, helper){
-        helper.on_modify
-        helper.signal_handler_disconnect(sid)
-        false } end
-  end
+    @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
+    if helper.message.has_receive_message?
+      helper.message.replyto_source_d(true).next{ |reply|
+        @messages = Messages.new([reply]).freeze
+        render_messages
+      }.terminate('リプライ描画中にエラーが発生しました') end end
 
-  def render(context)
-    if helper.visible? and message
-      context.save{
-        context.translate(@margin, 0)
-        render_main_icon(context)
-        context.translate(@icon_width + @margin, 0)
-        context.set_source_rgb(*(UserConfig[:mumble_reply_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
-        context.show_pango_layout(main_message(context)) } end end
-
-  def height
-    if not(helper.destroyed?) and helper.tree.force_retrieve_in_reply_to ? helper.to_message.has_receive_message? : helper.to_message.receive_message
-      icon_height
-    else
-      0 end end
-
-  private
-
-  def message
-    if not helper.tree.force_retrieve_in_reply_to
-      if @before_height and @before_height != height
+  def edge
+    if show_edge?
+      unless @edge == EDGE_PRESENT_SIZE
+        @edge = EDGE_PRESENT_SIZE
         helper.reset_height end
-      @before_height = height end
-    return @message if @message_got
-    if(helper.to_message.has_receive_message?)
-      @message ||= lambda{
-        result = helper.to_message.receive_message
-        if(helper.tree.force_retrieve_in_reply_to and not result)
-          parent_message = helper.to_message
-          before_height = height
-          Thread.new{
-            @message_got = true
-            @message = parent_message.receive_message(true)
-            Delayer.new{
-              if not helper.destroyed?
-                helper.on_modify
-                helper.reset_height if before_height != height end } } end
-        result }.call end end
+    else
+      unless @edge == EDGE_ABSENT_SIZE
+        @edge = EDGE_ABSENT_SIZE
+        helper.reset_height end end
+    @edge end
 
-  def escaped_main_text
-    Pango.escape(message.to_show) end
+  def badge(_message)
+    Gdk::Pixbuf.new(Skin.get('reply.png'), badge_radius*2, badge_radius*2) end
 
-  def main_message(context = dummy_context)
-    attr_list, text = Pango.parse_markup(escaped_main_text)
-    layout = context.create_pango_layout
-    layout.width = (width - @icon_width - @margin*3) * Pango::SCALE
-    layout.attributes = attr_list
-    layout.wrap = Pango::WRAP_CHAR
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_reply_font])
-    layout.text = text
-    layout end
+  def background_color(message)
+    color = Plugin.filtering(:subparts_replyviewer_background_color, message, nil).last
+    if color.is_a? Array and 3 == color.size
+      color.map{ |c| c.to_f / 65536 }
+    else
+      [1.0]*3 end end
 
-  def render_main_icon(context)
-    context.set_source_pixbuf(main_icon)
-    context.paint
-  end
+  def main_text_color(message)
+    UserConfig[:reply_text_color].map{ |c| c.to_f / 65536 } end
 
-  def main_icon
-    @main_icon ||= Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
-      @main_icon = pixbuf
-      helper.on_modify } end
+  def main_text_font(message)
+    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
 
+  def header_left_content(*args)
+    if show_header?
+      super end end
+
+  def header_right_content(*args)
+    if show_header?
+      super end end
+
+  def icon_size
+    if show_icon?
+      if UserConfig[:reply_icon_size]
+        Gdk::Rectangle.new(0, 0, UserConfig[:reply_icon_size], UserConfig[:reply_icon_size])
+      else
+        super end end end
+
+  def text_max_line_count(message)
+    UserConfig[:reply_text_max_line_count] || super end
+
+  def render_outline(message, context, base_y)
+    return unless show_edge?
+    case UserConfig[:reply_edge]
+    when :floating
+      render_outline_floating(message, context, base_y)
+    when :solid
+      render_outline_solid(message, context, base_y)
+    when :flat
+      render_outline_flat(message, context, base_y) end end
+
+  def render_badge(message, context)
+    return unless show_edge?
+    case UserConfig[:reply_edge]
+    when :floating
+      render_badge_floating(message, context)
+    when :solid
+      render_badge_solid(message, context)
+    when :flat
+      render_badge_flat(message, context) end end
+
+  def show_header?
+    (UserConfig[:reply_present_policy] || []).include?(:header) end
+
+  def show_icon?
+    (UserConfig[:reply_present_policy] || []).include?(:icon) end
+
+  def show_edge?
+    (UserConfig[:reply_present_policy] || []).include?(:edge) end
 end

@@ -91,17 +91,30 @@ class UserConfig
 
     :mumble_basic_font => 'Sans 10',
     :mumble_basic_color => [0, 0, 0],
-    :mumble_reply_font => 'Sans 8',
-    :mumble_reply_color => [255*0x66, 255*0x66, 255*0x66],
+    :reply_text_font => 'Sans 8',
+    :reply_text_color => [0, 0, 0],
+    :quote_text_font => 'Sans 8',
+    :quote_text_color => [0, 0, 0],
     :mumble_basic_left_font => 'Sans 10',
     :mumble_basic_left_color => [0, 0, 0],
     :mumble_basic_right_font => 'Sans 10',
-    :mumble_basic_right_color => [255*0x99, 255*0x99, 255*0x99],
+    :mumble_basic_right_color => [0x9999, 0x9999, 0x9999],
 
-    :mumble_basic_bg => [65535, 65535, 65535],
-    :mumble_reply_bg => [65535, 255*222, 255*222],
-    :mumble_self_bg => [65535, 65535, 255*222],
-    :mumble_selected_bg => [255*222, 255*222, 65535],
+    :mumble_basic_bg => [0xffff, 0xffff, 0xffff],
+    :mumble_reply_bg => [0xffff, 0xdede, 0xdede],
+    :mumble_self_bg => [0xffff, 0xffff, 0xdede],
+    :mumble_selected_bg => [0xdede, 0xdede, 0xffff],
+    :replyviewer_background_color => [0xffff, 0xdede, 0xdede],
+    :quote_background_color => [0xffff, 0xffff, 0xffff],
+
+    :reply_icon_size => 32,
+    :quote_icon_size => 32,
+
+    :reply_present_policy => %i<header icon edge>,
+    :reply_edge => :solid,
+
+    :quote_present_policy => %i<header icon edge>,
+    :quote_edge => :solid,
 
     # 右クリックメニューの並び順
     :mumble_contextmenu_order => ['copy_selected_region',
@@ -120,7 +133,12 @@ class UserConfig
     :activity_mute_kind => ["error"],
     :activity_show_timeline => ["system", "achievement"],
 
-    :notification_enable => true
+    :notification_enable => true,
+
+    :reply_text_max_line_count => 10,
+    :quote_text_max_line_count => 10,
+    :reply_clicked_action => :open,
+    :quote_clicked_action => :open,
   }
 
   @@watcher = Hash.new{ [] }
@@ -181,6 +199,20 @@ class UserConfig
         unless activity_show_statusbar.include? 'streaming_status'
           activity_show_statusbar << 'streaming_status'
           UserConfig[:activity_show_statusbar] = activity_show_statusbar end end
+      if last_boot_version < [3, 4, 0, 0]
+        UserConfig[:replyviewer_background_color] = UserConfig[:mumble_reply_bg]
+        UserConfig[:quote_background_color] = UserConfig[:mumble_basic_bg]
+        UserConfig[:reply_text_font] = UserConfig[:mumble_reply_font] || 'Sans 8'
+        UserConfig[:reply_text_color] = UserConfig[:mumble_reply_color] || [0x6666, 0x6666, 0x6666]
+        UserConfig[:reply_icon_size] = 24
+        UserConfig[:quote_text_font] = UserConfig[:reply_text_font] || 'Sans 8'
+        UserConfig[:quote_text_color] = UserConfig[:reply_text_color]
+        UserConfig[:reply_present_policy] = %i<icon>
+        UserConfig[:quote_edge] = :floating
+        UserConfig[:reply_text_max_line_count] = 3
+        UserConfig[:reply_clicked_action] = nil
+        UserConfig[:quote_clicked_action] = :smartthread
+      end
     end
   end
 

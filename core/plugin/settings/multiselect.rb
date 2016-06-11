@@ -30,25 +30,27 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     box = Gtk::VBox.new
 
     options = @options
-    box.instance_eval{
-      options.each{ |value, face|
+    options.each{ |value, face, setting|
+      if (not setting) and face.is_a? String
+        box.closeup check = Gtk::CheckButton.new(face)
+      elsif setting.is_a? Plugin::Settings
         if face.is_a? String
-          closeup check = Gtk::CheckButton.new(face)
-        elsif face.is_a? Plugin::Settings
+          container = Gtk::Table.new(2, 2)
+          check = Gtk::CheckButton.new
+          container.attach(check, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL)
+          container.attach(Gtk::Label.new(face).left, 1, 2, 0, 1, Gtk::SHRINK|Gtk::FILL, Gtk::FILL)
+          container.attach(setting, 1, 2, 1, 2, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND, Gtk::FILL|Gtk::SHRINK|Gtk::EXPAND)
+          box.closeup container
+        else
           container = Gtk::HBox.new
           check = Gtk::CheckButton.new
-          closeup container.closeup(check).add(face)
-        else
-          raise ArgumentError, "multiselect option value should be instance of String or Plugin::Settings. but #{face.class} given (#{face.inspect})"
-        end
-        check.signal_connect('toggled'){ |widget|
-          if widget.active?
-            listener.set((listener.get || []) + [value])
-          else
-            listener.set((listener.get || []) - [value]) end
-          face.sensitive = widget.active? if face.is_a? Gtk::Widget }
-        check.active = (listener.get || []).include? value
-        face.sensitive = check.active? if face.is_a? Gtk::Widget } }
+          box.closeup container.closeup(check).add(setting) end
+      else
+        raise ArgumentError, "multiselect option value should be instance of String or Plugin::Settings. but #{face.class} given (#{face.inspect})"
+      end
+      check.ssc(:toggled, &generate_toggled_listener(listener, value, setting))
+      check.active = (listener.get || []).include? value
+      setting.sensitive = check.active? if setting.is_a? Gtk::Widget }
     box end
 
   # すべてテキストなら、コンボボックスで要素を描画する
@@ -56,14 +58,27 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     container = Gtk::VBox.new
     state = listener.get || []
     @options.each{ |pair|
-      node, value = *pair
-      check = Gtk::CheckButton.new(value)
-      check.active = state.include?(node)
-      check.signal_connect('toggled'){ |widget|
-        if widget.active?
-          listener.set((listener.get || []) + [node])
-        else
-          listener.set((listener.get || []) - [node]) end }
+      value, face = *pair
+      check = Gtk::CheckButton.new(face)
+      check.active = state.include?(value)
+      check.ssc(:toggled, &generate_toggled_listener(listener, value))
       container.closeup check }
     container end
+
+  def generate_toggled_listener(listener, value, setting=nil)
+    if setting.is_a? Gtk::Widget
+      ->(widget) do
+        if widget.active?
+          listener.set((listener.get || []) + [value])
+        else
+          listener.set((listener.get || []) - [value]) end
+        setting.sensitive = widget.active?
+      false end
+    else
+      ->(widget) do
+        if widget.active?
+          listener.set((listener.get || []) + [value])
+        else
+          listener.set((listener.get || []) - [value]) end
+        false end end end
 end

@@ -27,6 +27,10 @@ Plugin.create :smartthread do
           condition: lambda{ |opt| not opt.messages.empty? and opt.messages.all? &:repliable? },
           visible: true,
           role: :timeline){ |opt|
+    Plugin.call(:open_smartthread, opt.messages)
+  }
+
+  on_open_smartthread do |messages|
     serial = counter.call
     slug = "conversation#{serial}".to_sym
     tab slug, _("会話%{serial_id}") % {serial_id: serial} do
@@ -36,15 +40,14 @@ Plugin.create :smartthread do
       timeline slug do
         order do |message|
           message[:created].to_i end end end
-    @timelines[slug] = opt.messages.map(&:ancestor).uniq
-    timeline(slug) << opt.messages.map(&:around).flatten
+    @timelines[slug] = messages.map(&:ancestor).uniq
+    timeline(slug) << messages.map(&:around).flatten
     tl = timeline(slug)
     @timelines[slug].each{ |message|
       Thread.new{
         message.each_ancestor(true){ |child|
           tl << child } }.trap{|e| error e} }
-    timeline(slug).active!
-  }
+    timeline(slug).active! end
 
   onappear do |messages|
     @timelines.keys.each{ |slug|

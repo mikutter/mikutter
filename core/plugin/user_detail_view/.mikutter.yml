@@ -1,0 +1,13 @@
+---
+slug: :user_detail_view
+depends:
+  mikutter: '3.3'
+  plugin:
+  - gui
+  - gtk
+  - command
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: プロフィール
+description: 特定のユーザのプロフィールを表示する機能を追加する。また、プロフィール画面をカスタマイズするためのAPIを提供する

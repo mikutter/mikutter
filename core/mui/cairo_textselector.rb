@@ -107,25 +107,50 @@ module Gdk
     # ==== Return
     # Array タグで囲むべきインデックス(Range)このインデックスにタグは含まれている
     def arange_split(char_array, range)
-      result, stack, arange = [], [], get_arange(char_array, range)
-      start = arange.first
-      arange.each{ |i|
-        case char_array[i]
+      result, arange = [], get_arange(char_array, range)
+
+      # Top-level end tag
+      level = 0
+      prev = arange.first
+      last_regular_pos = prev
+      arange.each_with_index do |tokidx|
+        next if tokidx == arange.last
+        case char_array[tokidx]
         when END_TAG_PATTERN_EXACT
-          if stack.empty?
-            if start <= i-1
-              result << Range.new(start, i)
-              start = i+1 end
+          if level == 0
+            result << Range.new(prev, tokidx)
+            prev = tokidx + 1
           else
-            stack.pop end
+            level -= 1
+          end
         when START_TAG_PATTERN_EXACT
-          r, s = result.dup, start
-          if not callcc{ |cont| stack.push(cont) }
-            result, start = r << Range.new(s, i), i+1 end end }
-      if start < arange.last
-        stack.pop.call if not stack.empty?
-        result << Range.new(start, arange.last) end
-      result end
+          level += 1
+        end
+        if level == 0
+          last_regular_pos = tokidx
+        end
+      end
+      result << Range.new(prev, last_regular_pos + 1)
+
+      # Top-level start tag
+      level = 0
+      prev = arange.last
+      arange.reverse_each.with_index do |tokidx, i|
+        next if i == 0
+        case char_array[tokidx]
+        when START_TAG_PATTERN_EXACT
+          if level == 0
+            result << Range.new(tokidx + 1, prev)
+            prev = tokidx
+          else
+            level -= 1
+          end
+        when END_TAG_PATTERN_EXACT
+          level += 1
+        end
+      end
+      result.sort_by{|r| r.first}
+    end
 
     # _str_ の _range_ の範囲を _start_tag_ と _end_tag_ で囲う。
     # _range_ の間に開始タグや終了タグがあってタグの開始終了の対応が取れなくなる場合、

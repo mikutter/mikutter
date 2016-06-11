@@ -9,11 +9,21 @@ class Gtk::UserList < Gtk::EventBox
 
   attr_reader :listview
 
+  # ユーザをダブルクリックとかされた時に呼ばれるProcを返す
+  # ==== Return
+  # Proc
+  def self.row_activated
+    ->(this, path, column) do
+      iter = this.model.get_iter(path)
+      if iter
+        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end end end
+
   def initialize
     super
     @listview = Gtk::InnerUserList.new(self)
     scrollbar = ::Gtk::VScrollbar.new(@listview.vadjustment)
     add Gtk::HBox.new(false, 0).add(@listview).closeup(scrollbar)
+    @listview.ssc(:row_activated, &self.class.row_activated)
   end
 
   def each
