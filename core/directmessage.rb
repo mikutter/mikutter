@@ -1,8 +1,11 @@
+miquire :core, 'retriever'
 miquire :core, 'entity'
 miquire :mui, 'miracle_paintable'
 
-module Plugin::DirectMessage
-  class Model < Retriever::Model
+module Mikutter; end
+
+module Mikutter::Twitter
+  class DirectMessage < Retriever::Model
     include Gtk::MiraclePaintable
 
     self.keys = [[:id, :int, true],         # ID
@@ -121,8 +124,5 @@ module Plugin::DirectMessage
     def receive_user_screen_names
       [self[:recipient].idname]
     end
-  end
-
-  class Retriever < Service::ServiceRetriever
   end
 end

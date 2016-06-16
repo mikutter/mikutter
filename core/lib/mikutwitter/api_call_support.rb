@@ -5,7 +5,7 @@ require "mikutwitter/query"
 require "json"
 require "timelimitedqueue"
 
-miquire :core, "message", "user", "userlist"
+miquire :core, "message", "user", "userlist", 'directmessage'
 
 module MikuTwitter::ApiCallSupport
   HTML_ATTR_UNESCAPE_HASH = {
@@ -148,7 +148,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:recipient] = user(dm[:recipient])
         cnv[:exact] = true
         cnv[:created] = Time.parse(dm[:created_at]).localtime
-        cnv end
+        Mikutter::Twitter::DirectMessage.new_ifnecessary(cnv) end
 
       def id(id)
         id end
