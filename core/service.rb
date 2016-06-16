@@ -2,7 +2,7 @@
 
 require 'instance_storage'
 
-miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'service_keeper'
+miquire :core, 'environment', 'configloader', 'userconfig', 'service_keeper'
 miquire :lib, "mikutwitter", 'reserver', 'delayer'
 
 =begin rdoc
@@ -117,6 +117,7 @@ class Service
     @twitter.a_secret = account[:secret]
     Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
     User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
+    Mikutter::Twitter::DirectMessage.add_data_retriever(DirectMessageRetriever.new(self, :direct_messages))
     user_initialize
   end
 
@@ -330,6 +331,8 @@ class Service
           @post.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
       else
         @post.scan(@api, :id => id) end end end
+
+  class DirectMessageRetriever < Service::ServiceRetriever; end
 
   class Error < RuntimeError; end
   class NotExistError < Error; end

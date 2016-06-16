@@ -1,3 +1,5 @@
+require 'gtk2'
+
 module Gtk::MiraclePaintable
   ObjectSpec = Struct.new(:klass, :id)
 

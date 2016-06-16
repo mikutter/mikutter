@@ -3,14 +3,9 @@
 require File.expand_path File.join(File.dirname(__FILE__), 'userlist')
 require File.expand_path File.join(File.dirname(__FILE__), 'sender')
 require File.expand_path File.join(File.dirname(__FILE__), 'dmlistview')
-require File.expand_path File.join(File.dirname(__FILE__), 'model')
 
 module Plugin::DirectMessage
   Plugin.create(:direct_message) do
-    Service.each do |service|
-      Model.add_data_retriever(Retriever.new(service, :direct_messages))
-    end
-
     def userlist
       @userlist ||= UserList.new end
 
@@ -33,7 +28,7 @@ module Plugin::DirectMessage
     on_direct_messages do |_, dms|
       dm_distribution = Hash.new {|h,k| h[k] = []}
       dms.each do |dm|
-        model = Model.new_ifnecessary(dm)
+        model = Mikutter::Twitter::DirectMessage.new_ifnecessary(dm)
         dm_distribution[model[:user]] << model
         dm_distribution[model[:recipient]] << model
       end
