@@ -145,13 +145,13 @@ class Message < Retriever::Model
     from_me? end
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
-  def from_me?
+  def from_me?(services=Service)
     return false if system?
-    Service.map(&:user_obj).include?(self[:user]) end
+    services.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
-  def to_me?
-    system? or Service.map(&:user_obj).find(&method(:receive_to?)) end
+  def to_me?(services=Service)
+    system? or services.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
