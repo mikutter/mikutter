@@ -13,10 +13,10 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 =end
 class Message < Retriever::Model
   # screen nameにマッチする正規表現
-  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )([a-zA-Z0-9_]+)/.freeze
+  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
 
   # screen nameのみから構成される文字列から、@などを切り取るための正規表現
-  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
+  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨)?([a-zA-Z0-9_]+)\Z/.freeze
 
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
