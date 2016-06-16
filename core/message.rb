@@ -138,7 +138,7 @@ class Message < Retriever::Model
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    Service.primary and not system? and not from_me? and not protected? end
+    Service.primary and not system? and not protected? end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
