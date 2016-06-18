@@ -49,6 +49,8 @@ module Environment
 
   class Version
     OUT = 9999
+    ALPHA = 1..9998
+    DEVELOP = 0
 
     include Comparable
 
@@ -66,10 +68,13 @@ module Environment
     end
 
     def to_s
-      if OUT == @devel
+      case @devel
+      when OUT
         [@mejor, @minor, @debug].join('.')
-      else
+      when ALPHA
         [@mejor, @minor, @debug].join('.') + "-alpha#{@devel}"
+      when DEVELOP
+        [@mejor, @minor, @debug].join('.') + "-develop"
       end
     end
 

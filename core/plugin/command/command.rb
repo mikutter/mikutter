@@ -63,7 +63,12 @@ Plugin.create :command do
           visible: true,
           icon: Skin.get("retweet.png"),
           role: :timeline) do |opt|
-    opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer).each(&:retweet) end
+    target = opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer)
+    if target.any?{|message| message.from_me?([Service.primary]) }
+      if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
+        target.each(&:retweet) end
+    else
+      target.each(&:retweet) end end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),

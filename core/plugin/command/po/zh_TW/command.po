@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2015-12-25 17:09+0000\n"
-"Last-Translator: Vel <veloci85@gmail.com>\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2016-06-18 11:37+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,82 +43,86 @@ msgstr "引用"
 msgid "リツイート"
 msgstr "轉推"
 
-#: ../command.rb:69
+#: ../command.rb:68
+msgid "過去の栄光にすがりますか？"
+msgstr ""
+
+#: ../command.rb:74
 msgid "リツイートをキャンセル"
 msgstr "取消轉推"
 
-#: ../command.rb:79
+#: ../command.rb:84
 msgid "ふぁぼふぁぼする"
 msgstr "打星"
 
-#: ../command.rb:87
+#: ../command.rb:92
 msgid "あんふぁぼ"
 msgstr "取消打星"
 
-#: ../command.rb:95
+#: ../command.rb:100
 msgid "削除"
 msgstr "刪除"
 
-#: ../command.rb:101
+#: ../command.rb:106
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "即使無法取回失去的信任，您仍要刪除這則推文嗎？"
 
-#: ../command.rb:104
+#: ../command.rb:109
 msgid "一つ上のメッセージを選択"
 msgstr "選擇上一個訊息"
 
-#: ../command.rb:111
+#: ../command.rb:116
 msgid "一つ下のメッセージを選択"
 msgstr "選擇下一個訊息"
 
-#: ../command.rb:118
+#: ../command.rb:123
 msgid "投稿する"
 msgstr "發推"
 
-#: ../command.rb:126
+#: ../command.rb:131
 msgid "ggrks"
 msgstr "為何不 google"
 
-#: ../command.rb:134
+#: ../command.rb:139
 msgid "リンクを開く"
 msgstr "開啟連結"
 
-#: ../command.rb:150
+#: ../command.rb:155
 msgid "リンクをコピー"
 msgstr "複製連結"
 
-#: ../command.rb:159
+#: ../command.rb:164
 msgid "新規ペインに移動"
 msgstr "移動到新建窗格"
 
-#: ../command.rb:177
+#: ../command.rb:182
 msgid "タブを閉じる"
 msgstr "關閉頁籤"
 
-#: ../command.rb:187
+#: ../command.rb:192
 msgid "次のタブを選択"
 msgstr "選擇下一頁籤"
 
-#: ../command.rb:195
+#: ../command.rb:200
 msgid "前のタブを選択"
 msgstr "選擇前一頁籤"
 
-#: ../command.rb:203
+#: ../command.rb:208
 msgid "右のペインを選択"
 msgstr "選擇右方窗格"
 
-#: ../command.rb:211
+#: ../command.rb:216
 msgid "左のペインを選択"
 msgstr "選擇左方窗格"
 
-#: ../command.rb:219
+#: ../command.rb:224
 msgid "投稿ボックスにフォーカス"
 msgstr "焦點移至發推欄位"
 
-#: ../command.rb:231
+#: ../command.rb:236
 msgid "タブにフォーカス"
 msgstr "焦點移至頁籤"
 
-#: ../command.rb:239
+#: ../command.rb:244
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "跳到時間軸頂端！"

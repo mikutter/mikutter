@@ -271,13 +271,13 @@ Plugin.create(:activity) do
     dms.each{ |dm|
       date = Time.parse(dm[:created_at])
       if date > BOOT_TIME
-        first_line = dm[:sender].me? ? _("ダイレクトメッセージを送信しました") : _("ダイレクトメッセージを受信しました")
-        title = _("D %{recipient} %{text}") % {
-          recipient: dm[:recipient][:idname],
-          text: dm[:text] }
-        activity(:dm, title,
-                 description: ("#{first_line}\n" +
-                               "@#{dm[:sender][:idname]}: #{title}"),
+        activity(:dm, dm[:text],
+                 description:
+                   [ _('差出人: @%{sender}') % {sender: dm[:sender].idname},
+                     _('宛先: @%{recipient}') % {recipient: dm[:recipient].idname},
+                     '',
+                     dm[:text]
+                   ].join("\n"),
                  icon: dm[:sender][:profile_image_url],
                  service: service,
                  date: date) end }
