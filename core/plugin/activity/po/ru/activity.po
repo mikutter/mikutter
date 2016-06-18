@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2015-12-23 08:21+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2016-06-18 11:37+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/lindwurm/mikutter/language/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,127 +17,123 @@ msgstr ""
 "Language: ru\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: ../activity.rb:36
+#: ../activity.rb:47
 msgid "種類"
 msgstr ""
 
-#: ../activity.rb:37
+#: ../activity.rb:48
 msgid "説明"
 msgstr ""
 
-#: ../activity.rb:38
+#: ../activity.rb:49
 msgid "時刻"
 msgstr ""
 
-#: ../activity.rb:141 ../activity.rb:276 ../activity.rb:279
+#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
 msgid "アクティビティ"
 msgstr ""
 
-#: ../activity.rb:184
+#: ../activity.rb:195
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr ""
 
-#: ../activity.rb:194
+#: ../activity.rb:205
 msgid "@%{user} があんふぁぼしました"
 msgstr ""
 
-#: ../activity.rb:206
+#: ../activity.rb:217
 msgid "@%{user} がリツイートしました"
 msgstr ""
 
-#: ../activity.rb:212
+#: ../activity.rb:223
 msgid "リツイートソースが取得できませんでした"
 msgstr ""
 
-#: ../activity.rb:217
+#: ../activity.rb:228
 msgid "@%{user}が%{list}に追加されました"
 msgstr ""
 
-#: ../activity.rb:225 ../activity.rb:242
+#: ../activity.rb:236 ../activity.rb:253
 msgid "%{description} (by @%{user})"
 msgstr ""
 
-#: ../activity.rb:234
+#: ../activity.rb:245
 msgid "@%{user}が%{list}から削除されました"
 msgstr ""
 
-#: ../activity.rb:254
+#: ../activity.rb:265
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr ""
 
-#: ../activity.rb:263
-msgid "ダイレクトメッセージを送信しました"
+#: ../activity.rb:276
+msgid "差出人: @%{sender}"
 msgstr ""
 
-#: ../activity.rb:263
-msgid "ダイレクトメッセージを受信しました"
+#: ../activity.rb:277
+msgid "宛先: @%{recipient}"
 msgstr ""
 
-#: ../activity.rb:264
-msgid "D %{recipient} %{text}"
-msgstr ""
-
-#: ../activity.rb:296
+#: ../activity.rb:307
 msgid "%{name}を表示する"
 msgstr ""
 
-#: ../activity.rb:296
+#: ../activity.rb:307
 msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
 msgstr ""
 
-#: ../activity.rb:297
+#: ../activity.rb:308
 msgid "自分に関係ない%{name}も表示する"
 msgstr ""
 
-#: ../activity.rb:297
+#: ../activity.rb:308
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
 msgstr ""
 
-#: ../activity.rb:298
+#: ../activity.rb:309
 msgid "タイムラインに表示"
 msgstr ""
 
-#: ../activity.rb:298
+#: ../activity.rb:309
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
 msgstr ""
 
-#: ../activity.rb:299
+#: ../activity.rb:310
 msgid "ステータスバーに表示"
 msgstr ""
 
-#: ../activity.rb:299
+#: ../activity.rb:310
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
 msgstr ""
 
-#: ../activity.rb:304
+#: ../activity.rb:315
 msgid "リツイート"
 msgstr ""
 
-#: ../activity.rb:305
+#: ../activity.rb:316
 msgid "ふぁぼ"
 msgstr ""
 
-#: ../activity.rb:306
+#: ../activity.rb:317
 msgid "フォロー"
 msgstr ""
 
-#: ../activity.rb:307
+#: ../activity.rb:318
 msgid "リストに追加"
 msgstr ""
 
-#: ../activity.rb:308
+#: ../activity.rb:319
 msgid "リストから削除"
 msgstr ""
 
-#: ../activity.rb:309
+#: ../activity.rb:320
 msgid "ダイレクトメッセージ"
 msgstr ""
 
-#: ../activity.rb:310
+#: ../activity.rb:321
 msgid "システムメッセージ"
 msgstr ""
 
-#: ../activity.rb:311
+#: ../activity.rb:322
 msgid "エラー"
 msgstr ""
