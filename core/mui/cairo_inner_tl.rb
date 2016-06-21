@@ -15,9 +15,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
-  Record = Struct.new(:perma_link, :message, :order, :miracle_painter)
+  Record = Struct.new(:uri, :message, :order, :miracle_painter)
 
-  PERMA_LINK = 0
+  URI = 0
   MESSAGE = 1
   ORDER = 2
   MIRACLE_PAINTER = 3
@@ -53,7 +53,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
           cell_renderer_message.tree = self
           cell_renderer_message
         },
-        :kind => :perma_link, :widget => :text, :type => String, :label => ''},
+        :kind => :uri, :widget => :text, :type => String, :label => ''},
       {:kind => :text, :widget => :text, :type => Message},
       {:kind => :text, :type => Integer},
       {:kind => :text, :type => Object}
@@ -147,11 +147,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ に対応する値の構造体を返す。なければnilを返す。
   def get_record_by_message(message)
-    get_record_by_perma_link(message.perma_link.to_s) end
+    get_record_by_uri(message.uri.to_s) end
 
   # _message_ に対応する値の構造体を返す。なければnilを返す。
-  def get_record_by_perma_link(perma_link)
-    path = get_path_and_iter_by_perma_link(perma_link)[1]
+  def get_record_by_uri(uri)
+    path = get_path_and_iter_by_uri(uri)[1]
     if path
       get_record(path) end end
 
@@ -167,7 +167,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # 含まれていれば真
   def include?(message)
-    @iter_dict.has_key?(message.perma_link.to_s) end
+    @iter_dict.has_key?(message.uri.to_s) end
 
   # Gtk::TreeIterの対を再利用できるように登録しておく
   # ==== Args
@@ -175,12 +175,12 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # self
   def set_iter_dict(iter)
-    perma_link = iter[PERMA_LINK]
-    if not @iter_dict.has_key?(perma_link)
-      @iter_dict[perma_link] = iter
+    uri = iter[URI]
+    if not @iter_dict.has_key?(uri)
+      @iter_dict[uri] = iter
       iters = @iter_dict
       iter[MIRACLE_PAINTER].signal_connect(:destroy) {
-        iters.delete(perma_link)
+        iters.delete(uri)
         false } end
     self end
 
@@ -203,7 +203,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     from.extended
     from.model.each{ |from_model, from_path, from_iter|
       iter = model.append
-      iter[PERMA_LINK] = from_iter[PERMA_LINK]
+      iter[URI] = from_iter[URI]
       iter[MESSAGE] = from_iter[MESSAGE]
       iter[ORDER] = from_iter[ORDER]
       iter[MIRACLE_PAINTER] = from_iter[MIRACLE_PAINTER].set_tree(self)
@@ -226,20 +226,20 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     get_path_and_iter_by_message(message)[2] end
 
   # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
-  def get_iter_by_perma_link(perma_link)
-    get_path_and_iter_by_perma_link(perma_link)[2] end
+  def get_iter_by_uri(uri)
+    get_path_and_iter_by_uri(uri)[2] end
 
   # _message_ から [model, path, iter] の配列を返す。見つからなかった場合は空の配列を返す。
   def get_path_and_iter_by_message(message)
-    get_path_and_iter_by_perma_link(message.perma_link.to_s) end
+    get_path_and_iter_by_uri(message.uri.to_s) end
 
-  def get_path_and_iter_by_perma_link(perma_link)
-    perma_link = perma_link.to_s
-    iter = @iter_dict[perma_link]
+  def get_path_and_iter_by_uri(uri)
+    uri = uri.to_s
+    iter = @iter_dict[uri]
     if iter
       if iter[MIRACLE_PAINTER].destroyed?
-        warn "destroyed miracle painter in cache (##{perma_link})"
-        @iter_dict.delete(perma_link)
+        warn "destroyed miracle painter in cache (##{uri})"
+        @iter_dict.delete(uri)
         []
       else
         [model, iter.path, iter] end

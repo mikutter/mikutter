@@ -37,6 +37,20 @@ class Retriever::Model
         else
           raise ArgumentError.new("incorrect type #{hash.class} #{hash.inspect}") end end end
 
+    # Modelのインスタンスのuriスキーム。オーバライドして適切な値にする
+    # ==== Return
+    # [String] URIスキーム
+    memoize def scheme
+      self.to_s.split('::',2).first.gsub(/\W/,'').downcase.freeze
+    end
+
+    # Modelのインスタンスのホスト名。オーバライドして適切な値にする
+    # ==== Return
+    # [String] ホスト名
+    memoize def host
+      self.to_s.split('::',2).last.split('::').reverse.join('.').gsub(/[^\w\.]/,'').downcase.freeze
+    end
+
     # モデルのキーを定義します。
     # これを継承した実際のモデルから呼び出されることを想定しています
     def keys=(keys)
@@ -112,6 +126,23 @@ class Retriever::Model
     @value.update(other.to_hash)
     validate
     self.class.store_datum(self)
+  end
+
+  # このModelのパーマリンクを返す。
+  # パーマリンクはWebのURLで、Web上のリソースでない場合はnilを返す。
+  # ==== Return
+  # 次のいずれか
+  # [URI::HTTP] パーマリンク
+  # [nil] パーマリンクが存在しない
+  def perma_link
+    nil
+  end
+
+  # このModelのURIを返す。
+  # ==== Return
+  # [URI::Generic] パーマリンク
+  def uri
+    perma_link || URI::Generic.new(self.class.scheme,nil,self.class.host,nil,nil,path,nil,nil,nil)
   end
 
   def id
@@ -205,5 +236,12 @@ class Retriever::Model
       rescue Retriever::InvalidTypeError=>e
         raise Retriever::InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}" end }
     result end
+
+  private
+  # URIがデフォルトで使うpath要素
+  memoize def path
+    @path ||= "/#{SecureRandom.uuid}"
+  end
+
 end
 

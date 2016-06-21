@@ -161,7 +161,7 @@ class Gtk::TimeLine
     scroll_to_zero_lator! if @tl.realized? and @tl.vadjustment.value == 0.0
     miracle_painter = @tl.cell_renderer_message.create_miracle_painter(message)
     iter = @tl.model.append
-    iter[Gtk::TimeLine::InnerTL::PERMA_LINK] = message.perma_link.to_s
+    iter[Gtk::TimeLine::InnerTL::URI] = message.uri.to_s
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::ORDER] = get_order(message)
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter

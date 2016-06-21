@@ -7,7 +7,7 @@ require 'gtk2'
 module Gtk
   class CellRendererMessage < CellRendererPixbuf
     type_register
-    install_property(GLib::Param::String.new("perma_link", "perma_link", "resource perma link", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
+    install_property(GLib::Param::String.new("uri", "uri", "Resource URI", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
 
     attr_reader :message
 
@@ -122,8 +122,8 @@ module Gtk
       Gdk::MiraclePainter.new(message, avail_width).set_tree(@tree)
     end
 
-    def perma_link=(perma_link)
-      record = @tree.get_record_by_perma_link(perma_link)
+    def uri=(uri)
+      record = @tree.get_record_by_uri(uri)
       if record and record.message
         return render_message(record.message)
       else

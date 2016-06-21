@@ -582,7 +582,9 @@ class Message < Retriever::Model
 
   # このMessageのパーマリンクを取得する
   # ==== Return
-  # パーマリンクのURL(String)か、存在しない場合はnil
+  # 次のいずれか
+  # [URI] パーマリンク
+  # [nil] パーマリンクが存在しない
   def perma_link
     if not system?
       URI.parse("https://twitter.com/#{user[:idname]}/status/#{self[:id]}").freeze end end
