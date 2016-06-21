@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2016-01-05 04:46+0000\n"
-"Last-Translator: Craig9173 <info@craigdrury.org>\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2016-06-18 11:37+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,82 +45,86 @@ msgstr "Quote"
 msgid "リツイート"
 msgstr "Retweet"
 
-#: ../command.rb:69
+#: ../command.rb:68
+msgid "過去の栄光にすがりますか？"
+msgstr ""
+
+#: ../command.rb:74
 msgid "リツイートをキャンセル"
 msgstr "Cancel Retweet"
 
-#: ../command.rb:79
+#: ../command.rb:84
 msgid "ふぁぼふぁぼする"
 msgstr "Favorite"
 
-#: ../command.rb:87
+#: ../command.rb:92
 msgid "あんふぁぼ"
 msgstr "Unfavorite"
 
-#: ../command.rb:95
+#: ../command.rb:100
 msgid "削除"
 msgstr "Delete"
 
-#: ../command.rb:101
+#: ../command.rb:106
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "Deleting this tweet isn't going to help recover any credibility that you may have lost, you know. Do you still want to do it?"
 
-#: ../command.rb:104
+#: ../command.rb:109
 msgid "一つ上のメッセージを選択"
 msgstr "Select previous message"
 
-#: ../command.rb:111
+#: ../command.rb:116
 msgid "一つ下のメッセージを選択"
 msgstr "Select next message"
 
-#: ../command.rb:118
+#: ../command.rb:123
 msgid "投稿する"
 msgstr "Post"
 
-#: ../command.rb:126
+#: ../command.rb:131
 msgid "ggrks"
 msgstr "RTFG"
 
-#: ../command.rb:134
+#: ../command.rb:139
 msgid "リンクを開く"
 msgstr "Open this link"
 
-#: ../command.rb:150
+#: ../command.rb:155
 msgid "リンクをコピー"
 msgstr "Copy URL"
 
-#: ../command.rb:159
+#: ../command.rb:164
 msgid "新規ペインに移動"
 msgstr "Move to new pane"
 
-#: ../command.rb:177
+#: ../command.rb:182
 msgid "タブを閉じる"
 msgstr "Close tab"
 
-#: ../command.rb:187
+#: ../command.rb:192
 msgid "次のタブを選択"
 msgstr "Select the next tab"
 
-#: ../command.rb:195
+#: ../command.rb:200
 msgid "前のタブを選択"
 msgstr "Select the previous tab"
 
-#: ../command.rb:203
+#: ../command.rb:208
 msgid "右のペインを選択"
 msgstr "Select right pane"
 
-#: ../command.rb:211
+#: ../command.rb:216
 msgid "左のペインを選択"
 msgstr "Select left pane"
 
-#: ../command.rb:219
+#: ../command.rb:224
 msgid "投稿ボックスにフォーカス"
 msgstr "Focus to post box"
 
-#: ../command.rb:231
+#: ../command.rb:236
 msgid "タブにフォーカス"
 msgstr "Focus to tab"
 
-#: ../command.rb:239
+#: ../command.rb:244
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "Jump to top of timeline!"

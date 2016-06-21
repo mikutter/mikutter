@@ -84,11 +84,10 @@ Plugin.create :photo_support do
     page = connection.get_content(display_url)
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
-    dom = doc.css('#_image').first
-    notice dom.attribute('style')
-    result = if /background:[^;]*?url\(([^\)]+)\)/ =~ dom.attribute('style')
-               $1 end
-    open(result) if result
+    dom = doc.css('.illust-whole img').first
+    url = dom && dom.attribute('src')
+    if url
+      open(url) end
   end
 
   # img.ly

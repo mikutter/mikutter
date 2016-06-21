@@ -48,6 +48,10 @@ module Environment
   NeverRetrieveOverlappedMumble = CHIConfig::NeverRetrieveOverlappedMumble
 
   class Version
+    OUT = 9999
+    ALPHA = 1..9998
+    DEVELOP = 0
+
     include Comparable
 
     attr_reader :mejor, :minor, :debug, :devel
@@ -64,10 +68,13 @@ module Environment
     end
 
     def to_s
-      if 9999 == @devel
+      case @devel
+      when OUT
         [@mejor, @minor, @debug].join('.')
-      else
-        [@mejor, @minor, @debug, @devel].join('.')
+      when ALPHA
+        [@mejor, @minor, @debug].join('.') + "-alpha#{@devel}"
+      when DEVELOP
+        [@mejor, @minor, @debug].join('.') + "-develop"
       end
     end
 
@@ -94,6 +101,6 @@ module Environment
   end
 
   # このソフトのバージョン。
-  VERSION = Version.new(*CHIConfig::VERSION)
+  VERSION = Version.new(*CHIConfig::VERSION.to_a)
 
 end

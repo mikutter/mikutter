@@ -2,7 +2,7 @@
 
 require 'instance_storage'
 
-miquire :core, 'environment', 'user', 'message', 'userlist', 'configloader', 'userconfig', 'service_keeper'
+miquire :core, 'environment', 'configloader', 'userconfig', 'service_keeper'
 miquire :lib, "mikutwitter", 'reserver', 'delayer'
 
 =begin rdoc

@@ -13,10 +13,10 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 =end
 class Message < Retriever::Model
   # screen nameにマッチする正規表現
-  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨|(?:\W|^)D )([a-zA-Z0-9_]+)/.freeze
+  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
 
   # screen nameのみから構成される文字列から、@などを切り取るための正規表現
-  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨|D )?([a-zA-Z0-9_]+)\Z/.freeze
+  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨)?([a-zA-Z0-9_]+)\Z/.freeze
 
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
@@ -142,20 +142,20 @@ class Message < Retriever::Model
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    Service.primary and not system? and not from_me? and not protected? end
+    Service.primary and not system? and not protected? end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
     from_me? end
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
-  def from_me?
+  def from_me?(services=Service)
     return false if system?
-    Service.map(&:user_obj).include?(self[:user]) end
+    services.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
-  def to_me?
-    system? or Service.map(&:user_obj).find(&method(:receive_to?)) end
+  def to_me?(services=Service)
+    system? or services.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?

@@ -70,7 +70,7 @@ class Gdk::MiraclePainter < Gtk::Object
     @mp_modifier ||= lambda { |miracle_painter|
       if (not miracle_painter.destroyed?) and (not miracle_painter.tree.destroyed?)
         miracle_painter.tree.model.each{ |model, path, iter|
-          if iter[0].to_i == miracle_painter.message[:id]
+          if iter[0] == miracle_painter.message.painter_key
             miracle_painter.tree.queue_draw
             break end } end
       false } end

@@ -43,6 +43,8 @@ Plugin.create :core do
 
   filter_mention(&gen_message_filter_with_service)
 
+  filter_direct_messages(&gen_message_filter_with_service)
+
   filter_appear(&gen_message_filter)
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する

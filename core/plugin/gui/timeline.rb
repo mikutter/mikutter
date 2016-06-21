@@ -23,16 +23,8 @@ class Plugin::GUI::Timeline
   end
 
   def <<(argument)
-    messages =
-      case argument
-      when Enumerable
-        argument
-      else
-        Retriever::Model.container_class.new([argument]) end
+    messages = argument.is_a?(Enumerable) ? argument : Array[argument]
     Plugin.call(:gui_timeline_add_messages, self, messages)
-  rescue TypedArray::UnexpectedTypeException => e
-    error "type mismatch!"
-    raise e
   end
 
   # タイムラインの中のツイートを全て削除する

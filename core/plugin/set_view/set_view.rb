@@ -95,6 +95,11 @@ Plugin::create(:set_view) do
           select _('枠線の種類'), :reply_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end end
 
       adjustment _('本文の最大行数'), :reply_text_max_line_count, 1, 10
+
+      select _('クリックされたときの挙動'), :reply_clicked_action do
+        option nil, _('何もしない')
+        option :open, _('開く')
+        option :smartthread, _('会話スレッドを表示') end
     end
 
     settings(_('コメント付きリツイート')) do
@@ -111,6 +116,11 @@ Plugin::create(:set_view) do
           select _('枠線の種類'), :quote_edge, floating: _('影'), solid: _('線'), flat: _('枠線なし') end end
 
       adjustment _('本文の最大行数'), :quote_text_max_line_count, 1, 10
+
+      select _('クリックされたときの挙動'), :quote_clicked_action do
+        option nil, _('何もしない')
+        option :open, _('開く')
+        option :smartthread, _('会話スレッドを表示') end
     end
 
     settings(_('Mentions')) do

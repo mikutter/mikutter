@@ -46,10 +46,7 @@ module CHIConfig
   # 再起動後に、前回取得したポストを取得しない
   NeverRetrieveOverlappedMumble = false
 
-  # 互換性のため
-  REVISION = 9999
-
   # このソフトのバージョン。
-  VERSION = [3,3,9, REVISION]
+  VERSION = [3,5,0,0]
 
 end

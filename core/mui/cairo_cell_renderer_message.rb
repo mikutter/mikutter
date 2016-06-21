@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'miracle_painter'
+miquire :mui, 'miracle_painter', 'miracle_paintable'
 
 require 'gtk2'
 
