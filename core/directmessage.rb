@@ -88,6 +88,10 @@ module Mikutter::Twitter
       false
     end
 
+    def created
+      self[:created]
+    end
+
     def modified
       self[:created]
     end
