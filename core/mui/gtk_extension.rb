@@ -295,8 +295,16 @@ module Gtk
           bg_system(command, url)
         else
           Plugin.activity :system, "この環境で、URLを開くためのコマンドが判別できませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。" end end
-    rescue => e
-      Plugin.activity :system, "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。" end
+    rescue => exception
+      title = "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。"
+      description = {
+        title: title,
+        message: exception.to_s,
+        backtrace: exception.backtrace.join("\n") }
+      Plugin.activity :system, title,
+                      error: exception,
+                      description: "%{title}\n\n%{message}\n\n%{backtrace}" % description
+    end
 
     # URLを開くことができるコマンドを返す。
     def url_open_command
