@@ -197,4 +197,9 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.d250g2('http://router-cake.d250g2.com/')
     open(img) if img
   end
+
+  defimageopener('いらすとや', %r<https?://(?:www.)?irasutoya\.com/\d{4}/\d{2}/.+\.html>) do |display_url|
+    img = Plugin::PhotoSupport.d250g2(display_url)
+    open(img) if img
+  end
 end
