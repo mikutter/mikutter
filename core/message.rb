@@ -87,7 +87,7 @@ class Message < Retriever::Model
 
   # 投稿主のidnameを返す
   def idname
-    user[:idname]
+    user.idname
   end
 
   # この投稿へのリプライをつぶやく
@@ -168,7 +168,8 @@ class Message < Retriever::Model
   def verified?
     user.verified? end
 
-  # この投稿の投稿主を返す
+  # この投稿の投稿主を返す。messageについては、userが必ず付与されていることが保証されているので
+  # Deferredを返さない
   def user
     self[:user] end
 
@@ -644,12 +645,6 @@ class Message < Retriever::Model
       SerialThread.new{
         retweeted_sources
         add_retweet_in_this_thread(retweet_user, created_at) } end end
-
-  # このMessageがサービスに投稿された時刻を返す
-  # ==== Return
-  # Time 投稿時刻
-  def created
-    self[:created] end
 
   # 最終更新日時を取得する
   def modified

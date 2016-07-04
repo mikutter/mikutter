@@ -48,4 +48,7 @@ module Retriever::Model::Identity
   def self.included(klass)
     klass.extend(IdentityExtend)
   end
+
+  memoize def hash
+    self.id.hash ^ self.class.hash end
 end

@@ -54,7 +54,43 @@ class Retriever::Model
     # モデルのキーを定義します。
     # これを継承した実際のモデルから呼び出されることを想定しています
     def keys=(keys)
-      @keys = keys end
+      @keys = keys
+      keys.each do |name, type, required|
+        if type.is_a? Symbol
+          define_method(name) do
+            @value[name]
+          end
+        else
+          define_method(name) do
+            if @value[name].is_a? Retriever::Model
+              Delayer::Deferred.new{ @value[name] }
+            else
+              Thread.new{ type.findbyid(@value[name], Retriever::DataSource::USE_ALL) }
+            end
+          end
+
+          define_method("#{name}!") do
+            mainthread_only
+            if @value[name].is_a? Retriever::Model
+              @value[name]
+            else
+              type.findbyid(@value[name], Retriever::DataSource::USE_ALL)
+            end
+          end
+        end
+
+        define_method("#{name}?") do
+          !!@value[name]
+        end
+
+        define_method("#{name}=") do |value|
+          @value[key.to_sym] = value
+          self.class.store_datum(self)
+          value
+        end
+      end
+      @keys
+    end
 
     def keys
       @keys end
@@ -145,10 +181,6 @@ class Retriever::Model
     perma_link || URI::Generic.new(self.class.scheme,nil,self.class.host,nil,nil,path,nil,nil,nil)
   end
 
-  def id
-    @value[:id]
-  end
-
   # このRetrieverが、登録されているアカウントのうちいずれかが作成したものであれば true を返す
   # ==== Args
   # [service] Service | Enumerable 「自分」のService
@@ -161,8 +193,8 @@ class Retriever::Model
   def eql?(other)
     other.is_a?(self.class) and other.id == self.id end
 
-  def hash
-    self.id.to_i end
+  memoize def hash
+    self.uri.to_s.hash ^ self.class.hash end
 
   def <=>(other)
     if other.is_a?(Retriever)
@@ -239,7 +271,7 @@ class Retriever::Model
 
   private
   # URIがデフォルトで使うpath要素
-  memoize def path
+  def path
     @path ||= "/#{SecureRandom.uuid}"
   end
 
