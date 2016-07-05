@@ -139,8 +139,7 @@ class Retriever::Model
         else
           raise Retriever::InvalidTypeError, 'invalid type' end
       elsif value.is_a?(type)
-        raise Retriever::InvalidTypeError, 'invalid type' if required and not value.id
-        value.id
+        value
       elsif self.cast(value, type.keys.assoc(:id)[1], true)
         value end end
 
