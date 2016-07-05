@@ -204,12 +204,10 @@ class Retriever::Model
       id - other end end
 
   def ==(other)
-    if other.is_a?(Retriever)
-      id == other.id
-    elsif other.respond_to?(:[]) and other[:id]
-      id == other[:id]
-    else
-      id == other end end
+    if other.is_a? Retriever::Model
+      self.class == other.class && uri == other.uri
+    end
+  end
 
   def to_hash
     @value.dup
