@@ -46,7 +46,7 @@ Plugin.create :user_detail_view do
     show_profile(user) end
 
   def show_profile(user, force=false)
-    slug = "profile-#{user.id}".to_sym
+    slug = "profile-#{user.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
