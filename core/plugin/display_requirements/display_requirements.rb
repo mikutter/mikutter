@@ -133,7 +133,7 @@ class ::Gdk::MiraclePainter
   # 必ず名前のあとにスクリーンネームを表示しなければいけない。
   # また、スクリーンネームの前には必ず @ が必要。
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message[:user][:name] || '')}</b> @#{Pango.escape(message[:user][:idname])}")
+    Pango.parse_markup("<b>#{Pango.escape(message.user.name || '')}</b> @#{Pango.escape(message.user.idname)}")
   end
 
   # 時刻の表記は必ず相対表記にしなければいけない。

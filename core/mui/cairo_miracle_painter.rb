@@ -312,7 +312,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
   end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
@@ -351,7 +351,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # アイコンのpixbufを返す
   def main_icon
-    @main_icon ||= Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
+    @main_icon ||= Gdk::WebImageLoader.pixbuf(message.user.profile_image_url, icon_width, icon_height){ |pixbuf|
       if not destroyed?
         @main_icon = pixbuf
         on_modify end } end
