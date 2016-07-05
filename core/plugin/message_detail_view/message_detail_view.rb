@@ -15,7 +15,7 @@ Plugin.create(:message_detail_view) do
   end
 
   def show_message(message, force=false)
-    slug = "message_detail_view-#{message.id}".to_sym
+    slug = "message_detail_view-#{message.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
