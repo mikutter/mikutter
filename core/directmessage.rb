@@ -70,7 +70,7 @@ module Mikutter::Twitter
       false
     end
 
-    def retweet_source(_)
+    def retweet_source(_=nil)
       nil
     end
 
