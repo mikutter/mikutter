@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 
-module Plugin::MessageInspector
-  class HeaderWidget < Gtk::EventBox
-    def initialize(message, *args)
+module Gtk
+  # message_detail_viewプラグインなどで使われている、ヘッダ部分のユーザ情報。
+  # コンストラクタにはUserではなくMessageなど、userを保持しているRetrieverを渡すことに注意。
+  # このウィジェットによって表示されるタイムスタンプをクリックすると、
+  # コンストラクタに渡されたretrieverのperma_linkを開くようになっている。
+  class RetrieverHeaderWidget < Gtk::EventBox
+    def initialize(retriever, *args)
+      type_strict retriever => Retriever::Model
       super(*args)
       ssc_atonce(:visibility_notify_event, &widget_style_setter)
       add(Gtk::VBox.new(false, 0).
            closeup(Gtk::HBox.new(false, 0).
-                     closeup(icon(message.user).top).
+                     closeup(icon(retriever.user).top).
                      closeup(Gtk::VBox.new(false, 0).
-                              closeup(idname(message.user).left).
-                              closeup(Gtk::Label.new(message.user[:name]).left))).
-           closeup(post_date(message).right))
+                              closeup(idname(retriever.user).left).
+                              closeup(Gtk::Label.new(retriever.user[:name]).left))).
+           closeup(post_date(retriever).right))
     end
 
     private
@@ -28,7 +33,7 @@ module Plugin::MessageInspector
                        .set_padding(*[UserConfig[:profile_icon_margin]]*4)
 
       icon = Gtk::EventBox.new.
-             add(icon_alignment.add(Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(Plugin[:message_detail_view]._('アイコンを開く'))))
+             add(icon_alignment.add(Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size])))
       icon.ssc(:button_press_event, &icon_opener(user.profile_image_url_large))
       icon.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       icon.ssc_atonce(:visibility_notify_event, &widget_style_setter)
@@ -43,10 +48,10 @@ module Plugin::MessageInspector
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
 
-    def post_date(message)
+    def post_date(retriever)
       label = Gtk::EventBox.new.
-              add(Gtk::Label.new(message.created.strftime('%Y/%m/%d %H:%M:%S')))
-      label.ssc(:button_press_event, &message_opener(message))
+              add(Gtk::Label.new(retriever.created.strftime('%Y/%m/%d %H:%M:%S')))
+      label.ssc(:button_press_event, &message_opener(retriever)) if retriever.perma_link
       label.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
@@ -66,7 +71,7 @@ module Plugin::MessageInspector
     def message_opener(message)
       type_strict message => Retriever::Model
       proc do
-        Gtk.openurl(message.perma_link)
+        Gtk.openurl(retriever.perma_link)
         true end end
 
     memoize def cursor_changer(cursor)

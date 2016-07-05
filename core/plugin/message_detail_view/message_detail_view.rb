@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require_relative 'header_widget'
+miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
   command(:message_detail_view_show,
@@ -19,7 +19,7 @@ Plugin.create(:message_detail_view) do
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
-      container = Plugin::MessageInspector::HeaderWidget.new(message)
+      container = Gtk::RetrieverHeaderWidget.new(message)
       i_cluster = tab slug, _("詳細タブ") do
         set_icon Skin.get('message.png')
         set_deletable true
