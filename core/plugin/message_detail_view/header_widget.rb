@@ -58,13 +58,13 @@ module Plugin::MessageInspector
         true end end
 
     def profile_opener(user)
-      type_strict user => User
+      type_strict user => Retriever::Model
       proc do
         Plugin.call(:show_profile, Service.primary, user)
         true end end
 
     def message_opener(message)
-      type_strict message => Message
+      type_strict message => Retriever::Model
       proc do
         Gtk.openurl(message.perma_link)
         true end end
