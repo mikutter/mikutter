@@ -193,10 +193,10 @@ class Retriever::Model
     self.uri.to_s.hash ^ self.class.hash end
 
   def <=>(other)
-    if other.is_a?(Retriever)
-      id - other.id
-    elsif other.respond_to?(:[]) and other[:id]
-      id - other[:id]
+    if other.is_a?(Retriever::Model)
+      created - other.created
+    elsif other.respond_to?(:[]) and other[:created]
+      created - other[:created]
     else
       id - other end end
 
