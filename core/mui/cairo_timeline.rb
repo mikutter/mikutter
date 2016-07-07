@@ -140,7 +140,7 @@ class Gtk::TimeLine
   # _message_ をTLに追加する
   def block_add(message)
     if not @tl.destroyed?
-      if(!any?{ |m| m[:id] == message[:id] })
+      if(!any?{ |m| m == message })
         case
         when message[:rule] == :destroy
           remove_if_exists_all([message])
