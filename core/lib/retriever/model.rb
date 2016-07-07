@@ -189,9 +189,6 @@ class Retriever::Model
   def me?(service=nil)
     false end
 
-  def eql?(other)
-    other.is_a?(self.class) and other.id == self.id end
-
   memoize def hash
     self.uri.to_s.hash ^ self.class.hash end
 
