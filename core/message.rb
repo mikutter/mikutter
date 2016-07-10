@@ -27,6 +27,8 @@ class Message < Retriever::Model
   extend Gem::Deprecate
   include Retriever::Model::Identity
 
+  register :twitter_tweet, name: "Tweet"
+
   @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }

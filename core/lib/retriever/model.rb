@@ -114,6 +114,34 @@ class Retriever::Model
     # プライベートクラスメソッド
     #
 
+    # Modelの情報を設定する。
+    # このメソッドを呼ぶと、他のプラグインがこのRetrieverを見つけることができるようになるので、
+    # 抽出タブの抽出条件が追加されたり、設定で背景色が指定できるようになる
+    # ==== Args
+    # [new_slug] Symbol
+    # [name:] String Modelの名前
+    # [reply:] bool このRetrieverに、宛先が存在するなら真
+    # [myself:] bool このRetrieverを、自分のアカウントによって作成できるなら真
+    def register(new_slug,
+                 name: new_slug.to_s,
+                 reply: true,
+                 myself: true
+                )
+      @slug = new_slug
+      @name = name.freeze
+      retriever_spec = {slug: @slug,
+                        name: @name,
+                        reply: reply,
+                        myself: myself
+                       }.freeze
+      Plugin.create(:"retriever_#{@slug}") do
+        filter_retrievers do |retrievers|
+          retrievers << retriever_spec
+          [retrievers]
+        end
+      end
+    end
+
     # Modelが生成・更新された時に呼ばれるコールバックメソッドです
     def store_datum(retriever); end
 

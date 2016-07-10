@@ -8,6 +8,9 @@ module Mikutter::Twitter
   class DirectMessage < Retriever::Model
     include Gtk::MiraclePaintable
 
+    register :twitter_direct_message,
+             name: "Direct Message"
+
     self.keys = [[:id, :int, true],         # ID
                  [:text, :string, true], # Message description
                  [:user, User, true],       # Send by user
