@@ -12,6 +12,8 @@ class Retriever::Model
     # def inherited(subclass)
     # end
 
+    attr_reader :slug
+
     # 新しいオブジェクトを生成します
     # 既にそのカラムのインスタンスが存在すればそちらを返します
     # また、引数のハッシュ値はmergeされます。
