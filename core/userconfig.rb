@@ -145,6 +145,17 @@ class UserConfig
   @@watcher_id = Hash.new
   @@watcher_id_count = 0
 
+  # キーに対応する値が存在するかを調べる。
+  # 値が設定されていれば、それが _nil_ や _false_ であっても _true_ を返す
+  # ==== Args
+  # [key] Symbol キー
+  # ==== Return
+  # [true] 存在する
+  # [false] 存在しない
+  def self.include?(key)
+    UserConfig.instance.include?(key) || @@defaults.include?(key)
+  end
+
   # 設定名 _key_ にたいする値を取り出す
   # 値が設定されていない場合、nilを返す。
   def self.[](key)
