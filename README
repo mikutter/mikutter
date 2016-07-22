@@ -7,13 +7,13 @@ file:core/skin/data/icon.png
 * 用件
 
 ** 必須アプリケーション:
-- ruby (2.0 - 2.1.5)
-- ruby gtk (2.2.3)
-- rcairo (1.12.9)
+- ruby (2.1 - 2.3)
+- ruby gtk (3.0.8)
+- rcairo (1.15.2)
 - Open SSL
 
 ** プラグインが必要とするもの(必須ではない):
-- notify-sendコマンド(ubuntuでは、sudo apt-get install libnotify-bin)
+- notify-sendコマンド(ubuntuでは、sudo apt install libnotify-bin)
 - aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
 
 * インストール方法
