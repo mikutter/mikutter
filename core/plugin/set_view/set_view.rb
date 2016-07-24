@@ -25,22 +25,22 @@ Plugin::create(:set_view) do
     [message, color || UserConfig[:quote_background_color]] end
 
   filter_message_font do |message, font|
-    [message, font || UserConfig[:"#{message.message.class.slug}_basic_font"] || UserConfig[:mumble_basic_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_font"] || UserConfig[:mumble_basic_font]] end
 
   filter_message_font_color do |message, color|
-    [message, color || UserConfig[:"#{message.message.class.slug}_basic_color"] || UserConfig[:mumble_basic_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_color"] || UserConfig[:mumble_basic_color]] end
 
   filter_message_header_left_font do |message, font|
-    [message, font || UserConfig[:"#{message.message.class.slug}_basic_left_font"] || UserConfig[:mumble_basic_left_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_left_font"] || UserConfig[:mumble_basic_left_font]] end
 
   filter_message_header_left_font_color do |message, color|
-    [message, color || UserConfig[:"#{message.message.class.slug}_basic_left_color"] || UserConfig[:mumble_basic_left_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_left_color"] || UserConfig[:mumble_basic_left_color]] end
 
   filter_message_header_right_font do |message, font|
-    [message, font || UserConfig[:"#{message.message.class.slug}_basic_right_font"] || UserConfig[:mumble_basic_right_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_right_font"] || UserConfig[:mumble_basic_right_font]] end
 
   filter_message_header_right_font_color do |message, color|
-    [message, color || UserConfig[:"#{message.message.class.slug}_basic_right_color"] || UserConfig[:mumble_basic_right_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_right_color"] || UserConfig[:mumble_basic_right_color]] end
 
   settings(_("表示")) do
     settings _('選択中') do
