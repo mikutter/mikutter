@@ -128,5 +128,13 @@ module Mikutter::Twitter
     def receive_user_screen_names
       [self[:recipient].idname]
     end
+
+    def ancestors(force_retrieve=false)
+      [self]
+    end
+
+    def ancestor(force_retrieve=false)
+      ancestors(force_retrieve).last
+    end
   end
 end
