@@ -35,7 +35,7 @@ class User < Retriever::Model
   def self.system
     Mikutter::System::User.system end
 
-  def memory
+  def self.memory
     @memory ||= UserMemory.new end
 
   def self.container_class
@@ -78,7 +78,7 @@ class User < Retriever::Model
   def system?
     false end
 
-  def self.findbyidname(idname, count=Retriever::DataSource::ALL)
+  def self.findbyidname(idname, count=Retriever::DataSource::USE_ALL)
     memory.findbyidname(idname, count) end
 
   def self.store_datum(datum)
@@ -125,14 +125,14 @@ class User < Retriever::Model
   end
 
   class UserMemory < Retriever::Model::Memory
-    def initialize(storage)
-      super(storage)
+    def initialize
+      super
       @idnames = {}             # idname => User
     end
 
     def findbyid(id, policy)
       result = super
-      if !result and policy == Retriever::DataSource::ALL
+      if !result and policy == Retriever::DataSource::USE_ALL
         if id.is_a? Enumerable
           id.each_slice(100).map{|id_list|
             Service.primary.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
@@ -144,7 +144,7 @@ class User < Retriever::Model
     def findbyidname(idname, policy)
       if @idnames[idname.to_s]
         @idnames[idname.to_s]
-      elsif policy == Retriever::DataSource::ALL
+      elsif policy == Retriever::DataSource::USE_ALL
         Service.primary.scan(:user_show, screen_name: idname)
       end
     end
