@@ -1,12 +1,10 @@
 miquire :core, 'retriever'
 miquire :core, 'entity'
-miquire :mui, 'miracle_paintable'
 
 module Mikutter; end
 
 module Mikutter::Twitter
   class DirectMessage < Retriever::Model
-    include Gtk::MiraclePaintable
 
     register :twitter_direct_message,
              name: "Direct Message"

@@ -7,7 +7,7 @@ class Gtk::TimeLine < Gtk::VBox
 end
 
 miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'postbox'
-miquire :mui, 'inner_tl', 'dark_matter_prification', 'miracle_paintable'
+miquire :mui, 'inner_tl', 'dark_matter_prification'
 
 miquire :core, 'message'
 miquire :core, 'user'
