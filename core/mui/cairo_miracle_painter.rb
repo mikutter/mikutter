@@ -148,7 +148,7 @@ class Gdk::MiraclePainter < Gtk::Object
       iob_clicked(x, y)
       if not textselector_range
         index = main_pos_to_index(x, y)
-        if index
+        if index and message.links.respond_to?(:segment_by_index)
           l = message.links.segment_by_index(index)
           l[:callback].call(l) if l and l[:callback] end end
     when 3
