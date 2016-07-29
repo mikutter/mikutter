@@ -134,7 +134,7 @@ Plugin.create :user_detail_view do
 
   command(:aboutuser,
           name: lambda { |opt|
-            if defined? opt.messages.first and opt.messages.first.repliable?
+            if defined? opt.messages.first and opt.messages.first.user.is_a?(User)
               u = opt.messages.first.user
               (_("%{screen_name}(%{name})について") % {
                screen_name: u[:idname],
