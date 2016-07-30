@@ -34,7 +34,7 @@ Plugin.create(:message_detail_view) do
         tabs.map(&:last).each(&:call)
       }.next {
         if !force
-          i_cluster.active! end }
+          i_cluster.active! end }.terminate(_('詳細表示中にエラーが発生しました'))
     end
   end
 

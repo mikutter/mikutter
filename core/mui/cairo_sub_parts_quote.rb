@@ -19,7 +19,6 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
         Plugin.call(:show_message, message)
       when :smartthread
         Plugin.call(:open_smartthread, [message]) end
-      Plugin.filtering(:command, {}).first[:smartthread][:exec].call(Struct.new(:messages).new([message]))
     end end
 
   def initialize(*args)
