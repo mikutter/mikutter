@@ -10,12 +10,14 @@ class Service
   module SaveData
     ACCOUNT_FILE = File.join(Environment::SETTINGDIR, 'core', 'token').freeze
     ACCOUNT_TMP = (ACCOUNT_FILE + ".write").freeze
+    ACCOUNT_CRYPT_KEY_LEN = 16
 
     extend SaveData
     @@service_lock = Monitor.new
 
     def key
-      UserConfig[:account_crypt_key] ||= SecureRandom.hex end
+      key = UserConfig[:account_crypt_key] ||= SecureRandom.random_bytes(ACCOUNT_CRYPT_KEY_LEN)
+      key[0, ACCOUNT_CRYPT_KEY_LEN] end
 
     # 全てのアカウント情報をオブジェクトとして返す
     # ==== Return
@@ -113,6 +115,7 @@ class Service
 
     def encrypt(str)
       cipher = OpenSSL::Cipher.new('bf-ecb').encrypt
+      cipher.key_len = ACCOUNT_CRYPT_KEY_LEN
       cipher.key = key
       cipher.update(str) << cipher.final end
 
