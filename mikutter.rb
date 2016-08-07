@@ -11,7 +11,7 @@ http://opensource.org/licenses/mit-license.php
 =end
 mikutter_directory = File.expand_path(File.dirname(__FILE__))
 
-unless ENV['DISABLE_BUNDLER_SETUP']
+if !ENV['DISABLE_BUNDLER_SETUP'] || ['', '0'].include?(ENV['DISABLE_BUNDLER_SETUP'].to_s)
   begin
     ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(File.dirname($0), "Gemfile"))
     require 'bundler/setup'
