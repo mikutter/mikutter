@@ -65,9 +65,7 @@ class Retriever::Model
         else
           define_method(name) do
             if @value[name].is_a? Retriever::Model
-              Delayer::Deferred.new{ @value[name] }
-            else
-              Thread.new{ type.findbyid(@value[name], Retriever::DataSource::USE_ALL) }
+              @value[name]
             end
           end
 
