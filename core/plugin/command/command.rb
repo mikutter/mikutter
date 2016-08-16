@@ -135,7 +135,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     ::Gtk::openurl("http://www.google.co.jp/search?q=" + URI.escape(opt.widget.selected_text(opt.messages.first)).to_s) end
 
-  command(:google_search,
+  command(:open_in_browser,
           name: _('ブラウザで開く'),
           condition: Plugin::Command[:HasOneMessage, :HasParmaLinkAll],
           visible: true,
