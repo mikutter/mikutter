@@ -312,7 +312,11 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
+    if message.user[:idname]
+      Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
+    else
+      Pango.parse_markup(Pango.escape(message.user.name || ''))
+    end
   end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
