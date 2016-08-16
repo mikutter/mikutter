@@ -20,10 +20,6 @@ class Mikutter::System::User < Retriever::Model
   def system?
     true end
 
-  def idname
-    self[:idname]
-  end
-
 end
 
 
