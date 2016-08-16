@@ -74,7 +74,7 @@ class TC_Message < Test::Unit::TestCase
     toshi_a = User.new(:id => 123456, :idname => 'toshi_a', :name => 'toshi_a')
     toshi_b = User.new(:id => 1234567, :idname => 'toshi_b', :name => 'toshi_b')
     toshi_a_a = User.new(:id => 156156, :idname => 'toshi_a_a', :name => 'toshi_a_a')
-    message = Message.new(id: 11, message: "krile で where user == @toshi_a | user == @toshi_a_a だけのタブ作っただけでわずかにタブ切り替えが遅くなってるのわかると思うしアカウント切り替えは極端に遅くなってる", created: Time.now, receiver: toshi_b)
+    message = Message.new(id: 11, message: "krile で where user == @toshi_a | user == @toshi_a_a だけのタブ作っただけでわずかにタブ切り替えが遅くなってるのわかると思うしアカウント切り替えは極端に遅くなってる", user: toshi, created: Time.now, receiver: toshi_b)
     assert !message.receive_to?(toshi), 'toshi宛てのメッセージではない'
     assert message.receive_to?(toshi_a), 'toshi_a宛てのメッセージ'
     assert message.receive_to?(toshi_a_a), 'toshi_a_a宛てのメッセージ'

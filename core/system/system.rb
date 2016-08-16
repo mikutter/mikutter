@@ -3,7 +3,7 @@
 module Mikutter
   module System; end end
 
-miquire :system, :user
+miquire :system, :user, :message
 
 
 

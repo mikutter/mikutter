@@ -182,7 +182,7 @@ Plugin.create(:activity) do
       iter[ActivityView::SERVICE] = params[:service]
       iter[ActivityView::EVENT] = params
       if (UserConfig[:activity_show_timeline] || []).map(&:to_s).include?(params[:kind].to_s)
-        Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
+        Plugin.call(:update, nil, [Mikutter::System::Message.new(description: params[:description], source: params[:plugin].to_s, created: params[:date])])
       end
       if (UserConfig[:activity_show_statusbar] || []).map(&:to_s).include?(params[:kind].to_s)
         Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{params[:kind]}: #{params[:title]}", 10)

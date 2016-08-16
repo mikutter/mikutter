@@ -37,7 +37,7 @@ Plugin.create :search do
       elm.sensitive = querybox.sensitive = true
     }.trap{ |e|
       error e
-      timeline(:search) << Message.new(message: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}), system: true)
+      timeline(:search) << Mikutter::System::Message.new(description: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}))
       elm.sensitive = querybox.sensitive = true } }
 
   savebtn.signal_connect('clicked'){ |elm|

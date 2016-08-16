@@ -29,7 +29,6 @@ class Message < Retriever::Model
 
   register :twitter_tweet, name: "Tweet"
 
-  @@system_id = 0
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
 
@@ -75,7 +74,6 @@ class Message < Retriever::Model
   # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
     type_strict value => Hash
-    value.update(system) if value[:system]
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
     super(value)
@@ -130,7 +128,7 @@ class Message < Retriever::Model
 
   # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
-    self[:system]
+    false
   end
 
   # この投稿にリプライする権限があればtrueを返す
@@ -139,12 +137,12 @@ class Message < Retriever::Model
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
   def favoritable?
-    Service.primary and not(system?) end
+    Service.primary end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    Service.primary and not system? and not protected? end
+    Service.primary and not protected? end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
@@ -152,12 +150,11 @@ class Message < Retriever::Model
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?(services=Service)
-    return false if system?
     services.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?(services=Service)
-    system? or services.map(&:user_obj).find(&method(:receive_to?)) end
+    services.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
@@ -589,8 +586,7 @@ class Message < Retriever::Model
   # [URI] パーマリンク
   # [nil] パーマリンクが存在しない
   def perma_link
-    if not system?
-      URI.parse("https://twitter.com/#{user[:idname]}/status/#{self[:id]}").freeze end end
+    URI.parse("https://twitter.com/#{user[:idname]}/status/#{self[:id]}").freeze end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12
@@ -680,11 +676,6 @@ class Message < Retriever::Model
       self[:modified] = time
       Plugin::call(:message_modified, self) end
     self end
-
-  def system
-    { :id => @@system_id += 1,
-      :user => User.system,
-      :created => Time.now } end
 
   class DataSource < Retriever::Model::Memory
     def findbyid(id, policy)
