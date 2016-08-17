@@ -31,4 +31,8 @@ class Mikutter::System::Message < Retriever::Model
     true
   end
 
+  def to_me?
+    true
+  end
+
 end
