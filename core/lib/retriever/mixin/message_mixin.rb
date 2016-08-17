@@ -135,11 +135,11 @@ module Retriever::Model::MessageMixin
   end
 
   def to_me?
-    true
+    false
   end
 
   def idname
-    self[:user] && self[:user].idname
+    user.idname
   end
 
   def repliable?
