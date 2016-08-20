@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'retriever', 'skin'
+miquire :lib, 'retriever/mixin/user_mixin'
 
 class Mikutter::System::User < Retriever::Model
+  include Retriever::Model::UserMixin
   self.keys = [[:idname, :string],
                [:name, :string],
                [:detail, :string],
-               [:profile_image_url, :string],
-               [:protected, :bool],
-               [:verified, :bool],
+               [:profile_image_url, :string]
               ]
 
   memoize def self.system
