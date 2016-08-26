@@ -6,9 +6,9 @@ Model用のmoduleで、これをincludeするとMessageに必要最低限のメ�
 module Retriever::Model::MessageMixin
   # Entityのリストを返す。
   # ==== Return
-  # Message::Entity
+  # Retriever::Entity::BlankEntity
   def links
-    []
+    @entity ||= Retriever::Entity::BlankEntity.new(self)
   end
   alias :entity :links
 
