@@ -81,7 +81,7 @@ class Message < Retriever::Model
       self[:replyto].add_child(self) end
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
-    @entity = Entity.new(self)
+    @entity = Retriever::Entity::TwitterEntity.new(self)
     Message.appear(self)
   end
 

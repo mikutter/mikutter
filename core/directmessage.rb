@@ -1,10 +1,13 @@
 miquire :core, 'retriever'
-miquire :core, 'entity'
 
 module Mikutter; end
 
 module Mikutter::Twitter
   class DirectMessage < Retriever::Model
+    Entity = Retriever::Entity::RegexpEntity.filter(URI.regexp(%w(http https)),
+                                                                  generator: ->segment{ segment },
+                                                                  open: ->(entity, segment){ Gtk.openurl(segment.source) })
+
 
     register :twitter_direct_message,
              name: "Direct Message"
@@ -21,13 +24,8 @@ module Mikutter::Twitter
     def self.memory
       @memory ||= DirectMessageMemory.new end
 
-    def initialize(value)
-      super(value)
-      @entity = Message::Entity.new(self)
-    end
-
     def links
-      @entity
+      @entity ||= Entity.new(self)
     end
     alias :entity :links
 
