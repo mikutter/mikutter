@@ -33,10 +33,13 @@ module Retriever::Entity
               body = match.to_s.freeze
               if not segments.any?{ |this| this[:range].include?(pos) }
                 segments << @@generator.(
+                  message: message,
+                  from: :regexp,
                   slug: :urls,
                   range: Range.new(pos, pos + body.size, true),
                   face: body,
-                  url: body).freeze
+                  url: body,
+                  callback: @@open).freeze
               end
             end
             @generate_value = segments.sort_by{ |r| r[:range].first }.freeze

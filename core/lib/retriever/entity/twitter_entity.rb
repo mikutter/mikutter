@@ -41,14 +41,9 @@ module Retriever::Entity
       result.to_a.compact.sort_by{ |r| r[:range].first }.freeze
     end
 
-    # 
-    # ==== Args
-    # [slug] 
-    # ==== Return
-    # Hash Entity情報
     def normal_entity(slug, entity)
       entity = { message: message,
-                 from: :message_entities,
+                 from: :twitter,
                  slug: slug
                }.merge(entity)
       case slug
