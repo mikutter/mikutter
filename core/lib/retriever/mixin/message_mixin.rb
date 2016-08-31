@@ -4,14 +4,6 @@
 Model用のmoduleで、これをincludeするとMessageに必要最低限のメソッドがロードされ、タイムラインなどに表示できるようになる。
 =end
 module Retriever::Model::MessageMixin
-  # Entityのリストを返す。
-  # ==== Return
-  # Retriever::Entity::BlankEntity
-  def links
-    @entity ||= Retriever::Entity::BlankEntity.new(self)
-  end
-  alias :entity :links
-
   # この投稿がMentionで、自分が誰かに宛てたものであれば真
   # ==== Return
   # [true] 自分のMention

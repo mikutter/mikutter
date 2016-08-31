@@ -57,7 +57,9 @@ class Message < Retriever::Model
                [:exact, :bool],           # true if complete data
                [:created, :time],         # posted time
                [:modified, :time],        # updated time
-             ]
+              ]
+
+  entity_class Retriever::Entity::TwitterEntity
 
   def self.container_class
     Messages end
@@ -81,7 +83,6 @@ class Message < Retriever::Model
       self[:replyto].add_child(self) end
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
-    @entity = Retriever::Entity::TwitterEntity.new(self)
     Message.appear(self)
   end
 
@@ -547,11 +548,6 @@ class Message < Retriever::Model
   def body
     self[:message].to_s.freeze
   end
-
-  # リンクを貼る場所とその種類を表現するEntityオブジェクトを返す
-  def links
-    @entity end
-  alias :entity :links
 
   def inspect
     @value.inspect

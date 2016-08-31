@@ -95,6 +95,19 @@ class Retriever::Model
     def keys
       @keys end
 
+    # Entityクラスを設定する。
+    # ==== Args
+    # [klass] Class 新しく設定するEntityクラス
+    # ==== Return
+    # [Class] セットされた（されている）Entityクラス
+    def entity_class(klass=nil)
+      if klass
+        @entity_class = klass
+      else
+        @entity_class ||= Retriever::Entity::BlankEntity
+      end
+    end
+
     # srcが正常にModel化できるかどうかを返します。
     def valid?(src)
       return src.is_a?(self) if not src.is_a?(Hash)
@@ -181,6 +194,14 @@ class Retriever::Model
     validate
     self.class.store_datum(self)
   end
+
+  # Entityのリストを返す。
+  # ==== Return
+  # Retriever::Entity::BlankEntity
+  def links
+    @entity ||= self.class.entity_class.new(self)
+  end
+  alias :entity :links
 
   # データをマージする。
   # selfにあってotherにもあるカラムはotherの内容で上書きされる。
