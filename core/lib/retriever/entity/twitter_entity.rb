@@ -48,18 +48,18 @@ module Retriever::Entity
                }.merge(entity)
       case slug
       when :urls
-          entity[:face] ||= (entity[:display_url] or entity[:url])
-          entity[:url] ||=  (entity[:expanded_url] or entity[:url])
-          entity[:callback] ||= ->segment{ Gtk.openurl(segment[:url]) }
+        entity[:face] = (entity[:display_url] or entity[:url])
+        entity[:url] =  (entity[:expanded_url] or entity[:url])
+        entity[:callback] = ->segment{ Gtk.openurl(segment[:url]) }
       when :user_mentions
-        entity[:face] ||= "@"+entity[:screen_name]
-        entity[:url] ||= "@"+entity[:screen_name]
-        entity[:callback] ||= ->segment{ Plugin.call(:show_profile, Service.primary, User.findbyidname(entity[:screen_name])) }
+        entity[:face] = "@"+entity[:screen_name]
+        entity[:url] = "@"+entity[:screen_name]
+        entity[:callback] = ->segment{ Plugin.call(:show_profile, Service.primary, User.findbyidname(entity[:screen_name])) }
       when :hashtags
-        entity[:face] ||= "#"+entity[:text]
-        entity[:url] ||= "#"+entity[:text]
+        entity[:face] = "#"+entity[:text]
+        entity[:url] = "#"+entity[:text]
       when :media
-        entity[:callback] ||= ->segment{ Gtk::TimeLine.openurl(segment[:url]) }
+        entity[:callback] = ->segment{ Gtk::TimeLine.openurl(segment[:url]) }
         case entity[:video_info] and entity[:type]
         when 'video'
           variant = Array(entity[:video_info][:variants])
