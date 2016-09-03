@@ -8,18 +8,6 @@ Plugin.create :user_detail_view do
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
 
-  Message::Entity.addlinkrule(:user_mentions, Message::MentionMatcher){ |segment|
-    idname = segment[:url].match(Message::MentionExactMatcher)[1]
-    user = User.findbyidname(idname)
-    if user
-      Plugin.call(:show_profile, Service.primary, user)
-    else
-      Thread.new{
-        user = Service.primary.scan(:user_show,
-                                    :no_auto_since_id => false,
-                                    :screen_name => idname)
-        Plugin.call(:show_profile, Service.primary, user) if user } end }
-
   Delayer.new do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
       retrieve_user(user_id).next{|user|

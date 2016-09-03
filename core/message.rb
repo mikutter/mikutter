@@ -759,5 +759,3 @@ end
 
 class Messages < TypedArray(Message)
 end
-
-miquire :core, 'entity'

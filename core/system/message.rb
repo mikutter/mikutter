@@ -19,11 +19,6 @@ class Mikutter::System::Message < Retriever::Model
     value[:user] ||= Mikutter::System::User.system
     value[:modified] ||= value[:created] ||= Time.now.freeze
     super(value)
-    @entity = Message::Entity.new(self)
-  end
-
-  def links
-    @entity
   end
 
   # 投稿がシステムメッセージだった場合にtrueを返す

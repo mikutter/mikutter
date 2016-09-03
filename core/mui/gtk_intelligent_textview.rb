@@ -118,10 +118,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
     self.signal_connect('event'){
       set_cursor(self, Gdk::Cursor::XTERM)
       false }
-#    self.signal_connect('button_release_event'){ |widget, event|
-#       Gtk::Lock.synchronize{
-#         menu_pop(widget) if (event.button == 3) }
-#     false }
   end
 
   def create_tag_ifnecessary(tagname, buffer, leftclick, rightclick)
@@ -167,10 +163,4 @@ class Gtk::IntelligentTextview < Gtk::TextView
         if widget
           self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))
           offset += 1 end } } end
-end
-
-Plugin.create :gtk_intelligent_textview do
-  on_entity_linkrule_added do |rule|
-    ::Gtk::IntelligentTextview.addlinkrule(rule[:regexp], lambda{ |seg, tv| rule[:callback].call(face: seg, url: seg, textview: tv) }) if rule[:regexp]
-  end
 end

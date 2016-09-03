@@ -42,8 +42,7 @@ module Retriever::Entity
     end
 
     def normal_entity(slug, entity)
-      entity = { message: message,
-                 from: :twitter,
+      entity = { from: :twitter,
                  slug: slug
                }.merge(entity)
       case slug
@@ -58,6 +57,7 @@ module Retriever::Entity
       when :hashtags
         entity[:face] = "#"+entity[:text]
         entity[:url] = "#"+entity[:text]
+        entity[:callback] = ->segment{ Plugin.call(:search_start, entity[:url]) }
       when :media
         entity[:callback] = ->segment{ Gtk::TimeLine.openurl(segment[:url]) }
         case entity[:video_info] and entity[:type]
