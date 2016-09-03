@@ -1,5 +1,4 @@
 miquire :core, 'retriever'
-miquire :core, 'entity'
 
 module Mikutter; end
 
@@ -18,18 +17,10 @@ module Mikutter::Twitter
                  [:created, :time],         # posted time
     ]
 
+    entity_class Retriever::Entity::TwitterEntity
+
     def self.memory
       @memory ||= DirectMessageMemory.new end
-
-    def initialize(value)
-      super(value)
-      @entity = Message::Entity.new(self)
-    end
-
-    def links
-      @entity
-    end
-    alias :entity :links
 
     def mentioned_by_me?
       false

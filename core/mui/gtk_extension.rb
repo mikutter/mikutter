@@ -59,7 +59,7 @@ class GLib::Instantiatable
         proc.call(*args)
       rescue Exception => e
         now = caller.size + 1     # proc.callのぶんスタックが１つ多い
-        $@ = e.backtrace[0, e.backtrace.size - now] + trace
+        #$@ = e.backtrace[0, e.backtrace.size - now] + trace
         Gtk.exception = e
         into_debug_mode(e, proc.binding)
         raise e end

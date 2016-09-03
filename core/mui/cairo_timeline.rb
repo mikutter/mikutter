@@ -24,14 +24,6 @@ class Gtk::TimeLine
 
   attr_reader :tl
 
-  Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
-    Gtk::TimeLine.openurl(segment[:expanded_url].empty? ? segment[:url] : segment[:expanded_url])
-  }
-
-  Message::Entity.addlinkrule(:media){ |segment|
-    Gtk::TimeLine.openurl(segment[:url])
-  }
-
   # 現在アクティブなTLで選択されているすべてのMessageオブジェクトを返す
   def self.get_active_mumbles
     if Gtk::TimeLine::InnerTL.current_tl

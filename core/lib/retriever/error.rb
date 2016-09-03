@@ -5,4 +5,7 @@ module Retriever
 
   class InvalidTypeError < RetrieverError
   end
+
+  class InvalidEntityError < RetrieverError
+  end
 end

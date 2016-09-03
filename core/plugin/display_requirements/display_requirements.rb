@@ -49,10 +49,6 @@ Plugin.create :display_requirements do
     EventFilter.cancel! if :search_hashtag == options[:filter_id]
     [options] end
 
-  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
-    Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/\A(?:#|＃)?.+\Z/)[0]))
-  }
-
   # いいね
   filter_skin_get do |filename, fallback_dirs|
     case filename
