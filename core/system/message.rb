@@ -9,11 +9,10 @@ class Mikutter::System::Message < Retriever::Model
   register :system_message,
            name: "System Message"
 
-  self.keys = [[:description, :string, true], # Message description
-               [:user, Mikutter::System::User, true],       # Send by user
-               [:created, :time],         # posted time
-               [:modified, :time],        # updated time
-              ]
+  field.string :description, required: true
+  field.has :user, Mikutter::System::User, required: true
+  field.string :created
+  field.string :modified
 
   def initialize(value)
     value[:user] ||= Mikutter::System::User.system

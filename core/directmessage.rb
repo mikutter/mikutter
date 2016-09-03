@@ -8,14 +8,13 @@ module Mikutter::Twitter
     register :twitter_direct_message,
              name: "Direct Message"
 
-    self.keys = [[:id, :int, true],         # ID
-                 [:text, :string, true], # Message description
-                 [:user, User, true],       # Send by user
-                 [:sender, User, true],       # Send by user (old)
-                 [:recipient, User, true], # Received by user
-                 [:exact, :bool],           # true if complete data
-                 [:created, :time],         # posted time
-    ]
+    field.int    :id, required: true                        # ID
+    field.string :text, required: true                      # Message description
+    field.has    :user, User, required: true                # Send by user
+    field.has    :sender, User, required: true              # Send by user (old)
+    field.has    :recipient, User, required: true           # Received by user
+    field.bool   :exact                                     # true if complete data
+    field.time   :created                                   # posted time
 
     entity_class Retriever::Entity::TwitterEntity
 

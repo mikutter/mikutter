@@ -24,14 +24,13 @@ class UserList < Retriever::Model
   # user        | user who post this message(User or Hash or mixed(User IDNumber))
   # slug        | list slug(String)
 
-  self.keys = [[:id, :int, true],
-               [:name, :string, true],
-               [:mode, :bool],
-               [:description, :string],
-               [:user, User, true],
-               [:slug, :string, true],
-               [:member, [User]]
-             ]
+  field.int    :id, required: true
+  field.string :name, required: true
+  field.bool   :mode
+  field.string :description
+  field.has    :user, User, required: true
+  field.string :slug, required: true
+  field.has    :member, [User]
 
   def initialize(value)
     type_strict value => Hash

@@ -5,11 +5,10 @@ miquire :lib, 'retriever/mixin/user_mixin'
 
 class Mikutter::System::User < Retriever::Model
   include Retriever::Model::UserMixin
-  self.keys = [[:idname, :string],
-               [:name, :string],
-               [:detail, :string],
-               [:profile_image_url, :string]
-              ]
+  field.string :idname
+  field.string :name
+  field.string :detail
+  field.string :profile_image_url
 
   memoize def self.system
     Mikutter::System::User.new(idname: 'mikutter_bot',
