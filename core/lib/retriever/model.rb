@@ -92,13 +92,6 @@ class Retriever::Model
       self
     end
 
-    def keys=(keys)
-      keys.each do |field_name, type, required|
-        add_field(field_name, type: type, required: required)
-      end
-    end
-    deprecate :keys=, "add_field", 2017, 9
-
     def keys
       @keys end
 

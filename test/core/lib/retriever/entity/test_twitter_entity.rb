@@ -6,10 +6,10 @@ miquire :lib, 'retriever'
 
 class TC_TwitterEntity < Test::Unit::TestCase
   class EntityTestModel < Retriever::Model
-    self.keys = [[:message, :string, true],
-                 [:created, :time],
-                 [:modified, :time],
-                ]
+    field.string :message, required: true
+    field.time   :created
+    field.time   :modified
+
     entity_class Retriever::Entity::TwitterEntity
 
     def to_show
