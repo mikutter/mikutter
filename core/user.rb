@@ -18,19 +18,18 @@ class User < Retriever::Model
   # detail  | detail
   # profile_image_url | icon
 
-  self.keys = [[:id, :string],
-               [:idname, :string],
-               [:name, :string],
-               [:location, :string],
-               [:detail, :string],
-               [:profile_image_url, :string],
-               [:url, :string],
-               [:protected, :bool],
-               [:verified, :bool],
-               [:followers_count, :int],
-               [:statuses_count, :int],
-               [:friends_count, :int],
-              ]
+  field.string :id
+  field.string :idname
+  field.string :name
+  field.string :location
+  field.string :detail
+  field.string :profile_image_url
+  field.string :url
+  field.bool   :protected
+  field.bool   :verified
+  field.int    :followers_count
+  field.int    :statuses_count
+  field.int    :friends_count
 
   def self.system
     Mikutter::System::User.system end

@@ -4,11 +4,11 @@ require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :core, 'retriever'
 
 class Message < Retriever::Model
-  self.keys = [[:id, :int, :required],
-               [:title, :string],
-               [:desc, :string],
-               [:replyto, Message],
-               [:created, :time]]
+  field.int    :id, required: true
+  field.string :title
+  field.string :desc
+  field.has    :replyto, Message
+  field.time   :created
 
 end
 

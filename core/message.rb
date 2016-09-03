@@ -46,18 +46,17 @@ class Message < Retriever::Model
   # post    | post object(Service)
   # image   | image(URL or Image object)
 
-  self.keys = [[:id, :int, true],         # ID
-               [:message, :string, true], # Message description
-               [:user, User, true],       # Send by user
-               [:receiver, User],         # Send to user
-               [:replyto, Message],       # Reply to this message
-               [:retweet, Message],       # ReTweet to this message
-               [:source, :string],        # using client
-               [:geo, :string],           # geotag
-               [:exact, :bool],           # true if complete data
-               [:created, :time],         # posted time
-               [:modified, :time],        # updated time
-              ]
+  field.int    :id, required: true
+  field.string :message, required: true             # Message description
+  field.has    :user, User, required: true          # Send by user
+  field.has    :receiver, User                      # Send to user
+  field.has    :replyto, Message                    # Reply to this message
+  field.has    :retweet, Message                    # ReTweet to this message
+  field.string :source                              # using client
+  field.string :geo                                 # geotag
+  field.bool   :exact                               # true if complete data
+  field.time   :created                             # posted time
+  field.time   :modified                            # updated time
 
   entity_class Retriever::Entity::TwitterEntity
 

@@ -9,8 +9,7 @@ class Retriever::Model
   include Comparable
 
   class << self
-    # def inherited(subclass)
-    # end
+    extend Gem::Deprecate
 
     attr_reader :slug
 
@@ -53,43 +52,44 @@ class Retriever::Model
       self.to_s.split('::',2).last.split('::').reverse.join('.').gsub(/[^\w\.]/,'').downcase.freeze
     end
 
-    # モデルのキーを定義します。
-    # これを継承した実際のモデルから呼び出されることを想定しています
-    def keys=(keys)
-      @keys = keys
-      keys.each do |name, type, required|
-        if type.is_a? Symbol
-          define_method(name) do
-            @value[name]
-          end
-        else
-          define_method(name) do
-            if @value[name].is_a? Retriever::Model
-              @value[name]
-            end
-          end
-
-          define_method("#{name}!") do
-            mainthread_only
-            if @value[name].is_a? Retriever::Model
-              @value[name]
-            else
-              type.findbyid(@value[name], Retriever::DataSource::USE_ALL)
-            end
+    # Modelにフィールド _field_name_ を追加する。
+    # ==== Args
+    # [field_name] Symbol フィールドの名前
+    # [type] Symbol フィールドのタイプ。:int, :string, :bool, :time のほか、Retriever::Modelのサブクラスを指定する
+    # [required] boolean _true_ なら、この項目を必須とする
+    def add_field(field_name, type:, required: false)
+      (@keys ||= []) << [field_name, type, required]
+      if type.is_a? Symbol
+        define_method(field_name) do
+          @value[field_name]
+        end
+      else
+        define_method(field_name) do
+          if @value[field_name].is_a? Retriever::Model
+            @value[field_name]
           end
         end
 
-        define_method("#{name}?") do
-          !!@value[name]
-        end
-
-        define_method("#{name}=") do |value|
-          @value[key.to_sym] = value
-          self.class.store_datum(self)
-          value
+        define_method("#{field_name}!") do
+          mainthread_only
+          if @value[field_name].is_a? Retriever::Model
+            @value[field_name]
+          else
+            type.findbyid(@value[field_name], Retriever::DataSource::USE_ALL)
+          end
         end
       end
-      @keys
+
+      define_method("#{field_name}?") do
+        !!@value[field_name]
+      end
+
+      define_method("#{field_name}=") do |value|
+        @value[field_name] = value
+        self.class.store_datum(self)
+        value
+      end
+      self
     end
 
     def keys
@@ -153,6 +153,10 @@ class Retriever::Model
           [retrievers]
         end
       end
+    end
+
+    def field
+      Retriever::FieldGenerator.new(self)
     end
 
     # Modelが生成・更新された時に呼ばれるコールバックメソッドです
