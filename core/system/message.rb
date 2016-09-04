@@ -14,6 +14,8 @@ class Mikutter::System::Message < Retriever::Model
   field.string :created
   field.string :modified
 
+  entity_class Retriever::Entity::URLEntity
+
   def initialize(value)
     value[:user] ||= Mikutter::System::User.system
     value[:modified] ||= value[:created] ||= Time.now.freeze
