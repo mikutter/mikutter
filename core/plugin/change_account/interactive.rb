@@ -6,12 +6,11 @@ module Plugin::ChangeAccount
       self.next {
         promise = Deferred.new(true).extend(InteractiveMixin)
         Plugin.call(:update, nil,
-                    [Message.new(message: message,
-                                 system: true,
-                                 source: "change_account",
-                                 created: Time.now,
-                                 confirm: choose,
-                                 confirm_callback: promise)])
+                    [Mikutter::System::Message.new(description: message,
+                                                   source: "change_account",
+                                                   created: Time.now,
+                                                   confirm: choose,
+                                                   confirm_callback: promise)])
         promise
       }
     end

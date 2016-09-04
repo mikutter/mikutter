@@ -73,7 +73,7 @@ Plugin.create :saved_search do
     saved_search.service.search(q: saved_search.query, count: 100).next{ |res|
       timeline(saved_search.slug) << res if res.is_a? Array
     }.trap{ |e|
-      timeline(saved_search.slug) << Message.new(message: _("更新中にエラーが発生しました (%{error})") % {error: e.to_s}, system: true) } end
+      timeline(saved_search.slug) << Mikutter::System::Message.new(description: _("更新中にエラーが発生しました (%{error})") % {error: e.to_s}) } end
 
   # 全 Service について saved search を取得する
   # ==== Args

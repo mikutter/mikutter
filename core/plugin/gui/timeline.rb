@@ -25,9 +25,6 @@ class Plugin::GUI::Timeline
   def <<(argument)
     messages = argument.is_a?(Enumerable) ? argument : Array[argument]
     Plugin.call(:gui_timeline_add_messages, self, messages)
-  rescue TypedArray::UnexpectedTypeException => e
-    error "type mismatch!"
-    raise e
   end
 
   # タイムラインの中のツイートを全て削除する
@@ -51,7 +48,7 @@ class Plugin::GUI::Timeline
   # ==== Return
   # _messages_ が含まれているなら真
   def include?(*messages)
-    args = Messages.new([messages].flatten).freeze
+    args = messages.flatten.freeze
     detected = Plugin.filtering(:gui_timeline_select_messages, self, args)
     detected.is_a? Array and detected[1].size == args.size end
 
@@ -65,7 +62,7 @@ class Plugin::GUI::Timeline
     if detected.is_a? Enumerable
       detected[1]
     else
-      Messages.new([]) end end
+      [] end end
 
   # _messages_ のうち、Timelineに含まれていないMessageを返す
   # ==== Args
@@ -77,7 +74,7 @@ class Plugin::GUI::Timeline
     if detected.is_a? Enumerable
       detected[1]
     else
-      Messages.new([]) end end
+      [] end end
 
   # 選択されているMessageを返す
   # ==== Return

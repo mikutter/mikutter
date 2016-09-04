@@ -49,10 +49,6 @@ Plugin.create :display_requirements do
     EventFilter.cancel! if :search_hashtag == options[:filter_id]
     [options] end
 
-  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
-    Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/\A(?:#|＃)?.+\Z/)[0]))
-  }
-
   # いいね
   filter_skin_get do |filename, fallback_dirs|
     case filename
@@ -133,7 +129,7 @@ class ::Gdk::MiraclePainter
   # 必ず名前のあとにスクリーンネームを表示しなければいけない。
   # また、スクリーンネームの前には必ず @ が必要。
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message[:user][:name] || '')}</b> @#{Pango.escape(message[:user][:idname])}")
+    Pango.parse_markup("<b>#{Pango.escape(message.user.name || '')}</b> @#{Pango.escape(message.user.idname)}")
   end
 
   # 時刻の表記は必ず相対表記にしなければいけない。

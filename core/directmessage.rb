@@ -1,31 +1,25 @@
 miquire :core, 'retriever'
-miquire :core, 'entity'
-miquire :mui, 'miracle_paintable'
 
 module Mikutter; end
 
 module Mikutter::Twitter
   class DirectMessage < Retriever::Model
-    include Gtk::MiraclePaintable
 
-    self.keys = [[:id, :int, true],         # ID
-                 [:text, :string, true], # Message description
-                 [:user, User, true],       # Send by user
-                 [:sender, User, true],       # Send by user (old)
-                 [:recipient, User, true], # Received by user
-                 [:exact, :bool],           # true if complete data
-                 [:created, :time],         # posted time
-    ]
+    register :twitter_direct_message,
+             name: "Direct Message"
 
-    def initialize(value)
-      super(value)
-      @entity = Message::Entity.new(self)
-    end
+    field.int    :id, required: true                        # ID
+    field.string :text, required: true                      # Message description
+    field.has    :user, User, required: true                # Send by user
+    field.has    :sender, User, required: true              # Send by user (old)
+    field.has    :recipient, User, required: true           # Received by user
+    field.bool   :exact                                     # true if complete data
+    field.time   :created                                   # posted time
 
-    def links
-      @entity
-    end
-    alias :entity :links
+    entity_class Retriever::Entity::TwitterEntity
+
+    def self.memory
+      @memory ||= DirectMessageMemory.new end
 
     def mentioned_by_me?
       false
@@ -65,6 +59,10 @@ module Mikutter::Twitter
 
     def retweetable?
       false
+    end
+
+    def retweet_source(_=nil)
+      nil
     end
 
     def quoting?
@@ -137,4 +135,7 @@ module Mikutter::Twitter
       ancestors(force_retrieve).last
     end
   end
+
+  class DirectMessageMemory < Retriever::Model::Memory; end
+
 end

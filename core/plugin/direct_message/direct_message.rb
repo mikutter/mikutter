@@ -25,6 +25,20 @@ module Plugin::DirectMessage
       end
     end
 
+    filter_extract_datasources do |datasources|
+      datasources = {
+        direct_message: _("ダイレクトメッセージ"),
+      }.merge datasources
+      Service.map{ |service|
+        user = service.user_obj
+        datasources.merge!({ extract_slug_for(user) => "@#{user.idname}/" + _("ダイレクトメッセージ") })
+      }
+      [datasources] end
+
+    def extract_slug_for(user)
+      "direct_message-#{user.id}".to_sym
+    end
+
     on_direct_messages do |_, dms|
       dm_distribution = Hash.new {|h,k| h[k] = []}
       dms.each do |dm|
@@ -34,12 +48,14 @@ module Plugin::DirectMessage
       end
       dm_distribution.each do |to_user, dm_for_user|
         Plugin::GUI::Timeline.instance(timeline_name_for(to_user)) << dm_for_user
+        Plugin.call :extract_receive_message, timeline_name_for(to_user), dm_for_user
       end
+      Plugin.call :extract_receive_message, :direct_message, dms
       ul.update(dm_distribution.map{|k, v| [k, v.map{|dm| dm[:created]}.max]}.to_h)
     end
 
     def timeline_name_for(user)
-      :"direct_messages_from_#{user[:idname]}"
+      :"direct_messages_from_#{user.idname}"
     end
 
     onperiod do

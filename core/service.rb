@@ -115,9 +115,6 @@ class Service
     @twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
     @twitter.a_token = account[:token]
     @twitter.a_secret = account[:secret]
-    Message.add_data_retriever(MessageServiceRetriever.new(self, :status_show))
-    User.add_data_retriever(UserServiceRetriever.new(self, :user_show))
-    Mikutter::Twitter::DirectMessage.add_data_retriever(DirectMessageRetriever.new(self, :direct_messages))
     user_initialize
   end
 
@@ -300,39 +297,6 @@ class Service
         "Twitterサーバの情況を調べる→ https://dev.twitter.com/status\n"+
         "Twitterサーバの情況を調べたくない→ http://www.nicovideo.jp/vocaloid\n\n--\n\n" +
         "#{res.code} #{res.body}" end end
-
-  class ServiceRetriever
-    include Retriever::DataSource
-
-    def initialize(post, api)
-      @post = post
-      @api = api
-    end
-
-    def findbyid(id)
-      if id.is_a? Enumerable
-        id.map(&method(:findbyid))
-      else
-        @post.scan(@api, :id => id) end end
-
-    def time
-      1.0/0 end
-  end
-
-  class MessageServiceRetriever < ServiceRetriever
-  end
-
-  class UserServiceRetriever < ServiceRetriever
-    include Retriever::DataSource
-
-    def findbyid(id)
-      if id.is_a? Enumerable
-        id.each_slice(100).map{|id_list|
-          @post.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
-      else
-        @post.scan(@api, :id => id) end end end
-
-  class DirectMessageRetriever < Service::ServiceRetriever; end
 
   class Error < RuntimeError; end
   class NotExistError < Error; end

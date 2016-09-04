@@ -15,9 +15,9 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   type_register('GtkInnerTL')
 
   # TLの値を返すときに使う
-  Record = Struct.new(:id, :message, :order, :miracle_painter)
+  Record = Struct.new(:uri, :message, :order, :miracle_painter)
 
-  MESSAGE_ID = 0
+  URI = 0
   MESSAGE = 1
   ORDER = 2
   MIRACLE_PAINTER = 3
@@ -33,7 +33,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     super()
     @force_retrieve_in_reply_to = :auto
     @@current_tl ||= self
-    @id_dict = {} # message_id: iter
+    @iter_dict = {} # String: Gdk::TreeIter
     @order = ->(m) { m.modified.to_i }
     self.name = 'timeline'
     set_headers_visible(false)
@@ -45,7 +45,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     set_events end
 
   def cell_renderer_message
-    @cell_renderer_message ||= Gtk::CellRendererMessage.new()
+    @cell_renderer_message ||= Gtk::CellRendererMessage.new
   end
 
   def column_schemer
@@ -53,7 +53,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
           cell_renderer_message.tree = self
           cell_renderer_message
         },
-        :kind => :message_id, :widget => :text, :type => String, :label => ''},
+        :kind => :uri, :widget => :text, :type => String, :label => ''},
       {:kind => :text, :widget => :text, :type => Message},
       {:kind => :text, :type => Integer},
       {:kind => :text, :type => Object}
@@ -146,8 +146,8 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # self
   def clear
-    deleted = @id_dict
-    @id_dict = {}
+    deleted = @iter_dict
+    @iter_dict = {}
     deleted.values.each{ |iter| iter[MIRACLE_PAINTER].destroy }
     model.clear end
 
@@ -163,8 +163,13 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
   # _message_ に対応する値の構造体を返す。なければnilを返す。
   def get_record_by_message(message)
-    path = get_path_and_iter_by_message(message)[1]
-    get_record(path) if path end
+    get_record_by_uri(message.uri.to_s) end
+
+  # _message_ に対応する値の構造体を返す。なければnilを返す。
+  def get_record_by_uri(uri)
+    path = get_path_and_iter_by_uri(uri)[1]
+    if path
+      get_record(path) end end
 
   def force_retrieve_in_reply_to
     if(:auto == @force_retrieve_in_reply_to)
@@ -178,21 +183,20 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   # ==== Return
   # 含まれていれば真
   def include?(message)
-    @id_dict.has_key?(message.painter_key) end
+    @iter_dict.has_key?(message.uri.to_s) end
 
-  # IDとGtk::TreeIterの対を登録する
+  # Gtk::TreeIterの対を再利用できるように登録しておく
   # ==== Args
-  # [id] メッセージID
   # [iter] Gtk::TreeIter
   # ==== Return
   # self
-  def set_id_dict(iter)
-    id = iter[MESSAGE_ID]
-    if not @id_dict.has_key?(id)
-      @id_dict[id] = iter
-      iters = @id_dict
+  def set_iter_dict(iter)
+    uri = iter[URI]
+    if not @iter_dict.has_key?(uri)
+      @iter_dict[uri] = iter
+      iters = @iter_dict
       iter[MIRACLE_PAINTER].signal_connect(:destroy) {
-        iters.delete(id)
+        iters.delete(uri)
         false } end
     self end
 
@@ -215,11 +219,11 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
     from.extended
     from.model.each{ |from_model, from_path, from_iter|
       iter = model.append
-      iter[MESSAGE_ID] = from_iter[MESSAGE_ID]
+      iter[URI] = from_iter[URI]
       iter[MESSAGE] = from_iter[MESSAGE]
       iter[ORDER] = from_iter[ORDER]
       iter[MIRACLE_PAINTER] = from_iter[MIRACLE_PAINTER].set_tree(self)
-      set_id_dict(iter) }
+      set_iter_dict(iter) }
     self
   end
 
@@ -237,16 +241,24 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def get_iter_by_message(message)
     get_path_and_iter_by_message(message)[2] end
 
+  # _message_ に対応する Gtk::TreeIter を返す。なければnilを返す。
+  def get_iter_by_uri(uri)
+    get_path_and_iter_by_uri(uri)[2] end
+
   # _message_ から [model, path, iter] の配列を返す。見つからなかった場合は空の配列を返す。
   def get_path_and_iter_by_message(message)
-    id = message.painter_key
-    if @id_dict[id]
-      if @id_dict[id][MIRACLE_PAINTER].destroyed?
-        warn "destroyed miracle painter in cache (##{id})"
-        @id_dict.delete(id)
+    get_path_and_iter_by_uri(message.uri.to_s) end
+
+  def get_path_and_iter_by_uri(uri)
+    uri = uri.to_s
+    iter = @iter_dict[uri]
+    if iter
+      if iter[MIRACLE_PAINTER].destroyed?
+        warn "destroyed miracle painter in cache (##{uri})"
+        @iter_dict.delete(uri)
         []
       else
-        [model, @id_dict[id].path, @id_dict[id]] end
+        [model, iter.path, iter] end
     else
       [] end end
 

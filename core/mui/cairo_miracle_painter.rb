@@ -70,7 +70,7 @@ class Gdk::MiraclePainter < Gtk::Object
     @mp_modifier ||= lambda { |miracle_painter|
       if (not miracle_painter.destroyed?) and (not miracle_painter.tree.destroyed?)
         miracle_painter.tree.model.each{ |model, path, iter|
-          if iter[0] == miracle_painter.message.painter_key
+          if iter[0] == miracle_painter.message.uri.to_s
             miracle_painter.tree.queue_draw
             break end } end
       false } end
@@ -148,7 +148,7 @@ class Gdk::MiraclePainter < Gtk::Object
       iob_clicked(x, y)
       if not textselector_range
         index = main_pos_to_index(x, y)
-        if index
+        if index and message.links.respond_to?(:segment_by_index)
           l = message.links.segment_by_index(index)
           l[:callback].call(l) if l and l[:callback] end end
     when 3
@@ -312,7 +312,11 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
+    if message.user[:idname]
+      Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
+    else
+      Pango.parse_markup(Pango.escape(message.user.name || ''))
+    end
   end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
@@ -351,7 +355,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # アイコンのpixbufを返す
   def main_icon
-    @main_icon ||= Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_width, icon_height){ |pixbuf|
+    @main_icon ||= Gdk::WebImageLoader.pixbuf(message.user.profile_image_url, icon_width, icon_height){ |pixbuf|
       if not destroyed?
         @main_icon = pixbuf
         on_modify end } end

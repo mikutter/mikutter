@@ -6,16 +6,15 @@ Plugin::create(:set_view) do
 
   filter_message_background_color do |miracle_painter, color|
     if !color
+      slug = miracle_painter.message.class.slug
       color = if miracle_painter.selected
-                UserConfig[:mumble_selected_bg]
-              elsif(miracle_painter.message.system?)
-                UserConfig[:mumble_system_bg]
+                UserConfig[:"#{slug}_selected_bg"] || UserConfig[:mumble_selected_bg]
               elsif(miracle_painter.message.from_me?)
-                UserConfig[:mumble_self_bg]
+                UserConfig[:"#{slug}_self_bg"] || UserConfig[:mumble_self_bg]
               elsif(miracle_painter.message.to_me?)
-                UserConfig[:mumble_reply_bg]
+                UserConfig[:"#{slug}_reply_bg"] || UserConfig[:mumble_reply_bg]
               else
-                UserConfig[:mumble_basic_bg] end end
+                UserConfig[:"#{slug}_basic_bg"] || UserConfig[:mumble_basic_bg] end end
     [miracle_painter, color]
   end
 
@@ -26,57 +25,54 @@ Plugin::create(:set_view) do
     [message, color || UserConfig[:quote_background_color]] end
 
   filter_message_font do |message, font|
-    [message, font || UserConfig[:mumble_basic_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_font"] || UserConfig[:mumble_basic_font]] end
 
   filter_message_font_color do |message, color|
-    [message, color || UserConfig[:mumble_basic_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_color"] || UserConfig[:mumble_basic_color]] end
 
   filter_message_header_left_font do |message, font|
-    [message, font || UserConfig[:mumble_basic_left_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_left_font"] || UserConfig[:mumble_basic_left_font]] end
 
   filter_message_header_left_font_color do |message, color|
-    [message, color || UserConfig[:mumble_basic_left_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_left_color"] || UserConfig[:mumble_basic_left_color]] end
 
   filter_message_header_right_font do |message, font|
-    [message, font || UserConfig[:mumble_basic_right_font]] end
+    [message, font || UserConfig[:"#{message.class.slug}_basic_right_font"] || UserConfig[:mumble_basic_right_font]] end
 
   filter_message_header_right_font_color do |message, color|
-    [message, color || UserConfig[:mumble_basic_right_color]] end
+    [message, color || UserConfig[:"#{message.class.slug}_basic_right_color"] || UserConfig[:mumble_basic_right_color]] end
 
   settings(_("表示")) do
-    settings(_('つぶやき')) do
-      settings(_('通常時')) do
-        settings(_('フォント')) do
-          fontcolor _('デフォルト'), :mumble_basic_font, :mumble_basic_color
-          fontcolor _('ヘッダ（左）'), :mumble_basic_left_font, :mumble_basic_left_color
-          fontcolor _('ヘッダ（右）'), :mumble_basic_right_font, :mumble_basic_right_color
+    settings _('選択中') do
+      color _('背景色'), :mumble_selected_bg
+    end
+    Plugin.filtering(:retrievers, []).first.each do |modelspec|
+      slug = modelspec[:slug]
+      settings(_(modelspec[:name])) do
+        settings(_('デフォルト')) do
+          settings(_('フォント')) do
+            fontcolor _('本文'), [:"#{slug}_basic_font", :mumble_basic_font], [:"#{slug}_basic_color", :mumble_basic_color]
+            fontcolor _('ヘッダ（左）'), [:"#{slug}_basic_left_font", :mumble_basic_left_font], [:"#{slug}_basic_left_color", :mumble_basic_left_color]
+            fontcolor _('ヘッダ（右）'), [:"#{slug}_basic_right_font", :mumble_basic_right_font], [:"#{slug}_basic_right_color", :mumble_basic_right_color]
+          end
+          color _('背景色'), [:"#{slug}_basic_bg", :mumble_basic_bg]
         end
-        color _('背景色'), :mumble_basic_bg
-      end
 
-      settings(_('自分宛')) do
-        color _('背景色'), :mumble_reply_bg
-      end
+        if modelspec[:reply]
+          settings(_('自分宛の%{retriever}') % {retriever: modelspec[:name]}) do
+            color _('背景色'), [:"#{slug}_reply_bg", :mumble_reply_bg]
+          end
+        end
 
-      settings(_('自分のつぶやき')) do
-        color _('背景色'), :mumble_self_bg
-      end
-
-      settings(_('システムメッセージ')) do
-        color _('背景色'), :mumble_system_bg
-      end
-
-      settings('選択中') do
-        color _('背景色'), :mumble_selected_bg
+        if modelspec[:myself]
+          settings(_('自分の%{retriever}') % {retriever: modelspec[:name]}) do
+            color _('背景色'), [:"#{slug}_self_bg", :mumble_self_bg]
+          end
+        end
       end
     end
 
     settings(_('背景色')) do
-      color _('つぶやき'), :mumble_basic_bg
-      color _('自分宛'), :mumble_reply_bg
-      color _('自分のつぶやき'), :mumble_self_bg
-      color _('システムメッセージ'), :mumble_system_bg
-      color _('選択中'), :mumble_selected_bg
       color(_('コメント付きリツイート'), :quote_background_color).
         tooltip(_('コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです'))
     end

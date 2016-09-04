@@ -4,7 +4,7 @@ miquire :mui, 'retriever_header_widget'
 Plugin.create(:message_detail_view) do
   command(:message_detail_view_show,
           name: '詳細',
-          condition: lambda{ |opt| opt.messages.size == 1 },
+          condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.is_a?(Message) },
           visible: true,
           role: :timeline) do |opt|
     Plugin.call(:show_message, opt.messages.first)
@@ -15,7 +15,7 @@ Plugin.create(:message_detail_view) do
   end
 
   def show_message(message, force=false)
-    slug = "message_detail_view-#{message.id}".to_sym
+    slug = "message_detail_view-#{message.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
@@ -34,7 +34,10 @@ Plugin.create(:message_detail_view) do
         tabs.map(&:last).each(&:call)
       }.next {
         if !force
-          i_cluster.active! end }.terminate(_('詳細表示中にエラーが発生しました'))
+          i_cluster.active! end
+      }.trap{ |exc|
+        error exc
+      }
     end
   end
 

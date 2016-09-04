@@ -182,7 +182,7 @@ Plugin.create(:activity) do
       iter[ActivityView::SERVICE] = params[:service]
       iter[ActivityView::EVENT] = params
       if (UserConfig[:activity_show_timeline] || []).map(&:to_s).include?(params[:kind].to_s)
-        Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
+        Plugin.call(:update, nil, [Mikutter::System::Message.new(description: params[:description], source: params[:plugin].to_s, created: params[:date])])
       end
       if (UserConfig[:activity_show_statusbar] || []).map(&:to_s).include?(params[:kind].to_s)
         Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{params[:kind]}: #{params[:title]}", 10)
@@ -193,8 +193,7 @@ Plugin.create(:activity) do
   on_favorite do |service, user, message|
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
+                          "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
@@ -203,8 +202,7 @@ Plugin.create(:activity) do
   on_unfavorite do |service, user, message|
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
+                          "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
@@ -215,8 +213,7 @@ Plugin.create(:activity) do
       retweet.retweet_source_d.next{ |source|
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
-                              "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              source.perma_link),
+                              "@#{source.user[:idname]}: #{source.to_s}\n#{source.perma_link}"),
                  icon: retweet.user[:profile_image_url],
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),

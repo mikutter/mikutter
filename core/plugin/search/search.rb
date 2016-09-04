@@ -37,7 +37,7 @@ Plugin.create :search do
       elm.sensitive = querybox.sensitive = true
     }.trap{ |e|
       error e
-      timeline(:search) << Message.new(message: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}), system: true)
+      timeline(:search) << Mikutter::System::Message.new(description: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}))
       elm.sensitive = querybox.sensitive = true } }
 
   savebtn.signal_connect('clicked'){ |elm|
@@ -46,9 +46,6 @@ Plugin.create :search do
       Plugin.call(:saved_search_register, saved_search[:id], query, Service.primary)
     }.terminate(_("検索キーワード「%{query}」を保存できませんでした。あとで試してみてください" % {query: query})) }
 
-  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :search_hashtag){ |segment|
-    Plugin.call(:search_start, '#' + segment[:url].match(/\A(?:#|＃)?(.+)\Z/)[1])
-  }
 end
 
 

@@ -12,7 +12,7 @@ miquire :core, 'user', 'message', 'retriever'
 require 'set'
 
 class UserList < Retriever::Model
-  @@system_id = 0
+  include Retriever::Model::Identity
 
   # args format
   # key         | value(class)
@@ -24,14 +24,13 @@ class UserList < Retriever::Model
   # user        | user who post this message(User or Hash or mixed(User IDNumber))
   # slug        | list slug(String)
 
-  self.keys = [[:id, :int, true],
-               [:name, :string, true],
-               [:mode, :bool],
-               [:description, :string],
-               [:user, User, true],
-               [:slug, :string, true],
-               [:member, [User]]
-             ]
+  field.int    :id, required: true
+  field.string :name, required: true
+  field.bool   :mode
+  field.string :description
+  field.has    :user, User, required: true
+  field.string :slug, required: true
+  field.has    :member, [User]
 
   def initialize(value)
     type_strict value => Hash
@@ -44,14 +43,14 @@ class UserList < Retriever::Model
   def user
     self[:user] end
 
+  memoize def perma_link
+    URI.parse("https://twitter.com/#{user.idname}/lists/#{CGI.escape(slug)}").freeze end
+
   def member
     self[:member] ||= Set.new end
 
   def member?(user)
-    if user.is_a? User
-      member.include?(user)
-    else
-      member.any?{ |m| m.id == user.to_i } end end
+    member.include?(user) if user.is_a? User end
 
   # リプライだった場合、投稿した人と宛先が一人でもリストメンバーだったら真。
   # リプライではない場合は、 UserList.member?(message.user) と同じ

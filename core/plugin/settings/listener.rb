@@ -3,8 +3,11 @@
 class Plugin::Settings::Listener
   def self.[](symbol)
     return symbol if(symbol.is_a? Plugin::Settings::Listener)
-    Plugin::Settings::Listener.new( :get => lambda{ UserConfig[symbol] },
-                                   :set => lambda{ |val| UserConfig[symbol] = val }) end
+    Plugin::Settings::Listener.new( get: lambda{
+                                      key = Array(symbol).find{|s| UserConfig.include?(s) }
+                                      UserConfig[key] if key
+                                    },
+                                    set: lambda{ |val| UserConfig[Array(symbol).first] = val }) end
 
   # ==== Args
   # [defaults]
