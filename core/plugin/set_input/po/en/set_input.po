@@ -6,15 +6,16 @@
 # Akkiesoft <akkiesoft@marokun.net>, 2013
 # ABE Satoru <s@polamjag.info>, 2013
 # Iori Y <fivo.11235813@gmail.com>, 2013
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 # numpad0 <triphenylmethane@gmail.com>, 2013
 # Yuki Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2016-01-05 06:19+0000\n"
-"Last-Translator: ABE Satoru <s@polamjag.info>\n"
+"POT-Creation-Date: 2016-05-17 04:14+0900\n"
+"PO-Revision-Date: 2016-09-01 11:56+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,7 +41,7 @@ msgstr "Short URL"
 
 #: ../set_input.rb:8
 msgid "常にURLを短縮する"
-msgstr "Always shoten URLs"
+msgstr "Always shorten URLs"
 
 #: ../set_input.rb:9
 msgid "フッタ"

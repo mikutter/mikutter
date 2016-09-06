@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the set_input package.
 # 
 # Translators:
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-20 12:00+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
-"Language-Team: German (http://www.transifex.com/projects/p/mikutter/language/de/)\n"
+"POT-Creation-Date: 2016-05-17 04:14+0900\n"
+"PO-Revision-Date: 2016-09-01 18:20+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,44 +20,44 @@ msgstr ""
 
 #: ../set_input.rb:4
 msgid "入力"
-msgstr ""
+msgstr "Eingabe"
 
 #: ../set_input.rb:5
 msgid "投稿をリトライする回数"
-msgstr ""
+msgstr "Anzahl der Sendeversuche vor dem Aufgeben."
 
 #: ../set_input.rb:6
 msgid "非公式Retweetにin_reply_to_statusを付与する"
-msgstr ""
+msgstr "Füge in_reply_to_status zu unofficial Retweets hinzu."
 
 #: ../set_input.rb:7
 msgid "短縮URL"
-msgstr ""
+msgstr "Kurz URL"
 
 #: ../set_input.rb:8
 msgid "常にURLを短縮する"
-msgstr ""
+msgstr "URLs immer kürzen"
 
 #: ../set_input.rb:9
 msgid "フッタ"
-msgstr ""
+msgstr "Fußzeile"
 
 #: ../set_input.rb:10
 msgid "デフォルトで挿入するフッタ"
-msgstr ""
+msgstr "Standard Fusszeile"
 
 #: ../set_input.rb:11
 msgid "リプライの場合はフッタを付与しない"
-msgstr ""
+msgstr "Füge keine Fusszeile zu deiner Antwort hinzu."
 
 #: ../set_input.rb:12
 msgid "リプライの時に[試験3日前]とか入ったらアレでしょう。そんなのともおさらばです。"
-msgstr ""
+msgstr "If you felt somehow unpleased when you posted a reply with such footer like [3 days to finals], let's make it last time with this.\nWenn du dich schlecht beim senden einer Fusszeile wie z.B. [3 days to finals] fühlst, las es uns das letzte mal tun."
 
 #: ../set_input.rb:13
 msgid "引用(非公式ReTweet)の場合はフッタを付与しない"
-msgstr ""
+msgstr "füge keinen Suffix zu deinem Quote Tweet hinzu (QT)."
 
 #: ../set_input.rb:14
 msgid "関係ないけど、ツールチップってあんまり役に立つこと書いてないし、後ろ見えないし邪魔ですよねぇ"
-msgstr ""
+msgstr "Übrigens, finde nur ich Tooltips blöd? Ich meine, sie enthaltenkaum Informationen und versperren dir die Sicht."

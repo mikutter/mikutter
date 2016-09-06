@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the change_account package.
 # 
 # Translators:
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2014-10-19 13:26+0000\n"
-"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
-"Language-Team: German (http://www.transifex.com/projects/p/mikutter/language/de/)\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2016-09-01 14:52+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,111 +20,111 @@ msgstr ""
 
 #: ../account_control.rb:12
 msgid "SN"
-msgstr ""
+msgstr "Sender"
 
 #: ../account_control.rb:13
 msgid "名前"
-msgstr ""
+msgstr "Name"
 
 #: ../account_control.rb:66
 msgid "エラー - %{name}"
-msgstr ""
+msgstr "Fehler - %{name}"
 
 #: ../change_account.rb:8
 msgid "アカウントエラー (@{user})"
-msgstr ""
+msgstr "Kontofehler (@{user})"
 
 #: ../change_account.rb:9
 msgid ""
 "ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
 "設定から、認証をやり直してください。"
-msgstr ""
+msgstr "OAuth für @{user} misslungen (@{response}) \nBitte wiederhole Authentifizierung in den Einstellungen."
 
 #: ../change_account.rb:16
 msgid "前のアカウント"
-msgstr ""
+msgstr "Vorheriges Konto"
 
 #: ../change_account.rb:29
 msgid "次のアカウント"
-msgstr ""
+msgstr "Nächstes Konto"
 
 #: ../change_account.rb:48
 msgid "@%{screen_name}(%{name}) に切り替える"
-msgstr ""
+msgstr "Wechsele zu @%{screen_name}(%{name})."
 
 #: ../change_account.rb:58
 msgid "アカウント情報"
-msgstr ""
+msgstr "Kontoinformationen"
 
-#: ../change_account.rb:101
+#: ../change_account.rb:98
 msgid "インストールお疲れ様！"
-msgstr ""
+msgstr "Installation Erfolgreich."
 
-#: ../change_account.rb:102
+#: ../change_account.rb:99
 msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
-msgstr ""
+msgstr "Hallo! Ich bin mikutter-chan, das Maskottchen von mikutter. Bitte verbinde zuerst dein Twitter Konto."
+
+#: ../change_account.rb:114
+msgid "確定"
+msgstr "Bestätigen"
 
 #: ../change_account.rb:117
-msgid "確定"
-msgstr ""
-
-#: ../change_account.rb:120
 msgid "コードを入力→"
-msgstr ""
+msgstr "Code eingeben→"
 
-#: ../change_account.rb:137
+#: ../change_account.rb:134
 msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
-msgstr ""
+msgstr "Toll! Du hast dein Konto verbunden und eine Errungenschaft freigeschaltet!"
 
-#: ../change_account.rb:149
+#: ../change_account.rb:146
 msgid ""
 "コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
 "(%{code} %{message})"
-msgstr ""
+msgstr "Anscheinend ist der Code verkehrt. Bitte authentifiziere erneut mit der neuen URL.\n(%{code} %{message})"
 
-#: ../change_account.rb:152
+#: ../change_account.rb:149
 msgid ""
 "何かがおかしいよ。\n"
 "(%{code} %{message})"
-msgstr ""
+msgstr "Irgendwas ist falsch.\n(%{code} %{message})"
 
-#: ../change_account.rb:157
+#: ../change_account.rb:154
 msgid ""
 "何かがおかしいよ。\n"
 "(%{error})"
-msgstr ""
+msgstr "Irgendwas ist falsch.\n(%{error})"
 
-#: ../change_account.rb:165
+#: ../change_account.rb:162
 msgid ""
 "登録方法は、\n"
 "1. %{authorize_url} にアクセスする\n"
 "2. mikutterに登録したいTwitterアカウントでログイン\n"
 "3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
 "だよ。"
-msgstr ""
+msgstr "1. Klicke den Link %{authorize_url}\n2. Melde dich mit deinem Twitter Konto an und wähle \"wish to use\".\n3. Mache weiter bis du einen 7-Stelligen Code erhältst und gebe ihn oben ein."
 
-#: ../change_account.rb:171
+#: ../change_account.rb:168
 msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
-msgstr ""
+msgstr "Errungenschaften sind ein Feature um dir manchmal zu helfen Features kennenzulernen die du noch nicht benutzt hast."
 
-#: ../change_account.rb:177
+#: ../change_account.rb:174
 msgid ""
 "……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
 "をインストールしてくれたんだもんね。"
-msgstr ""
+msgstr "...... Nun, das ging schnell, das war es für jetzt. Du hast %{mikutter} zum Segen des Tweetings installiert!"
 
-#: ../change_account.rb:178
+#: ../change_account.rb:175
 msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
-msgstr ""
+msgstr "Ich möchte dir Schritt bei Schritt helfen mikutter zu benutzen. Bis später! "
 
-#: ../change_account.rb:189
+#: ../change_account.rb:186
 msgid "mikutterのチュートリアルを見た"
-msgstr ""
+msgstr "Ich habe das mikutter Tutorial gelesen."
 
-#: ../change_account.rb:200
+#: ../change_account.rb:197
 msgid "前回の続きから説明するね"
-msgstr ""
+msgstr "Ich will dir erklären wo wir aufgehört haben."
 
 #: ../interactive.rb:5
 msgid "次へ"
-msgstr ""
+msgstr "Weiter"

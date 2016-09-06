@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the activity package.
 # 
 # Translators:
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 # Ogihara Kota <yukkuri.pro@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-18 11:37+0000\n"
-"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
+"PO-Revision-Date: 2016-09-01 13:24+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,76 +37,76 @@ msgstr "Aktivität"
 
 #: ../activity.rb:195
 msgid "@%{user} がふぁぼふぁぼしました"
-msgstr "@%{user} hast zu Favoriten registriert"
+msgstr "@%{user} Favorisiert"
 
 #: ../activity.rb:205
 msgid "@%{user} があんふぁぼしました"
-msgstr ""
+msgstr "@%{user} Favorisierung aufgehoben"
 
 #: ../activity.rb:217
 msgid "@%{user} がリツイートしました"
-msgstr ""
+msgstr "@%{user} retweeted"
 
 #: ../activity.rb:223
 msgid "リツイートソースが取得できませんでした"
-msgstr ""
+msgstr "Retweet Quelle konnte nicht empfangen werden."
 
 #: ../activity.rb:228
 msgid "@%{user}が%{list}に追加されました"
-msgstr ""
+msgstr "@%{user} ist zur Liste %{list} hinzugefügt worden."
 
 #: ../activity.rb:236 ../activity.rb:253
 msgid "%{description} (by @%{user})"
-msgstr ""
+msgstr "%{description} (von @%{user})"
 
 #: ../activity.rb:245
 msgid "@%{user}が%{list}から削除されました"
-msgstr ""
+msgstr "@%{user} wurde aus Liste %{list} entfernt."
 
 #: ../activity.rb:265
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
-msgstr ""
+msgstr "@%{followee} Folgt @%{follower}"
 
 #: ../activity.rb:276
 msgid "差出人: @%{sender}"
-msgstr ""
+msgstr "Sender: @%{sender}"
 
 #: ../activity.rb:277
 msgid "宛先: @%{recipient}"
-msgstr ""
+msgstr "Empfänger: @%{recipient}"
 
 #: ../activity.rb:307
 msgid "%{name}を表示する"
-msgstr ""
+msgstr "Zeige %{name}"
 
 #: ../activity.rb:307
 msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
-msgstr ""
+msgstr "Zeige %{name} in der aktivitäten timeline. falls nicht aktiviert, werden alle weiteren Einstellungen in der %{name} section deaktiviert."
 
 #: ../activity.rb:308
 msgid "自分に関係ない%{name}も表示する"
-msgstr ""
+msgstr "Zeige %{name} nichts mit dir zu tun haben."
 
 #: ../activity.rb:308
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
-msgstr ""
+msgstr "wenn aktiviert, werden alle %{name} welche nichts mit dir zu tun haben in der activity timeline angezeigt."
 
 #: ../activity.rb:309
 msgid "タイムラインに表示"
-msgstr ""
+msgstr "In der timeline anzeigen"
 
 #: ../activity.rb:309
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
-msgstr ""
+msgstr "Benachrichtige %{name} durch eine Systemnachricht.."
 
 #: ../activity.rb:310
 msgid "ステータスバーに表示"
-msgstr ""
+msgstr "In der status bar anzeigen."
 
 #: ../activity.rb:310
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
-msgstr ""
+msgstr "Wenn sie %{name} empfangen, behalte die Anzeige für ein paar Sekunden in der status bar."
 
 #: ../activity.rb:315
 msgid "リツイート"

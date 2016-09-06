@@ -6,6 +6,7 @@
 # Akkiesoft <akkiesoft@marokun.net>, 2013,2016
 # Alice Takashina <cannorin@gmail.com>, 2016
 # nemunemu <git@nemumu.com>, 2014
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 # Hotaka Hitagi, 2013
 # numpad0 <triphenylmethane@gmail.com>, 2013
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2015
@@ -15,8 +16,8 @@ msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-16 15:20+0000\n"
-"Last-Translator: Akkiesoft <akkiesoft@marokun.net>\n"
+"PO-Revision-Date: 2016-09-01 12:04+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -79,15 +80,15 @@ msgstr "Retweet with comment"
 
 #: ../set_view.rb:81
 msgid "コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです"
-msgstr ""
+msgstr "If you comment with retweets, it is not displayed as enclosed below."
 
 #: ../set_view.rb:84
 msgid "リプライ先"
-msgstr ""
+msgstr "Reply destination"
 
 #: ../set_view.rb:88 ../set_view.rb:109
 msgid "表示項目"
-msgstr ""
+msgstr "Indicates that the Project"
 
 #: ../set_view.rb:89 ../set_view.rb:110
 msgid "ヘッダを表示する"
@@ -139,7 +140,7 @@ msgstr "Open"
 
 #: ../set_view.rb:102 ../set_view.rb:123
 msgid "会話スレッドを表示"
-msgstr "Show conversation thread"
+msgstr "Show conversation Thread"
 
 #: ../set_view.rb:126
 msgid "Mentions"
@@ -147,7 +148,7 @@ msgstr "Mentions"
 
 #: ../set_view.rb:127
 msgid "リプライを返したつぶやきにはアイコンを表示"
-msgstr "Show icon on tweets which already replied"
+msgstr "Show Icon on Tweets which already replied"
 
 #: ../set_view.rb:128
 msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
@@ -199,7 +200,7 @@ msgstr "Re-order my Retweet to top on Timeline"
 
 #: ../set_view.rb:144
 msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
-msgstr "Reweets you make will show up on top of your timeline"
+msgstr "Retweets you make will show up on top of your timeline"
 
 #: ../set_view.rb:147
 msgid "非公開アカウント"
@@ -207,23 +208,23 @@ msgstr "Protected account"
 
 #: ../set_view.rb:148
 msgid "非公開アカウントのつぶやきにはアイコンを表示"
-msgstr "Show lock icon on protected tweets"
+msgstr "Show lock icon on protected Tweets"
 
 #: ../set_view.rb:149
 msgid "非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"
-msgstr "Leave a lock icon displayed above the avatar section of a protected tweet, indicates that you can't retweet it."
+msgstr "Leave a lock icon displayed above the Avatar section of a protected Tweet, indicates that you can't retweet it."
 
 #: ../set_view.rb:152
 msgid "承認済みアカウント"
-msgstr "Verified account"
+msgstr "Verified Account"
 
 #: ../set_view.rb:153
 msgid "承認済みアカウントのつぶやきにはアイコンを表示"
-msgstr "Show badge on tweets from verified accounts"
+msgstr "Show Badge on Tweets from verified Accounts"
 
 #: ../set_view.rb:154
 msgid "Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"
-msgstr "Leave a verified badge displayed above the avatar section of a tweet from verified account."
+msgstr "Leave a verified Badge displayed above the Avatar section of a Tweet from verified Account."
 
 #: ../set_view.rb:157
 msgid "短縮URL"
@@ -235,11 +236,11 @@ msgstr "Expand shortened URL to the original URL."
 
 #: ../set_view.rb:159
 msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
-msgstr "Always expand shortened URL in received tweets."
+msgstr "Always expand shortened URL in received Tweets."
 
 #: ../set_view.rb:162
 msgid "タブの位置"
-msgstr "Position of tab"
+msgstr "Position of Tab"
 
 #: ../set_view.rb:162
 msgid "上"
@@ -263,8 +264,8 @@ msgstr "Method of opening URL"
 
 #: ../set_view.rb:165
 msgid "デフォルトブラウザを使う"
-msgstr "Use default web browser"
+msgstr "Use default Web Browser"
 
 #: ../set_view.rb:167
 msgid "次のコマンドを使う"
-msgstr "Use following command"
+msgstr "Use following Command"
