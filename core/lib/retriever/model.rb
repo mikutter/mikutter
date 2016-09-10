@@ -147,7 +147,7 @@ class Retriever::Model
                         reply: reply,
                         myself: myself
                        }.freeze
-      Plugin.create(:"retriever_#{@slug}") do
+      plugin do
         filter_retrievers do |retrievers|
           retrievers << retriever_spec
           [retrievers]
@@ -157,6 +157,34 @@ class Retriever::Model
 
     def field
       Retriever::FieldGenerator.new(self)
+    end
+
+    # あるURIが、このModelを示すものであれば真を返す条件 _condition_ を設定する。
+    # ==== Args
+    # [condition] 正規表現など、URIにマッチするもの
+    # ==== Return
+    # self
+    def handle(condition)
+      model = self
+      plugin do
+        filter_model_of_uri do |uri, models|
+          if condition === uri
+            models << model
+          end
+          [uri, models]
+        end
+      end
+    end
+
+    def plugin
+      if not @slug
+        raise Retriever::RetrieverError, "`#{self.class}'.slug is not set."
+      end
+      if block_given?
+        Plugin.create(:"retriever_model_#{@slug}", &Proc.new)
+      else
+        Plugin.create(:"retriever_model_#{@slug}")
+      end
     end
 
     # Modelが生成・更新された時に呼ばれるコールバックメソッドです

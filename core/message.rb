@@ -60,6 +60,8 @@ class Message < Retriever::Model
 
   entity_class Retriever::Entity::TwitterEntity
 
+  handle PermalinkMatcher
+
   def self.container_class
     Messages end
 

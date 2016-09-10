@@ -8,6 +8,8 @@ class User < Retriever::Model
   extend Gem::Deprecate
   include Retriever::Model::Identity
 
+  register :twitter_user, name: "Twitter User"
+
   # args format
   # key     | value
   # --------+-----------
@@ -30,6 +32,8 @@ class User < Retriever::Model
   field.int    :followers_count
   field.int    :statuses_count
   field.int    :friends_count
+
+  handle %r[\Ahttps?://twitter.com/[a-zA-Z0-9_]+/?\Z].freeze
 
   def self.system
     Mikutter::System::User.system end
