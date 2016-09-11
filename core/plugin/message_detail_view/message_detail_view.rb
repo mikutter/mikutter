@@ -2,16 +2,22 @@
 miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
+  intent Message, label: _('ツイートの詳細') do |intent_token|
+    show_message(intent_token.model)
+  end
+
   command(:message_detail_view_show,
           name: '詳細',
           condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.is_a?(Message) },
           visible: true,
           role: :timeline) do |opt|
-    Plugin.call(:show_message, opt.messages.first)
+    Plugin.call(:open, opt.messages.first)
   end
 
+  # 互換性のため。
+  # openイベントを使おう
   on_show_message do |message|
-    show_message(message)
+    Plugin.call(:open, message)
   end
 
   def show_message(message, force=false)

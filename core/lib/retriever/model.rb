@@ -165,11 +165,11 @@ class Retriever::Model
     # ==== Return
     # self
     def handle(condition)
-      model = self
+      model_slug = self.slug
       plugin do
         filter_model_of_uri do |uri, models|
           if condition === uri
-            models << model
+            models << model_slug
           end
           [uri, models]
         end
