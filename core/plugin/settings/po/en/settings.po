@@ -4,7 +4,9 @@
 # 
 # Translators:
 # Akkiesoft <akkiesoft@marokun.net>, 2013
-# polamjag <s@polamjag.info>, 2013-2014
+# Alice Takashina <cannorin@gmail.com>, 2016
+# ABE Satoru <s@polamjag.info>, 2013-2014
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 # Hotaka Hitagi, 2013
 # mt_caret <mtakeda.enigsol@gmail.com>, 2014
 # Yuki Shira <shirayuking@gmail.com>, 2013
@@ -12,10 +14,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-07-05 11:15+0000\n"
-"Last-Translator: mt_caret <mtakeda.enigsol@gmail.com>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2016-09-01 12:05+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -28,7 +30,7 @@ msgstr "Basic preferences"
 
 #: ../basic_settings.rb:5
 msgid "各情報を取りに行く間隔。単位は分"
-msgstr "Interval between retrieving tweets, replies, etc. (in minutes)"
+msgstr "Interval between retrieving tweets, replies, etc."
 
 #: ../basic_settings.rb:6 ../basic_settings.rb:29
 msgid "タイムラインとリプライ"
@@ -90,11 +92,11 @@ msgstr "Interval between retrieving Direct Messages"
 
 #: ../basic_settings.rb:28
 msgid "一度に取得するつぶやきの件数(1-200)"
-msgstr "number of tweets that will be retrieved at once (1-200)"
+msgstr "Number of tweets to be retrieved at once (1-200)"
 
 #: ../basic_settings.rb:36
 msgid "イベントの発生頻度(ミリ秒単位)"
-msgstr "Interval between event occurrences (in milliseconds)"
+msgstr "Frequency of event occurrences(in milliseconds)"
 
 #: ../basic_settings.rb:37
 msgid "タイムラインとリプライとリツイート"
@@ -156,3 +158,7 @@ msgstr "Presenting the supreme Twitter Client for Miku fans and Twitter junkies.
 #: ../basic_settings.rb:60
 msgid "http://mikutter.hachune.net/"
 msgstr "http://mikutter.hachune.net/"
+
+#: ../builder.rb:287
+msgid "参照"
+msgstr "Select file"

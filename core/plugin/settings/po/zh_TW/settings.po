@@ -4,14 +4,15 @@
 # 
 # Translators:
 # Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
+# Vel <veloci85@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-10-15 07:49+0000\n"
-"Last-Translator: Hsiao-Ting Wang <hsiaoting.wang@gmail.com>\n"
-"Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/mikutter/language/zh_TW/)\n"
+"POT-Creation-Date: 2016-06-18 20:32+0900\n"
+"PO-Revision-Date: 2015-12-25 16:59+0000\n"
+"Last-Translator: Vel <veloci85@gmail.com>\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -36,13 +37,13 @@ msgstr "你關注對象的回覆及推文更新時間間隔"
 
 #: ../basic_settings.rb:9 ../basic_settings.rb:30
 msgid "フォローしていない人からのリプライ"
-msgstr ""
+msgstr "來自未關注推友的回覆"
 
 #: ../basic_settings.rb:10
 msgid ""
 "あなたに送られてきたリプライを取得する間隔。\n"
 "上との違いは、あなたがフォローしていない人からのリプライも取得出来ることです"
-msgstr ""
+msgstr "回覆給你的推文更新時間間隔。\n和前一選項的差別在於未關注使用者的回覆也會一併更新"
 
 #: ../basic_settings.rb:12
 msgid "保存した検索"
@@ -50,15 +51,15 @@ msgstr "已存檔之搜尋條件"
 
 #: ../basic_settings.rb:13
 msgid "保存した検索を確認しに行く間隔"
-msgstr ""
+msgstr "已儲存搜尋結果的更新時間間隔"
 
 #: ../basic_settings.rb:15
 msgid "リストのタイムライン"
-msgstr ""
+msgstr "列表時間軸"
 
 #: ../basic_settings.rb:16
 msgid "表示中のリストのタイムラインを確認しに行く間隔"
-msgstr ""
+msgstr "顯示中列表的推文更新時間間隔"
 
 #: ../basic_settings.rb:18 ../basic_settings.rb:31
 msgid "フォロー"
@@ -66,7 +67,7 @@ msgstr "關注"
 
 #: ../basic_settings.rb:19
 msgid "フォロー一覧を確認しに行く間隔。mikutterを使わずにフォローした場合、この時に同期される"
-msgstr ""
+msgstr "關注中使用者名單的更新間隔。若是有在 mikutter 以外的地方關注推友，資料就會在更新時同步。"
 
 #: ../basic_settings.rb:21 ../basic_settings.rb:32 ../basic_settings.rb:39
 msgid "フォロワー"
@@ -74,31 +75,31 @@ msgstr "關注者"
 
 #: ../basic_settings.rb:22
 msgid "フォロワー一覧を確認しに行く間隔"
-msgstr ""
+msgstr "跟隨者名單的更新間隔"
 
 #: ../basic_settings.rb:24 ../basic_settings.rb:33 ../basic_settings.rb:40
 msgid "ダイレクトメッセージ"
-msgstr ""
+msgstr "私人訊息 (DM)"
 
 #: ../basic_settings.rb:25
 msgid "ダイレクトメッセージを確認しに行く間隔"
-msgstr ""
+msgstr "私人訊息的更新間隔"
 
 #: ../basic_settings.rb:28
 msgid "一度に取得するつぶやきの件数(1-200)"
-msgstr ""
+msgstr "一次取回的推文數 (1-200)"
 
 #: ../basic_settings.rb:36
 msgid "イベントの発生頻度(ミリ秒単位)"
-msgstr ""
+msgstr "事件發生的頻率 (單位為毫秒)"
 
 #: ../basic_settings.rb:37
 msgid "タイムラインとリプライとリツイート"
-msgstr ""
+msgstr "時間軸、回覆及轉推"
 
 #: ../basic_settings.rb:38
 msgid "ふぁぼられ"
-msgstr ""
+msgstr "被星"
 
 #: ../basic_settings.rb:43
 msgid "リアルタイム更新"
@@ -106,11 +107,11 @@ msgstr "即時更新"
 
 #: ../basic_settings.rb:44
 msgid "ホームタイムライン(UserStream)"
-msgstr ""
+msgstr "主要時間軸 (UserStream)"
 
 #: ../basic_settings.rb:45
 msgid "Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります"
-msgstr ""
+msgstr "使用 Twitter 的 UserStream API，即時取得發推、關注等事件的更新"
 
 #: ../basic_settings.rb:46
 msgid "リスト(Streaming API)"
@@ -118,23 +119,23 @@ msgstr "使用者列表 (串流 API)"
 
 #: ../basic_settings.rb:47
 msgid "Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります"
-msgstr ""
+msgstr "使用 Twitter 的串流 API，即時取得列表等資料的更新"
 
 #: ../basic_settings.rb:50
 msgid "リプライ元をサーバに問い合わせて取得する"
-msgstr ""
+msgstr "由伺服器取得被回覆的推文"
 
 #: ../basic_settings.rb:51
 msgid "つぶやきの取得漏れを防止する（遅延対策）"
-msgstr ""
+msgstr "預防漏推（延遲對策）"
 
 #: ../basic_settings.rb:52
 msgid "遅延に強くなりますが、ちょっと遅くなります。"
-msgstr ""
+msgstr "這個選項能防止推文取得的延遲，但會稍微變得慢一點"
 
 #: ../basic_settings.rb:54
 msgid "%s について"
-msgstr "與 %s 相關"
+msgstr "關於 %s"
 
 #: ../basic_settings.rb:57
 msgid "2009-%s Toshiaki Asai"
@@ -147,8 +148,12 @@ msgid ""
 "圧倒的なかわいさではないか我がミクは\n"
 "\n"
 "このソフトウェアは %{license} によって浄化されています。"
-msgstr ""
+msgstr "獻給所有 Miku 飯與推特成癮者，以頂級 Twitter Client 為目標的Twitter Client。\n簡稱頂級 Twitter Client。\n我們家 Miku 超可愛的有沒有\n\n本軟體已經由 %{license} 淨化完畢。"
 
 #: ../basic_settings.rb:60
 msgid "http://mikutter.hachune.net/"
 msgstr "http://mikutter.hachune.net/"
+
+#: ../builder.rb:287
+msgid "参照"
+msgstr "參照"
