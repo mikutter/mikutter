@@ -3,65 +3,66 @@
 # This file is distributed under the same license as the achievement package.
 # 
 # Translators:
-# ゆっくりたん <yukkuri.pro@gmail.com>, 2013
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
+# Ogihara Kota <yukkuri.pro@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2014-01-01 11:34+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
-"Language-Team: German (http://www.transifex.com/projects/p/mikutter/language/de/)\n"
+"POT-Creation-Date: 2016-05-17 04:14+0900\n"
+"PO-Revision-Date: 2016-09-05 13:26+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../achievement.rb:98
+#: ../achievement.rb:97
 msgid "実績"
-msgstr "Leistung"
+msgstr "Errungenschaft"
 
-#: ../achievement.rb:101
+#: ../achievement.rb:100
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
-msgstr ""
+msgstr "Dein Twitter Konto wurde mit mikutter verbunden, dies wird dir sehr hilfreich für dein weiteres Twitterleben sein!"
+
+#: ../achievement.rb:107
+msgid "設定画面で、mikutterをカスタマイズしましょう。"
+msgstr "Du kannst mikutter im Einstellungen Fenster anpassen."
 
 #: ../achievement.rb:108
-msgid "設定画面で、mikutterをカスタマイズしましょう。"
-msgstr ""
-
-#: ../achievement.rb:109
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
-msgstr "Lassen Sie uns auf das Schraubenschlüssel-Symbol in der unteren rechten Ecke des Bildschirms klicken"
+msgstr "Klicke auf das Schraubenschlüssel-Symbol in der unteren rechten Ecke des Bildschirms."
 
-#: ../achievement.rb:116
+#: ../achievement.rb:115
 msgid "ヾ(＠⌒ー⌒＠)ノ"
 msgstr "ヾ(＠⌒ー⌒＠)ノ"
 
-#: ../achievement.rb:117
+#: ../achievement.rb:116
 msgid "https://github.com/toshia/display_requirements"
 msgstr "https://github.com/toshia/display_requirements"
 
-#: ../achievement.rb:125
+#: ../achievement.rb:124
 msgid "新規ペインを追加コマンドでペインを増やせます"
-msgstr ""
+msgstr "Um ein neues Paneel hinzuzufügen klicke \"Neues Paneel hinzufügen.\"."
 
-#: ../achievement.rb:126
+#: ../achievement.rb:125
 msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
-msgstr ""
+msgstr "Rechtsklicke den Tab und klicke auf \"Verschiebe in neues Paneel.\"."
+
+#: ../achievement.rb:133
+msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
+msgstr "Du kannst Tabs verschieben indem du sie von Paneel zu Paneel drag and dropst."
 
 #: ../achievement.rb:134
-msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
-msgstr ""
-
-#: ../achievement.rb:135
 msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
-msgstr ""
+msgstr "Versuche den Tab zu drag and droppen wenn zwei oder mehr Paneele geöffnet sind."
 
-#: ../achievement.rb:145
+#: ../achievement.rb:144
 msgid "クラッシュレポートの報告ありがとうございます"
-msgstr ""
+msgstr "Danke das du uns deinen Crash Report geschickt hast."
 
-#: ../achievement.rb:160
+#: ../achievement.rb:170
 msgid "実績 %s を達成しました！おめでとう♪"
-msgstr ""
+msgstr "Herzlichen Glückwunsch♪ Du hast folgende Errungenschaft gefunden! %s"

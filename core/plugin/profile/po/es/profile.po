@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-29 00:34+0900\n"
+"PO-Revision-Date: 2014-02-04 19:35+0000\n"
+"Last-Translator: soulchainer <soulchainer@gmail.com>\n"
+"Language-Team: Spanish (http://www.transifex.com/projects/p/mikutter/language/es/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../profile.rb:45
+msgid "%{user} のプロフィール"
+msgstr "Perfil de %{user}"
+
+#: ../profile.rb:62
+msgid "最近のツイート"
+msgstr "Últimos tweets"
+
+#: ../profile.rb:71
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr "No se pudieron recuperar los últimos tweets de @%{user}"
+
+#: ../profile.rb:74 ../profile.rb:127
+msgid "ユーザについて"
+msgstr "Info"
+
+#: ../profile.rb:91
+msgid "Web: %{url}"
+msgstr "Web: %{url}"
+
+#: ../profile.rb:94
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr "En Twitter desde: %{day}/%{month}/%{year} %{hour}:%{minute} (%{tweets_per_day}tweets/día)"
+
+#: ../profile.rb:123
+msgid "%{screen_name}(%{name})について"
+msgstr "Perfil de %{screen_name}(%{name})"
+
+#: ../profile.rb:144
+msgid "ミュート"
+msgstr "Silenciar"
+
+#: ../profile.rb:172
+msgid "関係を取得中"
+msgstr "Comprobando relación"
+
+#: ../profile.rb:177
+msgid "それはあなたです！"
+msgstr "¡Eres tú!"
+
+#: ../profile.rb:202
+msgid "ﾌｮﾛｰしている"
+msgstr "Le sigues"
+
+#: ../profile.rb:202
+msgid "ﾌｮﾛｰしていない"
+msgstr "No le sigues"
+
+#: ../profile.rb:203
+msgid "ﾌｮﾛｰ"
+msgstr "Seguir"
+
+#: ../profile.rb:203
+msgid "解除"
+msgstr "Dejar de seguir"
+
+#: ../profile.rb:212
+msgid "ﾌｮﾛｰされていない"
+msgstr "No te sigue"
+
+#: ../profile.rb:212
+msgid "ﾌｮﾛｰされている"
+msgstr "Te sigue"
+
+#: ../profile.rb:238
+msgid "取得できませんでした"
+msgstr "Fallo recuperando"
+
+#: ../profile.rb:294
+msgid "ふぁぼが取得できませんでした"
+msgstr "Fallo recuperando favoritos"

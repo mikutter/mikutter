@@ -202,4 +202,14 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.d250g2(display_url)
     open(img) if img
   end
+  
+  # vine
+  defimageopener('vine', %r<\Ahttps?://vine\.co/v/[a-zA-Z0-9]+>) do |display_url|
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    result = doc.css('meta[property="twitter:image:src"]')
+    open(result.attribute('content').value)
+  end
 end

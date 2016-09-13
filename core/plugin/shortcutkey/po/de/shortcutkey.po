@@ -3,57 +3,58 @@
 # This file is distributed under the same license as the shortcutkey package.
 # 
 # Translators:
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-20 13:54+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
-"Language-Team: German (http://www.transifex.com/projects/p/mikutter/language/de/)\n"
+"POT-Creation-Date: 2016-05-17 04:14+0900\n"
+"PO-Revision-Date: 2016-09-01 18:21+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../shortcutkey.rb:23
+#: ../shortcutkey.rb:21
 msgid "ショートカットキー"
-msgstr ""
+msgstr "Tastenkürzel"
 
 #: ../shortcutkey_listview.rb:41 ../shortcutkey_listview.rb:131
 #: ../shortcutkey_listview.rb:134
 msgid "キーバインド"
-msgstr ""
+msgstr "Tastenbindung"
 
 #: ../shortcutkey_listview.rb:42
 msgid "機能名"
-msgstr ""
+msgstr "Funktionsname"
 
 #: ../shortcutkey_listview.rb:94
 msgid "設定 - %{software_name}"
-msgstr ""
+msgstr "Einstellung - %{software_name}"
 
 #: ../shortcutkey_listview.rb:98
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../shortcutkey_listview.rb:99
 msgid "キャンセル"
-msgstr ""
+msgstr "Unterbrechen"
 
 #: ../shortcutkey_listview.rb:114
 msgid "キーバインドを選択してください"
-msgstr ""
+msgstr "Tastenbindung wählen."
 
 #: ../shortcutkey_listview.rb:115
 msgid "コマンドを選択してください"
-msgstr ""
+msgstr "Wählen sie das Komando."
 
 #: ../shortcutkey_listview.rb:179
 msgid "コマンド名"
-msgstr ""
+msgstr "Komandoname"
 
 #: ../shortcutkey_listview.rb:180
 msgid "スラッグ"
-msgstr ""
+msgstr "Schnecke"
