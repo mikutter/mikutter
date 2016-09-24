@@ -144,12 +144,12 @@ module MikuTwitter::ApiCallSupport
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
         cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
-        cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
+        cnv[:retweet] = streaming_message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
         message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
         # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
         if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
-          message(msg[:quoted_status]).add_quoted_by(message) end
+          streaming_message(msg[:quoted_status]).add_quoted_by(message) end
         message end
 
       def messages(msgs)
