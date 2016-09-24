@@ -127,6 +127,11 @@ module MikuTwitter::APIShortcuts
         data[:media_ids] = media_list.map{|media| media['media_id'] }.join(",")
         (self/'statuses/update').message(data) }
     else
+      attachment_url = text.match(%r[\A(.+?)\s+(https?://twitter.com/(?:#!/)?(?:[a-zA-Z0-9_]+)/status(?:es)?/(?:\d+)(?:\?.*)?)\Z]m)
+      if attachment_url
+        data[:attachment_url] = attachment_url[2]
+        data[:status] = attachment_url[1]
+      end
       (self/'statuses/update').message(data) end end
   alias post update
 
