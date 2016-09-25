@@ -116,12 +116,28 @@ module MikuTwitter::APIShortcuts
 
   def update(message)
     text = message[:message]
-    replyto = message[:replyto]
-    receiver = message[:receiver]
+    replyto = message[:replyto] && Message.generate(message[:replyto])
+    receiver = message[:receiver] && User.generate(message[:receiver])
     iolist = message[:mediaiolist]
+    is_reply = !!(receiver || replyto)
     data = {:status => text }
-    data[:in_reply_to_user_id] = User.generate(receiver)[:id].to_s if receiver
-    data[:in_reply_to_status_id] = Message.generate(replyto)[:id].to_s if replyto
+    data[:in_reply_to_user_id] = receiver.id if receiver
+    data[:in_reply_to_status_id] = replyto.id if replyto
+    if is_reply
+      forecast_receivers = exclude_receivers = Set.new.freeze
+      if replyto
+        forecast_receivers += replyto.each_ancestor.map(&:user)
+      end
+      mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
+      if mentions
+        specific_screen_names = mentions[1].split(/\s+/).map{|s|s[1, s.size]}
+        exclude_receivers += forecast_receivers.reject{|u| specific_screen_names.include?(u.idname) }
+        text = [*(specific_screen_names - forecast_receivers.map(&:idname)).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
+        data[:status] = text
+      end
+      data[:auto_populate_reply_metadata] = true
+      data[:exclude_reply_user_ids] = exclude_receivers.map(&:id).join(',') unless exclude_receivers.empty?
+    end
     if iolist and !iolist.empty?
       Deferred.when(*iolist.collect{ |io| upload_media(io) }).next{|media_list|
         data[:media_ids] = media_list.map{|media| media['media_id'] }.join(",")
