@@ -110,7 +110,7 @@ module ::Plugin::Streaming
     defevent(:update, true) do |data|
       events = {update: Messages.new, mention: Messages.new, mypost: Messages.new}
       data.each { |json|
-        msg = MikuTwitter::ApiCallSupport::Request::Parser.message(json.symbolize)
+        msg = MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json.symbolize)
         events[:update] << msg
         events[:mention] << msg if msg.to_me?
         events[:mypost] << msg if msg.from_me? }
@@ -122,13 +122,13 @@ module ::Plugin::Streaming
 
     defevent(:favorite) do |json|
       by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
-      to = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      to = MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json['target_object'].symbolize)
       if(to.respond_to?(:add_favorited_by))
         to.add_favorited_by(by, Time.parse(json['created_at'])) end end
 
     defevent(:unfavorite) do |json|
       by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
-      to = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      to = MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json['target_object'].symbolize)
       if(to.respond_to?(:remove_favorited_by))
         to.remove_favorited_by(by) end end
 
@@ -143,12 +143,12 @@ module ::Plugin::Streaming
     defevent(:retweeted_retweet) do |json|
       by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       #to = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
-      target_object = MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize)
+      target_object = MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json['target_object'].symbolize)
       source_object = target_object.retweet_source
       source_object.add_retweet_user(by, Time.parse(json['created_at'])) end
 
     defevent(:quoted_tweet) do |json|
-      MikuTwitter::ApiCallSupport::Request::Parser.message(json['target_object'].symbolize) end
+      MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json['target_object'].symbolize) end
 
     defevent(:follow) do |json|
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)

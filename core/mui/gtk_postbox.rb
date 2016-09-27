@@ -289,15 +289,45 @@ module Gtk
 
     def remain_charcount
       if not widget_post.destroyed?
-        footer = if use_blind_footer? then UserConfig[:footer].size else 0 end
-        text = widget_post.buffer.text
+        text = trim_hidden_regions(widget_post.buffer.text + UserConfig[:footer])
         Twitter::Extractor.extract_urls(text).map{|url|
           if url.length < posted_url_length(url)
             -(posted_url_length(url) - url.length)
           else
             url.length - posted_url_length(url) end
-        }.inject(140 - text.size - footer, &:+)
+        }.inject(140 - text.size, &:+)
       end end
+
+    def trim_hidden_regions(text)
+      trim_hidden_header(trim_hidden_footer(text))
+    end
+
+    # 文字列からhidden headerを除いた文字列を返す。
+    # hidden headerが含まれていない場合は、 _text_ を返す。
+    def trim_hidden_header(text)
+      mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
+      forecast_receivers = Set.new.freeze
+      if reply?
+        forecast_receivers += @to.first.each_ancestor.map(&:user)
+      end
+      if mentions
+        specific_screen_names = mentions[1].split(/\s+/).map{|s|s[1, s.size]}
+        [*(specific_screen_names - forecast_receivers.map(&:idname)).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
+      else
+        text
+      end
+    end
+
+    # 文字列からhidden footerを除いた文字列を返す。
+    # hidden footerが含まれていない場合は、 _text_ を返す。
+    def trim_hidden_footer(text)
+      attachment_url = text.match(%r[\A(.*?)\s+(https?://twitter.com/(?:#!/)?(?:[a-zA-Z0-9_]+)/status(?:es)?/(?:\d+)(?:\?.*)?)\Z]m)
+      if attachment_url
+        attachment_url[1]
+      else
+        text
+      end
+    end
 
     # URL _url_ がTwitterに投稿された時に何文字としてカウントされるかを返す
     # ==== Args
