@@ -264,7 +264,7 @@ module Gtk
 
     # _related_widgets_ のうちどれもアクティブではなく、フォーカスが外れたら削除される設定の場合、このウィジェットを削除する
     def destroy_if_necessary(*related_widgets)
-      if(not(frozen?) and not([widget_post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?)
+      if(not(frozen? or destroyed?) and not([widget_post, *related_widgets].compact.any?{ |w| w.focus? }) and destructible?)
         destroy
         true end end
 
@@ -340,7 +340,7 @@ module Gtk
     def focus_out_event(widget, event=nil)
       options = @options
       Delayer.new{
-        if(not(frozen?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
+        if(not(frozen? or destroyed?) and not(options.has_key?(:postboxstorage)) and post_is_empty?)
           destroy_if_necessary(widget_send, widget_tool, *@reply_widgets) end }
       false end
 
