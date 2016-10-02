@@ -17,7 +17,7 @@ module Plugin::ListSettings
       type_strict plugin => Plugin
       @plugin = plugin
       super()
-      self.dialog_title = "リスト" end
+      self.dialog_title = @plugin._('リスト') end
 
     def column_schemer
       [{:kind => :text, :type => String, :label => @plugin._('リスト名')},

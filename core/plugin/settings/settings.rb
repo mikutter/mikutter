@@ -6,7 +6,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'basic_settings')
 Plugin.create(:settings) do
 
   command(:open_setting,
-          name: '設定',
+          name: _('設定'),
           condition: lambda{ |opt| true },
           visible: true,
           icon: Skin.get("settings.png"),
@@ -20,7 +20,7 @@ Plugin.create(:settings) do
   def setting_window
     return @window if defined?(@window) and @window
     record_order = UserConfig[:settings_menu_order] || ["基本設定", "入力", "表示", "通知", "ショートカットキー", "アクティビティ", "アカウント情報"]
-    @window = window = ::Gtk::Window.new("設定")
+    @window = window = ::Gtk::Window.new(_('設定'))
     window.set_size_request(320, 240)
     window.set_default_size(640, 480)
     widgets_dict = {}

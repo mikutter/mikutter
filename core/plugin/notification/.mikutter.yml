@@ -1,10 +1,11 @@
 ---
 slug: :notification
 depends:
-  mikutter: '3.2'
+  mikutter: '3.4'
   plugin:
     - settings
-version: '1.0'
+    - uitranslator
+version: '1.0.1'
 author: toshi_a
 name: お知らせ
 description: mikutterに関するお知らせをステータスバーに表示する
