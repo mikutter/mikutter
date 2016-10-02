@@ -66,7 +66,7 @@ Plugin::create(:set_view) do
         color _('背景色'), :mumble_system_bg
       end
 
-      settings('選択中') do
+      settings(_('選択中')) do
         color _('背景色'), :mumble_selected_bg
       end
     end
