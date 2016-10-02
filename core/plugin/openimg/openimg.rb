@@ -88,7 +88,7 @@ Plugin.create :openimg do
              set_default_size(*default_size)
     w_wrap = ::Gtk::DrawingArea.new
     w_toolbar = ::Gtk::Toolbar.new
-    w_browser = ::Gtk::ToolButton.new(Gtk::Image.new(Gdk::Pixbuf.new(Skin.get('forward.png'), 24, 24)))
+    w_browser = ::Gtk::ToolButton.new(Gtk::Image.new(GdkPixbuf::Pixbuf.new(file: Skin.get('forward.png'), width: 24, height: 24)))
 
     window.ssc(:destroy, &:destroy)
     last_size = nil

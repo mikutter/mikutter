@@ -27,7 +27,7 @@ module Gtk
         url = File.expand_path(url)
         if FileTest.exist?(url)
           super begin
-                  Gdk::Pixbuf.new(url, rect.width, rect.height)
+                  GdkPixbuf::Pixbuf.new(file: url, width: rect.width, height: rect.height)
                 rescue
                   Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height) end
         else

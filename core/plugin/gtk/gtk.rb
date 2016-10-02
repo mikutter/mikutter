@@ -72,7 +72,7 @@ Plugin.create :gtk do
   on_gui_window_change_icon do |i_window, icon|
     window = widgetof(i_window)
     if window
-      window.icon = Gdk::Pixbuf.new(icon, 256, 256) end end
+      window.icon = GdkPixbuf::Pixbuf.new(file: icon, width: 256, height: 256) end end
 
   # ペイン作成。
   # ペインはGtk::NoteBook

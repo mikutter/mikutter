@@ -92,7 +92,7 @@ module Gtk
   def self.konami_load
     return if @konami
     if FileTest.exist? KonamiCache
-      @konami_image = Gdk::Pixbuf.new(KonamiCache, 41, 52)
+      @konami_image = GdkPixbuf::Pixbuf.new(file: KonamiCache, width: 41, height: 52)
       @konami = true
     else
       Thread.new do
@@ -102,7 +102,7 @@ module Gtk
             open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache } }
           FileUtils.mkdir_p(File.dirname(KonamiCache))
           FileUtils.mv(tmpfile, KonamiCache)
-          @konami_image = Gdk::Pixbuf.new(KonamiCache, 41, 52)
+          @konami_image = GdkPixbuf::Pixbuf.new(file: KonamiCache, width: 41, height: 52)
           @konami = true
         rescue => exception
           error exception end end end end
