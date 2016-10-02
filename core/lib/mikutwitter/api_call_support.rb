@@ -40,6 +40,7 @@ module MikuTwitter::ApiCallSupport
     # [multi] 名前（複数形）
     def self.defparser(uni, multi = :"#{uni}s", container = Array, defaults = {})
       parser = lazy{ MikuTwitter::ApiCallSupport::Request::Parser.method(uni) }
+      defaults.freeze
       define_method(multi){ |options = {}|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node|
@@ -76,7 +77,7 @@ module MikuTwitter::ApiCallSupport
         Thread.new{ JSON.parse(res.body).symbolize } } end
 
     defparser :user, :users, Users
-    defparser :message, :messages, Messages
+    defparser :message, :messages, Messages, tweet_mode: 'extended'.freeze
     defparser :list
     defparser :id
     defparser :direct_message
@@ -92,7 +93,7 @@ module MikuTwitter::ApiCallSupport
 
     def search(options = {})
       type_strict options => Hash
-      json(options).next{ |res|
+      json({tweet_mode: 'extended'.freeze}.merge(options)).next{ |res|
         Thread.new { Parser.messages res[:statuses] } } end
 
     def inspect
@@ -103,9 +104,9 @@ module MikuTwitter::ApiCallSupport
       extend Parser
 
       def message(msg)
-        cnv = msg.convert_key(:text => :message,
-                              :in_reply_to_user_id => :receiver,
+        cnv = msg.convert_key(:in_reply_to_user_id => :receiver,
                               :in_reply_to_status_id => :replyto)
+        cnv[:message] = msg[:full_text] || msg[:text]
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
         cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
@@ -115,6 +116,40 @@ module MikuTwitter::ApiCallSupport
         # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
         if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
           message(msg[:quoted_status]).add_quoted_by(message) end
+        message end
+
+      # Streaming APIにはtweet_modeスイッチが効かないとかTwitterアホか！？
+      # ↓
+      # Parser#message に、compat modeも受け付けるような改修を入れる
+      # ↓
+      # Twitter「Streaming APIのcompatモードはちょっと中身が違うんじゃ」
+      # see: https://dev.twitter.com/overview/api/upcoming-changes-to-tweets
+      # ↓
+      # 死にたいのか！？
+      # ↓
+      # 恒例の身売り話が出てくる
+      # see: http://www.afpbb.com/articles/-/3101961
+      # ↓
+      # 死ぬのか！？
+      def streaming_message(msg)
+        cnv = msg.convert_key(:in_reply_to_user_id => :receiver,
+                              :in_reply_to_status_id => :replyto)
+        if msg[:extended_tweet]
+          cnv.delete(:extended_tweet)
+          cnv.merge!(msg[:extended_tweet])
+          cnv[:message] = msg[:extended_tweet][:full_text]
+        else
+          cnv[:message] = msg[:text]
+        end
+        cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
+        cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
+        cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
+        cnv[:retweet] = streaming_message(msg[:retweeted_status]) if msg[:retweeted_status]
+        cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
+        message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
+        # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
+        if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
+          streaming_message(msg[:quoted_status]).add_quoted_by(message) end
         message end
 
       def messages(msgs)
