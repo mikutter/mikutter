@@ -19,6 +19,8 @@ module ::Plugin::Streaming
             @fail.success
           }
           result = streamer.thread.value
+        rescue Net::ReadTimeout => exception
+          @fail.notify(exception)
         rescue Net::HTTPError => exception
           warn "PermaStreamer caught exception"
           warn exception
