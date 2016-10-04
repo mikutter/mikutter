@@ -13,7 +13,16 @@ module Plugin::Intent
 
     # 設定された情報を使ってURI又はModelを開く
     def open
-      Plugin.call(:open, self)
+      if model?
+        Plugin.call(:open, self)
+      else
+        Deferred.new{
+          Retriever.Model(intent.model_slug).find_by_uri(uri)
+        }.next{|m|
+          self.model = m
+          Plugin.call(:open, self)
+        }.terminate('なんか開けなかった')
+      end
       self
     end
   end
