@@ -28,7 +28,7 @@ Plugin.create(:intent) do
   # self
   defdsl :intent do |model, label: nil, slug: :"#{self.spec[:slug]}_#{model.slug}", &proc|
     label ||= (self.spec[:name] || self.spec[:slug])
-    my_intent = Plugin::Intent::Intent.new(slug: slug, label: label)
+    my_intent = Plugin::Intent::Intent.new(slug: slug, label: label, model_slug: model.slug)
     filter_intent_select_by_model_slug do |target_model_slug, intents|
       if model.slug == target_model_slug
         intents << my_intent
