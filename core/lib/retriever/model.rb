@@ -176,6 +176,20 @@ class Retriever::Model
       end
     end
 
+    # URIを指すこのModelのインスタンスを返す。
+    # このメソッドは、サブクラスでオーバライドする。
+    # ネットワークアクセスが必要な場合は、 _Deferred_ を返すこともできる。
+    # ==== Args
+    # [uri] _handle_ メソッドで指定したいずれかの条件に一致するURI
+    # ==== Return
+    # [Deferred] Modelを取得したらコールバックする
+    # [このClassのインスタンス] 取得したModel
+    # ==== Raise
+    # [Retriever::RetrieverError] このメソッドがサブクラスでオーバライドされておらず、Modelを返せない時
+    def find_by_uri(uri)
+      raise Retriever::RetrieverError, "#{self}.find_by_uri does not implement."
+    end
+
     def plugin
       if not @slug
         raise Retriever::RetrieverError, "`#{self.class}'.slug is not set."
