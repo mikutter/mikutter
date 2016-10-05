@@ -282,46 +282,8 @@ module Gtk
   # _url_ を設定されているブラウザで開く
   class << self
     def openurl(url)
-      command = nil
-      if UserConfig[:url_open_specified_command]
-        command = UserConfig[:url_open_command]
-        bg_system(command, url)
-      elsif(defined? Win32API) then
-        shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-        shellExecuteA.call(0, 'open', url, 0, 0, 1)
-      else
-        command = Gtk::url_open_command
-        if(command)
-          bg_system(command, url)
-        else
-          Plugin.activity :system, "この環境で、URLを開くためのコマンドが判別できませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。" end end
-    rescue => exception
-      title = "コマンド \"#{command}\" でURLを開こうとしましたが、開けませんでした。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。"
-      description = {
-        title: title,
-        message: exception.to_s,
-        backtrace: exception.backtrace.join("\n") }
-      Plugin.activity :system, title,
-                      error: exception,
-                      description: "%{title}\n\n%{message}\n\n%{backtrace}" % description
+      Plugin.call(:open, URI(url))
     end
-
-    # URLを開くことができるコマンドを返す。
-    def url_open_command
-      openable_commands = %w{xdg-open open /etc/alternatives/x-www-browser}
-      wellknown_browsers = %w{firefox chromium opera}
-      command = nil
-      catch(:urlopen) do
-        openable_commands.each{ |o|
-          if command_exist?(o)
-            command = o
-            throw :urlopen end }
-        wellknown_browsers.each{ |o|
-          if command_exist?(o)
-            Plugin.activity :system, "この環境で、URLを開くためのコマンドが判別できなかったので、\"#{command}\"を使用します。設定の「表示→URLを開く方法」で、URLを開く方法を設定してください。"
-            command = o
-            throw :urlopen end } end
-      command end
   end
 end
 
