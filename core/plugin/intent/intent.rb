@@ -12,6 +12,11 @@ Plugin.create(:intent) do
   defevent :intent_select_by_model_slug,
            prototype: [Symbol, :<<]
 
+  # 第二引数のリソースを、第一引数のIntentのうちどれで開くかを決められなかった時に発生する。
+  # intent_selectorプラグインがこれを受け取ってダイアログとか出す
+  defevent :intent_select,
+           prototype: [Enumerable, tcor(URI, String, Retriever::Model)]
+
   # _model_ を開く方法を新しく登録する。
   # ==== Args
   # [model] サポートするModelのClass
@@ -73,12 +78,15 @@ Plugin.create(:intent) do
       error "intent not found to open for #{model_slugs.to_a}"
       return
     end
-    # TODO: intents をユーザに選択させる
-    intent = intents.to_a.first
-    Plugin::Intent::IntentToken.open(
-      uri: uri,
-      intent: intent,
-      parent: nil)
+    if intents.size == 1
+      intent = intents.to_a.first
+      Plugin::Intent::IntentToken.open(
+        uri: uri,
+        intent: intent,
+        parent: nil)
+    else
+      Plugin.call(:intent_select, intents, uri)
+    end
   end
 
   # _model_ をUI上で開く。
@@ -90,12 +98,15 @@ Plugin.create(:intent) do
   def open_model(model)
     intents = Plugin.filtering(:intent_select_by_model_slug, model.class.slug, Set.new).last
     # TODO: intents をユーザに選択させる
-    intent = intents.to_a.first
-    Plugin::Intent::IntentToken.open(
-      uri: model.uri,
-      model: model,
-      intent: intent,
-      parent: nil)
+    if intents.size == 1
+      intent = intents.to_a.first
+      Plugin::Intent::IntentToken.open(
+        uri: model.uri,
+        model: model,
+        intent: intent,
+        parent: nil)
+    else
+      Plugin.call(:intent_select, intents, model)
+    end
   end
-
 end
