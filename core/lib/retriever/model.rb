@@ -167,11 +167,20 @@ class Retriever::Model
     def handle(condition)
       model_slug = self.slug
       plugin do
-        filter_model_of_uri do |uri, models|
-          if condition === uri
-            models << model_slug
+        if condition.is_a? Regexp
+          filter_model_of_uri do |uri, models|
+            if condition =~ uri.to_s
+              models << model_slug
+            end
+            [uri, models]
           end
-          [uri, models]
+        else
+          filter_model_of_uri do |uri, models|
+            if condition === uri
+              models << model_slug
+            end
+            [uri, models]
+          end
         end
       end
     end
