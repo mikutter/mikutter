@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
-module Retriever; end
+module Retriever
+  # _model_slug_ をslugとして持つModelクラスを返す。
+  # 見つからない場合、nilを返す。
+  def self.Model(model_slug)
+    ObjectSpace.each_object(Retriever::Model.singleton_class) do |klass|
+      return klass if klass.slug == model_slug
+    end
+    nil
+  end
+end
 
 require_relative 'retriever/cast'
 require_relative 'retriever/datasource'

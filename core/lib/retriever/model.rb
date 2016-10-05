@@ -147,7 +147,7 @@ class Retriever::Model
                         reply: reply,
                         myself: myself
                        }.freeze
-      Plugin.create(:"retriever_#{@slug}") do
+      plugin do
         filter_retrievers do |retrievers|
           retrievers << retriever_spec
           [retrievers]
@@ -157,6 +157,78 @@ class Retriever::Model
 
     def field
       Retriever::FieldGenerator.new(self)
+    end
+
+    # あるURIが、このModelを示すものであれば真を返す条件 _condition_ を設定する。
+    # _condition_ === uri が実行され、真を返せばそのURIをこのModelで取り扱えるということになる
+    # ==== Args
+    # [condition] 正規表現など、URIにマッチするもの
+    # ==== Return
+    # self
+    # ==== Block
+    # 実際にURIが指し示すリソースの内容を含んだModelを作って返す
+    # ===== Args
+    # [uri] URI マッチしたURI
+    # ===== Return
+    # [Delayer::Deferred::Deferredable]
+    #   ネットワークアクセスを行って取得するなど取得に時間がかかる場合
+    # [self]
+    #   すぐにModelを生成できる場合、そのModel
+    # ===== Raise
+    # [Retriever::ModelNotFoundError] _uri_ に対応するリソースが見つからなかった
+    def handle(condition)       # :yield: uri
+      model_slug = self.slug
+      plugin do
+        if condition.is_a? Regexp
+          filter_model_of_uri do |uri, models|
+            if condition =~ uri.to_s
+              models << model_slug
+            end
+            [uri, models]
+          end
+        else
+          filter_model_of_uri do |uri, models|
+            if condition === uri
+              models << model_slug
+            end
+            [uri, models]
+          end
+        end
+      end
+      if block_given?
+        class << self
+          define_method(:find_by_uri, Proc.new)
+        end
+      end
+    end
+
+    # URIに対応するリソースの内容を持ったModelを作成する。
+    # URIに対応する情報はネットワーク上などから取得される場合もある。そういった場合はこのメソッドは
+    # Delayer::Deferred::Deferredable を返す可能性がある。
+    # このメソッドの振る舞いを変更したい場合は、 _handle_ メソッドを利用する。
+    # ==== Args
+    # [uri] _handle_ メソッドで指定したいずれかの条件に一致するURI
+    # ==== Return
+    # [Delayer::Deferred::Deferredable]
+    #   ネットワークアクセスを行って取得するなど取得に時間がかかる場合
+    # [self]
+    #   すぐにModelを生成できる場合、そのModel
+    # ==== Raise
+    # [Retriever::NotImplementedError] _handle_ メソッドを一度もブロック付きで呼び出しておらず、Modelを取得できない
+    # [Retriever::ModelNotFoundError] _uri_ に対応するリソースが見つからなかった
+    def find_by_uri(uri)
+      raise Retriever::NotImplementedError, "#{self}.find_by_uri does not implement."
+    end
+
+    def plugin
+      if not @slug
+        raise Retriever::RetrieverError, "`#{self}'.slug is not set."
+      end
+      if block_given?
+        Plugin.create(:"retriever_model_#{@slug}", &Proc.new)
+      else
+        Plugin.create(:"retriever_model_#{@slug}")
+      end
     end
 
     # Modelが生成・更新された時に呼ばれるコールバックメソッドです

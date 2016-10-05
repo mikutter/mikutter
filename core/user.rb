@@ -8,6 +8,8 @@ class User < Retriever::Model
   extend Gem::Deprecate
   include Retriever::Model::Identity
 
+  register :twitter_user, name: "Twitter User"
+
   # args format
   # key     | value
   # --------+-----------
@@ -30,6 +32,23 @@ class User < Retriever::Model
   field.int    :followers_count
   field.int    :statuses_count
   field.int    :friends_count
+
+  handle %r[\Ahttps?://twitter.com/[a-zA-Z0-9_]+/?\Z] do |uri|
+    match = %r[\Ahttps?://twitter.com/(?<screen_name>[a-zA-Z0-9_]+)/?\Z].match(uri.to_s)
+    notice match.inspect
+    if match
+      user = findbyidname(match[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY)
+      if user
+        user
+      else
+        Thread.new do
+          findbyidname(match[:screen_name], Retriever::DataSource::USE_ALL)
+        end
+      end
+    else
+      raise Retriever::RetrieverError, "id##{match[:screen_name]} does not exist in #{self}."
+    end
+  end
 
   def self.system
     Mikutter::System::User.system end

@@ -21,6 +21,10 @@ class Retriever::FieldGenerator
     @model_klass.add_field(field_name, type: :time, required: required)
   end
 
+  def uri(field_name, required: false)
+    @model_klass.add_field(field_name, type: :uri, required: required)
+  end
+
   def has(field_name, type, required: false)
     @model_klass.add_field(field_name, type: type, required: required)
   end

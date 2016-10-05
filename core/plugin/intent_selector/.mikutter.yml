@@ -1,0 +1,12 @@
+---
+slug: :intent_selector
+depends:
+  mikutter: 3.5.0-develop
+  plugin:
+  - gtk
+  - intent
+version: '1.0'
+author: toshi_a
+name: Intent Selector
+description: >-
+  開く方法が複数見つかった時、Gtkでダイアログを表示して、どの方法で開くかをユーザに入力させる

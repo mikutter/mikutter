@@ -1,0 +1,12 @@
+---
+slug: :web
+depends:
+  mikutter: '3.5'
+  plugin:
+  - uitranslator
+version: '1.0'
+author: toshi_a
+name: Web
+description: >-
+  Webページを扱う機能を提供する。
+  http,httpsリンクを外部ブラウザを起動することができる

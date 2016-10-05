@@ -4,6 +4,11 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
   UserConfig[:profile_icon_size] ||= 64
   UserConfig[:profile_icon_margin] ||= 8
+
+  intent User, label: _('プロフィール') do |intent_token|
+    show_profile(intent_token.model)
+  end
+
   plugin = self
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
@@ -30,8 +35,10 @@ Plugin.create :user_detail_view do
     else
       [messages] end end
 
+  # 互換性のため。
+  # openイベントを使おう
   on_show_profile do |service, user|
-    show_profile(user) end
+    Plugin.call(:open, user) end
 
   def show_profile(user, force=false)
     slug = "profile-#{user.uri}".to_sym
@@ -133,7 +140,7 @@ Plugin.create :user_detail_view do
           visible: true,
           icon: lambda{ |opt| opt && opt.messages.first.user[:profile_image_url] },
           role: :timeline) do |opt|
-    Plugin.call(:show_profile, Service.primary, opt.messages.first.user) end
+    Plugin.call(:open, opt.messages.first.user) end
 
   def mutebutton(user)
     changer = lambda{ |new, widget|
