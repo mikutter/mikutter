@@ -60,7 +60,23 @@ class Message < Retriever::Model
 
   entity_class Retriever::Entity::TwitterEntity
 
-  handle PermalinkMatcher
+  handle PermalinkMatcher do |uri|
+    match = PermalinkMatcher.match(uri.to_s)
+    notice match.inspect
+    if match
+      message = findbyid(match[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+      notice message.inspect
+      if message
+        message
+      else
+        Thread.new do
+          findbyid(match[:id].to_i, Retriever::DataSource::USE_ALL)
+        end
+      end
+    else
+      raise Retriever::RetrieverError, "id##{match[:id]} does not exist in #{self}."
+    end
+  end
 
   def self.container_class
     Messages end
