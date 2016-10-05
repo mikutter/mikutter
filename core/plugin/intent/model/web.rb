@@ -12,9 +12,7 @@ module Plugin::Intent
 
     field.uri :perma_link
 
-    handle ->uri{ %w<http https>.include?(uri.scheme) }
-
-    def self.find_by_uri(uri)
+    handle ->uri{ %w<http https>.include?(uri.scheme) } do |uri|
       new(perma_link: uri)
     end
   end
