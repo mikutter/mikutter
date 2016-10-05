@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 require_relative 'model/intent'
 require_relative 'model/intent_token'
-require_relative 'model/web'
 
 Plugin.create(:intent) do
   # _uri_ を開くことができる Model を列挙するためのフィルタ
@@ -43,10 +42,6 @@ Plugin.create(:intent) do
     end
     add_event(:"intent_open_#{slug}", &proc)
     self
-  end
-
-  intent Plugin::Intent::Web, label: 'Open in foreign browser' do |intent_token|
-    Gtk.openurl(intent_token.model.perma_link.to_s)
   end
 
   on_open do |object|

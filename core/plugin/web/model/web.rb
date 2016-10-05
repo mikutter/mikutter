@@ -6,7 +6,7 @@ Web上のリソースを示す汎用的なModel。
 
 例えば、URLはWebブラウザで開くことができるが、intentは最終的に全てModelに変換できなければならないため、Modelが用意されていない多くのURLは取り扱うことができない。
 =end
-module Plugin::Intent
+module Plugin::Web
   class Web < Retriever::Model
     register :web
 
