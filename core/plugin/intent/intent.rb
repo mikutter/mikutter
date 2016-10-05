@@ -40,8 +40,8 @@ Plugin.create(:intent) do
     self
   end
 
-  intent Plugin::Intent::Web, label: 'Open in foreign browser' do |intent|
-    Gtk.openurl(intent.model.perma_link.to_s)
+  intent Plugin::Intent::Web, label: 'Open in foreign browser' do |intent_token|
+    Gtk.openurl(intent_token.model.perma_link.to_s)
   end
 
   on_open do |object|
