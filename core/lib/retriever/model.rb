@@ -201,7 +201,7 @@ class Retriever::Model
 
     def plugin
       if not @slug
-        raise Retriever::RetrieverError, "`#{self.class}'.slug is not set."
+        raise Retriever::RetrieverError, "`#{self}'.slug is not set."
       end
       if block_given?
         Plugin.create(:"retriever_model_#{@slug}", &Proc.new)
