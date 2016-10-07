@@ -2,6 +2,7 @@
 
 require 'gtk2'
 require 'cairo'
+require_relative 'model/album'
 
 module Plugin::Openimg
   ImageOpener = Struct.new(:name, :condition, :open)
@@ -30,7 +31,6 @@ Plugin.create :openimg do
            prototype: [String, Message]
 
   defdsl :defimageopener do |name, condition, &proc|
-    type_strict condition => :===, name => String
     opener = Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze
     filter_openimg_image_openers do |openers|
       openers << opener
@@ -191,13 +191,9 @@ Plugin.create :openimg do
   rescue => _
     error _ end
 
-  ::Gtk::TimeLine.addopenway(->_{
-                               openers = Plugin.filtering(:openimg_image_openers, Set.new).first
-                               openers.any?{ |opener| opener.condition === _ }
-                             }) do |shrinked_url, cancel|
-    Thread.new do
-      url = (Plugin.filtering(:expand_url, [shrinked_url]).first.first rescue shrinked_url)
-      Plugin.call(:openimg_open, url) end end
+  intent Plugin::Openimg::Album do |intent|
+    Plugin.call(:openimg_open, intent.model.perma_link.to_s)
+  end
 
   def addsupport(cond, element_rule = {}, &block); end
 
