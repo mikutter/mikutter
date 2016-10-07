@@ -14,6 +14,7 @@ Plugin.create(:web) do
       shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
       shellExecuteA.call(0, 'open', url, 0, 0, 1)
     else
+      url_open_command = find_url_open_command
       if url_open_command
         bg_system(url_open_command, url)
       else
@@ -30,7 +31,7 @@ Plugin.create(:web) do
   end
 
   # URLを開くことができるコマンドを返す。
-  memoize def url_open_command
+  memoize def find_url_open_command
     openable_commands = %w{xdg-open open /etc/alternatives/x-www-browser}
     wellknown_browsers = %w{firefox chromium opera}
     command = nil
