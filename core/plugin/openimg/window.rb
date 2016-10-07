@@ -1,0 +1,173 @@
+# -*- coding: utf-8 -*-
+
+module Plugin::Openimg
+  class Window < Gtk::Window
+    attr_reader :display_url
+
+    def initialize(display_url)
+      super()
+      @display_url = display_url
+      @image_surface = loading_surface
+      window_settings
+      ssc(:destroy, &:destroy)
+    end
+
+    def start_loading
+      Thread.new {
+        Plugin.filtering(:openimg_pixbuf_from_display_url, display_url, nil, nil)
+      }.next { |_, pixbufloader, thread|
+        if pixbufloader.is_a? Gdk::PixbufLoader
+          pixbufloader.ssc(:area_updated, window) do |_, x, y, width, height|
+            Delayer.new do
+              if thread.alive?
+                progress(pixbufloader.pixbuf, x: x, y: y, width: width, height: height) end end
+            true end
+
+          pixbufloader.ssc(:closed, window) do
+            progress(pixbufloader.pixbuf, paint: true)
+            true end
+
+          thread.next { |flag|
+            Deferred.fail flag unless flag
+          }.trap { |exception|
+            error exception
+            @image_surface = error_surface
+          }
+        else
+          warn "cant open: #{display_url}"
+          @image_surface = error_surface
+          redraw(repaint: false) end
+      }.trap{ |exception|
+        error exception
+        @image_surface = error_surface
+        redraw(repaint: false)
+      }
+      self
+    end
+
+    private
+
+    def window_settings
+      set_title(display_url)
+      set_role('mikutter_image_preview'.freeze)
+      set_type_hint(Gdk::Window::TYPE_HINT_DIALOG)
+      set_default_size(*default_size)
+      add(Gtk::VBox.new.closeup(w_toolbar).add(w_wrap))
+    end
+
+    def redraw(repaint: true)
+      gdk_window = w_wrap.window
+      return unless gdk_window
+      ew, eh = gdk_window.geometry[2,2]
+      return if(ew == 0 or eh == 0)
+      context = gdk_window.create_cairo_context
+      context.save do
+        if repaint
+          context.set_source_color(Cairo::Color::BLACK)
+          context.paint end
+        if (ew * @image_surface.height) > (eh * @image_surface.width)
+          rate = eh.to_f / @image_surface.height
+          context.translate((ew - @image_surface.width*rate)/2, 0)
+        else
+          rate = ew.to_f / @image_surface.width
+          context.translate(0, (eh - @image_surface.height*rate)/2) end
+        context.scale(rate, rate)
+        context.set_source(Cairo::SurfacePattern.new(@image_surface))
+        context.paint end
+    rescue => _
+      error _ end
+
+    def progress(pixbuf, x: 0, y: 0, width: 0, height: 0, paint: false)
+      return unless pixbuf
+      context = nil
+      size_changed = false
+      unless @image_surface.width == pixbuf.width and @image_surface.height == pixbuf.height
+        size_changed = true
+        @image_surface = Cairo::ImageSurface.new(pixbuf.width, pixbuf.height)
+        context = Cairo::Context.new(@image_surface)
+        context.save do
+          context.set_source_color(Cairo::Color::BLACK)
+          context.paint end end
+      context ||= Cairo::Context.new(@image_surface)
+      context.save do
+        context.set_source_pixbuf(pixbuf)
+        if paint
+          context.paint
+        else
+          context.rectangle(x, y, width, height)
+          context.fill end end
+      redraw(repaint: paint || size_changed)
+    end
+
+    #
+    # === Widgetたち
+    #
+
+    def w_wrap
+      @w_wrap ||= ::Gtk::DrawingArea.new.tap{|w|
+        w.ssc(:size_allocate, &gen_wrap_size_allocate)
+        w.ssc(:expose_event, &gen_wrap_expose_event)
+      }
+    end
+
+    def w_toolbar
+      @w_toolbar ||= ::Gtk::Toolbar.new.tap{|w| w.insert(0, w_browser) }
+    end
+
+    def w_browser
+      @w_browser ||= ::Gtk::ToolButton.new(
+        Gtk::Image.new(GdkPixbuf::Pixbuf.new(file: Skin.get('forward.png'), width: 24, height: 24))
+      ).tap{|w|
+        w.ssc(:clicked, &gen_browser_clicked)
+      }
+    end
+
+    #
+    # === イベントハンドラ
+    #
+
+    def gen_browser_clicked
+      proc do
+        Plugin.call(:open, @display_url)
+        false
+      end
+    end
+
+    def gen_wrap_expose_event
+      proc do |widget|
+        redraw(repaint: false)
+        true
+      end
+    end
+
+    def gen_wrap_size_allocate
+      last_size = nil
+      proc do |widget|
+        if widget.window && last_size != widget.window.geometry[2,2]
+          last_size = widget.window.geometry[2,2]
+          redraw(repaint: false)
+        end
+        false
+      end
+    end
+
+    #
+    # === その他
+    #
+
+    def default_size
+      @size || [640, 480]
+    end
+
+    def loading_surface
+      surface = Cairo::ImageSurface.from_png(Skin.get('loading.png'))
+      surface
+    end
+
+    def error_surface
+      surface = Cairo::ImageSurface.from_png(Skin.get('notfound.png'))
+      surface
+    end
+
+  end
+end
