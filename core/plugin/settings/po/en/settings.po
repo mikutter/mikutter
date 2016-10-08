@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the settings package.
 # 
 # Translators:
-# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013,2016
 # Alice Takashina <cannorin@gmail.com>, 2016
 # ABE Satoru <s@polamjag.info>, 2013-2014
 # Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
@@ -14,9 +14,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-09-01 12:05+0000\n"
-"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"POT-Creation-Date: 2016-10-02 21:35+0900\n"
+"PO-Revision-Date: 2016-10-02 12:42+0000\n"
+"Last-Translator: Akkiesoft <akkiesoft@marokun.net>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -162,3 +162,7 @@ msgstr "http://mikutter.hachune.net/"
 #: ../builder.rb:287
 msgid "参照"
 msgstr "Select file"
+
+#: ../settings.rb:9 ../settings.rb:23
+msgid "設定"
+msgstr "Preferences"

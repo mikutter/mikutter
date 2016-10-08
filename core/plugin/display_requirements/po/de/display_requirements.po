@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2016-09-01 14:57+0000\n"
+"POT-Creation-Date: 2016-10-02 21:10+0900\n"
+"PO-Revision-Date: 2016-10-03 12:10+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -18,34 +18,54 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../display_requirements.rb:82
+#: ../display_requirements.rb:72
+msgid "いいねいいねする"
+msgstr "Und ich hoffe, Preisvorstellung"
+
+#: ../display_requirements.rb:80 ../display_requirements.rb:88
+msgid "あんいいね"
+msgstr "ich"
+
+#: ../display_requirements.rb:87
+msgid "いいね"
+msgstr "gefällt mir"
+
+#: ../display_requirements.rb:92
+msgid "@%{user} がいいねいいねしました"
+msgstr "@% {user} als Favorit markiert"
+
+#: ../display_requirements.rb:102
+msgid "@%{user} があんいいねしました"
+msgstr "@%{user} war ich."
+
+#: ../display_requirements.rb:148
 msgid "今"
 msgstr "Jetzt"
 
-#: ../display_requirements.rb:84
+#: ../display_requirements.rb:150
 msgid "%{sec}秒前"
 msgstr "vor %{sec}s"
 
-#: ../display_requirements.rb:84
+#: ../display_requirements.rb:150
 msgid "%{sec}秒後"
 msgstr "%{sec}s später"
 
-#: ../display_requirements.rb:86
+#: ../display_requirements.rb:152
 msgid "%{min}分前"
 msgstr "vor %{min}m"
 
-#: ../display_requirements.rb:86
+#: ../display_requirements.rb:152
 msgid "%{min}分後"
 msgstr "%{min}m später"
 
-#: ../display_requirements.rb:88
+#: ../display_requirements.rb:154
 msgid "%{hour}時間前"
 msgstr "vor %{hour}h"
 
-#: ../display_requirements.rb:88
+#: ../display_requirements.rb:154
 msgid "%{hour}時間後"
 msgstr "%{hour}h später"
 
-#: ../display_requirements.rb:92
+#: ../display_requirements.rb:158
 msgid "%Y/%m/%d"
 msgstr "%d/%m/%Y"
