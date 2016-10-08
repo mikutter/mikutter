@@ -3,7 +3,7 @@
 require 'gtk2'
 require 'cairo'
 require_relative 'window'
-require_relative 'model/album'
+require_relative 'model/photo'
 
 module Plugin::Openimg
   ImageOpener = Struct.new(:name, :condition, :open)
@@ -44,9 +44,9 @@ Plugin.create :openimg do
       error _
       nil end end
 
-  filter_openimg_pixbuf_from_display_url do |album, loader, thread|
+  filter_openimg_pixbuf_from_display_url do |photo, loader, thread|
     loader = Gdk::PixbufLoader.new
-    [album, loader, album.download{|partial| Delayer.new{ loader.write partial } }]
+    [photo, loader, photo.download{|partial| Delayer.new{ loader.write partial } }]
   end
 
   filter_openimg_raw_image_from_display_url do |display_url, content|
@@ -63,7 +63,7 @@ Plugin.create :openimg do
     Plugin.call(:open, display_url)
   end
 
-  intent Plugin::Openimg::Album do |intent_token|
+  intent Plugin::Openimg::Photo do |intent_token|
     Plugin::Openimg::Window.new(intent_token.model, intent_token).start_loading.show_all
   end
 

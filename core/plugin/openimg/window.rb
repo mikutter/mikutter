@@ -2,11 +2,11 @@
 
 module Plugin::Openimg
   class Window < Gtk::Window
-    attr_reader :album
+    attr_reader :photo
 
-    def initialize(album, next_opener)
+    def initialize(photo, next_opener)
       super()
-      @album = album
+      @photo = photo
       @image_surface = loading_surface
       @next_opener = next_opener
       window_settings
@@ -15,7 +15,7 @@ module Plugin::Openimg
 
     def start_loading
       Thread.new {
-        Plugin.filtering(:openimg_pixbuf_from_display_url, album, nil, nil)
+        Plugin.filtering(:openimg_pixbuf_from_display_url, photo, nil, nil)
       }.next { |_, pixbufloader, complete_promise|
         if pixbufloader.is_a? Gdk::PixbufLoader
           rect = nil
@@ -47,7 +47,7 @@ module Plugin::Openimg
             redraw(repaint: true)
           }
         else
-          warn "cant open: #{album}"
+          warn "cant open: #{photo}"
           @image_surface = error_surface
           redraw(repaint: true) end
       }.trap{ |exception|
@@ -61,7 +61,7 @@ module Plugin::Openimg
     private
 
     def window_settings
-      set_title(album.perma_link.to_s)
+      set_title(photo.perma_link.to_s)
       set_role('mikutter_image_preview'.freeze)
       set_type_hint(Gdk::Window::TYPE_HINT_DIALOG)
       set_default_size(*default_size)

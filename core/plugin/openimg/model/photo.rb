@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Openimg
-  class Album < Retriever::Model
+  class Photo < Retriever::Model
     register :openimg_photo, name: Plugin[:openimg]._('画像ビューア')
 
     field.uri    :perma_link
