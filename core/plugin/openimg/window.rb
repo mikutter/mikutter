@@ -18,12 +18,27 @@ module Plugin::Openimg
         Plugin.filtering(:openimg_pixbuf_from_display_url, album, nil, nil)
       }.next { |_, pixbufloader, complete_promise|
         if pixbufloader.is_a? Gdk::PixbufLoader
-          pixbufloader.ssc(:area_updated, window) do |_, x, y, width, height|
-            Delayer.new do
-              progress(pixbufloader.pixbuf, x: x, y: y, width: width, height: height) end
+          rect = nil
+          pixbufloader.ssc(:area_updated, self) do |_, x, y, width, height|
+            if rect
+              rect[:left] = [rect[:left], x].min
+              rect[:top] = [rect[:top], y].min
+              rect[:right] = [rect[:right], x+width].max
+              rect[:bottom] = [rect[:bottom], y+height].max
+            else
+              rect = {left: x, top: y, right: x+width, bottom: y+height}
+              Delayer.new do
+                progress(pixbufloader.pixbuf,
+                         x: rect[:left],
+                         y: rect[:top],
+                         width: rect[:right] - rect[:left],
+                         height: rect[:bottom] - rect[:top])
+                rect = nil
+              end
+            end
             true end
 
-          pixbufloader.ssc(:closed, window) do
+          pixbufloader.ssc(:closed, self) do
             progress(pixbufloader.pixbuf, paint: true)
             true end
 
@@ -54,6 +69,7 @@ module Plugin::Openimg
     end
 
     def redraw(repaint: true)
+      return if w_wrap.destroyed?
       gdk_window = w_wrap.window
       return unless gdk_window
       ew, eh = gdk_window.geometry[2,2]

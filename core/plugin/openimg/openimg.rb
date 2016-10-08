@@ -46,7 +46,7 @@ Plugin.create :openimg do
 
   filter_openimg_pixbuf_from_display_url do |album, loader, thread|
     loader = Gdk::PixbufLoader.new
-    [album, loader, album.download{|partial| atomic{ loader.write partial } }]
+    [album, loader, album.download{|partial| Delayer.new{ loader.write partial } }]
   end
 
   filter_openimg_raw_image_from_display_url do |display_url, content|

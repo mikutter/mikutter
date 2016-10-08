@@ -113,7 +113,7 @@ module Plugin::Openimg
     def download_mainloop(raw)
       loop do
         Thread.pass
-        partial = raw.readpartial(1024*HYDE).freeze
+        partial = raw.readpartial(1024**2).freeze
         @buffer << partial
         atomic{ @partials.each{|c|c.(partial)} }
       end
