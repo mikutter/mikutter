@@ -44,30 +44,10 @@ Plugin.create :openimg do
       error _
       nil end end
 
-  filter_openimg_pixbuf_from_display_url do |display_url, loader, thread|
-    raw  = Plugin.filtering(:openimg_raw_image_from_display_url, display_url, nil).last
-    if raw
-      begin
-        loader = Gdk::PixbufLoader.new
-        thread = Thread.new do
-          begin
-            loop do
-              Thread.pass
-              partial = raw.readpartial(1024*HYDE)
-              atomic{ loader.write partial }
-            end
-            nil
-          rescue EOFError
-            true
-          ensure
-            raw.close rescue nil
-            loader.close rescue nil end end
-        [display_url, loader, thread]
-      rescue => _
-        error _
-        [display_url, loader, thread] end
-    else
-      [display_url, loader, thread] end end
+  filter_openimg_pixbuf_from_display_url do |album, loader, thread|
+    loader = Gdk::PixbufLoader.new
+    [album, loader, album.download{|partial| atomic{ loader.write partial } }]
+  end
 
   filter_openimg_raw_image_from_display_url do |display_url, content|
     unless content
@@ -80,11 +60,11 @@ Plugin.create :openimg do
     [display_url, content] end
 
   on_openimg_open do |display_url|
-    Plugin::Openimg::Window.new(display_url).start_loading.show_all
+    Plugin.call(:open, display_url)
   end
 
-  intent Plugin::Openimg::Album do |intent|
-    Plugin.call(:openimg_open, intent.model.perma_link.to_s)
+  intent Plugin::Openimg::Album do |intent_token|
+    Plugin::Openimg::Window.new(intent_token.model, intent_token).start_loading.show_all
   end
 
   def addsupport(cond, element_rule = {}, &block); end

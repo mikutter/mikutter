@@ -2,45 +2,43 @@
 
 module Plugin::Openimg
   class Window < Gtk::Window
-    attr_reader :display_url
+    attr_reader :album
 
-    def initialize(display_url)
+    def initialize(album, next_opener)
       super()
-      @display_url = display_url
+      @album = album
       @image_surface = loading_surface
+      @next_opener = next_opener
       window_settings
       ssc(:destroy, &:destroy)
     end
 
     def start_loading
       Thread.new {
-        Plugin.filtering(:openimg_pixbuf_from_display_url, display_url, nil, nil)
-      }.next { |_, pixbufloader, thread|
+        Plugin.filtering(:openimg_pixbuf_from_display_url, album, nil, nil)
+      }.next { |_, pixbufloader, complete_promise|
         if pixbufloader.is_a? Gdk::PixbufLoader
           pixbufloader.ssc(:area_updated, window) do |_, x, y, width, height|
             Delayer.new do
-              if thread.alive?
-                progress(pixbufloader.pixbuf, x: x, y: y, width: width, height: height) end end
+              progress(pixbufloader.pixbuf, x: x, y: y, width: width, height: height) end
             true end
 
           pixbufloader.ssc(:closed, window) do
             progress(pixbufloader.pixbuf, paint: true)
             true end
 
-          thread.next { |flag|
-            Deferred.fail flag unless flag
-          }.trap { |exception|
-            error exception
+          complete_promise.trap { |exception|
             @image_surface = error_surface
+            redraw(repaint: true)
           }
         else
-          warn "cant open: #{display_url}"
+          warn "cant open: #{album}"
           @image_surface = error_surface
-          redraw(repaint: false) end
+          redraw(repaint: true) end
       }.trap{ |exception|
         error exception
         @image_surface = error_surface
-        redraw(repaint: false)
+        redraw(repaint: true)
       }
       self
     end
@@ -48,7 +46,7 @@ module Plugin::Openimg
     private
 
     def window_settings
-      set_title(display_url)
+      set_title(album.perma_link.to_s)
       set_role('mikutter_image_preview'.freeze)
       set_type_hint(Gdk::Window::TYPE_HINT_DIALOG)
       set_default_size(*default_size)
@@ -128,14 +126,14 @@ module Plugin::Openimg
 
     def gen_browser_clicked
       proc do
-        Plugin.call(:open, @display_url)
+        Plugin.call(:open, @next_opener)
         false
       end
     end
 
     def gen_wrap_expose_event
       proc do |widget|
-        redraw(repaint: false)
+        redraw(repaint: true)
         true
       end
     end
@@ -145,7 +143,7 @@ module Plugin::Openimg
       proc do |widget|
         if widget.window && last_size != widget.window.geometry[2,2]
           last_size = widget.window.geometry[2,2]
-          redraw(repaint: false)
+          redraw(repaint: true)
         end
         false
       end
