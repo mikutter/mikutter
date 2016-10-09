@@ -44,7 +44,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     @edge end
 
   def badge(_message)
-    Gdk::Pixbuf.new(Skin.get('quote.png'), @badge_radius*2, @badge_radius*2) end
+    GdkPixbuf::Pixbuf.new(file: Skin.get('quote.png'), width: @badge_radius*2, height: @badge_radius*2) end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_quote_background_color, message, UserConfig[:quote_background_color]).last

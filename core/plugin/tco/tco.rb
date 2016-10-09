@@ -13,7 +13,7 @@ module Plugin::TCo
   def expand_url(url)
     no_mainthread
     begin
-      res = timeout(5){ Net::HTTP.get_response(URI.parse(url)) }
+      res = Timeout.timeout(5){ Net::HTTP.get_response(URI.parse(url)) }
       if res.is_a?(Net::HTTPRedirection)
         res["location"]
       else

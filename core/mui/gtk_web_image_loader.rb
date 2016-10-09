@@ -33,7 +33,7 @@ module Gdk::WebImageLoader
     if(is_local_path?(url))
       url = File.expand_path(url)
       if(FileTest.exist?(url))
-        Gdk::Pixbuf.new(url, rect.width, rect.height)
+        GdkPixbuf::Pixbuf.new(file: url, width: rect.width, height: rect.height)
       else
         notfound_pixbuf(rect) end
     else
@@ -159,7 +159,7 @@ module Gdk::WebImageLoader
     else
       _loading_pixbuf(rect.width, rect.height) end end
   def _loading_pixbuf(width, height)
-    Gdk::Pixbuf.new(File.expand_path(Skin.get("loading.png")), width, height).freeze end
+    GdkPixbuf::Pixbuf.new(file: File.expand_path(Skin.get("loading.png")), width: width, height: height).freeze end
   memoize :_loading_pixbuf
 
   # 画像が見つからない場合のPixbufを返す
@@ -174,7 +174,7 @@ module Gdk::WebImageLoader
     else
       _notfound_pixbuf(rect.width, rect.height) end end
   def _notfound_pixbuf(width, height)
-    Gdk::Pixbuf.new(File.expand_path(Skin.get("notfound.png")), width, height).freeze
+    GdkPixbuf::Pixbuf.new(file: File.expand_path(Skin.get("notfound.png")), width: width, height: height).freeze
   end
   memoize :_notfound_pixbuf
 

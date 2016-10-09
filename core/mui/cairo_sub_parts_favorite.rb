@@ -17,7 +17,7 @@ class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
   end
 
   def title_icon
-    Gdk::Pixbuf.new(Skin.get("unfav.png"), @icon_width, @icon_height) end
+    GdkPixbuf::Pixbuf.new(file: Skin.get("unfav.png"), width: @icon_width, height: @icon_height) end
 
   def name
     :favorited end

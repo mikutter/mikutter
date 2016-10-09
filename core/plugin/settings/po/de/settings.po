@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-09-01 14:27+0000\n"
+"POT-Creation-Date: 2016-10-02 21:35+0900\n"
+"PO-Revision-Date: 2016-10-03 12:14+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -156,3 +156,7 @@ msgstr "http://mikutter.hachune.net/"
 #: ../builder.rb:287
 msgid "参照"
 msgstr "Datei auswählen"
+
+#: ../settings.rb:9 ../settings.rb:23
+msgid "設定"
+msgstr "Einstellungen"
