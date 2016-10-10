@@ -331,6 +331,10 @@ class Retriever::Model
     end
   end
 
+  def eql?(other)
+    self == other
+  end
+
   def to_hash
     @value.dup
   end
