@@ -38,11 +38,11 @@ module Plugin::Openimg
             end
             true end
 
-          pixbufloader.ssc(:closed, self) do
+          complete_promise.next{
             progress(pixbufloader.pixbuf, paint: true)
-            true end
-
-          complete_promise.trap { |exception|
+            pixbufloader.close
+          }.trap { |exception|
+            error exception
             @image_surface = error_surface
             redraw(repaint: true)
           }
