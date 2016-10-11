@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+require_relative 'model/search'
 
 Plugin.create :search do
+  intent Plugin::Search::Search do |token|
+    Plugin.call(:search_start, token.model.query)
+  end
+
   querybox = ::Gtk::Entry.new()
   querycont = ::Gtk::VBox.new(false, 0)
   searchbtn = ::Gtk::Button.new(_('検索'))
