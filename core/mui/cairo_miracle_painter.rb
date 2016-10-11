@@ -150,7 +150,12 @@ class Gdk::MiraclePainter < Gtk::Object
         index = main_pos_to_index(x, y)
         if index and message.links.respond_to?(:segment_by_index)
           l = message.links.segment_by_index(index)
-          l[:callback].call(l) if l and l[:callback] end end
+          if l
+            case
+            when l[:callback]
+              l[:callback].call(l)
+            when l[:open]
+              Plugin.call(:open, l[:open]) end end end end
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       Plugin::GUI::Command.menu_pop
