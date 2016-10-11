@@ -48,18 +48,23 @@ module Retriever::Entity
       case slug
       when :urls
         entity[:face] = (entity[:display_url] or entity[:url])
-        entity[:url] =  (entity[:expanded_url] or entity[:url])
-        entity[:callback] = ->segment{ Gtk.openurl(segment[:url]) }
+        entity[:url] = (entity[:expanded_url] or entity[:url])
+        entity[:open] = entity[:url]
       when :user_mentions
-        entity[:face] = "@"+entity[:screen_name]
-        entity[:url] = "@"+entity[:screen_name]
-        entity[:callback] = ->segment{ Plugin.call(:show_profile, Service.primary, User.findbyidname(entity[:screen_name])) }
+        entity[:face] = entity[:url] = "@#{entity[:screen_name]}".freeze
+        user = Retriever::Model(:twitter_user)
+        if user
+          entity[:open] = user.findbyidname(entity[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY) ||
+                          URI("https://twitter.com/#{entity[:screen_name]}")
+        else
+          entity[:open] = URI("https://twitter.com/#{entity[:screen_name]}")
+        end
       when :hashtags
-        entity[:face] = "#"+entity[:text]
-        entity[:url] = "#"+entity[:text]
-        entity[:callback] = ->segment{ Plugin.call(:search_start, entity[:url]) }
+        entity[:face] = entity[:url] = "##{entity[:text]}".freeze
+        twitter_search = Retriever::Model(:twitter_search)
+        if twitter_search
+          entity[:open] = twitter_search.new(query: entity[:text]) end
       when :media
-        entity[:callback] = ->segment{ Gtk::TimeLine.openurl(segment[:url]) }
         case entity[:video_info] and entity[:type]
         when 'video'
           variant = Array(entity[:video_info][:variants])
@@ -67,17 +72,23 @@ module Retriever::Entity
                     .sort_by{|v|v[:bitrate]}
                     .last
           entity[:face] = "#{entity[:display_url]} (%.1fs)" % (entity[:video_info][:duration_millis]/1000.0)
-          entity[:url] = variant[:url]
+          entity[:open] = entity[:url] = variant[:url]
         when 'animated_gif'
           variant = Array(entity[:video_info][:variants])
                     .select{|v|v[:content_type] == "video/mp4"}
                     .sort_by{|v|v[:bitrate]}
                     .last
           entity[:face] = "#{entity[:display_url]} (GIF)"
-          entity[:url] = variant[:url]
+          entity[:open] = entity[:url] = variant[:url]
         else
           entity[:face] = entity[:display_url]
           entity[:url] = entity[:media_url]
+          photo = Retriever::Model(:openimg_photo)
+          if photo
+            entity[:open] = photo.new(perma_link: entity[:media_url])
+          else
+            entity[:open] = entity[:media_url]
+          end
         end
       else
         error "Unknown entity slug `#{slug}' was detected."

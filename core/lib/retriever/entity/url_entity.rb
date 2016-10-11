@@ -12,6 +12,5 @@ schemeはhttpまたはhttpsのURLを全てリンクにするEntity。
 
 =end
   URLEntity = Retriever::Entity::RegexpEntity.filter(URI.regexp(%w<http https>),
-                                                     generator: ret_nth,
-                                                     open: ->s{ Gtk::TimeLine.openurl(s[:url]) })
+                                                     generator: ->s{ s.merge(open: s[:url]) })
 end
