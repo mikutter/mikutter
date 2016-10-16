@@ -86,8 +86,7 @@ Plugin.create :display_requirements do
   on_favorite do |service, user, message|
     activity(:like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がいいねいいねしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
+                          "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
@@ -96,8 +95,7 @@ Plugin.create :display_requirements do
   on_unfavorite do |service, user, message|
     activity(:dont_like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんいいねしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
+                          "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
              icon: user[:profile_image_url],
              related: message.user.me? || user.me?,
              service: service)
