@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+require_relative 'listview'
 
 Plugin.create(:intent_selector) do
   UserConfig[:intent_selector_rules] ||= []
+
   on_intent_select do |intents, model|
     case model
     when Retriever::Model
@@ -11,6 +13,15 @@ Plugin.create(:intent_selector) do
     when String
       intent_open(intents, uri: URI.parse(model))
     end
+  end
+
+  settings(_('関連付け')) do
+    listview = Plugin::IntentSelector::IntentSelectorListView.new
+    pack_start(Gtk::VBox.new(false, 4).
+                 closeup(listview.filter_entry).
+                 add(Gtk::HBox.new(false, 4).
+                       add(listview).
+                       closeup(listview.buttons(Gtk::VBox))))
   end
 
   # _model:_ または _uri:_ を開くintentを _intents_ の中から選び出し、その方法で開く。
@@ -97,7 +108,7 @@ Plugin.create(:intent_selector) do
 
   def add_intent_rule(intent:, str:, rule:, model_slug:)
     unless UserConfig[:intent_selector_rules].any?{|r| r[:intent].to_sym == intent.slug && r[:str] == str && r[:rule] == rule }
-      UserConfig[:intent_selector_rules] += [{intent: intent.slug, model: model_slug, str: str, rule: rule}]
+      UserConfig[:intent_selector_rules] += [{uuid: SecureRandom.uuid, intent: intent.slug, model: model_slug, str: str, rule: rule}]
     end
   end
 

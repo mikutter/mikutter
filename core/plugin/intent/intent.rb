@@ -3,6 +3,10 @@ require_relative 'model/intent'
 require_relative 'model/intent_token'
 
 Plugin.create(:intent) do
+  # 全てのIntentを列挙するためのフィルタ
+  defevent :intent_catalog,
+           prototype: [:<<]
+
   # _uri_ を開くことができる Model を列挙するためのフィルタ
   defevent :model_of_uri,
            prototype: [URI, :<<]
@@ -39,6 +43,10 @@ Plugin.create(:intent) do
         intents << my_intent
       end
       [target_model_slug, intents]
+    end
+    filter_intent_all do |intents|
+      intents << my_intent
+      [intents]
     end
     add_event(:"intent_open_#{slug}", &proc)
     self
