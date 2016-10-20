@@ -139,6 +139,17 @@ class UserConfig
     :quote_text_max_line_count => 10,
     :reply_clicked_action => :open,
     :quote_clicked_action => :open,
+
+    :intent_selector_rules => [{:uuid=>"8ab31d89-6d5f-4765-bb99-7a93ce5b1139",
+                                :intent=>:user_detail_view_twitter_user,
+                                :model=>"",
+                                :str=>"https://twitter.com/",
+                                :rule=>"start"},
+                               {:uuid=>"c0095e59-75da-4177-98e0-d4955ece1d20",
+                                :intent=>:message_detail_view_twitter_tweet,
+                                :model=>"",
+                                :str=>"https://twitter.com/",
+                                :rule=>"start"}]
   }
 
   @@watcher = Hash.new{ [] }
