@@ -20,7 +20,7 @@ class User < Retriever::Model
   # detail  | detail
   # profile_image_url | icon
 
-  field.string :id
+  field.int    :id
   field.string :idname
   field.string :name
   field.string :location
