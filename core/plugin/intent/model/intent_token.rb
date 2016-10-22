@@ -2,7 +2,7 @@
 
 module Plugin::Intent
   class IntentToken < Retriever::Model
-    field.string :uri, required: true
+    field.uri    :uri, required: true
     field.has    :model, Retriever::Model
     field.has    :intent, Plugin::Intent::Intent, required: true
     field.has    :parent, Plugin::Intent::IntentToken
