@@ -52,6 +52,14 @@ module Plugin::Openimg
       !@state
     end
 
+    def inspect
+      if @state == :complete
+        "#<#{self.class}: #{perma_link} (state: #{@state}, #{self.blob.size} bytes cached)>"
+      else
+        "#<#{self.class}: #{perma_link} (state: #{@state})>"
+      end
+    end
+
     private
 
     def download!(&partial_callback)
