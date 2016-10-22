@@ -128,10 +128,10 @@ module Gtk
         return render_message(record.message)
       else
         self.pixbuf = GdkPixbuf::Pixbuf.new(file: Skin.get('notfound.png')) end
-    rescue Exception => e
-      error e
-      if Mopt.debug
-        raise e end
+    rescue Exception => err
+      error "#{err.class} by uri: #{uri} model: #{record ? record.message.inspect : nil}"
+      raise if Mopt.debug
+      error err
       self.pixbuf = GdkPixbuf::Pixbuf.new(file: Skin.get('notfound.png')) end
 
     private
