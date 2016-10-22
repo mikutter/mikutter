@@ -4,6 +4,7 @@ module Retriever
   # _model_slug_ をslugとして持つModelクラスを返す。
   # 見つからない場合、nilを返す。
   def self.Model(model_slug)
+    model_slug = model_slug.to_sym
     ObjectSpace.each_object(Retriever::Model.singleton_class) do |klass|
       return klass if klass.slug == model_slug
     end
