@@ -20,6 +20,11 @@ Plugin.create(:intent) do
   defevent :intent_select,
            prototype: [Enumerable, tcor(URI, String, Retriever::Model)]
 
+  # IntentTokenの次にあたるintentを発生させる。
+  defevent :intent_forward,
+           priority: :ui_response,
+           prototype: [Plugin::Intent::IntentToken]
+
   # _model_ を開く方法を新しく登録する。
   # ==== Args
   # [model] サポートするModelのClass
@@ -63,30 +68,43 @@ Plugin.create(:intent) do
     end
   end
 
+  on_intent_forward do |intent_token|
+    case intent_token[:source]
+    when Retriever::Model
+      open_model(intent_token[:source], token: intent_token)
+    else
+      open_uri(intent_token.uri, token: intent_token)
+    end
+  end
+
   # _uri_ をUI上で開く。
   # このメソッドが呼ばれたらIntentTokenを生成して、開くことを試みる。
   # open_modelのほうが高速なので、modelオブジェクトが存在するならばopen_modelを呼ぶこと。
   # ==== Args
   # [uri] 対象となるURI
-  def open_uri(uri)
+  # [token:] 親となるIntentToken
+  def open_uri(uri, token: nil)
     model_slugs = Plugin.filtering(:model_of_uri, uri.freeze, Set.new).last
     if model_slugs.empty?
       error "model not found to open for #{uri}"
       return
     end
-    intents = model_slugs.inject(Set.new) do |memo, model_slug|
-      memo.merge(Plugin.filtering(:intent_select_by_model_slug, model_slug, Set.new).last)
+    intents = model_slugs.lazy.flat_map{|model_slug|
+      Plugin.filtering(:intent_select_by_model_slug, model_slug, []).last
+    }
+    if token
+      intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
     end
-    if intents.empty?
+    head = intents.first(2)
+    case head.size
+    when 0
       error "intent not found to open for #{model_slugs.to_a}"
       return
-    end
-    if intents.size == 1
-      intent = intents.to_a.first
+    when 1
       Plugin::Intent::IntentToken.open(
         uri: uri,
-        intent: intent,
-        parent: nil)
+        intent: head.first,
+        parent: token)
     else
       Plugin.call(:intent_select, intents, uri)
     end
@@ -98,16 +116,23 @@ Plugin.create(:intent) do
   # このメソッドはヒントとして _model_ を与えるため、探索が発生せず高速に処理できる。
   # ==== Args
   # [model] 対象となるRetriever::Model
-  def open_model(model)
+  def open_model(model, token: nil)
     intents = Plugin.filtering(:intent_select_by_model_slug, model.class.slug, Set.new).last
-    # TODO: intents をユーザに選択させる
-    if intents.size == 1
-      intent = intents.to_a.first
+    if token
+      intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
+    end
+    head = intents.first(2)
+    case head.size
+    when 0
+      type_strict model.uri => URI
+      open_uri(model.uri, token: token)
+    when 1
+      intent = head.first
       Plugin::Intent::IntentToken.open(
         uri: model.uri,
         model: model,
         intent: intent,
-        parent: nil)
+        parent: token)
     else
       Plugin.call(:intent_select, intents, model)
     end
