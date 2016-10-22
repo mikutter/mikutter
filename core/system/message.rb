@@ -11,8 +11,8 @@ class Mikutter::System::Message < Retriever::Model
 
   field.string :description, required: true
   field.has :user, Mikutter::System::User, required: true
-  field.string :created
-  field.string :modified
+  field.time :created
+  field.time :modified
 
   entity_class Retriever::Entity::URLEntity
 
