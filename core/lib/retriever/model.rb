@@ -85,7 +85,7 @@ class Retriever::Model
       end
 
       define_method("#{field_name}=") do |value|
-        @value[field_name] = value
+        @value[field_name] = Retriever::Model.cast(value, type, required)
         self.class.store_datum(self)
         value
       end
@@ -372,7 +372,7 @@ class Retriever::Model
     self.class.keys.each{ |column|
       key, type, required = *column
       begin
-        Retriever::Model.cast(self.fetch(key), type, required)
+        @value[key.to_sym] = Retriever::Model.cast(self.fetch(key), type, required)
       rescue Retriever::InvalidTypeError=>e
         estr = e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
         warn estr
