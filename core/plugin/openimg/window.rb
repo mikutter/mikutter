@@ -142,7 +142,7 @@ module Plugin::Openimg
 
     def gen_browser_clicked
       proc do
-        Plugin.call(:open, @next_opener)
+        @next_opener.forward
         false
       end
     end
