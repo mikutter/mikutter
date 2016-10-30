@@ -57,6 +57,14 @@ Plugin.create(:intent) do
     self
   end
 
+  command(:intent_open,
+          name: _('開く'),
+          condition: lambda{ |opt| opt.messages.size == 1 },
+          visible: true,
+          role: :timeline) do |opt|
+    Plugin.call(:open, opt.messages.first)
+  end
+
   on_open do |object|
     case object
     when Plugin::Intent::IntentToken
