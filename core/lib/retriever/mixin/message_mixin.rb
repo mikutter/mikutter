@@ -101,6 +101,29 @@ module Retriever::Model::MessageMixin
     false
   end
 
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それぞれを引数に取って
+  # ブロックが呼ばれる。
+  # ブロックが渡されていない場合、 _Enumerator_ を返す。
+  # _force_retrieve_ は、 Message#receive_message の引数にそのまま渡される
+  # ==== Return
+  # obj|Enumerator
+  def each_ancestor
+    Enumerator.new{|y| y << self }
+  end
+
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、それらを配列にして返す。
+  # 配列インデックスが大きいものほど、早く投稿された投稿になる。
+  # （[0]は[1]へのリプライ）
+  def ancestors(force_retrieve=false)
+    [self]
+  end
+
+  # 投稿の宛先になっている投稿を再帰的にさかのぼり、何にも宛てられていない投稿を返す。
+  # つまり、一番祖先を返す。
+  def ancestor(force_retrieve=false)
+    ancestors(force_retrieve).last
+  end
+
   def has_receive_message?
     false
   end
