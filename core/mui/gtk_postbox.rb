@@ -305,6 +305,7 @@ module Gtk
     # 文字列からhidden headerを除いた文字列を返す。
     # hidden headerが含まれていない場合は、 _text_ を返す。
     def trim_hidden_header(text)
+      return text unless UserConfig[:auto_populate_reply_metadata]
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
       forecast_receivers_sn = Set.new
       if reply?
