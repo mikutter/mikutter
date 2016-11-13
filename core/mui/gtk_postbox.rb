@@ -305,14 +305,18 @@ module Gtk
     # 文字列からhidden headerを除いた文字列を返す。
     # hidden headerが含まれていない場合は、 _text_ を返す。
     def trim_hidden_header(text)
+      return text unless UserConfig[:auto_populate_reply_metadata]
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
-      forecast_receivers = Set.new.freeze
+      forecast_receivers_sn = Set.new
       if reply?
-        forecast_receivers += @to.first.each_ancestor.map(&:user)
+        @to.first.each_ancestor.each do |m|
+          forecast_receivers_sn << m.user.idname
+          forecast_receivers_sn.merge(m.receive_user_screen_names)
+        end
       end
       if mentions
-        specific_screen_names = mentions[1].split(/\s+/).map{|s|s[1, s.size]}
-        [*(specific_screen_names - forecast_receivers.map(&:idname)).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
+        specific_screen_names = Set.new(mentions[1].split(/\s+/).map{|s|s[1, s.size]})
+        [*(specific_screen_names - forecast_receivers_sn).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
       else
         text
       end
