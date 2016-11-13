@@ -124,9 +124,13 @@ module MikuTwitter::APIShortcuts
     data[:in_reply_to_user_id] = receiver.id if receiver
     data[:in_reply_to_status_id] = replyto.id if replyto
     if is_reply
-      forecast_receivers = exclude_receivers = Set.new.freeze
+      forecast_receivers = Set.new
+      exclude_receivers = Set.new
       if replyto
-        forecast_receivers += replyto.each_ancestor.map(&:user)
+        replyto.each_ancestor.each do |m|
+          forecast_receivers << m.user
+          forecast_receivers.merge(m.receive_user_screen_names.map{|sn| User.findbyidname(sn) }.compact)
+        end
       end
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
       if mentions
