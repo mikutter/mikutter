@@ -129,10 +129,15 @@ module MikuTwitter::APIShortcuts
     data = {:status => text }
     data[:in_reply_to_user_id] = receiver.id if receiver
     data[:in_reply_to_status_id] = replyto.id if replyto
-    if is_reply
-      forecast_receivers = exclude_receivers = Set.new.freeze
+    if is_reply && UserConfig[:auto_populate_reply_metadata]
+      data[:auto_populate_reply_metadata] = true
+      forecast_receivers = Set.new
+      exclude_receivers = Set.new
       if replyto
-        forecast_receivers += replyto.each_ancestor.map(&:user)
+        replyto.each_ancestor.each do |m|
+          forecast_receivers << m.user
+          forecast_receivers.merge(m.receive_user_screen_names.map{|sn| User.findbyidname(sn) }.compact)
+        end
       end
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
       if mentions
@@ -141,7 +146,6 @@ module MikuTwitter::APIShortcuts
         text = [*(specific_screen_names - forecast_receivers.map(&:idname)).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
         data[:status] = text
       end
-      data[:auto_populate_reply_metadata] = true
       data[:exclude_reply_user_ids] = exclude_receivers.map(&:id).join(',') unless exclude_receivers.empty?
     end
     if iolist and !iolist.empty?
