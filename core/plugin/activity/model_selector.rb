@@ -22,7 +22,7 @@ module Plugin::Activity
             iter[ICON] = loaded_icon
           end
         end
-        iter[MODEL_KIND] = record.class.model_spec[:name]
+        iter[MODEL_KIND] = record.class.spec[:name]
         iter[TITLE] = (record[:title] || record[:name] || record[:description] || record.to_s).gsub("\n", '')
         iter[MODEL] = record
       end

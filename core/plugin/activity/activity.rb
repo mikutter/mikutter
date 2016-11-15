@@ -230,7 +230,7 @@ Plugin.create(:activity) do
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),
                  service: Service.primary,
-                 children: [retweet.user, retweet]) }.terminate(_ 'リツイートソースが取得できませんでした') }
+                 children: [retweet.user, retweet.retweet_source || retweet]) }.terminate(_ 'リツイートソースが取得できませんでした') }
   end
 
   on_list_member_added do |service, user, list, source_user|
@@ -291,7 +291,7 @@ Plugin.create(:activity) do
                  icon: dm[:sender].icon,
                  service: service,
                  date: date,
-                 children: [dm]) end }
+                 children: [dm.recipient, dm.sender, dm]) end }
   end
 
   onunload do
