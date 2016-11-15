@@ -6,6 +6,7 @@ depends:
   - gtk
   - uitranslator
   - intent
+  - photo
 version: '2.1'
 author: toshi_a
 name: 画像ビューア
