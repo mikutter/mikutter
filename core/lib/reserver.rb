@@ -36,6 +36,10 @@ class Reserver < Delegator
   def to_proc
     @proc end
 
+  def cancel
+    Reserver.unregister(self)
+  end
+
   class << self
     WakeUp = Class.new(Timeout::Error)
 
@@ -43,6 +47,10 @@ class Reserver < Delegator
       atomic do
         (@reservers ||= SortedSet.new) << new
         waiter.run end end
+
+    def unregister(reserver)
+      @reservers.delete(reserver)
+    end
 
     def waiter
       atomic do
