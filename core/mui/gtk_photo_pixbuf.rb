@@ -7,6 +7,7 @@ module Retriever::Model::PhotoMixin
 
   # 特定のサイズのPixbufを作成するDeferredを返す
   def download_pixbuf(width:, height:)
+    increase_read_count
     cache_get_defer(width: width, height: height).trap do |err|
       error err if err
       gen_pixbuf_from_raw_data(width: width, height: height)

@@ -11,6 +11,12 @@ module Retriever::Model::PhotoMixin
     klass.field.string :blob
   end
 
+  def initialize(*rest)
+    super
+    @read_count = 0
+    @cached = false
+  end
+
   # 画像をダウンロードする。
   # partialを指定すると、ダウンロードの進捗があれば、前回呼び出されたときから
   # ダウンロードできた内容を引数に呼び出される。
@@ -21,6 +27,7 @@ module Retriever::Model::PhotoMixin
   # ==== Return
   # [Delayer::Deferred::Deferredable] ダウンロードが完了したらselfを引数に呼び出される
   def download(&partial_callback)      # :yield: part
+    increase_read_count
     case @state
     when :complete
       partial_callback.(blob) if block_given?
@@ -62,7 +69,7 @@ module Retriever::Model::PhotoMixin
     atomic do
       return download(&partial_callback) unless ready?
       promise = initialize_download(&partial_callback)
-      Thread.new(&method(:download_routine)).next{|success|
+      Thread.new(&method(:cache_read_or_download)).next{|success|
         if success
           finalize_download_as_success
         else
@@ -94,6 +101,19 @@ module Retriever::Model::PhotoMixin
     if cb
       @partials  << cb
       cb.(@buffer) if !@buffer.empty?
+    end
+  end
+
+  def cache_read_or_download
+    cache_read_routine || download_routine
+  end
+
+  def cache_read_routine
+    raw = Plugin.filtering(:image_cache, uri.to_s, nil)[1]
+    if raw.is_a?(String)
+      @buffer << raw.freeze
+      atomic{ @partials.each{|c|c.(raw)} }
+      true
     end
   end
 
@@ -144,5 +164,21 @@ module Retriever::Model::PhotoMixin
       @promises.each{|p| p.fail(exception) }
       @buffer = @promises = @partials = nil
     end
+  end
+
+  # 画像が読まれた回数をインクリメントする
+  def increase_read_count
+    @read_count += 1
+    if !@cached and @read_count >= appear_limit
+      @cached = true
+      download do
+        Plugin.call(:image_cache_saved, uri.to_s, blob)
+      end
+    end
+  end
+
+  # キャッシュする出現回数のしきい値を返す
+  def appear_limit
+    UserConfig[:image_file_cache_appear_limit] || 32
   end
 end
