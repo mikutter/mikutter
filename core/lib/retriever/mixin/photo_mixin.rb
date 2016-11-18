@@ -6,7 +6,7 @@
 
 このmoduleをincludeしたクラスは、必要に応じて _download_routine_ をオーバライドする
 =end
-module Retriever::PhotoMixin
+module Retriever::Model::PhotoMixin
   def self.included(klass)
     klass.field.string :blob
   end

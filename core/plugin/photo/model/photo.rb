@@ -3,7 +3,7 @@ miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Photo
   class Photo < Retriever::Model
-    include Retriever::PhotoMixin
+    include Retriever::Model::PhotoMixin
     register :photo, name: Plugin[:photo]._('画像')
 
     field.uri :perma_link
