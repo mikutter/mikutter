@@ -15,6 +15,7 @@ module Retriever::Model::PhotoMixin
     super
     @read_count = 0
     @cached = false
+    @forget = nil
   end
 
   # 画像をダウンロードする。
@@ -166,7 +167,8 @@ module Retriever::Model::PhotoMixin
     end
   end
 
-  # 画像が読まれた回数をインクリメントする
+  # 画像が読まれた回数をインクリメントする。
+  # 読み込まれた回数が規定値を超えたら、blobを引数に image_cache_saved イベントを発生させて、誰かがキャッシュしてくれたらなあ
   def increase_read_count
     @read_count += 1
     if !@cached and @read_count >= appear_limit
@@ -175,10 +177,29 @@ module Retriever::Model::PhotoMixin
         Plugin.call(:image_cache_saved, uri.to_s, blob)
       end
     end
+    set_forget_timer
+  end
+
+  # blobのメモリキャッシュ消滅タイマーをリセットする。
+  # 既に動いているタイマーがあればそれをキャンセルする。
+  def set_forget_timer
+    @forget.cancel if @forget
+    @forget = Reserver.new(forget_time){ forget! }
+  end
+
+  # 覚えておりません
+  def forget!
+    @forget = @state = self.blob = nil
   end
 
   # キャッシュする出現回数のしきい値を返す
   def appear_limit
     UserConfig[:image_file_cache_appear_limit] || 32
+  end
+
+  # 画像をメモリキャッシュする時間(秒)
+  # Pixbufが生成されてしまえば基本的にblobにはアクセスされないので、短くて良いと思う
+  def forget_time
+    (UserConfig[:photo_forget_time] || 60)
   end
 end
