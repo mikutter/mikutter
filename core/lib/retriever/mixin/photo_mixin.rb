@@ -122,7 +122,7 @@ module Retriever::Model::PhotoMixin
 
   def download_routine
     begin
-      open(uri.to_s) do |is|
+      open(uri.scheme == 'file' ? uri.path : uri.to_s) do |is|
         download_mainloop(is)
       end
     rescue EOFError
