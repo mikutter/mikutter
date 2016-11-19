@@ -410,14 +410,6 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.paint end end
 
   def main_icon(message)
-    Gdk::WebImageLoader.pixbuf(message[:user][:profile_image_url], icon_size){ |pixbuf|
-      helper.on_modify } end
+    message.user.icon.load_pixbuf(width: icon_size.width, height: icon_size.width){ helper.on_modify }
+  end
 end
-
-
-
-
-
-
-
-
