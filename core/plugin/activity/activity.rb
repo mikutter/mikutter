@@ -169,6 +169,16 @@ Plugin.create(:activity) do
     if not mute?(params)
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       iter = activity_view.model.prepend
+      case params[:icon]
+      when GdkPixbuf::Pixbuf
+        iter[ActivityView::ICON] = params[:icon]
+      when nil, false
+      else
+        iter[ActivityView::ICON] = Retriever::Model(:photo)[params[:icon]].
+                                     load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
+      end
       if params[:icon].is_a? String
         iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(params[:icon], 24, 24){ |loaded_icon|
           iter[ActivityView::ICON] = loaded_icon }
