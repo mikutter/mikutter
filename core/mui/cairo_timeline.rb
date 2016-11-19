@@ -158,7 +158,7 @@ class Gtk::TimeLine
     iter[Gtk::TimeLine::InnerTL::ORDER] = get_order(message)
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
     @tl.set_iter_dict(iter)
-    @remover_queue.push(message) if @tl.realized?
+    @remover_queue.push(message)
     self
   end
 

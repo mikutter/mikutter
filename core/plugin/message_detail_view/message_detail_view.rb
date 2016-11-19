@@ -7,7 +7,7 @@ Plugin.create(:message_detail_view) do
   end
 
   command(:message_detail_view_show,
-          name: '詳細',
+          name: _('詳細'),
           condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.is_a?(Message) },
           visible: true,
           role: :timeline) do |opt|
