@@ -14,11 +14,23 @@ module Retriever::Model::PhotoMixin
     end
   end
 
+  # 引数の寸法のGdkPixbuf::Pixbufを、Pixbufキャッシュから返す。
+  # Pixbufキャッシュに存在しない場合はnilを返す
+  def pixbuf(width:, height:)
+    result = pixbuf_cache[[width, height].hash]
+    if result
+      result.read_count += 1
+      result.reserver.cancel
+      result.reserver = pixbuf_forget([width, height].hash, result.read_count)
+      result.pixbuf
+    end
+  end
+
   private
 
   def gen_pixbuf_from_raw_data(width:, height:)
     download.next{|photo|
-      pb = pixbuf_cache_get(width: width, height: height)
+      pb = pixbuf(width: width, height: height)
       if pb
         pb
       else
@@ -35,7 +47,7 @@ module Retriever::Model::PhotoMixin
 
   def cache_get_defer(width:, height:)
     Deferred.new.next do
-      result = pixbuf_cache_get(width: width, height: height)
+      result = pixbuf(width: width, height: height)
       if result
         result
       else
@@ -44,20 +56,10 @@ module Retriever::Model::PhotoMixin
     end
   end
 
-  def pixbuf_cache_get(width:, height:)
-    result = pixbuf_cache[[width, height].hash]
-    if result
-      result.read_count += 1
-      result.reserver.cancel
-      result.reserver = pixbuf_forget([width, height].hash, result.read_count)
-      result.pixbuf
-    end
-  end
-
   def pixbuf_cache_set(pixbuf, width:, height:)
     if pixbuf_cache[[width, height].hash]
       error "cache already exists for #{uri} #{width}*#{height}"
-      pixbuf_cache_get(width: width, height: height)
+      pixbuf(width: width, height: height)
     else
       key = [width, height].hash
       pixbuf_cache[key] =
