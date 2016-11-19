@@ -35,7 +35,8 @@ class Gtk::AccountBox < Gtk::EventBox
     refresh
     if @face
       user = service.user_obj
-      @face.pixbuf = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]){ |pixbuf|
+      @face.pixbuf = user.icon.load_pixbuf(width: UserConfig[:gtk_accountbox_geometry],
+                                           height: UserConfig[:gtk_accountbox_geometry]){ |pixbuf|
         if user == service.user_obj
           @face.pixbuf = pixbuf end } end end
 

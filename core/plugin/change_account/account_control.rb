@@ -20,7 +20,7 @@ module ::Plugin::ChangeAccount
       return if self.destroyed?
       [service.user_obj[:name], service.user_obj[:idname], service]
       iter = model.model.append
-      iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(service.user_obj[:profile_image_url], 16, 16) { |new_pixbuf|
+      iter[COL_ICON] = service.user_obj.icon.load_pixbuf(width: 16, height: 16) { |new_pixbuf|
         iter[COL_ICON] = new_pixbuf if not self.destroyed? }
       iter[COL_SCREEN_NAME] = service.user_obj[:idname]
       iter[COL_NAME] = service.user_obj[:name]
