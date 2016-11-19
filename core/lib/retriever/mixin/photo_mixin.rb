@@ -7,6 +7,8 @@
 このmoduleをincludeしたクラスは、必要に応じて _download_routine_ をオーバライドする
 =end
 module Retriever::Model::PhotoMixin
+  DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
+
   def self.included(klass)
     klass.field.string :blob
   end
@@ -70,7 +72,7 @@ module Retriever::Model::PhotoMixin
     atomic do
       return download(&partial_callback) unless ready?
       promise = initialize_download(&partial_callback)
-      Thread.new(&method(:cache_read_or_download)).next{|success|
+      DownloadThread.new(&method(:cache_read_or_download)).next{|success|
         if success
           finalize_download_as_success
         else
