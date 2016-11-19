@@ -145,7 +145,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   end
 
   def user_icon(user)
-    @user_icon[user[:id]] ||= Gdk::WebImageLoader.pixbuf(user[:profile_image_url], icon_width, icon_height){ |pixbuf|
+    @user_icon[user[:id]] ||= user.icon.load_pixbuf(width: icon_width, height: icon_height){ |pixbuf|
       @user_icon[user[:id]] = pixbuf
       helper.on_modify } end
 
