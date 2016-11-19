@@ -14,6 +14,29 @@ module Retriever::Model::PhotoMixin
     end
   end
 
+  # download_pixbuf と似ているが、すぐさまキャッシュされているGdkPixbuf::Pixbufを返す。
+  # もしキャッシュされた GdkPixbuf::Pixbuf が存在しない場合、ロード中を示すPixbufを返し、
+  # GdkPixbuf::Pixbuf の作成を開始する。
+  # 作成が完了したら、その Pixbuf を引数に _&complete_callback_ が呼び出される。
+  # ==== Args
+  # [width:] 取得する Pixbuf の幅(px)
+  # [height:] 取得する Pixbuf の高さ(px)
+  # [ifnone:] Pixbuf が存在しなかった時に _&complete_callback_ に渡す値
+  # [&complete_callback] このメソッドによって画像のダウンロードが行われた場合、ダウンロード完了時に呼ばれる
+  # ==== Return
+  # [GdkPixbuf::Pixbuf] pixbuf
+  def load_pixbuf(width:, height:, ifnone: Gdk::WebImageLoader.notfound_pixbuf(width, height), &complete_callback)
+    result = pixbuf(width: width, height: height)
+    if result
+      result
+    else
+      download_pixbuf(width: width, height: height).next(&complete_callback).trap{
+        complete_callback.(ifnone)
+      }
+      Gdk::WebImageLoader.loading_pixbuf(width, height)
+    end
+  end
+
   # 引数の寸法のGdkPixbuf::Pixbufを、Pixbufキャッシュから返す。
   # Pixbufキャッシュに存在しない場合はnilを返す
   def pixbuf(width:, height:)
