@@ -13,6 +13,7 @@ miquire :mui, 'sub_parts_retweet'
 miquire :mui, 'sub_parts_quote'
 miquire :mui, 'markup_generator'
 miquire :mui, 'special_edge'
+miquire :mui, 'photo_pixbuf'
 miquire :lib, 'uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
@@ -360,10 +361,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # アイコンのpixbufを返す
   def main_icon
-    @main_icon ||= Gdk::WebImageLoader.pixbuf(message.user.profile_image_url, icon_width, icon_height){ |pixbuf|
-      if not destroyed?
-        @main_icon = pixbuf
-        on_modify end } end
+    @main_icon ||= message.user.icon.load_pixbuf(width: icon_width, height: icon_height){|pixbuf|
+      @main_icon = pixbuf
+      on_modify
+    }
+  end
 
   # 背景色を返す
   def get_backgroundcolor
