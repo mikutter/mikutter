@@ -13,7 +13,19 @@ module Plugin::Photo
     end
 
     def self.[](uri)
-      photos[uri.to_s.hash] ||= new(perma_link: uri)
+      case uri
+      when self
+        uri
+      when URI, Addressable::URI
+        photos[uri.to_s.hash] ||= new(perma_link: uri)
+      when String
+        if uri.start_with?('http')
+          photos[uri.hash] ||= new(perma_link: uri)
+        elsif uri.start_with?('/')
+          uri = URI::Generic.build(scheme: 'file', path: uri)
+          photos[uri.hash] ||= new(perma_link: uri)
+        end
+      end
     end
 
     def initialize(*params)
