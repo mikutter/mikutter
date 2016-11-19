@@ -85,7 +85,7 @@ module Retriever::Entity
           entity[:url] = entity[:media_url]
           photo = Retriever::Model(:photo)
           if photo
-            entity[:open] = photo.new(perma_link: entity[:media_url])
+            entity[:open] = photo[entity[:media_url]]
           else
             entity[:open] = entity[:media_url]
           end
