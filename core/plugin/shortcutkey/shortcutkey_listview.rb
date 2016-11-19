@@ -32,8 +32,9 @@ module Plugin::Shortcutkey
         if commands[slug]
           icon = commands[slug][:icon]
           icon = icon.call(nil) if icon.is_a? Proc
+          icon = Retriever::Model(:photo)[icon] if icon
           if icon
-            iter[COLUMN_COMMAND_ICON] = Gdk::WebImageLoader.pixbuf(icon, 16, 16){ |pixbuf|
+            iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16, height: 16){ |pixbuf|
               if not destroyed?
                 iter[COLUMN_COMMAND_ICON] = pixbuf end } end end } end
 
@@ -188,7 +189,7 @@ module Plugin::Shortcutkey
           icon = command[:icon]
           icon = icon.call(nil) if icon.is_a? Proc
           if icon
-            iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(icon, 16, 16){ |pixbuf|
+            iter[COL_ICON] = Retriever::Model(:photo)[icon].load_pixbuf(width: 16, height: 16){ |pixbuf|
               if not destroyed?
                 iter[COL_ICON] = pixbuf end } end
           name = command[:name]
