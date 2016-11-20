@@ -26,6 +26,7 @@ group :test do
   gem 'watch', '~> 0.1'
   gem 'mocha', '~> 0.14'
   gem 'webmock', '~> 1.17'
+  gem 'ruby-prof'
 end
 
 
