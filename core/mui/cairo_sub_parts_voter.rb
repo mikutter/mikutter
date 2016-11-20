@@ -103,8 +103,18 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   def name
     raise end
 
+  # このSubPartsのアイコンのPixbufを返す。
+  # title_icon_model メソッドをオーバライドしない場合、こちらを必ずオーバライドしなければならない
   def title_icon
-    raise end
+    title_icon_model.pixbuf(width: @icon_width, height: @icon_height)
+  end
+
+  # このSubPartsのアイコンをあらわすModelを返す。
+  # title_icon の内部でしか使われないので、このメソッドを使わないように title_icon を再定義した場合は
+  # このメソッドをオーバライドする必要はない。
+  def title_icon_model
+    raise
+  end
 
   private
 

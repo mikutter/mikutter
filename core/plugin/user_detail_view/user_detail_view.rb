@@ -208,7 +208,7 @@ Plugin.create :user_detail_view do
               w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
 
             w_eventbox_image_following.style = w_eventbox_image_following.parent.style
-            w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
+            w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin[new ? 'arrow_following.png' : 'arrow_notfollowing.png'], arrow_size).show_all)
             w_following_label.text = new ? _("ﾌｮﾛｰしている") : _("ﾌｮﾛｰしていない")
             followbutton.label = new ? _("解除") : _("ﾌｮﾛｰ") end }
         # フォローされている状態の更新

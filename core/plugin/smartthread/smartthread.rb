@@ -23,7 +23,7 @@ Plugin.create :smartthread do
 
   command(:smartthread,
           name: _('会話スレッドを表示'),
-          icon: Skin.get("list.png"),
+          icon: Skin['list.png'],
           condition: lambda{ |opt| not opt.messages.empty? and opt.messages.all? &:repliable? },
           visible: true,
           role: :timeline){ |opt|

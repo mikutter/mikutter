@@ -12,7 +12,7 @@ Plugin.create :command do
           name: _('コピー'),
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
-          icon: Skin.get("copy.png"),
+          icon: Skin['copy.png'],
           role: :timeline) do |opt|
     ::Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
 
@@ -20,7 +20,7 @@ Plugin.create :command do
           name: _('本文をコピー'),
           condition: Plugin::Command[:HasOneMessage],
           visible: true,
-          icon: Skin.get("copy_all.png"),
+          icon: Skin['copy_all.png'],
           role: :timeline) do |opt|
     ::Gtk::Clipboard.copy(opt.messages.first.to_show) end
 
@@ -28,7 +28,7 @@ Plugin.create :command do
           name: _('返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
-          icon: Skin.get("reply.png"),
+          icon: Skin['reply.png'],
           role: :timeline) do |opt|
     messages = opt.messages
     opt.widget.create_postbox(to: messages,
@@ -39,7 +39,7 @@ Plugin.create :command do
           name: _('全員に返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
-          icon: Skin.get("reply.png"),
+          icon: Skin['reply.png'],
           role: :timeline) do |opt|
     messages = opt.messages.map{ |m| m.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
@@ -61,7 +61,7 @@ Plugin.create :command do
           name: _('リツイート'),
           condition: Plugin::Command[:CanReTweetAny],
           visible: true,
-          icon: Skin.get("retweet.png"),
+          icon: Skin['retweet.png'],
           role: :timeline) do |opt|
     target = opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer)
     if target.any?{|message| message.from_me?([Service.primary]) }
@@ -74,7 +74,7 @@ Plugin.create :command do
           name: _('リツイートをキャンセル'),
           condition: Plugin::Command[:IsReTweetedAll],
           visible: true,
-          icon: Skin.get("retweet_cancel.png"),
+          icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
     opt.messages.each { |m|
       retweet = m.retweeted_statuses.find(&:from_me?)
@@ -84,7 +84,7 @@ Plugin.create :command do
           name: _('ふぁぼふぁぼする'),
           condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
-          icon: Skin.get("unfav.png"),
+          icon: Skin['unfav.png'],
           role: :timeline) do |opt|
     opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.map(&:introducer).each(&:favorite) end
 
@@ -92,7 +92,7 @@ Plugin.create :command do
           name: _('あんふぁぼ'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
-          icon: Skin.get("fav.png"),
+          icon: Skin['fav.png'],
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 
@@ -100,7 +100,7 @@ Plugin.create :command do
           name: _('削除'),
           condition: Plugin::Command[:IsMyMessageAll],
           visible: true,
-          icon: Skin.get("close.png"),
+          icon: Skin['close.png'],
           role: :timeline) do |opt|
     opt.messages.each { |m|
       m.destroy if ::Gtk::Dialog.confirm(_('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？') + "\n\n#{m.to_show}") } end
@@ -123,7 +123,7 @@ Plugin.create :command do
           name: _('投稿する'),
           condition: Plugin::Command[:Editable],
           visible: true,
-          icon: Skin.get("post.png"),
+          icon: Skin['post.png'],
           role: :postbox) do |opt|
     opt.widget.post_it! end
 
@@ -190,7 +190,7 @@ Plugin.create :command do
           condition: lambda{ |opt|
             opt.widget.deletable },
           visible: true,
-          icon: Skin.get("close.png"),
+          icon: Skin['close.png'],
           role: :tab) do |opt|
     opt.widget.destroy
   end

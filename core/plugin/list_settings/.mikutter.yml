@@ -8,6 +8,7 @@ depends:
   - gui
   - gtk
   - uitranslator
+  - skin
 version: '1.0'
 author: toshi_a
 name: リスト設定

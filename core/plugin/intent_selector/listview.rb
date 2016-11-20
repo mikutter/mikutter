@@ -79,7 +79,7 @@ module Plugin::IntentSelector
 
     def filter_entry
       @filter_entry ||= Gtk::Entry.new.tap do |entry|
-        entry.primary_icon_pixbuf = Gdk::WebImageLoader.pixbuf(MUI::Skin.get("search.png"), 24, 24)
+        entry.primary_icon_pixbuf = Skin['search.png'].pixbuf(width: 24, height: 24)
         entry.ssc(:changed, self, &gen_refilter)
       end
     end

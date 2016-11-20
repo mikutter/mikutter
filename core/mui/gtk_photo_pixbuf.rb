@@ -42,14 +42,22 @@ module Retriever::Model::PhotoMixin
     end
   end
 
-  # 引数の寸法のGdkPixbuf::Pixbufを、Pixbufキャッシュから返す。
-  # Pixbufキャッシュに存在しない場合はnilを返す
+  # 引数の寸法の GdkPixbuf::Pixbuf を、Pixbufキャッシュから返す。
+  # Pixbufキャッシュに存在しない場合は nil を返す。
+  # ただし、ロファイルシステム上に見つかった場合は、その場でそれを読み込んで返す。
+  # つまり、ファイルシステムのファイルを示している場合は、このメソッドはnilを返さず、常に GdkPixbuf::Pixbuf を返す。
+  # ==== Args
+  # [width:] Pixbufの幅(px)
+  # [height:] Pixbufの高さ(px)
+  # ==== Return
+  # [GdkPixbuf::Pixbuf] メモリキャッシュやファイルシステムから画像が見つかった場合
+  # [nil] 画像がローカルにキャッシュされていない場合
   def pixbuf(width:, height:)
     result = pixbuf_cache[[width, height].hash]
     if result
       result.read_count += 1
-      result.reserver.cancel
-      result.reserver = pixbuf_forget([width, height].hash, result.read_count)
+      result.reserver.cancel if result.reserver
+      result.reserver = pixbuf_forget(width, height, result.read_count)
       result.pixbuf
     elsif local?
       pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
@@ -93,7 +101,7 @@ module Retriever::Model::PhotoMixin
     else
       key = [width, height].hash
       pixbuf_cache[key] =
-        GdkPixbufCache.new(pixbuf, width, height, 0, pixbuf_forget(key, 0))
+        GdkPixbufCache.new(pixbuf, width, height, 0, pixbuf_forget(width, height, 0))
       pixbuf
     end
   end
@@ -102,9 +110,9 @@ module Retriever::Model::PhotoMixin
     @pixbuf_cache ||= Hash.new
   end
 
-  def pixbuf_forget(key, gen)
+  def pixbuf_forget(width, height, gen)
     Reserver.new([300, 60 * gen ** 2].max) do
-      pixbuf_cache.delete(key)
+      pixbuf_cache.delete([width, height].hash)
     end
   end
 

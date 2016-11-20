@@ -41,7 +41,8 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     @edge end
 
   def badge(_message)
-    GdkPixbuf::Pixbuf.new(file: Skin.get('reply.png'), width: badge_radius*2, height: badge_radius*2) end
+    Skin['reply.png'].pixbuf(width: badge_radius*2, height: badge_radius*2)
+  end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_replyviewer_background_color, message, nil).last
