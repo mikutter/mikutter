@@ -5,6 +5,11 @@ module Retriever::Model::PhotoMixin
 
   GdkPixbufCache = Struct.new(:pixbuf, :width, :height, :read_count, :reserver)
 
+  # ローカルファイルシステム上のものなら真
+  def local?
+    uri.scheme == 'file'.freeze
+  end
+
   # 特定のサイズのPixbufを作成するDeferredを返す
   def download_pixbuf(width:, height:)
     increase_read_count
@@ -46,6 +51,8 @@ module Retriever::Model::PhotoMixin
       result.reserver.cancel
       result.reserver = pixbuf_forget([width, height].hash, result.read_count)
       result.pixbuf
+    elsif local?
+      pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
     end
   end
 
