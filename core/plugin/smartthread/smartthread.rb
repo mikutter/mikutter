@@ -35,7 +35,7 @@ Plugin.create :smartthread do
     slug = "conversation#{serial}".to_sym
     tab slug, _("会話%{serial_id}") % {serial_id: serial} do
       set_deletable true
-      set_icon Skin.get("list.png")
+      set_icon Skin['list.png']
       temporary_tab
       timeline slug do
         order do |message|

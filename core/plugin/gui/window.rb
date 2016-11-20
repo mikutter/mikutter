@@ -32,7 +32,14 @@ class Plugin::GUI::Window
   end
 
   def set_icon(icon)
-    @icon = icon
+    case icon
+    when Retriever::Model
+      @icon = icon
+    when String
+      @icon = Retriever::Model(:photo)[icon]
+    else
+      raise RuntimeError, "Unexpected class `#{icon.class}'."
+    end
     Plugin.call(:gui_window_change_icon, self, icon)
   end
 

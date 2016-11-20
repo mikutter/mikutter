@@ -6,7 +6,6 @@ module Plugin::SavedSearch
                            :name,    # 検索の名前
                            :slug,    # Timeline, Tabのスラッグ
                            :service) # この検索を作成したService
-  DEFAULT_ICON = Skin.get('savedsearch.png').freeze
 end
 
 Plugin.create :saved_search do
@@ -51,7 +50,7 @@ Plugin.create :saved_search do
   def add_tab(saved_search)
     type_strict saved_search => Plugin::SavedSearch::SavedSearch
     tab(saved_search.slug, saved_search.name) do
-      set_icon Plugin::SavedSearch::DEFAULT_ICON
+      set_icon Skin['savedsearch.png']
       timeline saved_search.slug end
     register_cache(saved_search)
     timelines[saved_search.id] = saved_search end

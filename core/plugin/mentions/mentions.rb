@@ -5,7 +5,7 @@
 
 Plugin.create :mentions do
   tab :mentions, _("Replies") do
-    set_icon Skin.get("reply.png")
+    set_icon Skin['reply.png']
     timeline :mentions end
 
   on_mention do |service, messages|

@@ -47,7 +47,7 @@ Plugin.create :followingcontrol do
       [service, source, messages] end end
 
   user_fragment(:followings, _('フォローしている')) do
-    set_icon Skin.get("followings.png")
+    set_icon Skin['followings.png']
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
@@ -83,7 +83,7 @@ Plugin.create :followingcontrol do
   end
 
   user_fragment(:followers, _('フォローされている')) do
-    set_icon Skin.get("followers.png")
+    set_icon Skin['followers.png']
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container

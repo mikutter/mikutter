@@ -65,7 +65,7 @@ Plugin.create :user_detail_view do
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do
-    set_icon Skin.get("timeline.png")
+    set_icon Skin['timeline.png']
     user_id = retriever.id
     i_timeline = timeline nil do
       order do |message|

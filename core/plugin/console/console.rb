@@ -49,7 +49,7 @@ Plugin.create :console do
         false end }
 
     tab(:console, _("コンソール")) do
-      set_icon Skin.get('console.png')
+      set_icon Skin['console.png']
       set_deletable true
       temporary_tab
       nativewidget Plugin::Console::ConsoleControl.new().

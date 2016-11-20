@@ -12,13 +12,13 @@ module Plugin::DirectMessage
     @counter = gen_counter
     ul = userlist
     tab(:directmessage, _("DM")) do
-      set_icon Skin.get("directmessage.png")
+      set_icon Skin['directmessage.png']
       expand
       nativewidget ul
     end
 
     user_fragment(:directmessage, _("DM")) do
-      set_icon Skin.get("directmessage.png")
+      set_icon Skin['directmessage.png']
       u = user
       timeline timeline_name_for(u) do
         postbox(from: Sender.new(u), delegate_other: true)

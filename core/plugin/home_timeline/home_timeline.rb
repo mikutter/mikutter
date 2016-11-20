@@ -2,7 +2,7 @@
 
 Plugin.create :home_timeline do
   tab :home_timeline, _("Home Timeline") do
-    set_icon Skin.get("timeline.png")
+    set_icon Skin['timeline.png']
     timeline :home_timeline end
 
   on_update do |s, ms|
