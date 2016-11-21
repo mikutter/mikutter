@@ -107,7 +107,7 @@ module Plugin::ListSettings
           if Gtk::Dialog::RESPONSE_ACCEPT == response
             Plugin.call :extract_tab_create,
                         name: prompt.text,
-                        icon: Skin.get('list.png'),
+                        icon: Skin.get_path('list.png'),
                         sources: [:"#{list.user.idname}_list_#{list[:id]}"] end
           dialog.destroy
           prompt = dialog = nil } end

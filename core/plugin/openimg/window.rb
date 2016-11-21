@@ -174,12 +174,12 @@ module Plugin::Openimg
     end
 
     def loading_surface
-      surface = Cairo::ImageSurface.from_png(Skin.get('loading.png'))
+      surface = Cairo::ImageSurface.from_png(Skin.get_path('loading.png'))
       surface
     end
 
     def error_surface
-      surface = Cairo::ImageSurface.from_png(Skin.get('notfound.png'))
+      surface = Cairo::ImageSurface.from_png(Skin.get_path('notfound.png'))
       surface
     end
 
