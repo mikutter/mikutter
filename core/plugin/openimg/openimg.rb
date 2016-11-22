@@ -47,7 +47,7 @@ Plugin.create :openimg do
     raw  = Plugin.filtering(:openimg_raw_image_from_display_url, display_url, nil).last
     if raw
       begin
-        loader = Gdk::PixbufLoader.new
+        loader = GdkPixbuf::PixbufLoader.new
         thread = Thread.new do
           begin
             loop do
@@ -109,7 +109,7 @@ Plugin.create :openimg do
     Thread.new {
       Plugin.filtering(:openimg_pixbuf_from_display_url, display_url, nil, nil)
     }.next { |result|
-      if result[1].is_a? Gdk::PixbufLoader
+      if result[1].is_a? GdkPixbuf::PixbufLoader
         _, pixbufloader, thread = result
         pixbufloader.ssc(:area_updated, window) do |_, x, y, width, height|
           Delayer.new do

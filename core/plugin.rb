@@ -38,7 +38,7 @@ class Plugin < Pluggaloid::Plugin
   # [kind] Symbol 通知の種類
   # [title] String 通知のタイトル
   # [args] Hash その他オプション。主に以下の値
-  #   icon :: String|Gdk::Pixbuf アイコン
+  #   icon :: String|GdkPixbuf::Pixbuf アイコン
   #   date :: Time イベントの発生した時刻
   #   service :: Service 関係するServiceオブジェクト
   #   related :: 自分に関係するかどうかのフラグ

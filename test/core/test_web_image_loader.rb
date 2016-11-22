@@ -24,7 +24,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     (Thread.list - [Thread.current]).each &:join
     Delayer.run
     assert_equal(true, response[1])
-    assert_kind_of(Gdk::Pixbuf, response[0])
+    assert_kind_of(GdkPixbuf::Pixbuf, response[0])
   end
 
   must "internal server error" do
@@ -36,7 +36,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     (Thread.list - [Thread.current]).each &:join
     Delayer.run(0)
     assert_equal(true, response_success)
-    assert_kind_of(Gdk::Pixbuf, response_pixbuf)
+    assert_kind_of(GdkPixbuf::Pixbuf, response_pixbuf)
   end
 
   must "successfully load image" do
@@ -113,7 +113,7 @@ class TC_GtkWebImageLoader < Test::Unit::TestCase
     assert_equal(0, Delayer.size)
 
     response.each { |r|
-      assert_kind_of(Gdk::Pixbuf, r)
+      assert_kind_of(GdkPixbuf::Pixbuf, r)
       assert_not_equal(Gdk::WebImageLoader.loading_pixbuf(48, 48), r)
       assert_not_equal(Gdk::WebImageLoader.notfound_pixbuf(48, 48), r) }
   end

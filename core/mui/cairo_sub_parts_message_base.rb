@@ -88,7 +88,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [message] Message
   # ==== Return
   # 以下の値のいずれか一つ
-  # Gdk::Pixbuf :: _message_ の左上に表示するバッジ画像
+  # GdkPixbuf::Pixbuf :: _message_ の左上に表示するバッジ画像
   # nil :: バッジを表示しない
   def badge(message)
     nil end

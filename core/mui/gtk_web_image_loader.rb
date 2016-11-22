@@ -15,7 +15,7 @@ module Gdk::WebImageLoader
   WebImageThread = SerialThreadGroup.new
   WebImageThread.max_threads = 16
 
-  # URLから画像をダウンロードして、その内容を持ったGdk::Pixbufのインスタンスを返す
+  # URLから画像をダウンロードして、その内容を持ったGdkPixbuf::Pixbufのインスタンスを返す
   # ==== Args
   # [url] 画像のURL
   # [rect] 画像のサイズ(Gdk::Rectangle) または幅(px)
@@ -38,7 +38,7 @@ module Gdk::WebImageLoader
         notfound_pixbuf(rect) end
     else
       via_internet(url, rect, &load_callback) end
-  rescue Gdk::PixbufError
+  rescue GdkPixbuf::PixbufError
     notfound_pixbuf(rect)
   rescue => e
     if into_debug_mode(e)
@@ -85,7 +85,7 @@ module Gdk::WebImageLoader
         :wait
       else
         get_raw_data_load_proc(url, &load_callback) end end
-  rescue Gdk::PixbufError
+  rescue GdkPixbuf::PixbufError
     nil end
 
   # get_raw_dataの内部関数。
@@ -208,7 +208,7 @@ module Gdk::WebImageLoader
         pixbuf = notfound_pixbuf(rect)
         begin
           pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect, true)) if raw
-        rescue Gdk::PixbufError => e
+        rescue GdkPixbuf::PixbufError => e
           exception = e
         end
         Delayer.new{ load_callback.call(pixbuf, exception, url) } }
@@ -222,7 +222,7 @@ module Gdk::WebImageLoader
         ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
       else
         notfound_pixbuf(rect) end end
-  rescue Gdk::PixbufError
+  rescue GdkPixbuf::PixbufError
     notfound_pixbuf(rect) end
 
   # メモリ上の画像データをPixbufにロードする
@@ -231,19 +231,19 @@ module Gdk::WebImageLoader
   # [rect] サイズ(Gdk::Rectangle)
   # [raise_exception] 真PixbufError例外を投げる(default: false)
   # ==== Exceptions
-  # Gdk::PixbufError例外が発生したら、notfound_pixbufを返します。
+  # GdkPixbuf::PixbufError例外が発生したら、notfound_pixbufを返します。
   # ただし、 _raise_exception_ が真なら例外を投げます。
   # ==== Return
   # Pixbuf
   def inmemory2pixbuf(image_data, rect, raise_exception = false)
     rect = rect.dup
-    loader = Gdk::PixbufLoader.new
+    loader = GdkPixbuf::PixbufLoader.new
     # loader.set_size(rect.width, rect.height) if rect
     loader.write image_data
     loader.close
     pb = loader.pixbuf
     pb.scale(*calc_fitclop(pb, rect))
-  rescue Gdk::PixbufError => e
+  rescue GdkPixbuf::PixbufError => e
     if raise_exception
       raise e
     else
