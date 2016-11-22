@@ -16,7 +16,7 @@ miquire :mui, 'special_edge'
 miquire :lib, 'uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
-# 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の Gdk::Pixbuf のインスタンスを得ることができる。
+# 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の GdkPixbuf::Pixbuf のインスタンスを得ることができる。
 class Gdk::MiraclePainter < Gtk::Object
   extend Gem::Deprecate
 
@@ -113,7 +113,7 @@ class Gdk::MiraclePainter < Gtk::Object
     @pixmap ||= gen_pixmap
   end
 
-  # TLに表示するための Gdk::Pixbuf のインスタンスを返す
+  # TLに表示するための GdkPixbuf::Pixbuf のインスタンスを返す
   def pixbuf
     return @pixbuf if @pixbuf
     if visible?
@@ -346,7 +346,7 @@ class Gdk::MiraclePainter < Gtk::Object
   # pixbufを組み立てる
   def gen_pixbuf
     @pixmap = gen_pixmap
-    Gdk::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
+    GdkPixbuf::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
   end
 
   # アイコンのpixbufを返す

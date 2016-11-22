@@ -13,7 +13,7 @@ class Gtk::InnerUserList < Gtk::TreeView
 
   def initialize(userlist)
     @userlist = userlist
-    super(::Gtk::ListStore.new(Gdk::Pixbuf, String, String, Object, Integer))
+    super(::Gtk::ListStore.new(GdkPixbuf::Pixbuf, String, String, Object, Integer))
     append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
     append_column ::Gtk::TreeViewColumn.new("SN", ::Gtk::CellRendererText.new, text: COL_SCREEN_NAME)
     append_column ::Gtk::TreeViewColumn.new("名前", ::Gtk::CellRendererText.new, text: COL_NAME)

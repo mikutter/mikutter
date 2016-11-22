@@ -39,7 +39,7 @@ module Plugin::Shortcutkey
 
     def column_schemer
       [{:kind => :text, :widget => :keyconfig, :type => String, :label => @plugin._('キーバインド')},
-       [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => @plugin._('機能名')},
+       [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => @plugin._('機能名')},
         {:kind => :text, :type => String, :expand => true}],
        {:kind => :text, :widget => :chooseone, :args => [Hash[Plugin.filtering(:command, Hash.new).first.values.map{ |x|
                                                             [x[:slug], x[:name]]
@@ -169,7 +169,7 @@ module Plugin::Shortcutkey
       def initialize(plugin, results)
         type_strict plugin => Plugin
         @plugin = plugin
-        super(::Gtk::TreeModelFilter.new(::Gtk::TreeStore.new(::Gdk::Pixbuf, String, Symbol)))
+        super(::Gtk::TreeModelFilter.new(::Gtk::TreeStore.new(::GdkPixbuf::Pixbuf, String, Symbol)))
         model.set_visible_func{ |model, iter|
           if defined?(@filter_entry) and @filter_entry
             iter_match(iter, @filter_entry.text)
