@@ -69,7 +69,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Service.primary.followings(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
@@ -77,7 +77,7 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(Users.new(users.reverse))
         }.trap{
-          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+          loading_image.pixbuf = Skin['notfound.png'].pixbuf(width: 128, height: 128)
         } end
     end
   end
@@ -105,7 +105,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Service.primary.followers(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
@@ -113,7 +113,7 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(Users.new(users.reverse))
         }.trap{
-          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+          loading_image.pixbuf = Skin['loading.png'].pixbuf(width: 128, height: 128)
         } end
     end
   end

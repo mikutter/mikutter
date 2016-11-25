@@ -30,7 +30,7 @@ module Retriever::Model::PhotoMixin
   # [&complete_callback] このメソッドによって画像のダウンロードが行われた場合、ダウンロード完了時に呼ばれる
   # ==== Return
   # [GdkPixbuf::Pixbuf] pixbuf
-  def load_pixbuf(width:, height:, ifnone: Gdk::WebImageLoader.notfound_pixbuf(width, height), &complete_callback)
+  def load_pixbuf(width:, height:, ifnone: Skin['notfound.png'].pixbuf(width: width, height: height), &complete_callback)
     result = pixbuf(width: width, height: height)
     if result
       result
@@ -38,7 +38,7 @@ module Retriever::Model::PhotoMixin
       download_pixbuf(width: width, height: height).next(&complete_callback).trap{
         complete_callback.(ifnone)
       }
-      Gdk::WebImageLoader.loading_pixbuf(width, height)
+      Skin['loading.png'].pixbuf(width: width, height: height)
     end
   end
 

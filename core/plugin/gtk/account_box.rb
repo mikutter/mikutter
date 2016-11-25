@@ -22,7 +22,7 @@ class Gtk::AccountBox < Gtk::EventBox
   def refresh
     if 1 < Service.to_a.size
       if not @face
-        @face = Gtk::Image.new(Gdk::WebImageLoader.loading_pixbuf(UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry]))
+        @face = Gtk::Image.new(Skin['loading.png'].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
         self.add(@face).show_all end
     else
       if @face

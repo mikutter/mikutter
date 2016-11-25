@@ -125,7 +125,8 @@ class Gdk::MiraclePainter < Gtk::Object
       @pixbuf
     else
       @last_modify_height = height
-      Gdk::WebImageLoader.loading_pixbuf(@last_modify_height, @last_modify_height) end
+      Skin['loading.png'].pixbuf(width: @last_modify_height, height: @last_modify_height)
+    end
   end
 
   # MiraclePainterの座標x, y上でポインティングデバイスのボタン1が押されたことを通知する
