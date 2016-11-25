@@ -43,12 +43,12 @@ Plugin.create :aspectframe do
     onappear do |messages|
       if Plugin::AspectFrame::PREFETCH.cover?(now)
         messages.each { |message|
-          if rand(1000) < Time.new.day**2 and not FileTest.exist?(localfile(message.user[:profile_image_url]))
-            Gdk::WebImageLoader.get_raw_data_d(transform(message.user[:profile_image_url])).next{ |raw|
-              if raw and not raw.empty?
-                notice "prefetch: #{transform(message.user[:profile_image_url])}"
-                SerialThread.new{
-                  file_put_contents(localfile(message.user[:profile_image_url]), raw) } end
+          if rand(1000) < Time.new.day**2 and not FileTest.exist?(localfile(message.user.icon.uri.to_s))
+            Plugin::Photo::Photo[transform(message.user.icon.uri.to_s)].download.next{ |photo|
+              notice "prefetch: #{photo.uri}"
+              SerialThread.new{
+                File.open(localfile(photo.uri.to_s), 'w'){|out| out << photo.blob }
+              }
             }.terminate end } end
     end
   end
