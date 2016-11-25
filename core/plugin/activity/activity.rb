@@ -180,7 +180,7 @@ Plugin.create(:activity) do
         }
       end
       if params[:icon].is_a? String
-        iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(params[:icon], 24, 24){ |loaded_icon|
+        iter[ActivityView::ICON] = Plugin::Photo::Photo[params[:icon]].load_pixbuf(width: 24, height: 24){ |loaded_icon|
           iter[ActivityView::ICON] = loaded_icon }
       else
         iter[ActivityView::ICON] = params[:icon] end

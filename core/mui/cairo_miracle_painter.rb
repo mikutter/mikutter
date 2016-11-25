@@ -417,7 +417,7 @@ class Gdk::MiraclePainter < Gtk::Object
     context.save do
       context.save do
         context.translate(pos.main_icon.x, pos.main_icon.y + icon_height*13/14)
-        context.set_source_pixbuf(Gdk::WebImageLoader.pixbuf(Cairo::SpecialEdge::FOOTER_URL, icon_width, icon_width*9/20){|_pb, _s| on_modify })
+        context.set_source_pixbuf(Plugin::Photo::Photo[Cairo::SpecialEdge::FOOTER_URL].load_pixbuf(width: icon_width, height: icon_width*9/20){|_pb, _s| on_modify })
         context.paint
       end
       context.translate(pos.main_icon.x, pos.main_icon.y)

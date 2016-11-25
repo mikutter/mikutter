@@ -16,8 +16,10 @@ Plugin.create :skin do
     box = Gtk::HBox.new(false)
 
     preview_icons(info[:dir]).each { |_|
-      pixbuf = Gdk::WebImageLoader.pixbuf(File.join(info[:dir], _), 32, 32)
-      box.pack_start(Gtk::Image.new(pixbuf), false, false)
+      image = Gtk::Image.new Plugin::Photo::Photo[File.join(info[:dir], _)].load_pixbuf(width: 32, height: 32) do |pixbuf|
+        image = pixbuf
+      end
+      box.pack_start(image, false, false)
     }
 
     fix.put(frame.add(box, nil), 16, 0)
