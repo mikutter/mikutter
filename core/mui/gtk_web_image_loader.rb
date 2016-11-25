@@ -2,7 +2,6 @@
 # 画像のURLを受け取って、Gtk::Pixbufを返す
 
 miquire :core, 'serialthread', 'skin'
-miquire :mui, 'web_image_loader_image_cache'
 miquire :lib, 'addressable/uri'
 require 'net/http'
 require 'uri'
@@ -11,50 +10,26 @@ require 'fileutils'
 
 module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
+  extend Gem::Deprecate
 
-  WebImageThread = SerialThreadGroup.new
-  WebImageThread.max_threads = 16
-
-  # URLから画像をダウンロードして、その内容を持ったGdkPixbuf::Pixbufのインスタンスを返す
-  # ==== Args
-  # [url] 画像のURL
-  # [rect] 画像のサイズ(Gdk::Rectangle) または幅(px)
-  # [height] 画像の高さ(px)
-  # [&load_callback]
-  #   画像のダウンロードで処理がブロッキングされるような場合、ブロックが指定されていれば
-  #   このメソッドはとりあえずloading中の画像のPixbufを返し、ロードが完了したらブロックを呼び出す
-  # ==== Return
-  # Pixbuf
-  def pixbuf(url, rect, height = nil, &load_callback)
-    url = Plugin.filtering(:web_image_loader_url_filter, url.freeze)[0].freeze
-    rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-    pixbuf = ImageCache::Pixbuf.load(url, rect)
-    return pixbuf if pixbuf
-    if(is_local_path?(url))
-      url = File.expand_path(url)
-      if(FileTest.exist?(url))
-        GdkPixbuf::Pixbuf.new(file: url, width: rect.width, height: rect.height)
-      else
-        notfound_pixbuf(rect) end
+  # mikutter 3.5から、このメソッドはObsoleteです。
+  # 今後は、次のようなコードを書いてください。
+  # ==== Example
+  #   Retriever.Model(:photo)[url].load_pixbuf(width: width, height: height, &load_callback)
+  def pixbuf(url, width, height = nil, &load_callback)
+    if width.respond_to?(:width) and width.respond_to?(:height)
+      width, height = width.width, width.height
+    end
+    if load_callback
+      Plugin::Photo::Photo[url].load_pixbuf(width: width, height: height, &load_callback)
     else
-      via_internet(url, rect, &load_callback) end
-  rescue GdkPixbuf::PixbufError
-    notfound_pixbuf(rect)
-  rescue => e
-    if into_debug_mode(e)
-      raise e
-    else
-      notfound_pixbuf(rect) end end
+      Plugin::Photo::Photo[url].pixbuf(width: width, height: height) ||
+        Skin['notfound.png'].pixbuf(width: width, height: height)
+    end
+  end
+  deprecate :pixbuf, "Retriever::Model::PhotoMixin#load_pixbuf", 2017, 11
 
-  # _url_ が指している画像を任意のサイズにリサイズして、その画像のパスを返す。
-  # このメソッドは画像のダウンロードが発生すると処理をブロッキングする。
-  # 取得に失敗した場合は nil を返す。
-  # ==== Args
-  # [url] 画像のURL
-  # [width] 幅(px)
-  # [height] 高さ(px)
-  # ==== Return
-  # 画像のパス
+  # mikutter 3.5から、このメソッドはObsoleteです。
   def local_path(url, width = 48, height = width)
     url.freeze
     ext = (File.extname(url).split("?", 2)[0] or File.extname(url))
@@ -64,231 +39,66 @@ module Gdk::WebImageLoader
       pb.save(filename, 'png') if not FileTest.exist?(filename)
       local_path_files_add(filename)
       filename end end
+  deprecate :local_path, :none, 2017, 11
 
-  # urlが指している画像のデータを返す。
-  # ==== Args
-  # [url] 画像のURL
-  # ==== Return
-  # キャッシュがあればロード後のデータを即座に返す。
-  # ブロックが指定されれば、キャッシュがない時は :wait を返して、ロードが完了したらブロックを呼び出す。
-  # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのデータを返す。
+  # mikutter 3.5から、このメソッドはObsoleteです。
+  # 今後は、次のようなコードを書いてください。
+  # ==== Example
+  #   Retriever.Model(:photo)[url].download.next(&load_callback).trap{|exception|
+  #     # ダウンロードに失敗した時に呼ばれる
+  #   }
   def get_raw_data(url, &load_callback) # :yield: raw, exception, url
-    url.freeze
-    raw = ImageCache::Raw.load(url)
-    if raw and not raw.empty?
-      raw
+    result = Plugin::Photo::Photo[url].blob
+    if result
+      result
     else
-      exception = nil
-      if load_callback
-        WebImageThread.new{
-          get_raw_data_load_proc(url, &load_callback) }
-        :wait
-      else
-        get_raw_data_load_proc(url, &load_callback) end end
-  rescue GdkPixbuf::PixbufError
-    nil end
+      Plugin::Photo::Photo[url].download do |photo|
+        load_callback.(photo.blob)
+      end
+      :wait
+    end
+  end
+  deprecate :get_raw_data, "Retriever::Model::PhotoMixin#download", 2017, 11
 
-  # get_raw_dataの内部関数。
-  # HTTPコネクションを張り、 _url_ をダウンロードしてjpegとかpngとかの情報をそのまま返す。
-  def get_raw_data_load_proc(url, &load_callback)
-    ImageCache.synchronize(url) {
-      forerunner_result = ImageCache::Raw.load(url)
-      if(forerunner_result)
-        raw = forerunner_result
-        if load_callback
-          load_callback.call(*[forerunner_result, nil, url][0..load_callback.arity])
-          forerunner_result
-        else
-          forerunner_result end
-      else
-        no_mainthread
-        begin
-          res = get_icon_via_http(url)
-          if(res.is_a?(Net::HTTPResponse)) and (res.code == '200')
-            raw = res.body.to_s
-          else
-            exception = true end
-        rescue Timeout::Error, StandardError => e
-          exception = e end
-        ImageCache::Raw.save(url, raw)
-        if load_callback
-          load_callback.call(*[raw, exception, url][0..load_callback.arity])
-          raw
-        else
-          raw end end } end
-
-  # get_raw_dataのdeferred版
+  # mikutter 3.5から、このメソッドはObsoleteです。
+  # 今後は、次のようなコードを書いてください。
+  # ==== Example
+  #   Plugin::Photo::Photo[url].download
   def get_raw_data_d(url)
-    url.freeze
-    promise = Deferred.new true
-    Thread.new {
-      result = get_raw_data(url){ |raw, e|
-        begin
-          if e
-            promise.fail(e)
-          elsif raw and not raw.empty?
-            promise.call(raw)
-          else
-            promise.fail(raw) end
-        rescue Exception => e
-          promise.fail(e) end }
-      if result
-        if :wait != result
-          promise.call(result) end
-      else
-        promise.fail(result) end }
-    promise end
+    Plugin::Photo::Photo[url].download.next{|photo| photo.blob }
+  end
+  deprecate :get_raw_data_d, "Retriever::Model::PhotoMixin#download", 2017, 11
 
-  # _url_ が、インターネット上のリソースを指しているか、ローカルのファイルを指しているかを返す
-  # ==== Args
-  # [url] ファイルのパス又はURL
-  # ==== Return
-  # ローカルのファイルならtrue
+  # mikutter 3.5から、このメソッドはObsoleteです。
   def is_local_path?(url)
     not url.start_with?('http') end
+  deprecate :is_local_path?, :none, 2017, 11
 
-  # ロード中の画像のPixbufを返す
-  # ==== Args
-  # [rect] サイズ(Gtk::Rectangle) 又は幅(px)
-  # [height] 高さ
-  # ==== Return
-  # Pixbuf
+  # mikutter 3.5から、このメソッドはObsoleteです。
+  # 今後は、次のようなコードを書いてください。
+  # ==== Example
+  #   Skin['loading.png'].pixbuf(width: width, height: height)
   def loading_pixbuf(rect, height = nil)
     if height
-      _loading_pixbuf(rect, height)
+      Skin['loading.png'].pixbuf(width: rect, height: height)
     else
-      _loading_pixbuf(rect.width, rect.height) end end
-  def _loading_pixbuf(width, height)
-    GdkPixbuf::Pixbuf.new(file: File.expand_path(Skin.get("loading.png")), width: width, height: height).freeze end
-  memoize :_loading_pixbuf
+      Skin['loading.png'].pixbuf(width: rect.width, height: rect.height)
+    end
+  end
 
-  # 画像が見つからない場合のPixbufを返す
-  # ==== Args
-  # [rect] サイズ(Gtk::Rectangle) 又は幅(px)
-  # [height] 高さ
-  # ==== Return
-  # Pixbuf
+  # mikutter 3.5から、このメソッドはObsoleteです。
+  # 今後は、次のようなコードを書いてください。
+  # ==== Example
+  #   Skin['notfound.png'].pixbuf(width: width, height: height)
   def notfound_pixbuf(rect, height = nil)
     if height
-      _notfound_pixbuf(rect, height)
+      Skin['notfound.png'].pixbuf(width: rect, height: height)
     else
-      _notfound_pixbuf(rect.width, rect.height) end end
-  def _notfound_pixbuf(width, height)
-    GdkPixbuf::Pixbuf.new(file: File.expand_path(Skin.get("notfound.png")), width: width, height: height).freeze
+      Skin['notfound.png'].pixbuf(width: rect.width, height: rect.height)
+    end
   end
-  memoize :_notfound_pixbuf
-
-  # _src_ が _rect_ にアスペクト比を維持した状態で内接するように縮小した場合のサイズを返す
-  # ==== Args
-  # [src] 元の寸法(Gtk::Rectangle)
-  # [dst] 収めたい枠の寸法(Gtk::Rectangle)
-  # ==== Return
-  # Pixbuf
-  def calc_fitclop(src, dst)
-    if (dst.width * src.height) > (dst.height * src.width)
-      return src.width * dst.height / src.height, dst.height
-    else
-      return dst.width, src.height * dst.width / src.width end end
 
   private
-
-  # urlが指している画像を引っ張ってきてPixbufを返す。
-  # 画像をダウンロードする場合は、読み込み中の画像を返して、ロードが終わったらブロックを実行する
-  # ==== Args
-  # [url] 画像のURL
-  # [rect] 画像のサイズ(Gdk::Rectangle)
-  # [&load_callback] ロードが終わったら実行されるブロック
-  # ==== Return
-  # ロード中のPixbufか、キャッシュがあればロード後のPixbufを即座に返す
-  # ブロックが指定されなければ、ロード完了まで待って、ロードが完了したらそのPixbufを返す
-  def via_internet(url, rect, &load_callback) # :yield: pixbuf, exception, url
-    url.freeze
-    if block_given?
-      raw = get_raw_data(url){ |raw, exception|
-        pixbuf = notfound_pixbuf(rect)
-        begin
-          pixbuf = ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect, true)) if raw
-        rescue GdkPixbuf::PixbufError => e
-          exception = e
-        end
-        Delayer.new{ load_callback.call(pixbuf, exception, url) } }
-      if raw.is_a?(String)
-        ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
-      else
-        loading_pixbuf(rect) end
-    else
-      raw = get_raw_data(url)
-      if raw
-        ImageCache::Pixbuf.save(url, rect, inmemory2pixbuf(raw, rect))
-      else
-        notfound_pixbuf(rect) end end
-  rescue GdkPixbuf::PixbufError
-    notfound_pixbuf(rect) end
-
-  # メモリ上の画像データをPixbufにロードする
-  # ==== Args
-  # [image_data] メモリ上の画像データ
-  # [rect] サイズ(Gdk::Rectangle)
-  # [raise_exception] 真PixbufError例外を投げる(default: false)
-  # ==== Exceptions
-  # GdkPixbuf::PixbufError例外が発生したら、notfound_pixbufを返します。
-  # ただし、 _raise_exception_ が真なら例外を投げます。
-  # ==== Return
-  # Pixbuf
-  def inmemory2pixbuf(image_data, rect, raise_exception = false)
-    rect = rect.dup
-    loader = GdkPixbuf::PixbufLoader.new
-    # loader.set_size(rect.width, rect.height) if rect
-    loader.write image_data
-    loader.close
-    pb = loader.pixbuf
-    pb.scale(*calc_fitclop(pb, rect))
-  rescue GdkPixbuf::PixbufError => e
-    if raise_exception
-      raise e
-    else
-      notfound_pixbuf(rect) end end
-
-  def http(host, port, scheme)
-    result = nil
-    atomic{
-      @http_pool = Hash.new{|h, k|h[k] = Hash.new{|_h, _k|_h[_k] = {} } } if not defined? @http_pool
-      if not @http_pool[host][port][scheme]
-        pool = []
-        @http_pool[host][port][scheme] = Queue.new
-        4.times { |index|
-          http = case scheme
-                 when 'http'.freeze
-                   Net::HTTP.new(host, port || 80)
-                 when 'https'.freeze
-                   Net::HTTP.new(host, port || 443).tap{|_h|
-                     _h.use_ssl = true
-                     _h.ssl_version = 'TLSv1' } end
-          http.open_timeout=5
-          http.read_timeout=30
-          pool << http
-          @http_pool[host][port][scheme].push(pool) } end }
-    pool = @http_pool[host][port][scheme].pop
-    http = pool.pop
-    result = yield(http)
-  ensure
-    pool.push(http) if defined? http
-    @http_pool[host][port][scheme].push(pool) if defined? pool
-    result
-  end
-
-  def get_icon_via_http(url)
-    uri = Addressable::URI.parse(url)
-    request = Net::HTTP::Get.new(uri.request_uri)
-    request['Connection'] = 'Keep-Alive'
-    http(uri.host, uri.port, uri.scheme) do |http|
-      begin
-        http.request(request)
-      rescue EOFError => e
-        http.finish
-        http.start
-        notice "open connection for #{uri.host}"
-        http.request(request) end end end
 
   def local_path_files_add(path)
     atomic{
@@ -297,4 +107,8 @@ module Gdk::WebImageLoader
         at_exit{ FileUtils.rm(@local_path_files.to_a) } end }
     @local_path_files << path
   end
+end
+
+module Gdk
+  deprecate_constant :WebImageLoader if respond_to?(:deprecate_constant)
 end
