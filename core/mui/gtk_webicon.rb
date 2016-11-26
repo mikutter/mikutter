@@ -29,7 +29,10 @@ module Gtk
       when GdkPixbuf::Pixbuf
         super(url)
       else
-        super(load_model(Plugin::Photo::Photo[url], rect))
+        photo = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, url, y)
+        }.first
+        super(load_model(photo, rect))
       end
     end
 

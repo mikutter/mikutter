@@ -172,18 +172,19 @@ Plugin.create(:activity) do
       case params[:icon]
       when GdkPixbuf::Pixbuf
         iter[ActivityView::ICON] = params[:icon]
+      when Retriever::Model
+        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
       when nil, false
       else
-        iter[ActivityView::ICON] = Retriever::Model(:photo)[params[:icon]].
-                                     load_pixbuf(width: 24, height: 24){ |loaded_icon|
+        photo = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, params[:icon], y)
+        }.first
+        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24){ |loaded_icon|
           iter[ActivityView::ICON] = loaded_icon
         }
       end
-      if params[:icon].is_a? String
-        iter[ActivityView::ICON] = Plugin::Photo::Photo[params[:icon]].load_pixbuf(width: 24, height: 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon }
-      else
-        iter[ActivityView::ICON] = params[:icon] end
       iter[ActivityView::KIND] = params[:kind].to_s
       iter[ActivityView::TITLE] = params[:title].tr("\n", "")
       iter[ActivityView::DATE] = params[:date].strftime('%Y/%m/%d %H:%M:%S')

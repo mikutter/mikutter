@@ -14,7 +14,10 @@ Plugin.create :image_file_cache do
                                  } }.(@cache_directory))
 
   on_image_file_cache_cache do |url|
-    Plugin.call(:image_file_cache_photo, Plugin::Photo::Photo[url])
+    photos = Enumerator.new{|y|
+      Plugin.filtering(:photo_filter, url, y)
+    }
+    Plugin.call(:image_file_cache_photo, photos.first)
   end
 
   on_image_file_cache_photo do |photo|

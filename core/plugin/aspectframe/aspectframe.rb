@@ -44,7 +44,9 @@ Plugin.create :aspectframe do
       if Plugin::AspectFrame::PREFETCH.cover?(now)
         messages.each { |message|
           if rand(1000) < Time.new.day**2 and not FileTest.exist?(localfile(message.user.icon.uri.to_s))
-            Plugin::Photo::Photo[transform(message.user.icon.uri.to_s)].download.next{ |photo|
+            Enumerator.new{|y|
+              Plugin.filtering(:photo_filter, transform(message.user.icon.uri.to_s), y)
+            }.first.download.next{ |photo|
               notice "prefetch: #{photo.uri}"
               SerialThread.new{
                 File.open(localfile(photo.uri.to_s), 'w'){|out| out << photo.blob }

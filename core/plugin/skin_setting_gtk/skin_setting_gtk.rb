@@ -16,7 +16,10 @@ Plugin.create :skin do
     box = Gtk::HBox.new(false)
 
     preview_icons(info[:dir]).each { |_|
-      image = Gtk::Image.new Plugin::Photo::Photo[File.join(info[:dir], _)].load_pixbuf(width: 32, height: 32) do |pixbuf|
+      photos = Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, File.join(info[:dir], _), y)
+      }
+      image = Gtk::Image.new photos.first.load_pixbuf(width: 32, height: 32) do |pixbuf|
         image = pixbuf
       end
       box.pack_start(image, false, false)

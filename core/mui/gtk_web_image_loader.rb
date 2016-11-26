@@ -15,15 +15,20 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはObsoleteです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   Retriever.Model(:photo)[url].load_pixbuf(width: width, height: height, &load_callback)
+  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo.load_pixbuf(width: width, height: height, &load_callback)
   def pixbuf(url, width, height = nil, &load_callback)
     if width.respond_to?(:width) and width.respond_to?(:height)
       width, height = width.width, width.height
     end
     if load_callback
-      Plugin::Photo::Photo[url].load_pixbuf(width: width, height: height, &load_callback)
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, url, y)
+      }.first.load_pixbuf(width: width, height: height, &load_callback)
     else
-      Plugin::Photo::Photo[url].pixbuf(width: width, height: height) ||
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, url, y)
+      }.first.pixbuf(width: width, height: height) ||
         Skin['notfound.png'].pixbuf(width: width, height: height)
     end
   end
@@ -44,15 +49,20 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはObsoleteです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   Retriever.Model(:photo)[url].download.next(&load_callback).trap{|exception|
+  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo.download.next(&load_callback).trap{|exception|
   #     # ダウンロードに失敗した時に呼ばれる
   #   }
   def get_raw_data(url, &load_callback) # :yield: raw, exception, url
-    result = Plugin::Photo::Photo[url].blob
+    result = Enumerator.new{|y|
+      Plugin.filtering(:photo_filter, url, y)
+    }.blob
     if result
       result
     else
-      Plugin::Photo::Photo[url].download do |photo|
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, url, y)
+      }.download do |photo|
         load_callback.(photo.blob)
       end
       :wait
@@ -63,9 +73,12 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはObsoleteです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   Plugin::Photo::Photo[url].download
+  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo.download
   def get_raw_data_d(url)
-    Plugin::Photo::Photo[url].download.next{|photo| photo.blob }
+    Enumerator.new{|y|
+      Plugin.filtering(:photo_filter, url, y)
+    }.download.next{|photo| photo.blob }
   end
   deprecate :get_raw_data_d, "Retriever::Model::PhotoMixin#download", 2017, 11
 

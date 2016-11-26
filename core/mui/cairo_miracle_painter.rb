@@ -417,7 +417,7 @@ class Gdk::MiraclePainter < Gtk::Object
     context.save do
       context.save do
         context.translate(pos.main_icon.x, pos.main_icon.y + icon_height*13/14)
-        context.set_source_pixbuf(Plugin::Photo::Photo[Cairo::SpecialEdge::FOOTER_URL].load_pixbuf(width: icon_width, height: icon_width*9/20){|_pb, _s| on_modify })
+        context.set_source_pixbuf(gb_foot.load_pixbuf(width: icon_width, height: icon_width*9/20){|_pb, _s| on_modify })
         context.paint
       end
       context.translate(pos.main_icon.x, pos.main_icon.y)
@@ -465,6 +465,18 @@ class Gdk::MiraclePainter < Gtk::Object
     context.save{
       context.translate(pos.main_text.x, pos.main_text.y)
       context.show_pango_layout(main_message(context)) } end
+
+  def gb_foot
+    self.class.gb_foot
+  end
+
+  class << self
+    memoize def gb_foot
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, y)
+      }.first
+    end
+  end
 
   class DestroyedError < Exception
   end
