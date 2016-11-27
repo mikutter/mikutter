@@ -49,7 +49,7 @@ Plugin.create :openimg do
       nil end end
 
   filter_openimg_pixbuf_from_display_url do |photo, loader, thread|
-    loader = Gdk::PixbufLoader.new
+    loader = GdkPixbuf::PixbufLoader.new
     [photo, loader, photo.download{|partial| Delayer.new{ loader.write partial } }]
   end
 

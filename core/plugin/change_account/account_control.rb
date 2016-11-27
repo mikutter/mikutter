@@ -8,7 +8,7 @@ module ::Plugin::ChangeAccount
     COL_SERVICE = 3
 
     def column_schemer
-      [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => ''},
+      [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => ''},
        {:kind => :text, :type => String, :label => Plugin[:change_account]._('SN')},
        {:kind => :text, :type => String, :label => Plugin[:change_account]._('名前')},
        {:type => Object},

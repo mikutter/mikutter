@@ -43,7 +43,7 @@ Plugin.create(:activity) do
     end
 
     def column_schemer
-      [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => 'icon'}, # ICON
+      [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => 'icon'}, # ICON
        {:kind => :text, :type => String, :label => _('種類')},      # KIND
        {:kind => :text, :type => String, :label => _('説明')},      # TITLE
        {:kind => :text, :type => String, :label => _('時刻')},      # DATE

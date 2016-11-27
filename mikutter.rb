@@ -56,9 +56,10 @@ def boot!(profile)
       ensure
         result = RubyProf.stop
         printer = RubyProf::CallTreePrinter.new(result)
-        profile_out = File.join(File.expand_path(Environment::TMPDIR), 'profile-'+Time.new.strftime('%Y-%m-%d-%H%M%S')+'.out')
-        notice "profile: writing to #{profile_out}"
-        printer.print(File.open(profile_out, 'w'), {})
+        path = File.join(Environment::TMPDIR, 'profile', Time.new.strftime('%Y-%m-%d-%H%M%S'))
+        FileUtils.mkdir_p(path)
+        notice "profile: writing to #{path}"
+        printer.print(path: path)
         notice "profile: done."
       end
     else

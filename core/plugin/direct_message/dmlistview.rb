@@ -30,7 +30,7 @@ module Plugin::DirectMessage
             renderer.set_property "wrap-width", nw
             get_column(C_TEXT).queue_resize end end
         false }
-      [{:kind => :pixbuf, :type => Gdk::Pixbuf, :label => @plugin._('icon')},
+      [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => @plugin._('icon')},
        {:kind => :text, :type => String, :label => @plugin._('本文'), :renderer => lambda{ |scheme, index|
            renderer = Gtk::CellRendererText.new
            Delayer.new{

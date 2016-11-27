@@ -287,6 +287,14 @@ module Gtk
   end
 end
 
+unless Kernel.const_defined?(:GdkPixbuf)
+  module GdkPixbuf
+    Pixbuf = Gdk::Pixbuf
+    PixbufLoader = Gdk::PixbufLoader
+    PixbufError = Gdk::PixbufError
+  end
+end
+
 module MUI
   Skin = ::Skin
 end
