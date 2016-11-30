@@ -12,7 +12,7 @@ module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
   extend Gem::Deprecate
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
   #   photo = Plugin.filtering(:photo_filter, url, []).last.first
@@ -32,9 +32,9 @@ module Gdk::WebImageLoader
         Skin['notfound.png'].pixbuf(width: width, height: height)
     end
   end
-  deprecate :pixbuf, "Retriever::Model::PhotoMixin#load_pixbuf", 2017, 11
+  deprecate :pixbuf, "Retriever::Model::PhotoMixin#load_pixbuf", 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   def local_path(url, width = 48, height = width)
     url.freeze
     ext = (File.extname(url).split("?", 2)[0] or File.extname(url))
@@ -44,9 +44,9 @@ module Gdk::WebImageLoader
       pb.save(filename, 'png') if not FileTest.exist?(filename)
       local_path_files_add(filename)
       filename end end
-  deprecate :local_path, :none, 2017, 11
+  deprecate :local_path, :none, 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
   #   photo = Plugin.filtering(:photo_filter, url, []).last.first
@@ -68,9 +68,9 @@ module Gdk::WebImageLoader
       :wait
     end
   end
-  deprecate :get_raw_data, "Retriever::Model::PhotoMixin#download", 2017, 11
+  deprecate :get_raw_data, "Retriever::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
   #   photo = Plugin.filtering(:photo_filter, url, []).last.first
@@ -80,14 +80,14 @@ module Gdk::WebImageLoader
       Plugin.filtering(:photo_filter, url, y)
     }.download.next{|photo| photo.blob }
   end
-  deprecate :get_raw_data_d, "Retriever::Model::PhotoMixin#download", 2017, 11
+  deprecate :get_raw_data_d, "Retriever::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   def is_local_path?(url)
     not url.start_with?('http') end
-  deprecate :is_local_path?, :none, 2017, 11
+  deprecate :is_local_path?, :none, 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
   #   Skin['loading.png'].pixbuf(width: width, height: height)
@@ -98,8 +98,9 @@ module Gdk::WebImageLoader
       Skin['loading.png'].pixbuf(width: rect.width, height: rect.height)
     end
   end
+  deprecate :loading_pixbuf, 'Skin[\'loading.png\'].pixbuf(width: width, height: height)', 2018, 1 if Environment::VERSION >= [3, 6]
 
-  # mikutter 3.5から、このメソッドはObsoleteです。
+  # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
   #   Skin['notfound.png'].pixbuf(width: width, height: height)
@@ -110,7 +111,7 @@ module Gdk::WebImageLoader
       Skin['notfound.png'].pixbuf(width: rect.width, height: rect.height)
     end
   end
-
+  deprecate :notfound_pixbuf, 'Skin[\'notfound.png\'].pixbuf(width: width, height: height)', 2018, 1 if Environment::VERSION >= [3, 6]
   private
 
   def local_path_files_add(path)
@@ -123,5 +124,5 @@ module Gdk::WebImageLoader
 end
 
 module Gdk
-  deprecate_constant :WebImageLoader if respond_to?(:deprecate_constant)
+  deprecate_constant :WebImageLoader if respond_to?(:deprecate_constant) and Environment::VERSION >= [3, 6]
 end
