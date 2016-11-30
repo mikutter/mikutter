@@ -51,7 +51,7 @@ Plugin.create :change_account do
         condition: -> options {},
         visible: false,
         role: :window,
-        icon: user[:profile_image_url] } end
+        icon: user.icon } end
     [menu] end
 
   # サブ垢は心の弱さ

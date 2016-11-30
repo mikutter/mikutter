@@ -27,14 +27,12 @@ module Gtk
       style end
 
     def icon(user)
-      type_strict user.profile_image_url_large => String
-
       icon_alignment = Gtk::Alignment.new(0.5, 0, 0, 0)
                        .set_padding(*[UserConfig[:profile_icon_margin]]*4)
 
       icon = Gtk::EventBox.new.
-             add(icon_alignment.add(Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size])))
-      icon.ssc(:button_press_event, &icon_opener(user.profile_image_url_large))
+             add(icon_alignment.add(Gtk::WebIcon.new(user.icon_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size])))
+      icon.ssc(:button_press_event, &icon_opener(user.icon_large))
       icon.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       icon.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       icon end
@@ -57,9 +55,8 @@ module Gtk
       label end
 
     def icon_opener(url)
-      type_strict url => String
       proc do
-        Plugin.call(:openimg_open, url)
+        Plugin.call(:open, url)
         true end end
 
     def profile_opener(user)

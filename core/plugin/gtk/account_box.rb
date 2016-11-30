@@ -48,7 +48,7 @@ class Gtk::AccountBox < Gtk::EventBox
     @menu ||= Gtk::Menu.new.tap do |menu|
       Service.each do |service|
         item = Gtk::ImageMenuItem.new(service.user, false)
-        item.set_image Gtk::WebIcon.new(service.user_obj[:profile_image_url], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
+        item.set_image Gtk::WebIcon.new(service.user_obj.icon, UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
         item.ssc(:activate) { |w|
           Service.set_primary(service)
           false }

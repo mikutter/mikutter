@@ -205,7 +205,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -214,7 +214,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -225,7 +225,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
                               "@#{source.user[:idname]}: #{source.to_s}\n#{source.perma_link}"),
-                 icon: retweet.user[:profile_image_url],
+                 icon: retweet.user.icon,
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),
                  service: Service.primary) }.terminate(_ 'リツイートソースが取得できませんでした') }
@@ -243,7 +243,7 @@ Plugin.create(:activity) do
                description:("#{title}\n" +
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
+               icon: user.icon,
                related: user.me? || source_user.me?,
                service: service) end
   end
@@ -260,7 +260,7 @@ Plugin.create(:activity) do
                description:("#{title}\n"+
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
+               icon: user.icon,
                related: user.me? || source_user.me?,
                service: service) end
   end
@@ -272,7 +272,7 @@ Plugin.create(:activity) do
         follower: to[:idname] }
       activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
                related: by.me? || to.me?,
-               icon: (to.me? ? by : to)[:profile_image_url]) end
+               icon: (to.me? ? by : to).icon) end
   end
 
   on_direct_messages do |service, dms|
@@ -286,7 +286,7 @@ Plugin.create(:activity) do
                      '',
                      dm[:text]
                    ].join("\n"),
-                 icon: dm[:sender][:profile_image_url],
+                 icon: dm[:sender].icon,
                  service: service,
                  date: date) end }
   end

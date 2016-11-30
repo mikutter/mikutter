@@ -87,7 +87,7 @@ Plugin.create :display_requirements do
     activity(:like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がいいねいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -96,7 +96,7 @@ Plugin.create :display_requirements do
     activity(:dont_like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
