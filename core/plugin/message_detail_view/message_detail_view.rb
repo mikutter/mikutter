@@ -27,7 +27,7 @@ Plugin.create(:message_detail_view) do
     else
       container = Gtk::RetrieverHeaderWidget.new(message)
       i_cluster = tab slug, _("詳細タブ") do
-        set_icon Skin.get('message.png')
+        set_icon Skin['message.png']
         set_deletable true
         temporary_tab
         shrink
@@ -57,7 +57,7 @@ Plugin.create(:message_detail_view) do
       bg_style.set_bg(Gtk::STATE_INSENSITIVE, *color) end end
 
   message_fragment :body, "body" do
-    set_icon Skin.get('message.png')
+    set_icon Skin['message.png']
     container = Gtk::HBox.new
     textview = Gtk::IntelligentTextview.new(retriever.to_s, 'font' => :mumble_basic_font, style: style)
     vscrollbar = Gtk::VScrollbar.new

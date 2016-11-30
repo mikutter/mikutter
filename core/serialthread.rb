@@ -17,10 +17,11 @@ class SerialThreadGroup
 
   @@force_exit = false
 
-  def initialize
+  def initialize(max_threads: 1, deferred: nil)
     @lock = Monitor.new
     @queue = Queue.new
-    @max_threads = 1
+    @max_threads = max_threads
+    @deferred_class = deferred
     @thread_pool = Set.new
   end
 
@@ -28,10 +29,13 @@ class SerialThreadGroup
   # ==== Args
   # [proc] 実行するブロック
   def push(proc=Proc.new)
-    return if @@force_exit
+    promise = @deferred_class && @deferred_class.new(true)
+    return promise if @@force_exit
     @lock.synchronize{
-      @queue.push(proc)
-      new_thread if 0 == @queue.num_waiting and @thread_pool.size < max_threads } end
+      @queue.push(proc: proc, promise: promise)
+      new_thread if 0 == @queue.num_waiting and @thread_pool.size < max_threads }
+    promise
+  end
   alias new push
 
   # 処理中なら真
@@ -61,9 +65,10 @@ class SerialThreadGroup
     return if @@force_exit
     @thread_pool << Thread.new{
       begin
-        while proc = Timeout.timeout(1, QueueExpire){ @queue.pop }
+        while node = Timeout.timeout(1, QueueExpire){ @queue.pop }
           break if @@force_exit
-          proc.call
+          result = node[:proc].call
+          node[:promise].call(result) if node[:promise]
           break if flush
           debugging_wait
           Thread.pass end
@@ -72,8 +77,12 @@ class SerialThreadGroup
       rescue ThreadError => e
         ;
       rescue Object => e
-        error e
-        abort
+        if node[:promise]
+          node[:promise].fail(e)
+        else
+          error e
+          abort
+        end
       ensure
         @lock.synchronize{
           @thread_pool.delete(Thread.current) } end } end

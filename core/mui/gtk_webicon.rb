@@ -23,21 +23,32 @@ module Gtk
     # [height] 画像の高さ(px)
     def initialize(url, rect = DEFAULT_RECTANGLE, height = nil)
       rect = Gdk::Rectangle.new(0, 0, rect, height) if height
-      if(Gdk::WebImageLoader.is_local_path?(url))
-        url = File.expand_path(url)
-        if FileTest.exist?(url)
-          super begin
-                  GdkPixbuf::Pixbuf.new(file: url, width: rect.width, height: rect.height)
-                rescue
-                  Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height) end
-        else
-          super(Gdk::WebImageLoader.notfound_pixbuf(rect.width, rect.height)) end
+      case url
+      when Retriever::Model
+        super(load_model(url, rect))
+      when GdkPixbuf::Pixbuf
+        super(url)
       else
-        super(Gdk::WebImageLoader.pixbuf(url, rect.width, rect.height) { |pixbuf, success|
-                unless destroyed?
-                  self.pixbuf = pixbuf
-                  self.changed
-                  self.notify_observers end }) end end
+        photo = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, url, y)
+        }.first
+        super(load_model(photo, rect))
+      end
+    end
+
+    def load_model(photo, rect)
+      photo.load_pixbuf(width: rect.width, height: rect.height){|pb|
+        update_pixbuf(pb)
+      }
+    end
+
+    def update_pixbuf(pixbuf)
+      unless destroyed?
+        self.pixbuf = pixbuf
+        self.changed
+        self.notify_observers
+      end
+    end
 
   end
 end

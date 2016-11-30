@@ -179,7 +179,7 @@ module Gtk
         itv.bg_modifier
         ev = Gtk::EventBox.new
         ev.style = get_backgroundstyle(message)
-        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message[:user][:profile_image_url], 32, 32).top).add(itv)))
+        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message.user.icon, 32, 32).top).add(itv)))
         @reply_widgets << itv }
       w_replies end
 

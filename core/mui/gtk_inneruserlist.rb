@@ -29,9 +29,9 @@ class Gtk::InnerUserList < Gtk::TreeView
     exist_users = Set.new(model.to_enum.map{ |model,path,iter| iter[COL_USER] })
     users.reject{|user| exist_users.include? user }.deach { |user|
       iter = model.append
-      iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
-        if not destroyed?
-          iter[COL_ICON] = pixbuf end }
+      iter[COL_ICON] = user.icon.load_pixbuf(width: 24, height: 24){|pixbuf|
+        iter[COL_ICON] = pixbuf unless destroyed?
+      }
       iter[COL_SCREEN_NAME] = user[:idname]
       iter[COL_NAME] = user[:name]
       iter[COL_USER] = user

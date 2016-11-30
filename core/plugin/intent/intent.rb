@@ -27,7 +27,7 @@ Plugin.create(:intent) do
 
   # _model_ を開く方法を新しく登録する。
   # ==== Args
-  # [model] サポートするModelのClass
+  # [model] サポートするModel(Class)又はModelのslug(Symbol)
   # [label:]
   #   開き方を説明する文字列。
   #   あるModelを開く手段が複数ある場合、ユーザは _label_ の内容とともに、どうやって開くか選択することになる。
@@ -40,7 +40,9 @@ Plugin.create(:intent) do
   #   パーマリンクを開く時に、 Plugin::Intent::IntentToken を引数に呼ばれる。
   # ==== Return
   # self
-  defdsl :intent do |model, label: nil, slug: :"#{self.spec[:slug]}_#{model.slug}", &proc|
+  defdsl :intent do |model, label: nil, slug: nil, &proc|
+    model = Retriever::Model(model) unless model.is_a?(Class)
+    slug ||= :"#{self.spec[:slug]}_#{model.slug}"
     label ||= (self.spec[:name] || self.spec[:slug])
     my_intent = Plugin::Intent::Intent.new(slug: slug, label: label, model_slug: model.slug)
     filter_intent_select_by_model_slug do |target_model_slug, intents|

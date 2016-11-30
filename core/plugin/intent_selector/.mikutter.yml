@@ -1,10 +1,11 @@
 ---
 slug: :intent_selector
 depends:
-  mikutter: 3.5.0-develop
+  mikutter: '3.5'
   plugin:
   - gtk
   - intent
+  - skin
 version: '1.0'
 author: toshi_a
 name: Intent Selector

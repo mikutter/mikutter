@@ -16,8 +16,9 @@ class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
     helper.message.favorited_by
   end
 
-  def title_icon
-    GdkPixbuf::Pixbuf.new(file: Skin.get("unfav.png"), width: @icon_width, height: @icon_height) end
+  memoize def title_icon_model
+    Skin.photo('unfav.png')
+  end
 
   def name
     :favorited end

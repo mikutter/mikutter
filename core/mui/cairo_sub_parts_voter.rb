@@ -103,8 +103,18 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   def name
     raise end
 
+  # このSubPartsのアイコンのPixbufを返す。
+  # title_icon_model メソッドをオーバライドしない場合、こちらを必ずオーバライドしなければならない
   def title_icon
-    raise end
+    title_icon_model.pixbuf(width: @icon_width, height: @icon_height)
+  end
+
+  # このSubPartsのアイコンをあらわすModelを返す。
+  # title_icon の内部でしか使われないので、このメソッドを使わないように title_icon を再定義した場合は
+  # このメソッドをオーバライドする必要はない。
+  def title_icon_model
+    raise
+  end
 
   private
 
@@ -145,7 +155,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   end
 
   def user_icon(user)
-    @user_icon[user[:id]] ||= Gdk::WebImageLoader.pixbuf(user[:profile_image_url], icon_width, icon_height){ |pixbuf|
+    @user_icon[user[:id]] ||= user.icon.load_pixbuf(width: icon_width, height: icon_height){ |pixbuf|
       @user_icon[user[:id]] = pixbuf
       helper.on_modify } end
 

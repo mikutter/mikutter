@@ -71,6 +71,10 @@ Plugin.create :openimg do
     Plugin::Openimg::Window.new(intent_token.model, intent_token).start_loading.show_all
   end
 
+  intent :photo do |intent_token|
+    Plugin::Openimg::Window.new(intent_token.model, intent_token).start_loading.show_all
+  end
+
   def addsupport(cond, element_rule = {}, &block); end
 
 end

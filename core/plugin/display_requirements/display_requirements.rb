@@ -68,7 +68,7 @@ Plugin.create :display_requirements do
           name: _('いいねいいねする'),
           condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
-          icon: Skin.get("dont_like.png"),
+          icon: Skin['dont_like.png'],
           role: :timeline) do |opt|
     opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
 
@@ -76,7 +76,7 @@ Plugin.create :display_requirements do
           name: _('あんいいね'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
-          icon: Skin.get("like.png"),
+          icon: Skin['like.png'],
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 
@@ -87,7 +87,7 @@ Plugin.create :display_requirements do
     activity(:like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がいいねいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -96,7 +96,7 @@ Plugin.create :display_requirements do
     activity(:dont_like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end

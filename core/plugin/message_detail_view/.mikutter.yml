@@ -6,6 +6,7 @@ depends:
   - gui
   - gtk
   - intent
+  - skin
 version: '1.0'
 author: toshi_a
 name: ツイート詳細

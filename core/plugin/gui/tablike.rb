@@ -73,9 +73,17 @@ module Plugin::GUI::TabLike
     pack_rule.push(expand?)
     self end
 
-  def set_icon(new)
-    if @icon != new
-      @icon = new
+  def set_icon(icon)
+    icon_model = case icon
+    when Retriever::Model
+      icon
+    when String
+      Retriever::Model(:photo)[icon]
+    else
+      raise RuntimeError, "Unexpected class `#{icon.class}'."
+    end
+    if @icon != icon_model
+      @icon = icon_model
       Plugin.call(:gui_tab_change_icon, self) end
     self end
 

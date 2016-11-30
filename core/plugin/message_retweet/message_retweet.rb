@@ -4,7 +4,7 @@ Plugin.create :message_retweet do
   message_fragment :retweeted, "ReTweet" do
     message = retriever
 
-    set_icon Skin.get('retweet.png')
+    set_icon Skin['retweet.png']
     user_list = Gtk::UserList.new
     begin
       user_list.add_user retriever.retweeted_by

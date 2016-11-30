@@ -34,8 +34,6 @@ module Gdk::IconOverButton
 
   # _context_ にicon over buttonを描画する。
   def render_icon_over_button(context)
-    pb_overbutton = GdkPixbuf::Pixbuf.new(file: Skin.get("overbutton.png"))
-    pb_overbutton_mo = GdkPixbuf::Pixbuf.new(file: Skin.get("overbutton_mouseover.png"))
     context.save{
       context.translate(pos.main_icon.x, pos.main_icon.y)
       _schemer[:y_count].times{ |posy|
@@ -46,19 +44,13 @@ module Gdk::IconOverButton
           if(icon_file_name)
             if(current_icon_pos)
               context.save{
-                pb = if current_icon_pos == pos
-                       pb_overbutton_mo
-                     else
-                       pb_overbutton end
+                pb_filename = current_icon_pos == pos ? 'overbutton_mouseover.png' : 'overbutton.png'
                 context.translate(ir.x, ir.y)
-                context.scale(ir.width.to_f / pb.width, ir.height.to_f / pb.height)
-                context.set_source_pixbuf(pb)
+                context.set_source_pixbuf(Skin[pb_filename].pixbuf(width: ir.width, height: ir.height))
                 context.paint } end
             context.save{
               context.translate(ir.x, ir.y)
-              icon_pb = GdkPixbuf::Pixbuf.new(file: Skin.get(icon_file_name))
-              context.scale(ir.width.to_f / icon_pb.width, ir.height.to_f / icon_pb.height)
-              context.set_source_pixbuf(icon_pb)
+              context.set_source_pixbuf(Skin[icon_file_name].pixbuf(width: ir.width, height: ir.height))
               context.paint } end } } } end
 
   # アイコン上でマウスポインタが動いた時に呼ぶ。

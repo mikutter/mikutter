@@ -7,6 +7,7 @@ miquire :lib, 'typed-array'
 class User < Retriever::Model
   extend Gem::Deprecate
   include Retriever::Model::Identity
+  include Retriever::Model::UserMixin
 
   register :twitter_user, name: "Twitter User"
 
@@ -134,8 +135,6 @@ class User < Retriever::Model
   memoize def perma_link
     URI.parse("https://twitter.com/#{idname}").freeze end
 
-  def user
-    self end
   alias to_user user
 
   def marshal_dump

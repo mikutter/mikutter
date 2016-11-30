@@ -5,6 +5,7 @@ depends:
   plugin:
   - gui
   - uitranslator
+  - skin
 version: '1.0'
 author: toshi_a
 name: 会話

@@ -1,0 +1,10 @@
+---
+slug: :photo
+depends:
+  mikutter: '3.5'
+  plugin:
+    - uitranslator
+version: '1.0'
+author: toshi_a
+name: Photo
+description: mikutterで写真を扱うための共通の仕組みを提供する。

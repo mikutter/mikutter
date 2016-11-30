@@ -150,7 +150,7 @@ Plugin.create(:activity) do
                                   closeup(activity_status.right)), true, false)
 
   tab(:activity, _("アクティビティ")) do
-    set_icon Skin.get("activity.png")
+    set_icon Skin['activity.png']
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 
@@ -169,11 +169,22 @@ Plugin.create(:activity) do
     if not mute?(params)
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       iter = activity_view.model.prepend
-      if params[:icon].is_a? String
-        iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(params[:icon], 24, 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon }
+      case params[:icon]
+      when GdkPixbuf::Pixbuf
+        iter[ActivityView::ICON] = params[:icon]
+      when Retriever::Model
+        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
+      when nil, false
       else
-        iter[ActivityView::ICON] = params[:icon] end
+        photo = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, params[:icon], y)
+        }.first
+        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
+      end
       iter[ActivityView::KIND] = params[:kind].to_s
       iter[ActivityView::TITLE] = params[:title].tr("\n", "")
       iter[ActivityView::DATE] = params[:date].strftime('%Y/%m/%d %H:%M:%S')
@@ -194,7 +205,7 @@ Plugin.create(:activity) do
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -203,7 +214,7 @@ Plugin.create(:activity) do
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
                           "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -214,7 +225,7 @@ Plugin.create(:activity) do
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
                               "@#{source.user[:idname]}: #{source.to_s}\n#{source.perma_link}"),
-                 icon: retweet.user[:profile_image_url],
+                 icon: retweet.user.icon,
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),
                  service: Service.primary) }.terminate(_ 'リツイートソースが取得できませんでした') }
@@ -232,7 +243,7 @@ Plugin.create(:activity) do
                description:("#{title}\n" +
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
+               icon: user.icon,
                related: user.me? || source_user.me?,
                service: service) end
   end
@@ -249,7 +260,7 @@ Plugin.create(:activity) do
                description:("#{title}\n"+
                             _("%{description} (by @%{user})") % desc_by_user + "\n" +
                             "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
+               icon: user.icon,
                related: user.me? || source_user.me?,
                service: service) end
   end
@@ -261,7 +272,7 @@ Plugin.create(:activity) do
         follower: to[:idname] }
       activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
                related: by.me? || to.me?,
-               icon: (to.me? ? by : to)[:profile_image_url]) end
+               icon: (to.me? ? by : to).icon) end
   end
 
   on_direct_messages do |service, dms|
@@ -275,7 +286,7 @@ Plugin.create(:activity) do
                      '',
                      dm[:text]
                    ].join("\n"),
-                 icon: dm[:sender][:profile_image_url],
+                 icon: dm[:sender].icon,
                  service: service,
                  date: date) end }
   end

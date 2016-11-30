@@ -130,7 +130,7 @@ module Plugin::Openimg
 
     def w_browser
       @w_browser ||= ::Gtk::ToolButton.new(
-        Gtk::Image.new(GdkPixbuf::Pixbuf.new(file: Skin.get('forward.png'), width: 24, height: 24))
+        Gtk::Image.new(Skin['forward.png'].pixbuf(width: 24, height: 24))
       ).tap{|w|
         w.ssc(:clicked, &gen_browser_clicked)
       }
@@ -174,12 +174,12 @@ module Plugin::Openimg
     end
 
     def loading_surface
-      surface = Cairo::ImageSurface.from_png(Skin.get('loading.png'))
+      surface = Cairo::ImageSurface.from_png(Skin.get_path('loading.png'))
       surface
     end
 
     def error_surface
-      surface = Cairo::ImageSurface.from_png(Skin.get('notfound.png'))
+      surface = Cairo::ImageSurface.from_png(Skin.get_path('notfound.png'))
       surface
     end
 

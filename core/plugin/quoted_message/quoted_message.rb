@@ -21,7 +21,7 @@ Plugin.create :quoted_message do
 
   command(:quoted_tweet,
           name: _('コメント付きリツイート'.freeze),
-          icon: MUI::Skin.get('quote.png'),
+          icon: Skin['quote.png'],
           condition: Proc.new{ |opt|
             opt.messages.all?(&:perma_link)},
           visible: true,

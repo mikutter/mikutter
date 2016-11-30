@@ -8,12 +8,12 @@ class Mikutter::System::User < Retriever::Model
   field.string :idname
   field.string :name
   field.string :detail
-  field.string :profile_image_url
+  field.has :icon, Retriever::Model
 
   memoize def self.system
     Mikutter::System::User.new(idname: 'mikutter_bot',
                                name: Environment::NAME,
-                               profile_image_url: Skin.get("icon.png"))
+                               icon: Skin['icon.png'])
   end
 
   def system?

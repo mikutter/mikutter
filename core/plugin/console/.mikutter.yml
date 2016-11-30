@@ -6,5 +6,6 @@ depends:
   - gui
   - gtk
   - uitranslator
+  - skin
 version: '1.0'
 description: Console
