@@ -11,7 +11,7 @@ class Retriever::Model
   class << self
     extend Gem::Deprecate
 
-    attr_reader :slug
+    attr_reader :slug, :spec
 
     # 新しいオブジェクトを生成します
     # 既にそのカラムのインスタンスが存在すればそちらを返します
@@ -140,16 +140,15 @@ class Retriever::Model
                  reply: true,
                  myself: true
                 )
-      @slug = new_slug
-      @name = name.freeze
-      retriever_spec = {slug: @slug,
-                        name: @name,
-                        reply: reply,
-                        myself: myself
-                       }.freeze
+      @slug = new_slug.to_sym
+      spec = @spec = {slug: @slug,
+                      name: name.to_s.freeze,
+                      reply: !!reply,
+                      myself: !!myself
+                     }.freeze
       plugin do
         filter_retrievers do |retrievers|
-          retrievers << retriever_spec
+          retrievers << spec
           [retrievers]
         end
       end
