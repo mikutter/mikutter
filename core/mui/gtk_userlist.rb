@@ -16,7 +16,10 @@ class Gtk::UserList < Gtk::EventBox
     ->(this, path, column) do
       iter = this.model.get_iter(path)
       if iter
-        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end end end
+        Plugin.call(:open, iter[Gtk::InnerUserList::COL_USER])
+      end
+    end
+  end
 
   def initialize
     super
