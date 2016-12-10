@@ -15,7 +15,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     when 1
       case UserConfig[:reply_clicked_action]
       when :open
-        Plugin.call(:show_message, message)
+        Plugin.call(:open, message)
       when :smartthread
         Plugin.call(:open_smartthread, [message]) end
     end end
