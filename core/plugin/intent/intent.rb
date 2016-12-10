@@ -9,7 +9,7 @@ Plugin.create(:intent) do
 
   # _uri_ を開くことができる Model を列挙するためのフィルタ
   defevent :model_of_uri,
-           prototype: [URI, :<<]
+           prototype: [Retriever::URI, :<<]
 
   # _model_slug_ を開くことができる Intent を列挙するためのフィルタ
   defevent :intent_select_by_model_slug,
@@ -18,7 +18,7 @@ Plugin.create(:intent) do
   # 第二引数のリソースを、第一引数のIntentのうちどれで開くかを決められなかった時に発生する。
   # intent_selectorプラグインがこれを受け取ってダイアログとか出す
   defevent :intent_select,
-           prototype: [Enumerable, tcor(URI, String, Retriever::Model)]
+           prototype: [Enumerable, tcor(Retriever::URI, String, Retriever::Model)]
 
   # IntentTokenの次にあたるintentを発生させる。
   defevent :intent_forward,
@@ -73,8 +73,8 @@ Plugin.create(:intent) do
       Plugin.call("intent_open_#{object.intent.slug}", object)
     when Retriever::Model
       open_model(object)
-    when String, URI
-      open_uri(object.is_a?(URI) ? object : URI.parse(object))
+    else
+      open_uri(Retriever::URI!(object))
     end
   end
 
@@ -134,7 +134,6 @@ Plugin.create(:intent) do
     head = intents.first(2)
     case head.size
     when 0
-      type_strict model.uri => URI
       open_uri(model.uri, token: token)
     when 1
       intent = head.first

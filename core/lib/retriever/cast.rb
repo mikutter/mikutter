@@ -14,14 +14,7 @@ module Retriever
       end
     },
     :uri => lambda{ |v|
-      case v
-      when URI
-        v
-      when String
-        URI.parse(v)
-      else
-        raise InvalidTypeError
-      end
+      Retriever::URI!(v)
     }
   }
 

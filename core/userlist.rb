@@ -44,7 +44,7 @@ class UserList < Retriever::Model
     self[:user] end
 
   memoize def perma_link
-    URI.parse("https://twitter.com/#{user.idname}/lists/#{CGI.escape(slug)}").freeze end
+    Retriever::URI.new("https://twitter.com/#{user.idname}/lists/#{CGI.escape(slug)}") end
 
   def member
     self[:member] ||= Set.new end

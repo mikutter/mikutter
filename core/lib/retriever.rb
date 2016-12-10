@@ -10,6 +10,19 @@ module Retriever
     end
     nil
   end
+
+  def self.URI(uri)
+    case uri
+    when Retriever::URI
+      uri
+    when URI, Addressable::URI, String, Hash
+      Retriever::URI.new(uri)
+    end
+  end
+
+  def self.URI!(uri)
+    self.URI(uri) or raise InvalidURIError, "`#{uri.class}' is not uri."
+  end
 end
 
 require_relative 'retriever/cast'

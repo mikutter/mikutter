@@ -15,7 +15,7 @@ module Plugin::Skin
     end
 
     memoize def uri
-      URI::Generic.build(scheme: 'file'.freeze, path: path).freeze
+      Retriever::URI.new(scheme: 'file'.freeze, path: path)
     end
 
     # 引数の寸法の GdkPixbuf::Pixbuf を返す。

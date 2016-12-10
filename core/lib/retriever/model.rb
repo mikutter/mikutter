@@ -5,6 +5,8 @@
 
 miquire :lib, 'typed-array'
 
+require_relative 'uri'
+
 class Retriever::Model
   include Comparable
 
@@ -299,9 +301,9 @@ class Retriever::Model
 
   # このModelのURIを返す。
   # ==== Return
-  # [URI::Generic] パーマリンク
+  # [URI::Generic|Retriever::URI] パーマリンク
   def uri
-    perma_link || URI::Generic.new(self.class.scheme,nil,self.class.host,nil,nil,path,nil,nil,nil)
+    perma_link || Retriever::URI.new("#{self.class.scheme}://#{self.class.host}#{path}")
   end
 
   # このRetrieverが、登録されているアカウントのうちいずれかが作成したものであれば true を返す
