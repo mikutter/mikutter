@@ -168,13 +168,15 @@ class ::Gdk::MiraclePainter
   # アイコンをクリックしたら必ずプロフィールを表示しなければならない
   def iob_clicked(gx, gy)
     if globalpos2iconpos(gx, gy)
-      Plugin.call(:show_profile, Service.primary, message.user) end end
+      Plugin.call(:open, message.user)
+    end
+  end
 
   # 名前からはプロフィールに、タイムスタンプからはツイートのパーマリンクにリンクしなければならない
   alias __clicked_l7eOfD__ clicked
   def clicked(x, y, e)
     if defined?(@hl_region) and @hl_region.point_in?(x, y)
-      Plugin.call(:show_profile, Service.primary, message.user)
+      Plugin.call(:open, message.user)
     elsif defined?(@hr_region) and @hr_region.point_in?(x, y)
       Gtk.openurl("https://twitter.com/#{message.user.idname}/status/#{message.id}")
     else

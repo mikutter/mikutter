@@ -25,8 +25,13 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
           if(x >= @icon_ofst)
             user = get_user_by_point(x)
             if user
-              Plugin.call(:show_profile, Service.primary, user) end end end end
-      false }
+              Plugin.call(:open, user)
+            end
+          end
+        end
+      end
+      false
+    }
     last_motion_user = nil
     usertip = Gtk::Tooltips.instance
     helper.ssc(:motion_notify_event){ |this, x, y|

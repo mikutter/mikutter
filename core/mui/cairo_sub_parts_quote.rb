@@ -16,7 +16,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     when 1
       case UserConfig[:quote_clicked_action]
       when :open
-        Plugin.call(:show_message, message)
+        Plugin.call(:open, message)
       when :smartthread
         Plugin.call(:open_smartthread, [message]) end
     end end

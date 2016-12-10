@@ -62,7 +62,7 @@ module Gtk
     def profile_opener(user)
       type_strict user => Retriever::Model
       proc do
-        Plugin.call(:show_profile, Service.primary, user)
+        Plugin.call(:open, user)
         true end end
 
     def message_opener(message)
