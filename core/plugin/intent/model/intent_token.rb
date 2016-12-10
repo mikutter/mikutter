@@ -25,9 +25,13 @@ module Plugin::Intent
         Deferred.new{
           Retriever.Model(intent.model_slug).find_by_uri(uri)
         }.next{|m|
+          Delayer::Deferred.fail("#{intent.model_slug}(#{uri}) does not exists.") unless m
           self.model = m
           Plugin.call(:open, self)
-        }.terminate('なんか開けなかった')
+        }.trap{|err|
+          error err
+          forward
+        }
       end
       self
     end
