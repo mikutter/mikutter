@@ -12,4 +12,8 @@ module Retriever
   # IDやURIなどの一意にリソースを特定する情報を使ってデータソースに問い合わせたが、
   # 対応する情報が見つからず、Modelを作成できない
   class ModelNotFoundError < RetrieverError; end
+
+  # URIとして受け付けられない値を渡された
+  class InvalidURIError < InvalidTypeError; end
+
 end

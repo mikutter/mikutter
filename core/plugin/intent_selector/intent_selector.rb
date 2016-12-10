@@ -8,10 +8,8 @@ Plugin.create(:intent_selector) do
     case model
     when Retriever::Model
       intent_open(intents, model: model)
-    when URI
-      intent_open(intents, uri: model)
-    when String
-      intent_open(intents, uri: URI.parse(model))
+    else
+      intent_open(intents, uri: Retriever::URI!(model))
     end
   end
 

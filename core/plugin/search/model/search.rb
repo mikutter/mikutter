@@ -18,7 +18,7 @@ module Plugin::Search
     end
 
     memoize def perma_link
-      URI.parse("https://twitter.com/search?q=#{CGI.escape(self.query)}")
+      Retriever::URI.new("https://twitter.com/search?q=#{CGI.escape(self.query)}")
     end
   end
 end

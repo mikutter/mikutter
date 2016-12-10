@@ -133,7 +133,8 @@ class User < Retriever::Model
     @value[:favourites_count] end
 
   memoize def perma_link
-    URI.parse("https://twitter.com/#{idname}").freeze end
+    Retriever::URI.new("https://twitter.com/#{idname}")
+  end
 
   alias to_user user
 

@@ -599,7 +599,7 @@ class Message < Retriever::Model
   # [URI] パーマリンク
   # [nil] パーマリンクが存在しない
   def perma_link
-    URI.parse("https://twitter.com/#{user[:idname]}/status/#{self[:id]}").freeze end
+    Retriever::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12

@@ -55,9 +55,9 @@ module Retriever::Entity
         user = Retriever::Model(:twitter_user)
         if user
           entity[:open] = user.findbyidname(entity[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY) ||
-                          URI("https://twitter.com/#{entity[:screen_name]}")
+                          Retriever::URI.new("https://twitter.com/#{entity[:screen_name]}")
         else
-          entity[:open] = URI("https://twitter.com/#{entity[:screen_name]}")
+          entity[:open] = Retriever::URI.new("https://twitter.com/#{entity[:screen_name]}")
         end
       when :hashtags
         entity[:face] = entity[:url] = "##{entity[:text]}".freeze

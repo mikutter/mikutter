@@ -282,7 +282,7 @@ module Gtk
   # _url_ を設定されているブラウザで開く
   class << self
     def openurl(url)
-      Plugin.call(:open, URI(url))
+      Plugin.call(:open, url)
     end
   end
 end
