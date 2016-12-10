@@ -19,7 +19,7 @@ module Plugin::DirectMessage
 
     user_fragment(:directmessage, _("DM")) do
       set_icon Skin['directmessage.png']
-      u = user
+      u = retriever
       timeline timeline_name_for(u) do
         postbox(from: Sender.new(u), delegate_other: true)
       end
