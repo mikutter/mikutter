@@ -4,7 +4,7 @@ require 'webmock'
 require 'gtk2'
 
 require 'lib/test_unit_extensions'
-miquire :mui, 'webicon'
+miquire :mui, 'webicon', 'extension'
 
 class TC_GtkWebIcon < Test::Unit::TestCase
   def setup

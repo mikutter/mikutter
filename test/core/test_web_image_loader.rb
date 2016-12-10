@@ -6,7 +6,7 @@ require 'gtk2'
 
 ICON_TEST = File.expand_path(File.dirname(__FILE__) + "/icon_test.png")
 
-miquire :mui, 'web_image_loader'
+miquire :mui, 'web_image_loader', 'extension'
 miquire :lib, 'delayer'
 miquire :core, 'plugin'
 
