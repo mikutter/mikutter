@@ -63,7 +63,7 @@ module Retriever::Entity
         entity[:face] = entity[:url] = "##{entity[:text]}".freeze
         twitter_search = Retriever::Model(:twitter_search)
         if twitter_search
-          entity[:open] = twitter_search.new(query: entity[:text]) end
+          entity[:open] = twitter_search.new(query: "##{entity[:text]}") end
       when :media
         case entity[:video_info] and entity[:type]
         when 'video'
