@@ -186,12 +186,12 @@ module Plugin::Shortcutkey
         }
         Plugin.filtering(:command, Hash.new).first.map{ |slug, command|
           iter = model.model.append(parents[command[:role]])
-          icon = command[:icon]
-          icon = icon.call(nil) if icon.is_a? Proc
+          icon = icon_model(command[:icon])
           if icon
-            iter[COL_ICON] = Retriever::Model(:photo)[icon].load_pixbuf(width: 16, height: 16){ |pixbuf|
-              if not destroyed?
-                iter[COL_ICON] = pixbuf end } end
+            iter[COL_ICON] = icon.load_pixbuf(width: 16, height: 16) do |pixbuf|
+              iter[COL_ICON] = pixbuf if not destroyed?
+            end
+          end
           name = command[:name]
           name = name.call(nil) if name.is_a? Proc
           iter[COL_NAME] = name
@@ -214,6 +214,17 @@ module Plugin::Shortcutkey
       end
 
       private
+
+      def icon_model(icon)
+        case icon
+        when Proc
+          icon_model(icon.call(nil))
+        when Retriever::Model
+          icon
+        when String, URI, Addressable::URI, Retriever::URI
+          Enumerator.new{|y| Plugin.filtering(:photo_filter, icon, y) }.first
+        end
+      end
 
       def iter_match(iter, text)
         [COL_NAME, COL_SLUG].any?{ |column|
