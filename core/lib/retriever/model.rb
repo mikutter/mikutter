@@ -6,6 +6,7 @@
 miquire :lib, 'typed-array'
 
 require_relative 'uri'
+require_relative 'spec'
 
 class Retriever::Model
   include Comparable
@@ -140,14 +141,14 @@ class Retriever::Model
     def register(new_slug,
                  name: new_slug.to_s,
                  reply: true,
-                 myself: true
+                 myself: true,
                 )
       @slug = new_slug.to_sym
-      spec = @spec = {slug: @slug,
-                      name: name.to_s.freeze,
-                      reply: !!reply,
-                      myself: !!myself
-                     }.freeze
+      spec = @spec = Retriever::ModelSpec.new(@slug,
+                                              name.to_s.freeze,
+                                              !!reply,
+                                              !!myself,
+                                             ).freeze
       plugin do
         filter_retrievers do |retrievers|
           retrievers << spec
