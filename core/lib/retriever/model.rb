@@ -138,16 +138,19 @@ class Retriever::Model
     # [name:] String Modelの名前
     # [reply:] bool このRetrieverに、宛先が存在するなら真
     # [myself:] bool このRetrieverを、自分のアカウントによって作成できるなら真
+    # [timeline:] bool 真ならタイムラインに表示することができる
     def register(new_slug,
                  name: new_slug.to_s,
                  reply: true,
                  myself: true,
+                 timeline: false
                 )
       @slug = new_slug.to_sym
       spec = @spec = Retriever::ModelSpec.new(@slug,
                                               name.to_s.freeze,
                                               !!reply,
                                               !!myself,
+                                              !!timeline
                                              ).freeze
       plugin do
         filter_retrievers do |retrievers|

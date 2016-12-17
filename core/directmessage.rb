@@ -7,7 +7,8 @@ module Mikutter::Twitter
     include Retriever::Model::MessageMixin
 
     register :twitter_direct_message,
-             name: "Direct Message"
+             name: "Direct Message",
+             timeline: true
 
     field.int    :id, required: true                        # ID
     field.string :text, required: true                      # Message description
