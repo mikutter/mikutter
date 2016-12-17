@@ -8,7 +8,8 @@ class Mikutter::System::Message < Retriever::Model
 
   register :system_message,
            name: "System Message",
-           timeline: true
+           timeline: true,
+           myself: false
 
   field.string :description, required: true
   field.has :user, Mikutter::System::User, required: true
