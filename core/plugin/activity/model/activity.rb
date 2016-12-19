@@ -46,10 +46,6 @@ module Plugin::Activity
       date
     end
 
-    memoize def uri
-      URI::Generic.build(scheme: 'activity', host: host, path: path).freeze
-    end
-
     def host
       kind.gsub('_', '-')
     end
