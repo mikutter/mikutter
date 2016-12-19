@@ -15,7 +15,7 @@ Plugin.create :streaming do
   on_filter_stream_reconnect_request do
     if not reconnect_request_flag
       reconnect_request_flag = true
-      Reserver.new(30) {
+      Reserver.new(30, thread: Delayer) {
         reconnect_request_flag = false
         Plugin.call(:filter_stream_force_retry) } end end
 

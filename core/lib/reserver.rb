@@ -10,12 +10,13 @@ require 'delegate'
 
 class Reserver < Delegator
 
-  attr_reader :time
+  attr_reader :time, :thread_class
   alias __getobj__ time
 
-  def initialize(time, &proc)
+  def initialize(time, thread: Thread, &proc)
     raise ArgumentError.new('Block necessary for Reserver.new') unless block_given?
     @proc = proc
+    @thread_class = thread
     case
     when time.is_a?(Time)
       @time = time.freeze
@@ -62,7 +63,7 @@ class Reserver < Delegator
               sleep_time = reserver.time - Time.now
               if sleep_time <= 0
                 @reservers.delete reserver
-                Thread.new(&reserver)
+                reserver.thread_class.new(&reserver)
               else
                 Timeout.timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
             rescue WakeUp

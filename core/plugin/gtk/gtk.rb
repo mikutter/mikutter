@@ -375,15 +375,18 @@ Plugin.create :gtk do
 
   on_gui_window_rewindstatus do |i_window, text, expire|
     window = @slug_dictionary.get(Plugin::GUI::Window, :default)
-    if not window
-      next end
+    next if not window
     statusbar = window.statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
     if expire != 0
-      Reserver.new(expire){
+      Reserver.new(expire, thread: Delayer) do
         if not statusbar.destroyed?
-          statusbar.remove(cid, mid) end } end end
+          statusbar.remove(cid, mid)
+        end
+      end
+    end
+  end
 
   on_gui_child_activated do |i_parent, i_child, activated_by_toolkit|
     type_strict i_parent => Plugin::GUI::HierarchyParent, i_child => Plugin::GUI::HierarchyChild
