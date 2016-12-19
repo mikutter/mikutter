@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-24 16:02+0000\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-11 09:21+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -84,45 +84,49 @@ msgid "ggrks"
 msgstr "為何不 google"
 
 #: ../command.rb:139
+msgid "ブラウザで開く"
+msgstr "以瀏覽器開啟"
+
+#: ../command.rb:146
 msgid "リンクを開く"
 msgstr "開啟連結"
 
-#: ../command.rb:155
+#: ../command.rb:162
 msgid "リンクをコピー"
 msgstr "複製連結"
 
-#: ../command.rb:164
+#: ../command.rb:171
 msgid "新規ペインに移動"
 msgstr "移動到新建窗格"
 
-#: ../command.rb:182
+#: ../command.rb:189
 msgid "タブを閉じる"
 msgstr "關閉頁籤"
 
-#: ../command.rb:192
+#: ../command.rb:199
 msgid "次のタブを選択"
 msgstr "選擇下一頁籤"
 
-#: ../command.rb:200
+#: ../command.rb:207
 msgid "前のタブを選択"
 msgstr "選擇前一頁籤"
 
-#: ../command.rb:208
+#: ../command.rb:215
 msgid "右のペインを選択"
 msgstr "選擇右方窗格"
 
-#: ../command.rb:216
+#: ../command.rb:223
 msgid "左のペインを選択"
 msgstr "選擇左方窗格"
 
-#: ../command.rb:224
+#: ../command.rb:231
 msgid "投稿ボックスにフォーカス"
 msgstr "焦點移至發推欄位"
 
-#: ../command.rb:236
+#: ../command.rb:243
 msgid "タブにフォーカス"
 msgstr "焦點移至頁籤"
 
-#: ../command.rb:244
+#: ../command.rb:251
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "跳到時間軸頂端！"

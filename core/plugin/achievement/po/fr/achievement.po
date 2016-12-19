@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the achievement package.
 # 
 # Translators:
-# Manuel Tancoigne <m.tancoigne@gmail.com>, 2015
+# Manuel Tancoigne <m.tancoigne@gmail.com>, 2015-2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2015-02-15 12:54+0000\n"
+"PO-Revision-Date: 2016-12-12 10:21+0000\n"
 "Last-Translator: Manuel Tancoigne <m.tancoigne@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/lindwurm/mikutter/language/fr/)\n"
 "MIME-Version: 1.0\n"
@@ -28,11 +28,11 @@ msgstr "Votre compte Twitter est connecté à Mikutter. Ça va vous faciliter la
 
 #: ../achievement.rb:107
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
-msgstr ""
+msgstr "Customisez mikutter dans la fenêtre des paramètres."
 
 #: ../achievement.rb:108
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
-msgstr "Cliquez sur l'icone en forme de clé à molette en bas à droite de la fenêtre."
+msgstr "Cliquez sur l'icône en forme de clé à molette en bas à droite de la fenêtre."
 
 #: ../achievement.rb:115
 msgid "ヾ(＠⌒ー⌒＠)ノ"
