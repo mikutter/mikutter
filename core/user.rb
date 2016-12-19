@@ -67,6 +67,10 @@ class User < Retriever::Model
     self[:idname] end
   alias to_s idname
 
+  def title
+    "#{idname}(#{name})"
+  end
+
   def protected?
     !!self[:protected]
   end

@@ -23,7 +23,7 @@ module Plugin::Activity
           end
         end
         iter[MODEL_KIND] = record.class.spec[:name]
-        iter[TITLE] = (record[:title] || record[:name] || record[:description] || record.to_s).gsub("\n", '')
+        iter[TITLE] = record.title
         iter[MODEL] = record
       end
     end
