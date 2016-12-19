@@ -397,6 +397,19 @@ class Retriever::Model
         raise Retriever::InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}" end }
     result end
 
+  # このインスタンスのタイトル。
+  def title
+    fields = self.class.keys.select(&ret_nth(1))
+    case
+    when fields.include?(:name)
+      name.gsub("\n", '')
+    when fields.include?(:description)
+      description.gsub("\n", '')
+    else
+      to_s.gsub("\n", '')
+    end
+  end
+
   private
   # URIがデフォルトで使うpath要素
   def path
