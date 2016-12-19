@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-18 11:37+0000\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-11 08:16+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Portuguese (Portugal) (http://www.transifex.com/lindwurm/mikutter/language/pt_PT/)\n"
 "MIME-Version: 1.0\n"
@@ -82,45 +82,49 @@ msgid "ggrks"
 msgstr ""
 
 #: ../command.rb:139
+msgid "ブラウザで開く"
+msgstr ""
+
+#: ../command.rb:146
 msgid "リンクを開く"
 msgstr ""
 
-#: ../command.rb:155
+#: ../command.rb:162
 msgid "リンクをコピー"
 msgstr ""
 
-#: ../command.rb:164
+#: ../command.rb:171
 msgid "新規ペインに移動"
 msgstr ""
 
-#: ../command.rb:182
+#: ../command.rb:189
 msgid "タブを閉じる"
 msgstr ""
 
-#: ../command.rb:192
+#: ../command.rb:199
 msgid "次のタブを選択"
 msgstr ""
 
-#: ../command.rb:200
+#: ../command.rb:207
 msgid "前のタブを選択"
 msgstr ""
 
-#: ../command.rb:208
+#: ../command.rb:215
 msgid "右のペインを選択"
 msgstr ""
 
-#: ../command.rb:216
+#: ../command.rb:223
 msgid "左のペインを選択"
 msgstr ""
 
-#: ../command.rb:224
+#: ../command.rb:231
 msgid "投稿ボックスにフォーカス"
 msgstr ""
 
-#: ../command.rb:236
+#: ../command.rb:243
 msgid "タブにフォーカス"
 msgstr ""
 
-#: ../command.rb:244
+#: ../command.rb:251
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr ""
