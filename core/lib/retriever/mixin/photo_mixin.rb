@@ -186,7 +186,7 @@ module Retriever::Model::PhotoMixin
   # 既に動いているタイマーがあればそれをキャンセルする。
   def set_forget_timer
     @forget.cancel if @forget
-    @forget = Reserver.new(forget_time){ forget! }
+    @forget = Reserver.new(forget_time, thread: SerialThread){ forget! }
   end
 
   # 覚えておりません

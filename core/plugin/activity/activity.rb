@@ -72,16 +72,19 @@ Plugin.create(:activity) do
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
-    Reserver.new(60) {
-      Delayer.new {
-        if not model.destroyed?
-          iters = model.to_enum(:each).to_a
-          remove_count = iters.size - UserConfig[:activity_max]
-          if remove_count > 0
-            iters[-remove_count, remove_count].each{ |_m,_p,iter|
-              @contains_uris.delete(iter[ActivityView::URI])
-              model.remove(iter) } end
-          reset_activity(model) end } }
+    Reserver.new(60, thread: Delayer) do
+      if not model.destroyed?
+        iters = model.to_enum(:each).to_a
+        remove_count = iters.size - UserConfig[:activity_max]
+        if remove_count > 0
+          iters[-remove_count, remove_count].each do |_m,_p,iter|
+            @contains_uris.delete(iter[ActivityView::URI])
+            model.remove(iter)
+          end
+        end
+        reset_activity(model)
+      end
+    end
   end
 
   def gen_listener_for_visible_check(uc, kind)

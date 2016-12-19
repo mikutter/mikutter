@@ -111,7 +111,7 @@ module Retriever::Model::PhotoMixin
   end
 
   def pixbuf_forget(width, height, gen)
-    Reserver.new([300, 60 * gen ** 2].max) do
+    Reserver.new([300, 60 * gen ** 2].max, thread: SerialThread) do
       pixbuf_cache.delete([width, height].hash)
     end
   end
