@@ -12,12 +12,6 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 投稿１つを表すクラス。
 =end
 class Message < Retriever::Model
-  # screen nameにマッチする正規表現
-  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
-
-  # screen nameのみから構成される文字列から、@などを切り取るための正規表現
-  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨)?([a-zA-Z0-9_]+)\Z/.freeze
-
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
@@ -60,8 +54,7 @@ class Message < Retriever::Model
   field.time   :created                             # posted time
   field.time   :modified                            # updated time
 
-  entity_class Retriever::Entity::TwitterEntity
-
+  entity_class Retriever::Entity::ExtendedTwitterEntity
   handle PermalinkMatcher do |uri|
     match = PermalinkMatcher.match(uri.to_s)
     notice match.inspect
@@ -205,7 +198,7 @@ class Message < Retriever::Model
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
-      match = MentionMatcher.match(self[:message].to_s)
+      match = Retriever::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -221,7 +214,7 @@ class Message < Retriever::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.scan(MentionMatcher).map(&:first) end
+    self[:message].to_s.scan(Retriever::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?

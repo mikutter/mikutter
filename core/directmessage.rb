@@ -18,7 +18,7 @@ module Mikutter::Twitter
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 
-    entity_class Retriever::Entity::TwitterEntity
+    entity_class Retriever::Entity::ExtendedTwitterEntity
 
     def self.memory
       @memory ||= DirectMessageMemory.new end
