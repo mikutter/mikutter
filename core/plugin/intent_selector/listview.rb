@@ -101,7 +101,7 @@ module Plugin::IntentSelector
     end
 
     def model_catalog
-      Hash[Plugin.filtering(:retrievers, []).first.map{|s|[s[:slug].to_s,s[:name]]}].merge('': _('（未定義）'))
+      Hash[Plugin.filtering(:retrievers, []).first.map{|s|[s[:slug].to_s,s[:name]]}].merge('' => _('（未定義）'))
     end
 
   end
