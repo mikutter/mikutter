@@ -1,0 +1,11 @@
+---
+slug: :intent
+depends:
+  mikutter: "3.5"
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: intent
+description: >-
+  ModelをUI上で開く機能を提供する。
+  Pluginが特定のModelを扱えることを表明するintent DSLメソッドを提供する。

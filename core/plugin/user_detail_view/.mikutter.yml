@@ -7,6 +7,8 @@ depends:
   - gtk
   - command
   - uitranslator
+  - intent
+  - skin
 version: '1.0'
 author: toshi_a
 name: プロフィール

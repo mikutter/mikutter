@@ -36,8 +36,10 @@ Plugin.create :gui do
   # [slug] タイムラインのスラッグ
   # ==== Return
   # Plugin::GUI::Timeline
-  defdsl :timeline do |slug|
-    Plugin::GUI::Timeline.instance(slug) end
+  defdsl :timeline do |slug, &proc|
+    tl = Plugin::GUI::Timeline.instance(slug)
+    tl.instance_eval(&proc) if proc
+    tl end
 
   # プロフィールタブを定義する
   # ==== Args
@@ -48,7 +50,7 @@ Plugin.create :gui do
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     fragment_slug = "#{slug}_#{user.idname}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     fragment_slug = "#{slug}_#{user.uri}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
                      i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
                      i_fragment.instance_eval{ @retriever = user }
@@ -67,7 +69,7 @@ Plugin.create :gui do
       tabs.insert(where_should_insert_it(slug, tabs.map(&:first), UserConfig[:profile_tab_order]),
                   [slug,
                    -> {
-                     fragment_slug = "#{slug}_#{message.id}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
+                     fragment_slug = "#{slug}_#{message.uri}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
                      i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
                      i_fragment.instance_eval{ @retriever = message }
@@ -86,7 +88,7 @@ Plugin.create :gui do
   # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
-    window.set_icon File.expand_path(Skin.get('icon.png'))
+    window.set_icon Skin['icon.png']
     window << Plugin::GUI::Postbox.instance
     if panes.empty?
       panes = { default: [] } end

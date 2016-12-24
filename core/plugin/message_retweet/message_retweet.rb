@@ -4,10 +4,10 @@ Plugin.create :message_retweet do
   message_fragment :retweeted, "ReTweet" do
     message = retriever
 
-    set_icon Skin.get('retweet.png')
+    set_icon Skin['retweet.png']
     user_list = Gtk::UserList.new
     begin
-      user_list.add_user Users.new(retriever.retweeted_by.to_a)
+      user_list.add_user retriever.retweeted_by
     rescue => err
     error err
     end
@@ -17,7 +17,7 @@ Plugin.create :message_retweet do
       retweets.deach do |retweet|
         break if user_list.destroyed?
         if retweet.retweet_source(true) == message
-          user_list.add_user(Users.new([retweet.user])) end end end
+          user_list.add_user([retweet.user]) end end end
 
     user_list.ssc_atonce :expose_event do
       Service.primary.retweeted_users(id: message.id).next{|users|

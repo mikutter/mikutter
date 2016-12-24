@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'retriever', 'skin'
-
+miquire :system, 'system'
 miquire :lib, 'typed-array'
 
 class User < Retriever::Model
   extend Gem::Deprecate
+  include Retriever::Model::Identity
+  include Retriever::Model::UserMixin
 
-  @@users_id = WeakStorage.new(String, User) # {idname => User}
+  register :twitter_user, name: "Twitter User"
 
   # args format
   # key     | value
@@ -19,50 +21,55 @@ class User < Retriever::Model
   # detail  | detail
   # profile_image_url | icon
 
-  self.keys = [[:id, :string],
-               [:idname, :string],
-               [:name, :string],
-               [:location, :string],
-               [:detail, :string],
-               [:profile_image_url, :string],
-               [:url, :string],
-               [:protected, :bool],
-               [:verified, :bool],
-               [:followers_count, :int],
-               [:statuses_count, :int],
-               [:friends_count, :int],
-              ]
+  field.int    :id
+  field.string :idname
+  field.string :name
+  field.string :location
+  field.string :detail
+  field.string :profile_image_url
+  field.string :url
+  field.bool   :protected
+  field.bool   :verified
+  field.int    :followers_count
+  field.int    :statuses_count
+  field.int    :friends_count
 
-  def self.system
-    if not defined? @@system then
-      @@system = User.new({ :id => 0,
-                            :idname => 'mikutter_bot',
-                            :name => Environment::NAME,
-                            :profile_image_url => Skin.get("icon.png")})
+  handle %r[\Ahttps?://twitter.com/[a-zA-Z0-9_]+/?\Z] do |uri|
+    match = %r[\Ahttps?://twitter.com/(?<screen_name>[a-zA-Z0-9_]+)/?\Z].match(uri.to_s)
+    notice match.inspect
+    if match
+      user = findbyidname(match[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY)
+      if user
+        user
+      else
+        Thread.new do
+          findbyidname(match[:screen_name], Retriever::DataSource::USE_ALL)
+        end
+      end
+    else
+      raise Retriever::RetrieverError, "id##{match[:screen_name]} does not exist in #{self}."
     end
-    @@system
   end
 
-  def self.memory_class
-    result = Class.new do
-      def self.set_users_id(users)
-        @@users_id = users end
+  def self.system
+    Mikutter::System::User.system end
 
-      def self.new(storage)
-        UserMemory.new(storage, @@users_id) end end
-    result.set_users_id(@@users_id)
-    result end
+  def self.memory
+    @memory ||= UserMemory.new end
 
   def self.container_class
     Users end
 
-  def initialize(*args)
-    super
-    @@users_id[idname] = self end
+  alias :to_i :id
+  deprecate :to_i, "id", 2017, 05
 
   def idname
     self[:idname] end
   alias to_s idname
+
+  def title
+    "#{idname}(#{name})"
+  end
 
   def protected?
     !!self[:protected]
@@ -90,13 +97,12 @@ class User < Retriever::Model
     "User(@#{@value[:idname]})"
   end
 
-  def self.findbyidname(idname, count=-1)
-    if(@@users_id.has_key?(idname))
-      @@users_id[idname]
-    elsif caller(1).include?(caller[0])
-      selectby(:idname, idname, count).first
-    end
-  end
+  # 投稿がシステムユーザだった場合にtrueを返す
+  def system?
+    false end
+
+  def self.findbyidname(idname, count=Retriever::DataSource::USE_ALL)
+    memory.findbyidname(idname, count) end
 
   def self.store_datum(datum)
     return datum if datum[:id][0] == '+'[0]
@@ -130,8 +136,10 @@ class User < Retriever::Model
   def count_favorite_given
     @value[:favourites_count] end
 
-  def user
-    self end
+  memoize def perma_link
+    Retriever::URI.new("https://twitter.com/#{idname}")
+  end
+
   alias to_user user
 
   def marshal_dump
@@ -139,16 +147,34 @@ class User < Retriever::Model
   end
 
   class UserMemory < Retriever::Model::Memory
-    def initialize(storage, idnames)
-      super(storage)
-      @idnames = idnames
+    def initialize
+      super
+      @idnames = {}             # idname => User
     end
 
-    def selectby(key, value)
-      if key == :idname and @idnames[value].is_a?(User)
-        [@idnames[value]]
+    def findbyid(id, policy)
+      result = super
+      if !result and policy == Retriever::DataSource::USE_ALL
+        if id.is_a? Enumerable
+          id.each_slice(100).map{|id_list|
+            Service.primary.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
+        else
+          Service.primary.scan(:user_show, id: id) end
       else
-        [] end end
+        result end end
+
+    def findbyidname(idname, policy)
+      if @idnames[idname.to_s]
+        @idnames[idname.to_s]
+      elsif policy == Retriever::DataSource::USE_ALL
+        Service.primary.scan(:user_show, screen_name: idname)
+      end
+    end
+
+    def store_datum(retriever)
+      @idnames[retriever.idname.to_s] = retriever
+      super
+    end
   end
 
 end

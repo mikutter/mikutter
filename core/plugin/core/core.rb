@@ -43,6 +43,8 @@ Plugin.create :core do
 
   filter_mention(&gen_message_filter_with_service)
 
+  filter_direct_messages(&gen_message_filter_with_service)
+
   filter_appear(&gen_message_filter)
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
@@ -53,8 +55,6 @@ Plugin.create :core do
         if source
           Plugin.call(:retweet_destroyed, source, message.user, message[:id])
           source.retweeted_sources.delete(message) end end } end
-
-  on_entity_linkrule_added(&Message::Entity.method(:on_entity_linkrule_added))
 
 end
 

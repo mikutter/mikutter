@@ -8,5 +8,6 @@ depends:
   - gui
   - gtk
   - uitranslator
+  - skin
 version: '1.1'
 author: toshi_a

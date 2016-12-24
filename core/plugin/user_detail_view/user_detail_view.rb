@@ -4,21 +4,14 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_show_tweet_once] ||= 20
   UserConfig[:profile_icon_size] ||= 64
   UserConfig[:profile_icon_margin] ||= 8
+
+  intent User, label: _('プロフィール') do |intent_token|
+    show_profile(intent_token.model)
+  end
+
   plugin = self
   def timeline_storage # {slug: user}
     @timeline_storage ||= {} end
-
-  Message::Entity.addlinkrule(:user_mentions, Message::MentionMatcher){ |segment|
-    idname = segment[:url].match(Message::MentionExactMatcher)[1]
-    user = User.findbyidname(idname)
-    if user
-      Plugin.call(:show_profile, Service.primary, user)
-    else
-      Thread.new{
-        user = Service.primary.scan(:user_show,
-                                    :no_auto_since_id => false,
-                                    :screen_name => idname)
-        Plugin.call(:show_profile, Service.primary, user) if user } end }
 
   Delayer.new do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
@@ -42,18 +35,20 @@ Plugin.create :user_detail_view do
     else
       [messages] end end
 
+  # 互換性のため。
+  # openイベントを使おう
   on_show_profile do |service, user|
-    show_profile(user) end
+    Plugin.call(:open, user) end
 
   def show_profile(user, force=false)
-    slug = "profile-#{user.id}".to_sym
+    slug = "profile-#{user.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
       UserConfig[:profile_opened_tabs] = ((UserConfig[:profile_opened_tabs] || []) + [user.id]).uniq
       container = profile_head(user)
       i_cluster = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
-        set_icon user[:profile_image_url]
+        set_icon user.icon
         set_deletable true
         shrink
         nativewidget container
@@ -70,7 +65,7 @@ Plugin.create :user_detail_view do
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do
-    set_icon Skin.get("timeline.png")
+    set_icon Skin['timeline.png']
     user_id = retriever.id
     i_timeline = timeline nil do
       order do |message|
@@ -82,7 +77,7 @@ Plugin.create :user_detail_view do
     timeline_storage[i_timeline.slug] = retriever end
 
   user_fragment :aboutuser, _("ユーザについて") do
-    set_icon retriever[:profile_image_url]
+    set_icon retriever.icon
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new
     container = ::Gtk::VBox.new.
@@ -134,7 +129,7 @@ Plugin.create :user_detail_view do
 
   command(:aboutuser,
           name: lambda { |opt|
-            if defined? opt.messages.first and opt.messages.first.repliable?
+            if defined? opt.messages.first and opt.messages.first.user.is_a?(User)
               u = opt.messages.first.user
               (_("%{screen_name}(%{name})について") % {
                screen_name: u[:idname],
@@ -143,9 +138,9 @@ Plugin.create :user_detail_view do
               _("ユーザについて") end },
           condition: Plugin::Command::CanReplyAll,
           visible: true,
-          icon: lambda{ |opt| opt && opt.messages.first.user[:profile_image_url] },
+          icon: lambda{ |opt| opt && opt.messages.first.user.icon },
           role: :timeline) do |opt|
-    Plugin.call(:show_profile, Service.primary, opt.messages.first.user) end
+    Plugin.call(:open, opt.messages.first.user) end
 
   def mutebutton(user)
     changer = lambda{ |new, widget|
@@ -195,13 +190,13 @@ Plugin.create :user_detail_view do
                      closeup(w_eventbox_image_following).
                      closeup(w_following_label) end
       relation_container = ::Gtk::HBox.new(false, icon_size.width/2)
-      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj[:profile_image_url], icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
+      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
       relation_container.closeup(::Gtk::VBox.new.
                                  closeup(relation).
                                  closeup(::Gtk::HBox.new.
                                          closeup(w_eventbox_image_followed).
                                          closeup(w_followed_label)))
-      relation_container.closeup(::Gtk::WebIcon.new(user[:profile_image_url], icon_size).tooltip("#{user.idname}(#{user[:name]})"))
+      relation_container.closeup(::Gtk::WebIcon.new(user.icon, icon_size).tooltip("#{user.idname}(#{user[:name]})"))
       if me.user_obj != user
         followbutton = ::Gtk::Button.new
         followbutton.sensitive = false
@@ -213,7 +208,7 @@ Plugin.create :user_detail_view do
               w_eventbox_image_following.remove(w_eventbox_image_following.children.first) end
 
             w_eventbox_image_following.style = w_eventbox_image_following.parent.style
-            w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_following.png" : "arrow_notfollowing.png"), arrow_size).show_all)
+            w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin[new ? 'arrow_following.png' : 'arrow_notfollowing.png'], arrow_size).show_all)
             w_following_label.text = new ? _("ﾌｮﾛｰしている") : _("ﾌｮﾛｰしていない")
             followbutton.label = new ? _("解除") : _("ﾌｮﾛｰ") end }
         # フォローされている状態の更新
@@ -265,9 +260,9 @@ Plugin.create :user_detail_view do
       eventbox.style = background_color
       false }
 
-    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.profile_image_url_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(_('アイコンを開く')))
+    icon = ::Gtk::EventBox.new.add(::Gtk::WebIcon.new(user.icon_large, UserConfig[:profile_icon_size], UserConfig[:profile_icon_size]).tooltip(_('アイコンを開く')))
     icon.ssc(:button_press_event) do |this, event|
-      Plugin.call(:openimg_open, user.profile_image_url_large)
+      Plugin.call(:open, user.icon_large)
       true end
     icon.ssc(:realize) do |this|
       this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))

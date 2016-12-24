@@ -16,7 +16,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     when 1
       case UserConfig[:quote_clicked_action]
       when :open
-        Plugin.call(:show_message, message)
+        Plugin.call(:open, message)
       when :smartthread
         Plugin.call(:open_smartthread, [message]) end
     end end
@@ -28,7 +28,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
       Thread.new(helper.message) { |m|
         m.quoting_messages(true)
       }.next{ |quoting|
-        @messages = Messages.new(quoting).freeze
+        @messages = quoting.freeze
         render_messages
       }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
 
@@ -44,7 +44,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     @edge end
 
   def badge(_message)
-    GdkPixbuf::Pixbuf.new(file: Skin.get('quote.png'), width: @badge_radius*2, height: @badge_radius*2) end
+    Skin['quote.png'].pixbuf(width: @badge_radius*2, height: @badge_radius*2) end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_quote_background_color, message, UserConfig[:quote_background_color]).last

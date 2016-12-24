@@ -81,6 +81,16 @@ module ConfigLoader
 
   end
 
+  # キーに対応する値が存在するかを調べる。
+  # 値が設定されていれば、それが _nil_ や _false_ であっても _true_ を返す
+  # ==== Args
+  # [key] Symbol キー
+  # ==== Return
+  # [true] 存在する
+  # [false] 存在しない
+  def include?(key)
+    @@configloader_cache.has_key? configloader_key(key) end
+
   # _key_ に対応するオブジェクトを取り出す。
   # _key_ が存在しない場合は nil か _ifnone_ を返す
   def at(key, ifnone=nil)

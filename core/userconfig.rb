@@ -139,11 +139,33 @@ class UserConfig
     :quote_text_max_line_count => 10,
     :reply_clicked_action => :open,
     :quote_clicked_action => :open,
+
+    :intent_selector_rules => [{:uuid=>"8ab31d89-6d5f-4765-bb99-7a93ce5b1139",
+                                :intent=>:user_detail_view_twitter_user,
+                                :model=>"",
+                                :str=>"https://twitter.com/",
+                                :rule=>"start"},
+                               {:uuid=>"c0095e59-75da-4177-98e0-d4955ece1d20",
+                                :intent=>:message_detail_view_twitter_tweet,
+                                :model=>"",
+                                :str=>"https://twitter.com/",
+                                :rule=>"start"}]
   }
 
   @@watcher = Hash.new{ [] }
   @@watcher_id = Hash.new
   @@watcher_id_count = 0
+
+  # キーに対応する値が存在するかを調べる。
+  # 値が設定されていれば、それが _nil_ や _false_ であっても _true_ を返す
+  # ==== Args
+  # [key] Symbol キー
+  # ==== Return
+  # [true] 存在する
+  # [false] 存在しない
+  def self.include?(key)
+    UserConfig.instance.include?(key) || @@defaults.include?(key)
+  end
 
   # 設定名 _key_ にたいする値を取り出す
   # 値が設定されていない場合、nilを返す。

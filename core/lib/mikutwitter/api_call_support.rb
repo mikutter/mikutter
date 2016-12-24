@@ -5,7 +5,7 @@ require "mikutwitter/query"
 require "json"
 require "timelimitedqueue"
 
-miquire :core, "message", "user", "userlist"
+miquire :core, "message", "user", "userlist", 'directmessage'
 
 module MikuTwitter::ApiCallSupport
   HTML_ATTR_UNESCAPE_HASH = {
@@ -109,7 +109,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:message] = msg[:full_text] || msg[:text]
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
-        cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
+        cnv[:user] = user(msg[:user])
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
         message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
@@ -143,7 +143,7 @@ module MikuTwitter::ApiCallSupport
         end
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
-        cnv[:user] = Message::MessageUser.new(user(msg[:user]), msg[:user])
+        cnv[:user] = user(msg[:user])
         cnv[:retweet] = streaming_message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
         message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
@@ -167,7 +167,19 @@ module MikuTwitter::ApiCallSupport
         cnv[:verified] = u[:verified]
         cnv[:following] = u[:following]
         cnv[:exact] = [:created_at, :description, :protected, :followers_count, :friends_count, :verified].all?{|k|u.has_key?(k)}
-        cnv[:exact] ? User.rewind(cnv) : User.new_ifnecessary(cnv) end
+        # ユーザの見た目が変わっても過去のTweetのアイコン等はそのままにしたいので、新しいUserを作る
+        existing_user = User.findbyid(u[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+        if visually_changed?(existing_user, cnv)
+          User.new(existing_user.to_hash).merge(cnv)
+        else
+          cnv[:exact] ? User.rewind(cnv) : User.new_ifnecessary(cnv) end end
+
+      def visually_changed?(old_user, new_user_hash)
+        old_user && (
+          old_user.idname != new_user_hash[:idname] ||
+          old_user.name != new_user_hash[:name] ||
+          old_user.profile_image_url != new_user_hash[:profile_image_url]) end
+      private :visually_changed?
 
       def list(list)
         cnv = list.dup
@@ -179,10 +191,11 @@ module MikuTwitter::ApiCallSupport
 
       def direct_message(dm)
         cnv = dm.dup
-        cnv[:sender] = user(dm[:sender])
+        cnv[:user] = cnv[:sender] = user(dm[:sender])
         cnv[:recipient] = user(dm[:recipient])
         cnv[:exact] = true
-        cnv end
+        cnv[:created] = Time.parse(dm[:created_at]).localtime
+        Mikutter::Twitter::DirectMessage.new_ifnecessary(cnv) end
 
       def id(id)
         id end

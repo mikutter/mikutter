@@ -1,5 +1,7 @@
-#! /usr/bin/ruby
+#!/bin/sh
 # -*- coding: utf-8 -*-
+exec ruby -x "$0" "$@" 
+#!ruby
 =begin rdoc
 = mikutter - the moest twitter client
 Copyright (C) 2009-2016 Toshiaki Asai

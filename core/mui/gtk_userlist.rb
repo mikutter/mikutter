@@ -16,7 +16,10 @@ class Gtk::UserList < Gtk::EventBox
     ->(this, path, column) do
       iter = this.model.get_iter(path)
       if iter
-        Plugin.call(:show_profile, Service.primary, iter[Gtk::InnerUserList::COL_USER]) end end end
+        Plugin.call(:open, iter[Gtk::InnerUserList::COL_USER])
+      end
+    end
+  end
 
   def initialize
     super
@@ -34,7 +37,7 @@ class Gtk::UserList < Gtk::EventBox
 
   # Userの配列 _users_ を追加する
   # ==== Args
-  # [users] ユーザの配列
+  # [users] Enumerable ユーザを繰り返すEnumerable
   # ==== Return
   # self
   def add_user(users)

@@ -12,12 +12,6 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 投稿１つを表すクラス。
 =end
 class Message < Retriever::Model
-  # screen nameにマッチする正規表現
-  MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
-
-  # screen nameのみから構成される文字列から、@などを切り取るための正規表現
-  MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨)?([a-zA-Z0-9_]+)\Z/.freeze
-
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
@@ -25,8 +19,12 @@ class Message < Retriever::Model
   ).freeze
 
   extend Gem::Deprecate
+  include Retriever::Model::Identity
 
-  @@system_id = 0
+  register :twitter_tweet,
+           name: "Tweet",
+           timeline: true
+
   @@appear_queue = TimeLimitedQueue.new(65536, 0.1, Set){ |messages|
     Plugin.call(:appear, messages) }
 
@@ -44,18 +42,36 @@ class Message < Retriever::Model
   # post    | post object(Service)
   # image   | image(URL or Image object)
 
-  self.keys = [[:id, :int, true],         # ID
-               [:message, :string, true], # Message description
-               [:user, User, true],       # Send by user
-               [:receiver, User],         # Send to user
-               [:replyto, Message],       # Reply to this message
-               [:retweet, Message],       # ReTweet to this message
-               [:source, :string],        # using client
-               [:geo, :string],           # geotag
-               [:exact, :bool],           # true if complete data
-               [:created, :time],         # posted time
-               [:modified, :time],        # updated time
-             ]
+  field.int    :id, required: true
+  field.string :message, required: true             # Message description
+  field.has    :user, User, required: true          # Send by user
+  field.has    :receiver, User                      # Send to user
+  field.has    :replyto, Message                    # Reply to this message
+  field.has    :retweet, Message                    # ReTweet to this message
+  field.string :source                              # using client
+  field.string :geo                                 # geotag
+  field.bool   :exact                               # true if complete data
+  field.time   :created                             # posted time
+  field.time   :modified                            # updated time
+
+  entity_class Retriever::Entity::ExtendedTwitterEntity
+  handle PermalinkMatcher do |uri|
+    match = PermalinkMatcher.match(uri.to_s)
+    notice match.inspect
+    if match
+      message = findbyid(match[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+      notice message.inspect
+      if message
+        message
+      else
+        Thread.new do
+          findbyid(match[:id].to_i, Retriever::DataSource::USE_ALL)
+        end
+      end
+    else
+      raise Retriever::RetrieverError, "id##{match[:id]} does not exist in #{self}."
+    end
+  end
 
   def self.container_class
     Messages end
@@ -65,11 +81,13 @@ class Message < Retriever::Model
     @@appear_queue.push(message)
   end
 
+  def self.memory
+    @memory ||= DataSource.new end
+
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
   # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
   def initialize(value)
     type_strict value => Hash
-    value.update(system) if value[:system]
     if not(value[:image].is_a?(Message::Image)) and value[:image]
       value[:image] = Message::Image.new(value[:image]) end
     super(value)
@@ -77,13 +95,12 @@ class Message < Retriever::Model
       self[:replyto].add_child(self) end
     if self[:retweet].is_a? Message
       self[:retweet].add_child(self) end
-    @entity = Entity.new(self)
     Message.appear(self)
   end
 
   # 投稿主のidnameを返す
   def idname
-    user[:idname]
+    user.idname
   end
 
   # この投稿へのリプライをつぶやく
@@ -124,7 +141,7 @@ class Message < Retriever::Model
 
   # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
-    self[:system]
+    false
   end
 
   # この投稿にリプライする権限があればtrueを返す
@@ -133,12 +150,12 @@ class Message < Retriever::Model
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
   def favoritable?
-    Service.primary and not(system?) end
+    Service.primary end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?
-    Service.primary and not system? and not protected? end
+    Service.primary and not protected? end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
@@ -146,12 +163,11 @@ class Message < Retriever::Model
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
   def from_me?(services=Service)
-    return false if system?
     services.map(&:user_obj).include?(self[:user]) end
 
   # この投稿が自分宛ならばtrueを返す
   def to_me?(services=Service)
-    system? or services.map(&:user_obj).find(&method(:receive_to?)) end
+    services.map(&:user_obj).find(&method(:receive_to?)) end
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
@@ -164,9 +180,10 @@ class Message < Retriever::Model
   def verified?
     user.verified? end
 
-  # この投稿の投稿主を返す
+  # この投稿の投稿主を返す。messageについては、userが必ず付与されていることが保証されているので
+  # Deferredを返さない
   def user
-    self.get(:user, -1) end
+    self[:user] end
 
   def service
     warn "Message#service is obsolete method. use `Service.primary'."
@@ -181,7 +198,7 @@ class Message < Retriever::Model
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
-      match = MentionMatcher.match(self[:message].to_s)
+      match = Retriever::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -197,7 +214,7 @@ class Message < Retriever::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.scan(MentionMatcher).map(&:first) end
+    self[:message].to_s.scan(Retriever::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
@@ -325,30 +342,30 @@ class Message < Retriever::Model
   def quoting?
     !!quoting_ids.first end
 
-  # selfを引用しているツイート _message_ を登録する
+  # selfを引用している _retriever_ を登録する
   # ==== Args
-  # [message] Message selfを引用しているMessage
+  # [retriever] Retriever::Model selfを引用しているRetriever
   # ==== Return
   # self
-  def add_quoted_by(message)
+  def add_quoted_by(retriever)
     atomic do
-      @quoted_by ||= Messages.new
-      unless @quoted_by.include? message
+      @quoted_by ||= Retriever::Model.container_class.new
+      unless @quoted_by.include? retriever
         if @quoted_by.frozen?
-          @quoted_by = Messages.new(@quoted_by + [message])
+          @quoted_by = Retriever::Model.container_class.new(@quoted_by + [retriever])
         else
-          @quoted_by << message end end
+          @quoted_by << retriever end end
       self end end
 
-  # selfを引用しているツイートを返す
+  # selfを引用しているRetrieverを返す
   # ==== Return
-  # Messages selfを引用しているMessageの配列
+  # Retriever::Model.container_class selfを引用しているRetriever::Modelの配列
   def quoted_by
     if defined? @quoted_by
       @quoted_by
     else
       atomic do
-        @quoted_by ||= Messages.new end end.freeze end
+        @quoted_by ||= Retriever::Model.container_class.new end end.freeze end
 
   # self が、何らかのツイートから引用されているなら真を返す
   # ==== Return
@@ -478,7 +495,7 @@ class Message < Retriever::Model
   # ==== Return
   # このMessageの子全てをSetにまとめたもの
   def children_all
-    children.inject(Messages.new([self])){ |result, item| result.concat item.children_all } end
+    children.inject(Retriever::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -544,11 +561,6 @@ class Message < Retriever::Model
     self[:message].to_s.freeze
   end
 
-  # リンクを貼る場所とその種類を表現するEntityオブジェクトを返す
-  def links
-    @entity end
-  alias :entity :links
-
   def inspect
     @value.inspect
   end
@@ -578,10 +590,11 @@ class Message < Retriever::Model
 
   # このMessageのパーマリンクを取得する
   # ==== Return
-  # パーマリンクのURL(String)か、存在しない場合はnil
+  # 次のいずれか
+  # [URI] パーマリンク
+  # [nil] パーマリンクが存在しない
   def perma_link
-    if not system?
-      "https://twitter.com/#{user[:idname]}/status/#{self[:id]}".freeze end end
+    Retriever::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12
@@ -639,12 +652,6 @@ class Message < Retriever::Model
         retweeted_sources
         add_retweet_in_this_thread(retweet_user, created_at) } end end
 
-  # このMessageがサービスに投稿された時刻を返す
-  # ==== Return
-  # Time 投稿時刻
-  def created
-    self[:created] end
-
   # 最終更新日時を取得する
   def modified
     @value[:modified] ||= [created, *(@retweets || []).map{ |x| x.modified }].compact.max
@@ -678,33 +685,31 @@ class Message < Retriever::Model
       Plugin::call(:message_modified, self) end
     self end
 
-  def system
-    { :id => @@system_id += 1,
-      :user => User.system,
-      :created => Time.now } end
+  class DataSource < Retriever::Model::Memory
+    def findbyid(id, policy)
+      if id.is_a? Enumerable
+        super.map do |v|
+          case v
+          when Message
+            v
+          else
+            findbyid(v) end end
+      else
+        result = super
+        if result
+          result
+        elsif policy == Retriever::DataSource::USE_ALL
+          result = Service.primary.scan(:status_show, id: id)
+          result end end
+    rescue Exception => err
+      error err
+      raise err
+    end
+  end
 
   #
   # Sub classes
   #
-
-  # このツイートのユーザ情報
-  class MessageUser < User
-    undef_method *(public_instance_methods - [:object_id, :__send__])
-
-    def initialize(user, raw)
-      abort if not user.is_a? User
-      @raw = raw.freeze
-      @user = user end
-
-    def [](key)
-      @raw.has_key?(key.to_sym) ? @raw[key.to_sym] : @user[key] end
-
-    def is_me?
-      @user.me? end
-    deprecate :is_me?, "me?", 2017, 05
-
-    def method_missing(*args)
-      @user.__send__(*args) end end
 
   # 添付画像
   class Image
@@ -747,5 +752,3 @@ end
 
 class Messages < TypedArray(Message)
 end
-
-miquire :core, 'entity'

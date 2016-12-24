@@ -1,27 +1,33 @@
 # -*- coding: utf-8 -*-
-require_relative 'header_widget'
+miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
+  intent Message, label: _('ツイートの詳細') do |intent_token|
+    show_message(intent_token.model, intent_token)
+  end
+
   command(:message_detail_view_show,
           name: _('詳細'),
-          condition: lambda{ |opt| opt.messages.size == 1 },
+          condition: lambda{ |opt| opt.messages.size == 1 && opt.messages.first.is_a?(Message) },
           visible: true,
           role: :timeline) do |opt|
-    Plugin.call(:show_message, opt.messages.first)
+    Plugin.call(:open, opt.messages.first)
   end
 
+  # 互換性のため。
+  # openイベントを使おう
   on_show_message do |message|
-    show_message(message)
+    Plugin.call(:open, message)
   end
 
-  def show_message(message, force=false)
-    slug = "message_detail_view-#{message.id}".to_sym
+  def show_message(message, token, force=false)
+    slug = "message_detail_view-#{message.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
-      container = Plugin::MessageInspector::HeaderWidget.new(message)
+      container = Gtk::RetrieverHeaderWidget.new(message, intent_token: token)
       i_cluster = tab slug, _("詳細タブ") do
-        set_icon Skin.get('message.png')
+        set_icon Skin['message.png']
         set_deletable true
         temporary_tab
         shrink
@@ -34,7 +40,10 @@ Plugin.create(:message_detail_view) do
         tabs.map(&:last).each(&:call)
       }.next {
         if !force
-          i_cluster.active! end }.terminate(_('詳細表示中にエラーが発生しました'))
+          i_cluster.active! end
+      }.trap{ |exc|
+        error exc
+      }
     end
   end
 
@@ -48,7 +57,7 @@ Plugin.create(:message_detail_view) do
       bg_style.set_bg(Gtk::STATE_INSENSITIVE, *color) end end
 
   message_fragment :body, "body" do
-    set_icon Skin.get('message.png')
+    set_icon Skin['message.png']
     container = Gtk::HBox.new
     textview = Gtk::IntelligentTextview.new(retriever.to_s, 'font' => :mumble_basic_font, style: style)
     vscrollbar = Gtk::VScrollbar.new

@@ -4,6 +4,7 @@ depends:
   mikutter: 3.3.5
   plugin:
     - message_detail_view
+    - skin
 version: '1.0'
 author: toshi_a
 name: ReTweet

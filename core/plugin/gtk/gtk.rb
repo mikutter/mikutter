@@ -72,7 +72,11 @@ Plugin.create :gtk do
   on_gui_window_change_icon do |i_window, icon|
     window = widgetof(i_window)
     if window
-      window.icon = GdkPixbuf::Pixbuf.new(file: icon, width: 256, height: 256) end end
+      window.icon = icon.load_pixbuf(width: 256, height: 256){|pb|
+        window.icon = pb if not window.destroyed?
+      }
+    end
+  end
 
   # ペイン作成。
   # ペインはGtk::NoteBook
@@ -371,15 +375,18 @@ Plugin.create :gtk do
 
   on_gui_window_rewindstatus do |i_window, text, expire|
     window = @slug_dictionary.get(Plugin::GUI::Window, :default)
-    if not window
-      next end
+    next if not window
     statusbar = window.statusbar
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
     if expire != 0
-      Reserver.new(expire){
+      Reserver.new(expire, thread: Delayer) do
         if not statusbar.destroyed?
-          statusbar.remove(cid, mid) end } end end
+          statusbar.remove(cid, mid)
+        end
+      end
+    end
+  end
 
   on_gui_child_activated do |i_parent, i_child, activated_by_toolkit|
     type_strict i_parent => Plugin::GUI::HierarchyParent, i_child => Plugin::GUI::HierarchyChild
@@ -500,7 +507,7 @@ Plugin.create :gtk do
     if tab
       tab.tooltip(i_tab.name)
       tab.remove(tab.child) if tab.child
-      if i_tab.icon.is_a?(String)
+      if i_tab.icon
         tab.add(::Gtk::WebIcon.new(i_tab.icon, 24, 24).show)
       else
         tab.add(::Gtk::Label.new(i_tab.name).show) end end

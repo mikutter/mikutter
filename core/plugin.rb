@@ -92,9 +92,9 @@ class Plugin < Pluggaloid::Plugin
   def get_skin(filename)
     plugin_skin_dir = File.join(spec[:path], "skin")
     if File.exist?(plugin_skin_dir)
-      Skin.get(filename, [plugin_skin_dir])
+      ::Skin.get_path(filename, [plugin_skin_dir])
     else
-      Skin.get(filename)
+      ::Skin.get_path(filename)
     end
   end
 

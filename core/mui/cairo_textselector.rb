@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require_if_exist 'continuation'
 require 'gtk2'
 
 module Gdk

@@ -81,9 +81,15 @@ module ::Plugin::Command
   # TL上のテキストが一文字でも選択されている
   TimelineTextSelected = Condition.new{ |opt| opt.widget.selected_text(opt.messages.first) }
 
+  HasParmaLinkAll = Condition.new{ |opt|
+    not opt.messages.empty? and opt.messages.all? { |m| m.perma_link } }
+
   # ==== postbox ロール
 
   # 編集可能状態（入力中：グレーアウトしてない時）
   Editable = Condition.new{ |opt| opt.widget.editable? }
 
 end
+
+
+

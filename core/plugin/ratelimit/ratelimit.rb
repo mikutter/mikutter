@@ -37,7 +37,7 @@ Plugin.create :ratelimit do
         Plugin.filter_cancel!
       else
         notificated << ratelimit
-        Reserver.new(ratelimit.reset){ notificated.delete(ratelimit) } end }
+        Reserver.new(ratelimit.reset, thread: Thread){ notificated.delete(ratelimit) } end }
     [service, ratelimit]
   end
 

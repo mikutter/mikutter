@@ -16,8 +16,9 @@ class Gdk::SubPartsRetweet < Gdk::SubPartsVoter
     helper.message.retweeted_by
   end
 
-  def title_icon
-    GdkPixbuf::Pixbuf.new(file: Skin.get("retweet.png"), width: @icon_width, height: @icon_height) end
+  memoize def title_icon_model
+    Skin.photo('retweet.png')
+  end
 
   def name
     :retweeted end

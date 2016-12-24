@@ -1,0 +1,13 @@
+---
+slug: :message_detail_view
+depends:
+  mikutter: "3.5"
+  plugin:
+  - gui
+  - gtk
+  - intent
+  - skin
+version: '1.0'
+author: toshi_a
+name: ツイート詳細
+description: 単一のツイートの詳細な内容を表示するタブを追加する

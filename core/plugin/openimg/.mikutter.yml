@@ -1,11 +1,15 @@
 ---
 slug: :openimg
 depends:
-  mikutter: '3.2'
+  mikutter: '3.5'
   plugin:
   - gtk
   - uitranslator
-version: '2.0'
+  - intent
+  - photo
+  - skin
+version: '2.1'
 author: toshi_a
-name: 画像プレビュー
-description: メジャーな画像投稿サービスのURLがクリックされた時に、画像だけを専用のウィンドウに表示する
+name: 画像ビューア
+description: >-
+  画像をmikutter上で表示する

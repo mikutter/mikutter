@@ -22,16 +22,16 @@ class Gtk::InnerUserList < Gtk::TreeView
 
   # Userの配列 _users_ を追加する
   # ==== Args
-  # [users] ユーザの配列
+  # [users] Enumerable ユーザを繰り返すEnumerable
   # ==== Return
   # self
   def add_user(users)
-    type_strict users => Users
-    (users - model.to_enum.map{ |model,path,iter| iter[COL_USER] }).deach { |user|
+    exist_users = Set.new(model.to_enum.map{ |model,path,iter| iter[COL_USER] })
+    users.reject{|user| exist_users.include? user }.deach { |user|
       iter = model.append
-      iter[COL_ICON] = Gdk::WebImageLoader.pixbuf(user[:profile_image_url], 24, 24){ |pixbuf|
-        if not destroyed?
-          iter[COL_ICON] = pixbuf end }
+      iter[COL_ICON] = user.icon.load_pixbuf(width: 24, height: 24){|pixbuf|
+        iter[COL_ICON] = pixbuf unless destroyed?
+      }
       iter[COL_SCREEN_NAME] = user[:idname]
       iter[COL_NAME] = user[:name]
       iter[COL_USER] = user
@@ -45,7 +45,6 @@ class Gtk::InnerUserList < Gtk::TreeView
   # ==== Return
   # self
   def remove_user(users)
-    type_strict users => Users
     Enumerator.new(model).each{ |model,path,iter|
       if users.include?(iter[COL_USER])
          model.remove(iter) end }
@@ -57,7 +56,6 @@ class Gtk::InnerUserList < Gtk::TreeView
   # ==== Return
   # self
   def reorder(user)
-    type_strict user => User
     each{ |m, p, iter|
       if iter[COL_USER] == user
         iter[COL_ORDER] = @userlist.gen_order(user)

@@ -15,7 +15,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     when 1
       case UserConfig[:reply_clicked_action]
       when :open
-        Plugin.call(:show_message, message)
+        Plugin.call(:open, message)
       when :smartthread
         Plugin.call(:open_smartthread, [message]) end
     end end
@@ -25,7 +25,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
     if helper.message.has_receive_message?
       helper.message.replyto_source_d(true).next{ |reply|
-        @messages = Messages.new([reply]).freeze
+        @messages = [reply].freeze
         render_messages
       }.terminate('リプライ描画中にエラーが発生しました') end end
 
@@ -41,7 +41,8 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     @edge end
 
   def badge(_message)
-    GdkPixbuf::Pixbuf.new(file: Skin.get('reply.png'), width: badge_radius*2, height: badge_radius*2) end
+    Skin['reply.png'].pixbuf(width: badge_radius*2, height: badge_radius*2)
+  end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_replyviewer_background_color, message, nil).last

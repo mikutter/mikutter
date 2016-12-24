@@ -49,10 +49,6 @@ Plugin.create :display_requirements do
     EventFilter.cancel! if :search_hashtag == options[:filter_id]
     [options] end
 
-  Message::Entity.addlinkrule(:hashtags, /(?:#|＃)[a-zA-Z0-9_]+/, :open_in_browser_hashtag){ |segment|
-    Gtk.openurl("https://twitter.com/search/realtime?q="+CGI.escape(segment[:url].match(/\A(?:#|＃)?.+\Z/)[0]))
-  }
-
   # いいね
   filter_skin_get do |filename, fallback_dirs|
     case filename
@@ -72,7 +68,7 @@ Plugin.create :display_requirements do
           name: _('いいねいいねする'),
           condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
-          icon: Skin.get("dont_like.png"),
+          icon: Skin['dont_like.png'],
           role: :timeline) do |opt|
     opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
 
@@ -80,7 +76,7 @@ Plugin.create :display_requirements do
           name: _('あんいいね'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
-          icon: Skin.get("like.png"),
+          icon: Skin['like.png'],
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 
@@ -91,7 +87,7 @@ Plugin.create :display_requirements do
     activity(:like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がいいねいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -100,7 +96,7 @@ Plugin.create :display_requirements do
     activity(:dont_like, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんいいねしました") % {user: user[:idname]} + "\n" +
                           "@%{user}: %{message}\n%{perma_link}" % {user: message.user[:idname], message: message, perma_link: message.perma_link}),
-             icon: user[:profile_image_url],
+             icon: user.icon,
              related: message.user.me? || user.me?,
              service: service)
   end
@@ -131,7 +127,7 @@ class ::Gdk::MiraclePainter
   # 必ず名前のあとにスクリーンネームを表示しなければいけない。
   # また、スクリーンネームの前には必ず @ が必要。
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message[:user][:name] || '')}</b> @#{Pango.escape(message[:user][:idname])}")
+    Pango.parse_markup("<b>#{Pango.escape(message.user.name || '')}</b> @#{Pango.escape(message.user.idname)}")
   end
 
   # 時刻の表記は必ず相対表記にしなければいけない。
@@ -172,13 +168,15 @@ class ::Gdk::MiraclePainter
   # アイコンをクリックしたら必ずプロフィールを表示しなければならない
   def iob_clicked(gx, gy)
     if globalpos2iconpos(gx, gy)
-      Plugin.call(:show_profile, Service.primary, message.user) end end
+      Plugin.call(:open, message.user)
+    end
+  end
 
   # 名前からはプロフィールに、タイムスタンプからはツイートのパーマリンクにリンクしなければならない
   alias __clicked_l7eOfD__ clicked
   def clicked(x, y, e)
     if defined?(@hl_region) and @hl_region.point_in?(x, y)
-      Plugin.call(:show_profile, Service.primary, message.user)
+      Plugin.call(:open, message.user)
     elsif defined?(@hr_region) and @hr_region.point_in?(x, y)
       Gtk.openurl("https://twitter.com/#{message.user.idname}/status/#{message.id}")
     else

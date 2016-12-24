@@ -47,7 +47,7 @@ Plugin.create :followingcontrol do
       [service, source, messages] end end
 
   user_fragment(:followings, _('フォローしている')) do
-    set_icon Skin.get("followings.png")
+    set_icon Skin['followings.png']
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
@@ -69,7 +69,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Service.primary.followings(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
@@ -77,13 +77,13 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(Users.new(users.reverse))
         }.trap{
-          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+          loading_image.pixbuf = Skin['notfound.png'].pixbuf(width: 128, height: 128)
         } end
     end
   end
 
   user_fragment(:followers, _('フォローされている')) do
-    set_icon Skin.get("followers.png")
+    set_icon Skin['followers.png']
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
@@ -105,7 +105,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::WebIcon.new(Skin.get('loading.png'), 128, 128)
+        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Service.primary.followers(cache: true, user_id: retriever[:id]).next{ |users|
           container.remove(loading_image)
@@ -113,7 +113,7 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(Users.new(users.reverse))
         }.trap{
-          loading_image.pixbuf = Gdk::WebImageLoader.notfound_pixbuf(128, 128)
+          loading_image.pixbuf = Skin['loading.png'].pixbuf(width: 128, height: 128)
         } end
     end
   end

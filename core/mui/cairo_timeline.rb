@@ -24,14 +24,6 @@ class Gtk::TimeLine
 
   attr_reader :tl
 
-  Message::Entity.addlinkrule(:urls, URI.regexp(['http','https'])){ |segment|
-    Gtk::TimeLine.openurl(segment[:expanded_url].empty? ? segment[:url] : segment[:expanded_url])
-  }
-
-  Message::Entity.addlinkrule(:media){ |segment|
-    Gtk::TimeLine.openurl(segment[:url])
-  }
-
   # 現在アクティブなTLで選択されているすべてのMessageオブジェクトを返す
   def self.get_active_mumbles
     if Gtk::TimeLine::InnerTL.current_tl
@@ -140,8 +132,7 @@ class Gtk::TimeLine
   # _message_ をTLに追加する
   def block_add(message)
     if not @tl.destroyed?
-      raise "id must than 1 but specified #{message[:id].inspect}" if message[:id] <= 0
-      if(!any?{ |m| m[:id] == message[:id] })
+      if(!any?{ |m| m == message })
         case
         when message[:rule] == :destroy
           remove_if_exists_all([message])
@@ -162,11 +153,11 @@ class Gtk::TimeLine
     scroll_to_zero_lator! if @tl.realized? and @tl.vadjustment.value == 0.0
     miracle_painter = @tl.cell_renderer_message.create_miracle_painter(message)
     iter = @tl.model.append
-    iter[Gtk::TimeLine::InnerTL::MESSAGE_ID] = message[:id].to_s
+    iter[Gtk::TimeLine::InnerTL::URI] = message.uri.to_s
     iter[Gtk::TimeLine::InnerTL::MESSAGE] = message
     iter[Gtk::TimeLine::InnerTL::ORDER] = get_order(message)
     iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER] = miracle_painter
-    @tl.set_id_dict(iter)
+    @tl.set_iter_dict(iter)
     @remover_queue.push(message)
     self
   end

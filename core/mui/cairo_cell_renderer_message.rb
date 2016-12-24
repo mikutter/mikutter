@@ -7,13 +7,12 @@ require 'gtk2'
 module Gtk
   class CellRendererMessage < CellRendererPixbuf
     type_register
-    install_property(GLib::Param::String.new("message_id", "message_id", "showing message", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
+    install_property(GLib::Param::String.new("uri", "uri", "Resource URI", "hoge", GLib::Param::READABLE|GLib::Param::WRITABLE))
 
-    attr_reader :message_id, :message
+    attr_reader :message
 
     def initialize()
-      super()
-      @message = nil end
+      super() end
 
     # Register events for this Renderer:
     signal_new("button_press_event", GLib::Signal::RUN_FIRST, nil, nil,
@@ -73,9 +72,9 @@ module Gtk
           motioned = [path, column, cell_x, cell_y]
           signal_emit("motion_notify_event", e, *motioned)
           if last_motioned
-            motioned_id = @tree.get_record(motioned[0]).id rescue nil
-            last_motioned_id = @tree.get_record(last_motioned[0]).id rescue nil
-            if(last_motioned_id and motioned_id != last_motioned_id)
+            motioned_message = @tree.get_record(motioned[0]).message rescue nil
+            last_motioned_message = @tree.get_record(last_motioned[0]).message rescue nil
+            if(last_motioned_message and motioned_message != last_motioned_message)
               emit_leave_notify_from_event_motion(e, *last_motioned) end end
           last_motioned = motioned end }
 
@@ -123,16 +122,17 @@ module Gtk
       Gdk::MiraclePainter.new(message, avail_width).set_tree(@tree)
     end
 
-    def message_id=(id)
-      if id && id.to_i > 0
-        message = Message.findbyid(id.to_i, -2)
-        if message
-          return render_message(message) end end
-      self.pixbuf = GdkPixbuf::Pixbuf.new(file: Skin.get('notfound.png'))
-    rescue Exception => e
-      if Mopt.debug
-        raise e end
-      self.pixbuf = GdkPixbuf::Pixbuf.new(file: Skin.get('notfound.png')) end
+    def uri=(uri)
+      record = @tree.get_record_by_uri(uri)
+      if record and record.message
+        return render_message(record.message)
+      else
+        self.pixbuf = Skin['notfound.png'].pixbuf(width: 64, height: 64) end
+    rescue Exception => err
+      error "#{err.class} by uri: #{uri} model: #{record ? record.message.inspect : nil}"
+      raise if Mopt.debug
+      error err
+      self.pixbuf = Skin['notfound.png'].pixbuf(width: 64, height: 64) end
 
     private
 

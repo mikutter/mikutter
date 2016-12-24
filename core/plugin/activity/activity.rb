@@ -3,6 +3,8 @@
 
 miquire :mui, 'tree_view_pretty_scroll'
 
+require_relative 'model/activity'
+require_relative 'model_selector'
 require "set"
 
 # アクティビティの設定の並び順
@@ -30,10 +32,8 @@ Plugin.create(:activity) do
     KIND = 1
     TITLE = 2
     DATE = 3
-    PLUGIN = 4
-    ID = 5
-    SERVICE = 6
-    EVENT = 7
+    MODEL = 4
+    URI = 5
 
     def initialize(plugin)
       type_strict plugin => Plugin
@@ -47,10 +47,9 @@ Plugin.create(:activity) do
        {:kind => :text, :type => String, :label => _('種類')},      # KIND
        {:kind => :text, :type => String, :label => _('説明')},      # TITLE
        {:kind => :text, :type => String, :label => _('時刻')},      # DATE
-       {:type => Plugin},                                          # PLUGIN
-       {:type => Integer},                                         # IDu
-       {:type => Service},                                         # SERVICE
-       {:type => Hash} ].freeze                                    # EVENT
+       {type: Plugin::Activity::Activity},                         # Activity Model
+       {type: String}                                              # URI
+      ].freeze
     end
 
     def method_missing(*args, &block)
@@ -59,6 +58,7 @@ Plugin.create(:activity) do
   end
 
   BOOT_TIME = Time.new.freeze
+  @contains_uris = Set.new
 
   # そのイベントをミュートするかどうかを返す(trueなら表示しない)
   def mute?(params)
@@ -70,28 +70,21 @@ Plugin.create(:activity) do
       return true if mute_kind_related.map(&:to_s).include?(params[:kind].to_s) and !params[:related] end
     false end
 
-  # このIDの組み合わせが出現したことがないなら真
-  # ==== Args
-  # [ids] イベント(Symbol),ID,...
-  # ==== Return
-  # 初めて表示するキーなら真
-  def show_once(*ids)
-    @show_once ||= Set.new
-    result = @show_once.member?(ids)
-    @show_once << ids
-    !result end
-
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
-    Reserver.new(60) {
-      Delayer.new {
-        if not model.destroyed?
-          iters = model.to_enum(:each).to_a
-          remove_count = iters.size - UserConfig[:activity_max]
-          if remove_count > 0
-            iters[-remove_count, remove_count].each{ |mpi|
-              model.remove(mpi[2]) } end
-          reset_activity(model) end } }
+    Reserver.new(60, thread: Delayer) do
+      if not model.destroyed?
+        iters = model.to_enum(:each).to_a
+        remove_count = iters.size - UserConfig[:activity_max]
+        if remove_count > 0
+          iters[-remove_count, remove_count].each do |_m,_p,iter|
+            @contains_uris.delete(iter[ActivityView::URI])
+            model.remove(iter)
+          end
+        end
+        reset_activity(model)
+      end
+    end
   end
 
   def gen_listener_for_visible_check(uc, kind)
@@ -131,13 +124,17 @@ Plugin.create(:activity) do
   activity_description = ::Gtk::IntelligentTextview.new
   activity_status = ::Gtk::Label.new
   activity_container = ::Gtk::VPaned.new
-  activity_detail_view = Gtk::ScrolledWindow.new
+  activity_detail_view = Gtk::VBox.new
+  activity_scroll_view = Gtk::ScrolledWindow.new
+  activity_model_selector = Plugin::Activity::ModelSelector.new
 
   reset_activity(activity_view.model)
 
-  activity_detail_view.
+  activity_scroll_view.
     set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC).
     set_height_request(88)
+  activity_detail_view.
+    set_height_request(128)
 
   activity_container.
     pack1(activity_shell.
@@ -145,20 +142,24 @@ Plugin.create(:activity) do
                attach(activity_vscrollbar, 1, 2, 0, 1, ::Gtk::FILL, ::Gtk::SHRINK|::Gtk::FILL).
                attach(activity_hscrollbar, 0, 1, 1, 2, ::Gtk::SHRINK|::Gtk::FILL, ::Gtk::FILL),
           true, true).
-    pack2(activity_detail_view.add_with_viewport(::Gtk::VBox.new.
-                                  closeup(activity_description).
-                                  closeup(activity_status.right)), true, false)
+    pack2(activity_detail_view, true, false)
+  activity_scroll_view.add_with_viewport(activity_description)
+  activity_detail_view.
+    add(activity_scroll_view).
+    closeup(activity_model_selector).
+    closeup(activity_status.right)
 
   tab(:activity, _("アクティビティ")) do
-    set_icon Skin.get("activity.png")
+    set_icon Skin['activity.png']
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 
   activity_view.ssc("cursor-changed") { |this|
     iter = this.selection.selected
     if iter
-      activity_description.rewind(iter[ActivityView::EVENT][:description])
+      activity_description.rewind(iter[ActivityView::MODEL].description)
       activity_status.set_text(iter[ActivityView::DATE])
+      activity_model_selector.set(iter[ActivityView::MODEL].children)
     end
     false
   }
@@ -168,24 +169,36 @@ Plugin.create(:activity) do
   on_modify_activity do |params|
     if not mute?(params)
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
+      model = Plugin::Activity::Activity.new(params)
+      next if @contains_uris.include?(model.uri)
+      @contains_uris << model.uri
       iter = activity_view.model.prepend
-      if params[:icon].is_a? String
-        iter[ActivityView::ICON] = Gdk::WebImageLoader.pixbuf(params[:icon], 24, 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon }
+      case params[:icon]
+      when GdkPixbuf::Pixbuf
+        iter[ActivityView::ICON] = params[:icon]
+      when Retriever::Model
+        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
+      when nil, false
       else
-        iter[ActivityView::ICON] = params[:icon] end
-      iter[ActivityView::KIND] = params[:kind].to_s
-      iter[ActivityView::TITLE] = params[:title].tr("\n", "")
-      iter[ActivityView::DATE] = params[:date].strftime('%Y/%m/%d %H:%M:%S')
-      iter[ActivityView::PLUGIN] = params[:plugin]
-      iter[ActivityView::ID] = 0
-      iter[ActivityView::SERVICE] = params[:service]
-      iter[ActivityView::EVENT] = params
-      if (UserConfig[:activity_show_timeline] || []).map(&:to_s).include?(params[:kind].to_s)
-        Plugin.call(:update, nil, [Message.new(message: params[:description], system: true, source: params[:plugin].to_s, created: params[:date])])
+        photo = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, params[:icon], y)
+        }.first
+        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24){ |loaded_icon|
+          iter[ActivityView::ICON] = loaded_icon
+        }
       end
-      if (UserConfig[:activity_show_statusbar] || []).map(&:to_s).include?(params[:kind].to_s)
-        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{params[:kind]}: #{params[:title]}", 10)
+      iter[ActivityView::KIND] = model.kind
+      iter[ActivityView::TITLE] = model.title
+      iter[ActivityView::DATE] = model.created.strftime('%Y/%m/%d %H:%M:%S')
+      iter[ActivityView::MODEL] = model
+      iter[ActivityView::URI] = model.uri.to_s
+      if (UserConfig[:activity_show_timeline] || []).map(&:to_s).include?(model.kind)
+        Plugin.call(:update, nil, [Mikutter::System::Message.new(description: model.description, source: model.plugin_slug.to_s, created: model.created)])
+      end
+      if (UserConfig[:activity_show_statusbar] || []).map(&:to_s).include?(model.kind)
+        Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), "#{model.kind}: #{model.title}", 10)
       end
     end
   end
@@ -193,21 +206,21 @@ Plugin.create(:activity) do
   on_favorite do |service, user, message|
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
-             icon: user[:profile_image_url],
+                          "@#{message.user[:idname]}: #{message.to_s}"),
+             icon: user.icon,
              related: message.user.me? || user.me?,
-             service: service)
+             service: service,
+             children: [user, message, message.user])
   end
 
   on_unfavorite do |service, user, message|
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n"+
-                          message.perma_link),
-             icon: user[:profile_image_url],
+                          "@#{message.user[:idname]}: #{message.to_s}"),
+             icon: user.icon,
              related: message.user.me? || user.me?,
-             service: service)
+             service: service,
+             children: [user, message, message.user])
   end
 
   on_retweet do |retweets|
@@ -215,56 +228,56 @@ Plugin.create(:activity) do
       retweet.retweet_source_d.next{ |source|
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
-                              "@#{source.user[:idname]}: #{source.to_s}\n"+
-                              source.perma_link),
-                 icon: retweet.user[:profile_image_url],
+                              "@#{source.user[:idname]}: #{source.to_s}"),
+                 icon: retweet.user.icon,
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),
-                 service: Service.primary) }.terminate(_ 'リツイートソースが取得できませんでした') }
+                 service: Service.primary,
+                 children: [retweet.user, source, source.user]) }.terminate(_ 'リツイートソースが取得できませんでした') }
   end
 
   on_list_member_added do |service, user, list, source_user|
-    if show_once(:list_member_added, user[:id], list[:id])
-      title = _("@%{user}が%{list}に追加されました") % {
-        user: user[:idname],
-        list: list[:full_name] }
-      desc_by_user = {
-        description: list[:description],
-        user: list.user[:idname] }
-      activity(:list_member_added, title,
-               description:("#{title}\n" +
-                            _("%{description} (by @%{user})") % desc_by_user + "\n" +
-                            "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
-               related: user.me? || source_user.me?,
-               service: service) end
+    title = _("@%{user}が%{list}に追加されました") % {
+      user: user[:idname],
+      list: list[:full_name] }
+    desc_by_user = {
+      description: list[:description],
+      user: list.user[:idname] }
+    activity(:list_member_added, title,
+             description:("#{title}\n" +
+                          _("%{description} (by @%{user})") % desc_by_user + "\n" +
+                          "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
+             icon: user.icon,
+             related: user.me? || source_user.me?,
+             service: service,
+             children: [user, list, list.user])
   end
 
   on_list_member_removed do |service, user, list, source_user|
-    if show_once(:list_member_removed, user[:id], list[:id])
-      title = _("@%{user}が%{list}から削除されました") % {
-        user: user[:idname],
-        list: list[:full_name] }
-      desc_by_user = {
-        description: list[:description],
-        user: list.user[:idname] }
-      activity(:list_member_removed, title,
-               description:("#{title}\n"+
-                            _("%{description} (by @%{user})") % desc_by_user + "\n" +
-                            "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
-               icon: user[:profile_image_url],
-               related: user.me? || source_user.me?,
-               service: service) end
+    title = _("@%{user}が%{list}から削除されました") % {
+      user: user[:idname],
+      list: list[:full_name] }
+    desc_by_user = {
+      description: list[:description],
+      user: list.user[:idname] }
+    activity(:list_member_removed, title,
+             description:("#{title}\n"+
+                          _("%{description} (by @%{user})") % desc_by_user + "\n" +
+                          "https://twitter.com/#{list.user[:idname]}/#{list[:slug]}"),
+             icon: user.icon,
+             related: user.me? || source_user.me?,
+             service: service,
+             children: [user, list, list.user])
   end
 
   on_follow do |by, to|
-    if show_once(:follow, by[:id], to[:id])
-      by_user_to_user = {
-        followee: by[:idname],
-        follower: to[:idname] }
-      activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
-               related: by.me? || to.me?,
-               icon: (to.me? ? by : to)[:profile_image_url]) end
+    by_user_to_user = {
+      followee: by[:idname],
+      follower: to[:idname] }
+    activity(:follow, _("@%{followee} が @%{follower} をﾌｮﾛｰしました") % by_user_to_user,
+             related: by.me? || to.me?,
+             icon: (to.me? ? by : to).icon,
+             children: [by, to])
   end
 
   on_direct_messages do |service, dms|
@@ -278,9 +291,10 @@ Plugin.create(:activity) do
                      '',
                      dm[:text]
                    ].join("\n"),
-                 icon: dm[:sender][:profile_image_url],
+                 icon: dm[:sender].icon,
                  service: service,
-                 date: date) end }
+                 date: date,
+                 children: [dm.recipient, dm.sender, dm]) end }
   end
 
   onunload do
