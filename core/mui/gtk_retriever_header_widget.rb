@@ -6,7 +6,7 @@ module Gtk
   # このウィジェットによって表示されるタイムスタンプをクリックすると、
   # コンストラクタに渡されたretrieverのperma_linkを開くようになっている。
   class RetrieverHeaderWidget < Gtk::EventBox
-    def initialize(retriever, *args)
+    def initialize(retriever, *args, intent_token: nil)
       type_strict retriever => Retriever::Model
       super(*args)
       ssc_atonce(:visibility_notify_event, &widget_style_setter)
@@ -16,7 +16,7 @@ module Gtk
                      closeup(Gtk::VBox.new(false, 0).
                               closeup(idname(retriever.user).left).
                               closeup(Gtk::Label.new(retriever.user[:name]).left))).
-           closeup(post_date(retriever).right))
+           closeup(post_date(retriever, intent_token).right))
     end
 
     private
@@ -46,10 +46,10 @@ module Gtk
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
 
-    def post_date(retriever)
+    def post_date(retriever, intent_token)
       label = Gtk::EventBox.new.
-              add(Gtk::Label.new(retriever.created.strftime('%Y/%m/%d %H:%M:%S')))
-      label.ssc(:button_press_event, &message_opener(retriever)) if retriever.perma_link
+                add(Gtk::Label.new(retriever.created.strftime('%Y/%m/%d %H:%M:%S')))
+      label.ssc(:button_press_event, &(intent_token ? intent_forwarder(intent_token) : message_opener(retriever)))
       label.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
@@ -65,11 +65,19 @@ module Gtk
         Plugin.call(:open, user)
         true end end
 
-    def message_opener(message)
-      type_strict message => Retriever::Model
+    def intent_forwarder(token)
       proc do
-        Gtk.openurl(retriever.perma_link)
-        true end end
+        token.forward
+        true
+      end
+    end
+
+    def message_opener(token)
+      proc do
+        Plugin.call(:open, token)
+        true
+      end
+    end
 
     memoize def cursor_changer(cursor)
       proc do |w|

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-09-01 14:54+0000\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-12 10:32+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -18,8 +18,12 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../direct_message.rb:22 ../direct_message.rb:28
+#: ../direct_message.rb:14 ../direct_message.rb:20
 msgid "DM"
+msgstr "Direktnachrichten"
+
+#: ../direct_message.rb:30 ../direct_message.rb:34
+msgid "ダイレクトメッセージ"
 msgstr "Direktnachrichten"
 
 #: ../dmlistview.rb:33

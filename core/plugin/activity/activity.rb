@@ -72,16 +72,19 @@ Plugin.create(:activity) do
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
-    Reserver.new(60) {
-      Delayer.new {
-        if not model.destroyed?
-          iters = model.to_enum(:each).to_a
-          remove_count = iters.size - UserConfig[:activity_max]
-          if remove_count > 0
-            iters[-remove_count, remove_count].each{ |_m,_p,iter|
-              @contains_uris.delete(iter[ActivityView::URI])
-              model.remove(iter) } end
-          reset_activity(model) end } }
+    Reserver.new(60, thread: Delayer) do
+      if not model.destroyed?
+        iters = model.to_enum(:each).to_a
+        remove_count = iters.size - UserConfig[:activity_max]
+        if remove_count > 0
+          iters[-remove_count, remove_count].each do |_m,_p,iter|
+            @contains_uris.delete(iter[ActivityView::URI])
+            model.remove(iter)
+          end
+        end
+        reset_activity(model)
+      end
+    end
   end
 
   def gen_listener_for_visible_check(uc, kind)
@@ -203,21 +206,21 @@ Plugin.create(:activity) do
   on_favorite do |service, user, message|
     activity(:favorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} がふぁぼふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
+                          "@#{message.user[:idname]}: #{message.to_s}"),
              icon: user.icon,
              related: message.user.me? || user.me?,
              service: service,
-             children: [user, message])
+             children: [user, message, message.user])
   end
 
   on_unfavorite do |service, user, message|
     activity(:unfavorite, "#{message.user[:idname]}: #{message.to_s}",
              description:(_("@%{user} があんふぁぼしました") % {user: user[:idname]} + "\n" +
-                          "@#{message.user[:idname]}: #{message.to_s}\n#{message.perma_link}"),
+                          "@#{message.user[:idname]}: #{message.to_s}"),
              icon: user.icon,
              related: message.user.me? || user.me?,
              service: service,
-             children: [user, message])
+             children: [user, message, message.user])
   end
 
   on_retweet do |retweets|
@@ -225,12 +228,12 @@ Plugin.create(:activity) do
       retweet.retweet_source_d.next{ |source|
         activity(:retweet, retweet.to_s,
                  description:(_("@%{user} がリツイートしました") % {user: retweet.user[:idname]} + "\n" +
-                              "@#{source.user[:idname]}: #{source.to_s}\n#{source.perma_link}"),
+                              "@#{source.user[:idname]}: #{source.to_s}"),
                  icon: retweet.user.icon,
                  date: retweet[:created],
                  related: (retweet.user.me? || source && source.user.me?),
                  service: Service.primary,
-                 children: [retweet.user, retweet.retweet_source || retweet]) }.terminate(_ 'リツイートソースが取得できませんでした') }
+                 children: [retweet.user, source, source.user]) }.terminate(_ 'リツイートソースが取得できませんでした') }
   end
 
   on_list_member_added do |service, user, list, source_user|
@@ -247,7 +250,7 @@ Plugin.create(:activity) do
              icon: user.icon,
              related: user.me? || source_user.me?,
              service: service,
-             children: [user, list])
+             children: [user, list, list.user])
   end
 
   on_list_member_removed do |service, user, list, source_user|
@@ -264,7 +267,7 @@ Plugin.create(:activity) do
              icon: user.icon,
              related: user.me? || source_user.me?,
              service: service,
-             children: [user, list])
+             children: [user, list, list.user])
   end
 
   on_follow do |by, to|

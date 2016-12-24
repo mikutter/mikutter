@@ -35,18 +35,15 @@ module Retriever::Entity
       # Class その正規表現を自動でリンクにする新しいEntityクラス
       def filter(regexp, generator: ret_nth)
         Class.new(self) do
-          @@autolink_condition = regexp.freeze
-          @@generator = generator
-
-          def initialize(*rest)
-            super
+          define_method(:initialize) do |*rest|
+            super(*rest)
             segments = Set.new(@generate_value)
-            self.message.to_show.scan(@@autolink_condition) do
+            self.message.to_show.scan(regexp) do
               match = Regexp.last_match
               pos = match.begin(0)
               body = match.to_s.freeze
               if not segments.any?{ |this| this[:range].include?(pos) }
-                segments << @@generator.(
+                segments << generator.(
                   message: message,
                   from: :regexp,
                   slug: :urls,

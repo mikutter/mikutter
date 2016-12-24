@@ -29,10 +29,14 @@ Plugin.create :rest do
         @account_observer.detach
         @account_observer = nil end
     else
-      Service.instances.each { |service|
-        @crawlers.each{ |s| s.call(service) } }
-      ::Reserver.new(60){
-        start } end end
+      Service.instances.each do |service|
+        @crawlers.each{ |s| s.call(service) }
+      end
+      Reserver.new(60, thread: Delayer) do
+        start
+      end
+    end
+  end
 
   Delayer.new{ start }
 end

@@ -3,13 +3,14 @@
 # This file is distributed under the same license as the home_timeline package.
 # 
 # Translators:
+# Manuel Tancoigne <m.tancoigne@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2013-07-20 11:56+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-12 09:01+0000\n"
+"Last-Translator: Manuel Tancoigne <m.tancoigne@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/lindwurm/mikutter/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,4 +20,4 @@ msgstr ""
 
 #: ../home_timeline.rb:4
 msgid "Home Timeline"
-msgstr ""
+msgstr "Accueil du fil d'actualité"

@@ -46,7 +46,7 @@ Plugin::create(:set_view) do
     settings _('選択中') do
       color _('背景色'), :mumble_selected_bg
     end
-    Plugin.filtering(:retrievers, []).first.each do |modelspec|
+    Plugin.filtering(:retrievers, []).first.select(&:timeline).each do |modelspec|
       slug = modelspec[:slug]
       settings(_(modelspec[:name])) do
         settings(_('デフォルト')) do

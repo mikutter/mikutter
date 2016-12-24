@@ -7,7 +7,8 @@ module Mikutter::Twitter
     include Retriever::Model::MessageMixin
 
     register :twitter_direct_message,
-             name: "Direct Message"
+             name: "Direct Message",
+             timeline: true
 
     field.int    :id, required: true                        # ID
     field.string :text, required: true                      # Message description
@@ -17,7 +18,7 @@ module Mikutter::Twitter
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 
-    entity_class Retriever::Entity::TwitterEntity
+    entity_class Retriever::Entity::ExtendedTwitterEntity
 
     def self.memory
       @memory ||= DirectMessageMemory.new end

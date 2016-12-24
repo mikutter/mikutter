@@ -7,7 +7,9 @@ class Mikutter::System::Message < Retriever::Model
   include Retriever::Model::MessageMixin
 
   register :system_message,
-           name: "System Message"
+           name: "System Message",
+           timeline: true,
+           myself: false
 
   field.string :description, required: true
   field.has :user, Mikutter::System::User, required: true

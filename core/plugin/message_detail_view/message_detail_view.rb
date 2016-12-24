@@ -3,7 +3,7 @@ miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
   intent Message, label: _('ツイートの詳細') do |intent_token|
-    show_message(intent_token.model)
+    show_message(intent_token.model, intent_token)
   end
 
   command(:message_detail_view_show,
@@ -20,12 +20,12 @@ Plugin.create(:message_detail_view) do
     Plugin.call(:open, message)
   end
 
-  def show_message(message, force=false)
+  def show_message(message, token, force=false)
     slug = "message_detail_view-#{message.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
-      container = Gtk::RetrieverHeaderWidget.new(message)
+      container = Gtk::RetrieverHeaderWidget.new(message, intent_token: token)
       i_cluster = tab slug, _("詳細タブ") do
         set_icon Skin['message.png']
         set_deletable true

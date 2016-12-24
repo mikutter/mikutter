@@ -10,7 +10,7 @@ class TC_TwitterEntity < Test::Unit::TestCase
     field.time   :created
     field.time   :modified
 
-    entity_class Retriever::Entity::TwitterEntity
+    entity_class Retriever::Entity::ExtendedTwitterEntity
 
     def to_show
       self[:message]

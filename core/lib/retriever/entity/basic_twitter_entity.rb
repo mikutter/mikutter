@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
-require_relative 'blank_entity'
+require_relative 'regexp_entity'
 
 module Retriever::Entity
-  class TwitterEntity < BlankEntity
+  class BasicTwitterEntity < RegexpEntity
     ESCAPE_RULE = {'&' => '&amp;'.freeze ,'>' => '&gt;'.freeze, '<' => '&lt;'.freeze}.freeze
     UNESCAPE_RULE = ESCAPE_RULE.invert.freeze
     # REGEXP_EACH_CHARACTER = //u.freeze
     REGEXP_ENTITY_ENCODE_TARGET = Regexp.union(*ESCAPE_RULE.keys.map(&Regexp.method(:escape))).freeze
     REGEXP_ENTITY_DECODE_TARGET = Regexp.union(*ESCAPE_RULE.values.map(&Regexp.method(:escape))).freeze
+    # screen nameにマッチする正規表現
+    MentionMatcher      = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
+
+    # screen nameのみから構成される文字列から、@などを切り取るための正規表現
+    MentionExactMatcher = /\A(?:@|＠|〄|☯|⑨|♨)?([a-zA-Z0-9_]+)\Z/.freeze
 
     def initialize(*_rest)
       super

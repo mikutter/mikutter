@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-19 14:41+0000\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-11 09:23+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -19,9 +19,13 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../direct_message.rb:22 ../direct_message.rb:28
+#: ../direct_message.rb:14 ../direct_message.rb:20
 msgid "DM"
 msgstr "DM"
+
+#: ../direct_message.rb:30 ../direct_message.rb:34
+msgid "ダイレクトメッセージ"
+msgstr "私人訊息"
 
 #: ../dmlistview.rb:33
 msgid "icon"

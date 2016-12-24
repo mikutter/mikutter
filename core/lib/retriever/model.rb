@@ -6,6 +6,7 @@
 miquire :lib, 'typed-array'
 
 require_relative 'uri'
+require_relative 'spec'
 
 class Retriever::Model
   include Comparable
@@ -137,17 +138,20 @@ class Retriever::Model
     # [name:] String Modelの名前
     # [reply:] bool このRetrieverに、宛先が存在するなら真
     # [myself:] bool このRetrieverを、自分のアカウントによって作成できるなら真
+    # [timeline:] bool 真ならタイムラインに表示することができる
     def register(new_slug,
                  name: new_slug.to_s,
                  reply: true,
-                 myself: true
+                 myself: true,
+                 timeline: false
                 )
       @slug = new_slug.to_sym
-      spec = @spec = {slug: @slug,
-                      name: name.to_s.freeze,
-                      reply: !!reply,
-                      myself: !!myself
-                     }.freeze
+      spec = @spec = Retriever::ModelSpec.new(@slug,
+                                              name.to_s.freeze,
+                                              !!reply,
+                                              !!myself,
+                                              !!timeline
+                                             ).freeze
       plugin do
         filter_retrievers do |retrievers|
           retrievers << spec
@@ -392,6 +396,19 @@ class Retriever::Model
       rescue Retriever::InvalidTypeError=>e
         raise Retriever::InvalidTypeError, e.to_s + "\nin #{datum.inspect} of #{key}" end }
     result end
+
+  # このインスタンスのタイトル。
+  def title
+    fields = self.class.keys.select(&ret_nth(1))
+    case
+    when fields.include?(:name)
+      name.gsub("\n", '')
+    when fields.include?(:description)
+      description.gsub("\n", '')
+    else
+      to_s.gsub("\n", '')
+    end
+  end
 
   private
   # URIがデフォルトで使うpath要素

@@ -3,24 +3,29 @@
 # This file is distributed under the same license as the direct_message package.
 # 
 # Translators:
-# akkiesoft <akkiesoft@marokun.net>, 2013
+# Akkiesoft <akkiesoft@marokun.net>, 2013
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-29 00:34+0900\n"
-"PO-Revision-Date: 2013-07-21 04:35+0000\n"
-"Last-Translator: akkiesoft <akkiesoft@marokun.net>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/mikutter/language/en/)\n"
+"POT-Creation-Date: 2016-12-11 17:15+0900\n"
+"PO-Revision-Date: 2016-12-12 11:03+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../direct_message.rb:27 ../direct_message.rb:33
+#: ../direct_message.rb:14 ../direct_message.rb:20
 msgid "DM"
 msgstr "Direct Messages"
+
+#: ../direct_message.rb:30 ../direct_message.rb:34
+msgid "ダイレクトメッセージ"
+msgstr "Direct message: "
 
 #: ../dmlistview.rb:33
 msgid "icon"
