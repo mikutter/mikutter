@@ -8,6 +8,7 @@ module Skin
   class ModelNotFoundError < SkinError; end
 
   extend self
+  extend Gem::Deprecate
 
   SKIN_ROOT = File.join(CHIConfig::CONFROOT, "skin")
   USER_SKIN = if :vanilla == UserConfig[:skin_dir]
