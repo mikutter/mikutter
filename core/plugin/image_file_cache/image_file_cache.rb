@@ -40,10 +40,12 @@ Plugin.create :image_file_cache do
     (UserConfig[:image_file_cache_expire] || 32) * 24 * 60 * 60 end
 
   def cache_it(photo)
-    notice "cache added #{photo.uri}"
-    photo.download.next{|downloaded|
-      @db[downloaded.uri.to_s] = downloaded.blob
-    }
+    unless @db.key?(photo.uri.to_s)
+      notice "cache added #{photo.uri}"
+      photo.download.next{|downloaded|
+        @db[downloaded.uri.to_s] = downloaded.blob
+      }
+    end
   end
 
   def check_subdirs(dir)
