@@ -37,7 +37,7 @@ Plugin.create :image_file_cache do
 
   # キャッシュの有効期限を秒単位で返す
   def cache_expire
-    (UserConfig[:image_file_cache_expire] || 7) * 24 * 60 * 60 end
+    (UserConfig[:image_file_cache_expire] || 32) * 24 * 60 * 60 end
 
   def cache_it(photo)
     notice "cache added #{photo.uri}"
