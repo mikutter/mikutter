@@ -35,23 +35,20 @@ end
 Plugin.create :aspectframe do
 
   def now
-    Plugin::AspectFrame.now end
+    Plugin::AspectFrame.now
+  end
 
   if (Plugin::AspectFrame::PREFETCH.first..Plugin::AspectFrame::SequenceTrueMikutter.range.last).cover? now
     FileUtils.mkdir_p(Plugin::AspectFrame::CACHE_DIR)
     # prefetch
     onappear do |messages|
       if Plugin::AspectFrame::PREFETCH.cover?(now)
-        messages.each { |message|
-          if rand(1000) < Time.new.day**2 and not FileTest.exist?(localfile(message.user.icon.uri.to_s))
-            Enumerator.new{|y|
-              Plugin.filtering(:photo_filter, transform(message.user.icon.uri.to_s), y)
-            }.first.download.next{ |photo|
-              notice "prefetch: #{photo.uri}"
-              SerialThread.new{
-                File.open(localfile(photo.uri.to_s), 'w'){|out| out << photo.blob }
-              }
-            }.terminate end } end
+        messages.deach do |message|
+          if rand(1000) < Time.new.day**2
+            Plugin.call(:image_file_cache_photo, transform(message.user.icon))
+          end
+        end
+      end
     end
   end
   if FileTest.exist?(Plugin::AspectFrame::CACHE_DIR) and not (Plugin::AspectFrame::PREFETCH.first..Plugin::AspectFrame::THE_DAY.last).cover?(now)
@@ -68,11 +65,11 @@ Plugin.create :aspectframe do
           stop.call([url, raw]) end end end
     [url, image] end
 
-  filter_web_image_loader_url_filter do |url|
+  filter_miracle_icon_filter do |photo|
     if enable_sequence? :true_mikutter
-      [transform(url)]
+      [transform(photo)]
     else
-      [url] end end
+      [photo] end end
 
   filter_main_icon_form do |form|
     if enable_sequence? :germany_bird
@@ -80,12 +77,15 @@ Plugin.create :aspectframe do
     else
       [form] end end
 
-  def transform(url)
-    "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(url)[0,2].upcase}.png"
+  def transform(icon)
+    if icon.perma_link
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(icon.perma_link.to_s)[0,2].upcase}.png", y)
+      }.first
+    else
+      icon
+    end
   end
-
-  def localfile(url)
-    localfile_hash(Digest::MD5.hexdigest(url)[0,2]) end
 
   def localfile_hash(hash)
     File.expand_path(File.join(Plugin::AspectFrame::CACHE_DIR, "#{hash.upcase}_5.png")) end

@@ -170,14 +170,12 @@ module Retriever::Model::PhotoMixin
   end
 
   # 画像が読まれた回数をインクリメントする。
-  # 読み込まれた回数が規定値を超えたら、blobを引数に image_cache_saved イベントを発生させて、誰かがキャッシュしてくれたらなあ
+  # 読み込まれた回数が規定値を超えたら、blobを引数に image_file_cache_photo イベントを発生させて、ストレージにキャッシュさせる
   def increase_read_count
     @read_count += 1
     if !@cached and @read_count >= appear_limit
       @cached = true
-      download do
-        Plugin.call(:image_cache_saved, uri.to_s, blob)
-      end
+      Plugin.call(:image_file_cache_photo, self)
     end
     set_forget_timer
   end
