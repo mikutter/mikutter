@@ -341,7 +341,7 @@ Plugin.create :user_detail_view do
           if intent_token.respond_to?(:forward)
             intent_token.forward
           else
-            Plugin.call(:open, user)
+            Plugin.call(:open, user.uri)
           end
           next true
         end
