@@ -6,7 +6,7 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_icon_margin] ||= 8
 
   intent User, label: _('プロフィール') do |intent_token|
-    show_profile(intent_token.model)
+    show_profile(intent_token.model, intent_token)
   end
 
   plugin = self
@@ -17,7 +17,7 @@ Plugin.create :user_detail_view do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
       retrieve_user(user_id).next{|user|
         user ||= User.findbyid(user_id)
-        show_profile(user, true) if user
+        show_profile(user, nil, true) if user
       }.terminate end end
 
   def retrieve_user(user_id, services = Service.services.shuffle)
@@ -40,13 +40,13 @@ Plugin.create :user_detail_view do
   on_show_profile do |service, user|
     Plugin.call(:open, user) end
 
-  def show_profile(user, force=false)
+  def show_profile(user, token, force=false)
     slug = "profile-#{user.uri}".to_sym
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
       UserConfig[:profile_opened_tabs] = ((UserConfig[:profile_opened_tabs] || []) + [user.id]).uniq
-      container = profile_head(user)
+      container = profile_head(user, token)
       i_cluster = tab slug, _("%{user} のプロフィール") % {user: user[:name]} do
         set_icon user.icon
         set_deletable true
@@ -252,9 +252,10 @@ Plugin.create :user_detail_view do
   # ユーザのプロフィールのヘッダ部を返す
   # ==== Args
   # [user] 表示するUser
+  # [intent_token] ユーザを開くときに利用するIntent
   # ==== Return
   # ヘッダ部を表すGtkコンテナ
-  def profile_head(user)
+  def profile_head(user, intent_token)
     eventbox = ::Gtk::EventBox.new
     eventbox.ssc('visibility-notify-event'){
       eventbox.style = background_color
@@ -274,15 +275,16 @@ Plugin.create :user_detail_view do
     eventbox.add(::Gtk::VBox.new(false, 0).
                   add(::Gtk::HBox.new.
                        closeup(icon_alignment.add(icon)).
-                       add(::Gtk::VBox.new.closeup(user_name(user)).closeup(profile_table(user)))))
+                       add(::Gtk::VBox.new.closeup(user_name(user, intent_token)).closeup(profile_table(user)))))
   end
 
   # ユーザ名を表示する
   # ==== Args
   # [user] 表示するUser
+  # [intent_token] ユーザを開くときに利用するIntent
   # ==== Return
   # ユーザの名前の部分のGtkコンテナ
-  def user_name(user)
+  def user_name(user, intent_token)
     w_name = ::Gtk::TextView.new
     w_name.editable = false
     w_name.cursor_visible = false
@@ -296,7 +298,7 @@ Plugin.create :user_detail_view do
     tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
                                              weight: Pango::FontDescription::WEIGHT_BOLD,
                                              underline: Pango::AttrUnderline::SINGLE})
-    tag_sn.ssc(:event, &user_screen_name_event_callback(user))
+    tag_sn.ssc(:event, &user_screen_name_event_callback(user, intent_token))
 
     w_name.buffer.insert(w_name.buffer.start_iter, user[:idname], tag_sn)
     w_name.buffer.insert(w_name.buffer.end_iter, "\n#{user[:name]}")
@@ -331,12 +333,16 @@ Plugin.create :user_detail_view do
     style.set_bg(::Gtk::STATE_NORMAL, 0xFF ** 2, 0xFF ** 2, 0xFF ** 2)
     style end
 
-  def user_screen_name_event_callback(user)
+  def user_screen_name_event_callback(user, intent_token)
     lambda do |tag, textview, event, iter|
       case event
       when ::Gdk::EventButton
         if event.event_type == ::Gdk::Event::BUTTON_RELEASE and event.button == 1
-          ::Gtk.openurl("https://twitter.com/#{user[:idname]}")
+          if intent_token.respond_to?(:forward)
+            intent_token.forward
+          else
+            Plugin.call(:open, user)
+          end
           next true
         end
       when ::Gdk::EventMotion
