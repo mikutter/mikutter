@@ -17,7 +17,7 @@ group :default do
   gem 'delayer', '~> 0.0'
   gem 'pluggaloid', '>= 1.1.1', '< 2.0'
   gem 'delayer-deferred', '>= 1.0.4', '< 2.0'
-  gem 'twitter-text'
+  gem 'twitter-text', '1.14.2'
 end
 
 group :test do
