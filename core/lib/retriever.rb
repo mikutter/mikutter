@@ -15,7 +15,7 @@ module Retriever
     case uri
     when Retriever::URI
       uri
-    when URI, Addressable::URI, String, Hash
+    when ::URI::Generic, Addressable::URI, String, Hash
       Retriever::URI.new(uri)
     end
   end
