@@ -129,7 +129,7 @@ module Retriever::Model::MessageMixin
   end
 
   def to_show
-    @to_show ||= self[:description].gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze
+    @to_show ||= description.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze
   end
 
   def to_message
