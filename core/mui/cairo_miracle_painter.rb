@@ -340,10 +340,10 @@ class Gdk::MiraclePainter < Gtk::Object
 
   def timestamp_label
     now = Time.now
-    if message[:created].year == now.year && message[:created].month == now.month && message[:created].day == now.day
-      Pango.escape(message[:created].strftime('%H:%M:%S'))
+    if message.created.year == now.year && message.created.month == now.month && message.created.day == now.day
+      Pango.escape(message.created.strftime('%H:%M:%S'))
     else
-      Pango.escape(message[:created].strftime('%Y/%m/%d %H:%M:%S'))
+      Pango.escape(message.created.strftime('%Y/%m/%d %H:%M:%S'))
     end
   end
 
