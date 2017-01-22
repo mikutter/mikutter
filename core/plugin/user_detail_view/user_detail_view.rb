@@ -218,7 +218,7 @@ Plugin.create :user_detail_view do
             if not w_eventbox_image_followed.children.empty?
               w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first) end
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
-            w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
+            w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get_path(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない") end }
         Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
