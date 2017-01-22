@@ -29,8 +29,6 @@ module Retriever
       uri
     when ::URI::Generic, Addressable::URI, String, Hash
       Retriever::URI.new(uri)
-    else
-      fail Retriever::InvalidURIError, "Unexpected instance of class received. Retriever::URI() expects Retriever::URI, URI::Generic, Addressable::URI, String or Hash but given `#{uri.class}'."
     end
   end
 
