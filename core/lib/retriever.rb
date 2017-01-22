@@ -21,8 +21,9 @@ module Retriever
   # [Addressable::URI] Retriever::URI.new(uri) の結果を返す
   # [String] _uri_ をURI文字列と見立てて、 URI::Generic または Addressable::URI に変換して、 Retriever::URI のインスタンスを作る
   # [Hash] _uri_ を URI::Generic または Addressable::URI コンストラクタに渡して、URIを作り、 Retriever::URI のインスタンスを作る
-  # ==== Raises
-  # [Retriever::InvalidURIError] _uri_ がURIではない場合
+  # ==== Returns
+  # [Retriever::URI] 正しく変換できた
+  # [nil] _uri_ が不正
   def self.URI(uri)
     case uri
     when Retriever::URI
@@ -32,6 +33,8 @@ module Retriever
     end
   end
 
+  # ==== Raises
+  # [Retriever::InvalidURIError] _uri_ がURIではない場合
   def self.URI!(uri)
     self.URI(uri) or raise InvalidURIError, "`#{uri.class}' is not uri."
   end
