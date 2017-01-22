@@ -62,7 +62,8 @@ class Retriever::Model
     # [required] boolean _true_ なら、この項目を必須とする
     def add_field(field_name, type:, required: false)
       (@keys ||= []) << [field_name, type, required]
-      if type.is_a? Symbol
+      case type
+      when Symbol, Array
         define_method(field_name) do
           @value[field_name]
         end
