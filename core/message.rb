@@ -49,7 +49,6 @@ class Message < Retriever::Model
   field.has    :replyto, Message                    # Reply to this message
   field.has    :retweet, Message                    # ReTweet to this message
   field.string :source                              # using client
-  field.string :geo                                 # geotag
   field.bool   :exact                               # true if complete data
   field.time   :created                             # posted time
   field.time   :modified                            # updated time

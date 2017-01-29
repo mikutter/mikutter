@@ -135,7 +135,7 @@ class ::Gdk::MiraclePainter
   # 表示の更新はとくにしない
   def timestamp_label
     now = Time.now.to_i
-    there = message[:created].to_i
+    there = message.created.to_i
     diff = (there - now).abs
     label = case diff
             when 0
@@ -149,7 +149,7 @@ class ::Gdk::MiraclePainter
             else
               # TRANSLATORS: Time#strftimeが食う形式。
               # こんなん設定できたら良さそうだけどDRとかどうでもいいので適当にやってね
-              message[:created].strftime(Plugin[:display_requirements]._('%Y/%m/%d'))
+              message.created.strftime(Plugin[:display_requirements]._('%Y/%m/%d'))
             end
     Pango.escape(label)end
 

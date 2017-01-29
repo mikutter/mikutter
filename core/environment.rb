@@ -48,42 +48,46 @@ module Environment
   NeverRetrieveOverlappedMumble = CHIConfig::NeverRetrieveOverlappedMumble
 
   class Version
+    extend Gem::Deprecate
     OUT = 9999
     ALPHA = 1..9998
     DEVELOP = 0
 
     include Comparable
 
-    attr_reader :mejor, :minor, :debug, :devel
+    attr_reader :major, :minor, :debug, :devel
 
-    def initialize(mejor, minor, debug, devel=0)
-      @mejor = mejor
+    alias :mejor :major
+    deprecate :mejor, "major", 2018, 01
+
+    def initialize(major, minor, debug, devel=0)
+      @major = major
       @minor = minor
       @debug = debug
       @devel = devel
     end
 
     def to_a
-      [@mejor, @minor, @debug, @devel]
+      [@major, @minor, @debug, @devel]
     end
 
     def to_s
       case @devel
       when OUT
-        [@mejor, @minor, @debug].join('.')
+        [@major, @minor, @debug].join('.')
       when ALPHA
-        [@mejor, @minor, @debug].join('.') + "-alpha#{@devel}"
+        [@major, @minor, @debug].join('.') + "-alpha#{@devel}"
       when DEVELOP
-        [@mejor, @minor, @debug].join('.') + "-develop"
+        [@major, @minor, @debug].join('.') + "-develop"
       end
     end
 
     def to_i
-      @mejor
+      @major
     end
 
     def to_f
-      @mejor + @minor/100
+      @major + @minor/100
     end
 
     def inspect

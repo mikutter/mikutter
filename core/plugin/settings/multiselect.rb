@@ -69,7 +69,7 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     if setting.is_a? Gtk::Widget
       ->(widget) do
         if widget.active?
-          listener.set((listener.get || []) + [value])
+          listener.set(Set[value, *(listener.get || [])]) unless (listener.get || []).include?(value)
         else
           listener.set((listener.get || []) - [value]) end
         setting.sensitive = widget.active?
@@ -77,7 +77,7 @@ class Plugin::Settings::MultiSelect < Plugin::Settings::Select
     else
       ->(widget) do
         if widget.active?
-          listener.set((listener.get || []) + [value])
+          listener.set(Set[value, *(listener.get || [])]) unless (listener.get || []).include?(value)
         else
           listener.set((listener.get || []) - [value]) end
         false end end end

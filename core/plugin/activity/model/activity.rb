@@ -21,7 +21,7 @@ module Plugin::Activity
 
     # TLにアイコンを表示するため
     def profile_image_url
-      icon || MUI::Skin.get('activity.png')
+      icon || MUI::Skin.get_path('activity.png')
     end
 
     def plugin

@@ -17,8 +17,8 @@ module Plugin::Activity
       model.clear
       models.each do |record|
         iter = model.append
-        if record[:profile_image_url]
-          iter[ICON] = Gdk::WebImageLoader.pixbuf(record[:profile_image_url], 24, 24) do |loaded_icon|
+        if record.respond_to? :icon
+          iter[ICON] = record.icon.load_pixbuf(width: 24, height: 24) do |loaded_icon|
             iter[ICON] = loaded_icon
           end
         end
