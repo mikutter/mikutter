@@ -205,7 +205,7 @@ messageの内容が変わったときに呼ばれる。
 
 === mui_tab_regist(Gtk::Widget container, String label, String image=nil)
 ウィンドウにタブを追加する。 _label_ はウィンドウ内での識別名にも使われるので一意であること。
-_image_ は画像への相対パスかURLで、通常は #MUI::Skin.get の戻り値を使う。
+_image_ は画像への相対パスかURLで、通常は #MUI::Skin.get_path の戻り値を使う。
 _image_ が省略された場合は、 _label_ が使われる。
 
 === mui_tab_remove(String label)

@@ -8,12 +8,25 @@ module Retriever::Model::UserMixin
     self
   end
 
-  memoize def icon
-    Retriever::Model(:photo)[profile_image_url]
+  def icon
+    Enumerator.new{|y|
+      Plugin.filtering(:photo_filter, profile_image_url, y)
+    }.map{|photo|
+      Plugin.filtering(:miracle_icon_filter, photo)[0]
+    }.first
   end
 
-  memoize def icon_large
-    Retriever::Model(:photo)[profile_image_url_large]
+  def icon_large
+    Enumerator.new{|y|
+      Plugin.filtering(:photo_filter, profile_image_url_large, y)
+    }.map{|photo|
+      truth = Plugin.filtering(:miracle_icon_filter, photo)[0]
+      if photo == truth
+        truth
+      else
+        icon
+      end
+    }.first
   end
 
   def profile_image_url_large

@@ -199,11 +199,13 @@ class Plugin::Settings < Gtk::VBox
   #   _:artists_ :: デザイナとかの名前。通常Twitter screen name（Array）
   #   _:documenters_ :: ドキュメントかいた人とかの名前。通常Twitter screen name（Array）
   def about(label, options={})
+    name_mapper = Hash.new{|h,k| k }
+    name_mapper[:name] = :program_name
     about = Gtk::Button.new(label)
     about.signal_connect("clicked"){
       dialog = Gtk::AboutDialog.new.show
       options.each { |key, value|
-        dialog.__send__("#{key}=", about_converter[key][value]) }
+        dialog.__send__("#{name_mapper[key]}=", about_converter[key][value]) }
       dialog.signal_connect('response') { dialog.destroy } }
     closeup about
     about end
