@@ -178,7 +178,7 @@ class ::Gdk::MiraclePainter
     if defined?(@hl_region) and @hl_region.point_in?(x, y)
       Plugin.call(:open, message.user)
     elsif defined?(@hr_region) and @hr_region.point_in?(x, y)
-      Gtk.openurl("https://twitter.com/#{message.user.idname}/status/#{message.id}")
+      Plugin.call(:open, message)
     else
       __clicked_l7eOfD__(x, y, e)
     end
