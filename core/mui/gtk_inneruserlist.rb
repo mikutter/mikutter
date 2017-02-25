@@ -27,7 +27,11 @@ class Gtk::InnerUserList < Gtk::TreeView
   # self
   def add_user(users)
     exist_users = Set.new(model.to_enum.map{ |model,path,iter| iter[COL_USER] })
-    users.reject{|user| exist_users.include? user }.deach { |user|
+    users.select{|user|
+      user.is_a?(Retriever::Model)
+    }.reject{|user|
+      exist_users.include?(user)
+    }.deach{|user|
       iter = model.append
       iter[COL_ICON] = user.icon.load_pixbuf(width: 24, height: 24){|pixbuf|
         iter[COL_ICON] = pixbuf unless destroyed?
@@ -35,7 +39,8 @@ class Gtk::InnerUserList < Gtk::TreeView
       iter[COL_SCREEN_NAME] = user[:idname]
       iter[COL_NAME] = user[:name]
       iter[COL_USER] = user
-      iter[COL_ORDER] = @userlist.gen_order(user) }
+      iter[COL_ORDER] = @userlist.gen_order(user)
+    }.terminate
     scroll_to_zero_lator! if realized? and vadjustment.value == 0.0
     self end
 
