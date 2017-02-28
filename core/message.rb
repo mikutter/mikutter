@@ -45,7 +45,9 @@ class Message < Retriever::Model
   field.int    :id, required: true
   field.string :message, required: true             # Message description
   field.has    :user, User, required: true          # Send by user
+  field.int    :in_reply_to_user_id                 # リプライ先ユーザID
   field.has    :receiver, User                      # Send to user
+  field.int    :in_reply_to_status_id               # リプライ先ツイートID
   field.has    :replyto, Message                    # Reply to this message
   field.has    :retweet, Message                    # ReTweet to this message
   field.string :source                              # using client
@@ -192,8 +194,8 @@ class Message < Retriever::Model
   def receiver
     if self[:receiver].is_a? User
       self[:receiver]
-    elsif self[:receiver]
-      receiver_id = self[:receiver]
+    elsif self[:receiver] and self[:in_reply_to_user_id]
+      receiver_id = self[:in_reply_to_user_id]
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
@@ -206,7 +208,7 @@ class Message < Retriever::Model
   # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
   def receive_to?(other)
     type_strict other => :[]
-    (self[:receiver].is_a?(User) and other[:id] == self[:receiver][:id]) or receive_user_screen_names.include? other[:idname] end
+    (self[:receiver] and other[:id] == self[:receiver].id) or receive_user_screen_names.include? other[:idname] end
 
   # このツイートが宛てられたユーザを可能な限り推測して、その idname(screen_name) を配列で返す。
   # 例えばツイート本文内に「@a @b @c」などと書かれていたら、["a", "b", "c"]を返す。
@@ -221,7 +223,7 @@ class Message < Retriever::Model
 
   # このメッセージが何かしらの別のメッセージに宛てられたものなら真
   def has_receive_message?
-    !!self[:replyto] end
+    !!(self[:replyto] || self[:in_reply_to_status_id]) end
   alias reply? has_receive_message?
 
   # このメッセージが何かに対するリツイートなら真
@@ -246,10 +248,17 @@ class Message < Retriever::Model
   # Message|nil 宛先のMessage。宛先がなければnil
   def replyto_source(force_retrieve=false)
     if reply?
-      result = get(:replyto, (force_retrieve ? -1 : 1))
-      if result.is_a?(Message)
-        result.add_child(self) unless result.children.include?(self)
-        result end end end
+      if self[:replyto]
+        self[:replyto]
+      elsif self[:in_reply_to_status_id]
+        result = Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Retriever::DataSource::USE_ALL : Retriever::DataSource::USE_LOCAL_ONLY)
+        if result.is_a?(Message)
+          result.add_child(self) unless result.children.include?(self)
+          result
+        end
+      end
+    end
+  end
 
   # replyto_source の戻り値をnextに渡すDeferredableを返す
   # ==== Args

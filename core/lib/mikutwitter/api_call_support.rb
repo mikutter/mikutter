@@ -104,8 +104,7 @@ module MikuTwitter::ApiCallSupport
       extend Parser
 
       def message(msg)
-        cnv = msg.convert_key(:in_reply_to_user_id => :receiver,
-                              :in_reply_to_status_id => :replyto)
+        cnv = msg.dup
         cnv[:message] = msg[:full_text] || msg[:text]
         cnv[:source] = $1 if cnv[:source].is_a?(String) and cnv[:source].match(/\A<a\s+.*>(.*?)<\/a>\Z/)
         cnv[:created] = (Time.parse(msg[:created_at]).localtime rescue Time.now)
@@ -132,8 +131,7 @@ module MikuTwitter::ApiCallSupport
       # ↓
       # 死ぬのか！？
       def streaming_message(msg)
-        cnv = msg.convert_key(:in_reply_to_user_id => :receiver,
-                              :in_reply_to_status_id => :replyto)
+        cnv = msg.dup
         if msg[:extended_tweet]
           cnv.delete(:extended_tweet)
           cnv.merge!(msg[:extended_tweet])
