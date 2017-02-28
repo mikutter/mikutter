@@ -168,24 +168,25 @@ Plugin.create(:activity) do
   # plugin, kind, title, icon, date, service
   on_modify_activity do |params|
     if not mute?(params)
+      params = params.dup
+      case params[:icon]
+      when GdkPixbuf::Pixbuf
+        # TODO: Pixbufを渡された時の処理
+        params[:icon] = nil
+      when Retriever::Model, nil, false
+      # nothing to do
+      else
+        params[:icon] = Enumerator.new{|y|
+          Plugin.filtering(:photo_filter, params[:icon], y)
+        }.first
+      end
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       model = Plugin::Activity::Activity.new(params)
       next if @contains_uris.include?(model.uri)
       @contains_uris << model.uri
       iter = activity_view.model.prepend
-      case params[:icon]
-      when GdkPixbuf::Pixbuf
-        iter[ActivityView::ICON] = params[:icon]
-      when Retriever::Model
-        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon
-        }
-      when nil, false
-      else
-        photo = Enumerator.new{|y|
-          Plugin.filtering(:photo_filter, params[:icon], y)
-        }.first
-        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24){ |loaded_icon|
+      if model.icon
+        iter[ActivityView::ICON] = model.icon.load_pixbuf(width: 24, height: 24){ |loaded_icon|
           iter[ActivityView::ICON] = loaded_icon
         }
       end

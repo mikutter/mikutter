@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'retriever', 'skin'
-miquire :lib, 'retriever/mixin/message_mixin'
 
 class Mikutter::System::Message < Retriever::Model
   include Retriever::Model::MessageMixin

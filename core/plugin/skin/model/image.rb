@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Skin
   class Image < Retriever::Model

@@ -273,10 +273,15 @@ class Message < Retriever::Model
   # Message|nil リツイート元のMessage。リツイートではないならnil
   def retweet_parent(force_retrieve=false)
     if retweet?
-      result = get(:retweet, (force_retrieve ? -1 : 1))
-      if result.is_a?(Message)
-        result.add_child(self) unless result.retweeted_statuses.include?(self)
-        result end end end
+      case self[:retweet]
+      when Integer
+        self[:retweet] = Message.findbyid(retweet, force_retrieve ? -1 : 1) || self[:retweet]
+      when Message
+        self[:retweet].add_child(self) unless self[:retweet].retweeted_statuses.include?(self)
+      end
+      self[:retweet]
+    end
+  end
 
   # retweet_parent の戻り値をnextに渡すDeferredableを返す
   # ==== Args
@@ -561,7 +566,7 @@ class Message < Retriever::Model
   end
 
   def inspect
-    @value.inspect
+    "#<#{self.class}: #{user.inspect}: #{description.inspect}>"
   end
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。

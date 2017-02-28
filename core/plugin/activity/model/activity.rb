@@ -9,7 +9,7 @@ module Plugin::Activity
 
     field.string :description, required: true
     field.string :title, required: true
-    field.string :icon
+    field.has :icon, Diva::Model
     field.bool :related
     field.string :plugin_slug
     field.time :date, required: true

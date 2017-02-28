@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'retriever', 'skin'
-miquire :lib, 'retriever/mixin/user_mixin'
 
 class Mikutter::System::User < Retriever::Model
   include Retriever::Model::UserMixin
