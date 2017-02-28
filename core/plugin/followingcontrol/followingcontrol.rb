@@ -165,10 +165,13 @@ Plugin.create :followingcontrol do
                   service.followers(cache: true, user_id: user[:id])).next { |followings, followers|
       @relation.followings[user] = followings
       @relation.followers[user] = followers
+      notice "#{user} has #{followings.size} followee(s)."
+      notice "#{user} has #{followers.size} follower(s)."
       Plugin.call(:followings_modified, service, @relation.followings[user])
       Plugin.call(:followers_modified, service, @relation.followers[user])
       @activating_services.delete(service)
-    }.trap {
+    }.trap { |err|
+      error err
       @activating_services.delete(service)
     }
   end
