@@ -43,7 +43,9 @@ module Diva
   end
 end
 
-module Mikutter::DivaHacks; end
+module Mikutter
+  module DivaHacks; end
+end
 
 require_relative 'diva_hacks/model'
 require_relative 'diva_hacks/mixin'
