@@ -640,30 +640,18 @@ class Message < Retriever::Model
   def add_child(child)
     type_strict child => Message
     if child[:retweet]
-      if defined? @retweets
-        add_retweet_in_this_thread(child)
-      else
-        SerialThread.new{
-          retweeted_sources
-          add_retweet_in_this_thread(child) } end
+      add_retweet_in_this_thread(child)
     else
-      if defined? @children
-        add_child_in_this_thread(child)
-      else
-        SerialThread.new{
-          children
-          add_child_in_this_thread(child) } end end end
+      add_child_in_this_thread(child)
+    end
+  end
 
   # :nodoc:
   def add_retweet_user(retweet_user, created_at)
     type_strict retweet_user => User
     return retweet_source.add_retweet_user(retweet_user, created_at) if retweet?
-    if defined? @retweets
-      add_retweet_in_this_thread(retweet_user, created_at)
-    else
-      SerialThread.new{
-        retweeted_sources
-        add_retweet_in_this_thread(retweet_user, created_at) } end end
+    add_retweet_in_this_thread(retweet_user, created_at)
+  end
 
   # 最終更新日時を取得する
   def modified
@@ -678,18 +666,18 @@ class Message < Retriever::Model
 
   def add_retweet_in_this_thread(child, created_at=child[:created])
     type_strict child => tcor(Message, User)
-    unless @retweets.include? child
+    unless retweeted_sources.include? child
       case child
       when Message
-        @retweets << child
-        @retweets.delete(child.user) if @retweets.include?(child.user)
+        retweeted_sources << child
+        retweeted_sources.delete(child.user) if retweeted_sources.include?(child.user)
       when User
-        @retweets << child if retweeted_users.include?(child) end end
+        retweeted_sources << child if retweeted_users.include?(child) end end
     service = Service.primary
     set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
-    @children << child
+    children << child
   end
 
   def set_modified(time)
