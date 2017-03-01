@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+miquire :core, 'serialthread'
+
 =begin rdoc
 画像リソースを扱うModelのためのmix-in。
 これをincludeすると、画像データを保存するblobフィールドが追加される。
