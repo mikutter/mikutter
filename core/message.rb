@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 miquire :core, 'user'
-miquire :core, 'retriever'
+miquire :lib, 'diva_hacks'
 
 require 'net/http'
 require 'delegate'
@@ -11,7 +11,7 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 = Message
 投稿１つを表すクラス。
 =end
-class Message < Retriever::Model
+class Message < Diva::Model
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
@@ -19,7 +19,7 @@ class Message < Retriever::Model
   ).freeze
 
   extend Gem::Deprecate
-  include Retriever::Model::Identity
+  include Diva::Model::Identity
 
   register :twitter_tweet,
            name: "Tweet",
@@ -55,22 +55,22 @@ class Message < Retriever::Model
   field.time   :created                             # posted time
   field.time   :modified                            # updated time
 
-  entity_class Retriever::Entity::ExtendedTwitterEntity
+  entity_class Diva::Entity::ExtendedTwitterEntity
   handle PermalinkMatcher do |uri|
     match = PermalinkMatcher.match(uri.to_s)
     notice match.inspect
     if match
-      message = findbyid(match[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+      message = findbyid(match[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
       notice message.inspect
       if message
         message
       else
         Thread.new do
-          findbyid(match[:id].to_i, Retriever::DataSource::USE_ALL)
+          findbyid(match[:id].to_i, Diva::DataSource::USE_ALL)
         end
       end
     else
-      raise Retriever::RetrieverError, "id##{match[:id]} does not exist in #{self}."
+      raise Diva::DivaError, "id##{match[:id]} does not exist in #{self}."
     end
   end
 
@@ -86,7 +86,7 @@ class Message < Retriever::Model
     @memory ||= DataSource.new end
 
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
-  # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
+  # 検索などをしたい場合は、 _Diva_ のメソッドを使うこと
   def initialize(value)
     type_strict value => Hash
     if not(value[:image].is_a?(Message::Image)) and value[:image]
@@ -199,7 +199,7 @@ class Message < Retriever::Model
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
-      match = Retriever::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
+      match = Diva::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -215,7 +215,7 @@ class Message < Retriever::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.scan(Retriever::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
+    self[:message].to_s.scan(Diva::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
@@ -251,7 +251,7 @@ class Message < Retriever::Model
       if self[:replyto]
         self[:replyto]
       elsif self[:in_reply_to_status_id]
-        result = Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Retriever::DataSource::USE_ALL : Retriever::DataSource::USE_LOCAL_ONLY)
+        result = Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Diva::DataSource::USE_ALL : Diva::DataSource::USE_LOCAL_ONLY)
         if result.is_a?(Message)
           result.add_child(self) unless result.children.include?(self)
           result
@@ -355,30 +355,30 @@ class Message < Retriever::Model
   def quoting?
     !!quoting_ids.first end
 
-  # selfを引用している _retriever_ を登録する
+  # selfを引用している _Diva::Model_ を登録する
   # ==== Args
-  # [retriever] Retriever::Model selfを引用しているRetriever
+  # [message] Diva::Model selfを引用しているModel
   # ==== Return
   # self
-  def add_quoted_by(retriever)
+  def add_quoted_by(message)
     atomic do
-      @quoted_by ||= Retriever::Model.container_class.new
-      unless @quoted_by.include? retriever
+      @quoted_by ||= Diva::Model.container_class.new
+      unless @quoted_by.include? message
         if @quoted_by.frozen?
-          @quoted_by = Retriever::Model.container_class.new(@quoted_by + [retriever])
+          @quoted_by = Diva::Model.container_class.new(@quoted_by + [message])
         else
-          @quoted_by << retriever end end
+          @quoted_by << message end end
       self end end
 
-  # selfを引用しているRetrieverを返す
+  # selfを引用しているDivaを返す
   # ==== Return
-  # Retriever::Model.container_class selfを引用しているRetriever::Modelの配列
+  # Diva::Model.container_class selfを引用しているDiva::Modelの配列
   def quoted_by
     if defined? @quoted_by
       @quoted_by
     else
       atomic do
-        @quoted_by ||= Retriever::Model.container_class.new end end.freeze end
+        @quoted_by ||= Diva::Model.container_class.new end end.freeze end
 
   # self が、何らかのツイートから引用されているなら真を返す
   # ==== Return
@@ -508,7 +508,7 @@ class Message < Retriever::Model
   # ==== Return
   # このMessageの子全てをSetにまとめたもの
   def children_all
-    children.inject(Retriever::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
+    children.inject(Diva::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -607,7 +607,7 @@ class Message < Retriever::Model
   # [URI] パーマリンク
   # [nil] パーマリンクが存在しない
   def perma_link
-    Retriever::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
+    Diva::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12
@@ -686,7 +686,7 @@ class Message < Retriever::Model
       Plugin::call(:message_modified, self) end
     self end
 
-  class DataSource < Retriever::Model::Memory
+  class DataSource < Diva::Model::Memory
     def findbyid(id, policy)
       if id.is_a? Enumerable
         super.map do |v|
@@ -699,7 +699,7 @@ class Message < Retriever::Model
         result = super
         if result
           result
-        elsif policy == Retriever::DataSource::USE_ALL
+        elsif policy == Diva::DataSource::USE_ALL
           result = Service.primary.scan(:status_show, id: id)
           result end end
     rescue Exception => err
@@ -739,7 +739,7 @@ class Message < Retriever::Model
   end
 
   # 例外を引き起こした原因となるMessageをセットにして例外を発生させることができる
-  class MessageError < Retriever::RetrieverError
+  class MessageError < Diva::DivaError
     # messageは、Exceptionクラスと名前が被る
     attr_reader :message
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require_relative 'regexp_entity'
 
-module Retriever::Entity
+module Diva::Entity
   class BasicTwitterEntity < RegexpEntity
     ESCAPE_RULE = {'&' => '&amp;'.freeze ,'>' => '&gt;'.freeze, '<' => '&lt;'.freeze}.freeze
     UNESCAPE_RULE = ESCAPE_RULE.invert.freeze
@@ -39,7 +39,7 @@ module Retriever::Entity
                 converted_entity[:range] = get_range_by_face(converted_entity)
                 result << converted_entity.freeze end
             end
-          rescue Retriever::InvalidEntityError, RuntimeError => exception
+          rescue Diva::InvalidEntityError, RuntimeError => exception
             error exception end
         end
       end
@@ -57,16 +57,16 @@ module Retriever::Entity
         entity[:open] = entity[:url]
       when :user_mentions
         entity[:face] = entity[:url] = "@#{entity[:screen_name]}".freeze
-        user = Retriever::Model(:twitter_user)
+        user = Diva::Model(:twitter_user)
         if user
-          entity[:open] = user.findbyidname(entity[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY) ||
-                          Retriever::URI.new("https://twitter.com/#{entity[:screen_name]}")
+          entity[:open] = user.findbyidname(entity[:screen_name], Diva::DataSource::USE_LOCAL_ONLY) ||
+                          Diva::URI.new("https://twitter.com/#{entity[:screen_name]}")
         else
-          entity[:open] = Retriever::URI.new("https://twitter.com/#{entity[:screen_name]}")
+          entity[:open] = Diva::URI.new("https://twitter.com/#{entity[:screen_name]}")
         end
       when :hashtags
         entity[:face] = entity[:url] = "##{entity[:text]}".freeze
-        twitter_search = Retriever::Model(:twitter_search)
+        twitter_search = Diva::Model(:twitter_search)
         if twitter_search
           entity[:open] = twitter_search.new(query: "##{entity[:text]}") end
       when :media
@@ -88,7 +88,7 @@ module Retriever::Entity
         else
           entity[:face] = entity[:display_url]
           entity[:url] = entity[:media_url]
-          photo = Retriever::Model(:photo)
+          photo = Diva::Model(:photo)
           if photo
             entity[:open] = photo[entity[:media_url]]
           else

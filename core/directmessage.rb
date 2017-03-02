@@ -1,10 +1,10 @@
-miquire :core, 'retriever'
+miquire :lib, 'diva_hacks'
 
 module Mikutter; end
 
 module Mikutter::Twitter
-  class DirectMessage < Retriever::Model
-    include Retriever::Model::MessageMixin
+  class DirectMessage < Diva::Model
+    include Diva::Model::MessageMixin
 
     register :twitter_direct_message,
              name: "Direct Message",
@@ -18,7 +18,7 @@ module Mikutter::Twitter
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 
-    entity_class Retriever::Entity::ExtendedTwitterEntity
+    entity_class Diva::Entity::ExtendedTwitterEntity
 
     def self.memory
       @memory ||= DirectMessageMemory.new end
@@ -53,6 +53,6 @@ module Mikutter::Twitter
     end
   end
 
-  class DirectMessageMemory < Retriever::Model::Memory; end
+  class DirectMessageMemory < Diva::Model::Memory; end
 
 end

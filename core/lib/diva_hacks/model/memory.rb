@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-class Retriever::Model::Memory
-  include Retriever::DataSource
+class Diva::Model::Memory
+  include Diva::DataSource
 
-  def initialize(klass=Retriever::Model)
+  def initialize(klass=Diva::Model)
     @storage = WeakStorage.new(Integer, klass) end
 
   def findbyid(id, policy)

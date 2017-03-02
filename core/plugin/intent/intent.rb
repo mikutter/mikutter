@@ -9,7 +9,7 @@ Plugin.create(:intent) do
 
   # _uri_ を開くことができる Model を列挙するためのフィルタ
   defevent :model_of_uri,
-           prototype: [Retriever::URI, :<<]
+           prototype: [Diva::URI, :<<]
 
   # _model_slug_ を開くことができる Intent を列挙するためのフィルタ
   defevent :intent_select_by_model_slug,
@@ -18,7 +18,7 @@ Plugin.create(:intent) do
   # 第二引数のリソースを、第一引数のIntentのうちどれで開くかを決められなかった時に発生する。
   # intent_selectorプラグインがこれを受け取ってダイアログとか出す
   defevent :intent_select,
-           prototype: [Enumerable, tcor(Retriever::URI, String, Retriever::Model)]
+           prototype: [Enumerable, tcor(Diva::URI, String, Diva::Model)]
 
   # IntentTokenの次にあたるintentを発生させる。
   defevent :intent_forward,
@@ -41,7 +41,7 @@ Plugin.create(:intent) do
   # ==== Return
   # self
   defdsl :intent do |model, label: nil, slug: nil, &proc|
-    model = Retriever::Model(model) unless model.is_a?(Class)
+    model = Diva::Model(model) unless model.is_a?(Class)
     slug ||= :"#{self.spec[:slug]}_#{model.slug}"
     label ||= (self.spec[:name] || self.spec[:slug])
     my_intent = Plugin::Intent::Intent.new(slug: slug, label: label, model_slug: model.slug)
@@ -71,16 +71,16 @@ Plugin.create(:intent) do
     case object
     when Plugin::Intent::IntentToken
       Plugin.call("intent_open_#{object.intent.slug}", object)
-    when Retriever::Model
+    when Diva::Model
       open_model(object)
     else
-      open_uri(Retriever::URI!(object))
+      open_uri(Diva::URI!(object))
     end
   end
 
   on_intent_forward do |intent_token|
     case intent_token[:source]
-    when Retriever::Model
+    when Diva::Model
       open_model(intent_token[:source], token: intent_token)
     else
       open_uri(intent_token.uri, token: intent_token)
@@ -125,7 +125,7 @@ Plugin.create(:intent) do
   # open_uriは、Modelが必要になった時にURIからModelの取得生成を試みるが、
   # このメソッドはヒントとして _model_ を与えるため、探索が発生せず高速に処理できる。
   # ==== Args
-  # [model] 対象となるRetriever::Model
+  # [model] 対象となるDiva::Model
   def open_model(model, token: nil)
     intents = Plugin.filtering(:intent_select_by_model_slug, model.class.slug, Set.new).last
     if token

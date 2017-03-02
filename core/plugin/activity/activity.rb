@@ -173,7 +173,7 @@ Plugin.create(:activity) do
       when GdkPixbuf::Pixbuf
         # TODO: Pixbufを渡された時の処理
         params[:icon] = nil
-      when Retriever::Model, nil, false
+      when Diva::Model, nil, false
       # nothing to do
       else
         params[:icon] = Enumerator.new{|y|

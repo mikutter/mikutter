@@ -7,12 +7,13 @@
 
 require 'typed-array'
 
-miquire :core, 'user', 'message', 'retriever'
+miquire :core, 'user', 'message'
+miquire :lib, 'diva_hacks'
 
 require 'set'
 
-class UserList < Retriever::Model
-  include Retriever::Model::Identity
+class UserList < Diva::Model
+  include Diva::Model::Identity
 
   # args format
   # key         | value(class)
@@ -44,7 +45,7 @@ class UserList < Retriever::Model
     self[:user] end
 
   memoize def perma_link
-    Retriever::URI.new("https://twitter.com/#{user.idname}/lists/#{CGI.escape(slug)}") end
+    Diva::URI.new("https://twitter.com/#{user.idname}/lists/#{CGI.escape(slug)}") end
 
   def member
     self[:member] ||= Set.new end

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-module Retriever::Model::PhotoMixin
+module Diva::Model::PhotoMixin
 
   GdkPixbufCache = Struct.new(:pixbuf, :width, :height, :read_count, :reserver)
 

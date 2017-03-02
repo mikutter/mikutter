@@ -3,7 +3,7 @@
 =begin rdoc
 Model用のmoduleで、これをincludeするとUserに要求されるいくつかのメソッドが定義される。
 =end
-module Retriever::Model::UserMixin
+module Diva::Model::UserMixin
   def user
     self
   end

@@ -8,7 +8,7 @@ miquire :core, 'serialthread'
 
 このmoduleをincludeしたクラスは、必要に応じて _download_routine_ をオーバライドする
 =end
-module Retriever::Model::PhotoMixin
+module Diva::Model::PhotoMixin
   DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
 
   def self.included(klass)

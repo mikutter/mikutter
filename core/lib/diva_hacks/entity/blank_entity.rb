@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-module Retriever::Entity
+module Diva::Entity
   class BlankEntity
     REGEXP_EACH_CHARACTER = //u.freeze
 

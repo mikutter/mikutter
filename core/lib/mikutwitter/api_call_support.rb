@@ -166,7 +166,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:following] = u[:following]
         cnv[:exact] = [:created_at, :description, :protected, :followers_count, :friends_count, :verified].all?{|k|u.has_key?(k)}
         # ユーザの見た目が変わっても過去のTweetのアイコン等はそのままにしたいので、新しいUserを作る
-        existing_user = User.findbyid(u[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+        existing_user = User.findbyid(u[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
         if visually_changed?(existing_user, cnv)
           User.new(existing_user.to_hash).merge(cnv)
         else

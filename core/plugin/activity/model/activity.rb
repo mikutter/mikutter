@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Activity
-  class Activity < Retriever::Model
-    include Retriever::Model::MessageMixin
-    include Retriever::Model::UserMixin
+  class Activity < Diva::Model
+    include Diva::Model::MessageMixin
+    include Diva::Model::UserMixin
 
     register :activity, name: "Activity"
 
@@ -15,7 +15,7 @@ module Plugin::Activity
     field.time :date, required: true
     field.string :kind, required: true
     field.string :identity
-    field.has :children, [Retriever::Model]
+    field.has :children, [Diva::Model]
     # model_field
     # service
 

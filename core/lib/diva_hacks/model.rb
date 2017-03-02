@@ -5,7 +5,7 @@ require_relative 'model/memory'
 module Mikutter::DivaHacks::Model
   # Entityのリストを返す。
   # ==== Return
-  # Retriever::Entity::BlankEntity
+  # Diva::Entity::BlankEntity
   def links
     @entity ||= self.class.entity_class.new(self)
   end
@@ -15,13 +15,13 @@ end
 module Mikutter::DivaHacks::ModelExtend
   extend Gem::Deprecate
   # Modelの情報を設定する。
-  # このメソッドを呼ぶと、他のプラグインがこのRetrieverを見つけることができるようになるので、
+  # このメソッドを呼ぶと、他のプラグインがこのModelを見つけることができるようになるので、
   # 抽出タブの抽出条件が追加されたり、設定で背景色が指定できるようになる
   # ==== Args
   # [new_slug] Symbol
   # [name:] String Modelの名前
-  # [reply:] bool このRetrieverに、宛先が存在するなら真
-  # [myself:] bool このRetrieverを、自分のアカウントによって作成できるなら真
+  # [reply:] bool このModelに、宛先が存在するなら真
+  # [myself:] bool このModel、自分のアカウントによって作成できるなら真
   # [timeline:] bool 真ならタイムラインに表示することができる
   def register(new_slug,
                name: new_slug.to_s,
@@ -46,7 +46,7 @@ module Mikutter::DivaHacks::ModelExtend
 
   def plugin
     if not @slug
-      raise Retriever::RetrieverError, "`#{self}'.slug is not set."
+      raise Diva::DivaError, "`#{self}'.slug is not set."
     end
     if block_given?
       Plugin.create(:"retriever_model_#{@slug}", &Proc.new)
@@ -64,7 +64,7 @@ module Mikutter::DivaHacks::ModelExtend
     if klass
       @entity_class = klass
     else
-      @entity_class ||= Retriever::Entity::BlankEntity
+      @entity_class ||= Diva::Entity::BlankEntity
     end
   end
 
@@ -84,7 +84,7 @@ module Mikutter::DivaHacks::ModelExtend
   # [self]
   #   すぐにModelを生成できる場合、そのModel
   # ===== Raise
-  # [Retriever::ModelNotFoundError] _uri_ に対応するリソースが見つからなかった
+  # [Diva::ModelNotFoundError] _uri_ に対応するリソースが見つからなかった
   def handle(condition)       # :yield: uri
     model_slug = self.slug
     plugin do
