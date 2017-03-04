@@ -37,7 +37,7 @@ Plugin.create :openimg do
       openers << opener
       [openers] end end
 
-  defimageopener(_('画像直リンク'), /.*\.(?:jpg|png|gif|)\Z/i) do |display_url|
+  defimageopener(_('画像直リンク'), /.*\.(?:jpg|jpeg|png|gif|)\Z/i) do |display_url|
     begin
       if display_url.start_with?('file:')
         open(Addressable::URI.parse(display_url).path)
