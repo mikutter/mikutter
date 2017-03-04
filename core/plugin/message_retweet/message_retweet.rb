@@ -2,12 +2,12 @@
 Plugin.create :message_retweet do
   error_message_get_retweeted_users = _('リツイートしたユーザの一覧が取得できませんでした')
   message_fragment :retweeted, "ReTweet" do
-    message = retriever
+    message = model
 
     set_icon Skin['retweet.png']
     user_list = Gtk::UserList.new
     begin
-      user_list.add_user retriever.retweeted_by
+      user_list.add_user message.retweeted_by
     rescue => err
     error err
     end

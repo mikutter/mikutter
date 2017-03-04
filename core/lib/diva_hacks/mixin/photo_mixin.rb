@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+miquire :core, 'serialthread'
+
 =begin rdoc
 画像リソースを扱うModelのためのmix-in。
 これをincludeすると、画像データを保存するblobフィールドが追加される。
 
 このmoduleをincludeしたクラスは、必要に応じて _download_routine_ をオーバライドする
 =end
-module Retriever::Model::PhotoMixin
+module Diva::Model::PhotoMixin
   DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
 
   def self.included(klass)

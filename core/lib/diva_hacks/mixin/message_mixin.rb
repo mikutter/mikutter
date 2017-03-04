@@ -3,7 +3,7 @@
 =begin rdoc
 Model用のmoduleで、これをincludeするとMessageに必要最低限のメソッドがロードされ、タイムラインなどに表示できるようになる。
 =end
-module Retriever::Model::MessageMixin
+module Diva::Model::MessageMixin
   # この投稿がMentionで、自分が誰かに宛てたものであれば真
   # ==== Return
   # [true] 自分のMention
@@ -29,9 +29,9 @@ module Retriever::Model::MessageMixin
     false
   end
 
-  # このRetrieverをお気に入りに登録している _Retriever::Model_ を列挙する。
+  # このDivaをお気に入りに登録している _Diva::Model_ を列挙する。
   # ==== Return
-  # [Enumerable<Retriever::Model>] お気に入りに登録しているオブジェクト
+  # [Enumerable<Diva::Model>] お気に入りに登録しているオブジェクト
   def favorited_by
     []
   end
@@ -45,8 +45,8 @@ module Retriever::Model::MessageMixin
     false
   end
 
-  # このRetrieverをReTweetする。
-  # ReTweetとは、Retriever自体を添付した、内容が空のRetrieverを作成すること。
+  # このDivaをReTweetする。
+  # ReTweetとは、Diva自体を添付した、内容が空のDivaを作成すること。
   # 基本的にはTwitter用で、他の用途は想定していない。
   # ==== Return
   # [Deferred] 成否判定
@@ -70,9 +70,9 @@ module Retriever::Model::MessageMixin
     false
   end
 
-  # このインスタンスのReTweetにあたる _Retriever::Model_ を列挙する。
+  # このインスタンスのReTweetにあたる _Diva::Model_ を列挙する。
   # ==== Return
-  # [Enumerable<Retriever::Model>] このインスタンスのReTweetにあたるインスタンス
+  # [Enumerable<Diva::Model>] このインスタンスのReTweetにあたるインスタンス
   def retweeted_by
     []
   end
@@ -91,7 +91,7 @@ module Retriever::Model::MessageMixin
   # ==== Args
   # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
   # ==== Return
-  # [Retriever::Model] ReTweet元のMessage
+  # [Diva::Model] ReTweet元のMessage
   # [nil] ReTweetではない
   def retweet_source(force_retrieve=nil)
     nil

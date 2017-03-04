@@ -12,6 +12,7 @@ http://opensource.org/licenses/mit-license.php
 
 =end
 mikutter_directory = File.expand_path(File.dirname(__FILE__))
+module Mikutter; end
 
 if !ENV['DISABLE_BUNDLER_SETUP'] || ['', '0'].include?(ENV['DISABLE_BUNDLER_SETUP'].to_s)
   begin

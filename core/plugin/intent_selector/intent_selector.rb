@@ -6,10 +6,10 @@ Plugin.create(:intent_selector) do
 
   on_intent_select do |intents, model|
     case model
-    when Retriever::Model
+    when Diva::Model
       intent_open(intents, model: model)
     else
-      intent_open(intents, uri: Retriever::URI!(model))
+      intent_open(intents, uri: Diva::URI!(model))
     end
   end
 
@@ -129,7 +129,7 @@ Plugin.create(:intent_selector) do
 
   # _model_ のmodel slugを文字列で得る。
   # ==== Args
-  # [model] Retriever::Modelのインスタンス又はnil
+  # [model] Diva::Modelのインスタンス又はnil
   # ==== Return
   # [String] Modelのslug。 _model_ がnilだった場合は空文字列
   def specified_model_slug(model)

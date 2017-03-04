@@ -33,10 +33,10 @@ class Plugin::GUI::Window
 
   def set_icon(icon)
     case icon
-    when Retriever::Model
+    when Diva::Model
       @icon = icon
     when String
-      @icon = Retriever::Model(:photo)[icon]
+      @icon = Diva::Model(:photo)[icon]
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end

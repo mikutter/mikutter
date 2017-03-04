@@ -53,7 +53,7 @@ Plugin.create :gui do
                      fragment_slug = "#{slug}_#{user.uri}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
                      i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
-                     i_fragment.instance_eval{ @retriever = user }
+                     i_fragment.instance_eval{ @model = user }
                      handler_tag(fragment_slug) do |tag|
                        on_gui_destroy do |w|
                          detach(tag) if w == i_fragment end
@@ -72,7 +72,7 @@ Plugin.create :gui do
                      fragment_slug = "#{slug}_#{message.uri}_#{Process.pid}_#{Time.now.to_i.to_s(16)}_#{rand(2 ** 32).to_s(16)}".to_sym
                      i_fragment = Plugin::GUI::Fragment.instance(fragment_slug, title)
                      i_cluster << i_fragment
-                     i_fragment.instance_eval{ @retriever = message }
+                     i_fragment.instance_eval{ @model = message }
                      handler_tag(fragment_slug) do |tag|
                        on_gui_destroy do |w|
                          detach(tag) if w == i_fragment end

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 miquire :core, 'user'
-miquire :core, 'retriever'
+miquire :lib, 'diva_hacks'
 
 require 'net/http'
 require 'delegate'
@@ -11,7 +11,7 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 = Message
 投稿１つを表すクラス。
 =end
-class Message < Retriever::Model
+class Message < Diva::Model
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
@@ -19,7 +19,7 @@ class Message < Retriever::Model
   ).freeze
 
   extend Gem::Deprecate
-  include Retriever::Model::Identity
+  include Diva::Model::Identity
 
   register :twitter_tweet,
            name: "Tweet",
@@ -45,7 +45,9 @@ class Message < Retriever::Model
   field.int    :id, required: true
   field.string :message, required: true             # Message description
   field.has    :user, User, required: true          # Send by user
+  field.int    :in_reply_to_user_id                 # リプライ先ユーザID
   field.has    :receiver, User                      # Send to user
+  field.int    :in_reply_to_status_id               # リプライ先ツイートID
   field.has    :replyto, Message                    # Reply to this message
   field.has    :retweet, Message                    # ReTweet to this message
   field.string :source                              # using client
@@ -53,22 +55,22 @@ class Message < Retriever::Model
   field.time   :created                             # posted time
   field.time   :modified                            # updated time
 
-  entity_class Retriever::Entity::ExtendedTwitterEntity
+  entity_class Diva::Entity::ExtendedTwitterEntity
   handle PermalinkMatcher do |uri|
     match = PermalinkMatcher.match(uri.to_s)
     notice match.inspect
     if match
-      message = findbyid(match[:id].to_i, Retriever::DataSource::USE_LOCAL_ONLY)
+      message = findbyid(match[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
       notice message.inspect
       if message
         message
       else
         Thread.new do
-          findbyid(match[:id].to_i, Retriever::DataSource::USE_ALL)
+          findbyid(match[:id].to_i, Diva::DataSource::USE_ALL)
         end
       end
     else
-      raise Retriever::RetrieverError, "id##{match[:id]} does not exist in #{self}."
+      raise Diva::DivaError, "id##{match[:id]} does not exist in #{self}."
     end
   end
 
@@ -84,7 +86,7 @@ class Message < Retriever::Model
     @memory ||= DataSource.new end
 
   # Message.newで新しいインスタンスを作らないこと。インスタンスはコアが必要に応じて作る。
-  # 検索などをしたい場合は、 _Retriever_ のメソッドを使うこと
+  # 検索などをしたい場合は、 _Diva_ のメソッドを使うこと
   def initialize(value)
     type_strict value => Hash
     if not(value[:image].is_a?(Message::Image)) and value[:image]
@@ -192,12 +194,12 @@ class Message < Retriever::Model
   def receiver
     if self[:receiver].is_a? User
       self[:receiver]
-    elsif self[:receiver]
-      receiver_id = self[:receiver]
+    elsif self[:receiver] and self[:in_reply_to_user_id]
+      receiver_id = self[:in_reply_to_user_id]
       self[:receiver] = parallel{
         self[:receiver] = User.findbyid(receiver_id) }
     else
-      match = Retriever::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
+      match = Diva::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
       if match
         result = User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -206,14 +208,14 @@ class Message < Retriever::Model
   # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
   def receive_to?(other)
     type_strict other => :[]
-    (self[:receiver].is_a?(User) and other[:id] == self[:receiver][:id]) or receive_user_screen_names.include? other[:idname] end
+    (self[:receiver] and other[:id] == self[:receiver].id) or receive_user_screen_names.include? other[:idname] end
 
   # このツイートが宛てられたユーザを可能な限り推測して、その idname(screen_name) を配列で返す。
   # 例えばツイート本文内に「@a @b @c」などと書かれていたら、["a", "b", "c"]を返す。
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.scan(Retriever::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
+    self[:message].to_s.scan(Diva::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
@@ -221,7 +223,7 @@ class Message < Retriever::Model
 
   # このメッセージが何かしらの別のメッセージに宛てられたものなら真
   def has_receive_message?
-    !!self[:replyto] end
+    !!(self[:replyto] || self[:in_reply_to_status_id]) end
   alias reply? has_receive_message?
 
   # このメッセージが何かに対するリツイートなら真
@@ -246,10 +248,17 @@ class Message < Retriever::Model
   # Message|nil 宛先のMessage。宛先がなければnil
   def replyto_source(force_retrieve=false)
     if reply?
-      result = get(:replyto, (force_retrieve ? -1 : 1))
-      if result.is_a?(Message)
-        result.add_child(self) unless result.children.include?(self)
-        result end end end
+      if self[:replyto]
+        self[:replyto]
+      elsif self[:in_reply_to_status_id]
+        result = Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Diva::DataSource::USE_ALL : Diva::DataSource::USE_LOCAL_ONLY)
+        if result.is_a?(Message)
+          result.add_child(self) unless result.children.include?(self)
+          result
+        end
+      end
+    end
+  end
 
   # replyto_source の戻り値をnextに渡すDeferredableを返す
   # ==== Args
@@ -273,10 +282,15 @@ class Message < Retriever::Model
   # Message|nil リツイート元のMessage。リツイートではないならnil
   def retweet_parent(force_retrieve=false)
     if retweet?
-      result = get(:retweet, (force_retrieve ? -1 : 1))
-      if result.is_a?(Message)
-        result.add_child(self) unless result.retweeted_statuses.include?(self)
-        result end end end
+      case self[:retweet]
+      when Integer
+        self[:retweet] = Message.findbyid(retweet, force_retrieve ? -1 : 1) || self[:retweet]
+      when Message
+        self[:retweet].add_child(self) unless self[:retweet].retweeted_statuses.include?(self)
+      end
+      self[:retweet]
+    end
+  end
 
   # retweet_parent の戻り値をnextに渡すDeferredableを返す
   # ==== Args
@@ -341,30 +355,30 @@ class Message < Retriever::Model
   def quoting?
     !!quoting_ids.first end
 
-  # selfを引用している _retriever_ を登録する
+  # selfを引用している _Diva::Model_ を登録する
   # ==== Args
-  # [retriever] Retriever::Model selfを引用しているRetriever
+  # [message] Diva::Model selfを引用しているModel
   # ==== Return
   # self
-  def add_quoted_by(retriever)
+  def add_quoted_by(message)
     atomic do
-      @quoted_by ||= Retriever::Model.container_class.new
-      unless @quoted_by.include? retriever
+      @quoted_by ||= Diva::Model.container_class.new
+      unless @quoted_by.include? message
         if @quoted_by.frozen?
-          @quoted_by = Retriever::Model.container_class.new(@quoted_by + [retriever])
+          @quoted_by = Diva::Model.container_class.new(@quoted_by + [message])
         else
-          @quoted_by << retriever end end
+          @quoted_by << message end end
       self end end
 
-  # selfを引用しているRetrieverを返す
+  # selfを引用しているDivaを返す
   # ==== Return
-  # Retriever::Model.container_class selfを引用しているRetriever::Modelの配列
+  # Diva::Model.container_class selfを引用しているDiva::Modelの配列
   def quoted_by
     if defined? @quoted_by
       @quoted_by
     else
       atomic do
-        @quoted_by ||= Retriever::Model.container_class.new end end.freeze end
+        @quoted_by ||= Diva::Model.container_class.new end end.freeze end
 
   # self が、何らかのツイートから引用されているなら真を返す
   # ==== Return
@@ -494,7 +508,7 @@ class Message < Retriever::Model
   # ==== Return
   # このMessageの子全てをSetにまとめたもの
   def children_all
-    children.inject(Retriever::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
+    children.inject(Diva::Model.container_class.new([self])){ |result, item| result.concat item.children_all } end
 
   # この投稿をお気に入りに登録したUserをSetオブジェクトにまとめて返す。
   def favorited_by
@@ -561,7 +575,7 @@ class Message < Retriever::Model
   end
 
   def inspect
-    @value.inspect
+    "#<#{self.class}: #{user.inspect}: #{description.inspect}>"
   end
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
@@ -593,7 +607,7 @@ class Message < Retriever::Model
   # [URI] パーマリンク
   # [nil] パーマリンクが存在しない
   def perma_link
-    Retriever::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
+    Diva::URI.new("https://twitter.com/#{user[:idname]}/status/#{self[:id]}") end
   memoize :perma_link
   alias :parma_link :perma_link
   deprecate :parma_link, "perma_link", 2016, 12
@@ -626,30 +640,18 @@ class Message < Retriever::Model
   def add_child(child)
     type_strict child => Message
     if child[:retweet]
-      if defined? @retweets
-        add_retweet_in_this_thread(child)
-      else
-        SerialThread.new{
-          retweeted_sources
-          add_retweet_in_this_thread(child) } end
+      add_retweet_in_this_thread(child)
     else
-      if defined? @children
-        add_child_in_this_thread(child)
-      else
-        SerialThread.new{
-          children
-          add_child_in_this_thread(child) } end end end
+      add_child_in_this_thread(child)
+    end
+  end
 
   # :nodoc:
   def add_retweet_user(retweet_user, created_at)
     type_strict retweet_user => User
     return retweet_source.add_retweet_user(retweet_user, created_at) if retweet?
-    if defined? @retweets
-      add_retweet_in_this_thread(retweet_user, created_at)
-    else
-      SerialThread.new{
-        retweeted_sources
-        add_retweet_in_this_thread(retweet_user, created_at) } end end
+    add_retweet_in_this_thread(retweet_user, created_at)
+  end
 
   # 最終更新日時を取得する
   def modified
@@ -664,18 +666,18 @@ class Message < Retriever::Model
 
   def add_retweet_in_this_thread(child, created_at=child[:created])
     type_strict child => tcor(Message, User)
-    unless @retweets.include? child
+    unless retweeted_sources.include? child
       case child
       when Message
-        @retweets << child
-        @retweets.delete(child.user) if @retweets.include?(child.user)
+        retweeted_sources << child
+        retweeted_sources.delete(child.user) if retweeted_sources.include?(child.user)
       when User
-        @retweets << child if retweeted_users.include?(child) end end
+        retweeted_sources << child if retweeted_users.include?(child) end end
     service = Service.primary
     set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
 
   def add_child_in_this_thread(child)
-    @children << child
+    children << child
   end
 
   def set_modified(time)
@@ -684,7 +686,7 @@ class Message < Retriever::Model
       Plugin::call(:message_modified, self) end
     self end
 
-  class DataSource < Retriever::Model::Memory
+  class DataSource < Diva::Model::Memory
     def findbyid(id, policy)
       if id.is_a? Enumerable
         super.map do |v|
@@ -697,7 +699,7 @@ class Message < Retriever::Model
         result = super
         if result
           result
-        elsif policy == Retriever::DataSource::USE_ALL
+        elsif policy == Diva::DataSource::USE_ALL
           result = Service.primary.scan(:status_show, id: id)
           result end end
     rescue Exception => err
@@ -737,7 +739,7 @@ class Message < Retriever::Model
   end
 
   # 例外を引き起こした原因となるMessageをセットにして例外を発生させることができる
-  class MessageError < Retriever::RetrieverError
+  class MessageError < Diva::DivaError
     # messageは、Exceptionクラスと名前が被る
     attr_reader :message
 

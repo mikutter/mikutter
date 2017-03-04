@@ -75,7 +75,11 @@ Module.new do
     @twitter_configuration = JSON.parse(file_get_contents(File.join(__dir__, 'configuration.json'.freeze)), symbolize_names: true)
 
     onappear do |messages|
-      retweets = messages.select(&:retweet?).map{|m|m.retweet_ancestors.to_a[-2]}
+      retweets = messages.select(&:retweet?).map do |message|
+        result = message.retweet_ancestors.to_a[-2]
+        fail "invalid retweet #{message.inspect}. ancestors: #{message.retweet_ancestors.to_a.inspect}" unless result.is_a?(Message)
+        result
+      end
       if not(retweets.empty?)
         Plugin.call(:retweet, retweets) end end
 

@@ -32,7 +32,7 @@ module Gdk::WebImageLoader
         Skin['notfound.png'].pixbuf(width: width, height: height)
     end
   end
-  deprecate :pixbuf, "Retriever::Model::PhotoMixin#load_pixbuf", 2018, 1 if Environment::VERSION >= [3, 6]
+  deprecate :pixbuf, "Diva::Model::PhotoMixin#load_pixbuf", 2018, 1 if Environment::VERSION >= [3, 6]
 
   # mikutter 3.5から、このメソッドはDeprecateです。
   def local_path(url, width = 48, height = width)
@@ -68,7 +68,7 @@ module Gdk::WebImageLoader
       :wait
     end
   end
-  deprecate :get_raw_data, "Retriever::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
+  deprecate :get_raw_data, "Diva::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
 
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
@@ -80,7 +80,7 @@ module Gdk::WebImageLoader
       Plugin.filtering(:photo_filter, url, y)
     }.download.next{|photo| photo.blob }
   end
-  deprecate :get_raw_data_d, "Retriever::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
+  deprecate :get_raw_data_d, "Diva::Model::PhotoMixin#download", 2018, 1 if Environment::VERSION >= [3, 6]
 
   # mikutter 3.5から、このメソッドはDeprecateです。
   def is_local_path?(url)
