@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Skin
-  class Image < Retriever::Model
-    include Retriever::Model::PhotoMixin
+  class Image < Diva::Model
+    include Diva::Model::PhotoMixin
 
     register :skin_image, name: 'skin image'
 
@@ -15,7 +14,7 @@ module Plugin::Skin
     end
 
     memoize def uri
-      Retriever::URI.new(scheme: 'file'.freeze, path: path)
+      Diva::URI.new(scheme: 'file'.freeze, path: path)
     end
 
     # 引数の寸法の GdkPixbuf::Pixbuf を返す。

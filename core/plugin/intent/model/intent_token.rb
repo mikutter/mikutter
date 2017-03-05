@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Intent
-  class IntentToken < Retriever::Model
+  class IntentToken < Diva::Model
     field.uri    :uri, required: true
-    field.has    :model, Retriever::Model
+    field.has    :model, Diva::Model
     field.has    :intent, Plugin::Intent::Intent, required: true
     field.has    :parent, Plugin::Intent::IntentToken
 
@@ -23,7 +23,7 @@ module Plugin::Intent
         Plugin.call(:open, self)
       else
         Deferred.new{
-          Retriever.Model(intent.model_slug).find_by_uri(uri)
+          Diva.Model(intent.model_slug).find_by_uri(uri)
         }.next{|m|
           Delayer::Deferred.fail("#{intent.model_slug}(#{uri}) does not exists.") unless m
           self.model = m

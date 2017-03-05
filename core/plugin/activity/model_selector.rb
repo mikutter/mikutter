@@ -31,7 +31,7 @@ module Plugin::Activity
     private
 
     def initialize_model
-      set_model(Gtk::ListStore.new(GdkPixbuf::Pixbuf, String, String, Retriever::Model))
+      set_model(Gtk::ListStore.new(GdkPixbuf::Pixbuf, String, String, Diva::Model))
     end
 
     def initialize_column

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Photo
-  class Photo < Retriever::Model
-    include Retriever::Model::PhotoMixin
+  class Photo < Diva::Model
+    include Diva::Model::PhotoMixin
     register :photo, name: Plugin[:photo]._('画像')
 
     field.uri :perma_link
@@ -16,13 +15,13 @@ module Plugin::Photo
       case uri
       when self
         uri
-      when URI, Addressable::URI, Retriever::URI
+      when URI, Addressable::URI, Diva::URI
         photos[uri.to_s.hash] ||= new(perma_link: uri)
       when String
         if uri.start_with?('http')
           photos[uri.hash] ||= new(perma_link: uri)
         elsif uri.start_with?('/')
-          uri = Retriever::URI.new(scheme: 'file', path: uri)
+          uri = Diva::URI.new(scheme: 'file', path: uri)
           photos[uri.hash] ||= new(perma_link: uri)
         end
       end

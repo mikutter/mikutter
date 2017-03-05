@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
 require 'gtk2'
-miquire :lib, 'retriever'
+miquire :lib, 'diva_hacks'
 
 module Pango
   class << self
 
     # テキストをPango.parse_markupで安全にパースできるようにエスケープする。
     def escape(text)
-      text.gsub(/[<>&]/){|m| Retriever::Entity::BasicTwitterEntity::ESCAPE_RULE[m] } end
+      text.gsub(/[<>&]/){|m| Diva::Entity::BasicTwitterEntity::ESCAPE_RULE[m] } end
 
     alias old_parse_markup parse_markup
 
@@ -26,8 +26,8 @@ module Pango
 
 module Gdk::MarkupGenerator
 
-  ESCAPE_KEYS = Regexp::union(*Retriever::Entity::BasicTwitterEntity::ESCAPE_RULE.keys)
-  ESCAPE_KV = Retriever::Entity::BasicTwitterEntity::ESCAPE_RULE.method(:[])
+  ESCAPE_KEYS = Regexp::union(*Diva::Entity::BasicTwitterEntity::ESCAPE_RULE.keys)
+  ESCAPE_KV = Diva::Entity::BasicTwitterEntity::ESCAPE_RULE.method(:[])
 
   # 本文を返す
   def main_text

@@ -24,7 +24,7 @@ module Gtk
     def initialize(url, rect = DEFAULT_RECTANGLE, height = nil)
       rect = Gdk::Rectangle.new(0, 0, rect, height) if height
       case url
-      when Retriever::Model
+      when Diva::Model
         super(load_model(url, rect))
       when GdkPixbuf::Pixbuf
         super(url)

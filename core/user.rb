@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'retriever', 'skin'
+miquire :core, 'skin'
 miquire :system, 'system'
-miquire :lib, 'typed-array'
+miquire :lib, 'typed-array', 'diva_hacks'
 
-class User < Retriever::Model
+class User < Diva::Model
   extend Gem::Deprecate
-  include Retriever::Model::Identity
-  include Retriever::Model::UserMixin
+  include Diva::Model::Identity
+  include Diva::Model::UserMixin
 
   register :twitter_user, name: "Twitter User"
 
@@ -38,16 +38,16 @@ class User < Retriever::Model
     match = %r[\Ahttps?://twitter.com/(?<screen_name>[a-zA-Z0-9_]+)/?\Z].match(uri.to_s)
     notice match.inspect
     if match
-      user = findbyidname(match[:screen_name], Retriever::DataSource::USE_LOCAL_ONLY)
+      user = findbyidname(match[:screen_name], Diva::DataSource::USE_LOCAL_ONLY)
       if user
         user
       else
         Thread.new do
-          findbyidname(match[:screen_name], Retriever::DataSource::USE_ALL)
+          findbyidname(match[:screen_name], Diva::DataSource::USE_ALL)
         end
       end
     else
-      raise Retriever::RetrieverError, "id##{match[:screen_name]} does not exist in #{self}."
+      raise Diva::DivaError, "id##{match[:screen_name]} does not exist in #{self}."
     end
   end
 
@@ -101,7 +101,7 @@ class User < Retriever::Model
   def system?
     false end
 
-  def self.findbyidname(idname, count=Retriever::DataSource::USE_ALL)
+  def self.findbyidname(idname, count=Diva::DataSource::USE_ALL)
     memory.findbyidname(idname, count) end
 
   def self.store_datum(datum)
@@ -137,7 +137,7 @@ class User < Retriever::Model
     @value[:favourites_count] end
 
   memoize def perma_link
-    Retriever::URI.new("https://twitter.com/#{idname}")
+    Diva::URI.new("https://twitter.com/#{idname}")
   end
 
   alias to_user user
@@ -146,7 +146,7 @@ class User < Retriever::Model
     raise RuntimeError, 'User cannot marshalize'
   end
 
-  class UserMemory < Retriever::Model::Memory
+  class UserMemory < Diva::Model::Memory
     def initialize
       super
       @idnames = {}             # idname => User
@@ -154,7 +154,7 @@ class User < Retriever::Model
 
     def findbyid(id, policy)
       result = super
-      if !result and policy == Retriever::DataSource::USE_ALL
+      if !result and policy == Diva::DataSource::USE_ALL
         if id.is_a? Enumerable
           id.each_slice(100).map{|id_list|
             Service.primary.scan(:user_lookup, id: id_list.join(','.freeze)) || [] }.flatten
@@ -166,13 +166,13 @@ class User < Retriever::Model
     def findbyidname(idname, policy)
       if @idnames[idname.to_s]
         @idnames[idname.to_s]
-      elsif policy == Retriever::DataSource::USE_ALL
+      elsif policy == Diva::DataSource::USE_ALL
         Service.primary.scan(:user_show, screen_name: idname)
       end
     end
 
-    def store_datum(retriever)
-      @idnames[retriever.idname.to_s] = retriever
+    def store_datum(user)
+      @idnames[user.idname.to_s] = user
       super
     end
   end

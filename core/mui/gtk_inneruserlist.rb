@@ -28,7 +28,7 @@ class Gtk::InnerUserList < Gtk::TreeView
   def add_user(users)
     exist_users = Set.new(model.to_enum.map{ |model,path,iter| iter[COL_USER] })
     users.select{|user|
-      user.is_a?(Retriever::Model)
+      user.is_a?(Diva::Model)
     }.reject{|user|
       exist_users.include?(user)
     }.deach{|user|

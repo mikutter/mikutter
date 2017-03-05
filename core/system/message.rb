@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'retriever', 'skin'
-miquire :lib, 'retriever/mixin/message_mixin'
+miquire :core, 'skin'
+miquire :lib, 'diva_hacks'
 
-class Mikutter::System::Message < Retriever::Model
-  include Retriever::Model::MessageMixin
+class Mikutter::System::Message < Diva::Model
+  include Diva::Model::MessageMixin
 
   register :system_message,
            name: "System Message",
@@ -16,7 +16,7 @@ class Mikutter::System::Message < Retriever::Model
   field.time :created
   field.time :modified
 
-  entity_class Retriever::Entity::URLEntity
+  entity_class Diva::Entity::URLEntity
 
   def initialize(value)
     value[:user] ||= Mikutter::System::User.system

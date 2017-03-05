@@ -66,25 +66,25 @@ Plugin.create :user_detail_view do
 
   user_fragment :usertimeline, _("最近のツイート") do
     set_icon Skin['timeline.png']
-    user_id = retriever.id
+    user_id = model.id
     i_timeline = timeline nil do
       order do |message|
         retweet = message.retweeted_statuses.find{ |r| user_id == r.user.id }
         (retweet || message)[:created].to_i end end
     Service.primary.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
-    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: retriever[:idname]})
-    timeline_storage[i_timeline.slug] = retriever end
+    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: model[:idname]})
+    timeline_storage[i_timeline.slug] = model end
 
   user_fragment :aboutuser, _("ユーザについて") do
-    set_icon retriever.icon
+    set_icon model.icon
     bio = ::Gtk::IntelligentTextview.new("")
     label_since = ::Gtk::Label.new
     container = ::Gtk::VBox.new.
       closeup(bio).
       closeup(label_since.left).
-      closeup(plugin.relation_bar(retriever))
-    container.closeup(plugin.mutebutton(retriever)) if not retriever.me?
+      closeup(plugin.relation_bar(model))
+    container.closeup(plugin.mutebutton(model)) if not model.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
@@ -97,20 +97,20 @@ Plugin.create :user_detail_view do
       wrapper.no_show_all = false
       wrapper.show_all
       false end
-    retriever_complete do
-      biotext = (retriever[:detail] || "")
-      if retriever[:url]
-        biotext += "\n\n" + _('Web: %{url}') % {url: retriever[:url]} end
+    model_complete do
+      biotext = (model[:detail] || "")
+      if model[:url]
+        biotext += "\n\n" + _('Web: %{url}') % {url: model[:url]} end
       bio.rewind(biotext)
-      ago = (Time.now - (retriever[:created] or 1)).to_i / (60 * 60 * 24)
+      ago = (Time.now - (model[:created] or 1)).to_i / (60 * 60 * 24)
       label_since.text = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
-        year: retriever[:created].strftime('%Y'),
-        month: retriever[:created].strftime('%m'),
-        day: retriever[:created].strftime('%d'),
-        hour: retriever[:created].strftime('%H'),
-        minute: retriever[:created].strftime('%M'),
-        second: retriever[:created].strftime('%S'),
-        tweets_per_day: ago == 0 ? retriever[:statuses_count] : "%.2f" % (retriever[:statuses_count].to_f / ago)
+        year: model[:created].strftime('%Y'),
+        month: model[:created].strftime('%m'),
+        day: model[:created].strftime('%d'),
+        hour: model[:created].strftime('%H'),
+        minute: model[:created].strftime('%M'),
+        second: model[:created].strftime('%S'),
+        tweets_per_day: ago == 0 ? model[:statuses_count] : "%.2f" % (model[:statuses_count].to_f / ago)
       } + "\n" end
   end
 
