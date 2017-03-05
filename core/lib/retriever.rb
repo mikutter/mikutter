@@ -4,11 +4,7 @@ module Retriever
   # _model_slug_ をslugとして持つModelクラスを返す。
   # 見つからない場合、nilを返す。
   def self.Model(model_slug)
-    model_slug = model_slug.to_sym
-    ObjectSpace.each_object(Retriever::Model.singleton_class) do |klass|
-      return klass if klass.slug == model_slug
-    end
-    nil
+    model_dict[model_slug.to_sym]
   end
 
   # _uri_ を Retriever::URI に変換する。
@@ -37,6 +33,16 @@ module Retriever
   # [Retriever::InvalidURIError] _uri_ がURIではない場合
   def self.URI!(uri)
     self.URI(uri) or raise InvalidURIError, "`#{uri.class}' is not uri."
+  end
+
+  class << self
+    private def model_dict
+      @model ||= Hash.new do |h,k|
+        h[k] = ObjectSpace.each_object(Retriever::Model.singleton_class).find do |klass|
+          klass.slug == k
+        end
+      end
+    end
   end
 end
 
