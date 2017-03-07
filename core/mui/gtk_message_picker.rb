@@ -50,7 +50,7 @@ class Gtk::MessagePicker < Gtk::EventBox
 
   def add_condition(expr = DEFAULT_CONDITION)
     pack = Gtk::HBox.new
-    close = Gtk::Button.new.add(Gtk::WebIcon.new(Skin.get_path('close.png'), 16, 16)).set_relief(Gtk::RELIEF_NONE)
+    close = Gtk::Button.new.add(Gtk::WebIcon.new(Skin['close.png'], 16, 16)).set_relief(Gtk::RELIEF_NONE)
     close.signal_connect(:clicked){
       @container.remove(pack)
       pack.destroy
