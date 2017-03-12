@@ -187,7 +187,7 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\s]/ === widget_post.buffer.text) end
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
     # ==== Return
