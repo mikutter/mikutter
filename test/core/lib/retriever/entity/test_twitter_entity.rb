@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+require 'securerandom'
 require_relative '../../../../helper'
 
 miquire :lib, 'retriever'

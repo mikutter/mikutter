@@ -79,10 +79,8 @@ Plugin.create :user_detail_view do
   user_fragment :aboutuser, _("ユーザについて") do
     set_icon retriever.icon
     bio = ::Gtk::IntelligentTextview.new("")
-    label_since = ::Gtk::Label.new
     container = ::Gtk::VBox.new.
       closeup(bio).
-      closeup(label_since.left).
       closeup(plugin.relation_bar(retriever))
     container.closeup(plugin.mutebutton(retriever)) if not retriever.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
@@ -101,9 +99,8 @@ Plugin.create :user_detail_view do
       biotext = (retriever[:detail] || "")
       if retriever[:url]
         biotext += "\n\n" + _('Web: %{url}') % {url: retriever[:url]} end
-      bio.rewind(biotext)
       ago = (Time.now - (retriever[:created] or 1)).to_i / (60 * 60 * 24)
-      label_since.text = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
+      text_since = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
         year: retriever[:created].strftime('%Y'),
         month: retriever[:created].strftime('%m'),
         day: retriever[:created].strftime('%d'),
@@ -111,7 +108,9 @@ Plugin.create :user_detail_view do
         minute: retriever[:created].strftime('%M'),
         second: retriever[:created].strftime('%S'),
         tweets_per_day: ago == 0 ? retriever[:statuses_count] : "%.2f" % (retriever[:statuses_count].to_f / ago)
-      } + "\n" end
+      }
+      bio.rewind("#{biotext}\n#{text_since}")
+    end
   end
 
   on_appear do |messages|
