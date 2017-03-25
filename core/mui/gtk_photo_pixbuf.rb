@@ -71,7 +71,7 @@ module Diva::Model::PhotoMixin
       if pb
         pb
       else
-        loader = Gdk::PixbufLoader.new
+        loader = GdkPixbuf::PixbufLoader.new
         loader.write photo.blob
         loader.close
         pb = loader.pixbuf
