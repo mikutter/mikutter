@@ -1,6 +1,6 @@
 #!/bin/sh
 # -*- coding: utf-8 -*-
-exec ruby -x "$0" "$@" 
+exec ruby -x "$0" "$@"
 #!ruby
 =begin rdoc
 = mikutter - the moest twitter client
@@ -13,6 +13,9 @@ http://opensource.org/licenses/mit-license.php
 =end
 mikutter_directory = File.expand_path(File.dirname(__FILE__))
 module Mikutter; end
+
+require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
+Mopt.parse exec_command: true
 
 if !ENV['DISABLE_BUNDLER_SETUP'] || ['', '0'].include?(ENV['DISABLE_BUNDLER_SETUP'].to_s)
   begin
@@ -31,8 +34,6 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
-Mopt.parse exec_command: true
 require File.expand_path(File.join(mikutter_directory, 'core/utils'))
 
 miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
