@@ -52,6 +52,9 @@ class  Plugin::Extract::EditWindow < Gtk::Window
   def popup
     @extract.popup end
 
+  def order
+    @extract.order end
+
   def icon
     @extract.icon end
 
@@ -109,12 +112,17 @@ class  Plugin::Extract::EditWindow < Gtk::Window
     icon_modifier = file_modifier :icon
     sound_modifier = file_modifier :sound
     popup_modifier = modifier :popup
+    order_modifier = modifier :order
     Plugin::Settings.new(Plugin[:extract]) do
       input _('名前'), name_modifier
       fileselect _('アイコン'), icon_modifier, Skin.path
       settings _('通知') do
         fileselect _('サウンド'), sound_modifier
-        boolean _('ポップアップ'), popup_modifier end end end
+        boolean _('ポップアップ'), popup_modifier
+      end
+      select(_('並び順'), order_modifier, Hash[Plugin.filtering(:extract_order, []).first.map{|o| [o.slug.to_s, o.name] }])
+    end
+  end
 
   def ok_button
     Gtk::Button.new(_('閉じる')).tap{ |button|

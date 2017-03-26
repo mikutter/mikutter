@@ -37,6 +37,8 @@ module Plugin::Extract
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
 
+  Order = Struct.new(:slug, :name, :ordering)
+
   class Calc
     def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
       type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
@@ -121,6 +123,15 @@ Plugin.create :extract do
       operators << Plugin::Extract::ExtensibleOperator.new(slug, name, args, &block).freeze
       [operators] end end
 
+  defdsl :defextractorder do |slug, name:, &block|
+    slug = slug.to_sym
+    name = name.to_s.freeze
+    filter_extract_order do |orders|
+      orders << Plugin::Extract::Order.new(slug, name, block)
+      [orders]
+    end
+  end
+
   defextractoperator(:==, name: _('＝'), args: 1, &:==)
   defextractoperator(:!=, name: _('≠'), args: 1, &:!=)
   defextractoperator(:match_regexp, name: _('正規表現'), args: 1, &:match_regexp)
@@ -132,16 +143,32 @@ Plugin.create :extract do
 
   defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
+  defextractorder(:created, name: _('投稿時刻')) do |model|
+    model.created.to_i
+  end
+
+  defextractorder(:modified, name: _('投稿時刻 (ふぁぼやリツイートでageる)')) do |model|
+    model.modified.to_i
+  end
+
   on_extract_tab_create do |setting|
     extract_tabs[setting.id] = setting
     tab(setting.slug, setting.name) do
       set_icon setting.icon.to_s if setting.icon?
-      timeline setting.slug end
+      timeline setting.slug do
+        oo = setting.find_ordering_obj
+        order(&setting.find_ordering_obj.ordering) if oo
+      end
+    end
     modify_extract_tabs end
 
   on_extract_tab_update do |setting|
     extract_tabs[setting.id] = setting
     tab(setting.slug).set_icon setting.icon.to_s if setting.icon?
+    oo = setting.find_ordering_obj
+    if oo
+      timeline(setting.slug).order(&setting.find_ordering_obj.ordering)
+    end
     modify_extract_tabs end
 
   on_extract_tab_delete do |id|
