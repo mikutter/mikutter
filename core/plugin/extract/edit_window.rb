@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 require 'observer'
 miquire :mui, 'hierarchycal_selectbox'
+require_relative 'model/setting'
 
 module Plugin::Extract
 end
 
-class Plugin::Extract::EditWindow < Gtk::Window
+class  Plugin::Extract::EditWindow < Gtk::Window
+  attr_reader :extract
 
+  # ==== Args
+  # [extract] 抽出タブ設定 (Plugin::Extract::Setting)
+  # [plugin] プラグインのインスタンス (Plugin)
   def initialize(extract, plugin)
     @plugin = plugin
-    @extract = extract.dup.freeze
+    @extract = extract
     super(_('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME})
     add(Gtk::VBox.new().
         add(Gtk::Notebook.new.
@@ -20,46 +25,35 @@ class Plugin::Extract::EditWindow < Gtk::Window
                 add(Gtk::HBox.new().
                     closeup(ok_button).right)))
     ssc(:destroy) do
-      Plugin.call :extract_tab_update, self.to_h end
+      @extract.notify_update
+      false
+    end
     set_size_request 480, 320
     show_all end
 
   def name
-    @extract[:name] || "".freeze end
+    @extract.name end
 
   def sexp
-    @extract[:sexp] end
+    @extract.sexp end
 
   def id
-    @extract[:id] end
+    @extract.id end
 
   def sources
-    @extract[:sources] || [] end
+    @extract.sources end
 
   def slug
-    @extract[:slug] end
+    @extract.slug end
 
   def sound
-    @extract[:sound] end
+    @extract.sound end
 
   def popup
-    @extract[:popup] end
+    @extract.popup end
 
   def icon
-    @extract[:icon] end
-
-  # extract の内容を返す
-  # ==== Return
-  # @extract の内容(Hash)
-  def to_h
-    { name: name,
-      sexp: sexp,
-      id: id,
-      slug: slug,
-      sources: sources,
-      sound: sound,
-      popup: popup,
-      icon: icon }.freeze end
+    @extract.icon end
 
   # 名前入力ウィジェットを返す
   # ==== Return
@@ -80,9 +74,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
         false } } end
 
   def source_widget
-    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, name|
-      [id, name.is_a?(String) ? name.split('/'.freeze) : name] end
-    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources.map(&:to_sym)){
+    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, source_name|
+      [id, source_name.is_a?(String) ? source_name.split('/'.freeze) : source_name] end
+    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources){
       modify_value sources: datasources_box.selected.to_a }
     scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
     @source_widget ||= Gtk::HBox.new().
@@ -98,17 +92,23 @@ class Plugin::Extract::EditWindow < Gtk::Window
       modify_value sexp: @condition_form.to_a
     } end
 
-  def generate_modifier(method)
+  def modifier(method)
     Plugin::Settings::Listener.new.get {
       __send__(method)
     }.set { |v|
       modify_value method => v } end
 
+  def file_modifier(method)
+    Plugin::Settings::Listener.new.get {
+      (__send__(method) || '').to_s
+    }.set { |v|
+      modify_value method => v.empty? ? nil : v } end
+
   def option_widget
-    name_modifier = generate_modifier :name
-    icon_modifier = generate_modifier :icon
-    sound_modifier = generate_modifier :sound
-    popup_modifier = generate_modifier :popup
+    name_modifier = modifier :name
+    icon_modifier = file_modifier :icon
+    sound_modifier = file_modifier :sound
+    popup_modifier = modifier :popup
     Plugin::Settings.new(Plugin[:extract]) do
       input _('名前'), name_modifier
       fileselect _('アイコン'), icon_modifier, Skin.path
@@ -124,9 +124,9 @@ class Plugin::Extract::EditWindow < Gtk::Window
   private
 
   def modify_value(new_values)
-    @extract = @extract.merge(new_values).freeze
+    @extract.merge(new_values)
     set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
-    Plugin.call :extract_tab_update, self.to_h
+    @extract.notify_update
     self end
 
   def _(message)
