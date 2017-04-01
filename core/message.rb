@@ -574,10 +574,6 @@ class Message < Diva::Model
     self[:message].to_s.freeze
   end
 
-  def inspect
-    "#<#{self.class}: #{user.inspect}: #{description.inspect}>"
-  end
-
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
     body[0,140].freeze end
