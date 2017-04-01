@@ -20,6 +20,7 @@ module Retriever::Model::PhotoMixin
   end
 
   # download_pixbuf と似ているが、すぐさまキャッシュされているGdkPixbuf::Pixbufを返す。
+  # 取得に失敗した場合は ifnone を返す。
   # もしキャッシュされた GdkPixbuf::Pixbuf が存在しない場合、ロード中を示すPixbufを返し、
   # GdkPixbuf::Pixbuf の作成を開始する。
   # 作成が完了したら、その Pixbuf を引数に _&complete_callback_ が呼び出される。
@@ -31,7 +32,7 @@ module Retriever::Model::PhotoMixin
   # ==== Return
   # [GdkPixbuf::Pixbuf] pixbuf
   def load_pixbuf(width:, height:, ifnone: Skin['notfound.png'].pixbuf(width: width, height: height), &complete_callback)
-    result = pixbuf(width: width, height: height)
+    result = pixbuf(width: width, height: height) rescue ifnone
     if result
       result
     else
@@ -72,7 +73,7 @@ module Retriever::Model::PhotoMixin
       if pb
         pb
       else
-        loader = Gdk::PixbufLoader.new
+        loader = GdkPixbuf::PixbufLoader.new
         loader.write photo.blob
         loader.close
         pb = loader.pixbuf
