@@ -142,7 +142,7 @@ module Retriever::Model::MessageMixin
   end
 
   def modified
-    created
+    self[:modified] || created
   end
 
   def from_me?
