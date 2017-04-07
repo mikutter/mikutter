@@ -120,11 +120,11 @@ Plugin.create(:intent_selector) do
   # 条件に対して推奨されるintentの配列と、intentsに指定されたそれ以外の値の配列
   def divide_intents(intents, uri, model_slug)
     intent_slugs = UserConfig[:intent_selector_rules].select{|record|
-      model_slug == record[:model].to_s && uri.to_s.start_with?(record[:str])
+      ((record[:model] == nil) || (model_slug == record[:model].to_s)) && uri.to_s.start_with?(record[:str])
     }.map{|record|
       record[:intent].to_sym
     }
-    intents.partition{|intent| intent_slugs.include?(intent.slug) }
+    intents.partition{|intent| intent_slugs.include?(intent.slug.to_sym) }
   end
 
   # _model_ のmodel slugを文字列で得る。
