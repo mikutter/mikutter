@@ -61,7 +61,8 @@ Plugin.create :user_detail_view do
       }.next {
         Plugin.call(:filter_stream_reconnect_request)
         if !force
-          i_cluster.active! end }
+          i_cluster.active! end
+      }.terminate(_("%{user} のプロフィールの取得中二エラーが発生しました。見るなってことですかね。") % {user: user.name})
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do

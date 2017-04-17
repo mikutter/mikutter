@@ -65,7 +65,7 @@ module Plugin::ListForProfile
       [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => @plugin._('リスト行き')},
        {:kind => :text, :type => String, :label => @plugin._('リスト名')},
        {:type => UserList},
-       {:type => Service}
+       {:type => Diva::Model}
       ].freeze
     end
 
