@@ -6,13 +6,17 @@ require 'fileutils'
 require 'openssl'
 require 'securerandom'
 
-class Service
-  module SaveData
+=begin rdoc
+アカウントデータの永続化を行うユーティリティ。
+このクラスは、他のプラグインからアクセスしないこと。
+=end
+module Plugin::Account
+  module Keep
     ACCOUNT_FILE = File.join(Environment::SETTINGDIR, 'core', 'token').freeze
     ACCOUNT_TMP = (ACCOUNT_FILE + ".write").freeze
     ACCOUNT_CRYPT_KEY_LEN = 16
 
-    extend SaveData
+    extend Keep
     @@service_lock = Monitor.new
 
     def key

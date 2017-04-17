@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+miquire :core, 'skin'
 
 module Plugin::Skin
   class Image < Diva::Model

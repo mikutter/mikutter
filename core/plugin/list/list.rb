@@ -65,7 +65,6 @@ Plugin.create :list do
   # ==== Return
   # deferred
   def fetch_list_of_service(service, cache=:keep)
-    type_strict service => Service
     service.lists(cache: cache, user: service.user_obj).next do |lists|
       if lists
         set_available_lists(service, lists)
@@ -155,7 +154,6 @@ Plugin.create :list do
   # ==== Return
   # self
   def set_available_lists(service, newlist)
-    type_strict service => Service, newlist => Enumerable
     newlist_ary = newlist.to_a
     available_list_of_service = available_lists(service).to_a
     created = newlist_ary - available_list_of_service

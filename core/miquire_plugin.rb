@@ -40,7 +40,7 @@ module Miquire::Plugin
     def to_hash
       result = {}
       each_spec{ |spec|
-        result[spec[:slug]] = spec }
+        result[spec[:slug].to_sym] = spec }
       result end
 
     # 受け取ったパスにあるプラグインのスラッグを返す
@@ -145,9 +145,11 @@ module Miquire::Plugin
 
       depended_plugins(spec).each do |depend|
         begin
-          raise Miquire::LoadError unless load(depend)
-        rescue Miquire::LoadError
-          raise Miquire::LoadError, "plugin #{spec[:slug]}: dependency error: plugin #{depend} was not loaded." end end
+          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin #{depend.inspect} was not loaded." unless load(depend)
+        rescue Miquire::LoadError => err
+          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin was not loaded. previous error is:\n#{err.to_s}"
+        end
+      end
 
       notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
       ::Plugin.create(spec[:slug].to_sym) do

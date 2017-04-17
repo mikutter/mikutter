@@ -16,7 +16,6 @@ module ::Plugin::ChangeAccount
     end
 
     def force_record_create(service)
-      type_strict service => Service
       return if self.destroyed?
       [service.user_obj[:name], service.user_obj[:idname], service]
       iter = model.model.append

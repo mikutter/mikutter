@@ -119,8 +119,10 @@ class User < Diva::Model
   def me?(service = Service.instances)
     if service.is_a? Enumerable
       service.any?(&method(:me?))
-    elsif service.is_a? Service
-      service.user_obj == self end end
+    else
+      service.user_obj == self
+    end
+  end
 
   # 互換性のため
   alias is_me? me?

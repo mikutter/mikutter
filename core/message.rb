@@ -109,8 +109,8 @@ class Message < Diva::Model
     other[:replyto] = self
     other[:receiver] = self[:user]
     service = Service.primary
-    if service.is_a? Service
-      service.post(other){|*a| yield(*a) if block_given? } end end
+    service.post(other){|*a| yield(*a) if block_given? }
+  end
 
   # リツイートする
   def retweet
@@ -266,12 +266,21 @@ class Message < Diva::Model
   # ==== Return
   # Deferredable nextの引数に宛先のMessageを渡す。宛先が無い場合は失敗し、trap{}にnilを渡す
   def replyto_source_d(force_retrieve=true)
+    promise = Delayer::Deferred.new(true)
     Thread.new do
-      result = replyto_source(force_retrieve)
-      if result.is_a? Message
-        result
-      else
-        Deferred.fail(result) end end end
+      begin
+        result = replyto_source(force_retrieve)
+        if result.is_a? Message
+          promise.call(result)
+        else
+          promise.fail(result)
+        end
+      rescue Exception => err
+        promise.fail(err)
+      end
+    end
+    promise
+  end
 
   # このMessageがリツイートであるなら、リツイート元のツイートを返す。
   # リツイートではないならnilを返す。リツイートであるかどうかを確認するには、
@@ -298,12 +307,21 @@ class Message < Diva::Model
   # ==== Return
   # Deferredable nextの引数にリプライ元のMessageを渡す。リツイートではない場合は失敗し、trap{}にnilを渡す
   def retweet_parent_d(force_retrieve=true)
+    promise = Delayer::Deferred.new(true)
     Thread.new do
-      result = retweet_source(force_retrieve)
-      if result.is_a? Message
-        result
-      else
-        Deferred.fail(result) end end end
+      begin
+        result = retweet_source(force_retrieve)
+        if result.is_a? Message
+          promise.call(result)
+        else
+          promise.fail(result)
+        end
+      rescue Exception => err
+        promise.fail(err)
+      end
+    end
+    promise
+  end
 
   # このMessageが引用した投稿を全て返す
   # ==== Return
@@ -485,12 +503,21 @@ class Message < Diva::Model
   # ==== Return
   # Deferredable nextの引数にリプライ元のMessageを渡す。リツイートではない場合は失敗し、trap{}にnilを渡す
   def retweet_source_d(force_retrieve=true)
+    promise = Delayer::Deferred.new(true)
     Thread.new do
-      result = retweet_source(force_retrieve)
-      if result.is_a? Message
-        result
-      else
-        Deferred.fail(result) end end end
+      begin
+        result = retweet_source(force_retrieve)
+        if result.is_a? Message
+          promise.call(result)
+        else
+          promise.fail(result)
+        end
+      rescue Exception => err
+        promise.fail(err)
+      end
+    end
+    promise
+  end
 
   # このMessageが属する親子ツリーに属する全てのMessageを含むSetを返す
   # ==== Args
@@ -517,7 +544,7 @@ class Message < Diva::Model
   # この投稿を「自分」がふぁぼっていれば真
   def favorited_by_me?(me = Service.services)
     case me
-    when Service
+    when Diva::Model
       favorited_by.include? me.user_obj
     when Enumerable
       not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
@@ -551,7 +578,7 @@ class Message < Diva::Model
   # この投稿を「自分」がリツイートしていれば真
   def retweeted_by_me?(me = Service.services)
     case me
-    when Service
+    when Diva::Model
       retweeted_users.include? me.user_obj
     when Enumerable
       not (Set.new(retweeted_users.map(&:idname)) & Set.new(me.map(&:idname))).empty?

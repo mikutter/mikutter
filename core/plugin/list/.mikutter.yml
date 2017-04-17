@@ -4,6 +4,7 @@ depends:
   mikutter: '3.1'
   plugin:
   - change_account
+  - twitter
 version: '2.0'
 author: toshi_a
 name: リスト

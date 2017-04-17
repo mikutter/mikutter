@@ -2,7 +2,7 @@
 
 miquire :boot, 'delayer'
 miquire :lib, 'mikutwitter'
-miquire :core, 'service', 'plugin'
+miquire :core, 'plugin'
 
 puts "Register new account."
 

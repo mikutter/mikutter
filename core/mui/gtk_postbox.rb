@@ -50,11 +50,15 @@ module Gtk
 
       @from = from
       @to = (Array(to) + Array(@options[:subreplies])).uniq.freeze
-      case postable
-      when Service
-        @from = postable
-      when Message
-        @to = [postable, *@to].freeze unless @to.include? postable end
+      if postable
+        warn "Gtk::Postbox.new(postable) is deprecated. see http://mikutter.hachune.net/rdoc/Gtk/PostBox.html"
+        case postable
+        when Message
+          @to = [postable, *@to].freeze unless @to.include? postable
+        when Diva::Model
+          @from = postable
+        end
+      end
       @header = (header || '').freeze
       @footer = (footer || '').freeze
       @to_display_only = !!to_display_only
