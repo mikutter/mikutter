@@ -150,8 +150,8 @@ msgid ""
 msgstr "赠送给全球所有的Miku厨和Twitter中毒者的，以至高无上的推特客户端为目标的推特客户端。\n简称“至高无上的推特客户端”。\n看看咱们的Miku是不是超级压倒性地可爱呢～\n\n这个客户端由%{license} 进行净化。"
 
 #: ../basic_settings.rb:60
-msgid "http://mikutter.hachune.net/"
-msgstr "http://mikutter.hachune.net/"
+msgid "https://mikutter.hachune.net/"
+msgstr "https://mikutter.hachune.net/"
 
 #: ../settings.rb:11 ../settings.rb:24
 msgid "設定"

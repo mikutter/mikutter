@@ -55,7 +55,7 @@ Plugin::create(:basic_settings) do
       :copyright => _('2009-%s Toshiaki Asai') % '2019',
       :comments => _("全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n略して至高のTwitter Client。\n圧倒的なかわいさではないか我がミクは\n\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
       :license => (file_get_contents('../LICENSE') rescue nil),
-      :website => _('http://mikutter.hachune.net/'),
+      :website => _('https://mikutter.hachune.net/'),
       :logo => Skin.photo('icon.png'),
       :authors => ['toshi_a', 'Phenomer', 'osa_k', 'katsyoshi', 'ahiru', 'cobodo'],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],

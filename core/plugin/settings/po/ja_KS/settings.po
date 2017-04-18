@@ -181,7 +181,7 @@ msgstr ""
 "このソフトウェアは %{license} によって浄化されています。"
 
 #: ../basic_settings.rb:60
-msgid "http://mikutter.hachune.net/"
+msgid "https://mikutter.hachune.net/"
 msgstr "http://hanshintigers.jp/"
 
 #: ../builder.rb:287

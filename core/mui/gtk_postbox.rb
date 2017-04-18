@@ -52,7 +52,7 @@ module Gtk
       @from = from
       @to = (Array(to) + Array(@options[:subreplies])).uniq.freeze
       if postable
-        warn "Gtk::Postbox.new(postable) is deprecated. see http://mikutter.hachune.net/rdoc/Gtk/PostBox.html"
+        warn "Gtk::Postbox.new(postable) is deprecated. see https://mikutter.hachune.net/rdoc/Gtk/PostBox.html"
         case postable
         when Message
           @to = [postable, *@to].freeze unless @to.include? postable

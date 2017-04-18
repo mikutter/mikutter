@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :display_requirements do
-  BIRD_URL = "http://mikutter.hachune.net/img/twitter-bird.png".freeze
+  BIRD_URL = "https://mikutter.hachune.net/img/twitter-bird.png".freeze
   CACHE_DIR = File.expand_path(File.join(Environment::CACHE, 'dr'))
   BIRD_CACHE_PATH = File.join(CACHE_DIR, "twitter-bird.png")
 

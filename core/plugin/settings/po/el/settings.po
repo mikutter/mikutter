@@ -149,7 +149,7 @@ msgid ""
 msgstr ""
 
 #: ../basic_settings.rb:60
-msgid "http://mikutter.hachune.net/"
+msgid "https://mikutter.hachune.net/"
 msgstr ""
 
 #: ../settings.rb:11 ../settings.rb:24

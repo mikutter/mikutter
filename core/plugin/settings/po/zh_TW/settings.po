@@ -151,8 +151,8 @@ msgid ""
 msgstr "獻給所有 Miku 飯與推特成癮者，以頂級 Twitter Client 為目標的Twitter Client。\n簡稱頂級 Twitter Client。\n我們家 Miku 超可愛的有沒有\n\n本軟體已經由 %{license} 淨化完畢。"
 
 #: ../basic_settings.rb:60
-msgid "http://mikutter.hachune.net/"
-msgstr "http://mikutter.hachune.net/"
+msgid "https://mikutter.hachune.net/"
+msgstr "https://mikutter.hachune.net/"
 
 #: ../settings.rb:11 ../settings.rb:24
 msgid "設定"
