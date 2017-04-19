@@ -40,11 +40,12 @@ module Plugin::Openimg
 
           complete_promise.next{
             progress(pixbufloader.pixbuf, paint: true)
-            pixbufloader.close
           }.trap { |exception|
             error exception
             @image_surface = error_surface
             redraw(repaint: true)
+          }.next {
+            pixbufloader.close
           }
         else
           warn "cant open: #{photo}"
