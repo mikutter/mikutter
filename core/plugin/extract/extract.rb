@@ -208,7 +208,16 @@ Plugin.create :extract do
       prompt = dialog = nil } end
 
   on_extract_open_edit_dialog do |extract_id|
-    ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    event = on_extract_tab_update do |setting|
+      if extract_id == setting.id && !window.destroyed?
+        window.refresh_title
+      end
+    end
+    window.ssc(:destroy) do
+      event.detach
+      false
+    end
   end
 
   on_appear do |messages|

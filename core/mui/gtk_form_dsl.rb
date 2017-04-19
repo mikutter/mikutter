@@ -311,7 +311,7 @@ module Gtk::FormDSL
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(dir)
       if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-        Listener[config].set dialog.filename
+        self[config] = dialog.filename
         input.text = dialog.filename
       end
       dialog.destroy
