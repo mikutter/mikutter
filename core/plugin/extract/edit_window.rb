@@ -2,6 +2,7 @@
 require 'observer'
 miquire :mui, 'hierarchycal_selectbox'
 require_relative 'model/setting'
+require_relative 'option_widget'
 
 module Plugin::Extract
 end
@@ -58,24 +59,6 @@ class  Plugin::Extract::EditWindow < Gtk::Window
   def icon
     @extract.icon end
 
-  # 名前入力ウィジェットを返す
-  # ==== Return
-  # Gtk::HBox.new
-  def name_widget
-    @name_widget ||= Gtk::HBox.new().
-      closeup(Gtk::Label.new(_('名前'))).
-      add(name_entry) end
-
-  # 名前入力ボックス
-  # ==== Return
-  # Gtk::Entry
-  def name_entry
-    @name_entry ||= Gtk::Entry.new().tap { |name_entry|
-      name_entry.set_text name
-      name_entry.ssc(:changed){ |widget|
-
-        false } } end
-
   def source_widget
     datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, source_name|
       [id, source_name.is_a?(String) ? source_name.split('/'.freeze) : source_name] end
@@ -95,32 +78,15 @@ class  Plugin::Extract::EditWindow < Gtk::Window
       modify_value sexp: @condition_form.to_a
     } end
 
-  def modifier(method)
-    Plugin::Settings::Listener.new.get {
-      __send__(method)
-    }.set { |v|
-      modify_value method => v } end
-
-  def file_modifier(method)
-    Plugin::Settings::Listener.new.get {
-      (__send__(method) || '').to_s
-    }.set { |v|
-      modify_value method => v.empty? ? nil : v } end
-
   def option_widget
-    name_modifier = modifier :name
-    icon_modifier = file_modifier :icon
-    sound_modifier = file_modifier :sound
-    popup_modifier = modifier :popup
-    order_modifier = modifier :order
-    Plugin::Settings.new(Plugin[:extract]) do
-      input _('名前'), name_modifier
-      fileselect _('アイコン'), icon_modifier, Skin.path
+    Plugin::Extract::OptionWidget.new(@plugin, @extract) do
+      input _('名前'), :name
+      fileselect _('アイコン'), :icon, Skin.path
       settings _('通知') do
-        fileselect _('サウンド'), sound_modifier
-        boolean _('ポップアップ'), popup_modifier
+        fileselect _('サウンド'), :sound
+        boolean _('ポップアップ'), :popup
       end
-      select(_('並び順'), order_modifier, Hash[Plugin.filtering(:extract_order, []).first.map{|o| [o.slug.to_s, o.name] }])
+      select(_('並び順'), :order, Hash[Plugin.filtering(:extract_order, []).first.map{|o| [o.slug.to_s, o.name] }])
     end
   end
 
@@ -129,11 +95,15 @@ class  Plugin::Extract::EditWindow < Gtk::Window
       button.ssc(:clicked){
         self.destroy } } end
 
+  def refresh_title
+    set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
+  end
+
   private
 
   def modify_value(new_values)
     @extract.merge(new_values)
-    set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
+    refresh_title
     @extract.notify_update
     self end
 

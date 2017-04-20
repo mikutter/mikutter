@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'builder')
-require File.expand_path File.join(File.dirname(__FILE__), 'basic_settings')
+module Plugin::Settings; end
+
+require_relative 'setting_dsl'
+require_relative 'basic_settings'
 
 Plugin.create(:settings) do
 
@@ -31,7 +33,7 @@ Plugin.create(:settings) do
       iter = menu.model.append
       iter[0] = title
       iter[1] = (record_order.index(title) || record_order.size)
-      widgets_dict[title] = box = Plugin::Settings.new(Plugin.instance plugin)
+      widgets_dict[title] = box = Plugin::Settings::SettingDSL.new(Plugin.instance plugin)
       box.instance_eval(&definition)
       settings.closeup(box) }
     window.ssc(:destroy) {
