@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require_relative 'error'
 require_relative 'keep'
 require_relative 'service'
 

@@ -137,7 +137,7 @@ class Message < Diva::Model
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?
     favorited_by.include?(Service.primary!.user_obj)
-  rescue Service::NotExistError
+  rescue Plugin::Account::NotExistError
     false end
 
   # 投稿がシステムメッセージだった場合にtrueを返す
@@ -572,7 +572,7 @@ class Message < Diva::Model
   # 選択されているユーザがこのツイートをリツイートしているなら真
   def retweeted?
     retweeted_users.include?(Service.primary!.user_obj)
-  rescue Service::NotExistError
+  rescue Plugin::Account::NotExistError
     false end
 
   # この投稿を「自分」がリツイートしていれば真

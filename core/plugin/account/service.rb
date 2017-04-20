@@ -41,12 +41,12 @@ module Service
     # 現在アクティブになっているサービスを返す。
     # Service.primary とちがって、サービスが一つも登録されていない時、例外を発生させる。
     # ==== Exceptions
-    # Service::NotExistError :: (選択されている)Serviceが存在しない
+    # Plugin::Account::NotExistError :: (選択されている)Serviceが存在しない
     # ==== Return
     # アクティブなService
     def primary!
       result = primary
-      raise Service::NotExistError, 'Services does not exists.' unless result
+      raise Plugin::Account::NotExistError, 'Account does not exists.' unless result
       result
     end
 
