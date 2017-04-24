@@ -18,6 +18,7 @@ require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
 require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
 require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
 require File.expand_path File.join(File.dirname(__FILE__), 'konami_watcher')
+require_relative 'dialog_window'
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}
@@ -467,6 +468,10 @@ Plugin.create :gtk do
 
   filter_gui_get_gtk_widget do |i_widget|
     [widgetof(i_widget)] end
+
+  on_gui_dialog do |plugin, title, proc, promise|
+    Plugin::Gtk::DialogWindow.open(plugin: plugin, title: title, promise: promise, &proc)
+  end
 
   # タブ _tab_ に _widget_ を入れる
   # ==== Args
