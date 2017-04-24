@@ -65,11 +65,11 @@ Module.new do
 
     defevent :favorite,
     priority: :ui_favorited,
-    prototype: [Service, User, Message]
+    prototype: [Diva::Model, User, Message]
 
     defevent :unfavorite,
     priority: :ui_favorited,
-    prototype: [Service, User, Message]
+    prototype: [Diva::Model, User, Message]
 
     favorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
     unfavorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}

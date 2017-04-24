@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :list do
-  defevent :list_created, priority: :routine_passive, prototype: [Service, UserLists]
-  defevent :list_destroy, priority: :routine_passive, prototype: [Service, Array]
+  defevent :list_created, priority: :routine_passive, prototype: [Diva::Model, UserLists]
+  defevent :list_destroy, priority: :routine_passive, prototype: [Diva::Model, Array]
 
   crawl_count = Hash.new{|h,k|h[k] = gen_counter}
 
