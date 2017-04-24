@@ -93,7 +93,7 @@ Plugin.create(:account) do
   end
 
   def destroy_account(target)
-    Service::SaveData.account_destroy target.name
+    Plugin::Account::Keep.account_destroy target.name
     Plugin.call(:service_destroyed, target)
   end
 

@@ -67,7 +67,7 @@ module Service
 
       (twitter/:account/:verify_credentials).user.next { |user|
         id = "twitter#{user.id}".to_sym
-        Service::SaveData.account_register id, {
+        Plugin::Account::Keep.account_register id, {
           provider: :twitter,
           slug: id,
           token: token,
