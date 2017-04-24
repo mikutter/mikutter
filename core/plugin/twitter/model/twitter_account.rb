@@ -13,7 +13,6 @@ module Plugin::Twitter
 
     def initialize(hash)
       super(hash)
-      p hash
       user_initialize
     end
 
