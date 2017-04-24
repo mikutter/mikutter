@@ -45,7 +45,7 @@ Plugin.create(:account) do
 
   # 新たなアカウント _new_ を追加する
   on_account_destroy do |target|
-    destroy_account(new)
+    destroy_account(target)
   end
 
   # Account Modelについて繰り返すArrayを返す。
