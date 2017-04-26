@@ -48,11 +48,35 @@ Plugin.create :change_account do
 
   # サブ垢は心の弱さ
   settings _('アカウント情報') do
-    listview = ::Plugin::ChangeAccount::AccountControl.new()
-    Service.instances.each(&listview.method(:force_record_create))
+    listview = ::Plugin::ChangeAccount::AccountControl.new(self)
+    btn_add = Gtk::Button.new(Gtk::Stock::ADD)
+    btn_add.ssc(:clicked) do
+      boot_wizard
+      true
+    end
     pack_start(Gtk::HBox.new(false, 4).
-               add(listview).
-               closeup(listview.buttons(Gtk::VBox)))
+                 add(listview).
+                 closeup(Gtk::HBox.new.
+                           add(btn_add)))
+  end
+
+  def boot_wizard
+    dialog(_('アカウント追加')){
+      select 'Select world', :world do
+        worlds, = Plugin.filtering(:account_setting_list, Hash.new)
+        worlds.values.each do |world|
+          option world, world.name
+        end
+      end
+      step1 = await_input
+
+      selected_world = step1[:world]
+      instance_eval(&selected_world.proc)
+    }.next{ |res|
+      Plugin.call(:account_add, res.result)
+    }.trap{ |err|
+      error err
+    }
   end
 
   ### 茶番

@@ -35,6 +35,10 @@ module Plugin::Twitter
       @user_obj.idname end
     alias :idname :user
 
+    def icon
+      user_obj.icon
+    end
+
     # サービスにクエリ _kind_ を投げる。
     # レスポンスを受け取るまでブロッキングする。
     # レスポンスを返す。失敗した場合は、apifailイベントを発生させてnilを返す。

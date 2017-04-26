@@ -67,17 +67,18 @@ module Plugin::Account
     # ArgumentError name のサービスが既に存在している場合、optionsの情報が足りない場合
     # ==== Return
     # Service
-    def account_register(name, options)
+    def account_register(name, provider:, slug:, **options)
       name = name.to_sym
       @@service_lock.synchronize do
         raise ArgumentError, "account #{name} already exists." if accounts.has_key? name
-        @account_data = account_write accounts.merge name => {
-          provider: (options[:provider] or raise ArgumentError, 'options requires key `provider\'.'),
-          slug: (options[:slug] or raise ArgumentError, 'options requires key `slug\'.'),
-          token: (options[:token] or raise ArgumentError, 'options requires key `token\'.'),
-          secret: (options[:secret] or raise ArgumentError, 'options requires key `secret\'.'),
-          user: (options[:user] or raise ArgumentError, 'options requires key `user\'.') } end
-      self end
+        @account_data = account_write(
+          accounts.merge(
+            name => options.merge(
+              provider: provider,
+              slug: slug)))
+      end
+      self
+    end
 
     # アカウント情報を更新する
     # ==== Args

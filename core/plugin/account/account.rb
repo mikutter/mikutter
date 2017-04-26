@@ -8,6 +8,14 @@ miquire :lib, 'diva_hacks'
 
 Plugin.create(:account) do
 
+  world_struct = Struct.new(:slug, :name, :proc)
+
+  defdsl :account_setting do |account_model_slug, world_name, &proc|
+    filter_account_setting_list do |settings|
+      [settings.merge(account_model_slug => world_struct.new(account_model_slug, world_name, proc))]
+    end
+  end
+
   # 登録済みアカウントを全て取得するのに使うフィルタ。
   # 登録されているAccountに対応するModelをyielderに格納する。
   filter_accounts do |yielder|
@@ -89,11 +97,12 @@ Plugin.create(:account) do
   # ==== Args
   # [new] 追加するアカウント(Diva::Model)
   def register_account(new)
-    fail "TODO: 実装する"
+    Plugin::Account::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
+    Plugin.call(:service_registered, new) # 互換性のため
   end
 
   def destroy_account(target)
-    Plugin::Account::Keep.account_destroy target.name
+    Plugin::Account::Keep.account_destroy target.slug
     Plugin.call(:service_destroyed, target)
   end
 
