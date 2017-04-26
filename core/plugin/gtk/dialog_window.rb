@@ -37,12 +37,18 @@ module Plugin::Gtk
       ssc(:response) do |widget, response|
         case response
         when Gtk::Dialog::RESPONSE_OK
-          @promise.call(Response::Ok.new(@container)) if @promise
+          if @container.wait?
+            @container.run(Response::Ok.new(@container))
+          else
+            @promise.call(Response::Ok.new(@container)) if @promise
+            @promise = nil
+            destroy
+          end
         else
           @promise.fail(Response::Cancel.new(@container)) if @promise
+          @promise = nil
+          destroy
         end
-        @promise = nil
-        destroy
         true
       end
       ssc(:destroy) do
@@ -85,7 +91,19 @@ module Plugin::Gtk
   end
 
   class DialogContainer < Gtk::VBox
+    EXIT = :exit
+
     include Gtk::FormDSL
+
+    attr_reader :state
+
+    # dialog DSLから利用するメソッド。
+    # dialogウィンドウのエレメントの配置を、ユーザが次へボタンを押すまで中断する。
+    # 次へボタンが押されたら、 その時点で各エレメントに入力された内容を格納した
+    # Plugin::Gtk::DialogWindow::Response::Ok のインスタンスを返す
+    def await_input
+      Fiber.yield
+    end
 
     # dialog DSLから利用するメソッド。
     # 初期値を動的に設定するためのメソッド。
@@ -102,11 +120,43 @@ module Plugin::Gtk
 
     def initialize(plugin, default=Hash.new)
       super()
+      @state = :init
       @plugin = plugin
       @values = default
-      if block_given?
-        instance_eval(&Proc.new)
+      @proc = Proc.new
+      run
+    end
+
+    def run(response=nil)
+      Delayer.new do
+        case state
+        when :init
+          @fiber = Fiber.new do
+            instance_eval(&@proc)
+            EXIT
+          end
+          resume(response)
+        when :wait
+          children.each(&method(:remove))
+          resume(response)
+        end
       end
+    end
+
+    def resume(response)
+      @state = :run
+      result = @fiber.resume(response)
+      show_all
+      case result
+      when EXIT
+        @state = :exit
+      else
+        @state = :wait
+      end
+    end
+
+    def wait?
+      @state == :wait
     end
 
     def [](key)
