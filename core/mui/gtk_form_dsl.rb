@@ -264,6 +264,39 @@ module Gtk::FormDSL
     container
   end
 
+  # Diva::Model の内容を表示する。
+  # 通常はボタンとして描画され、クリックするとopenイベントが発生する。
+  # エレメントとして値を更新する機能はない。
+  # ==== Args
+  # 以下のいずれか
+  # [String | Diva::URI] URLを表示する
+  # [Diva::Model]
+  #   _target.title_ がラベルになる。
+  #   _target.icon_ が呼び出せてPhotoModelを返す場合は、それも表示する。
+  def link(target)
+    case target
+    when String, URI, Addressable::URI, Diva::URI
+      button = Gtk::Button.new(target.to_s, false)
+      button.
+        tooltip(target.to_s).
+        set_alignment(0.0, 0.5).
+        ssc(:clicked, &model_opener(target))
+      closeup button
+    when Diva::Model
+      button = Gtk::Button.new
+      box = Gtk::HBox.new
+      if target.respond_to?(:icon)
+        icon = Gtk::WebIcon.new(target.icon, 48, 48)
+        box.closeup(icon)
+      end
+      button.
+        tooltip(target.title).
+        add(box.add(Gtk::Label.new(target.title))).
+        ssc(:clicked, &model_opener(target))
+      closeup button
+    end
+  end
+
   # settingsメソッドとSelectから内部的に呼ばれるメソッド。Groupの中に入れるGtkウィジェットを返す。
   # 戻り値は同時にこのmix-inをロードしている必要がある。
   def create_inner_setting
@@ -317,6 +350,13 @@ module Gtk::FormDSL
       dialog.destroy
     }
     container
+  end
+
+  def model_opener(model)
+    ->(*args) do
+      Plugin.call(:open, model)
+      true
+    end
   end
 end
 
