@@ -15,7 +15,7 @@ Plugin.create(:twitter) do
     builder = Plugin::Twitter::Builder.new(
       Environment::TWITTER_CONSUMER_KEY,
       Environment::TWITTER_CONSUMER_SECRET)
-    # label _("URLをクリックしてトークンを発行")
+    label _("Webページにアクセスして表示された番号を、「トークン」に入力して、次へボタンを押してください。")
     link builder.authorize_url
     input "トークン", :token
     result = await_input

@@ -264,6 +264,16 @@ module Gtk::FormDSL
     container
   end
 
+  # 引数のテキストを表示する。
+  def label(text)
+    label = Gtk::Label.new(text, false)
+    label.
+      set_wrap(true).
+      set_single_line_mode(false)
+    closeup label.left
+    label
+  end
+
   # Diva::Model の内容を表示する。
   # 通常はボタンとして描画され、クリックするとopenイベントが発生する。
   # エレメントとして値を更新する機能はない。
