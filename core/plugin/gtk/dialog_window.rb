@@ -87,6 +87,15 @@ module Plugin::Gtk
   class DialogContainer < Gtk::VBox
     include Gtk::FormDSL
 
+    # dialog DSLから利用するメソッド。
+    # 初期値を動的に設定するためのメソッド。
+    # {エレメントのキー: 値} のように書くことで、複数同時に設定できる。
+    # 既に置かれたエレメントの内容がこのメソッドによって書き換わることはないので、
+    # エレメントを配置する前に呼び出す必要がある。
+    def set_value(v={})
+      @values.merge!(v)
+    end
+
     def create_inner_setting
       self.class.new(@plugin, @values)
     end
