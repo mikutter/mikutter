@@ -8,19 +8,20 @@ module Plugin::Gtk
     # [title:] ダイアログのタイトルバーに表示する内容(String)
     # [promise:] 入力が完了・中断された時に呼ばれるDeferedオブジェクト
     # [plugin:] 呼び出し元のPluggaloid Plugin
+    # [default:] エレメントのデフォルト値。{キー: デフォルト値}のようなHash
     # [&proc] DSLブロック
     # ==== Return
     # 作成されたDialogのインスタンス
-    def self.open(title:, promise:, plugin:, &proc)
-      window = new(plugin: plugin, title: title, promise: promise, &proc)
+    def self.open(title:, promise:, plugin:, default:, &proc)
+      window = new(plugin: plugin, title: title, promise: promise, default: default, &proc)
       window.show_all
       window
     end
 
-    def initialize(title:, promise:, plugin:, &proc)
+    def initialize(title:, promise:, plugin:, default:, &proc)
       super(title)
       @plugin = plugin
-      @container = DialogContainer.new(plugin, &proc)
+      @container = DialogContainer.new(plugin, default.to_h.dup, &proc)
       @promise = promise
       set_size_request(640, 480)
       set_window_position(Gtk::Window::POS_CENTER)
@@ -87,13 +88,13 @@ module Plugin::Gtk
     include Gtk::FormDSL
 
     def create_inner_setting
-      self.class.new(@plugin)
+      self.class.new(@plugin, @values)
     end
 
-    def initialize(plugin)
+    def initialize(plugin, default=Hash.new)
       super()
       @plugin = plugin
-      @values = Hash.new
+      @values = default
       if block_given?
         instance_eval(&Proc.new)
       end

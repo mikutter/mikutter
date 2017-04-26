@@ -469,8 +469,8 @@ Plugin.create :gtk do
   filter_gui_get_gtk_widget do |i_widget|
     [widgetof(i_widget)] end
 
-  on_gui_dialog do |plugin, title, proc, promise|
-    Plugin::Gtk::DialogWindow.open(plugin: plugin, title: title, promise: promise, &proc)
+  on_gui_dialog do |plugin, title, default, proc, promise|
+    Plugin::Gtk::DialogWindow.open(plugin: plugin, title: title, default: default, promise: promise, &proc)
   end
 
   # タブ _tab_ に _widget_ を入れる
