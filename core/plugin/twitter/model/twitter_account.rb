@@ -27,16 +27,23 @@ module Plugin::Twitter
 
     # 自分のUserを返す。初回はサービスに問い合せてそれを返す。
     def user_obj
-      @user_obj end
+      self[:user] end
     alias to_user user_obj
 
     # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
     def user
-      @user_obj.idname end
+      self[:user].idname end
     alias :idname :user
 
     def icon
       user_obj.icon
+    end
+
+    def to_hash
+      super.merge(user: {id: user_obj.id,
+                         idname: user_obj.idname,
+                         name: user_obj.name,
+                         profile_image_url: user_obj.icon.perma_link.to_s})
     end
 
     # サービスにクエリ _kind_ を投げる。
@@ -158,7 +165,7 @@ module Plugin::Twitter
 
     def user_initialize
       if self[:user]
-        @user_obj = User.new_ifnecessary(self[:user])
+        self[:user] = User.new_ifnecessary(self[:user])
         (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed)).terminate
       else
         res = twitter.query!('account/verify_credentials', cache: true)
@@ -171,13 +178,8 @@ module Plugin::Twitter
     end
 
     def user_data_received(user)
-      @user_obj = user
-      # Service::SaveData.account_modify name, {
-      #                                    user: {
-      #                                      id: @user_obj[:id],
-      #                                      idname: @user_obj[:idname],
-      #                                      name: @user_obj[:name],
-      #                                      profile_image_url: @user_obj[:profile_image_url] } }
+      self[:user] = user
+      Plugin.call(:account_modify, self)
     end
 
     def user_data_failed(exception)

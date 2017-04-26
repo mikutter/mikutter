@@ -91,11 +91,13 @@ module Plugin::Account
     def account_modify(name, options)
       name = name.to_sym
       @@service_lock.synchronize do
-        raise ArgumentError, "account #{name} is not exists." unless accounts.has_key? name
-        account_data = accounts[name].merge(options)
-        Plugin.call(:image_file_cache_cache, account_data[:user][:profile_image_url])
-        @account_data = account_write(accounts.merge(name => account_data)) end
-      self end
+        raise ArgumentError, "account `#{name}' does not exists." unless accounts.has_key? name
+        @account_data = account_write(
+          accounts.merge(
+            name => accounts[name].merge(options)))
+      end
+      self
+    end
 
     # 垢消しの時間だ
     # ==== Args

@@ -36,7 +36,8 @@ module Plugin::Twitter
           id: "twitter#{user.id}",
           slug: "twitter#{user.id}",
           token: @twitter.a_token,
-          secret: @twitter.a_secret)
+          secret: @twitter.a_secret,
+          user: user)
       }
     end
   end

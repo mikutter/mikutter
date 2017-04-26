@@ -51,7 +51,12 @@ Plugin.create(:account) do
     register_account(new)
   end
 
-  # 新たなアカウント _new_ を追加する
+  # アカウント _target_ が変更された時に呼ばれる
+  on_account_modify do |target|
+    modify_account(target)
+  end
+
+  # アカウント _target_ を削除する
   on_account_destroy do |target|
     destroy_account(target)
   end
@@ -99,6 +104,10 @@ Plugin.create(:account) do
   def register_account(new)
     Plugin::Account::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
     Plugin.call(:service_registered, new) # 互換性のため
+  end
+
+  def modify_account(target)
+    Plugin::Account::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
   end
 
   def destroy_account(target)
