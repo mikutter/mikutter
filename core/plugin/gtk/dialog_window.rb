@@ -22,6 +22,7 @@ module Plugin::Gtk
       super(title)
       @plugin = plugin
       @container = DialogContainer.new(plugin, default.to_h.dup, &proc)
+      @container.error_observer = self
       @promise = promise
       set_size_request(640, 480)
       set_window_position(Gtk::Window::POS_CENTER)
@@ -29,6 +30,15 @@ module Plugin::Gtk
       add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
       vbox.pack_start(@container)
       register_response_listener
+      run_container
+    end
+
+    def on_abort(err)
+      Delayer.new do
+        @promise.fail(err) if @promise
+        @promise = nil
+        destroy
+      end
     end
 
     private
@@ -37,9 +47,10 @@ module Plugin::Gtk
       ssc(:response) do |widget, response|
         case response
         when Gtk::Dialog::RESPONSE_OK
-          if @container.wait?
-            @container.run(Response::Ok.new(@container))
-          else
+          case @container.state
+          when DialogContainer::STATE_WAIT
+            run_container(Response::Ok.new(@container))
+          when DialogContainer::STATE_EXIT
             @promise.call(Response::Ok.new(@container)) if @promise
             @promise = nil
             destroy
@@ -56,12 +67,23 @@ module Plugin::Gtk
         @promise = nil
         false
       end
+      @container.ssc(:state_changed) do |widget, state|
+        action_area.sensitive = state == Gtk::STATE_INSENSITIVE
+        false
+      end
+    end
+
+    def run_container(res=nil)
+      @container.run(res)
     end
 
     module Response
       class Base
+        attr_reader :result
+
         def initialize(values)
           @values = values.to_h.freeze
+          @result = values.result_of_proc
         end
 
         def [](k)
@@ -92,10 +114,18 @@ module Plugin::Gtk
 
   class DialogContainer < Gtk::VBox
     EXIT = :exit
+    AWAIT = :await
+
+    STATE_INIT = :dialog_state_init
+    STATE_RUN = :dialog_state_run
+    STATE_EXIT = :dialog_state_exit
+    STATE_WAIT = :dialog_state_wait
+    STATE_AWAIT = :dialog_state_await
 
     include Gtk::FormDSL
 
-    attr_reader :state
+    attr_reader :state, :result_of_proc, :awaiting_deferred
+    attr_accessor :error_observer
 
     # dialog DSLから利用するメソッド。
     # dialogウィンドウのエレメントの配置を、ユーザが次へボタンを押すまで中断する。
@@ -114,49 +144,67 @@ module Plugin::Gtk
       @values.merge!(v)
     end
 
+    # dialog DSLから利用するメソッド。
+    # Deferredを受け取り、その処理が終わるまで処理を止める。
+    # 処理が終わると、deferの結果を返す。処理が失敗していると、
+    # ダイアログウィンドウを閉じ、dialog DSLのtrapブロックを呼ぶ。
+    def await(defer)
+      Fiber.yield(AWAIT, defer)
+    end
+
     def create_inner_setting
       self.class.new(@plugin, @values)
     end
 
     def initialize(plugin, default=Hash.new)
       super()
-      @state = :init
+      @state = STATE_INIT
       @plugin = plugin
       @values = default
       @proc = Proc.new
-      run
     end
 
     def run(response=nil)
       Delayer.new do
         case state
-        when :init
+        when STATE_INIT
           @fiber = Fiber.new do
-            instance_eval(&@proc)
+            @result_of_proc = instance_eval(&@proc)
+            if @result_of_proc.is_a? Delayer::Deferred::Deferredable
+              @result_of_proc = await(@result_of_proc)
+            end
             EXIT
           end
           resume(response)
-        when :wait
+        when STATE_WAIT
           children.each(&method(:remove))
+          resume(response)
+        when STATE_AWAIT
           resume(response)
         end
       end
     end
 
     def resume(response)
-      @state = :run
-      result = @fiber.resume(response)
+      @state = STATE_RUN
+      result, *args = @fiber.resume(response)
+      set_sensitive(true)
       show_all
       case result
       when EXIT
-        @state = :exit
+        @state = STATE_EXIT
+      when AWAIT
+        @state = STATE_AWAIT
+        @awaiting_deferred, = *args
+        set_sensitive(false)
+        @awaiting_deferred.next{|deferred_result|
+          run(deferred_result)
+        }.trap{|err|
+          @error_observer.on_abort(err) if @error_observer
+        }
       else
-        @state = :wait
+        @state = STATE_WAIT
       end
-    end
-
-    def wait?
-      @state == :wait
     end
 
     def [](key)
