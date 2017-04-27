@@ -34,10 +34,10 @@ module Plugin::ListSettings
     def menu_pop(widget, event)
       _p = Plugin[:list_settings]
       contextmenu = Gtk::ContextMenu.new
-      contextmenu.registmenu(_p._("新規作成"), &method(:record_create))
-      contextmenu.registmenu(_p._("編集"), &method(:record_update))
-      contextmenu.registmenu(_p._("削除"), &method(:record_delete))
-      contextmenu.registmenu(_p._("タブを作成"), &method(:record_extract))
+      contextmenu.register(_p._("新規作成"), &method(:record_create))
+      contextmenu.register(_p._("編集"), &method(:record_update))
+      contextmenu.register(_p._("削除"), &method(:record_delete))
+      contextmenu.register(_p._("タブを作成"), &method(:record_extract))
       contextmenu.popup(widget, widget) end
 
     def extract_button
