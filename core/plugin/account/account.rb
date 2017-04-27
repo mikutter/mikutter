@@ -61,20 +61,20 @@ Plugin.create(:account) do
     destroy_account(target)
   end
 
-  # Account Modelについて繰り返すArrayを返す。
+  # すべてのAccount Modelを順番通りに含むArrayを返す。
   # 各要素は、アカウントの順番通りに格納されている。
   # 外部からこのメソッド相当のことをする場合は、 _accounts_ フィルタを利用すること。
   # ==== Return
   # [Array] アカウントModelを格納したArray
   def accounts
-    @accounts ||= Plugin::Account::Keep.accounts.map do |id, serialized|
+    @accounts ||= Plugin::Account::Keep.accounts.map { |id, serialized|
       provider = Diva::Model(serialized[:provider])
       if provider
         provider.new(serialized)
       else
         raise "unknown model #{serialized[:provider].inspect}"
       end
-    end
+    }.freeze
   end
 
   # 現在選択されているアカウントを返す
@@ -103,16 +103,21 @@ Plugin.create(:account) do
   # [new] 追加するアカウント(Diva::Model)
   def register_account(new)
     Plugin::Account::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
+    @accounts = nil
     Plugin.call(:service_registered, new) # 互換性のため
   end
 
   def modify_account(target)
-    Plugin::Account::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
+    if Plugin::Account::Keep.accounts.has_key? target.slug
+      Plugin::Account::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
+      @accounts = nil
+    end
   end
 
   def destroy_account(target)
     Plugin::Account::Keep.account_destroy target.slug
-    Plugin.call(:service_destroyed, target)
+    @accounts = nil
+    Plugin.call(:service_destroyed, target) # 互換性のため
   end
 
 end

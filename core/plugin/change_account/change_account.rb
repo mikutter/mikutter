@@ -50,9 +50,17 @@ Plugin.create :change_account do
   settings _('アカウント情報') do
     listview = ::Plugin::ChangeAccount::AccountControl.new(self)
     btn_add = Gtk::Button.new(Gtk::Stock::ADD)
+    btn_delete = Gtk::Button.new(Gtk::Stock::DELETE)
     btn_add.ssc(:clicked) do
       boot_wizard
       true
+    end
+    btn_delete.ssc(:clicked) do
+      true
+    end
+    listview.ssc(:delete_world) do |widget, worlds|
+      delete_world_with_confirm(worlds)
+      false
     end
     pack_start(Gtk::HBox.new(false, 4).
                  add(listview).
@@ -76,6 +84,19 @@ Plugin.create :change_account do
       Plugin.call(:account_add, res.result)
     }.trap{ |err|
       error err
+    }
+  end
+
+  def delete_world_with_confirm(worlds)
+    dialog(_("アカウントの削除")){
+      label _("以下のアカウントを本当に削除しますか？\n一度削除するともう戻ってこないよ")
+      worlds.each{ |world|
+        link world
+      }
+    }.next{
+      worlds.each{ |world|
+        Plugin.call(:account_destroy, world)
+      }
     }
   end
 
