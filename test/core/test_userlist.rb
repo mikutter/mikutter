@@ -2,7 +2,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../helper')
 miquire :lib, 'test_unit_extensions'
 miquire :core, 'userlist'
-miquire :core, 'service'
 
 Dir::chdir File.dirname(__FILE__) + '/../'
 
