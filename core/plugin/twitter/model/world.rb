@@ -39,6 +39,10 @@ module Plugin::Twitter
       user_obj.icon
     end
 
+    def title
+      user_obj.title
+    end
+
     def to_hash
       super.merge(user: {id: user_obj.id,
                          idname: user_obj.idname,
