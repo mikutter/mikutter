@@ -39,6 +39,7 @@ require File.expand_path(File.join(mikutter_directory, 'core/utils'))
 miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
 miquire :core, 'environment'
 Dir.chdir(Environment::CONFROOT)
+miquire :lib, 'diva_hacks'
 miquire :boot, 'load_plugin'
 
 notice "fire boot event"

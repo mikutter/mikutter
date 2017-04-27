@@ -1,6 +1,6 @@
 ---
-name: Account
-slug: account
+name: World
+slug: world
 description: mikutterにアカウント機能を追加するプラグインです
 depends:
   mikutter: '3.6'

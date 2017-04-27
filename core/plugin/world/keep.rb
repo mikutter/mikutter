@@ -10,7 +10,7 @@ require 'securerandom'
 アカウントデータの永続化を行うユーティリティ。
 このクラスは、他のプラグインからアクセスしないこと。
 =end
-module Plugin::Account
+module Plugin::World
   module Keep
     ACCOUNT_FILE = File.join(Environment::SETTINGDIR, 'core', 'token').freeze
     ACCOUNT_TMP = (ACCOUNT_FILE + ".write").freeze

@@ -19,7 +19,7 @@ module Service
     # ==== Return
     # [Array] アカウントを示すDiva::Modelを各要素に持った配列。
     def instances
-      results, = Plugin.filtering(:accounts, Array.new)
+      results, = Plugin.filtering(:worlds, Array.new)
       results
     end
     alias services instances
@@ -33,25 +33,25 @@ module Service
     # ==== Return
     # アクティブなアカウントに対応するModelか、存在しない場合はnil
     def primary
-      account, = Plugin.filtering(:account_current, nil)
-      account
+      world, = Plugin.filtering(:world_current, nil)
+      world
     end
     alias primary_service primary
 
     # 現在アクティブになっているサービスを返す。
     # Service.primary とちがって、サービスが一つも登録されていない時、例外を発生させる。
     # ==== Exceptions
-    # Plugin::Account::NotExistError :: (選択されている)Serviceが存在しない
+    # Plugin::World::NotExistError :: (選択されている)Serviceが存在しない
     # ==== Return
     # アクティブなService
     def primary!
       result = primary
-      raise Plugin::Account::NotExistError, 'Account does not exists.' unless result
+      raise Plugin::World::NotExistError, 'World does not exists.' unless result
       result
     end
 
     def set_primary(service)
-      Plugin.call(:account_change_current, service)
+      Plugin.call(:world_change_current, service)
       self
     end
 
@@ -67,7 +67,7 @@ module Service
 
       (twitter/:account/:verify_credentials).user.next { |user|
         id = "twitter#{user.id}".to_sym
-        Plugin::Account::Keep.account_register id, {
+        Plugin::World::Keep.account_register id, {
           provider: :twitter,
           slug: id,
           token: token,
@@ -84,7 +84,7 @@ module Service
     end
 
     def destroy(service)
-      Plugin.call(:account_destroy, service)
+      Plugin.call(:world_destroy, service)
     end
     def remove_service(service)
       destroy(service) end

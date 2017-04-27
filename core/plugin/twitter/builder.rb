@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require_relative 'model/twitter_account'
+require_relative 'model/world'
 
 module Plugin::Twitter
   class Builder
@@ -32,7 +32,7 @@ module Plugin::Twitter
         @twitter.a_secret = access_token.secret
         (@twitter/:account/:verify_credentials).user
       }.next{|user|
-        Plugin::Twitter::Account.new(
+        Plugin::Twitter::World.new(
           id: "twitter#{user.id}",
           slug: "twitter#{user.id}",
           token: @twitter.a_token,

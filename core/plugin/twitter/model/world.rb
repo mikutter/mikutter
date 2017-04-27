@@ -2,7 +2,7 @@
 miquire :lib, "mikutwitter"
 
 module Plugin::Twitter
-  class Account < Diva::Model
+  class World < Diva::Model
     register :twitter, name: "Twitterアカウント"
 
     field.string :id, required: true
@@ -179,7 +179,7 @@ module Plugin::Twitter
 
     def user_data_received(user)
       self[:user] = user
-      Plugin.call(:account_modify, self)
+      Plugin.call(:world_modify, self)
     end
 
     def user_data_failed(exception)

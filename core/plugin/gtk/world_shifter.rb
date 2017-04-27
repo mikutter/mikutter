@@ -2,7 +2,7 @@
 
 require "gtk2"
 
-class Gtk::AccountBox < Gtk::EventBox
+class Gtk::WorldShifter < Gtk::EventBox
   UserConfig[:gtk_accountbox_geometry] ||= 32
 
   def initialize

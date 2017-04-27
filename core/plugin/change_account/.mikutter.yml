@@ -6,7 +6,7 @@ depends:
   - settings
   - uitranslator
   - achievement
-  - account
+  - world
 version: '1.0'
 author: toshi_a
 name: Change Account

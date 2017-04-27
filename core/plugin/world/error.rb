@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-module Plugin::Account
+module Plugin::World
   Error = Class.new(StandardError)
-  InvalidAccountError = Class.new(Error)
+  InvalidWorldError = Class.new(Error)
   NotExistError = Class.new(Error)
 end

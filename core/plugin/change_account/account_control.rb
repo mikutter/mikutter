@@ -5,7 +5,7 @@ module ::Plugin::ChangeAccount
     COL_ICON = 0
     COL_NAME = 1
     COL_WORLD_NAME = 2
-    COL_ACCOUNT = 3
+    COL_WORLD = 3
 
     type_register
     signal_new(:delete_world, GLib::Signal::RUN_FIRST, nil, nil, Array)
@@ -26,27 +26,27 @@ module ::Plugin::ChangeAccount
 
     def content_initialize
       Enumerator.new{|y|
-        Plugin.filtering(:accounts, y)
+        Plugin.filtering(:worlds, y)
       }.each(&method(:add_column))
     end
 
-    def add_column(account)
+    def add_column(world)
       iter = model.append
-      if account.respond_to?(:icon) && account.icon
-        iter[COL_ICON] = account.icon.load_pixbuf(width: 16, height: 16) do |loaded|
+      if world.respond_to?(:icon) && world.icon
+        iter[COL_ICON] = world.icon.load_pixbuf(width: 16, height: 16) do |loaded|
           iter[COL_ICON] = loaded unless destroyed?
         end
       end
-      iter[COL_NAME] = account.title
-      iter[COL_WORLD_NAME] = account.class.slug
-      iter[COL_ACCOUNT] = account
+      iter[COL_NAME] = world.title
+      iter[COL_WORLD_NAME] = world.class.slug
+      iter[COL_WORLD] = world
     end
 
     def menu_pop(widget, event)
       contextmenu = Gtk::ContextMenu.new
       contextmenu.register("削除") do
         signal_emit(:delete_world, self.selection.to_enum(:selected_each).map {|model, path, iter|
-                      iter[Plugin::ChangeAccount::AccountControl::COL_ACCOUNT]
+                      iter[COL_WORLD]
                     })
       end
       contextmenu.popup(widget, widget)
@@ -54,11 +54,11 @@ module ::Plugin::ChangeAccount
 
     def event_listener_initialize
       tag = @plugin.handler_tag do
-        @plugin.on_account_add do |account|
-          add_column(account)
+        @plugin.on_world_create do |world|
+          add_column(world)
         end
-        @plugin.on_account_destroy do |account|
-          _, _, iter = Enumerator.new(model).find{|m,p,i| i[COL_ACCOUNT] == account }
+        @plugin.on_world_destroy do |world|
+          _, _, iter = Enumerator.new(model).find{|m,p,i| i[COL_WORLD] == world }
           model.remove(iter) if iter
         end
       end

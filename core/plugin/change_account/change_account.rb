@@ -71,7 +71,7 @@ Plugin.create :change_account do
   def boot_wizard
     dialog(_('アカウント追加')){
       select 'Select world', :world do
-        worlds, = Plugin.filtering(:account_setting_list, Hash.new)
+        worlds, = Plugin.filtering(:world_setting_list, Hash.new)
         worlds.values.each do |world|
           option world, world.name
         end
@@ -81,7 +81,7 @@ Plugin.create :change_account do
       selected_world = step1[:world]
       instance_eval(&selected_world.proc)
     }.next{ |res|
-      Plugin.call(:account_add, res.result)
+      Plugin.call(:world_create, res.result)
     }.trap{ |err|
       error err
     }
@@ -95,7 +95,7 @@ Plugin.create :change_account do
       }
     }.next{
       worlds.each{ |world|
-        Plugin.call(:account_destroy, world)
+        Plugin.call(:world_destroy, world)
       }
     }
   end
