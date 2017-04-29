@@ -19,8 +19,11 @@ module Service
     # ==== Return
     # [Array] アカウントを示すDiva::Modelを各要素に持った配列。
     def instances
-      results, = Plugin.filtering(:worlds, Array.new)
-      results
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :twitter
+      }
     end
     alias services instances
 

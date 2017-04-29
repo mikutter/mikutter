@@ -120,7 +120,7 @@ class User < Diva::Model
     if service.is_a? Enumerable
       service.any?(&method(:me?))
     else
-      service.user_obj == self
+      service.class.slug == :twitter and service.user_obj == self
     end
   end
 

@@ -7,7 +7,11 @@ Plugin.create :followingcontrol do
   counter = gen_counter
 
   on_period do
-    target = lazy{ Set.new(Service.instances) - @activating_services }
+    target = lazy{ Set.new(Enumerator.new{|y|
+                             Plugin.filtering(:worlds, y)
+                           }.select{|world|
+                             world.class.slug == :twitter
+                           }) - @activating_services }
     count = counter.call
     if 0 == count % UserConfig["retrieve_interval_followings"]
       rewind(:followings, target) end
@@ -165,5 +169,5 @@ Plugin.create :followingcontrol do
     }
   end
 
-  boot
+  Delayer.new{ boot }
 end

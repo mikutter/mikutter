@@ -545,9 +545,9 @@ class Message < Diva::Model
   def favorited_by_me?(me = Service.services)
     case me
     when Diva::Model
-      favorited_by.include? me.user_obj
+      me.class.slug == :twitter && favorited_by.include?(me.user_obj)
     when Enumerable
-      not (Set.new(favorited_by.map(&:idname)) & Set.new(me.map(&:idname))).empty?
+      not (Set.new(favorited_by.map(&:idname)) & Set.new(me.select{|w|w.class.slug == :twitter}.map(&:idname))).empty?
     else
       raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
 
@@ -723,7 +723,12 @@ class Message < Diva::Model
         if result
           result
         elsif policy == Diva::DataSource::USE_ALL
-          result = Service.primary.scan(:status_show, id: id)
+          twitter = Enumerator.new{|y|
+            Plugin.filtering(:worlds, y)
+          }.find{|world|
+            world.class.slug == :twitter
+          }
+          result = twitter.scan(:status_show, id: id)
           result end end
     rescue Exception => err
       error err

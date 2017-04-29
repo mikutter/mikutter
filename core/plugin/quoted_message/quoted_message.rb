@@ -42,7 +42,13 @@ Plugin.create :quoted_message do
         message.entity.select{ |entity| :urls == entity[:slug] }.map{ |entity|
           matched = Message::PermalinkMatcher.match(entity[:expanded_url])
           matched[:screen_name] if matched && matched.names.include?("screen_name".freeze) })
-      quoted_services = Service.select{|service| quoted_screen_names.include? service.user_obj.idname }
+      quoted_services = Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :twitter
+      }.select{|service|
+        quoted_screen_names.include? service.user_obj.idname
+      }
       unless quoted_services.empty?
         quoted_services.each do |service|
           Plugin.call :extract_receive_message, "nested_quote_quotedby_#{service.user_obj.id}".to_sym, [message] end

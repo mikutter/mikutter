@@ -76,7 +76,7 @@ module Plugin::DirectMessage
           raise e
         }.terminate end end
 
-    rewind
+    Delayer.new{ rewind }
 
   end
 end

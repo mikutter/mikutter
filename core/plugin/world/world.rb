@@ -72,7 +72,13 @@ Plugin.create(:world) do
       if provider
         provider.new(serialized)
       else
-        raise "unknown model #{serialized[:provider].inspect}"
+        Miquire::Plugin.load(serialized[:provider])
+        provider = Diva::Model(serialized[:provider])
+        if provider
+          provider.new(serialized)
+        else
+          raise "unknown model #{serialized[:provider].inspect}"
+        end
       end
     }.freeze
   end

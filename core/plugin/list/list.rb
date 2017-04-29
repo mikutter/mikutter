@@ -7,7 +7,7 @@ Plugin.create :list do
   crawl_count = Hash.new{|h,k|h[k] = gen_counter}
 
   on_period do |service|
-    if crawl_count[service].call >= UserConfig[:retrieve_interval_list_timeline]
+    if service.class.slug == :twitter && crawl_count[service].call >= UserConfig[:retrieve_interval_list_timeline]
       crawl_count[service] = gen_counter
       fetch_and_modify_for_using_lists(service)
     end
@@ -42,7 +42,7 @@ Plugin.create :list do
       Plugin.call(:extract_receive_message, datasource_slug(list), messages.lazy.select(&list.method(:related?))) end end
 
   on_service_registered do |service|
-    if service
+    if service.class.slug == :twitter
       fetch_and_modify_for_using_lists(service) end end
 
   on_service_destroyed do |service|
