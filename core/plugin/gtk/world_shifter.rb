@@ -6,7 +6,7 @@ class Gtk::WorldShifter < Gtk::EventBox
   UserConfig[:gtk_accountbox_geometry] ||= 32
 
   def initialize
-    Plugin[:gtk].on_primary_service_changed(&method(:change_user))
+    Plugin[:gtk].on_primary_service_changed(&method(:travel))
     super
     Plugin[:gtk].on_service_registered do |service|
       refresh end
@@ -16,7 +16,7 @@ class Gtk::WorldShifter < Gtk::EventBox
       open_menu event if 3 >= event.button
       false end
     ssc_atonce(:realize) do
-      change_user Service.primary end
+      travel Service.primary end
   end
 
   def refresh
@@ -31,14 +31,18 @@ class Gtk::WorldShifter < Gtk::EventBox
         @face = nil end end
   end
 
-  def change_user(service)
+  def travel(world)
     refresh
     if @face
-      user = service.user_obj
-      @face.pixbuf = user.icon.load_pixbuf(width: UserConfig[:gtk_accountbox_geometry],
-                                           height: UserConfig[:gtk_accountbox_geometry]){ |pixbuf|
-        if user == service.user_obj
-          @face.pixbuf = pixbuf end } end end
+      transaction = @world_transaction = SecureRandom.uuid
+      @face.pixbuf = world.icon.load_pixbuf(width: UserConfig[:gtk_accountbox_geometry],
+                                            height: UserConfig[:gtk_accountbox_geometry]) do |pixbuf|
+        if transaction == @world_transaction
+          @face.pixbuf = pixbuf
+        end
+      end
+    end
+  end
 
   def open_menu(event)
     @menu_last_services ||= Service.to_a.hash
