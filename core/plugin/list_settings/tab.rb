@@ -52,16 +52,22 @@ module Plugin::ListSettings
         on_extract(iter) } end
 
     def on_created(iter)
-      iter[SLUG] = "@#{Service.primary.user}/#{iter[NAME]}"
-      Service.primary.add_list(user: Service.primary.user_obj,
-                               mode: iter[PUBLICITY],
-                               name: iter[NAME],
-                               description: iter[DESCRIPTION]){ |event, list|
+      world, = Plugin.filtering(:world_current, nil)
+      return if world.class.slug == :twitter
+      iter[SLUG] = "@#{world.user_obj.idname}/#{iter[NAME]}"
+      world.add_list(user: world.user_obj,
+                     mode: iter[PUBLICITY],
+                     name: iter[NAME],
+                     description: iter[DESCRIPTION]){ |event, list|
         if :success == event and list
-          Plugin.call(:list_created, Service.primary, UserLists.new([list]))
+          Plugin.call(:list_created, world, UserLists.new([list]))
           if not(destroyed?)
             iter[LIST] = list
-            iter[SLUG] = list[:full_name] end end } end
+            iter[SLUG] = list[:full_name]
+          end
+        end
+      }
+    end
 
     def on_updated(iter)
       list = iter[LIST]

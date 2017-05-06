@@ -133,7 +133,14 @@ Plugin.create :saved_search do
   # ==== Return
   # Service か、見つからなければnil
   def service_by_user_id(user_id)
-    Service.find{ |service| service.user_obj.id == user_id } end
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.lazy.select{ |world|
+      world.class.slug == :twitter
+    }.find{ |twitter|
+      twitter.user_obj.id == user_id
+    }
+  end
 
   Delayer.new do
     at(:last_saved_search_state, {}).values.each{ |s|

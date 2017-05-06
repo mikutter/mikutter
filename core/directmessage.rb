@@ -31,9 +31,13 @@ module Mikutter::Twitter
       @to_show ||= self[:text].gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze
     end
 
-    def from_me?
-      return false if system?
-      Service.map(&:user_obj).include?(self[:user])
+    def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+      case world
+      when Enumerable
+        world.any?(&method(:from_me?))
+      when Diva::Model
+        world.class.slug == :twitter && world.user_obj == self.user
+      end
     end
 
     def to_me?

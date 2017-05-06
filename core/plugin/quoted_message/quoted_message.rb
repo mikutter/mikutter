@@ -6,8 +6,13 @@ Plugin.create :quoted_message do
   # Hash データソース
   def datasources
     ds = {nested_quoted_myself: _("ナウい引用(全てのアカウント)".freeze)}
-    Service.each do |service|
-      ds["nested_quote_quotedby_#{service.user_obj.id}".to_sym] = "@#{service.user_obj.idname}/" + _('ナウい引用'.freeze) end
+    Enumerator.new{|yielder|
+      Plugin.filtering(:worlds, yielder)
+    }.lazy.select{|world|
+      world.class.slug == :twitter
+    }.each do |twitter|
+      ds["nested_quote_quotedby_#{twitter.user_obj.id}".to_sym] = "@#{twitter.user_obj.idname}/" + _('ナウい引用'.freeze)
+    end
     ds end
 
   command(:copy_tweet_url,

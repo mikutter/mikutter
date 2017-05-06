@@ -116,11 +116,12 @@ class User < Diva::Model
       other[:id] == self[:id] end end
 
   # このUserオブジェクトが、登録されているアカウントのうちいずれかのものであるなら true を返す
-  def me?(service = Service.instances)
-    if service.is_a? Enumerable
-      service.any?(&method(:me?))
-    else
-      service.class.slug == :twitter and service.user_obj == self
+  def me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    case world
+    when Enumerable
+      world.any?(&method(:me?))
+    when Diva::Model
+      world.class.slug == :twitter && world.user_obj == self
     end
   end
 

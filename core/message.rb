@@ -135,10 +135,14 @@ class Message < Diva::Model
     favorite(false) end
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
-  def favorite?
-    favorited_by.include?(Service.primary!.user_obj)
-  rescue Plugin::World::NotExistError
-    false end
+  def favorite?(user_or_world=Service.primary)
+    case user_or_world
+    when User
+      favorited_by.include?(user_or_world)
+    when Plugin::Twitter::World
+      favorited_by.include?(user_or_world.user_obj)
+    end
+  end
 
   # 投稿がシステムメッセージだった場合にtrueを返す
   def system?
@@ -146,29 +150,47 @@ class Message < Diva::Model
   end
 
   # この投稿にリプライする権限があればtrueを返す
-  def repliable?
-    !!Service.primary end
+  def repliable?(world=nil)
+    world, = Plugin.filtering(:world_current, nil) unless world
+    world.class.slug == :twitter
+  end
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
-  def favoritable?
-    Service.primary end
+  def favoritable?(world=nil)
+    world, = Plugin.filtering(:world_current, nil) unless world
+    world.class.slug == :twitter
+  end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
-  def retweetable?
-    Service.primary and not protected? end
+  def retweetable?(world=nil)
+    world, = Plugin.filtering(:world_current, nil) unless world
+    world.class.slug == :twitter and not protected?
+  end
 
   # この投稿を削除する権限があればtrueを返す
   def deletable?
     from_me? end
 
   # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
-  def from_me?(services=Service)
-    services.map(&:user_obj).include?(self[:user]) end
+  def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    case world
+    when Enumerable
+      world.any?(&method(:from_me?))
+    when Diva::Model
+      world.class.slug == :twitter && world.user_obj == self.user
+    end
+  end
 
   # この投稿が自分宛ならばtrueを返す
-  def to_me?(services=Service)
-    services.map(&:user_obj).find(&method(:receive_to?)) end
+  def to_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    case world
+    when Enumerable
+      world.any?(&method(:to_me?))
+    when Diva::Model
+      world.class.slug == :twitter && receive_to?(world.user_obj)
+    end
+  end
 
   # この投稿が公開されているものならtrueを返す。少しでも公開範囲を限定しているならfalseを返す。
   def protected?
@@ -570,20 +592,23 @@ class Message < Diva::Model
     @retweets ||= Plugin.filtering(:retweeted_by, self, Set.new())[1].to_a.compact end
 
   # 選択されているユーザがこのツイートをリツイートしているなら真
-  def retweeted?
-    retweeted_users.include?(Service.primary!.user_obj)
-  rescue Plugin::World::NotExistError
-    false end
+  def retweeted?(world=nil)
+    unless world
+      world, = Plugin.filtering(:world_current, nil)
+    end
+    retweeted_users.include?(world.user_obj) if world.class.slug == :twitter
+  end
 
   # この投稿を「自分」がリツイートしていれば真
-  def retweeted_by_me?(me = Service.services)
-    case me
+  def retweeted_by_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    case world
     when Diva::Model
-      retweeted_users.include? me.user_obj
+      retweeted?(world)
     when Enumerable
-      not (Set.new(retweeted_users.map(&:idname)) & Set.new(me.map(&:idname))).empty?
-    else
-      raise ArgumentError, "first argument should be `Service' or `Enumerable'. but given `#{me.class}'" end end
+      our = Set.new(world.select{|w| w.class.slug == :twitter }.map(&:user_obj))
+      retweeted_users.any?(&our.method(:include?))
+    end
+  end
 
   # この投稿をリツイート等して、 _me_ のタイムラインに出現させたリツイートを返す。
   # 特に誰もリツイートしていない場合は _self_ を返す。
@@ -646,7 +671,7 @@ class Message < Diva::Model
     return retweet_source.add_favorited_by(user, time) if retweet?
     service = Service.primary
     if service
-      set_modified(time) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or service.user != user.idname)
+      set_modified(time) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or service.user_obj != user)
       favorited_by.add(user)
       Plugin.call(:favorite, service, user, self) end end
 
@@ -697,7 +722,7 @@ class Message < Diva::Model
       when User
         retweeted_sources << child if retweeted_users.include?(child) end end
     service = Service.primary
-    set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user != child.user.idname)) end
+    set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user_obj != child.user)) end
 
   def add_child_in_this_thread(child)
     children << child

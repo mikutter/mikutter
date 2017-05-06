@@ -177,7 +177,11 @@ Plugin.create :user_detail_view do
     icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
     arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = ::Gtk::VBox.new(false, 4)
-    Service.each{ |me|
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :twitter
+    }.each{ |me|
       following = followed = nil
       w_following_label = ::Gtk::Label.new(_("関係を取得中"))
       w_followed_label = ::Gtk::Label.new("")
@@ -220,7 +224,7 @@ Plugin.create :user_detail_view do
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
             w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get_path(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない") end }
-        Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
+        me.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
             m_following_refresh.call(rel[:following])
             m_followed_refresh.call(rel[:followed_by])

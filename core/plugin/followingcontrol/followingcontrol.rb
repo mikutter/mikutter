@@ -7,11 +7,11 @@ Plugin.create :followingcontrol do
   counter = gen_counter
 
   on_period do
-    target = lazy{ Set.new(Enumerator.new{|y|
-                             Plugin.filtering(:worlds, y)
-                           }.select{|world|
-                             world.class.slug == :twitter
-                           }) - @activating_services }
+    target = Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.lazy.select{|world|
+      world.class.slug == :twitter and not @activating_services.include?(world)
+    }
     count = counter.call
     if 0 == count % UserConfig["retrieve_interval_followings"]
       rewind(:followings, target) end
@@ -55,7 +55,7 @@ Plugin.create :followingcontrol do
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
-    if Service.map(&:user_obj).include?(model)
+    if model.me?
       userlist.add_user(Users.new((relation.followings[model] || []).reverse))
       events = []
       events << on_followings_created do |service, created|
@@ -91,7 +91,7 @@ Plugin.create :followingcontrol do
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
-    if Service.map(&:user_obj).include?(model)
+    if model.me?
     userlist.add_user(Users.new((relation.followers[model] || []).reverse))
       events = []
       events << on_followers_created do |service, created|
@@ -126,26 +126,30 @@ Plugin.create :followingcontrol do
     @activating_services = Set.new
     @relation = Struct.new(:followings, :followers).new(TimeLimitedStorage.new, TimeLimitedStorage.new)
 
-    Service.each(&method(:service_register))
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :twitter
+    }.each(&method(:service_register))
   end
 
   def relation
     @relation end
 
-  def rewind(direction, target)
+  def rewind(direction, targets)
     relation = @relation[direction.to_sym]
-    target.each { |service|
-      user = service.user_obj
-      service.__send__(direction, cache: :keep, user_id: user[:id]).next { |users|
+    targets.each { |twitter|
+      user = twitter.user_obj
+      twitter.__send__(direction, cache: :keep, user_id: user.id).next { |users|
         primitive = relation[user]
         if primitive and not primitive.empty?
           created = users - primitive
-          Plugin.call("#{direction}_created".to_sym, service, created) if not created.empty?
+          Plugin.call("#{direction}_created".to_sym, twitter, created) if not created.empty?
           destroyed = primitive - users
-          Plugin.call("#{direction}_destroy".to_sym, service, destroyed) if not destroyed.empty?
+          Plugin.call("#{direction}_destroy".to_sym, twitter, destroyed) if not destroyed.empty?
         else
           relation[user] = Users.new(users)
-          Plugin.call("#{direction}_modified".to_sym, service, users)
+          Plugin.call("#{direction}_modified".to_sym, twitter, users)
         end
       }
     }

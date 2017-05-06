@@ -29,8 +29,11 @@ module Plugin::DirectMessage
       datasources = {
         direct_message: _("ダイレクトメッセージ"),
       }.merge datasources
-      Service.map{ |service|
-        user = service.user_obj
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.lazy.select{|world|
+        world.class.slug == :twitter
+      }.map(&:user_obj).each{ |user|
         datasources.merge!({ extract_slug_for(user) => "@#{user.idname}/" + _("ダイレクトメッセージ") })
       }
       [datasources] end

@@ -3,6 +3,8 @@ miquire :lib, "mikutwitter"
 
 module Plugin::Twitter
   class World < Diva::Model
+    extend Gem::Deprecate
+
     register :twitter, name: "Twitterアカウント"
 
     field.string :id, required: true
@@ -31,9 +33,10 @@ module Plugin::Twitter
     alias to_user user_obj
 
     # 自分のユーザ名を返す。初回はサービスに問い合せてそれを返す。
-    def user
+    def idname
       self[:user].idname end
-    alias :idname :user
+    alias :user :idname
+    deprecate :user, "user_obj.idname", 2018, 05
 
     def icon
       user_obj.icon
