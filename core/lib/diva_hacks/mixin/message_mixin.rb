@@ -21,11 +21,13 @@ module Diva::Model::MessageMixin
     Deferred.new{ true }
   end
 
-  # この投稿が、 _Service.primary_ にお気に入り登録されているか否かを返す。
+  # この投稿が、 _counterpart_ にお気に入り登録されているか否かを返す。
+  # ==== Args
+  # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
   # [true] お気に入りに登録している
   # [false] 登録していない
-  def favorite?
+  def favorite?(counterpart=nil)
     false
   end
 
@@ -38,10 +40,12 @@ module Diva::Model::MessageMixin
 
   # この投稿が、 _Service.primary_ でお気に入りの対応状況を取得する。
   # 既にお気に入りに追加されているとしても、Serviceが対応しているならtrueとなる。
+  # ==== Args
+  # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
   # [true] お気に入りに対応している
   # [false] 対応していない
-  def favoritable?
+  def favoritable?(counterpart=nil)
     false
   end
 
@@ -62,11 +66,13 @@ module Diva::Model::MessageMixin
     false
   end
 
-  # _Service.primary_ で、このインスタンスがReTweetされているか否かを返す
+  # _counterpart_ で、このインスタンスがReTweetされているか否かを返す
+  # ==== Args
+  # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
   # [true] 既にReTweetしている
   # [false] していない
-  def retweeted?
+  def retweeted?(counterpart=nil)
     false
   end
 
@@ -77,12 +83,14 @@ module Diva::Model::MessageMixin
     []
   end
 
-  # _Service.primary_ が、このインスタンスをReTweetすることに対応しているか否かを返す
+  # _counterpart_ が、このインスタンスをReTweetすることに対応しているか否かを返す
   # 既にReTweetしている場合は、必ず _true_ を返す。
+  # ==== Args
+  # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
   # [true] ReTweetに対応している
   # [false] していない
-  def retweetable?
+  def retweetable?(counterpart=nil)
     false
   end
 
@@ -145,11 +153,11 @@ module Diva::Model::MessageMixin
     self[:modified] || created
   end
 
-  def from_me?
+  def from_me?(counterpart=nil)
     false
   end
 
-  def to_me?
+  def to_me?(counterpart=nil)
     false
   end
 
@@ -157,7 +165,7 @@ module Diva::Model::MessageMixin
     user.idname
   end
 
-  def repliable?
+  def repliable?(counterpart=nil)
     false
   end
 
