@@ -175,6 +175,8 @@ module Plugin::Twitter
           post_tweet(replyto: first_responder, message: message)
         when :twitter_user
           post_tweet(receiver: first_responder, message: message)
+        when :twitter_direct_message
+          post_dm(user: first_responder.user, text: message)
         else
           raise "invalid responder slug #{first_responder.class.slug.inspect}"
         end
@@ -201,6 +203,13 @@ module Plugin::Twitter
         Plugin.call(:update, self, [message])
         message
       }
+    end
+
+    def post_dm(options)
+      twitter.send_direct_message(options).next do |dm|
+        Plugin.call(:direct_messages, self, [dm])
+        dm
+      end
     end
 
     def user_initialize
