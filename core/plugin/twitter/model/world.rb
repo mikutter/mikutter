@@ -158,6 +158,31 @@ module Plugin::Twitter
 
     define_postal :unfavorite
 
+    def postable?(target=nil)
+      case target.class.slug
+      when :twitter_tweet, :twitter_user, :twitter
+        true
+      end if target.is_a?(Diva::Model)
+    end
+
+    def post(to: nil, message:, **kwrest)
+      options = {message: message}
+      if to and !to.empty?
+        first_responder = Array(to).first
+        case first_responder.class.slug
+        when :twitter_tweet
+          options[:replyto] = first_responder
+        when :twitter_user
+          options[:receiver] = first_responder
+        end
+      end
+      twitter.update(options).next{ |message|
+        Plugin.call(:posted, self, [message])
+        Plugin.call(:update, self, [message])
+        message
+      }
+    end
+
     def inspect
       "#<#{self.class.to_s}: #{id.inspect} #{slug.inspect}>"
     end

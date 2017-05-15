@@ -38,7 +38,11 @@ module ::Plugin::Command
   # 選択されているツイートが全てリプライ可能な時。
   # ツイートが選択されていなければ偽
   CanReplyAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all?(&:repliable?) }
+    if not opt.messages.empty?
+      current_world, = Plugin.filtering(:world_current, nil)
+      current_world & opt.messages =~ :postable?
+    end
+  }
 
   # 選択されているツイートのうち、一つでも現在のアカウントでリツイートできるものがあれば真を返す
   CanReTweetAny = Condition.new { |opt|

@@ -106,8 +106,7 @@ class Message < Diva::Model
 
   # この投稿へのリプライをつぶやく
   def post(other, &proc)
-    other[:replyto] = self
-    other[:receiver] = self[:user]
+    other[:to] = [self]
     service = Service.primary
     service.post(other){|*a| yield(*a) if block_given? }
   end

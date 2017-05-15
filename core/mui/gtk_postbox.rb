@@ -25,7 +25,7 @@ module Gtk
     # ==== Args
     # [postable] Service|Message リプライ先か、投稿するアカウント(3.3 obsolete)
     # [to] Enumerable 返信するMessage
-    # [from] Service|nil 送信者。nilを指定すると、その時のプライマリアカウントになる
+    # [from] Diva::Model|nil 送信者。nilを指定すると、その時のカレントワールドになる
     # [header] String テキストフィールドのカーソルの前に最初から入力されている文字列
     # [footer] String テキストフィールドのカーソルの後ろに最初から入力されている文字列
     # [to_display_only] true|false toに宛てたリプライを送るなら偽。真ならUI上にtoが表示されるだけ
@@ -152,14 +152,19 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        @posting = service.post(:message => text){ |event, msg|
-          case event
-          when :start
-            Delayer.new{ start_post }
-          when :fail
-            Delayer.new{ end_post }
-          when :success
-            Delayer.new{ destroy } end } end end
+        @posting = service.post(
+          to: to_display_only? ? service : @to,
+          message: text,
+          attachments: []
+        ).next{
+          destroy
+        }.trap{ |err|
+          warn err
+          end_post
+        }
+        start_post
+      end
+    end
 
     def destroy
       @@ringlock.synchronize{
@@ -191,7 +196,8 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) end
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and service | (@to.empty? ? service : @to) =~ :postable?
+    end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
     # ==== Return
@@ -239,10 +245,13 @@ module Gtk
         true end end
 
     def service
-      if to_display_only?
-        @from || Service.primary
-      else
-        @to.first || @from || Service.primary end end
+      @from || current_world
+    end
+
+    private def current_world
+      world, = Plugin.filtering(:world_current, nil)
+      world
+    end
 
     # テキストが編集前と同じ状態なら真を返す。
     # ウィジェットが破棄されている場合は、常に真を返す
