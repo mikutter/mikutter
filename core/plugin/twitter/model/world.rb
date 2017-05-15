@@ -166,21 +166,21 @@ module Plugin::Twitter
     end
 
     def post(to: nil, message:, **kwrest)
-      options = {message: message}
-      if to and !to.empty?
-        first_responder = Array(to).first
+      first_responder = Array(to).first || self
+      if defined?(first_responder.class.slug)
         case first_responder.class.slug
+        when nil, :twitter
+          post_tweet(message: message)
         when :twitter_tweet
-          options[:replyto] = first_responder
+          post_tweet(replyto: first_responder, message: message)
         when :twitter_user
-          options[:receiver] = first_responder
+          post_tweet(receiver: first_responder, message: message)
+        else
+          raise "invalid responder slug #{first_responder.class.slug.inspect}"
         end
+      else
+        raise "invalid responder #{first_responder.inspect}"
       end
-      twitter.update(options).next{ |message|
-        Plugin.call(:posted, self, [message])
-        Plugin.call(:update, self, [message])
-        message
-      }
     end
 
     def inspect
@@ -194,6 +194,14 @@ module Plugin::Twitter
     end
 
     private
+
+    def post_tweet(options)
+      twitter.update(options).next{ |message|
+        Plugin.call(:posted, self, [message])
+        Plugin.call(:update, self, [message])
+        message
+      }
+    end
 
     def user_initialize
       if self[:user]

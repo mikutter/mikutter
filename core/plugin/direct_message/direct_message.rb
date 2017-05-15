@@ -21,7 +21,7 @@ module Plugin::DirectMessage
       set_icon Skin['directmessage.png']
       u = model
       timeline timeline_name_for(u) do
-        postbox(from: Sender.new(u), delegate_other: true)
+        postbox(from: Sender.new, to: u, delegate_other: true)
       end
     end
 
