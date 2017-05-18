@@ -61,25 +61,28 @@ module Plugin::DirectMessage
       :"direct_messages_from_#{user.idname}"
     end
 
-    onperiod do
-      if 0 == (@counter.call % UserConfig[:retrieve_interval_direct_messages])
-        rewind end end
+    def interval
+      Reserver.new([60, (UserConfig[:retrieve_interval_direct_messages] || 1).to_i * 60].max, thread: Delayer) do
+        interval
+        Enumerator.new{|y|
+          Plugin.filtering(:worlds, y)
+        }.lazy.select{|w| w.class.slug == :twitter }.each(&method(:rewind))
+      end
+    end
 
-    def rewind
-      service = Service.primary
-      if service
-        Deferred.when(
-            service.direct_messages(cache: :keep),
-            service.sent_direct_messages(cache: :keep)
-        ).next{ |dm, sent|
-          result = dm + sent
-          Plugin.call(:direct_messages, service, result) unless result.empty?
-        }.trap{ |e|
-          error e
-          raise e
-        }.terminate end end
+    def rewind(world)
+      Deferred.when(
+        world.direct_messages(cache: :keep),
+        world.sent_direct_messages(cache: :keep)
+      ).next{ |dm, sent|
+        result = dm + sent
+        Plugin.call(:direct_messages, world, result) unless result.empty?
+      }.terminate.trap{ |err|
+        error e
+      }
+    end
 
-    Delayer.new{ rewind }
+    Delayer.new{ interval }
 
   end
 end
