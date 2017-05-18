@@ -720,8 +720,8 @@ class Message < Diva::Model
         retweeted_sources.delete(child.user) if retweeted_sources.include?(child.user)
       when User
         retweeted_sources << child if retweeted_users.include?(child) end end
-    service = Service.primary
-    set_modified(created_at) if service and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or service.user_obj != child.user)) end
+    world, = Plugin.filtering(:world_current, nil)
+    set_modified(created_at) if world and world.class.slug == :twitter and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != child.user)) end
 
   def add_child_in_this_thread(child)
     children << child
