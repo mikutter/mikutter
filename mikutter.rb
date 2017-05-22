@@ -69,12 +69,12 @@ def boot!(profile)
   rescue => exception
     into_debug_mode(exception)
     notice "catch exception `#{exception.class}'"
-    raise exception
+    raise
   rescue Exception => exception
     notice "catch exception `#{exception.class}'"
     exception = Mainloop.exception_filter(exception)
     notice "=> `#{exception.class}'"
-    raise exception end
+    raise end
   exception = Mainloop.exception_filter(nil)
   if exception
     notice "raise mainloop exception `#{exception.class}'"
@@ -83,6 +83,13 @@ def boot!(profile)
 
 def error_handling!(exception)
   notice "catch #{exception.class}"
+  if Mopt.debug && exception.respond_to?(:deferred) && exception.deferred
+    if command_exist?('dot')
+      notice "[[#{exception.deferred.graph_draw}]]"
+    else
+      notice exception.deferred.graph
+    end
+  end
   File.open(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception')), 'w'){ |io| Marshal.dump(exception, io) }
   raise exception end
 
