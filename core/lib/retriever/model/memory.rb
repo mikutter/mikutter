@@ -7,9 +7,9 @@ class Retriever::Model::Memory
 
   def findbyid(id, policy)
     if id.is_a? Enumerable
-      id.map{ |i| @storage[i.to_i] }
+      id.map{ |i| @storage[i] }
     else
-      @storage[id.to_i] end
+      @storage[id] end
   end
 
   def store_datum(datum)
