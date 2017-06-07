@@ -25,7 +25,7 @@ end
 
 Plugin.create :photo_support do
   # twitpic
-  defimageopener('twitpic', %r<^http://twitpic\.com/[a-zA-Z0-9]+>) do |display_url|
+  defimageopener('twitpic', %r<^https?://twitpic\.com/[a-zA-Z0-9]+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
