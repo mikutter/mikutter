@@ -17,6 +17,10 @@ module Plugin::Search
       new(query: CGI.unescape(query))
     end
 
+    def title
+      Plugin[:search]._("「%{query}」でツイート検索") % {query: query}
+    end
+
     memoize def perma_link
       Retriever::URI.new("https://twitter.com/search?q=#{CGI.escape(self.query)}")
     end
