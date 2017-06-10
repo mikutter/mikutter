@@ -75,6 +75,7 @@ class Depend < Ripper::Filter
 end
 
 def spec_generate(dir)
+  dir = File.expand_path(dir)
   specfile = File.join(dir, ".mikutter.yml")
   legacy_specfile = File.join(dir, "spec")
   spec = if FileTest.exist?(specfile)
