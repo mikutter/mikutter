@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # 設定ファイルなどの権限チェック
 
+require 'fileutils'
 miquire :core, 'environment'
 
 begin

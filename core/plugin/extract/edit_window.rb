@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 require 'observer'
 miquire :mui, 'hierarchycal_selectbox'
+require_relative 'model/setting'
+require_relative 'option_widget'
 
 module Plugin::Extract
 end
 
-class Plugin::Extract::EditWindow < Gtk::Window
+class  Plugin::Extract::EditWindow < Gtk::Window
+  attr_reader :extract
 
+  # ==== Args
+  # [extract] 抽出タブ設定 (Plugin::Extract::Setting)
+  # [plugin] プラグインのインスタンス (Plugin)
   def initialize(extract, plugin)
     @plugin = plugin
-    @extract = extract.dup.freeze
+    @extract = extract
     super(_('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME})
     add(Gtk::VBox.new().
         add(Gtk::Notebook.new.
@@ -20,69 +26,43 @@ class Plugin::Extract::EditWindow < Gtk::Window
                 add(Gtk::HBox.new().
                     closeup(ok_button).right)))
     ssc(:destroy) do
-      Plugin.call :extract_tab_update, self.to_h end
+      @extract.notify_update
+      false
+    end
     set_size_request 480, 320
     show_all end
 
   def name
-    @extract[:name] || "".freeze end
+    @extract.name end
 
   def sexp
-    @extract[:sexp] end
+    @extract.sexp end
 
   def id
-    @extract[:id] end
+    @extract.id end
 
   def sources
-    @extract[:sources] || [] end
+    @extract.sources end
 
   def slug
-    @extract[:slug] end
+    @extract.slug end
 
   def sound
-    @extract[:sound] end
+    @extract.sound end
 
   def popup
-    @extract[:popup] end
+    @extract.popup end
+
+  def order
+    @extract.order end
 
   def icon
-    @extract[:icon] end
-
-  # extract の内容を返す
-  # ==== Return
-  # @extract の内容(Hash)
-  def to_h
-    { name: name,
-      sexp: sexp,
-      id: id,
-      slug: slug,
-      sources: sources,
-      sound: sound,
-      popup: popup,
-      icon: icon }.freeze end
-
-  # 名前入力ウィジェットを返す
-  # ==== Return
-  # Gtk::HBox.new
-  def name_widget
-    @name_widget ||= Gtk::HBox.new().
-      closeup(Gtk::Label.new(_('名前'))).
-      add(name_entry) end
-
-  # 名前入力ボックス
-  # ==== Return
-  # Gtk::Entry
-  def name_entry
-    @name_entry ||= Gtk::Entry.new().tap { |name_entry|
-      name_entry.set_text name
-      name_entry.ssc(:changed){ |widget|
-
-        false } } end
+    @extract.icon end
 
   def source_widget
-    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, name|
-      [id, name.is_a?(String) ? name.split('/'.freeze) : name] end
-    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources.map(&:to_sym)){
+    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, source_name|
+      [id, source_name.is_a?(String) ? source_name.split('/'.freeze) : source_name] end
+    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources){
       modify_value sources: datasources_box.selected.to_a }
     scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
     @source_widget ||= Gtk::HBox.new().
@@ -98,35 +78,33 @@ class Plugin::Extract::EditWindow < Gtk::Window
       modify_value sexp: @condition_form.to_a
     } end
 
-  def generate_modifier(method)
-    Plugin::Settings::Listener.new.get {
-      __send__(method)
-    }.set { |v|
-      modify_value method => v } end
-
   def option_widget
-    name_modifier = generate_modifier :name
-    icon_modifier = generate_modifier :icon
-    sound_modifier = generate_modifier :sound
-    popup_modifier = generate_modifier :popup
-    Plugin::Settings.new(Plugin[:extract]) do
-      input _('名前'), name_modifier
-      fileselect _('アイコン'), icon_modifier, Skin.path
+    Plugin::Extract::OptionWidget.new(@plugin, @extract) do
+      input _('名前'), :name
+      fileselect _('アイコン'), :icon, Skin.path
       settings _('通知') do
-        fileselect _('サウンド'), sound_modifier
-        boolean _('ポップアップ'), popup_modifier end end end
+        fileselect _('サウンド'), :sound
+        boolean _('ポップアップ'), :popup
+      end
+      select(_('並び順'), :order, Hash[Plugin.filtering(:extract_order, []).first.map{|o| [o.slug.to_s, o.name] }])
+    end
+  end
 
   def ok_button
     Gtk::Button.new(_('閉じる')).tap{ |button|
       button.ssc(:clicked){
         self.destroy } } end
 
+  def refresh_title
+    set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
+  end
+
   private
 
   def modify_value(new_values)
-    @extract = @extract.merge(new_values).freeze
-    set_title _('%{name} - 抽出タブ - %{application_name}') % {name: name, application_name: Environment::NAME}
-    Plugin.call :extract_tab_update, self.to_h
+    @extract.merge(new_values)
+    refresh_title
+    @extract.notify_update
     self end
 
   def _(message)

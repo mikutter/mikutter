@@ -1,39 +1,15 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'plugin'
-
-require 'gtk2'
-
 =begin rdoc
-プラグインに、簡単に設定ファイルを定義する機能を提供する。
-以下の例は、このクラスを利用してプラグインの設定画面を定義する例。
-  Plugin.create(:test) do
-    settings("設定") do
-      boolean "チェックする", :test_check
-    end
-  end
-
-settingsの中身は、 Plugin::Settings のインスタンスの中で実行される。
-つまり、 Plugin::Settings のインスタンスメソッドは、 _settings{}_ の中で実行できるメソッドと同じです。
-例ではbooleanメソッドを呼び出して、真偽値を入力させるウィジェットを配置させるように定義している
-(チェックボックス)。明確にウィジェットを設定できるわけではなくて、値の意味を定義するだけなので、
-前後関係などに影響されてウィジェットが変わる場合があるかも。
+UIを定義するためのDSLメソッドをクラスに追加するmix-in。
+現在の値（初期値）を返す[]メソッドと、値が変更された時に呼ばれる[]=メソッドを定義すること。
 =end
-class Plugin::Settings < Gtk::VBox
-
-  def initialize(plugin)
-    type_strict plugin => Plugin
-    super()
-    @plugin = plugin
-    if block_given?
-      instance_eval(&Proc.new)
-    end
-  end
+module Gtk::FormDSL
 
   # 複数行テキスト
   # ==== Args
   # [label] ラベル
-  # [config] 設定のキー
+  # [config] キー
   def multitext(label, config)
     container = Gtk::HBox.new(false, 0)
     input = Gtk::TextView.new
@@ -42,11 +18,13 @@ class Plugin::Settings < Gtk::VBox
     input.accepts_tab = false
     input.editable = true
     input.width_request = HYDE
-    input.buffer.text = Listener[config].get || ''
+    input.buffer.text = self[config] || ''
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-    input.buffer.ssc('changed'){ |widget|
-      Listener[config].set widget.text }
+    input.buffer.ssc(:changed){ |widget|
+      self[config] = widget.text
+      false
+    }
     closeup container
     container
   end
@@ -60,10 +38,10 @@ class Plugin::Settings < Gtk::VBox
   def adjustment(name, config, min, max)
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(name), false, true, 0)
-    adj = Gtk::Adjustment.new((Listener[config].get or min).to_f, min.to_f, max.to_f, 1.0, 5.0, 0.0)
+    adj = Gtk::Adjustment.new((self[config] or min).to_f, min.to_f, max.to_f, 1.0, 5.0, 0.0)
     spinner = Gtk::SpinButton.new(adj, 0, 0)
-    adj.signal_connect('value-changed'){ |widget, e|
-      Listener[config].set widget.value.to_i
+    adj.signal_connect(:value_changed){ |widget, e|
+      self[config] = widget.value.to_i
       false
     }
     closeup container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
@@ -73,19 +51,22 @@ class Plugin::Settings < Gtk::VBox
   # 真偽値入力
   # ==== Args
   # [label] ラベル
-  # [config] 設定のキー
+  # [config] キー
   def boolean(label, config)
     input = Gtk::CheckButton.new(label)
-    input.active = Listener[config].get
-    input.signal_connect('toggled'){ |widget|
-      Listener[config].set widget.active? }
+    input.active = self[config]
+    input.signal_connect(:toggled){ |widget|
+      self[config] = widget.active?
+      false
+    }
     closeup input
-    input end
+    input
+  end
 
   # ファイルを選択する
   # ==== Args
   # [label] ラベル
-  # [config] 設定のキー
+  # [config] キー
   # [dir] 初期のディレクトリ
   def fileselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
     fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
@@ -103,15 +84,17 @@ class Plugin::Settings < Gtk::VBox
   # 一行テキストボックス
   # ==== Args
   # [label] ラベル
-  # [config] 設定のキー
+  # [config] キー
   def input(label, config)
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
-    input.text = Listener[config].get || ""
+    input.text = self[config] || ""
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-    input.signal_connect('changed'){ |widget|
-      Listener[config].set widget.text }
+    input.signal_connect(:changed){ |widget|
+      self[config] = widget.text
+      false
+    }
     closeup container
     container
   end
@@ -124,11 +107,13 @@ class Plugin::Settings < Gtk::VBox
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.visibility = false
-    input.text = Listener[config].get
+    input.text = self[config] || ''
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-    input.signal_connect('changed'){ |widget|
-      Listener[config].set widget.text }
+    input.signal_connect(:changed){ |widget|
+      self[config] = widget.text
+      false
+    }
     closeup container
     container
   end
@@ -144,22 +129,27 @@ class Plugin::Settings < Gtk::VBox
       input_ary = []
       btn_add = Gtk::Button.new(Gtk::Stock::ADD)
       array_converter = lambda {
-        c = Listener[config].get || []
+        c = self[config] || []
         (c.is_a?(Array) ? c : [c]).compact }
       add_button = lambda { |content|
         input = Gtk::Entry.new
         input.text = content.to_s
         input.ssc(:changed) { |w|
-          Listener[config].set w.parent.children.map(&:text).compact }
-        input.ssc('focus_out_event'){ |w|
+          self[config] = w.parent.children.map(&:text).compact
+          false
+        }
+        input.ssc(:focus_out_event){ |w|
           w.parent.remove(w) if w.text.empty?
-          false }
+          false
+        }
         box.closeup input
-        input }
+        input
+      }
       input_ary = array_converter.call.each(&add_button)
       btn_add.ssc(:clicked) { |w|
         w.get_ancestor(Gtk::Window).set_focus(add_button.call("").show)
-        false }
+        false
+      }
       container.pack_start(box, true, true, 0)
       container.pack_start(Gtk::Alignment.new(1.0, 1.0, 0, 0).add(btn_add), false, true, 0)
       closeup container
@@ -177,7 +167,7 @@ class Plugin::Settings < Gtk::VBox
       group.set_label_widget(title)
     else
       group.set_label(title) end
-    box = Plugin::Settings.new(@plugin).set_border_width(4)
+    box = create_inner_setting.set_border_width(4)
     box.instance_eval(&Proc.new)
     closeup group.add(box)
     group
@@ -202,13 +192,19 @@ class Plugin::Settings < Gtk::VBox
     name_mapper = Hash.new{|h,k| k }
     name_mapper[:name] = :program_name
     about = Gtk::Button.new(label)
-    about.signal_connect("clicked"){
+    about.signal_connect(:clicked){
       dialog = Gtk::AboutDialog.new.show
       options.each { |key, value|
-        dialog.__send__("#{name_mapper[key]}=", about_converter[key][value]) }
-      dialog.signal_connect('response') { dialog.destroy } }
+        dialog.__send__("#{name_mapper[key]}=", about_converter[key][value])
+      }
+      dialog.signal_connect(:response){
+        dialog.destroy
+        false
+      }
+    }
     closeup about
-    about end
+    about
+  end
 
   # フォントを決定させる。押すとフォント、サイズを設定するダイアログが出てくる。
   # ==== Args
@@ -216,7 +212,8 @@ class Plugin::Settings < Gtk::VBox
   # [config] 設定のキー
   def font(label, config)
     closeup container = Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(fontselect(label, config))
-    container end
+    container
+  end
 
   # 色を決定させる。押すと色を設定するダイアログが出てくる。
   # ==== Args
@@ -224,7 +221,8 @@ class Plugin::Settings < Gtk::VBox
   # [config] 設定のキー
   def color(label, config)
     closeup container = Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(colorselect(label, config))
-    container end
+    container
+  end
 
   # フォントと色を決定させる。
   # ==== Args
@@ -233,7 +231,8 @@ class Plugin::Settings < Gtk::VBox
   # [color] 色の設定のキー
   def fontcolor(label, font, color)
     closeup container = font(label, font).closeup(colorselect(label, color))
-    container end
+    container
+  end
 
   # 要素を１つ選択させる
   # ==== Args
@@ -244,10 +243,11 @@ class Plugin::Settings < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def select(label, config, default = {})
-    builder = Plugin::Settings::Select.new(@plugin, default)
+    builder = Gtk::FormDSL::Select.new(self, default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
-    container end
+    container
+  end
 
   # 要素を複数個選択させる
   # ==== Args
@@ -258,37 +258,51 @@ class Plugin::Settings < Gtk::VBox
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
   def multiselect(label, config, default = {})
-    builder = Plugin::Settings::MultiSelect.new(@plugin, default)
+    builder = Gtk::FormDSL::MultiSelect.new(self, default)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
-    container end
+    container
+  end
+
+  # settingsメソッドとSelectから内部的に呼ばれるメソッド。Groupの中に入れるGtkウィジェットを返す。
+  # 戻り値は同時にこのmix-inをロードしている必要がある。
+  def create_inner_setting
+    self.new()
+  end
+
+  def method_missing_at_select_dsl(*args, &block)
+    method_missing(*args, &block)
+  end
 
   private
+
   def about_converter
-    Hash.new(ret_nth).merge!( :logo => lambda{ |value| Gtk::WebIcon.new(value).pixbuf rescue nil } ) end
+    Hash.new(ret_nth).merge!( :logo => lambda{ |value| Gtk::WebIcon.new(value).pixbuf rescue nil } )
+  end
   memoize :about_converter
 
   def colorselect(label, config)
-    color = Listener[config].get
+    color = self[config]
     button = Gtk::ColorButton.new((color and Gdk::Color.new(*color)))
     button.title = label
-    button.signal_connect('color-set'){ |w|
-      Listener[config].set w.color.to_a }
-    button end
+    button.signal_connect(:color_set){ |w|
+      self[config] = w.color.to_a }
+    button
+  end
 
   def fontselect(label, config)
-    button = Gtk::FontButton.new(Listener[config].get)
+    button = Gtk::FontButton.new(self[config])
     button.title = label
-    button.signal_connect('font-set'){ |w|
-      Listener[config].set w.font_name }
+    button.signal_connect(:font_set){ |w|
+      self[config] = w.font_name }
     button end
 
   def fsselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label)
     container = input(label, config)
     input = container.children.last.children.first
-    button = Gtk::Button.new(_('参照'))
+    button = Gtk::Button.new(Plugin[:settings]._('参照'))
     container.pack_start(button, false)
-    button.signal_connect('clicked'){ |widget|
+    button.signal_connect(:clicked){ |widget|
       dialog = Gtk::FileChooserDialog.new(title,
                                           widget.get_ancestor(Gtk::Window),
                                           action,
@@ -297,23 +311,13 @@ class Plugin::Settings < Gtk::VBox
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(dir)
       if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-        Listener[config].set dialog.filename
+        self[config] = dialog.filename
         input.text = dialog.filename
       end
       dialog.destroy
     }
     container
   end
-
-  def _(text)
-    Plugin[:settings]._(text) end
-
-  def method_missing(*args, &block)
-    @plugin.__send__(*args, &block)
-  end
-
 end
 
-require File.expand_path File.join(File.dirname(__FILE__), 'select')
-require File.expand_path File.join(File.dirname(__FILE__), 'multiselect')
-require File.expand_path File.join(File.dirname(__FILE__), 'listener')
+miquire :mui, 'form_dsl_select', 'form_dsl_multi_select'

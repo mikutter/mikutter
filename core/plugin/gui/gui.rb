@@ -79,6 +79,33 @@ Plugin.create :gui do
                        i_fragment.instance_eval_with_delegate(self, &proc) end } ])
       [tabs, i_cluster, message] end end
 
+  # ダイアログボックスを作成し表示する。
+  # ダイアログボックスの内容は _proc_ によって生成される。
+  # _proc_ からは、 _Gtk::FormDSL_ のメソッドを利用して内容を作成できる。
+  # ==== Args
+  # [title] ダイアログボックスタイトルバー等に表示されるテキスト(String)
+  # [default] エレメントのデフォルト値。{キー: デフォルト値}のようなHash
+  # ==== Return
+  # 入力の完了・中断を通知する _Delayer::Deferred_ 。
+  # OKボタンが押された場合は _next_ が、キャンセルが押されたり、ボタンを押さずにダイアログを閉じた場合は _trap_ が呼ばれる。
+  # ブロックに渡されるオブジェクトは:
+  # ===== OKボタンが押された場合
+  #     obj.ok? # => true
+  #     obj.state # => :ok
+  #     obj[:'フォームエレメントのキー(Symbol)'] # => フォームに入力されている値
+  #     obj.to_h # => {フォームエレメントのキー: フォームに入力されている値} のHash
+  # ===== キャンセルボタンが押された場合
+  #     obj.ok? # => false
+  #     obj.state # => :cancel
+  # ===== ボタンを押さずにダイアログを閉じられた場合
+  #     obj.ok? # => false
+  #     obj.state # => :close
+  defdsl :dialog do |title, default={}, &proc|
+    promise = Delayer::Deferred.new(true)
+    Plugin.call(:gui_dialog, self, title, default, proc, promise)
+    promise
+  end
+
   # obsolete
   defdsl :profiletab do |slug, title, &proc|
     warn 'Plugin#profiletab is obsolete. use Plugin#user_fragment'

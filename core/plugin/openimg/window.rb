@@ -17,7 +17,7 @@ module Plugin::Openimg
       Thread.new {
         Plugin.filtering(:openimg_pixbuf_from_display_url, photo, nil, nil)
       }.next { |_, pixbufloader, complete_promise|
-        if pixbufloader.is_a? Gdk::PixbufLoader
+        if pixbufloader.is_a? GdkPixbuf::PixbufLoader
           rect = nil
           pixbufloader.ssc(:area_updated, self) do |_, x, y, width, height|
             if rect
@@ -40,11 +40,12 @@ module Plugin::Openimg
 
           complete_promise.next{
             progress(pixbufloader.pixbuf, paint: true)
-            pixbufloader.close
           }.trap { |exception|
             error exception
             @image_surface = error_surface
             redraw(repaint: true)
+          }.next {
+            pixbufloader.close
           }
         else
           warn "cant open: #{photo}"

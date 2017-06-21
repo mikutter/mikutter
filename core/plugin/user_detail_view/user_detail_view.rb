@@ -295,8 +295,8 @@ Plugin.create :user_detail_view do
       false end
 
     tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
-                                             weight: Pango::FontDescription::WEIGHT_BOLD,
-                                             underline: Pango::AttrUnderline::SINGLE})
+                                             weight: Pango::Weight::BOLD,
+                                             underline: Pango::Underline::SINGLE})
     tag_sn.ssc(:event, &user_screen_name_event_callback(user, intent_token))
 
     w_name.buffer.insert(w_name.buffer.start_iter, user[:idname], tag_sn)
