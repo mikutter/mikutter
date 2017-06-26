@@ -36,7 +36,6 @@ miquire :lib, 'lazy'
 
 # すべてのクラスにメモ化機能を
 miquire :lib, 'memoist'
-include Memoist
 
 # Environment::CONFROOT内のファイル名を得る。
 #   confroot(*path)
@@ -306,7 +305,6 @@ class Module
           hash[args[0]] = args[1] end } } end end
 
 class Object
-
   # freezeできるならtrueを返す
   def freezable?
     true end

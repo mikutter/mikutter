@@ -10,9 +10,11 @@ require_relative 'spec'
 
 class Retriever::Model
   include Comparable
+  extend Memoist
 
   class << self
     extend Gem::Deprecate
+    extend Memoist
 
     attr_reader :slug, :spec
 

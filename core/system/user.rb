@@ -4,6 +4,7 @@ miquire :core, 'retriever', 'skin'
 miquire :lib, 'retriever/mixin/user_mixin'
 
 class Mikutter::System::User < Retriever::Model
+  extend Memoist
   include Retriever::Model::UserMixin
   field.string :idname
   field.string :name

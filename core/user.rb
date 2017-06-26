@@ -6,6 +6,7 @@ miquire :lib, 'typed-array'
 
 class User < Retriever::Model
   extend Gem::Deprecate
+  extend Memoist
   include Retriever::Model::Identity
   include Retriever::Model::UserMixin
 

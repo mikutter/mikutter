@@ -2,6 +2,8 @@
 
 module Plugin::Search
   class Search < Retriever::Model
+    extend Memoist
+
     register :twitter_search, name: Plugin[:search]._('Twitter検索')
 
     field.string :query, required: true
