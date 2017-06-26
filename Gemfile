@@ -11,7 +11,7 @@ group :default do
   gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
   gem 'addressable', '~> 2.3'
-  gem 'memoist', '~> 0.14'
+  gem 'memoist', '>= 0.16', '< 0.17'
   gem 'ruby-hmac', '~> 0.4'
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'

@@ -10,7 +10,9 @@ EventListener = Pluggaloid::Listener
 EventFilter = Pluggaloid::Filter
 
 class Plugin < Pluggaloid::Plugin
+  extend Memoist
   include ConfigLoader
+  include Memoist
 
   class << self
     # ユーザに向けて通知を発生させる。

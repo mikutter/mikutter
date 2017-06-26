@@ -303,7 +303,19 @@ class Module
         when 1
           hash[args[0]]
         when 2
-          hash[args[0]] = args[1] end } } end end
+          hash[args[0]] = args[1]
+        end
+      }
+    }
+  end
+
+  def memoize(*rest)
+    unless is_a?(Memoist)
+      extend Memoist
+      memoize(*rest)
+    end
+  end
+end
 
 class Object
 
