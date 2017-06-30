@@ -12,6 +12,7 @@ miquire :core, 'user', 'message', 'retriever'
 require 'set'
 
 class UserList < Retriever::Model
+  extend Memoist
   include Retriever::Model::Identity
 
   # args format

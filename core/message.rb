@@ -12,6 +12,8 @@ miquire :lib, 'typed-array', 'timelimitedqueue'
 投稿１つを表すクラス。
 =end
 class Message < Retriever::Model
+  extend Memoist
+
   PermalinkMatcher = Regexp.union(
     %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!

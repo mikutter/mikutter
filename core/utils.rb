@@ -320,7 +320,6 @@ class Module
 end
 
 class Object
-
   # freezeできるならtrueを返す
   def freezable?
     true end

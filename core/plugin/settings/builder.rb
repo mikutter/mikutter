@@ -20,6 +20,7 @@ settingsの中身は、 Plugin::Settings のインスタンスの中で実行さ
 前後関係などに影響されてウィジェットが変わる場合があるかも。
 =end
 class Plugin::Settings < Gtk::VBox
+  extend Memoist
 
   def initialize(plugin)
     type_strict plugin => Plugin
