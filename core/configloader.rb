@@ -18,6 +18,8 @@ require 'yaml'
   mikutter, CHIのプラグインでは通常はUserConfigをつかうこと。
 =end
 module ConfigLoader
+  extend Memoist
+
   STORAGE_FILE = File.expand_path(File.join(Environment::SETTINGDIR, "setting.yml"))
   TMP_FILE = File.expand_path(File.join(Environment::SETTINGDIR, "setting.writing.yml"))
   PSTORE_FILE = File.expand_path(File.join(Environment::CONFROOT, "p_class_values.db"))

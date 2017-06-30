@@ -2,6 +2,8 @@
 
 module Plugin::Activity
   class Activity < Retriever::Model
+    extend Memoist
+
     include Retriever::Model::MessageMixin
     include Retriever::Model::UserMixin
 

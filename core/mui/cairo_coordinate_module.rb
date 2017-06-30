@@ -11,6 +11,8 @@ module Gdk::Coordinate
   DEPTH = Gdk::Visual.system.depth
 
   class Region
+    extend Memoist
+
     def initialize(x, y, w, h)
       @x, @y, @w, @h = x, y, w, h end
 

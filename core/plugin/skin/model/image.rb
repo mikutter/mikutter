@@ -3,6 +3,7 @@ miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Skin
   class Image < Retriever::Model
+    extend Memoist
     include Retriever::Model::PhotoMixin
 
     register :skin_image, name: 'skin image'
