@@ -6,6 +6,8 @@ module Gtk
   # このウィジェットによって表示されるタイムスタンプをクリックすると、
   # コンストラクタに渡されたModelのperma_linkを開くようになっている。
   class DivaHeaderWidget < Gtk::EventBox
+    extend Memoist
+
     def initialize(model, *args, intent_token: nil)
       type_strict model => Diva::Model
       super(*args)

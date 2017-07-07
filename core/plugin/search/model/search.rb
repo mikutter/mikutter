@@ -2,6 +2,7 @@
 
 module Plugin::Search
   class Search < Diva::Model
+    extend Memoist
     register :twitter_search, name: Plugin[:search]._('Twitter検索')
 
     field.string :query, required: true
@@ -15,6 +16,10 @@ module Plugin::Search
     } do |uri|
       _, query = uri.query.split('&').lazy.map{|r| r.split('=', 2) }.find{|k,v| k == 'q' }
       new(query: CGI.unescape(query))
+    end
+
+    def title
+      Plugin[:search]._("「%{query}」でツイート検索") % {query: query}
     end
 
     memoize def perma_link

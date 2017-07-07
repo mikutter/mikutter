@@ -2,6 +2,8 @@
 require_relative 'model/web'
 
 Plugin.create(:web) do
+  extend Memoist
+
   intent Plugin::Web::Web, label: _('外部ブラウザで開く') do |intent_token|
     openurl(intent_token.model.perma_link.to_s)
   end

@@ -2,6 +2,8 @@
 
 module Plugin::Activity
   class Activity < Diva::Model
+    extend Memoist
+
     include Diva::Model::MessageMixin
     include Diva::Model::UserMixin
 
