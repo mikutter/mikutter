@@ -6,6 +6,8 @@ require 'gtk2'
 require 'cairo'
 
 class Gdk::SubPartsFavorite < Gdk::SubPartsVoter
+  extend Memoist
+
   register
 
   def get_vote_count

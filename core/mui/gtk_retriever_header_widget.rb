@@ -6,6 +6,8 @@ module Gtk
   # このウィジェットによって表示されるタイムスタンプをクリックすると、
   # コンストラクタに渡されたretrieverのperma_linkを開くようになっている。
   class RetrieverHeaderWidget < Gtk::EventBox
+    extend Memoist
+
     def initialize(retriever, *args, intent_token: nil)
       type_strict retriever => Retriever::Model
       super(*args)
