@@ -4,7 +4,10 @@ miquire :core, 'skin'
 miquire :lib, 'diva_hacks'
 
 class Mikutter::System::User < Diva::Model
+  extend Memoist
+
   include Diva::Model::UserMixin
+
   field.string :idname
   field.string :name
   field.string :detail

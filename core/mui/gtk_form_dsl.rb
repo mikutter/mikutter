@@ -5,6 +5,16 @@ UIを定義するためのDSLメソッドをクラスに追加するmix-in。
 現在の値（初期値）を返す[]メソッドと、値が変更された時に呼ばれる[]=メソッドを定義すること。
 =end
 module Gtk::FormDSL
+  extend Memoist
+
+  def initialize(plugin)
+    type_strict plugin => Plugin
+    super()
+    @plugin = plugin
+    if block_given?
+      instance_eval(&Proc.new)
+    end
+  end
 
   # 複数行テキスト
   # ==== Args

@@ -13,6 +13,8 @@ miquire :lib, 'diva_hacks'
 require 'set'
 
 class UserList < Diva::Model
+  extend Memoist
+
   include Diva::Model::Identity
 
   # args format

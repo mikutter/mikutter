@@ -4,6 +4,8 @@ Diva::Modelにこのmixinをincludeすると、findbyid()によってそのIDを
 利用するclassは、idメソッドを実装している必要がある。
 =end
 module Diva::Model::Identity
+  extend Memoist
+
   module IdentityExtend
     # データソースを返す。
     # findbyidは、このデータソースに対して行われる

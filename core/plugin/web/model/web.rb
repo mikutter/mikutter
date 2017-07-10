@@ -15,5 +15,9 @@ module Plugin::Web
     handle ->uri{ %w<http https>.include?(uri.scheme) } do |uri|
       new(perma_link: uri)
     end
+
+    def title
+      perma_link.to_s
+    end
   end
 end
