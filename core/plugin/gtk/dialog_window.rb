@@ -119,11 +119,11 @@ module Plugin::Gtk
     end
 
     def initialize(plugin, default=Hash.new)
-      super()
-      @state = :init
       @plugin = plugin
+      @state = :init
       @values = default
       @proc = Proc.new
+      super()
       run
     end
 
@@ -169,14 +169,6 @@ module Plugin::Gtk
 
     def to_h
       @values.dup
-    end
-
-    def method_missing_at_select_dsl(*args, &block)
-      @plugin.__send__(*args, &block)
-    end
-
-    def method_missing(*args, &block)
-      @plugin.__send__(*args, &block)
     end
   end
 end

@@ -7,10 +7,8 @@ UIを定義するためのDSLメソッドをクラスに追加するmix-in。
 module Gtk::FormDSL
   extend Memoist
 
-  def initialize(plugin)
-    type_strict plugin => Plugin
-    super()
-    @plugin = plugin
+  def initialize(*args)
+    super
     if block_given?
       instance_eval(&Proc.new)
     end
@@ -281,7 +279,11 @@ module Gtk::FormDSL
   end
 
   def method_missing_at_select_dsl(*args, &block)
-    method_missing(*args, &block)
+    @plugin.__send__(*args, &block)
+  end
+
+  def method_missing(*args, &block)
+    @plugin.__send__(*args, &block)
   end
 
   private

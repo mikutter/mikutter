@@ -48,7 +48,7 @@ class Gtk::FormDSL::Select
   end
 
   def method_missing(*args, &block)
-    @parent_dslobj.method_missing_at_select_dsl(*args, &block)
+    @parent_dslobj.method_missing(*args, &block)
   end
 
   private
