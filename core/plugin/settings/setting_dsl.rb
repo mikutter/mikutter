@@ -32,11 +32,8 @@ class Plugin::Settings::SettingDSL < Gtk::VBox
 
   def initialize(plugin)
     type_strict plugin => Plugin
-    super()
     @plugin = plugin
-    if block_given?
-      instance_eval(&Proc.new)
-    end
+    super()
   end
 
   def [](key)
@@ -45,14 +42,6 @@ class Plugin::Settings::SettingDSL < Gtk::VBox
 
   def []=(key, value)
     Plugin::Settings::Listener[key].set(value)
-  end
-
-  def method_missing_at_select_dsl(*args, &block)
-    @plugin.__send__(*args, &block)
-  end
-
-  def method_missing(*args, &block)
-    @plugin.__send__(*args, &block)
   end
 
 end

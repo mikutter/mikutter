@@ -6,6 +6,8 @@ miquire :lib, 'typed-array', 'diva_hacks', 'weakstorage'
 
 class User < Diva::Model
   extend Gem::Deprecate
+  extend Memoist
+
   include Diva::Model::Identity
   include Diva::Model::UserMixin
 

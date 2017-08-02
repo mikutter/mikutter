@@ -471,6 +471,8 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   class << self
+    extend Memoist
+
     memoize def gb_foot
       Enumerator.new{|y|
         Plugin.filtering(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, y)

@@ -4,6 +4,8 @@ Diva::Modelにこのmixinをincludeすると、findbyid()によってそのIDを
 利用するclassは、idメソッドを実装している必要がある。
 =end
 module Diva::Model::Identity
+  extend Memoist
+
   module IdentityExtend
     # データソースを返す。
     # findbyidは、このデータソースに対して行われる
@@ -23,10 +25,16 @@ module Diva::Model::Identity
 
     # :nodoc:
     def generate(args, policy=Diva::DataSource::USE_ALL)
-      return self.findbyid(args, policy) if not(args.is_a? Hash)
-      result = self.findbyid(args[:id], policy)
-      return result.merge(args) if result
-      super(args)
+      case args
+      when Hash
+        result = self.findbyid(args[:id], policy)
+        return result.merge(args) if result
+        super(args)
+      when Retriever::Model
+        args
+      else
+        self.findbyid(args, policy)
+      end
     end
 
     # :nodoc:

@@ -11,6 +11,8 @@ require 'cairo'
 そして、以下のドキュメントを参考に、必要なメソッドをオーバライドします。
 =end
 class Gdk::SubPartsMessageBase < Gdk::SubParts
+  extend Memoist
+
   DEFAULT_ICON_SIZE = 32
 
   # SubPartsに表示する _Message_ 。

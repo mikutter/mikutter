@@ -7,6 +7,8 @@ module Plugin::PhotoSupport
   INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
 
   class << self
+    extend Memoist
+
     # Twitter cardsのURLを画像のURLに置き換える。
     # HTMLを頻繁にリクエストしないように、このメソッドを通すことでメモ化している。
     # ==== Args

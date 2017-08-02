@@ -4,6 +4,8 @@ require 'net/http'
 
 module Net
   class << HTTP
+    extend Memoist
+
     alias new_org new
     def new(host, port=80, proxy_addr=nil, proxy_port=nil, proxy_user=nil, proxy_pass=nil)
       case UserConfig[:proxy_enabled]
@@ -26,7 +28,6 @@ module Net
         [env_proxy_settings[2], env_proxy_settings[3].to_i, env_proxy_settings[0], env_proxy_settings[1]]
       else
         [] end end
-    memoize :get_env_proxy_settings
   end
 end
 

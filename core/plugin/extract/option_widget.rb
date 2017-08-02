@@ -9,12 +9,9 @@ class Plugin::Extract::OptionWidget < Gtk::VBox
   end
 
   def initialize(plugin, extract)
-    super()
     @plugin = plugin
     @extract = extract
-    if block_given?
-      instance_eval(&Proc.new)
-    end
+    super()
   end
 
   def [](key)
@@ -36,13 +33,4 @@ class Plugin::Extract::OptionWidget < Gtk::VBox
     @extract.notify_update
     value
   end
-
-  def method_missing_at_select_dsl(*args, &block)
-    @plugin.__send__(*args, &block)
-  end
-
-  def method_missing(*args, &block)
-    @plugin.__send__(*args, &block)
-  end
-
 end

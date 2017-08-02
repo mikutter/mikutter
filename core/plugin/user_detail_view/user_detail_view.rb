@@ -298,10 +298,15 @@ Plugin.create :user_detail_view do
         this.get_window(::Gtk::TextView::WINDOW_TEXT)
           .set_cursor(::Gdk::Cursor.new(::Gdk::Cursor::XTERM)) end
       false end
-
-    tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
-                                             weight: Pango::FontDescription::WEIGHT_BOLD,
-                                             underline: Pango::AttrUnderline::SINGLE})
+    if Gtk::BINDING_VERSION >= [3,1,2]
+      tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
+                                               weight: Pango::Weight::BOLD,
+                                               underline: Pango::Underline::SINGLE})
+    else
+      tag_sn = w_name.buffer.create_tag('sn', {foreground: '#0000ff',
+                                               weight: Pango::FontDescription::WEIGHT_BOLD,
+                                               underline: Pango::AttrUnderline::SINGLE})
+    end
     tag_sn.ssc(:event, &user_screen_name_event_callback(user, intent_token))
 
     w_name.buffer.insert(w_name.buffer.start_iter, user[:idname], tag_sn)

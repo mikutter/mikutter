@@ -3,6 +3,8 @@ miquire :core, 'skin'
 
 module Plugin::Skin
   class Image < Diva::Model
+    extend Memoist
+
     include Diva::Model::PhotoMixin
 
     register :skin_image, name: 'skin image'
