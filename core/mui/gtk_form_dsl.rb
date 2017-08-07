@@ -86,7 +86,7 @@ module Gtk::FormDSL
   # [config] キー
   # [dir] 初期のディレクトリ
   def photoselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
-    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
+    fs_photoselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
   end
 
   # ディレクトリを選択する
@@ -323,11 +323,26 @@ module Gtk::FormDSL
     input = container.children.last.children.first
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
     container.pack_start(button, false)
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, input: input, config: config))
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result| input.text = result })
     container
   end
 
-  def gen_fileselect_dialog_generator(title, action, dir, input:, config:)
+  def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
+    container = Gtk::HBox.new
+    input = Gtk::WebIcon.new(self[config], width, height)
+    button = Gtk::Button.new(Plugin[:settings]._('参照'))
+    container.pack_start(input, true).pack_start(button, false)
+    pack_start(container, false)
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result|
+                            photo = Enumerator.new{|y|
+                              Plugin.filtering(:photo_filter, result, y)
+                            }.first
+                            input.load_model(photo, Gdk::Rectangle.new(0, 0, width, height)) })
+    container
+  end
+
+
+  def gen_fileselect_dialog_generator(title, action, dir, config:, &result_callback)
     ->(widget) do
       dialog = Gtk::FileChooserDialog.new(title,
                                           widget.get_ancestor(Gtk::Window),
@@ -336,18 +351,18 @@ module Gtk::FormDSL
                                           [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(dir)
-      dialog.ssc_atonce(:response, &gen_fs_dialog_response_callback(input, config))
+      dialog.ssc_atonce(:response, &gen_fs_dialog_response_callback(config, &result_callback))
       dialog.show_all
       false
     end
   end
 
-  def gen_fs_dialog_response_callback(input, config)
+  def gen_fs_dialog_response_callback(config, &result_callback)
     ->(widget, response_id) do
       case response_id
       when Gtk::Dialog::RESPONSE_ACCEPT
         self[config] = widget.filename
-        input.text = widget.filename
+        result_callback.(widget.filename)
       end
       widget.destroy
     end
