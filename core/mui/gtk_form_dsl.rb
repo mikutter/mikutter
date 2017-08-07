@@ -329,15 +329,17 @@ module Gtk::FormDSL
 
   def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
     container = Gtk::HBox.new
-    input = Gtk::WebIcon.new(self[config], width, height)
+    w_image = Gtk::WebIcon.new(self[config], width, height)
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
-    container.pack_start(input, true).pack_start(button, false)
+
+    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(w_image), true).pack_start(button, false)
     pack_start(container, false)
     button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result|
                             photo = Enumerator.new{|y|
                               Plugin.filtering(:photo_filter, result, y)
                             }.first
-                            input.load_model(photo, Gdk::Rectangle.new(0, 0, width, height)) })
+                            w_image.load_model(photo, Gdk::Rectangle.new(0, 0, width, height)) })
     container
   end
 
