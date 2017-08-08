@@ -328,8 +328,14 @@ Plugin.create :gtk do
      messages.select(&widgetof(i_timeline).method(:include?))] end
 
   filter_gui_timeline_reject_messages do |i_timeline, messages|
-    [i_timeline,
-     messages.reject(&widgetof(i_timeline).method(:include?))] end
+    w_timeline = widgetof(i_timeline)
+    if w_timeline
+      [i_timeline,
+       messages.reject(&w_timeline.method(:include?))]
+    else
+      [i_timeline, messages]
+    end
+  end
 
   on_gui_postbox_post do |i_postbox|
     postbox = widgetof(i_postbox)
