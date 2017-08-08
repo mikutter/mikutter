@@ -328,13 +328,21 @@ module Gtk::FormDSL
   end
 
   def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
+    photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, self[config], y) }.first || self[config]
     container = Gtk::HBox.new
-    w_image = Gtk::WebIcon.new(self[config], width, height)
+    w_image = Gtk::WebIcon.new(photo, width, height)
+    image_container = Gtk::EventBox.new
+    image_container.ssc(:button_press_event){|w, event|
+      Plugin.call(:open, photo) if event.button == 1
+      false
+    }
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
 
+    image_container.add(w_image)
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(w_image), true).pack_start(button, false)
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(image_container), true).pack_start(button, false)
     pack_start(container, false)
+
     button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result|
                             photo = Enumerator.new{|y|
                               Plugin.filtering(:photo_filter, result, y)
