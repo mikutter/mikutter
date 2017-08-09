@@ -332,10 +332,14 @@ module Gtk::FormDSL
     container = Gtk::HBox.new
     w_image = Gtk::WebIcon.new(photo, width, height)
     image_container = Gtk::EventBox.new
-    image_container.ssc(:button_press_event){|w, event|
+    image_container.ssc(:button_press_event) do |w, event|
       Plugin.call(:open, photo) if event.button == 1
       false
-    }
+    end
+    image_container.ssc_atonce(:realize) do |this|
+      this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false
+    end
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
 
     image_container.add(w_image)
