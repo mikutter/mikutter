@@ -330,7 +330,7 @@ module Gtk::FormDSL
   def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
     photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, self[config], y) }.first || self[config]
     container = Gtk::HBox.new
-    w_image = Gtk::WebIcon.new(photo, width, height)
+    w_image = Gtk::Image.new(photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?})
     image_container = Gtk::EventBox.new
     image_container.ssc(:button_press_event) do |w, event|
       Plugin.call(:open, photo) if event.button == 1
@@ -351,7 +351,7 @@ module Gtk::FormDSL
                             photo = Enumerator.new{|y|
                               Plugin.filtering(:photo_filter, result, y)
                             }.first
-                            w_image.load_model(photo, Gdk::Rectangle.new(0, 0, width, height)) })
+                            w_image.pixbuf = photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?} })
     container
   end
 
