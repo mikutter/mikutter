@@ -329,9 +329,20 @@ module Gtk::FormDSL
 
   def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
     photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, self[config], y) }.first || self[config]
-    container = Gtk::HBox.new
-    w_image = Gtk::Image.new(photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?})
+    container = input(label, config)
+    input = container.children.last.children.first
+    w_image = if photo
+                Gtk::Image.new(photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?})
+              else
+                Gtk::Image.new
+              end
     image_container = Gtk::EventBox.new
+    button = Gtk::Button.new(Plugin[:settings]._('参照'))
+    # packing
+    image_container.add(w_image)
+    container.pack_start(image_container, false)
+    container.pack_start(button, false)
+    # signals
     image_container.ssc(:button_press_event) do |w, event|
       Plugin.call(:open, photo) if event.button == 1
       false
@@ -340,18 +351,18 @@ module Gtk::FormDSL
       this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
       false
     end
-    button = Gtk::Button.new(Plugin[:settings]._('参照'))
-
-    image_container.add(w_image)
-    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(image_container), true).pack_start(button, false)
-    pack_start(container, false)
-
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result|
-                            photo = Enumerator.new{|y|
-                              Plugin.filtering(:photo_filter, result, y)
-                            }.first
-                            w_image.pixbuf = photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?} })
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result| input.text = result })
+    input.signal_connect(:changed){ |w|
+      photo = Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, w.text, y)
+      }.first
+      if photo
+        w_image.pixbuf = photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?}
+      else
+        w_image.pixbuf = nil
+      end
+      false
+    }
     container
   end
 
