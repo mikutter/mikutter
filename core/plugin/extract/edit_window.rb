@@ -81,7 +81,7 @@ class  Plugin::Extract::EditWindow < Gtk::Window
   def option_widget
     Plugin::Extract::OptionWidget.new(@plugin, @extract) do
       input _('名前'), :name
-      fileselect _('アイコン'), :icon, Skin.path
+      photoselect _('アイコン'), :icon, Skin.path
       settings _('通知') do
         fileselect _('サウンド'), :sound
         boolean _('ポップアップ'), :popup

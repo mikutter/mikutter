@@ -80,6 +80,15 @@ module Gtk::FormDSL
     fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
   end
 
+  # ファイルを選択する
+  # ==== Args
+  # [label] ラベル
+  # [config] キー
+  # [dir] 初期のディレクトリ
+  def photoselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
+    fs_photoselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
+  end
+
   # ディレクトリを選択する
   # ==== Args
   # [label] ラベル
@@ -314,7 +323,72 @@ module Gtk::FormDSL
     input = container.children.last.children.first
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
     container.pack_start(button, false)
-    button.signal_connect(:clicked){ |widget|
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &input.method(:text=)))
+    container
+  end
+
+  def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
+    widgets = fs_photo_create_widgets(
+      photo: fs_photo_thumbnail(self[config]),
+      width: width,
+      height: height,
+      label: label,
+      config: config)
+    fs_photo_packing_widgets(**widgets)
+    fs_photo_handle_widgets(
+      config: config,
+      title: title,
+      action: action,
+      dir: dir,
+      width: width,
+      height: height,
+      **widgets)
+    widgets[:container]
+  end
+
+  def fs_photo_create_widgets(label:, config:, photo:, width:, height:)
+    container = input(label, config)
+    { container: container,
+      path: container.children.last.children.first,
+      image: Gtk::Image.new(fs_photo_thumbnail_pixbuf(photo, width: width, height: height)),
+      image_container: Gtk::EventBox.new,
+      button: Gtk::Button.new(Plugin[:settings]._('参照')) }
+  end
+
+  def fs_photo_packing_widgets(container:, image:, image_container:, button:, **kwrest)
+    image_container.add(image)
+    container.pack_start(image_container, false)
+    container.pack_start(button, false)
+  end
+
+  def fs_photo_handle_widgets(config:, title:, action:, dir:, width:, height:, image_container:, button:, path:, image:, **kwrest)
+    image_container.ssc(:button_press_event) do |w, event|
+      Plugin.call(:open, fs_photo_thumbnail(path.text) || path.text) if event.button == 1
+      false
+    end
+    image_container.ssc_atonce(:realize) do |this|
+      this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
+      false
+    end
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &path.method(:text=)))
+    path.signal_connect(:changed) do |w|
+      image.pixbuf = fs_photo_thumbnail_pixbuf(fs_photo_thumbnail(w.text), width: width, height: height)
+      false
+    end
+  end
+
+  def fs_photo_thumbnail(path)
+    Enumerator.new{|y| Plugin.filtering(:photo_filter, path, y) }.first
+  end
+
+  def fs_photo_thumbnail_pixbuf(photo, width:, height:)
+    if photo
+      photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?}
+    end
+  end
+
+  def gen_fileselect_dialog_generator(title, action, dir, config:, &result_callback)
+    ->(widget) do
       dialog = Gtk::FileChooserDialog.new(title,
                                           widget.get_ancestor(Gtk::Window),
                                           action,
@@ -322,13 +396,21 @@ module Gtk::FormDSL
                                           [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(dir)
-      if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-        self[config] = dialog.filename
-        input.text = dialog.filename
+      dialog.ssc_atonce(:response, &gen_fs_dialog_response_callback(config, &result_callback))
+      dialog.show_all
+      false
+    end
+  end
+
+  def gen_fs_dialog_response_callback(config, &result_callback)
+    ->(widget, response_id) do
+      case response_id
+      when Gtk::Dialog::RESPONSE_ACCEPT
+        self[config] = widget.filename
+        result_callback.(widget.filename)
       end
-      dialog.destroy
-    }
-    container
+      widget.destroy
+    end
   end
 end
 
