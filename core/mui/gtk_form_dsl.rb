@@ -323,49 +323,69 @@ module Gtk::FormDSL
     input = container.children.last.children.first
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
     container.pack_start(button, false)
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result| input.text = result })
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &input.method(:text=)))
     container
   end
 
   def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
-    photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, self[config], y) }.first || self[config]
+    widgets = fs_photo_create_widgets(
+      photo: fs_photo_thumbnail(self[config]),
+      width: width,
+      height: height,
+      label: label,
+      config: config)
+    fs_photo_packing_widgets(**widgets)
+    fs_photo_handle_widgets(
+      config: config,
+      title: title,
+      action: action,
+      dir: dir,
+      width: width,
+      height: height,
+      **widgets)
+    widgets[:container]
+  end
+
+  def fs_photo_create_widgets(label:, config:, photo:, width:, height:)
     container = input(label, config)
-    input = container.children.last.children.first
-    w_image = if photo
-                Gtk::Image.new(photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?})
-              else
-                Gtk::Image.new
-              end
-    image_container = Gtk::EventBox.new
-    button = Gtk::Button.new(Plugin[:settings]._('参照'))
-    # packing
-    image_container.add(w_image)
+    { container: container,
+      path: container.children.last.children.first,
+      image: Gtk::Image.new(fs_photo_thumbnail_pixbuf(photo, width: width, height: height)),
+      image_container: Gtk::EventBox.new,
+      button: Gtk::Button.new(Plugin[:settings]._('参照')) }
+  end
+
+  def fs_photo_packing_widgets(container:, image:, image_container:, button:, **kwrest)
+    image_container.add(image)
     container.pack_start(image_container, false)
     container.pack_start(button, false)
-    # signals
+  end
+
+  def fs_photo_handle_widgets(config:, title:, action:, dir:, width:, height:, image_container:, button:, path:, image:, **kwrest)
     image_container.ssc(:button_press_event) do |w, event|
-      Plugin.call(:open, photo) if event.button == 1
+      Plugin.call(:open, fs_photo_thumbnail(path.text) || path.text) if event.button == 1
       false
     end
     image_container.ssc_atonce(:realize) do |this|
       this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
       false
     end
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config){|result| input.text = result })
-    input.signal_connect(:changed){ |w|
-      photo = Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, w.text, y)
-      }.first
-      if photo
-        w_image.pixbuf = photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?}
-      else
-        w_image.pixbuf = nil
-      end
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &path.method(:text=)))
+    path.signal_connect(:changed) do |w|
+      image.pixbuf = fs_photo_thumbnail_pixbuf(fs_photo_thumbnail(w.text), width: width, height: height)
       false
-    }
-    container
+    end
   end
 
+  def fs_photo_thumbnail(path)
+    Enumerator.new{|y| Plugin.filtering(:photo_filter, path, y) }.first
+  end
+
+  def fs_photo_thumbnail_pixbuf(photo, width:, height:)
+    if photo
+      photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?}
+    end
+  end
 
   def gen_fileselect_dialog_generator(title, action, dir, config:, &result_callback)
     ->(widget) do
