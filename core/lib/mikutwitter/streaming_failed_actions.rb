@@ -24,7 +24,7 @@ class MikuTwitter::StreamingFailedActions
           client_bug e
         when '404'.freeze         # unknown
           client_bug e
-        when '406'.freeze         # not accepptable
+        when '406'.freeze         # not acceptable
           client_bug e
         when '413'.freeze         # too long
           client_bug e

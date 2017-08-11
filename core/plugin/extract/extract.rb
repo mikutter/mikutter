@@ -299,7 +299,7 @@ Plugin.create :extract do
     begin
       miku(condition.sexp, miku_context)
     rescue => exception
-      error "error occured in code #{MIKU.unparse(condition.sexp)}"
+      error "error occurred in code #{MIKU.unparse(condition.sexp)}"
       error miku_context
       raise exception end end
 

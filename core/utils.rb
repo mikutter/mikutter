@@ -396,7 +396,7 @@ class String
     result
   end
 
-  def each_matches(regexp, &proc) # :yield: match, byte_index, char_intex
+  def each_matches(regexp, &proc) # :yield: match, byte_index, char_index
     warn "String#each_matches is obsolete method. use String#scan"
     pos = 0
     str = self
