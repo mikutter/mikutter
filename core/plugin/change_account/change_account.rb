@@ -197,6 +197,6 @@ Plugin.create :change_account do
           say(_("前回の続きから説明するね")).
           next{ jump_seq(seq) }
       else
-        jump_seq(:first) end.terminate("error occured!") end end
+        jump_seq(:first) end.terminate("error occurred!") end end
 
 end
