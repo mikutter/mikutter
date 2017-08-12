@@ -46,8 +46,8 @@ Plugin::create(:proxy) do
     end
   end
 
-  UserConfig.connect(:proxy_enabled) { |key, new_val, before_val, id|
-    #UserStreamを使っているなら繋ぎなおさせる
+  on_userconfig_modify do |key, val|
+    next if key != :proxy_enabled
     if UserConfig[:realtime_rewind]
       Thread.new {
         UserConfig[:realtime_rewind] = false
@@ -55,5 +55,5 @@ Plugin::create(:proxy) do
         UserConfig[:realtime_rewind] = true
       }
     end
-  }
+  end
 end

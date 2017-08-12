@@ -330,11 +330,9 @@ Plugin.create :extract do
     extract_tabs[record[:id]] = record.freeze
     Plugin.call(:extract_tab_create, record) }
 
-  extract_tabs_watcher = UserConfig.connect :extract_tabs do |key, val, before_val, id|
+  on_userconfig_modify do |key, val|
+    next if key != :extract_tabs
     destroy_compile_cache
-    @active_datasources = nil end
-
-  on_unload do
-    UserConfig.disconnect(extract_tabs_watcher) end
-
+    @active_datasources = nil
+  end
 end

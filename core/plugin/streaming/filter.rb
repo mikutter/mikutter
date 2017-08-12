@@ -67,15 +67,20 @@ Plugin.create :streaming do
     @success_flag = false
     @fail.notify(exception) end
 
-  Delayer.new {
+  on_userconfig_modify do |key, new_val|
+    next if key != :filter_realtime_rewind
+    if new_val
+      notice 'filter stream: enable'
+      thread = start unless thread.is_a? Thread
+    else
+      notice 'filter stream: disable'
+      thread.kill if thread.is_a? Thread
+      thread = nil
+    end
+  end
+
+  Delayer.new do
     thread = start if UserConfig[:filter_realtime_rewind]
-    UserConfig.connect(:filter_realtime_rewind) do |key, new_val, before_val, id|
-      if new_val
-        notice 'filter stream: enable'
-        thread = start unless thread.is_a? Thread
-      else
-        notice 'filter stream: disable'
-        thread.kill if thread.is_a? Thread
-        thread = nil end end }
+  end
 
 end
