@@ -16,7 +16,7 @@ group :default do
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'
   gem 'pluggaloid', '>= 1.1.1', '< 2.0'
-  gem 'delayer-deferred', '>= 1.0.4', '< 2.0'
+  gem 'delayer-deferred', '>= 1.0.4', '< 1.1'
   gem 'twitter-text', '>= 1.14.6'
 end
 
