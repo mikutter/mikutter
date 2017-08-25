@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openimg 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-08 16:49+0900\n"
+"POT-Creation-Date: 2017-08-14 07:28+0900\n"
 "PO-Revision-Date: 2016-01-08 17:01+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,12 +18,10 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: ../openimg.rb:39
+#: ../model/photo.rb:7
+msgid "画像ビューア"
+msgstr "画像ビューア"
+
+#: ../openimg.rb:40
 msgid "画像直リンク"
 msgstr "画像直リンク"
-
-#~ msgid "（読み込み中）"
-#~ msgstr "（読み込み中）"
-
-#~ msgid "URLの取得に失敗"
-#~ msgstr "なんかうまいこといかんかった"
