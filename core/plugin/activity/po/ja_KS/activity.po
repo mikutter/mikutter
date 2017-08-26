@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: activity 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-08 16:49+0900\n"
+"POT-Creation-Date: 2017-08-14 07:28+0900\n"
 "PO-Revision-Date: 2016-01-08 16:59+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -30,59 +30,55 @@ msgstr "説明"
 msgid "時刻"
 msgstr "時刻"
 
-#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
+#: ../activity.rb:152 ../activity.rb:301 ../activity.rb:304
 msgid "アクティビティ"
 msgstr "アクティビティ"
 
-#: ../activity.rb:195
+#: ../activity.rb:208
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr "@%{user} がふぁぼふぁぼしたやで"
 
-#: ../activity.rb:205
+#: ../activity.rb:218
 msgid "@%{user} があんふぁぼしました"
 msgstr "@%{user} があんふぁぼしたやで"
 
-#: ../activity.rb:217
+#: ../activity.rb:230
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} がリツイートしたやで"
 
-#: ../activity.rb:223
+#: ../activity.rb:236
 msgid "リツイートソースが取得できませんでした"
 msgstr "リツイートソースが取得できひんかったで"
 
-#: ../activity.rb:228
+#: ../activity.rb:240
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user}が%{list}に追加されたやで"
 
-#: ../activity.rb:236 ../activity.rb:253
+#: ../activity.rb:248 ../activity.rb:265
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (by @%{user})"
 
-#: ../activity.rb:245
+#: ../activity.rb:257
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user}が%{list}から削除されたやで"
 
-#: ../activity.rb:265
+#: ../activity.rb:277
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} が @%{follower} をﾌｮﾛｰしたやで"
 
-#: ../activity.rb:274
-msgid "ダイレクトメッセージを送信しました"
-msgstr "ダイレクトメッセージを送信したやで"
+#: ../activity.rb:289
+msgid "差出人: @%{sender}"
+msgstr "差出人: @%{sender}"
 
-#: ../activity.rb:274
-msgid "ダイレクトメッセージを受信しました"
-msgstr "ダイレクトメッセージを受信したやで"
+#: ../activity.rb:290
+msgid "宛先: @%{recipient}"
+msgstr "宛先: @%{recipient}"
 
-#: ../activity.rb:275
-msgid "D %{recipient} %{text}"
-msgstr "D %{recipient} %{text}"
-
-#: ../activity.rb:307
+#: ../activity.rb:321
 msgid "%{name}を表示する"
 msgstr "%{name}を表示やで"
 
-#: ../activity.rb:307
+#: ../activity.rb:321
 msgid ""
 "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}"
 "の他の設定は無効になります。"
@@ -90,11 +86,11 @@ msgstr ""
 "%{name}を、アクティビティタイムラインに表示するで。チェックを外すと、%{name}"
 "の他の設定は無効になるで。"
 
-#: ../activity.rb:308
+#: ../activity.rb:322
 msgid "自分に関係ない%{name}も表示する"
 msgstr "自分に関係ない%{name}も表示するで"
 
-#: ../activity.rb:308
+#: ../activity.rb:322
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。"
 "チェックを外すと、自分に関係ない%{name}は表示されません。"
@@ -102,56 +98,50 @@ msgstr ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示するで。チェックを外す"
 "と、自分に関係ない%{name}は表示せえへんで。"
 
-#: ../activity.rb:309
+#: ../activity.rb:323
 msgid "タイムラインに表示"
 msgstr "タイムラインに表示"
 
-#: ../activity.rb:309
+#: ../activity.rb:323
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
 msgstr "%{name}が通知された時に、システムメッセージで%{name}を通知するで"
 
-#: ../activity.rb:310
+#: ../activity.rb:324
 msgid "ステータスバーに表示"
 msgstr "ステータスバーに表示"
 
-#: ../activity.rb:310
+#: ../activity.rb:324
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
 msgstr "%{name}が通知された時に、ステータスバーにしばらく表示するで"
 
-#: ../activity.rb:315
+#: ../activity.rb:329
 msgid "リツイート"
 msgstr "リツイート"
 
-#: ../activity.rb:316
+#: ../activity.rb:330
 msgid "ふぁぼ"
 msgstr "ふぁぼ"
 
-#: ../activity.rb:317
+#: ../activity.rb:331
 msgid "フォロー"
 msgstr "フォロー"
 
-#: ../activity.rb:318
+#: ../activity.rb:332
 msgid "リストに追加"
 msgstr "リストに追加"
 
-#: ../activity.rb:319
+#: ../activity.rb:333
 msgid "リストから削除"
 msgstr "リストから削除"
 
-#: ../activity.rb:320
+#: ../activity.rb:334
 msgid "ダイレクトメッセージ"
 msgstr "ダイレクトメッセージ"
 
-#: ../activity.rb:321
+#: ../activity.rb:335
 msgid "システムメッセージ"
 msgstr "システムメッセージ"
 
-#: ../activity.rb:322
+#: ../activity.rb:336
 msgid "エラー"
 msgstr "エラー"
-
-#~ msgid "表示しないイベント"
-#~ msgstr "表示せえへんイベント"
-
-#~ msgid "以下の全てのイベント"
-#~ msgstr "以下の全てのイベント"

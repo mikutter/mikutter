@@ -9,7 +9,7 @@ Plugin.create :streaming do
       if UserConfig[:realtime_rewind]
         streamers[service.name] ||= Plugin::Streaming::PermaStreamer.new(service) end } }
 
-  rewind_switch_change_hook = UserConfig.connect(:realtime_rewind){ |key, new_val, before_val, id|
+  on_userconfig_modify do |key, new_val|
     if new_val
       streamers.values.each(&:kill)
       streamers = {}
@@ -19,7 +19,7 @@ Plugin.create :streaming do
       streamers.values.each(&:kill)
       streamers = {}
     end
-  }
+  end
 
   on_service_registered do |service|
     if UserConfig[:realtime_rewind]
@@ -29,7 +29,6 @@ Plugin.create :streaming do
     streamers[service.name] and streamers[service.name].kill end
 
   onunload do
-    UserConfig.disconnect(rewind_switch_change_hook)
     streamers.values.each(&:kill)
     streamers = {} end
 

@@ -29,7 +29,7 @@ class TC_mikutwitter_api_call_support < Test::Unit::TestCase
 
   must "get home timeline" do
     stub_request(:get, "http://api.twitter.com/1.1/statuses/show.json?id=154380989328662530").
-      to_return(:status => 200, :body => file_get_contents(File.join(MIKUTWITTER_TEST_DIR, '154380989328662530.json')), :headers => {}) # !> previous definition of messages was herey
+      to_return(:status => 200, :body => file_get_contents(File.join(MIKUTWITTER_TEST_DIR, '154380989328662530.json')), :headers => {}) # !> previous definition of messages was here
     result = exception = nil
     (@m/:statuses/:show).json(id: 154380989328662530).next{ |json| # !> assigned but unused variable - remain
       result = json

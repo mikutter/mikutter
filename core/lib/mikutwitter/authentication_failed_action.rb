@@ -24,7 +24,7 @@ module MikuTwitter::AuthenticationFailedAction
     alias :regist :register
     deprecate :regist, "register", 2016, 12
 
-    # register_authentication_faileded_action で登録されたProcを返す。
+    # register_authentication_failed_action で登録されたProcを返す。
     # 何も登録されていない時は、abortするProcを返す。
     # ==== Return
     # 登録されたProcオブジェクト
