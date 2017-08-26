@@ -145,7 +145,7 @@ class User < Diva::Model
   alias to_user user
 
   def marshal_dump
-    raise RuntimeError, 'User cannot marshalize'
+    raise RuntimeError, 'User cannot marshal'
   end
 
   class UserMemory < Diva::Model::Memory

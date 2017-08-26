@@ -38,7 +38,7 @@ class Message < Diva::Model
   # message | posted text(String)
   # tags    | kind of message(Array)
   # user    | user who post this message(User or Hash or mixed(User IDNumber))
-  # reciver | recive user(User)
+  # receiver| receive user(User)
   # replyto | source message(Message or mixed(Status ID))
   # retweet | retweet to this message(Message or StatusID)
   # post    | post object(Service)
@@ -742,7 +742,7 @@ class Message < Diva::Model
     attr_reader :message
 
     def initialize(body, message)
-      super("#{body} occured by #{message[:id]}(#{message[:message]})")
+      super("#{body} occurred by #{message[:id]}(#{message[:message]})")
       @message = message end
 
   end

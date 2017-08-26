@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Envirionment
+# Environment
 #
 
 # 変更不能な設定たち
