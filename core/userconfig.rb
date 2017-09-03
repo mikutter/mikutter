@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'configloader'
+miquire :core, 'configloader', 'plugin'
 
 require 'singleton'
 require 'fileutils'
