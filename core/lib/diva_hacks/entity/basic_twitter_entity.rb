@@ -90,7 +90,19 @@ module Diva::Entity
           entity[:url] = entity[:media_url]
           photo = Diva::Model(:photo)
           if photo
-            entity[:open] = photo[entity[:media_url]]
+            variants = [
+              { policy: :original,
+                photo: "#{entity[:media_url]}:orig" }]
+            entity[:sizes].select{ |size_name, size|
+              size.has_key?(:w) && size.has_key?(:h) && size.has_key?(:resize)
+            }.each do |size_name, size|
+              variants << { name: size_name.to_sym,
+                            width: size[:w],
+                            height: size[:h],
+                            policy: size[:resize].to_sym,
+                            photo: "#{entity[:media_url]}:#{size_name}" }
+            end
+            entity[:open] = photo.generate(variants, perma_link: entity[:media_url])
           else
             entity[:open] = entity[:media_url]
           end

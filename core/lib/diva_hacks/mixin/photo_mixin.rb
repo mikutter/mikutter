@@ -11,6 +11,8 @@ miquire :core, 'serialthread'
 module Diva::Model::PhotoMixin
   DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
 
+  include Diva::Model::PhotoInterface
+
   def self.included(klass)
     klass.field.string :blob
   end
@@ -27,11 +29,14 @@ module Diva::Model::PhotoMixin
   # ダウンロードできた内容を引数に呼び出される。
   # 既にダウンロードが終わっていれば、 _blob_ の戻り値がそのまま渡される。
   # このメソッドは、複数回呼び出されても画像のダウンロードを一度しか行わない。
+  # widthとheightは、画像のサイズが複数ある場合に、ダウンロードする画像を決めるために使う。リサイズされるわけではない。
   # ==== Args
+  # [width:] ヒントとして提供する幅(px)
+  # [height:] ヒントとして提供する高さ(px)
   # [&partial_callback] 現在ダウンロードできたデータの一部(String)
   # ==== Return
   # [Delayer::Deferred::Deferredable] ダウンロードが完了したらselfを引数に呼び出される
-  def download(&partial_callback)      # :yield: part
+  def download(width: nil, height: nil, &partial_callback)      # :yield: part
     increase_read_count
     case @state
     when :complete
