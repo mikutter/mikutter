@@ -12,6 +12,10 @@ module Plugin::Photo
     field.int :width, required: true
     field.int :height, required: true
     field.has :photo, Diva::Model, required: true
+
+    def inspect
+      "#<PhotoVariant: #{name}(#{policy}, #{width}*#{height}) #{photo.inspect}>"
+    end
   end
 end
 

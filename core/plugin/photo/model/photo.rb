@@ -84,7 +84,12 @@ module Plugin::Photo
     end
 
     def download(width: nil, height: nil, &partial_callback)
-      maximum_original.download(width: width, height: height, &partial_callback)
+      if width && height
+        larger_than(width: width, height: height)
+          .download(width: width, height: height, &partial_callback)
+      else
+        maximum_original.download(width: width, height: height, &partial_callback)
+      end
     end
 
     # PhotoInterfaceをgtkプラグインが拡張し、内部でこのメソッドを呼ぶ。
@@ -94,6 +99,21 @@ module Plugin::Photo
 
     def blob
       maximum_original.blob
+    end
+
+    # 指定された幅と高さを上回るvariantのなかで最小のものを返す
+    # ==== Args
+    # [width:] (Integer)
+    # [height:] (Integer)
+    # ==== Return
+    # [Photo Model] 最適なPhoto Model
+    def larger_than(width:, height:)
+      largers = variants.select{|pv| pv.policy.to_sym == :fit && pv.width >= width && pv.height >= height }
+      if largers.empty?
+        maximum_original
+      else
+        largers.min_by{|pv| pv.width }.photo
+      end
     end
 
     # 最大サイズのPhotoを返す。

@@ -67,7 +67,7 @@ module Diva::Model::PhotoInterface
   private
 
   def gen_pixbuf_from_raw_data(width:, height:)
-    download.next{|photo|
+    download(width: width, height: height).next{|photo|
       pb = pixbuf(width: width, height: height)
       if pb
         pb
