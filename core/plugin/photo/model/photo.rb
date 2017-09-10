@@ -37,6 +37,8 @@ module Plugin::Photo
     # [:original] オリジナル画像。一つだけ含まれていること。
     # [その他] Plugin::Photo::PhotoVariantを参照
     def self.generate(seeds, perma_link:)
+      cached = photos[perma_link.to_s.hash]
+      return cached if cached
       orig, other = seeds.partition{|s| s[:policy] == :original }
       new(variants: other.map{|s|
             PhotoVariant.new(s.merge(photo: inner_photo(s[:photo])))
