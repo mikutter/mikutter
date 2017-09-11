@@ -90,19 +90,7 @@ module Diva::Entity
           entity[:url] = entity[:media_url]
           photo = Diva::Model(:photo)
           if photo
-            variants = [
-              { policy: :original,
-                photo: "#{entity[:media_url]}:orig" }]
-            entity[:sizes].select{ |size_name, size|
-              size.has_key?(:w) && size.has_key?(:h) && size.has_key?(:resize)
-            }.each do |size_name, size|
-              variants << { name: size_name.to_sym,
-                            width: size[:w],
-                            height: size[:h],
-                            policy: size[:resize].to_sym,
-                            photo: "#{entity[:media_url]}:#{size_name}" }
-            end
-            entity[:open] = photo.generate(variants, perma_link: entity[:media_url])
+            entity[:open] = photo.generate(photo_variant_seeds(entity), perma_link: entity[:media_url])
           else
             entity[:open] = entity[:media_url]
           end
@@ -112,6 +100,22 @@ module Diva::Entity
         return
       end
       entity.merge(range: get_range_by_face(entity))
+    end
+
+    def photo_variant_seeds(entity)
+      Enumerator.new do |yielder|
+        yielder << { policy: :original,
+                     photo: "#{entity[:media_url]}:orig" }
+        entity[:sizes].select{ |size_name, size|
+          size.has_key?(:w) && size.has_key?(:h) && size.has_key?(:resize)
+        }.each do |size_name, size|
+          yielder << { name: size_name.to_sym,
+                       width: size[:w],
+                       height: size[:h],
+                       policy: size[:resize].to_sym,
+                       photo: "#{entity[:media_url]}:#{size_name}" }
+        end
+      end
     end
 
     # slug と　display_url が一致するextended entitiesを返す

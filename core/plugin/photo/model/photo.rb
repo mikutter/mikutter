@@ -32,7 +32,20 @@ module Plugin::Photo
       end
     end
 
-    # ==== seedsのpolicyキーについて
+    # _perma_link_ のURIをもつPhotoが既にある場合、それを返す。
+    # ない場合は、 _seeds_ の内容を元に作る。
+    # ==== Args
+    # [seeds] variant情報のEnumerator(後述)
+    # [perma_link:] variantの代表となるパーマリンク
+    # ===== seedsについて
+    # 有限個のHashについて繰り返すEnumeratorで、 _perma_link_ に対応するPhotoがまだ作られていない場合にだけ利用される。
+    # 各Hashは以下のキーを持つ。
+    # :name :: そのvariantの名前。Photoの管理上特に利用されないので、重複していても良い(Symbol)
+    # :width :: そのvariantの画像の幅(px)
+    # :height :: そのvariantの画像の高さ(px)
+    # :policy :: オリジナルからどのようにリサイズされたかを示す値(Symbol)
+    # :photo :: そのvariantの画像を示すPhoto Model又は画像のURL
+    # ===== seedsのpolicyキーについて
     # policyは以下のいずれかの値。
     # [:original] オリジナル画像。一つだけ含まれていること。
     # [その他] Plugin::Photo::PhotoVariantを参照
