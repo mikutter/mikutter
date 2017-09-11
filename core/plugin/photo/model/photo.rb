@@ -2,8 +2,8 @@
 require_relative 'photo_variant'
 
 module Plugin::Photo
-  # 同じ画像の別々のvariantをまとめて管理するModel。
-  # これ自体をPhoto Modelのように扱うことができ、要求に応じて適切なvariantを使い分ける。
+  # 1種類の画像を扱うModel。
+  # 同じ画像の複数のサイズ、別形式（Photo Variant）を含むことができ、それらを自動的に使い分ける。
   class Photo < Diva::Model
     include Diva::Model::PhotoInterface
     register :photo, name: Plugin[:photo]._('画像')
@@ -16,18 +16,21 @@ module Plugin::Photo
       @photos ||= TimeLimitedStorage.new(Integer, self)
     end
 
+    # URIからPhoto Modelを得る。
+    # _uri_ がDiva::Modelだった場合はそれを返すので、PhotoかURIかわからないものをPhotoに変換するのに使える。
+    # サードパーティプラグインはこれを呼ばず、以下のページを参考にすること。
     def self.[](uri)
       case uri
-      when self
+      when Diva::Model
         uri
       when URI, Addressable::URI, Diva::URI
-        photos[uri.to_s.hash] ||= wrap(inner_photo(uri))
+        photos[uri.to_s.hash] ||= wrap(uri)
       when String
         if uri.start_with?('http')
-          photos[uri.hash] ||= wrap(inner_photo(uri))
+          photos[uri.hash] ||= wrap(uri)
         elsif uri.start_with?('/')
           uri = Diva::URI.new(scheme: 'file', path: uri)
-          photos[uri.hash] ||= wrap(inner_photo(uri))
+          photos[uri.hash] ||= wrap(uri)
         end
       end
     end
@@ -54,28 +57,19 @@ module Plugin::Photo
       return cached if cached
       orig, other = seeds.partition{|s| s[:policy] == :original }
       new(variants: other.map{|s|
-            PhotoVariant.new(s.merge(photo: inner_photo(s[:photo])))
+            PhotoVariant.new(s.merge(photo: InnerPhoto[s[:photo]]))
           },
           perma_link: perma_link,
-          original: inner_photo(orig.first[:photo]))
+          original: InnerPhoto[orig.first[:photo]])
     end
 
-    def self.wrap(inner_photo)
+    def self.wrap(model_or_uri)
+      inner_photo = InnerPhoto[model_or_uri]
       new(variants: [],
           perma_link: inner_photo.perma_link,
           original: inner_photo)
     end
 
-    def self.inner_photo(model_or_uri)
-      case model_or_uri
-      when String, URI, Addressable::URI, Diva::URI
-        InnerPhoto.new(perma_link: model_or_uri)
-      else
-        model_or_uri
-      end
-    end
-
-    # TODO: 各variantのURLにselfをキャッシュされてるかテストする
     def initialize(*params)
       super
       each_photos do |photo|
