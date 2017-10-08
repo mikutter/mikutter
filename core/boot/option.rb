@@ -32,7 +32,7 @@ module Mopt
         Process.daemon(true) }
       opt.on('--clean', 'delete all caches and duplicated files') { |v|
         require 'fileutils'
-        require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
+        require_relative '../utils'
         miquire :core, 'environment'
         puts "delete "+File.expand_path(Environment::TMPDIR)
         FileUtils.rm_rf(File.expand_path(Environment::TMPDIR))
@@ -45,7 +45,7 @@ module Mopt
         exit }
       opt.on('-v', '--version', "Show mikutter version"){ |v|
         require 'fileutils'
-        require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
+        require_relative '../utils'
         miquire :core, 'environment'
         puts Environment::NAME + ' ' +  Environment::VERSION.to_s
         exit }
@@ -62,7 +62,7 @@ module Mopt
       opt.parse!(argv)
 
       if exec_command and argv[0]
-        require File.expand_path(File.join(File.dirname(__FILE__), "..", 'utils'))
+        require_relative '../utils'
         miquire :boot, 'check_config_permission'
         file = File.join(File.dirname(__FILE__), "shell/#{argv[0]}.rb")
         if FileTest.exist?(file)

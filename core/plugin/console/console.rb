@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'console_control')
+require_relative 'console_control'
 
 Plugin.create :console do
   command(:console_open,

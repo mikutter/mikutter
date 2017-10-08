@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'thread'
-require File.expand_path File.join(File.dirname(__FILE__), 'streamer_error')
+require_relative 'streamer_error'
 
 module ::Plugin::Streaming
   class Streamer

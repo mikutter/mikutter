@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
+require_relative 'utils'
 
 require 'delayer'
 require 'delayer/deferred'

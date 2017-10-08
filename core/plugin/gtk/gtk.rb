@@ -11,13 +11,13 @@ miquire :mui,
 'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
 'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
 
-require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
-require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
-require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
-require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
-require File.expand_path File.join(File.dirname(__FILE__), 'konami_watcher')
+require_relative 'mikutter_window'
+require_relative 'tab_container'
+require_relative 'tab_toolbar'
+require_relative 'delayer'
+require_relative 'slug_dictionary'
+require_relative 'mainloop'
+require_relative 'konami_watcher'
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}

@@ -315,6 +315,6 @@ class Plugin::Settings < Gtk::VBox
 
 end
 
-require File.expand_path File.join(File.dirname(__FILE__), 'select')
-require File.expand_path File.join(File.dirname(__FILE__), 'multiselect')
-require File.expand_path File.join(File.dirname(__FILE__), 'listener')
+require_relative 'select'
+require_relative 'multiselect'
+require_relative 'listener'

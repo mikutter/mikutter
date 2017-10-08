@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 require "gtk2"
-require File.expand_path(File.join(File.dirname(__FILE__), 'toolbar_generator'))
-require File.expand_path(File.join(File.dirname(__FILE__), 'account_box'))
+require_relative 'toolbar_generator'
+require_relative 'account_box'
 
 class Gtk::MikutterWindow < Gtk::Window
 

@@ -3,12 +3,6 @@
 CHI内部で共通で使われるユーティリティ。
 =end
 
-if defined? HYDE
-  raise "HYDEが再定義されました。utils.rbを２回Linkしてるんじゃないか？それはいけない。すぐにバグをSHOT AT THE DEVILしろ。"
-  # こんなふうにするといいと想います
-  require File.expand_path(File.join(File.dirname(__FILE__), 'utils'))
-end
-
 require 'thread'
 require 'monitor'
 require "open-uri"
