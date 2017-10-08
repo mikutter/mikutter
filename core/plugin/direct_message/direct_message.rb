@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'userlist')
-require File.expand_path File.join(File.dirname(__FILE__), 'sender')
-require File.expand_path File.join(File.dirname(__FILE__), 'dmlistview')
+require_relative 'userlist'
+require_relative 'sender'
+require_relative 'dmlistview'
 
 module Plugin::DirectMessage
   Plugin.create(:direct_message) do

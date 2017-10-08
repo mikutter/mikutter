@@ -21,9 +21,8 @@ module CHIConfig
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
 
-  confroot = File.expand_path(File.join("~", ".#{ACRO}"))
   # コンフィグファイルのディレクトリ
-  CONFROOT = (if Mopt.confroot then Mopt.confroot else confroot end) rescue confroot
+  CONFROOT = Mopt.confroot rescue File.expand_path('~/.mikutter')
 
   # 一時ディレクトリ
   TMPDIR = File.join(CONFROOT, 'tmp')
