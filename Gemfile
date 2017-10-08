@@ -31,10 +31,10 @@ end
 
 
 group :plugin do
-  Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), "core/plugin/*/Gemfile"))){ |path|
+  Dir.glob(File.expand_path(File.join(__dir__, 'core/plugin/*/Gemfile'))){ |path|
     eval File.open(path).read
   }
-  Dir.glob(File.expand_path("~/.mikutter/plugin/*/Gemfile")){ |path|
+  Dir.glob(File.join(File.expand_path(ENV['MIKUTTER_CONFROOT'] || '~/.mikutter/plugin/'), '*/Gemfile')){ |path|
     eval File.open(path).read
   }
 end
