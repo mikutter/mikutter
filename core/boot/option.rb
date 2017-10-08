@@ -9,6 +9,10 @@ module Mopt
   @opts = {
     error_level: 1 }
 
+  def confroot
+    @opts[:confroot] || ENV['MIKUTTER_CONFROOT'] || File.join(Dir.home, '.mikutter')
+  end
+
   def method_missing(key)
     scope = class << self; self end
     scope.__send__(:define_method, key){ @opts[key.to_sym] }
