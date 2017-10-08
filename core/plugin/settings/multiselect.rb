@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-require File.expand_path File.join(File.dirname(__FILE__), 'builder')
-require File.expand_path File.join(File.dirname(__FILE__), 'select')
+require_relative 'builder'
+require_relative 'select'
 
 class Plugin::Settings::MultiSelect < Plugin::Settings::Select
 

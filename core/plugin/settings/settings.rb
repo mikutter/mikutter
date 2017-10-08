@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'builder')
-require File.expand_path File.join(File.dirname(__FILE__), 'basic_settings')
+require_relative 'builder'
+require_relative 'basic_settings'
 
 Plugin.create(:settings) do
 

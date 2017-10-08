@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require File.expand_path File.join(File.dirname(__FILE__), 'builder')
+require_relative 'builder'
 
 class Plugin::Settings::Select
   def initialize(plugin, values = [])
