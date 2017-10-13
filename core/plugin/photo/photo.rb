@@ -10,5 +10,23 @@ Plugin.create :photo do
     photos << Plugin::Photo::Photo[permalink]
     [permalink, photos]
   end
+
+  # Generic URI
+  filter_uri_filter do |uri|
+    if uri.is_a?(String) && uri.match(%r<\A\w+:>)
+      [Addressable::URI.parse(uri)]
+    else
+      [uri]
+    end
+  end
+
+  # Unix local file path
+  filter_uri_filter do |uri|
+    if uri.is_a?(String) && uri.start_with?('/')
+      [Addressable::URI.new(scheme: 'file', path: uri)]
+    else
+      [uri]
+    end
+  end
 end
 
