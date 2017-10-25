@@ -167,6 +167,7 @@ Plugin.create(:activity) do
   # アクティビティ更新を受け取った時の処理
   # plugin, kind, title, icon, date, service
   on_modify_activity do |params|
+    next if activity_view.destroyed?
     if not mute?(params)
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       model = Plugin::Activity::Activity.new(params)
