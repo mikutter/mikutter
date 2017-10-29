@@ -77,7 +77,7 @@ class Retriever::URI
 
   def scheme
     if has_string? and !has_uri?
-      match = @uri_string.match(%r<\A(\w+):>)
+      match = @uri_string.match(%r<\A(\w+)://>)
       if match
         match[1]
       else

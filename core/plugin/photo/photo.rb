@@ -13,7 +13,7 @@ Plugin.create :photo do
 
   # Generic URI
   filter_uri_filter do |uri|
-    if uri.is_a?(String) && uri.match(%r<\A\w+:>)
+    if uri.is_a?(String) && uri.match(%r<\A\w+://>)
       [Addressable::URI.parse(uri)]
     else
       [uri]
