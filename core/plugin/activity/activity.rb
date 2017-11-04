@@ -107,6 +107,20 @@ Plugin.create(:activity) do
         else
           UserConfig[uc] -= [kind] end end end
 
+  def gen_icon_modifier(tree_model, activity)
+    ->loaded_icon {
+      uri_string = activity.uri.to_s.freeze
+      if !tree_model.destroyed? and @contains_uris.include?(uri_string)
+        selected_iter = tree_model.to_enum(:each).lazy.map{ |_m,_p,iter|
+          iter
+        }.find{|iter|
+          iter[ActivityView::URI] == uri_string
+        }
+        selected_iter[ActivityView::ICON] = loaded_icon if selected_iter
+      end
+    }
+  end
+
   # 新しいアクティビティの種類を定義する。設定に表示されるようになる
   # ==== Args
   # [kind] 種類
@@ -171,24 +185,20 @@ Plugin.create(:activity) do
     if not mute?(params)
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       model = Plugin::Activity::Activity.new(params)
-      next if @contains_uris.include?(model.uri)
-      @contains_uris << model.uri
+      next if @contains_uris.include?(model.uri.to_s)
+      @contains_uris << model.uri.to_s.freeze
       iter = activity_view.model.prepend
       case params[:icon]
       when GdkPixbuf::Pixbuf
         iter[ActivityView::ICON] = params[:icon]
       when Retriever::Model
-        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon
-        }
+        iter[ActivityView::ICON] = params[:icon].load_pixbuf(width: 24, height: 24, &gen_icon_modifier(activity_view.model, model))
       when nil, false
       else
         photo = Enumerator.new{|y|
           Plugin.filtering(:photo_filter, params[:icon], y)
         }.first
-        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24){ |loaded_icon|
-          iter[ActivityView::ICON] = loaded_icon
-        }
+        iter[ActivityView::ICON] = photo.load_pixbuf(width: 24, height: 24, &gen_icon_modifier(activity_view.model, model))
       end
       iter[ActivityView::KIND] = model.kind
       iter[ActivityView::TITLE] = model.title
