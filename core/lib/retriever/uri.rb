@@ -77,7 +77,7 @@ class Retriever::URI
 
   def scheme
     if has_string? and !has_uri?
-      match = @uri_string.match(%r<\A(\w+):>)
+      match = @uri_string.match(%r<\A(\w+)://>)
       if match
         match[1]
       else
@@ -118,9 +118,19 @@ class Retriever::URI
   end
 
   def generate_uri_by_string
-    URI.parse(@uri_string)
-  rescue URI::InvalidComponentError
-    Addressable::URI.parse(@uri_string)
+    if @uri_string.match(%r<\A\w+://>)
+      uri = Addressable::URI.parse(@uri_string)
+    else
+      uri, = Plugin.filtering(:uri_filter, @uri_string)
+    end
+    case uri
+    when URI, Addressable::URI
+      uri
+    when String
+      raise Retriever::InvalidURIError, 'The string is not URI.'
+    else
+      raise Retriever::InvalidURIError, "Filter `uri_filter' returns instance of `#{uri.class}', but expect URI or Addressable::URI."
+    end
   end
 
   def generate_uri_by_hash
