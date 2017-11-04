@@ -1,0 +1,9 @@
+---
+slug: :file_path
+depends:
+  mikutter: 3.5.13
+  plugin: []
+version: '1.0'
+author: ahiru3net
+name: file_path
+description: 'UNIXの絶対ファイルパスをmikutterに認識させるためのプラグイン'

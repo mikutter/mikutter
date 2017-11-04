@@ -118,7 +118,11 @@ class Retriever::URI
   end
 
   def generate_uri_by_string
-    uri, = Plugin.filtering(:uri_filter, @uri_string)
+    if @uri_string.match(%r<\A\w+://>)
+      uri = Addressable::URI.parse(@uri_string)
+    else
+      uri, = Plugin.filtering(:uri_filter, @uri_string)
+    end
     case uri
     when URI, Addressable::URI
       uri
