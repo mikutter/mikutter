@@ -41,7 +41,7 @@ Plugin.create(:world) do
         self.current_world = new
         Plugin.call(:primary_service_changed, current_world)
       end
-    rescue Plugin::Woeld::InvalidWorldError => err
+    rescue Plugin::World::InvalidWorldError => err
       error err
     end
   end
