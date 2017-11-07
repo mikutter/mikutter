@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 自動でコネクションを貼り直すStreamer
-require File.expand_path File.join(File.dirname(__FILE__), 'streamer')
+require_relative 'streamer'
 
 module ::Plugin::Streaming
   class PermaStreamer

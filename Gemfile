@@ -17,7 +17,7 @@ group :default do
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'
   gem 'pluggaloid', '>= 1.1.1', '< 2.0'
-  gem 'delayer-deferred', '>= 1.0.4', '< 1.1.0'
+  gem 'delayer-deferred', '>= 2.0', '< 3.0'
   gem 'twitter-text', '>= 1.14.6'
 end
 
@@ -32,10 +32,10 @@ end
 
 
 group :plugin do
-  Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), "core/plugin/*/Gemfile"))){ |path|
+  Dir.glob(File.expand_path(File.join(__dir__, 'core/plugin/*/Gemfile'))){ |path|
     eval File.open(path).read
   }
-  Dir.glob(File.expand_path("~/.mikutter/plugin/*/Gemfile")){ |path|
+  Dir.glob(File.join(File.expand_path(ENV['MIKUTTER_CONFROOT'] || '~/.mikutter'), 'plugin/*/Gemfile')){ |path|
     eval File.open(path).read
   }
 end

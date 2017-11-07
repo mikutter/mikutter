@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # ／(^o^)＼
-require File.expand_path(File.dirname(__FILE__+'/utils'))
+
+require_relative '../utils'
 miquire :core, 'environment', 'serialthread', 'skin'
 miquire :mui, 'web_image_loader'
 
@@ -32,7 +33,7 @@ module Gtk
         photo = Enumerator.new{|y|
           Plugin.filtering(:photo_filter, url, y)
         }.first
-        super(load_model(photo, rect))
+        super(load_model(photo || Skin['notfound.png'], rect))
       end
     end
 

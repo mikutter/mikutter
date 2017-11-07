@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'configloader'
+miquire :core, 'configloader', 'plugin'
 
 require 'singleton'
 require 'fileutils'
@@ -175,6 +175,7 @@ class UserConfig
 
   # 設定名 _key_ に値 _value_ を関連付ける
   def self.[]=(key, val)
+    Plugin.call(:userconfig_modify, key, val)
     watchers = synchronize{
       if not(@@watcher[key].empty?)
         before_val = UserConfig.instance.at(key, @@defaults[key.to_sym])

@@ -11,10 +11,9 @@ This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 
 =end
-mikutter_directory = File.expand_path(File.dirname(__FILE__))
 module Mikutter; end
 
-require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
+require_relative 'core/boot/option'
 Mopt.parse exec_command: true
 
 if !ENV['DISABLE_BUNDLER_SETUP'] || ['', '0'].include?(ENV['DISABLE_BUNDLER_SETUP'].to_s)
@@ -34,7 +33,7 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path(File.join(mikutter_directory, 'core/utils'))
+require_relative 'core/utils'
 
 miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
 miquire :core, 'environment'

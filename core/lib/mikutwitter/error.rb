@@ -55,6 +55,7 @@ MikuTwitter::ShouldNotBeUsedThisEndpointError = Class.new(MikuTwitter::TwitterEr
 MikuTwitter::DontHaveWriteAccessError = Class.new(MikuTwitter::TwitterError(261))
 MikuTwitter::CantMuteYourselfError = Class.new(MikuTwitter::TwitterError(271))
 MikuTwitter::NotMutingError = Class.new(MikuTwitter::TwitterError(272))
+MikuTwitter::TemporarilyLockedError = Class.new(MikuTwitter::TwitterError(326))
 MikuTwitter::DirectMessageExceedTheNumberOfCharacterError = Class.new(MikuTwitter::TwitterError(354))
 MikuTwitter::InReplyToStatusIdDoesNotExistError = Class.new(MikuTwitter::TwitterError(385))
 MikuTwitter::TooManyAttachmentResourceError = Class.new(MikuTwitter::TwitterError(386))

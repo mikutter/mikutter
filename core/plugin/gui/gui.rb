@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # mikutterにGUIをつけるプラグイン
 
-require File.expand_path File.join(File.dirname(__FILE__), 'dsl')
-require File.expand_path File.join(File.dirname(__FILE__), 'window')
-require File.expand_path File.join(File.dirname(__FILE__), 'pane')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab')
-require File.expand_path File.join(File.dirname(__FILE__), 'cluster')
-require File.expand_path File.join(File.dirname(__FILE__), 'fragment')
-require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_child_widget')
-require File.expand_path File.join(File.dirname(__FILE__), 'postbox')
-require File.expand_path File.join(File.dirname(__FILE__), 'command')
+require_relative 'dsl'
+require_relative 'window'
+require_relative 'pane'
+require_relative 'tab'
+require_relative 'cluster'
+require_relative 'fragment'
+require_relative 'timeline'
+require_relative 'tab_child_widget'
+require_relative 'postbox'
+require_relative 'command'
 
 Plugin.create :gui do
 

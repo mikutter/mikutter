@@ -161,7 +161,7 @@ module Plugin::Gtk
       @state = :init
       @values = default
       @proc = Proc.new
-      super()
+      super(){}
       run
     end
 

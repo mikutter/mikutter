@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # タブのインターフェイスを提供するクラス
 
-require File.expand_path File.join(File.dirname(__FILE__), 'pane')
-require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_parent')
-require File.expand_path File.join(File.dirname(__FILE__), 'tablike')
-require File.expand_path File.join(File.dirname(__FILE__), 'widget')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
+require_relative 'pane'
+require_relative 'cuscadable'
+require_relative 'hierarchy_child'
+require_relative 'hierarchy_parent'
+require_relative 'tablike'
+require_relative 'widget'
+require_relative 'tab_toolbar'
 
 class Plugin::GUI::Tab
 

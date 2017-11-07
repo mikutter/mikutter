@@ -340,7 +340,7 @@ Plugin.create :extract do
     begin
       miku(condition.sexp, miku_context)
     rescue => exception
-      error "error occured in code #{MIKU.unparse(condition.sexp)}"
+      error "error occurred in code #{MIKU.unparse(condition.sexp)}"
       error miku_context
       raise exception end end
 
@@ -368,11 +368,9 @@ Plugin.create :extract do
     extract_tabs[record[:id]] = Plugin::Extract::Setting.new(record)
   end
 
-  extract_tabs_watcher = UserConfig.connect :extract_tabs do |key, val, before_val, id|
+  on_userconfig_modify do |key, val|
+    next if key != :extract_tabs
     destroy_compile_cache
-    @active_datasources = nil end
-
-  on_unload do
-    UserConfig.disconnect(extract_tabs_watcher) end
-
+    @active_datasources = nil
+  end
 end

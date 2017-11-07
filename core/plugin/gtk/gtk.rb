@@ -11,13 +11,13 @@ miquire :mui,
 'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
 'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
 
-require File.expand_path File.join(File.dirname(__FILE__), 'mikutter_window')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_container')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_toolbar')
-require File.expand_path File.join(File.dirname(__FILE__), 'delayer')
-require File.expand_path File.join(File.dirname(__FILE__), 'slug_dictionary')
-require File.expand_path File.join(File.dirname(__FILE__), 'mainloop')
-require File.expand_path File.join(File.dirname(__FILE__), 'konami_watcher')
+require_relative 'mikutter_window'
+require_relative 'tab_container'
+require_relative 'tab_toolbar'
+require_relative 'delayer'
+require_relative 'slug_dictionary'
+require_relative 'mainloop'
+require_relative 'konami_watcher'
 require_relative 'dialog_window'
 
 Plugin.create :gtk do
@@ -85,8 +85,14 @@ Plugin.create :gtk do
     pane = create_pane(i_pane)
     pane.set_tab_border(0).set_group_id(0).set_scrollable(true)
     pane.set_tab_pos(TABPOS[UserConfig[:tab_position]])
-    tab_position_hook_id = UserConfig.connect(:tab_position){ |key, val, before_val, id|
-      pane.set_tab_pos(TABPOS[val]) unless pane.destroyed? }
+    tab_position_listener = on_userconfig_modify do |key, val|
+      next if key != :tab_position
+      if pane.destroyed?
+        tab_position_listener.detach
+      else
+        pane.set_tab_pos(TABPOS[val])
+      end
+    end
     pane.ssc(:page_reordered){ |this, tabcontainer, index|
         Plugin.call(:rewind_window_order, i_pane.parent) if i_pane.parent
       i_tab = tabcontainer.i_tab
@@ -109,7 +115,7 @@ Plugin.create :gtk do
     pane.signal_connect(:page_removed){
       if not(pane.destroyed?) and pane.children.empty? and pane.parent
         pane.parent.remove(pane)
-        UserConfig.disconnect(tab_position_hook_id)
+        tab_position_listener.detach
         pane_order_delete(i_pane)
         i_pane.destroy end
       false }
@@ -335,10 +341,10 @@ Plugin.create :gtk do
   end
 
   filter_gui_timeline_reject_messages do |i_timeline, messages|
-    timeline = widgetof(i_timeline)
-    if timeline
+    w_timeline = widgetof(i_timeline)
+    if w_timeline
       [i_timeline,
-       messages.reject(&timeline.method(:include?))]
+       messages.reject(&w_timeline.method(:include?))]
     else
       [i_timeline, messages]
     end
