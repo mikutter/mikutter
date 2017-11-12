@@ -36,13 +36,16 @@ class Plugin::Achievement::Achievement
     self end
 
   # 依存してる実績の中で、解除されてない最初の一つを返す
+  # ==== Args
+  # [&filter] 実績フィルタ。この条件にマッチする実績の中から始めのものを返す
   # ==== Return
   # 見つかった実績(Plugin::Achievement::Achievement)
   # 依存している実績がなかった場合や、全て解除済みの場合は self を返す
-  def notachieved_parent
+  def notachieved_parent(&filter)
+    filter ||= ->_{true}
     unachievements = Plugin.filtering(:unachievements, {}).first
     if @options[:depends]
-      result = @options[:depends].map{ |slug| unachievements[slug] }.compact.first
+      result = @options[:depends].map{ |slug| unachievements[slug] }.compact.select(&filter).first
       if result
         result.notachieved_parent
       else
@@ -159,7 +162,7 @@ Plugin.create :achievement do
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?
-      not_achieved = unachievements.values.sample.notachieved_parent
+      not_achieved = unachievements.values.sample.notachieved_parent{|a|!a.hidden?}
       unless not_achieved.hidden?
         if Mopt.debug?
           activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})"

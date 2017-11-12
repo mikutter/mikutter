@@ -26,8 +26,9 @@ module Plugin::Twitter
 
     def verify(verifier)
       Thread.new{
-        access_token = request_token.get_access_token(oauth_token: request_token.token,
-                                                      oauth_verifier: verifier)
+        request_token.get_access_token(oauth_token: request_token.token,
+                                       oauth_verifier: verifier)
+      }.next{|access_token|
         @twitter.a_token = access_token.token
         @twitter.a_secret = access_token.secret
         (@twitter/:account/:verify_credentials).user

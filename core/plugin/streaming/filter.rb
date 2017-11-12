@@ -21,6 +21,7 @@ Plugin.create :streaming do
 
   def start
     service = Service.primary
+    return unless service
     @success_flag = false
     @fail = MikuTwitter::StreamingFailedActions.new("Filter Stream", self)
     Thread.new{

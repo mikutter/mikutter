@@ -87,7 +87,11 @@ Plugin.create(:world) do
   # ==== Return
   # [Diva::Model] カレントアカウント
   def current_world
-    @current || self.current_world = worlds.first
+    if @current
+      @current
+    elsif worlds.first
+      self.current_world = worlds.first
+    end
   end
 
   # カレントアカウントを _new_ に変更する。

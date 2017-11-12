@@ -170,7 +170,7 @@ module Plugin::Gtk
         when STATE_INIT
           @fiber = Fiber.new do
             @result_of_proc = instance_eval(&@proc)
-            if @result_of_proc.is_a? Delayer::Deferred::Deferredable
+            if @result_of_proc.is_a? Delayer::Deferred::Deferredable::Awaitable
               @result_of_proc = await(@result_of_proc)
             end
             EXIT
