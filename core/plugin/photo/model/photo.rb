@@ -15,15 +15,8 @@ module Plugin::Photo
       case uri
       when self
         uri
-      when URI, Addressable::URI, Diva::URI
+      when URI, Addressable::URI, Diva::URI, String
         photos[uri.to_s.hash] ||= new(perma_link: uri)
-      when String
-        if uri.start_with?('http')
-          photos[uri.hash] ||= new(perma_link: uri)
-        elsif uri.start_with?('/')
-          uri = Diva::URI.new(scheme: 'file', path: uri)
-          photos[uri.hash] ||= new(perma_link: uri)
-        end
       end
     end
 
