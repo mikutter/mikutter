@@ -156,13 +156,12 @@ module Plugin::Gtk
       self.class.new(@plugin, @values)
     end
 
-    def initialize(plugin, default=Hash.new)
+    def initialize(plugin, default=Hash.new, &proc)
       @plugin = plugin
-      @state = :init
+      @state = STATE_INIT
       @values = default
-      @proc = Proc.new
+      @proc = proc
       super(){}
-      run
     end
 
     def run(response=nil)
