@@ -4,7 +4,7 @@ miquire :core, 'skin'
 miquire :system, 'system'
 miquire :lib, 'typed-array', 'weakstorage'
 
-class User < Diva::Model
+class Plugin::Twitter::User < Diva::Model
   extend Gem::Deprecate
   extend Memoist
 
@@ -59,9 +59,6 @@ class User < Diva::Model
   def self.memory
     @memory ||= UserMemory.new end
 
-  def self.container_class
-    Users end
-
   alias :to_i :id
   deprecate :to_i, "id", 2017, 05
 
@@ -96,7 +93,7 @@ class User < Diva::Model
   end
 
   def inspect
-    "User(@#{@value[:idname]})"
+    "TwitterUser(@#{@value[:idname]})"
   end
 
   # 投稿がシステムユーザだった場合にtrueを返す
@@ -184,5 +181,7 @@ class User < Diva::Model
 
 end
 
-class Users < TypedArray(User)
+class Users < TypedArray(Plugin::Twitter::User)
 end
+
+User = Plugin::Twitter::User

@@ -23,7 +23,7 @@ Plugin.create :followingcontrol do
     user = service.user_obj
     users = relation.followings[user]
     if users
-      relation.followings[user] = Users.new((created + users).uniq) end end
+      relation.followings[user] = (created + users).uniq end end
 
   on_followings_destroy do |service, destroyed|
     user = service.user_obj
@@ -35,7 +35,7 @@ Plugin.create :followingcontrol do
     user = service.user_obj
     users = relation.followers[user]
     if users
-      relation.followers[user] = Users.new((created + users).uniq) end end
+      relation.followers[user] = (created + users).uniq end end
 
   on_followers_destroy do |service, destroyed|
     user = service.user_obj
@@ -56,18 +56,18 @@ Plugin.create :followingcontrol do
     userlist = Gtk::UserList.new
     nativewidget container
     if model.me?
-      userlist.add_user(Users.new((relation.followings[model] || []).reverse))
+      userlist.add_user((relation.followings[model] || []).reverse)
       events = []
       events << on_followings_created do |service, created|
         if service.user_obj == model
-          userlist.add_user(Users.new(created)) end end
+          userlist.add_user(created) end end
       events << on_followings_destroy do |service, destroyed|
         if service.user_obj == model
-          userlist.remove_user(Users.new(destroyed)) end end
+          userlist.remove_user(destroyed) end end
       events << on_followings_modified do |service, modified|
         if service.user_obj == model
           userlist.listview.model.clear
-          userlist.add_user(Users.new(modified.reverse)) end end
+          userlist.add_user(modified.reverse) end end
       userlist.ssc(:destroy) do
         events.each(&:detach) end
       container.add(userlist).show_all
@@ -79,7 +79,7 @@ Plugin.create :followingcontrol do
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)
-          userlist.add_user(Users.new(users.reverse))
+          userlist.add_user(users.reverse)
         }.trap{
           loading_image.pixbuf = Skin['notfound.png'].pixbuf(width: 128, height: 128)
         } end
@@ -92,18 +92,18 @@ Plugin.create :followingcontrol do
     userlist = Gtk::UserList.new
     nativewidget container
     if model.me?
-    userlist.add_user(Users.new((relation.followers[model] || []).reverse))
+    userlist.add_user((relation.followers[model] || []).reverse)
       events = []
       events << on_followers_created do |service, created|
         if service.user_obj == model
-          userlist.add_user(Users.new(created)) end end
+          userlist.add_user(created) end end
       events << on_followers_destroy do |service, destroyed|
         if service.user_obj == model
-          userlist.remove_user(Users.new(destroyed)) end end
+          userlist.remove_user(destroyed) end end
       events << on_followers_modified do |service, modified|
         if service.user_obj == model
           userlist.listview.model.clear
-          userlist.add_user(Users.new(modified.reverse)) end end
+          userlist.add_user(modified.reverse) end end
       userlist.ssc(:destroy) do
         events.each(&:detach) end
       container.add(userlist).show_all
@@ -115,7 +115,7 @@ Plugin.create :followingcontrol do
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)
-          userlist.add_user(Users.new(users.reverse))
+          userlist.add_user(users.reverse)
         }.trap{
           loading_image.pixbuf = Skin['loading.png'].pixbuf(width: 128, height: 128)
         } end
@@ -148,7 +148,7 @@ Plugin.create :followingcontrol do
           destroyed = primitive - users
           Plugin.call("#{direction}_destroy".to_sym, twitter, destroyed) if not destroyed.empty?
         else
-          relation[user] = Users.new(users)
+          relation[user] = users
           Plugin.call("#{direction}_modified".to_sym, twitter, users)
         end
       }
@@ -163,8 +163,8 @@ Plugin.create :followingcontrol do
     user = service.user_obj
     Deferred.when(service.followings(cache: true, user_id: user[:id]),
                   service.followers(cache: true, user_id: user[:id])).next { |followings, followers|
-      @relation.followings[user] = Users.new(followings)
-      @relation.followers[user] = Users.new(followers)
+      @relation.followings[user] = followings
+      @relation.followers[user] = followers
       Plugin.call(:followings_modified, service, @relation.followings[user])
       Plugin.call(:followers_modified, service, @relation.followers[user])
       @activating_services.delete(service)

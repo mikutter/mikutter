@@ -10,7 +10,7 @@ require_relative 'user'
 = Message
 投稿１つを表すクラス。
 =end
-class Message < Diva::Model
+class Plugin::Twitter::Message < Diva::Model
   extend Memoist
 
   PermalinkMatcher = Regexp.union(
@@ -45,12 +45,12 @@ class Message < Diva::Model
 
   field.int    :id, required: true
   field.string :message, required: true             # Message description
-  field.has    :user, User, required: true          # Send by user
+  field.has    :user, Plugin::Twitter::User, required: true # Send by user
   field.int    :in_reply_to_user_id                 # リプライ先ユーザID
-  field.has    :receiver, User                      # Send to user
+  field.has    :receiver, Plugin::Twitter::User     # Send to user
   field.int    :in_reply_to_status_id               # リプライ先ツイートID
-  field.has    :replyto, Message                    # Reply to this message
-  field.has    :retweet, Message                    # ReTweet to this message
+  field.has    :replyto, Plugin::Twitter::Message   # Reply to this message
+  field.has    :retweet, Plugin::Twitter::Message   # ReTweet to this message
   field.string :source                              # using client
   field.bool   :exact                               # true if complete data
   field.time   :created                             # posted time
@@ -75,9 +75,6 @@ class Message < Diva::Model
     end
   end
 
-  def self.container_class
-    Messages end
-
   # appearイベント
   def self.appear(message) # :nodoc:
     @@appear_queue.push(message)
@@ -90,14 +87,12 @@ class Message < Diva::Model
   # 検索などをしたい場合は、 _Diva_ のメソッドを使うこと
   def initialize(value)
     type_strict value => Hash
-    if not(value[:image].is_a?(Message::Image)) and value[:image]
-      value[:image] = Message::Image.new(value[:image]) end
+    if not(value[:image].is_a?(Plugin::Twitter::Message::Image)) and value[:image]
+      value[:image] = Plugin::Twitter::Message::Image.new(value[:image]) end
     super(value)
-    if self[:replyto].is_a? Message
-      self[:replyto].add_child(self) end
-    if self[:retweet].is_a? Message
-      self[:retweet].add_child(self) end
-    Message.appear(self)
+    self[:replyto].add_child(self) if self[:replyto].is_a?(Plugin::Twitter::Message)
+    self[:retweet].add_child(self) if self[:retweet].is_a?(Plugin::Twitter::Message)
+    Plugin::Twitter::Message.appear(self)
   end
 
   # 投稿主のidnameを返す
@@ -136,10 +131,10 @@ class Message < Diva::Model
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?(user_or_world=Service.primary)
-    case user_or_world
-    when User
+    case user_or_world.class.slug
+    when :twitter_user
       favorited_by.include?(user_or_world)
-    when Plugin::Twitter::World
+    when :twitter
       favorited_by.include?(user_or_world.user_obj)
     end
   end
@@ -214,16 +209,16 @@ class Message < Diva::Model
 
   # この投稿を宛てられたユーザを返す
   def receiver
-    if self[:receiver].is_a? User
+    if self[:receiver].is_a?(Plugin::Twitter::User)
       self[:receiver]
     elsif self[:receiver] and self[:in_reply_to_user_id]
       receiver_id = self[:in_reply_to_user_id]
       self[:receiver] = parallel{
-        self[:receiver] = User.findbyid(receiver_id) }
+        self[:receiver] = Plugin::Twitter::User.findbyid(receiver_id) }
     else
       match = Diva::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
       if match
-        result = User.findbyidname(match[1])
+        result = Plugin::Twitter::User.findbyidname(match[1])
         self[:receiver] = result if result end end end
 
   # ユーザ _other_ に宛てられたメッセージならtrueを返す。
@@ -273,8 +268,8 @@ class Message < Diva::Model
       if self[:replyto]
         self[:replyto]
       elsif self[:in_reply_to_status_id]
-        result = Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Diva::DataSource::USE_ALL : Diva::DataSource::USE_LOCAL_ONLY)
-        if result.is_a?(Message)
+        result = Plugin::Twitter::Message.findbyid(self[:in_reply_to_status_id], force_retrieve ? Diva::DataSource::USE_ALL : Diva::DataSource::USE_LOCAL_ONLY)
+        if result.is_a?(Plugin::Twitter::Message)
           result.add_child(self) unless result.children.include?(self)
           result
         end
@@ -292,7 +287,7 @@ class Message < Diva::Model
     Thread.new do
       begin
         result = replyto_source(force_retrieve)
-        if result.is_a? Message
+        if result.is_a? Plugin::Twitter::Message
           promise.call(result)
         else
           promise.fail(result)
@@ -316,7 +311,7 @@ class Message < Diva::Model
       case self[:retweet]
       when Integer
         self[:retweet] = Message.findbyid(retweet, force_retrieve ? -1 : 1) || self[:retweet]
-      when Message
+      when Plugin::Twitter::Message
         self[:retweet].add_child(self) unless self[:retweet].retweeted_statuses.include?(self)
       end
       self[:retweet]
@@ -333,7 +328,7 @@ class Message < Diva::Model
     Thread.new do
       begin
         result = retweet_source(force_retrieve)
-        if result.is_a? Message
+        if result.is_a?(Plugin::Twitter::Message)
           promise.call(result)
         else
           promise.fail(result)
@@ -370,13 +365,17 @@ class Message < Diva::Model
     return @quoting_messages if defined? @quoting_messages
     if force_retrieve
       @quoting_messages ||= quoting_ids.map{|quoted_id|
-        Message.findbyid(quoted_id, -1)
+        Plugin::Twitter::Message.findbyid(quoted_id, -1)
       }.to_a.compact.freeze.tap do |qs|
         qs.each do |q|
-          q.add_quoted_by(self) end  end
+          q.add_quoted_by(self)
+        end
+      end
     else
       quoting_ids.map{|quoted_id|
-        Message.findbyid(quoted_id, 0) }.select(&ret_nth) end end
+        Plugin::Twitter::Message.findbyid(quoted_id, 0) }.select(&ret_nth)
+    end
+  end
 
   # このMessageが引用した投稿を全て返す。
   # _force_retrieve_ に真が指定されたらこのメソッドはTwitter APIをリクエストする可能性がある。
@@ -529,7 +528,7 @@ class Message < Diva::Model
     Thread.new do
       begin
         result = retweet_source(force_retrieve)
-        if result.is_a? Message
+        if result.is_a?(Plugin::Twitter::Message)
           promise.call(result)
         else
           promise.fail(result)
@@ -579,13 +578,14 @@ class Message < Diva::Model
   def retweeted_by
     has_status_user_ids = Set.new(retweeted_statuses.map(&:user).map(&:id))
     retweeted_sources.lazy.reject{|r|
-      r.is_a?(User) and has_status_user_ids.include?(r.id)
+      r.class.slug == :twitter_user and has_status_user_ids.include?(r.id)
     }.map(&:user) end
   alias retweeted_users retweeted_by
 
   # この投稿に対するリツイートを返す
   def retweeted_statuses
-    retweeted_sources.lazy.select{|m| m.is_a?(Message) } end
+    retweeted_sources.lazy.select{|m| m.is_a?(Plugin::Twitter::Message) }
+  end
 
   # この投稿に対するリツイートまたはユーザを返す
   def retweeted_sources
@@ -667,7 +667,7 @@ class Message < Diva::Model
 
   # :nodoc:
   def add_favorited_by(user, time=Time.now)
-    type_strict user => User, time => Time
+    type_strict user => Plugin::Twitter::User, time => Time
     return retweet_source.add_favorited_by(user, time) if retweet?
     service = Service.primary
     if service
@@ -677,7 +677,7 @@ class Message < Diva::Model
 
   # :nodoc:
   def remove_favorited_by(user)
-    type_strict user => User
+    type_strict user => Plugin::Twitter::User
     return retweet_source.remove_favorited_by(user) if retweet?
     service = Service.primary
     if service
@@ -686,7 +686,7 @@ class Message < Diva::Model
 
   # :nodoc:
   def add_child(child)
-    type_strict child => Message
+    type_strict child => Plugin::Twitter::Message
     if child[:retweet]
       add_retweet_in_this_thread(child)
     else
@@ -696,7 +696,7 @@ class Message < Diva::Model
 
   # :nodoc:
   def add_retweet_user(retweet_user, created_at)
-    type_strict retweet_user => User
+    type_strict retweet_user => Plugin::Twitter::User
     return retweet_source.add_retweet_user(retweet_user, created_at) if retweet?
     add_retweet_in_this_thread(retweet_user, created_at)
   end
@@ -713,16 +713,18 @@ class Message < Diva::Model
   private
 
   def add_retweet_in_this_thread(child, created_at=child[:created])
-    type_strict child => tcor(Message, User)
     unless retweeted_sources.include? child
-      case child
-      when Message
+      case child.class.slug
+      when :twitter_tweet
         retweeted_sources << child
         retweeted_sources.delete(child.user) if retweeted_sources.include?(child.user)
-      when User
-        retweeted_sources << child if retweeted_users.include?(child) end end
+      when :twitter_user
+        retweeted_sources << child if retweeted_users.include?(child)
+      end
+    end
     world, = Plugin.filtering(:world_current, nil)
-    set_modified(created_at) if world and world.class.slug == :twitter and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != child.user)) end
+    set_modified(created_at) if world and world.class.slug == :twitter and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != child.user))
+  end
 
   def add_child_in_this_thread(child)
     children << child
@@ -739,10 +741,12 @@ class Message < Diva::Model
       if id.is_a? Enumerable
         super.map do |v|
           case v
-          when Message
+          when Plugin::Twitter::Message
             v
           else
-            findbyid(v) end end
+            findbyid(v)
+          end
+        end
       else
         result = super
         if result
@@ -754,7 +758,9 @@ class Message < Diva::Model
             world.class.slug == :twitter
           }
           result = twitter.scan(:status_show, id: id)
-          result end end
+          result
+        end
+      end
     rescue Exception => err
       error err
       raise err
@@ -804,5 +810,7 @@ class Message < Diva::Model
 
 end
 
-class Messages < TypedArray(Message)
+class Messages < TypedArray(Plugin::Twitter::Message)
 end
+
+Message = Plugin::Twitter::Message

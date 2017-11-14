@@ -45,7 +45,7 @@ Plugin.create :quoted_message do
     ms.each do |message|
       quoted_screen_names = Set.new(
         message.entity.select{ |entity| :urls == entity[:slug] }.map{ |entity|
-          matched = Message::PermalinkMatcher.match(entity[:expanded_url])
+          matched = Plugin::Twitter::Message::PermalinkMatcher.match(entity[:expanded_url])
           matched[:screen_name] if matched && matched.names.include?("screen_name".freeze) })
       quoted_services = Enumerator.new{|y|
         Plugin.filtering(:worlds, y)

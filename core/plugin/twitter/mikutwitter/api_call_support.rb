@@ -36,13 +36,13 @@ module MikuTwitter::ApiCallSupport
     # ==== Args
     # [uni] 名前（単数形）
     # [multi] 名前（複数形）
-    def self.defparser(uni, multi = :"#{uni}s", container = Array, defaults = {})
+    def self.defparser(uni, multi = :"#{uni}s", defaults = {})
       parser = lazy{ MikuTwitter::ApiCallSupport::Request::Parser.method(uni) }
       defaults.freeze
       define_method(multi){ |options = {}|
         type_strict options => Hash
         json(defaults.merge(options)).next{ |node|
-          Thread.new{ container.new(node.map(&parser)).freeze } } }
+          Thread.new{ node.map(&parser).freeze } } }
 
       define_method(uni){ |options = {}|
         type_strict options => Hash
@@ -74,8 +74,8 @@ module MikuTwitter::ApiCallSupport
       twitter.api(api, options, force_oauth).next{ |res|
         Thread.new{ JSON.parse(res.body).symbolize } } end
 
-    defparser :user, :users, Users
-    defparser :message, :messages, Messages, tweet_mode: 'extended'.freeze
+    defparser :user, :users
+    defparser :message, :messages, tweet_mode: 'extended'.freeze
     defparser :list
     defparser :id
     defparser :direct_message
@@ -86,8 +86,8 @@ module MikuTwitter::ApiCallSupport
         relationship = res[:relationship]
         { following: relationship[:source][:following],     # 自分がフォローしているか
           followed_by: relationship[:source][:followed_by], # 相手にフォローされているか
-          user: User.new_ifnecessary(idname: relationship[:target][:screen_name], # 相手
-                                     id: relationship[:target][:id]) } } end
+          user: Plugin::Twitter::User.new_ifnecessary(idname: relationship[:target][:screen_name], # 相手
+                                                      id: relationship[:target][:id]) } } end
 
     def search(options = {})
       type_strict options => Hash
@@ -109,7 +109,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:user] = user(msg[:user])
         cnv[:retweet] = message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
-        message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
+        message = cnv[:exact] ? Plugin::Twitter::Message.rewind(cnv) : Plugin::Twitter::Message.new_ifnecessary(cnv)
         # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
         if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
           message(msg[:quoted_status]).add_quoted_by(message) end
@@ -142,14 +142,15 @@ module MikuTwitter::ApiCallSupport
         cnv[:user] = user(msg[:user])
         cnv[:retweet] = streaming_message(msg[:retweeted_status]) if msg[:retweeted_status]
         cnv[:exact] = [:created_at, :source, :user, :retweeted_status].all?{|k|msg.has_key?(k)}
-        message = cnv[:exact] ? Message.rewind(cnv) : Message.new_ifnecessary(cnv)
+        message = cnv[:exact] ? Plugin::Twitter::Message.rewind(cnv) : Plugin::Twitter::Message.new_ifnecessary(cnv)
         # search/tweets.json の戻り値のquoted_statusのuserがたまにnullだゾ〜
         if msg[:quoted_status].is_a?(Hash) and msg[:quoted_status][:user]
           streaming_message(msg[:quoted_status]).add_quoted_by(message) end
         message end
 
       def messages(msgs)
-        Messages.new msgs.map{ |msg| message(msg) } end
+        msgs.map{ |msg| message(msg) }
+      end
 
       def user(u)
         cnv = u.convert_key(:screen_name =>:idname, :url => :url)
@@ -164,11 +165,11 @@ module MikuTwitter::ApiCallSupport
         cnv[:following] = u[:following]
         cnv[:exact] = [:created_at, :description, :protected, :followers_count, :friends_count, :verified].all?{|k|u.has_key?(k)}
         # ユーザの見た目が変わっても過去のTweetのアイコン等はそのままにしたいので、新しいUserを作る
-        existing_user = User.findbyid(u[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
+        existing_user = Plugin::Twitter::User.findbyid(u[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
         if visually_changed?(existing_user, cnv)
-          User.new(existing_user.to_hash).merge(cnv)
+          Plugin::Twitter::User.new(existing_user.to_hash).merge(cnv)
         else
-          cnv[:exact] ? User.rewind(cnv) : User.new_ifnecessary(cnv) end end
+          cnv[:exact] ? Plugin::Twitter::User.rewind(cnv) : Plugin::Twitter::User.new_ifnecessary(cnv) end end
 
       def visually_changed?(old_user, new_user_hash)
         old_user && (
@@ -182,7 +183,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:mode] = list[:mode] == 'public'
         cnv[:user] = user(list[:user])
         cnv[:exact] = true
-        cnv[:exact] ? UserList.rewind(cnv) : UserList.new_ifnecessary(cnv)
+        cnv[:exact] ? Plugin::Twitter::UserList.rewind(cnv) : Plugin::Twitter::UserList.new_ifnecessary(cnv)
       end
 
       def direct_message(dm)

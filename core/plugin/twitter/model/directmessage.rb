@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 require_relative 'user'
 
-module Mikutter; end
-
-module Mikutter::Twitter
+module Plugin::Twitter
   class DirectMessage < Diva::Model
     include Diva::Model::MessageMixin
 
@@ -13,9 +11,9 @@ module Mikutter::Twitter
 
     field.int    :id, required: true                        # ID
     field.string :text, required: true                      # Message description
-    field.has    :user, User, required: true                # Send by user
-    field.has    :sender, User, required: true              # Send by user (old)
-    field.has    :recipient, User, required: true           # Received by user
+    field.has    :user, Plugin::Twitter::User, required: true                # Send by user
+    field.has    :sender, Plugin::Twitter::User, required: true              # Send by user (old)
+    field.has    :recipient, Plugin::Twitter::User, required: true           # Received by user
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 

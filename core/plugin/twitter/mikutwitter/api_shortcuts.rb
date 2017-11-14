@@ -110,7 +110,9 @@ module MikuTwitter::APIShortcuts
     args[:id] = args[:status_id] if args[:status_id]
     request = self/:statuses/:retweeters/:ids
     cursor_pager(request, :paged_ids, :ids, args).next do |ids|
-      Thread.new{ User.findbyid(ids) } end end
+      Thread.new{ Plugin::Twitter::User.findbyid(ids) }
+    end
+  end
 
   defshortcut :rate_limit_status, "account/rate_limit_status", :json
 
@@ -122,8 +124,8 @@ module MikuTwitter::APIShortcuts
 
   def update(message)
     text = message[:message]
-    replyto = message[:replyto] && Message.generate(message[:replyto])
-    receiver = message[:receiver] && User.generate(message[:receiver])
+    replyto = message[:replyto] && Plugin::Twitter::Message.generate(message[:replyto])
+    receiver = message[:receiver] && Plugin::Twitter::User.generate(message[:receiver])
     iolist = message[:mediaiolist]
     is_reply = !!(receiver || replyto)
     data = {:status => text }
@@ -136,7 +138,7 @@ module MikuTwitter::APIShortcuts
       if replyto
         replyto.each_ancestor.each do |m|
           forecast_receivers << m.user
-          forecast_receivers.merge(m.receive_user_screen_names.map{|sn| User.findbyidname(sn) }.compact)
+          forecast_receivers.merge(m.receive_user_screen_names.map{|sn| Plugin::Twitter::User.findbyidname(sn) }.compact)
         end
       end
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
@@ -263,7 +265,7 @@ module MikuTwitter::APIShortcuts
       promise = Deferred.new(true)
       Thread.new{
         begin
-          promise.call(User.findbyid(ids))
+          promise.call(Plugin::Twitter::User.findbyid(ids))
         rescue Exception => e
           promise.fail(e) end }
       promise.next{ |users|

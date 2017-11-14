@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'json'
+
+module Plugin::Twitter; end
+
 require_relative 'builder'
 require_relative 'model'
 require_relative 'mikutwitter'
@@ -8,11 +11,11 @@ Plugin.create(:twitter) do
 
   defevent :favorite,
            priority: :ui_favorited,
-           prototype: [Diva::Model, User, Message]
+           prototype: [Diva::Model, Plugin::Twitter::User, Plugin::Twitter::Message]
 
   defevent :unfavorite,
            priority: :ui_favorited,
-           prototype: [Diva::Model, User, Message]
+           prototype: [Diva::Model, Plugin::Twitter::User, Plugin::Twitter::Message]
 
   favorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
   unfavorites = Hash.new{ |h, k| h[k] = Set.new } # {user_id: set(message_id)}
@@ -97,7 +100,7 @@ Plugin.create(:twitter) do
   onappear do |messages|
     retweets = messages.select(&:retweet?).map do |message|
       result = message.retweet_ancestors.to_a[-2]
-      fail "invalid retweet #{message.inspect}. ancestors: #{message.retweet_ancestors.to_a.inspect}" unless result.is_a?(Message)
+      fail "invalid retweet #{message.inspect}. ancestors: #{message.retweet_ancestors.to_a.inspect}" unless result.is_a?(Plugin::Twitter::Message)
       result
     end
     if not retweets.empty?

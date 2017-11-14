@@ -5,7 +5,7 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_icon_size] ||= 64
   UserConfig[:profile_icon_margin] ||= 8
 
-  intent User, label: _('プロフィール') do |intent_token|
+  intent :twitter_user, label: _('プロフィール') do |intent_token|
     show_profile(intent_token.model, intent_token)
   end
 
@@ -238,7 +238,7 @@ Plugin.create :user_detail_view do
               followbutton.sensitive = false
               event = following ? :followings_destroy : :followings_created
               me.__send__(following ? :unfollow : :follow, user_id: user.id).next{ |msg|
-                Plugin.call(event, me, Users.new([user]))
+                Plugin.call(event, me, [user])
                 followbutton.sensitive = true unless followbutton.destroyed? }.
               terminate.trap{
                 followbutton.sensitive = true unless followbutton.destroyed? }

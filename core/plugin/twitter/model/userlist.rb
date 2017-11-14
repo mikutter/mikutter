@@ -10,7 +10,7 @@ require 'set'
 
 require_relative 'user'
 
-class UserList < Diva::Model
+class Plugin::Twitter::UserList < Diva::Model
   extend Memoist
 
   include Diva::Model::Identity
@@ -29,9 +29,9 @@ class UserList < Diva::Model
   field.string :name, required: true
   field.bool   :mode
   field.string :description
-  field.has    :user, User, required: true
+  field.has    :user, Plugin::Twitter::User, required: true
   field.string :slug, required: true
-  field.has    :member, [User]
+  field.has    :member, [Plugin::Twitter::User]
 
   def initialize(value)
     type_strict value => Hash
@@ -51,7 +51,8 @@ class UserList < Diva::Model
     self[:member] ||= Set.new end
 
   def member?(user)
-    member.include?(user) if user.is_a? User end
+    member.include?(user) if user.is_a? Plugin::Twitter::User
+  end
 
   # リプライだった場合、投稿した人と宛先が一人でもリストメンバーだったら真。
   # リプライではない場合は、 UserList.member?(message.user) と同じ
@@ -65,29 +66,38 @@ class UserList < Diva::Model
 
   def add_member(user)
     member_update_transaction do
-      if user.is_a? User
+      case user
+      when Plugin::Twitter::User
         member << user
-      elsif user.is_a? Integer
-        Thread.new {
-          user = User.findbyid(user)
-          member << user }
-      elsif user.is_a? Enumerable
+      when Integer
+        Thread.new do
+          user = Plugin::Twitter::User.findbyid(user)
+          member << user
+        end
+      when Enumerable
         user.each(&method(:add_member))
       else
-        raise ArgumentError.new('UserList member must be User') end end
-    self end
+        raise ArgumentError.new('UserList member must be User')
+      end
+    end
+    self
+  end
 
   def remove_member(user)
     member_update_transaction do
-      if user.is_a? User
+      case user
+      when Plugin::Twitter::User
         member.delete(user)
-      elsif user.is_a? Integer
-        member.delete(User.findbyid(user))
-      elsif user.is_a? Enumerable
+      when Integer
+        member.delete(Plugin::Twitter::User.findbyid(user))
+      when Enumerable
         user.map(&remove_member)
       else
-        raise ArgumentError.new('UserList member must be User') end end
-    self end
+        raise ArgumentError.new('UserList member must be User')
+      end
+    end
+    self
+  end
 
   private
   def member_update_transaction
@@ -100,5 +110,5 @@ class UserList < Diva::Model
 
 end
 
-class UserLists < TypedArray(UserList)
+class UserLists < TypedArray(Plugin::Twitter::UserList)
 end

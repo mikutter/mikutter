@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 Plugin.create :list do
-  defevent :list_created, priority: :routine_passive, prototype: [Diva::Model, UserLists]
+  defevent :list_created, priority: :routine_passive, prototype: [Diva::Model, Array]
   defevent :list_destroy, priority: :routine_passive, prototype: [Diva::Model, Array]
 
   crawl_count = Hash.new{|h,k|h[k] = gen_counter}
@@ -149,9 +149,9 @@ Plugin.create :list do
   def available_lists(service = nil)
     @available_lists ||= Hash.new
     if service
-      @available_lists[service.user_obj] ||= UserLists.new.freeze
+      @available_lists[service.user_obj] ||= [].freeze
     else
-      @all_available_lists ||= UserLists.new(@available_lists.flat_map{|k,v| v}.uniq.compact).freeze end end
+      @all_available_lists ||= @available_lists.flat_map{|k,v| v}.uniq.compact.freeze end end
 
   # _service_ がフォローしているリストを新しく設定する
   # ==== Args
@@ -162,11 +162,11 @@ Plugin.create :list do
   def set_available_lists(service, newlist)
     newlist_ary = newlist.to_a
     available_list_of_service = available_lists(service).to_a
-    created = newlist_ary - available_list_of_service
-    deleted = available_list_of_service - newlist_ary
-    Plugin.call(:list_created, service, UserLists.new(created)) if not created.empty?
-    Plugin.call(:list_destroy, service, UserLists.new(deleted)) if not deleted.empty?
-    @available_lists[service.user_obj] = UserLists.new(newlist_ary).freeze
+    created = (newlist_ary - available_list_of_service).freeze
+    deleted = (available_list_of_service - newlist_ary).freeze
+    Plugin.call(:list_created, service, created) if not created.empty?
+    Plugin.call(:list_destroy, service, deleted) if not deleted.empty?
+    @available_lists[service.user_obj] = newlist_ary.freeze
     @all_available_lists = nil
     Plugin.call(:list_data, service, available_lists(service)) if not(created.empty? and deleted.empty?)
     self end

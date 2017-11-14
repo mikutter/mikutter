@@ -213,7 +213,7 @@ module Plugin::Twitter
 
     def user_initialize
       if self[:user]
-        self[:user] = User.new_ifnecessary(self[:user])
+        self[:user] = Plugin::Twitter::User.new_ifnecessary(self[:user])
         (twitter/:account/:verify_credentials).user.next(&method(:user_data_received)).trap(&method(:user_data_failed)).terminate
       else
         res = twitter.query!('account/verify_credentials', cache: true)

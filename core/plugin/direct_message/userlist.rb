@@ -15,7 +15,7 @@ module Plugin::DirectMessage
       update_hash.each do |user, last_date|
         @dm_last_date[user[:id]] = last_date.to_i
       end
-      add_user(Users.new(update_hash.keys))
+      add_user(update_hash.keys)
     end
   end
 end

@@ -60,7 +60,7 @@ module Plugin::ListSettings
                      name: iter[NAME],
                      description: iter[DESCRIPTION]){ |event, list|
         if :success == event and list
-          Plugin.call(:list_created, world, UserLists.new([list]))
+          Plugin.call(:list_created, world, [list])
           if not(destroyed?)
             iter[LIST] = list
             iter[SLUG] = list[:full_name]
@@ -90,7 +90,7 @@ module Plugin::ListSettings
       if list
         Service.primary.delete_list(list_id: list[:id]){ |event, deleted_list|
           if event == :success
-            Plugin.call(:list_destroy, Service.primary, UserLists.new([deleted_list]))
+            Plugin.call(:list_destroy, Service.primary, [deleted_list])
             model.remove(iter) if not destroyed? end
         }.terminate end end
 
