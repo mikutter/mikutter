@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
-require "mikutwitter/query"
+require_relative "basic"
+require_relative "query"
 require "json"
 require "timelimitedqueue"
-
-miquire :core, "message", "user", "userlist", 'directmessage'
 
 module MikuTwitter::ApiCallSupport
   HTML_ATTR_UNESCAPE_HASH = {

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-miquire :lib, "mikutwitter"
 
 module Plugin::Twitter
   class World < Diva::Model

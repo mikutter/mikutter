@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
-require "mikutwitter/connect"
-require "mikutwitter/utils"
-require "mikutwitter/cache"
-require "mikutwitter/error"
+require_relative "basic"
+require_relative "connect"
+require_relative "utils"
+require_relative "cache"
+require_relative "error"
 require "delayer/deferred"
 require "monitor"
 

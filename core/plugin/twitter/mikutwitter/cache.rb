@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
+require_relative "basic"
 require "fileutils"
 require 'digest/md5'
 

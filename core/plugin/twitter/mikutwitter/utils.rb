@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
+require_relative "basic"
 require "lazy"
 require "cgi"
 
@@ -22,11 +22,16 @@ module MikuTwitter::Utils
   # ==== Return
   # URLの?以降のクエリ文字列（"?"含む）。無い場合は空の文字列
   def get_args(args)
-    filtered = lazy{ args.select{|k, v| not EXCLUDE_OPTIONS.include? k } }
-    if not(args.empty? or filtered.empty?)
-      "?" + filtered.map{|pair| "#{CGI.escape(pair[0].to_s).to_s}=#{CGI.escape(pair[1].to_s).to_s}"}.join('&')
+    if (args.keys - EXCLUDE_OPTIONS).empty?
+      ''.freeze
     else
-      '' end end
+      '?'.freeze + args.reject{|k, v|
+        EXCLUDE_OPTIONS.include?(k)
+      }.map{|k, v|
+        "#{CGI.escape(k.to_s)}=#{CGI.escape(v.to_s)}"
+      }.to_a.join('&'.freeze)
+    end
+  end
 
   def line_accumlator(splitter="\n", &proc)
     splitter.freeze

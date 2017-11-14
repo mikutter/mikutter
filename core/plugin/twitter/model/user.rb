@@ -2,7 +2,7 @@
 
 miquire :core, 'skin'
 miquire :system, 'system'
-miquire :lib, 'typed-array', 'diva_hacks', 'weakstorage'
+miquire :lib, 'typed-array', 'weakstorage'
 
 class User < Diva::Model
   extend Gem::Deprecate

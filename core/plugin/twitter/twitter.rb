@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'json'
 require_relative 'builder'
-require_relative 'model/world'
+require_relative 'model'
+require_relative 'mikutwitter'
 
 Plugin.create(:twitter) do
 

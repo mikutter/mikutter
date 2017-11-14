@@ -1,4 +1,5 @@
-miquire :lib, 'diva_hacks'
+# -*- coding: utf-8 -*-
+require_relative 'user'
 
 module Mikutter; end
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
-require "mikutwitter/utils"
-require "mikutwitter/authentication_failed_action"
-require "mikutwitter/rate_limiting"
+require_relative "basic"
+require_relative "utils"
+require_relative "authentication_failed_action"
+require_relative "rate_limiting"
 require "oauth"
 
 # OAuth関連

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
-require "mikutwitter/utils"
+require_relative "basic"
+require_relative "utils"
 
 # OAuthに失敗した時の処理
 module MikuTwitter::AuthenticationFailedAction

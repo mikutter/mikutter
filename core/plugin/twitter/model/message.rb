@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 
-miquire :core, 'user'
-miquire :lib, 'diva_hacks'
-
 require 'net/http'
 require 'delegate'
 miquire :lib, 'typed-array', 'timelimitedqueue'
+
+require_relative 'user'
 
 =begin
 = Message

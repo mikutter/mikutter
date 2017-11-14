@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
+require_relative "basic"
 
 class MikuTwitter::Error < StandardError
   attr_accessor :httpresponse

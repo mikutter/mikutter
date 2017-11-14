@@ -6,11 +6,9 @@
 # users list
 
 require 'typed-array'
-
-miquire :core, 'user', 'message'
-miquire :lib, 'diva_hacks'
-
 require 'set'
+
+require_relative 'user'
 
 class UserList < Diva::Model
   extend Memoist

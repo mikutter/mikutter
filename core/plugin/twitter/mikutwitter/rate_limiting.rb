@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-require "mikutwitter/basic"
-require "mikutwitter/utils"
+require_relative "basic"
+require_relative "utils"
 
 # API残数
 module MikuTwitter::RateLimiting
