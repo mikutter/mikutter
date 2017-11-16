@@ -194,7 +194,7 @@ Plugin.create :user_detail_view do
                      closeup(w_eventbox_image_following).
                      closeup(w_following_label) end
       relation_container = ::Gtk::HBox.new(false, icon_size.width/2)
-      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
+      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user_obj.idname}(#{me.user_obj[:name]})"))
       relation_container.closeup(::Gtk::VBox.new.
                                  closeup(relation).
                                  closeup(::Gtk::HBox.new.
