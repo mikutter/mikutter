@@ -9,7 +9,7 @@ class Gtk::ListList < Gtk::CRUD
   def column_schemer
     [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
      {:kind => :text, :type => String, :label => 'リスト名'},
-     {:type => UserList},
+     {:type => Diva::Model},
     ].freeze
   end
 

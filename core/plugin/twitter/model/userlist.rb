@@ -77,7 +77,7 @@ class Plugin::Twitter::UserList < Diva::Model
       when Enumerable
         user.each(&method(:add_member))
       else
-        raise ArgumentError.new('UserList member must be User')
+        raise ArgumentError.new("#{self.class} member must be User")
       end
     end
     self
@@ -93,7 +93,7 @@ class Plugin::Twitter::UserList < Diva::Model
       when Enumerable
         user.map(&remove_member)
       else
-        raise ArgumentError.new('UserList member must be User')
+        raise ArgumentError.new("#{self.class} member must be User")
       end
     end
     self
@@ -112,3 +112,5 @@ end
 
 class UserLists < TypedArray(Plugin::Twitter::UserList)
 end
+
+UserList = Plugin::Twitter::UserList

@@ -64,7 +64,7 @@ module Plugin::ListForProfile
     def column_schemer
       [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => @plugin._('リスト行き')},
        {:kind => :text, :type => String, :label => @plugin._('リスト名')},
-       {:type => UserList},
+       {:type => Diva::Model},
        {:type => Diva::Model}
       ].freeze
     end

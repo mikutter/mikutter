@@ -21,7 +21,7 @@ module Plugin::ListSettings
 
     def column_schemer
       [{:kind => :text, :type => String, :label => @plugin._('リスト名')},
-       {:type => UserList},
+       {:type => Diva::Model},
        {:type => String, :widget => :input, :label => @plugin._('リストの名前')},
        {:type => String, :widget => :input, :label => @plugin._('リスト説明')},
        {:type => TrueClass, :widget => :boolean, :label => @plugin._('公開')},

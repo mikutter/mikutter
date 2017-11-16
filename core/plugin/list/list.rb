@@ -19,7 +19,6 @@ Plugin.create :list do
     [result] end
 
   def datasource_slug(list)
-    type_strict list => UserList
     :"#{list.user.idname}_list_#{list[:id]}" end
 
   # available_list の同期をとる。外的要因でリストが追加されたのを検出した場合。
@@ -123,7 +122,7 @@ Plugin.create :list do
 
   # list が抽出タブで使われていて、更新を要求されているなら真を返す
   # ==== Args
-  # [list] UserList 調べるリスト
+  # [list] Diva::Model 調べるリスト
   # ==== Return
   # 使われていたら真
   def using?(list)
@@ -145,7 +144,7 @@ Plugin.create :list do
   # ==== Args
   # [service] Service|nil リストのフォロイーで絞り込む場合、そのService
   # ==== Return
-  # Enumerable 自分がフォローしているリスト(UserList)を列挙する
+  # Enumerable 自分がフォローしているリスト(Plugin::Twitter::UserList)を列挙する
   def available_lists(service = nil)
     @available_lists ||= Hash.new
     if service
