@@ -14,6 +14,9 @@ miquire :core, 'user'
 
 miquire :lib, 'reserver'
 
+# タイムラインに表示するメッセージの数
+UserConfig[:timeline_max] ||= 200
+
 =begin rdoc
   タイムラインのGtkウィジェット。
 =end
@@ -165,11 +168,10 @@ class Gtk::TimeLine
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
   # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。
   def init_remover
-    @timeline_max = 200
     @remover_queue = TimeLimitedQueue.new(1024, 1){ |messages|
       Delayer.new{
         if not destroyed?
-          remove_count = size - timeline_max
+          remove_count = size - (timeline_max || UserConfig[:timeline_max])
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
               tl_model_remove(iter) } end end } } end

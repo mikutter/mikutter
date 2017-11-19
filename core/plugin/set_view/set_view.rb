@@ -164,5 +164,8 @@ Plugin::create(:set_view) do
       end
     end
 
+    settings(_('タイムライン')) do
+      adjustment(_('最大表示件数'), :timeline_max, 1, 10000)
+    end
   end
 end
