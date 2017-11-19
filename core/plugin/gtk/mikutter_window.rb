@@ -50,7 +50,7 @@ class Gtk::MikutterWindow < Gtk::Window
       window << postbox end end
 
   def refresh
-    if Service.to_a.empty?
+    if !Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
       @postboxes.children.each(&:hide)
     else
       @postboxes.children.each(&:show_all) end end

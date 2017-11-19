@@ -20,7 +20,7 @@ class Gtk::WorldShifter < Gtk::EventBox
   end
 
   def refresh
-    if 1 < Service.to_a.size
+    if 1 < Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size
       if not @face
         @face = Gtk::Image.new(Skin['loading.png'].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
         self.add(@face).show_all end
