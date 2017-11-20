@@ -6,6 +6,10 @@ Plugin.create :search do
     Plugin.call(:search_start, token.model.query)
   end
 
+  defspell(:search, :twitter) do |twitter, options|
+    twitter.search(options)
+  end
+
   querybox = ::Gtk::Entry.new()
   querycont = ::Gtk::VBox.new(false, 0)
   searchbtn = ::Gtk::Button.new(_('検索'))
@@ -37,7 +41,7 @@ Plugin.create :search do
   searchbtn.signal_connect('clicked'){ |elm|
     elm.sensitive = querybox.sensitive = false
     timeline(:search).clear
-    Service.primary.search(q: querybox.text, count: 100).next{ |res|
+    spell(:search, Service.primary, q: querybox.text, count: 100).next{ |res|
       timeline(:search) << res if res.is_a? Array
       elm.sensitive = querybox.sensitive = true
     }.trap{ |e|

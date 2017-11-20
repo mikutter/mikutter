@@ -4,7 +4,7 @@ module Plugin::Spell
 
   Spell = Struct.new(:name, :constraint, :condition, :proc) do
     def match(models, optional)
-      Set.new(constraint.map{|a| Diva::Model(a) }) == Set.new(models.map{|a| a.class }) and condition?(models)
+      Set.new(constraint.map{|a| Diva::Model(a) }) == Set.new(models.map{|a| a.class }) and condition?(models, optional)
     end
 
     def call(models, optional)

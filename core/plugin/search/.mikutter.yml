@@ -8,6 +8,7 @@ depends:
   - uitranslator
   - skin
   - twitter
+  - spell
 version: '1.0'
 author: toshi_a
 name: 検索
