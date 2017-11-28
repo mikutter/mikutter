@@ -8,6 +8,11 @@ Plugin.create(:spell) do
                                   Set.new(constraint).freeze,
                                   condition,
                                   block)
+    if !respond_to?(spell_name)
+      defdsl spell_name do |*models|
+        spell(spell_name, *models)
+      end
+    end
     filter_search_spell do |yielder, name, models, optional|
       yielder << beh if beh.name == name.to_sym && beh.match(models, optional)
       [yielder, name, models]
