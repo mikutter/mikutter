@@ -112,6 +112,7 @@ class Plugin::Twitter::Message < Diva::Model
     service = Service.primary
     if retweetable? and service
       service.retweet(self){|*a| yield(*a) if block_given? } end end
+  deprecate :retweet, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#retweet-twitter-tweet)", 2018, 11
 
   # この投稿を削除する
   def destroy
@@ -598,6 +599,7 @@ class Plugin::Twitter::Message < Diva::Model
     end
     retweeted_users.include?(world.user_obj) if world.class.slug == :twitter
   end
+  deprecate :retweeted?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#retweeted-twitter-tweet)", 2018, 11
 
   # この投稿を「自分」がリツイートしていれば真
   def retweeted_by_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
@@ -609,6 +611,7 @@ class Plugin::Twitter::Message < Diva::Model
       retweeted_users.any?(&our.method(:include?))
     end
   end
+  deprecate :retweeted_by_me?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#retweeted-twitter-tweet)", 2018, 11
 
   # この投稿をリツイート等して、 _me_ のタイムラインに出現させたリツイートを返す。
   # 特に誰もリツイートしていない場合は _self_ を返す。

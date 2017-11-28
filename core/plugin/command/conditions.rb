@@ -47,7 +47,9 @@ module ::Plugin::Command
   # 選択されているツイートのうち、一つでも現在のアカウントでリツイートできるものがあれば真を返す
   CanReTweetAny = Condition.new { |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    opt.messages.lazy.map(&current_world.method(:|)).any?{|c| c.retweetable? && !c.retweeted? }
+    opt.messages.lazy.any?{|m|
+      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
+    }
   }
 
   # 選択されているツイートが全て、現在のアカウントでリツイート可能な時、真を返す。
@@ -55,8 +57,8 @@ module ::Plugin::Command
   # ツイートが選択されていなければ偽
   CanReTweetAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    not opt.messages.empty? and opt.messages.lazy.map(&current_world.method(:|)).all?{ |c|
-      c.retweetable? and !c.retweeted_by_me?
+    !opt.messages.empty? && opt.messages.lazy.all?{|m|
+      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
     }
   }
 
@@ -64,8 +66,8 @@ module ::Plugin::Command
   # ツイートが選択されていなければ偽
   IsReTweetedAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    not opt.messages.empty? and opt.messages.lazy.map(&current_world.method(:|)).all?{ |c|
-      c.retweetable? and c.retweeted_by_me?
+    !opt.messages.empty? && opt.messages.lazy.all?{|m|
+      Plugin[:command].retweet?(current_world, m) && Plugin[:command].retweeted?(current_world, m)
     }
   }
 
