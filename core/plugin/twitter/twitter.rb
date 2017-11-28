@@ -98,6 +98,19 @@ Plugin.create(:twitter) do
     }
   end
 
+  defspell(:retweeted, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ tweet.retweeted_users.include?(twitter.user_obj) }
+          ) do |twitter, tweet|
+    Delayer::Deferred.new.next{
+      retweet = tweet.retweeted_statuses.find{|rt| rt.user == twitter.user_obj }
+      if retweet
+        retweet
+      else
+        raise "ReTweet not found."
+      end
+    }
+  end
+
   defspell(:search, :twitter) do |twitter, options|
     twitter.search(options)
   end

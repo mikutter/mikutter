@@ -63,13 +63,14 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    target = opt.messages.select{|m| retweet?(m, Service.primary) }.reject{|m| m.retweeted_by_me? Service.primary }.map(&:introducer)
-    if target.any?{|message| message.from_me?([Service.primary]) }
+    world, = Plugin.filtering(:world_current, nil)
+    target = opt.messages.select{|m| retweet?(m, world) }.reject{|m| retweeted?(m, world) }.map(&:introducer)
+    if target.any?{|message| message.from_me?([world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each{|m| retweet(m, Service.primary) }
+        target.each{|m| retweet(m, world) }
       end
     else
-      target.each{|m| retweet(m, Service.primary) }
+      target.each{|m| retweet(m, world) }
     end
   end
 
