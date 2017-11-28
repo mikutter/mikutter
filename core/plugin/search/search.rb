@@ -6,10 +6,6 @@ Plugin.create :search do
     Plugin.call(:search_start, token.model.query)
   end
 
-  defspell(:search, :twitter) do |twitter, options|
-    twitter.search(options)
-  end
-
   querybox = ::Gtk::Entry.new()
   querycont = ::Gtk::VBox.new(false, 0)
   searchbtn = ::Gtk::Button.new(_('検索'))

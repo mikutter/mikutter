@@ -6,5 +6,6 @@ depends:
   mikutter: '3.6'
   plugin:
   - world
+  - spell
 version: '1.0'
 author: toshi_a

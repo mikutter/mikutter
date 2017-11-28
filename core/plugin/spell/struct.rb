@@ -15,7 +15,12 @@ module Plugin::Spell
     def condition?(models, optional)
       if condition
         order = constraint.map{|a| Diva::Model(a) }
-        condition.call(*models.sort_by{|m| order.index(m.class) }, optional)
+        models_sorted = models.sort_by{|m| order.index(m.class) }
+        if condition.arity == models.size
+          condition.call(*models_sorted)
+        else
+          condition.call(*models_sorted, optional)
+        end
       else
         true
       end

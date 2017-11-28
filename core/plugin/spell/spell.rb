@@ -15,7 +15,7 @@ Plugin.create(:spell) do
     end
     filter_search_spell do |yielder, name, models, optional|
       yielder << beh if beh.name == name.to_sym && beh.match(models, optional)
-      [yielder, name, models]
+      [yielder, name, models, optional]
     end
   end
 

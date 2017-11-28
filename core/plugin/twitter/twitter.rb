@@ -88,6 +88,20 @@ Plugin.create(:twitter) do
 
   filter_appear(&gen_message_filter)
 
+  defspell(:retweet, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ !tweet.protected? }
+          ) do |twitter, tweet|
+    twitter.retweet(id: tweet.id).next{|retweeted|
+      Plugin.call(:posted, twitter, [retweeted])
+      Plugin.call(:update, twitter, [retweeted])
+      retweeted
+    }
+  end
+
+  defspell(:search, :twitter) do |twitter, options|
+    twitter.search(options)
+  end
+
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
   on_destroyed do |messages|
     messages.each{ |message|
