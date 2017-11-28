@@ -63,7 +63,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    target = opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer)
+    target = opt.messages.select{|m| retweet?(m, Service.primary) }.reject{|m| m.retweeted_by_me? Service.primary }.map(&:introducer)
     if target.any?{|message| message.from_me?([Service.primary]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
         target.each{|m| retweet(m, Service.primary) }
