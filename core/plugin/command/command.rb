@@ -102,8 +102,15 @@ Plugin.create :command do
           visible: true,
           icon: Skin['close.png'],
           role: :timeline) do |opt|
-    opt.messages.each { |m|
-      m.destroy if ::Gtk::Dialog.confirm(_('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？') + "\n\n#{m.to_show}") } end
+    opt.messages.deach { |m|
+      +dialog(_('削除')) {
+        label _('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？')
+        link m
+      }.next {
+        m.destroy
+      }
+    }
+  end
 
   command(:select_prev,
           name: _('一つ上のメッセージを選択'),
