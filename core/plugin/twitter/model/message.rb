@@ -100,6 +100,10 @@ class Plugin::Twitter::Message < Diva::Model
     user.idname
   end
 
+  def icon
+    user.icon
+  end
+
   # この投稿へのリプライをつぶやく
   def post(other, &proc)
     other[:to] = [self]
