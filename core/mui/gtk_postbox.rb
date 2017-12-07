@@ -30,6 +30,7 @@ module Gtk
     # [footer] String テキストフィールドのカーソルの後ろに最初から入力されている文字列
     # [to_display_only] true|false toに宛てたリプライを送るなら偽。真ならUI上にtoが表示されるだけ
     # [use_blind_footer] true|false blind footerを追加するか否か
+    # [visibility] Symbol|nil post Spellに渡すvisibilityオプションの値
     # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
@@ -42,6 +43,7 @@ module Gtk
                    footer: ''.freeze,
                    to_display_only: false,
                    use_blind_footer: true,
+                   visibility: nil,
                    **kwrest)
       mainthread_only
       @posting = nil
@@ -63,6 +65,7 @@ module Gtk
       @footer = (footer || '').freeze
       @to_display_only = !!to_display_only
       @use_blind_footer = !!use_blind_footer
+      @visibility = visibility
       super()
       signal_connect('parent-set'){
         if parent
@@ -156,6 +159,7 @@ module Gtk
           current_world,
           to: to_display_only? ? nil : @to,
           body: text,
+          visibility: @visibility
         ).next{
           destroy
         }.trap{ |err|
@@ -395,6 +399,7 @@ module Gtk
         to: @to,
         footer: @footer,
         to_display_only: to_display_only?,
+        visibility: @visibility,
         **@options } end
 
     # 真を返すなら、 @to の要素はPostBoxの下に表示するのみで、投稿時にリプライにしない

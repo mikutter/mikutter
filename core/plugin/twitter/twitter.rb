@@ -90,27 +90,20 @@ Plugin.create(:twitter) do
 
   defspell(:post, :twitter,
            condition: ->(twitter, options){
-             if !options[:to] || Array(options[:to]).compact.empty?
-               true
-             else
-               t = Array(options[:to]).compact.first
-               t.is_a?(Diva::Model) && defined?(t.class.slug) && %i<twitter_tweet twitter_user twitter_direct_message>.include?(t.class.slug)
-             end
+             visibility_valid?(Array(options[:to]).compact.first, options[:visibility])
            }) do |twitter, options|
-    first_responder = Array(options[:to]).first || self
-    if defined?(first_responder.class.slug)
-      case first_responder.class.slug
-      when :twitter_tweet
-        twitter.post_tweet(replyto: first_responder, message: options[:body], **options)
-      when :twitter_user
-        twitter.post_tweet(receiver: first_responder, message: options[:body], **options)
-      when :twitter_direct_message
-        twitter.post_dm(user: first_responder.user, text: options[:body], **options)
-      else
-        raise "invalid responder slug #{first_responder.class.slug.inspect}"
+    first_responder = Array(options[:to]).compact.first || self
+    case post_visibility(first_responder, ifnone: options[:visibility])
+    when :public
+      tweet_param = options.merge(message: options[:body])
+      if first_responder && defined?(first_responder.class.slug)
+        tweet_param[first_responder.class.slug == :twitter_user ? :receiver : :replyto] = first_responder
       end
+      twitter.post_tweet(**tweet_param)
+    when :direct
+      twitter.post_dm(user: first_responder.user, text: options[:body], **options)
     else
-      twitter.post_tweet(message: options[:body], **options)
+      raise "invalid responder #{first_responder.class.inspect}"
     end
   end
 
@@ -212,6 +205,39 @@ Plugin.create(:twitter) do
     result = await_input
 
     builder.build(result[:token])
+  end
+
+  # post Spellで使うためのメソッド。
+  # 引数の値から、投稿をツイートにすべきかダイレクトメッセージにすべきかを調べる。
+  # ==== Args
+  # [to] 宛先となるユーザ、ツイート、DMなどに対応する Diva::Model 。Twitterでないものを渡すと常にnilを返す。通常のツイートの場合は、この引数にはnilを与える。
+  # [ifnone:] どちらか確定できない場合に返す値
+  # ==== Return
+  # [:public] ツイートとして投稿されるべき時
+  # [:direct] ダイレクトメッセージとして投稿されるべき時
+  # [_ifnone:_] どちらとも取れる時
+  # [nil] 失敗（投稿すべきでない時）
+  def post_visibility(to, ifnone: :public)
+    if to.is_a?(Diva::Model)
+      case defined?(to.class.slug) && to.class.slug
+      when :twitter_tweet
+        :public
+      when :twitter_user
+        ifnone
+      when :twitter_direct_message
+        :direct
+      end
+    else
+      :public
+    end
+  end
+
+  def visibility_valid?(to, visibility)
+    if visibility
+      post_visibility(to, ifnone: visibility) == visibility
+    else
+      !!post_visibility(to)
+    end
   end
 
 end
