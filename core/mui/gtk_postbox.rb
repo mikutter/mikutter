@@ -152,10 +152,10 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        @posting = service.post(
-          to: to_display_only? ? service : @to,
-          message: text,
-          attachments: []
+        @posting = Plugin[:gtk].post(
+          current_world,
+          to: to_display_only? ? nil : @to,
+          body: text,
         ).next{
           destroy
         }.trap{ |err|
@@ -196,7 +196,7 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and service | (@to.empty? ? service : @to) =~ :postable?
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].post?(current_world, to: @to)
     end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
@@ -245,7 +245,7 @@ module Gtk
         true end end
 
     def service
-      @from || current_world
+      current_world
     end
 
     private def current_world

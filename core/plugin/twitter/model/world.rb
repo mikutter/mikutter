@@ -158,31 +158,14 @@ module Plugin::Twitter
     define_postal :unfavorite
 
     def postable?(target=nil)
-      case target.class.slug
-      when :twitter_tweet, :twitter_user, :twitter
-        true
-      end if target.is_a?(Diva::Model)
+      Plugin[:twitter].post?(self, to: target)
     end
+    deprecate :postable?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter)", 2018, 11
 
     def post(to: nil, message:, **kwrest)
-      first_responder = Array(to).first || self
-      if defined?(first_responder.class.slug)
-        case first_responder.class.slug
-        when nil, :twitter
-          post_tweet(message: message)
-        when :twitter_tweet
-          post_tweet(replyto: first_responder, message: message)
-        when :twitter_user
-          post_tweet(receiver: first_responder, message: message)
-        when :twitter_direct_message
-          post_dm(user: first_responder.user, text: message)
-        else
-          raise "invalid responder slug #{first_responder.class.slug.inspect}"
-        end
-      else
-        raise "invalid responder #{first_responder.inspect}"
-      end
+      Plugin[:twitter].post(self, to: to, body: message, **kwrest)
     end
+    deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter)", 2018, 11
 
     def inspect
       "#<#{self.class.to_s}: #{id.inspect} #{slug.inspect}>"
@@ -194,8 +177,11 @@ module Plugin::Twitter
       result
     end
 
-    private
-
+    # :nodoc:
+    # 内部で利用するために用意されています。
+    # ツイートを投稿したい場合は、
+    # https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter
+    # を参照してください。
     def post_tweet(options)
       twitter.update(options).next{ |message|
         Plugin.call(:posted, self, [message])
@@ -204,12 +190,15 @@ module Plugin::Twitter
       }
     end
 
+    # :nodoc:
     def post_dm(options)
       twitter.send_direct_message(options).next do |dm|
         Plugin.call(:direct_messages, self, [dm])
         dm
       end
     end
+
+    private
 
     def user_initialize
       if self[:user]

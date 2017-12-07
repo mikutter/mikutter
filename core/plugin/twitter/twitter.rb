@@ -88,6 +88,32 @@ Plugin.create(:twitter) do
 
   filter_appear(&gen_message_filter)
 
+  defspell(:post, :twitter,
+           condition: ->(twitter, options){
+             if !options[:to] || Array(options[:to]).compact.empty?
+               true
+             else
+               t = Array(options[:to]).compact.first
+               t.is_a?(Diva::Model) && defined?(t.class.slug) && %i<twitter_tweet twitter_user twitter_direct_message>.include?(t.class.slug)
+             end
+           }) do |twitter, options|
+    first_responder = Array(options[:to]).first || self
+    if defined?(first_responder.class.slug)
+      case first_responder.class.slug
+      when :twitter_tweet
+        twitter.post_tweet(replyto: first_responder, message: options[:body], **options)
+      when :twitter_user
+        twitter.post_tweet(receiver: first_responder, message: options[:body], **options)
+      when :twitter_direct_message
+        twitter.post_dm(user: first_responder.user, text: options[:body], **options)
+      else
+        raise "invalid responder slug #{first_responder.class.slug.inspect}"
+      end
+    else
+      twitter.post_tweet(message: options[:body], **options)
+    end
+  end
+
   defspell(:retweet, :twitter, :twitter_tweet,
            condition: ->(twitter, tweet){ !tweet.protected? }
           ) do |twitter, tweet|
