@@ -88,6 +88,24 @@ Plugin.create(:twitter) do
 
   filter_appear(&gen_message_filter)
 
+  defspell(:destroy, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ tweet.from_me?(twitter) }
+          ) do |twitter, tweet|
+    (twitter/"statuses/destroy".freeze/tweet.id).message.next{ |destroyed_tweet|
+      destroyed_tweet[:rule] = :destroy
+      Plugin.call(:destroyed, [destroyed_tweet])
+      destroyed_tweet
+    }
+  end
+
+  defspell(:destroy_retweet, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ retweeted?(twitter, tweet) }
+          ) do |twitter, tweet|
+    retweeted(twitter, tweet).next{ |retweet|
+      destroy(twitter, retweet)
+    }
+  end
+
   defspell(:post, :twitter,
            condition: ->(twitter, options){
              visibility_valid?(Array(options[:to]).compact.first, options[:visibility])

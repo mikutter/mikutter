@@ -119,6 +119,7 @@ class Plugin::Twitter::Message < Diva::Model
     service = Service.primary
     if deletable? and service
       service.destroy(self){|*a| yield(*a) if block_given? } end end
+  deprecate :destroy, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#destroy-twitter-tweet)", 2018, 12
 
   # お気に入り状態を変更する。_fav_ がtrueならお気に入りにし、falseならお気に入りから外す。
   def favorite(fav = true)

@@ -67,7 +67,7 @@ module ::Plugin::Command
   IsReTweetedAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     !opt.messages.empty? && opt.messages.lazy.all?{|m|
-      Plugin[:command].retweet?(current_world, m) && Plugin[:command].retweeted?(current_world, m)
+      Plugin[:command].destroy_retweet?(current_world, m)
     }
   }
 

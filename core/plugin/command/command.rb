@@ -80,9 +80,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
-    opt.messages.each { |m|
-      retweet = m.retweeted_statuses.find(&:from_me?)
-      retweet.destroy if retweet and ::Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
+    current_world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| destroy_retweet(current_world, m) }
+    ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
+  end
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
