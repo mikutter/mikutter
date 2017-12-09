@@ -108,7 +108,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
-    opt.messages.each(&:unfavorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| unfavorite(world, m) }
+    ).terminate(_('あんふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete,
           name: _('削除'),

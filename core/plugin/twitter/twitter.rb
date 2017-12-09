@@ -121,7 +121,7 @@ Plugin.create(:twitter) do
   end
 
   defspell(:favorited, :twitter, :twitter_tweet,
-           condition: ->(twitter, tweet){ favorited?(twitter.user, tweet) }
+           condition: ->(twitter, tweet){ favorited?(twitter.user_obj, tweet) }
           ) do |twitter, tweet|
     Delayer::Deferred.new.next{
       favorited?(twitter.user, tweet)
@@ -175,6 +175,16 @@ Plugin.create(:twitter) do
       else
         raise "ReTweet not found."
       end
+    }
+  end
+
+  defspell(:unfavorite, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){
+             favorited?(twitter, tweet)
+           }) do |twitter, tweet|
+    (twitter/'favorites/destroy'.freeze).message(id: tweet.id).next{ |unfavorited_tweet|
+      Plugin.call(:unfavorite, twitter, twitter.user_obj, unfavorited_tweet)
+      unfavorited_tweet
     }
   end
 

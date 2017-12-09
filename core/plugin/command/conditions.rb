@@ -93,8 +93,8 @@ module ::Plugin::Command
   # ツイートが選択されていなければ偽
   IsFavoritedAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    not opt.messages.empty? and opt.messages.lazy.map(&current_world.method(:|)).all? { |c|
-      c.favoritable? and c.favorited_by_me?
+    !opt.messages.empty? and opt.messages.all?{|m|
+      Plugin[:command].unfavorite?(current_world, m)
     }
   }
 
