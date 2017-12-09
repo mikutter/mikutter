@@ -106,6 +106,36 @@ Plugin.create(:twitter) do
     }
   end
 
+  defspell(:favorite, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){
+             !favorited?(twitter, tweet)
+           }) do |twitter, tweet|
+    Plugin.call(:before_favorite, twitter, twitter.user_obj, tweet)
+    (twitter/'favorites/create'.freeze).message(id: tweet.id).next{ |favorited_tweet|
+      Plugin.call(:favorite, twitter, twitter.user_obj, favorited_tweet)
+      favorited_tweet
+    }.trap{ |e|
+      Plugin.call(:fail_favorite, twitter, twitter.user_obj, tweet)
+      Deferred.fail(e)
+    }
+  end
+
+  defspell(:favorited, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ favorited?(twitter.user, tweet) }
+          ) do |twitter, tweet|
+    Delayer::Deferred.new.next{
+      favorited?(twitter.user, tweet)
+    }
+  end
+
+  defspell(:favorited, :twitter_user, :twitter_tweet,
+           condition: ->(user, tweet){ tweet.favorited_by.include?(user) }
+          ) do |user, tweet|
+    Delayer::Deferred.new.next{
+      favorited?(user, tweet)
+    }
+  end
+
   defspell(:post, :twitter,
            condition: ->(twitter, options){
              visibility_valid?(Array(options[:to]).compact.first, options[:visibility])

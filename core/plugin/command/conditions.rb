@@ -74,8 +74,8 @@ module ::Plugin::Command
   # 選択されているツイートのうち、一つでも現在のアカウントでふぁぼれるものがあれば真を返す
   CanFavoriteAny = Condition.new { |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    opt.messages.lazy.map(&current_world.method(:|)).any?{ |c|
-      c.favoritable? and !c.favorited_by_me?
+    opt.messages.any?{|m|
+      Plugin[:command].favorite?(current_world, m) && !Plugin[:command].favorited?(current_world, m)
     }
   }
 
@@ -84,8 +84,8 @@ module ::Plugin::Command
   # ツイートが選択されていなければ偽
   CanFavoriteAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    not opt.messages.empty? and opt.messages.lazy.map(&current_world.method(:|)).all? { |c|
-      c.favoritable? and !c.favorited_by_me?
+    !opt.messages.empty? and opt.messages.all?{|m|
+      Plugin[:command].favorite?(current_world, m)
     }
   }
 

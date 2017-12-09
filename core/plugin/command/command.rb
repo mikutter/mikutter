@@ -92,7 +92,15 @@ Plugin.create :command do
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
-    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.map(&:introducer).each(&:favorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.select{|m|
+        favorite?(world, m) && !favorited?(world, m)
+      }.map{|m|
+        favorite(world, m)
+      }
+    ).terminate(_('ふぁぼふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),

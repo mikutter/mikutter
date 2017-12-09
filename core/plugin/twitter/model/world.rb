@@ -154,6 +154,7 @@ module Plugin::Twitter
         service.unfavorite(message).next{
           Plugin.call(:unfavorite, service, service.user_obj, base)
           base } end }
+    deprecate :favorite, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#favorite-twitter-twitter_tweet)", 2018, 12
 
     define_postal :unfavorite
 
