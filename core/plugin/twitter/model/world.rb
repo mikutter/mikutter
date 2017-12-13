@@ -159,14 +159,14 @@ module Plugin::Twitter
     define_postal :unfavorite
 
     def postable?(target=nil)
-      Plugin[:twitter].post?(self, to: target)
+      Plugin[:twitter].compose?(self, to: target)
     end
-    deprecate :postable?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter)", 2018, 11
+    deprecate :postable?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 
     def post(to: nil, message:, **kwrest)
-      Plugin[:twitter].post(self, to: to, body: message, **kwrest)
+      Plugin[:twitter].compose(self, to: to, body: message, **kwrest)
     end
-    deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter)", 2018, 11
+    deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 
     def inspect
       "#<#{self.class.to_s}: #{id.inspect} #{slug.inspect}>"
@@ -181,7 +181,7 @@ module Plugin::Twitter
     # :nodoc:
     # 内部で利用するために用意されています。
     # ツイートを投稿したい場合は、
-    # https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#post-twitter
+    # https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter
     # を参照してください。
     def post_tweet(options)
       twitter.update(options).next{ |message|

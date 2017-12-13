@@ -136,7 +136,7 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:post, :twitter,
+  defspell(:compose, :twitter,
            condition: ->(twitter, options){
              visibility_valid?(Array(options[:to]).compact.first, options[:visibility])
            }) do |twitter, options|
@@ -265,7 +265,7 @@ Plugin.create(:twitter) do
     builder.build(result[:token])
   end
 
-  # post Spellで使うためのメソッド。
+  # compose Spellで使うためのメソッド。
   # 引数の値から、投稿をツイートにすべきかダイレクトメッセージにすべきかを調べる。
   # ==== Args
   # [to] 宛先となるユーザ、ツイート、DMなどに対応する Diva::Model 。Twitterでないものを渡すと常にnilを返す。通常のツイートの場合は、この引数にはnilを与える。

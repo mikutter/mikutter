@@ -30,7 +30,7 @@ module Gtk
     # [footer] String テキストフィールドのカーソルの後ろに最初から入力されている文字列
     # [to_display_only] true|false toに宛てたリプライを送るなら偽。真ならUI上にtoが表示されるだけ
     # [use_blind_footer] true|false blind footerを追加するか否か
-    # [visibility] Symbol|nil post Spellに渡すvisibilityオプションの値
+    # [visibility] Symbol|nil compose Spellに渡すvisibilityオプションの値
     # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
@@ -155,7 +155,7 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        @posting = Plugin[:gtk].post(
+        @posting = Plugin[:gtk].compose(
           current_world,
           to: to_display_only? ? nil : @to,
           body: text,
@@ -200,7 +200,7 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].post?(current_world, to: @to)
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].compose?(current_world, to: @to)
     end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
