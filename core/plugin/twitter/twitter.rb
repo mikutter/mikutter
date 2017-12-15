@@ -136,22 +136,46 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:compose, :twitter,
-           condition: ->(twitter, options){
-             visibility_valid?(Array(options[:to]).compact.first, options[:visibility])
-           }) do |twitter, options|
-    first_responder = Array(options[:to]).compact.first || self
-    case post_visibility(first_responder, ifnone: options[:visibility])
-    when :public
-      tweet_param = options.merge(message: options[:body])
-      if first_responder && defined?(first_responder.class.slug)
-        tweet_param[first_responder.class.slug == :twitter_user ? :receiver : :replyto] = first_responder
-      end
-      twitter.post_tweet(**tweet_param)
+  defspell(:compose, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet, visibility: nil){
+             !(visibility && visibility != :public)
+           }) do |twitter, tweet, body:, **options|
+    twitter.post_tweet(message: body, replyto: tweet, **options)
+  end
+
+  defspell(:compose, :twitter, :twitter_direct_message,
+           condition: ->(twitter, direct_message, visibility: nil){
+             !(visibility && visibility != :direct)
+           }) do |twitter, direct_message, body:, **options|
+    twitter.post_dm(user: direct_message.user, text: body, **options)
+  end
+
+  defspell(:compose, :twitter, :twitter_user,
+           condition: ->(twitter, user, visibility: nil){
+             !(visibility && ![:public, :direct].include?(visibility))
+           }) do |twitter, user, visibility: nil, body:, **options|
+    case visibility
+    when :public, nil
+      twitter.post_tweet(message: body, receiver: user, **options)
     when :direct
-      twitter.post_dm(user: first_responder.user, text: options[:body], **options)
+      twitter.post_dm(user: user, text: body, **options)
     else
-      raise "invalid responder #{first_responder.class.inspect}"
+      raise "invalid visibility `#{visibility.inspect}'."
+    end
+  end
+
+  # 宛先なしのタイムラインへのツイートか、 _to_ オプション引数で複数宛てにする場合。
+  # Twitterでは複数宛先は対応していないため、 _to_ オプションの1つめの値に対する投稿とする
+  defspell(:compose, :twitter,
+           condition: ->(twitter, to: nil){
+             first = Array(to).compact.first
+             !(first && !compose?(twitter, first))
+           }) do |twitter, body:, to: nil, **options|
+    first = Array(to).compact.first
+    if first
+      compose(twitter, first, body: body, **options)
+    else
+      twitter.post_tweet(to: to, message: body, **options)
     end
   end
 
@@ -188,8 +212,8 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:search, :twitter) do |twitter, options|
-    twitter.search(options)
+  defspell(:search, :twitter) do |twitter, **options|
+    twitter.search(**options)
   end
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
@@ -264,38 +288,4 @@ Plugin.create(:twitter) do
 
     builder.build(result[:token])
   end
-
-  # compose Spellで使うためのメソッド。
-  # 引数の値から、投稿をツイートにすべきかダイレクトメッセージにすべきかを調べる。
-  # ==== Args
-  # [to] 宛先となるユーザ、ツイート、DMなどに対応する Diva::Model 。Twitterでないものを渡すと常にnilを返す。通常のツイートの場合は、この引数にはnilを与える。
-  # [ifnone:] どちらか確定できない場合に返す値
-  # ==== Return
-  # [:public] ツイートとして投稿されるべき時
-  # [:direct] ダイレクトメッセージとして投稿されるべき時
-  # [_ifnone:_] どちらとも取れる時
-  # [nil] 失敗（投稿すべきでない時）
-  def post_visibility(to, ifnone: :public)
-    if to.is_a?(Diva::Model)
-      case defined?(to.class.slug) && to.class.slug
-      when :twitter_tweet
-        :public
-      when :twitter_user
-        ifnone
-      when :twitter_direct_message
-        :direct
-      end
-    else
-      :public
-    end
-  end
-
-  def visibility_valid?(to, visibility)
-    if visibility
-      post_visibility(to, ifnone: visibility) == visibility
-    else
-      !!post_visibility(to)
-    end
-  end
-
 end

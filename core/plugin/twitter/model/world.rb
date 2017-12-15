@@ -159,12 +159,12 @@ module Plugin::Twitter
     define_postal :unfavorite
 
     def postable?(target=nil)
-      Plugin[:twitter].compose?(self, to: target)
+      Plugin[:twitter].compose?(self, target)
     end
     deprecate :postable?, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 
     def post(to: nil, message:, **kwrest)
-      Plugin[:twitter].compose(self, to: to, body: message, **kwrest)
+      Plugin[:twitter].compose(self, to, body: message, **kwrest)
     end
     deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 

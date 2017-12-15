@@ -157,7 +157,7 @@ module Gtk
         text += UserConfig[:footer] if use_blind_footer?
         @posting = Plugin[:gtk].compose(
           current_world,
-          to: to_display_only? ? nil : @to,
+          to_display_only? ? nil : @to.first,
           body: text,
           visibility: @visibility
         ).next{
@@ -200,7 +200,7 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].compose?(current_world, to: @to)
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].compose?(current_world, to_display_only? ? nil : @to.first, visibility: @visibility)
     end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す

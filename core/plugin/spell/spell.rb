@@ -24,6 +24,7 @@ Plugin.create(:spell) do
 
   defdsl :spell do |name, *models|
     optional = {}.freeze
+    models = models.compact
     *models, optional = models unless models.last.is_a?(Diva::Model)
     Delayer::Deferred.new.next{
       Enumerator.new{|y|
@@ -37,6 +38,7 @@ Plugin.create(:spell) do
 
   defdsl :spell? do |name, *models|
     optional = {}.freeze
+    models = models.compact
     *models, optional = models unless models.last.is_a?(Diva::Model)
     !Enumerator.new{|y|
       Plugin.filtering(:search_spell, y, name.to_sym, models, optional)
