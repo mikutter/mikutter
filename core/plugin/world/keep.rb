@@ -27,29 +27,20 @@ module Plugin::World
     # ==== Return
     # account_id => {token: ,secret:, ...}
     def accounts
-      @account_data ||= @@service_lock.synchronize do
-        if FileTest.exist? ACCOUNT_FILE
-          File.open(ACCOUNT_FILE, 'rb'.freeze) do |file|
-            YAML.load(decrypt(file.read)) end
-        else
-          # 旧データの引き継ぎ
-          result = UserConfig[:accounts]
-          if result.is_a? Hash
-            # 0.3開発版のデータがある
-            account_write result.inject({}){ |hash, item|
-              key, value = item
-              hash[key] = value.merge(provider: :twitter, slug: key)
-              hash }
-          elsif UserConfig[:twitter_token] and UserConfig[:twitter_secret]
-            # 0.2.x以前のアカウント情報
-            account_write({ default: {
-                              provider: :twitter,
-                              slug: :default,
-                              token: UserConfig[:twitter_token],
-                              secret: UserConfig[:twitter_secret],
-                              user: UserConfig[:verify_credentials] } })
+      if @account_data
+        @account_data
+      else
+        @@service_lock.synchronize do
+          @account_data ||= if FileTest.exist? ACCOUNT_FILE
+            File.open(ACCOUNT_FILE, 'rb'.freeze) do |file|
+              YAML.load(decrypt(file.read))
+            end
           else
-            {} end end end end
+            migrate_older_account_data
+          end
+        end
+      end
+    end
 
     # アカウント情報を返す
     # ==== Args
@@ -132,5 +123,29 @@ module Plugin::World
       str = cipher.update(binary_data) << cipher.final
       str.force_encoding(Encoding::UTF_8)
       str end
+
+    private
+
+    def migrate_older_account_data
+      # 旧データの引き継ぎ
+      result = UserConfig[:accounts]
+      if result.is_a? Hash
+        # 0.3開発版のデータがある
+        account_write result.inject({}){ |hash, item|
+          key, value = item
+          hash[key] = value.merge(provider: :twitter, slug: key)
+          hash }
+      elsif UserConfig[:twitter_token] and UserConfig[:twitter_secret]
+        # 0.2.x以前のアカウント情報
+        account_write({ default: {
+                          provider: :twitter,
+                          slug: :default,
+                          token: UserConfig[:twitter_token],
+                          secret: UserConfig[:twitter_secret],
+                          user: UserConfig[:verify_credentials] } })
+      else
+        {}
+      end
+    end
   end
 end

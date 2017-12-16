@@ -67,20 +67,13 @@ Plugin.create(:world) do
   # ==== Return
   # [Array] アカウントModelを格納したArray
   def worlds
-    @worlds ||= Plugin::World::Keep.accounts.map { |id, serialized|
-      provider = Diva::Model(serialized[:provider])
-      if provider
-        provider.new(serialized)
-      else
-        Miquire::Plugin.load(serialized[:provider])
-        provider = Diva::Model(serialized[:provider])
-        if provider
-          provider.new(serialized)
-        else
-          raise "unknown model #{serialized[:provider].inspect}"
-        end
+    if @worlds
+      @worlds
+    else
+      atomic do
+        load_world_ifn
       end
-    }.freeze
+    end
   end
 
   # 現在選択されているアカウントを返す
@@ -130,4 +123,20 @@ Plugin.create(:world) do
     Plugin.call(:service_destroyed, target) # 互換性のため
   end
 
+  def load_world_ifn
+    @worlds ||= Plugin::World::Keep.accounts.map { |id, serialized|
+      provider = Diva::Model(serialized[:provider])
+      if provider
+        provider.new(serialized)
+      else
+        Miquire::Plugin.load(serialized[:provider])
+        provider = Diva::Model(serialized[:provider])
+        if provider
+          provider.new(serialized)
+        else
+          raise "unknown model #{serialized[:provider].inspect}"
+        end
+      end
+    }.freeze
+  end
 end

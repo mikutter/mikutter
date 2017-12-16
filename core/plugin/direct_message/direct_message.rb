@@ -21,7 +21,7 @@ module Plugin::DirectMessage
       set_icon Skin['directmessage.png']
       u = model
       timeline timeline_name_for(u) do
-        postbox(from: Sender.new, to: u, delegate_other: true)
+        postbox(to: u, delegate_other: true, visibility: :direct)
       end
     end
 
@@ -45,7 +45,7 @@ module Plugin::DirectMessage
     on_direct_messages do |_, dms|
       dm_distribution = Hash.new {|h,k| h[k] = []}
       dms.each do |dm|
-        model = Mikutter::Twitter::DirectMessage.new_ifnecessary(dm)
+        model = Plugin::Twitter::DirectMessage.new_ifnecessary(dm)
         dm_distribution[model[:user]] << model
         dm_distribution[model[:recipient]] << model
       end

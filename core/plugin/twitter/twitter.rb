@@ -88,6 +88,134 @@ Plugin.create(:twitter) do
 
   filter_appear(&gen_message_filter)
 
+  defspell(:destroy, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ tweet.from_me?(twitter) }
+          ) do |twitter, tweet|
+    (twitter/"statuses/destroy".freeze/tweet.id).message.next{ |destroyed_tweet|
+      destroyed_tweet[:rule] = :destroy
+      Plugin.call(:destroyed, [destroyed_tweet])
+      destroyed_tweet
+    }
+  end
+
+  defspell(:destroy_retweet, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ retweeted?(twitter, tweet) }
+          ) do |twitter, tweet|
+    retweeted(twitter, tweet).next{ |retweet|
+      destroy(twitter, retweet)
+    }
+  end
+
+  defspell(:favorite, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){
+             !favorited?(twitter, tweet)
+           }) do |twitter, tweet|
+    Plugin.call(:before_favorite, twitter, twitter.user_obj, tweet)
+    (twitter/'favorites/create'.freeze).message(id: tweet.id).next{ |favorited_tweet|
+      Plugin.call(:favorite, twitter, twitter.user_obj, favorited_tweet)
+      favorited_tweet
+    }.trap{ |e|
+      Plugin.call(:fail_favorite, twitter, twitter.user_obj, tweet)
+      Deferred.fail(e)
+    }
+  end
+
+  defspell(:favorited, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ favorited?(twitter.user_obj, tweet) }
+          ) do |twitter, tweet|
+    Delayer::Deferred.new.next{
+      favorited?(twitter.user, tweet)
+    }
+  end
+
+  defspell(:favorited, :twitter_user, :twitter_tweet,
+           condition: ->(user, tweet){ tweet.favorited_by.include?(user) }
+          ) do |user, tweet|
+    Delayer::Deferred.new.next{
+      favorited?(user, tweet)
+    }
+  end
+
+  defspell(:compose, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet, visibility: nil){
+             !(visibility && visibility != :public)
+           }) do |twitter, tweet, body:, **options|
+    twitter.post_tweet(message: body, replyto: tweet, **options)
+  end
+
+  defspell(:compose, :twitter, :twitter_direct_message,
+           condition: ->(twitter, direct_message, visibility: nil){
+             !(visibility && visibility != :direct)
+           }) do |twitter, direct_message, body:, **options|
+    twitter.post_dm(user: direct_message.user, text: body, **options)
+  end
+
+  defspell(:compose, :twitter, :twitter_user,
+           condition: ->(twitter, user, visibility: nil){
+             !(visibility && ![:public, :direct].include?(visibility))
+           }) do |twitter, user, visibility: nil, body:, **options|
+    case visibility
+    when :public, nil
+      twitter.post_tweet(message: body, receiver: user, **options)
+    when :direct
+      twitter.post_dm(user: user, text: body, **options)
+    else
+      raise "invalid visibility `#{visibility.inspect}'."
+    end
+  end
+
+  # 宛先なしのタイムラインへのツイートか、 _to_ オプション引数で複数宛てにする場合。
+  # Twitterでは複数宛先は対応していないため、 _to_ オプションの1つめの値に対する投稿とする
+  defspell(:compose, :twitter,
+           condition: ->(twitter, to: nil){
+             first = Array(to).compact.first
+             !(first && !compose?(twitter, first))
+           }) do |twitter, body:, to: nil, **options|
+    first = Array(to).compact.first
+    if first
+      compose(twitter, first, body: body, **options)
+    else
+      twitter.post_tweet(to: to, message: body, **options)
+    end
+  end
+
+  defspell(:retweet, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ !tweet.protected? }
+          ) do |twitter, tweet|
+    twitter.retweet(id: tweet.id).next{|retweeted|
+      Plugin.call(:posted, twitter, [retweeted])
+      Plugin.call(:update, twitter, [retweeted])
+      retweeted
+    }
+  end
+
+  defspell(:retweeted, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ tweet.retweeted_users.include?(twitter.user_obj) }
+          ) do |twitter, tweet|
+    Delayer::Deferred.new.next{
+      retweet = tweet.retweeted_statuses.find{|rt| rt.user == twitter.user_obj }
+      if retweet
+        retweet
+      else
+        raise "ReTweet not found."
+      end
+    }
+  end
+
+  defspell(:unfavorite, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){
+             favorited?(twitter, tweet)
+           }) do |twitter, tweet|
+    (twitter/'favorites/destroy'.freeze).message(id: tweet.id).next{ |unfavorited_tweet|
+      Plugin.call(:unfavorite, twitter, twitter.user_obj, unfavorited_tweet)
+      unfavorited_tweet
+    }
+  end
+
+  defspell(:search, :twitter) do |twitter, **options|
+    twitter.search(**options)
+  end
+
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
   on_destroyed do |messages|
     messages.each{ |message|
@@ -160,5 +288,4 @@ Plugin.create(:twitter) do
 
     builder.build(result[:token])
   end
-
 end

@@ -192,7 +192,7 @@ module MikuTwitter::ApiCallSupport
         cnv[:recipient] = user(dm[:recipient])
         cnv[:exact] = true
         cnv[:created] = Time.parse(dm[:created_at]).localtime
-        Mikutter::Twitter::DirectMessage.new_ifnecessary(cnv) end
+        Plugin::Twitter::DirectMessage.new_ifnecessary(cnv) end
 
       def id(id)
         id end

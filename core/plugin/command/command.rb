@@ -63,12 +63,16 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    target = opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer)
-    if target.any?{|message| message.from_me?([Service.primary]) }
+    world, = Plugin.filtering(:world_current, nil)
+    target = opt.messages.select{|m| retweet?(m, world) }.reject{|m| retweeted?(m, world) }.map(&:introducer)
+    if target.any?{|message| message.from_me?([world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each(&:retweet) end
+        target.each{|m| retweet(m, world) }
+      end
     else
-      target.each(&:retweet) end end
+      target.each{|m| retweet(m, world) }
+    end
+  end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),
@@ -76,9 +80,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
-    opt.messages.each { |m|
-      retweet = m.retweeted_statuses.find(&:from_me?)
-      retweet.destroy if retweet and ::Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
+    current_world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| destroy_retweet(current_world, m) }
+    ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
+  end
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
@@ -86,7 +92,15 @@ Plugin.create :command do
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
-    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.map(&:introducer).each(&:favorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.select{|m|
+        favorite?(world, m) && !favorited?(world, m)
+      }.map{|m|
+        favorite(world, m)
+      }
+    ).terminate(_('ふぁぼふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),
@@ -94,7 +108,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
-    opt.messages.each(&:unfavorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| unfavorite(world, m) }
+    ).terminate(_('あんふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete,
           name: _('削除'),
