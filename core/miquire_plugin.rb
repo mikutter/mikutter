@@ -143,27 +143,29 @@ module Miquire::Plugin
       return true if ::Plugin.instance_exist?(spec[:slug])
       return false unless satisfy_mikutter_version?(spec)
 
-      depended_plugins(spec).each do |depend|
-        begin
-          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin #{depend.inspect} was not loaded." unless load(depend)
-        rescue Miquire::LoadError => err
-          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin was not loaded. previous error is:\n#{err.to_s}"
+      atomic do
+        depended_plugins(spec).each do |depend|
+          begin
+            raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin #{depend.inspect} was not loaded." unless load(depend)
+          rescue Miquire::LoadError => err
+            raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin was not loaded. previous error is:\n#{err.to_s}"
+          end
         end
-      end
 
-      notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
-      ::Plugin.create(spec[:slug].to_sym) do
-        self.spec = spec end
-      Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
-      if spec[:deprecated_spec]
-        title = "#{spec[:slug]}: specファイルは非推奨になりました。"
-        Plugin.call(:modify_activity,
-                    { plugin: spec[:slug],
-                      kind: "error",
-                      title: title,
-                      date: Time.now,
-                      spec: spec,
-                      description: "#{title}\n代わりに.mikutter.ymlを使ってください。"}) end
-      true end
+        notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")
+        ::Plugin.create(spec[:slug].to_sym) do
+          self.spec = spec end
+        Kernel.load File.join(spec[:path], "#{spec[:slug]}.rb")
+        if spec[:deprecated_spec]
+          title = "#{spec[:slug]}: specファイルは非推奨になりました。"
+          Plugin.call(:modify_activity,
+                      { plugin: spec[:slug],
+                        kind: "error",
+                        title: title,
+                        date: Time.now,
+                        spec: spec,
+                        description: "#{title}\n代わりに.mikutter.ymlを使ってください。"}) end
+        true end
+    end
   end
 end
