@@ -149,7 +149,9 @@ class UserConfig
                                 :intent=>:message_detail_view_twitter_tweet,
                                 :model=>"",
                                 :str=>"https://twitter.com/",
-                                :rule=>"start"}]
+                                :rule=>"start"}],
+
+    :postbox_visibility => :always,
   }
 
   @@watcher = Hash.new{ [] }
@@ -235,6 +237,9 @@ class UserConfig
         UserConfig[:reply_text_max_line_count] = 3
         UserConfig[:reply_clicked_action] = nil
         UserConfig[:quote_clicked_action] = :smartthread
+      end
+      if last_boot_version < [3, 6, 0, 0]
+        UserConfig[:postbox_visibility] = :auto
       end
     end
   end

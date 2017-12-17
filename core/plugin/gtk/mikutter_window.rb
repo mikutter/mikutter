@@ -23,6 +23,11 @@ class Gtk::MikutterWindow < Gtk::Window
                 pack_start(@postboxes)).
       pack_start(@panes).
       closeup(create_statusbar)
+    Plugin[:gtk].on_userconfig_modify do |key, newval|
+      if key == :postbox_visibility
+        refresh
+      end
+    end
     Plugin[:gtk].on_service_registered do |service|
       refresh end
     Plugin[:gtk].on_service_destroyed do |service|
@@ -38,7 +43,7 @@ class Gtk::MikutterWindow < Gtk::Window
     @postboxes.pack_start(postbox)
     set_focus(postbox.post) unless options[:delegated_by]
     postbox.no_show_all = false
-    postbox.show_all if not Service.to_a.empty?
+    postbox.show_all if visible?
     postbox end
 
   private
@@ -50,10 +55,8 @@ class Gtk::MikutterWindow < Gtk::Window
       window << postbox end end
 
   def refresh
-    if !Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
-      @postboxes.children.each(&:hide)
-    else
-      @postboxes.children.each(&:show_all) end end
+    @postboxes.children.each(&(visible? ? :show_all : :hide))
+  end
 
   # ステータスバーを返す
   # ==== Return
@@ -73,5 +76,16 @@ class Gtk::MikutterWindow < Gtk::Window
     Plugin::Gtk::ToolbarGenerator.generate(container,
                                            Plugin::GUI::Event.new(:window_toolbar, @imaginally, []),
                                            :window) end
+
+  def visible?
+    case UserConfig[:postbox_visibility]
+    when :always
+      true
+    when :auto
+      !!Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
+    else
+      false
+    end
+  end
 
 end
