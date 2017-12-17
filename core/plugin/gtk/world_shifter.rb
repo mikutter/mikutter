@@ -8,39 +8,50 @@ class Gtk::WorldShifter < Gtk::EventBox
   def initialize
     Plugin[:gtk].on_primary_service_changed(&method(:travel))
     super
+    Plugin[:gtk].on_userconfig_modify do |key, newval|
+      refresh if key == :world_shifter_visibility
+    end
     Plugin[:gtk].on_service_registered do |service|
-      refresh end
+      refresh
+    end
     Plugin[:gtk].on_service_destroyed do |service|
-      refresh end
+      refresh
+    end
     ssc(:button_press_event) do |this,event|
       open_menu event if 3 >= event.button
-      false end
+      false
+    end
     ssc_atonce(:realize) do
-      travel Service.primary end
+      travel Service.primary
+    end
   end
 
   def refresh
-    if 1 < Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size
+    if visible?
       if not @face
         @face = Gtk::Image.new(Skin['loading.png'].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
-        self.add(@face).show_all end
+        self.add(@face).show_all
+      end
     else
       if @face
         self.remove(@face)
         @face.destroy
-        @face = nil end end
+        @face = nil
+      end
+    end
   end
 
   def travel(world)
     refresh
     if @face
       transaction = @world_transaction = SecureRandom.uuid
-      @face.pixbuf = world.icon.load_pixbuf(width: UserConfig[:gtk_accountbox_geometry],
-                                            height: UserConfig[:gtk_accountbox_geometry]) do |pixbuf|
+      rect = { width:  UserConfig[:gtk_accountbox_geometry],
+               height: UserConfig[:gtk_accountbox_geometry] }
+      @face.pixbuf = world&.icon&.load_pixbuf(**rect) do |pixbuf|
         if transaction == @world_transaction
           @face.pixbuf = pixbuf
         end
-      end
+      end || Skin['notfound.png'].pixbuf(**rect)
     end
   end
 
@@ -61,4 +72,15 @@ class Gtk::WorldShifter < Gtk::EventBox
         menu.append item end
       menu end
     @menu.show_all.popup(nil, nil, event.button, event.time) end
+
+  def visible?
+    case UserConfig[:world_shifter_visibility]
+    when :always
+      true
+    when :auto
+      1 < Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size
+    else
+      false
+    end
+  end
 end

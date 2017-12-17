@@ -159,6 +159,8 @@ Plugin::create(:set_view) do
 
     select _('投稿ボックス'), :postbox_visibility, always: _('常に表示する'), none: _('表示しない'), auto: _('1アカウント以上あれば表示')
 
+    select _('アカウント切り替え'), :world_shifter_visibility, always: _('常に表示する'), none: _('表示しない'), auto: _('2アカウント以上あれば表示')
+
     select(_('URLを開く方法'), :url_open_specified_command) do
       option false, _("デフォルトブラウザを使う")
       option true do

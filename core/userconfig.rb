@@ -152,6 +152,7 @@ class UserConfig
                                 :rule=>"start"}],
 
     :postbox_visibility => :always,
+    :world_shifter_visibility => :always,
   }
 
   @@watcher = Hash.new{ [] }
@@ -240,6 +241,7 @@ class UserConfig
       end
       if last_boot_version < [3, 6, 0, 0]
         UserConfig[:postbox_visibility] = :auto
+        UserConfig[:world_shifter_visibility] = :auto
       end
     end
   end
