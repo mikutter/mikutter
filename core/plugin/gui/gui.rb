@@ -31,6 +31,13 @@ Plugin.create :gui do
     else
       Plugin::GUI::Tab.instance(slug, name, self.name) end end
 
+  # タブが存在するか調べる。
+  # _tab_ メソッドは存在しないslugを指定した場合には常に作成してしまうため、存在を確認するのには使えない。
+  # 単純に存在確認をするにはこのメソッドを使う
+  defdsl :tab? do |slug|
+    Plugin::GUI::Tab.exist?(slug)
+  end
+
   # _slug_ に対応するタイムラインを返す
   # ==== Args
   # [slug] タイムラインのスラッグ
@@ -40,6 +47,13 @@ Plugin.create :gui do
     tl = Plugin::GUI::Timeline.instance(slug)
     tl.instance_eval(&proc) if proc
     tl end
+
+  # タイムラインが存在するか調べる。
+  # _timeline_ メソッドは存在しないslugを指定した場合には常に作成してしまうため、存在を確認するのには使えない。
+  # 単純に存在確認をするにはこのメソッドを使う
+  defdsl :timeline? do |slug|
+    Plugin::GUI::Timeline.exist?(slug)
+  end
 
   # プロフィールタブを定義する
   # ==== Args
