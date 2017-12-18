@@ -1,13 +1,13 @@
 ---
 slug: :home_timeline
 depends:
-  mikutter: '0.2'
+  mikutter: '3.6'
   plugin:
   - gui
   - uitranslator
   - skin
   - twitter
-version: '1.0'
+version: '2.0'
 author: toshi_a
 name: Home Timeline
 description: フォロイーのツイートを表示するタイムラインを追加する
