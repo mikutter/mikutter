@@ -54,7 +54,7 @@ Plugin.create :change_account do
     btn_add = Gtk::Button.new(Gtk::Stock::ADD)
     btn_delete = Gtk::Button.new(Gtk::Stock::DELETE)
     btn_add.ssc(:clicked) do
-      boot_wizard
+      Plugin.call(:request_world_add)
       true
     end
     btn_delete.ssc(:clicked) do
@@ -70,7 +70,7 @@ Plugin.create :change_account do
                            add(btn_add)))
   end
 
-  def boot_wizard
+  on_request_world_add do
     dialog(_('アカウント追加')){
       select 'Select world', :world do
         worlds, = Plugin.filtering(:world_setting_list, Hash.new)

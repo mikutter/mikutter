@@ -151,8 +151,8 @@ class UserConfig
                                 :str=>"https://twitter.com/",
                                 :rule=>"start"}],
 
-    :postbox_visibility => :always,
-    :world_shifter_visibility => :always,
+    :postbox_visibility => :auto,
+    :world_shifter_visibility => :auto,
   }
 
   @@watcher = Hash.new{ [] }
@@ -218,7 +218,10 @@ class UserConfig
     if last_boot_version < Environment::VERSION.to_a
       UserConfig[:last_boot_version] = Environment::VERSION.to_a
       if last_boot_version == [0, 0, 0, 0]
-        key_add "Alt + x", "コンソールを開く", :console_open end
+        key_add "Alt + x", "コンソールを開く", :console_open
+        UserConfig[:postbox_visibility] = :always
+        UserConfig[:world_shifter_visibility] = :always
+      end
       if last_boot_version < [3, 3, 0, 0]
         UserConfig[:notification_enable] = true
         activity_show_statusbar = (UserConfig[:activity_show_statusbar] || []).map(&:to_s)
@@ -238,10 +241,6 @@ class UserConfig
         UserConfig[:reply_text_max_line_count] = 3
         UserConfig[:reply_clicked_action] = nil
         UserConfig[:quote_clicked_action] = :smartthread
-      end
-      if last_boot_version < [3, 6, 0, 0]
-        UserConfig[:postbox_visibility] = :auto
-        UserConfig[:world_shifter_visibility] = :auto
       end
     end
   end
