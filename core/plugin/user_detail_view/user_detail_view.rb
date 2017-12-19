@@ -15,10 +15,10 @@ Plugin.create :user_detail_view do
 
   Delayer.new do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
-      retrieve_user(user_id).next{|user|
+      retrieve_user(user_id)&.next{|user|
         user ||= User.findbyid(user_id)
         show_profile(user, nil, true) if user
-      }.terminate end end
+      }&.terminate end end
 
   def retrieve_user(user_id, services = Service.services.shuffle)
     if services.nil? or services.empty?
