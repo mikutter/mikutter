@@ -28,7 +28,11 @@ Plugin.create :ratelimit do
   end
 
   on_mikutwitter_ratelimit do |mikutwitter, ratelimit|
-    service = Service.select{ |s| s.twitter == mikutwitter }
+    service = Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.find{|world|
+      world.class.slug == :twitter && world.twitter == mikutwitter
+    }
     Plugin.call(:ratelimit, service, ratelimit) if service and ratelimit end
 
   filter_ratelimit do |service, ratelimit|

@@ -6,8 +6,13 @@ Plugin.create :quoted_message do
   # Hash データソース
   def datasources
     ds = {nested_quoted_myself: _("ナウい引用(全てのアカウント)".freeze)}
-    Service.each do |service|
-      ds["nested_quote_quotedby_#{service.user_obj.id}".to_sym] = "@#{service.user_obj.idname}/" + _('ナウい引用'.freeze) end
+    Enumerator.new{|yielder|
+      Plugin.filtering(:worlds, yielder)
+    }.lazy.select{|world|
+      world.class.slug == :twitter
+    }.each do |twitter|
+      ds["nested_quote_quotedby_#{twitter.user_obj.id}".to_sym] = "@#{twitter.user_obj.idname}/" + _('ナウい引用'.freeze)
+    end
     ds end
 
   command(:copy_tweet_url,
@@ -40,9 +45,15 @@ Plugin.create :quoted_message do
     ms.each do |message|
       quoted_screen_names = Set.new(
         message.entity.select{ |entity| :urls == entity[:slug] }.map{ |entity|
-          matched = Message::PermalinkMatcher.match(entity[:expanded_url])
+          matched = Plugin::Twitter::Message::PermalinkMatcher.match(entity[:expanded_url])
           matched[:screen_name] if matched && matched.names.include?("screen_name".freeze) })
-      quoted_services = Service.select{|service| quoted_screen_names.include? service.user_obj.idname }
+      quoted_services = Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :twitter
+      }.select{|service|
+        quoted_screen_names.include? service.user_obj.idname
+      }
       unless quoted_services.empty?
         quoted_services.each do |service|
           Plugin.call :extract_receive_message, "nested_quote_quotedby_#{service.user_obj.id}".to_sym, [message] end

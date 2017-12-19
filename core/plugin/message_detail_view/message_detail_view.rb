@@ -2,7 +2,7 @@
 miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
-  intent Message, label: _('ツイートの詳細') do |intent_token|
+  intent :twitter_tweet, label: _('ツイートの詳細') do |intent_token|
     show_message(intent_token.model, intent_token)
   end
 

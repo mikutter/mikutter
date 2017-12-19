@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'gtk2'
 require_relative '../utils'
-miquire :core, 'message', 'skin'
+miquire :core, 'skin'
 miquire :mui, 'mtk'
 miquire :mui, 'extension'
 miquire :mui, 'webicon'

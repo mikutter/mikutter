@@ -331,8 +331,14 @@ Plugin.create :gtk do
     widgetof(i_timeline).set_order(&order) end
 
   filter_gui_timeline_select_messages do |i_timeline, messages|
-    [i_timeline,
-     messages.select(&widgetof(i_timeline).method(:include?))] end
+    timeline = widgetof(i_timeline)
+    if timeline
+      [i_timeline,
+       messages.select(&timeline.method(:include?))]
+    else
+      [i_timeline, messages]
+    end
+  end
 
   filter_gui_timeline_reject_messages do |i_timeline, messages|
     w_timeline = widgetof(i_timeline)

@@ -5,6 +5,7 @@ depends:
   plugin:
     - message_detail_view
     - skin
+    - twitter
 version: '1.0'
 author: toshi_a
 name: ReTweet

@@ -9,9 +9,6 @@ end
 miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'postbox'
 miquire :mui, 'inner_tl', 'dark_matter_prification'
 
-miquire :core, 'message'
-miquire :core, 'user'
-
 miquire :lib, 'reserver'
 
 # タイムラインに表示するメッセージの数
@@ -194,8 +191,9 @@ class Gtk::TimeLine
       while current[0].to_i >= last[0].to_i
         messages << current[1]
         break if not current.next! end
-      (messages - @exposing_miraclepainter).each{ |exposed|
-        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) if exposed.is_a? Message }
+      (messages - @exposing_miraclepainter).each do |exposed|
+        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) if exposed.is_a? Diva::Model
+      end
       @exposing_miraclepainter = messages end end
 
   def postbox

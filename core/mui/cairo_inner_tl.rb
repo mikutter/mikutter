@@ -54,7 +54,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
           cell_renderer_message
         },
         :kind => :uri, :widget => :text, :type => String, :label => ''},
-      {:kind => :text, :widget => :text, :type => Message},
+      {:kind => :text, :widget => :text, :type => Diva::Model},
       {:kind => :text, :type => Integer},
       {:kind => :text, :type => Object}
     ].freeze

@@ -38,45 +38,71 @@ module ::Plugin::Command
   # 選択されているツイートが全てリプライ可能な時。
   # ツイートが選択されていなければ偽
   CanReplyAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all?(&:repliable?) }
+    if not opt.messages.empty?
+      current_world, = Plugin.filtering(:world_current, nil)
+      current_world & opt.messages =~ :postable?
+    end
+  }
 
   # 選択されているツイートのうち、一つでも現在のアカウントでリツイートできるものがあれば真を返す
   CanReTweetAny = Condition.new { |opt|
-    opt.messages.any? { |message| message.retweetable? and not message.retweeted_by_me? Service.primary } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    opt.messages.lazy.any?{|m|
+      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
+    }
+  }
 
   # 選択されているツイートが全て、現在のアカウントでリツイート可能な時、真を返す。
   # 既にリツイート済みのものはリツイート不可とみなす。
   # ツイートが選択されていなければ偽
   CanReTweetAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all? { |m|
-      m.retweetable? and not m.retweeted_by_me?(Service.primary) } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    !opt.messages.empty? && opt.messages.lazy.all?{|m|
+      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
+    }
+  }
 
   # 選択されているツイートを、現在のアカウントで全てリツイートしている場合。
   # ツイートが選択されていなければ偽
   IsReTweetedAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all? { |m|
-      m.retweetable? and m.retweeted_by_me?(Service.primary) } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    !opt.messages.empty? && opt.messages.lazy.all?{|m|
+      Plugin[:command].destroy_retweet?(current_world, m)
+    }
+  }
 
   # 選択されているツイートのうち、一つでも現在のアカウントでふぁぼれるものがあれば真を返す
   CanFavoriteAny = Condition.new { |opt|
-    opt.messages.any? { |message| message.favoritable? and not message.favorited_by_me? Service.primary } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    opt.messages.any?{|m|
+      Plugin[:command].favorite?(current_world, m) && !Plugin[:command].favorited?(current_world, m)
+    }
+  }
 
   # 選択されているツイートが全て、現在のアカウントでお気に入りに追加可能な時、真を返す。
   # 既にお気に入りに追加済みのものはお気に入りに追加不可とみなす。
   # ツイートが選択されていなければ偽
   CanFavoriteAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all? { |m|
-      m.favoritable? and not m.favorited_by_me?(Service.primary) } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    !opt.messages.empty? and opt.messages.all?{|m|
+      Plugin[:command].favorite?(current_world, m)
+    }
+  }
 
   # 選択されているツイートを、現在のアカウントで全てお気に入りに追加している場合。
   # ツイートが選択されていなければ偽
   IsFavoritedAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all? { |m|
-      m.favoritable? and m.favorited_by_me?(Service.primary) } }
+    current_world, = Plugin.filtering(:world_current, nil)
+    !opt.messages.empty? and opt.messages.all?{|m|
+      Plugin[:command].unfavorite?(current_world, m)
+    }
+  }
 
   # 選択しているのが全て自分のツイートの時
   IsMyMessageAll = Condition.new{ |opt|
-    not opt.messages.empty? and opt.messages.all?(&:from_me?) }
+    current_world, = Plugin.filtering(:world_current, nil)
+    not opt.messages.empty? and opt.messages.all?{|m| m | current_world =~ :from_me? }
+  }
 
   # TL上のテキストが一文字でも選択されている
   TimelineTextSelected = Condition.new{ |opt| opt.widget.selected_text(opt.messages.first) }

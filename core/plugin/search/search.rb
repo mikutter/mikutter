@@ -1,56 +1,57 @@
 # -*- coding: utf-8 -*-
 require_relative 'model/search'
+require_relative 'query_box'
 
 Plugin.create :search do
   intent Plugin::Search::Search do |token|
     Plugin.call(:search_start, token.model.query)
   end
 
-  querybox = ::Gtk::Entry.new()
-  querycont = ::Gtk::VBox.new(false, 0)
-  searchbtn = ::Gtk::Button.new(_('検索'))
-  savebtn = ::Gtk::Button.new(_('保存'))
-
-  querycont.
-    closeup(::Gtk::HBox.new(false, 0).
-            pack_start(querybox).
-            closeup(searchbtn)).
-    closeup(::Gtk::HBox.new(false, 0).
-            closeup(savebtn))
-
-  tab(:search, _("検索")) do
-    set_icon Skin['search.png']
-    shrink
-    nativewidget querycont
-    expand
-    timeline :search
+  Delayer.new do
+    refresh_tab
   end
 
-  on_search_start do |query|
-    querybox.text = query
-    searchbtn.clicked
-    timeline(:search).active! end
+  on_world_create do |world|
+    refresh_tab
+  end
 
-  querybox.signal_connect('activate'){ |elm|
-    searchbtn.clicked }
+  on_world_destroy do |world|
+    refresh_tab
+  end
 
-  searchbtn.signal_connect('clicked'){ |elm|
-    elm.sensitive = querybox.sensitive = false
-    timeline(:search).clear
-    Service.primary.search(q: querybox.text, count: 100).next{ |res|
-      timeline(:search) << res if res.is_a? Array
-      elm.sensitive = querybox.sensitive = true
-    }.trap{ |e|
-      error e
-      timeline(:search) << Mikutter::System::Message.new(description: _("検索中にエラーが発生しました (%{error})" % {error: e.to_s}))
-      elm.sensitive = querybox.sensitive = true } }
+  def refresh_tab
+    if Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|w| w.class.slug == :twitter }
+      present_tab
+    else
+      absent_tab
+    end
+  end
 
-  savebtn.signal_connect('clicked'){ |elm|
-    query = querybox.text
-    Service.primary.search_create(query: query).next{ |saved_search|
-      Plugin.call(:saved_search_register, saved_search[:id], query, Service.primary)
-    }.terminate(_("検索キーワード「%{query}」を保存できませんでした。あとで試してみてください" % {query: query})) }
+  def present_tab
+    @tag ||= handler_tag do
+      tab(:search, _("検索")) do
+        @query_box = Plugin::Search::QueryBox.new
+        set_icon Skin['search.png']
+        shrink
+        nativewidget @query_box
+        expand
+        timeline :search
+      end
 
+      on_search_start do |query|
+        @querybox.text = query
+        searchbtn.clicked
+        timeline(:search).active! end
+    end
+  end
+
+  def absent_tab
+    if @tag
+      tab(:search).destroy
+      detach(@tag)
+      @tag = nil
+    end
+  end
 end
 
 

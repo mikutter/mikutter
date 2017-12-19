@@ -172,9 +172,9 @@ class Gtk::CRUD < Gtk::TreeView
   def menu_pop(widget, event)
     if(@creatable or @updatable or @deletable)
       contextmenu = Gtk::ContextMenu.new
-      contextmenu.registmenu("新規作成", &method(:record_create)) if @creatable
-      contextmenu.registmenu("編集", &method(:record_update)) if @updatable
-      contextmenu.registmenu("削除", &method(:record_delete)) if @deletable
+      contextmenu.register("新規作成", &method(:record_create)) if @creatable
+      contextmenu.register("編集", &method(:record_update)) if @updatable
+      contextmenu.register("削除", &method(:record_delete)) if @deletable
       contextmenu.popup(widget, widget) end end
 
   # 入力ウィンドウを表示する

@@ -13,6 +13,7 @@ class Plugin::Achievement::Achievement
 
   def hint ; @options[:hint] || "" end
   def description ; @options[:description] || "" end
+  def icon ; @options[:icon] end
   def hidden? ; @options[:hidden] end
 
   # 解除されていれば真
@@ -36,13 +37,16 @@ class Plugin::Achievement::Achievement
     self end
 
   # 依存してる実績の中で、解除されてない最初の一つを返す
+  # ==== Args
+  # [&filter] 実績フィルタ。この条件にマッチする実績の中から始めのものを返す
   # ==== Return
   # 見つかった実績(Plugin::Achievement::Achievement)
   # 依存している実績がなかった場合や、全て解除済みの場合は self を返す
-  def notachieved_parent
+  def notachieved_parent(&filter)
+    filter ||= ->_{true}
     unachievements = Plugin.filtering(:unachievements, {}).first
     if @options[:depends]
-      result = @options[:depends].map{ |slug| unachievements[slug] }.compact.first
+      result = @options[:depends].map{ |slug| unachievements[slug] }.compact.select(&filter).first
       if result
         result.notachieved_parent
       else
@@ -77,6 +81,7 @@ Plugin.create :achievement do
   #   :description 実績の説明。解除してから出ないと見れない。
   #   :hint        実績解除のヒント。解除する条件が整っていれば見れる。
   #   :depends     前提とする実績。実績スラッグの配列。
+  #   :icon        実績のアイコンを、Photo Modelで
   #   :hidden      隠し実績（ヒントを出さない）の場合真
   defdsl :defachievement do |slug, options, &block|
     type_strict slug => Symbol, options => Hash
@@ -159,14 +164,19 @@ Plugin.create :achievement do
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?
-      not_achieved = unachievements.values.sample.notachieved_parent
+      not_achieved =
+        if unachievements.has_key?(:guide)
+          unachievements[:guide]
+        else
+          unachievements.values.sample.notachieved_parent{|a|!a.hidden?}
+        end
       unless not_achieved.hidden?
         if Mopt.debug?
-          activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})"
+          activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})", icon: not_achieved.icon
         else
-          activity :achievement, not_achieved.hint end end end end
+          activity :achievement, not_achieved.hint, icon: not_achieved.icon end end end end
 
   on_achievement_took do |achievement|
-    activity :achievement, (_("実績 %s を達成しました！おめでとう♪") % achievement.slug.to_s) end
+    activity :achievement, _("実績 %s を達成しました！おめでとう♪") % achievement.slug.to_s, icon: achievement.icon end
 
 end

@@ -1,0 +1,11 @@
+---
+name: Twitter
+slug: twitter
+description: mikutterにTwitter連携機能を追加するプラグインです。
+depends:
+  mikutter: '3.6'
+  plugin:
+  - world
+  - spell
+version: '1.0'
+author: toshi_a
