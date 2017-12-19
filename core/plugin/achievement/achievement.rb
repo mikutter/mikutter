@@ -164,7 +164,12 @@ Plugin.create :achievement do
   Delayer.new do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?
-      not_achieved = unachievements.values.sample.notachieved_parent{|a|!a.hidden?}
+      not_achieved =
+        if unachievements.has_key?(:guide)
+          unachievements[:guide]
+        else
+          unachievements.values.sample.notachieved_parent{|a|!a.hidden?}
+        end
       unless not_achieved.hidden?
         if Mopt.debug?
           activity :achievement, "#{not_achieved.hint}\n(slug: #{not_achieved.slug})", icon: not_achieved.icon

@@ -101,14 +101,4 @@ Plugin.create :change_account do
       }
     }
   end
-
-  defachievement(:tutorial,
-                 description: _("mikutterのチュートリアルを見た"),
-                 hint: 'Worldを登録してみよう（開発用超絶手抜き説明）'
-                ) do |ach|
-    on_world_create do |world|
-      ach.take!
-    end
-  end
-
 end

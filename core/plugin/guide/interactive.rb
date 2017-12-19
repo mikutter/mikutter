@@ -1,16 +1,25 @@
 # -*- coding: utf-8 -*-
 
-module Plugin::ChangeAccount
+module Plugin::Guide
   module InteractiveMixin
-    def say(message, choose = {Plugin[:change_account]._('次へ') => nil})
+    def say(message)
+      self.next {
+        Plugin[:guide].timeline(:guide) <<
+          Mikutter::System::Message.new(description: message,
+                                        source: "guide",
+                                        created: Time.now)
+      }.extend(InteractiveMixin)
+    end
+
+    def prompt(message, choose = {Plugin[:change_account]._('次へ') => nil})
       self.next {
         promise = Deferred.new(true).extend(InteractiveMixin)
-        Plugin.call(:update, nil,
-                    [Mikutter::System::Message.new(description: message,
-                                                   source: "change_account",
-                                                   created: Time.now,
-                                                   confirm: choose,
-                                                   confirm_callback: promise)])
+        Plugin[:guide].timeline(:guide) <<
+          Mikutter::System::Message.new(description: message,
+                                        source: "guide",
+                                        created: Time.now,
+                                        confirm: choose,
+                                        confirm_callback: promise)
         promise
       }
     end
@@ -31,7 +40,7 @@ module Plugin::ChangeAccount
     end
   end
 
-  class SubPartsTutorial < Gdk::SubParts
+  class SubPartsGuide < Gdk::SubParts
     Button = Struct.new(:layout, :value, :x, :y, :width, :height)
     OutsideOffset = 48          # 最初のボタンの左端との隙間
     ButtonLeft = 6              # ボタンの左端と文字の左側の距離
