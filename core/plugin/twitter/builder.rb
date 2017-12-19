@@ -39,6 +39,12 @@ module Plugin::Twitter
           token: @twitter.a_token,
           secret: @twitter.a_secret,
           user: user)
+      }.trap{|err|
+        if err.is_a?(OAuth::Error)
+          Deferred.fail(Plugin[:twitter]._("認証に失敗しました。トークンを確認してもう一度やり直してください"))
+        else
+          Deferred.fail(err)
+        end
       }
     end
   end

@@ -34,10 +34,29 @@ module Plugin::Gtk
     end
 
     def on_abort(err)
-      Delayer.new do
-        @promise.fail(err) if @promise
-        @promise = nil
-        destroy
+      if err.is_a?(String)
+        Delayer.new do
+          set_sensitive(false)
+          alert = Gtk::MessageDialog.new(nil,
+                                         Gtk::Dialog::DESTROY_WITH_PARENT,
+                                         Gtk::MessageDialog::ERROR,
+                                         Gtk::MessageDialog::BUTTONS_CLOSE,
+                                         err)
+          alert.ssc(:response){|widget| widget.destroy; false }
+          alert.ssc(:destroy) do
+            set_sensitive(true)
+            @container.reset
+            run_container
+            false
+          end
+          alert.show_all
+        end
+      else
+        Delayer.new do
+          @promise.fail(err) if @promise
+          @promise = nil
+          destroy
+        end
       end
     end
 
@@ -158,9 +177,9 @@ module Plugin::Gtk
 
     def initialize(plugin, default=Hash.new, &proc)
       @plugin = plugin
-      @state = STATE_INIT
       @values = default
       @proc = proc
+      reset
       super(){}
     end
 
@@ -213,6 +232,11 @@ module Plugin::Gtk
 
     def []=(key, value)
       @values[key.to_sym] = value
+    end
+
+    def reset
+      @state = STATE_INIT
+      self
     end
 
     def to_h
