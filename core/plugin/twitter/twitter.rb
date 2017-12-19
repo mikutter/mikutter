@@ -286,6 +286,9 @@ Plugin.create(:twitter) do
     input "トークン", :token
     result = await_input
 
-    builder.build(result[:token])
+    world = await builder.build(result[:token])
+    label _("このアカウントでログインしますか？")
+    link world.user_obj
+    world
   end
 end
