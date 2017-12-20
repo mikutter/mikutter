@@ -152,6 +152,9 @@ Plugin.create :extract do
   end
 
   on_extract_tab_create do |setting|
+    if setting.is_a?(Hash)
+      setting = Plugin::Extract::Setting.new(setting)
+    end
     extract_tabs[setting.id] = setting
     tab(setting.slug, setting.name) do
       set_icon setting.icon.to_s if setting.icon?
@@ -203,7 +206,8 @@ Plugin.create :extract do
           add(prompt).show_all)
     dialog.run{ |response|
       if Gtk::Dialog::RESPONSE_ACCEPT == response
-        Plugin::Extract::Setting.new(name: prompt.text) end
+        Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(name: prompt.text))
+      end
       dialog.destroy
       prompt = dialog = nil } end
 
@@ -365,7 +369,7 @@ Plugin.create :extract do
     } end
 
   (UserConfig[:extract_tabs] or []).each do |record|
-    extract_tabs[record[:id]] = Plugin::Extract::Setting.new(record)
+    Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(record))
   end
 
   on_userconfig_modify do |key, val|

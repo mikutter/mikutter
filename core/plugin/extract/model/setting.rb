@@ -27,7 +27,6 @@ module Plugin::Extract
       hash[:slug] ||= "extract_#{hash[:id]}"
       hash[:sources] ||= []
       super(hash)
-      Plugin.call(:extract_tab_create, self)
     end
 
     def slug
