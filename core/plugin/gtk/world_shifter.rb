@@ -54,7 +54,7 @@ class Gtk::WorldShifter < Gtk::EventBox
 
   def pluggaloid_event_listener
     tag = Plugin[:gtk].handler_tag(:world_shifter) do
-      Plugin[:gtk].on_world_change_current(&method(:refresh))
+      Plugin[:gtk].on_world_change_current{ refresh }
       Plugin[:gtk].on_userconfig_modify do |key, newval|
         refresh if key == :world_shifter_visibility
       end
