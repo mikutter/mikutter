@@ -6,27 +6,24 @@ Plugin.create :change_account do
   # アカウント変更用の便利なコマンド
   command(:account_previous,
           name: _('前のアカウント'),
-          condition: lambda{ |opt| Service.instances.size >= 2 },
+          condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    index = Service.instances.index(Service.primary)
-    if index
-      max = Service.instances.size
-      Service.set_primary(Service.instances[(max + index - 1) % max])
-    elsif not Service.instances.empty?
-      Service.set_primary(Service.instances.first) end
+    current_world, = Plugin.filtering(:world_current, nil)
+    worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
+    index = worlds.index(current_world)
+    Plugin.call(:world_change_current, worlds[index - 1]) if index
   end
 
   command(:account_forward,
           name: _('次のアカウント'),
-          condition: lambda{ |opt| Service.instances.size >= 2 },
+          condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    index = Service.instances.index(Service.primary)
-    if index
-      Service.set_primary(Service.instances[(index + 1) % Service.instances.size])
-    elsif not Service.instances.empty?
-      Service.set_primary(Service.instances.first) end
+    current_world, = Plugin.filtering(:world_current, nil)
+    worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
+    index = worlds.index(current_world)
+    Plugin.call(:world_change_current, worlds[(index + 1) % worlds.size]) if index
   end
 
   filter_command do |menu|
