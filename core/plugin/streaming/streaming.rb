@@ -29,12 +29,12 @@ Plugin.create :streaming do
     end
   end
 
-  on_service_registered do |service|
-    if UserConfig[:realtime_rewind] && service.class.slug == :twitter
-      streamers[service.slug] ||= Plugin::Streaming::PermaStreamer.new(service) end end
+  on_world_create do |new_world|
+    if UserConfig[:realtime_rewind] && new_world.class.slug == :twitter
+      streamers[new_world.slug] ||= Plugin::Streaming::PermaStreamer.new(new_world) end end
 
-  on_service_destroyed do |service|
-    streamers[service.slug] and streamers[service.slug].kill end
+  on_world_destroy do |deleted_world|
+    streamers[deleted_world.slug] and streamers[deleted_world.slug].kill end
 
   onunload do
     streamers.values.each(&:kill)

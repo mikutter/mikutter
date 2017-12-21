@@ -44,10 +44,12 @@ Plugin.create :list do
     fetch_and_modify_for_using_lists(world) if world.class.slug == :twitter
   end
 
-  on_service_destroyed do |twitter|
-    twitter.lists(cache: true, user: twitter.user_obj).next{ |lists|
-      Plugin.call(:list_destroy, twitter, lists) if lists
-    }.terminate
+  on_world_destroy do |deleted_world|
+    if deleted_world.class.slug == :twitter
+      deleted_world.lists(cache: true, user: deleted_world.user_obj).next{ |lists|
+        Plugin.call(:list_destroy, deleted_world, lists) if lists
+      }.terminate
+    end
   end
 
   # FILTER stream で、タイムラインを表示しているユーザをフォロー

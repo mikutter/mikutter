@@ -105,7 +105,7 @@ Plugin.create :achievement do
                  description: _("Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"),
                  hidden: true
                  ) do |ach|
-    on_service_registered do |_| ach.take! end
+    on_world_create do |_| ach.take! end
   end
 
   defachievement(:open_setting,
