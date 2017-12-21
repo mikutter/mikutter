@@ -48,7 +48,7 @@ module ::Plugin::Command
   CanReTweetAny = Condition.new { |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     opt.messages.lazy.any?{|m|
-      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
+      Plugin[:command].share?(current_world, m) && !Plugin[:command].shared?(current_world, m)
     }
   }
 
@@ -58,7 +58,7 @@ module ::Plugin::Command
   CanReTweetAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     !opt.messages.empty? && opt.messages.lazy.all?{|m|
-      Plugin[:command].retweet?(current_world, m) && !Plugin[:command].retweeted?(current_world, m)
+      Plugin[:command].share?(current_world, m) && !Plugin[:command].shared?(current_world, m)
     }
   }
 
@@ -67,7 +67,7 @@ module ::Plugin::Command
   IsReTweetedAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     !opt.messages.empty? && opt.messages.lazy.all?{|m|
-      Plugin[:command].destroy_retweet?(current_world, m)
+      Plugin[:command].destroy_share?(current_world, m)
     }
   }
 

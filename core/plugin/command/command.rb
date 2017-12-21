@@ -64,13 +64,13 @@ Plugin.create :command do
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
     world, = Plugin.filtering(:world_current, nil)
-    target = opt.messages.select{|m| retweet?(m, world) }.reject{|m| retweeted?(m, world) }.map(&:introducer)
+    target = opt.messages.select{|m| share?(m, world) }.reject{|m| shared?(m, world) }.map(&:introducer)
     if target.any?{|message| message.from_me?([world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each{|m| retweet(m, world) }
+        target.each{|m| share(m, world) }
       end
     else
-      target.each{|m| retweet(m, world) }
+      target.each{|m| share(m, world) }
     end
   end
 
@@ -82,7 +82,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
-      opt.messages.map{|m| destroy_retweet(current_world, m) }
+      opt.messages.map{|m| destroy_share(current_world, m) }
     ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
   end
 

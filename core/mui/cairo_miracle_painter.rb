@@ -201,7 +201,7 @@ class Gdk::MiraclePainter < Gtk::Object
        UserConfig[:show_verified_icon] && message.user.verified? && "verified.png"],
       [ if UserConfig[:show_protected_icon] and message.user.protected?
           "protected.png".freeze
-        elsif Plugin[:miracle_painter].retweeted?(message, world)
+        elsif Plugin[:miracle_painter].shared?(message, world)
           "retweet.png".freeze end,
        message.favorite? ? "unfav.png".freeze : nil]
     ]
@@ -212,11 +212,11 @@ class Gdk::MiraclePainter < Gtk::Object
 
   def iob_retweet_clicked
     world, = Plugin.filtering(:world_current, nil)
-    if Plugin[:miracle_painter].retweeted?(message, world)
+    if Plugin[:miracle_painter].shared?(message, world)
       retweet = message.retweeted_statuses.find(&:from_me?)
       retweet.destroy if retweet
     else
-      Plugin[:miracle_painter].retweet(message, world)
+      Plugin[:miracle_painter].share(message, world)
     end
   end
 

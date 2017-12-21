@@ -98,10 +98,10 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:destroy_retweet, :twitter, :twitter_tweet,
-           condition: ->(twitter, tweet){ retweeted?(twitter, tweet) }
+  defspell(:destroy_share, :twitter, :twitter_tweet,
+           condition: ->(twitter, tweet){ shared?(twitter, tweet) }
           ) do |twitter, tweet|
-    retweeted(twitter, tweet).next{ |retweet|
+    shared(twitter, tweet).next{ |retweet|
       destroy(twitter, retweet)
     }
   end
@@ -179,7 +179,7 @@ Plugin.create(:twitter) do
     end
   end
 
-  defspell(:retweet, :twitter, :twitter_tweet,
+  defspell(:share, :twitter, :twitter_tweet,
            condition: ->(twitter, tweet){ !tweet.protected? }
           ) do |twitter, tweet|
     twitter.retweet(id: tweet.id).next{|retweeted|
@@ -189,7 +189,7 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:retweeted, :twitter, :twitter_tweet,
+  defspell(:shared, :twitter, :twitter_tweet,
            condition: ->(twitter, tweet){ tweet.retweeted_users.include?(twitter.user_obj) }
           ) do |twitter, tweet|
     Delayer::Deferred.new.next{
