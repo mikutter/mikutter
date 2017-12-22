@@ -68,6 +68,8 @@ Plugin.create :guide do
 
   defsequence :wizard do
     world_dict, = Plugin.filtering(:world_setting_list, Hash.new)
+    UserConfig[:postbox_visibility] = :always
+    UserConfig[:world_shifter_visibility] = :always
     sequence.
       say(_('左上にある「＋」みたいなマークをクリックして、「Worldを追加」を選んでね。'))
     world_wizard_open_observer = on_request_world_add do
