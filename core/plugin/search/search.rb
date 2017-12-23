@@ -28,19 +28,18 @@ Plugin.create :search do
   end
 
   def present_tab
+    query_box = Plugin::Search::QueryBox.new(self)
     @tag ||= handler_tag do
       tab(:search, _("検索")) do
-        @query_box = Plugin::Search::QueryBox.new
         set_icon Skin['search.png']
         shrink
-        nativewidget @query_box
+        nativewidget query_box
         expand
         timeline :search
       end
 
       on_search_start do |query|
-        @querybox.text = query
-        searchbtn.clicked
+        query_box.search!(query)
         timeline(:search).active! end
     end
   end
