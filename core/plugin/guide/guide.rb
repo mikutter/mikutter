@@ -21,6 +21,27 @@ Plugin.create :guide do
         @sequence[:first].call
       end end end
 
+  def guide_start(ach)
+    tab :guide, _('World ガイド') do
+      set_icon Skin['icon.png']
+      timeline(:guide)
+    end
+
+    on_finish_guide do |world|
+      ach.take!
+    end
+
+    seq = at(:guide_sequence)
+    case seq
+    when nil, :first
+      jump_seq(:first)
+    else
+      sequence.
+        say(_("前回の続きから説明するね")).
+        next{ jump_seq(seq) }
+    end
+  end
+
   defsequence :first do
     sequence.
       say(_('おーい、こっちこっち。'))
@@ -133,28 +154,15 @@ Plugin.create :guide do
     }
   end
 
-  defachievement(:guide,
+  defachievement(:tutorial,
                  description: _("mikutterのチュートリアルを見た"),
                  hint: _('← こんなアイコンのタブが右にあると思うので、クリックしてください'),
                  icon: Skin['icon.png']
                 ) do |ach|
-    tab :guide, _('World ガイド') do
-      set_icon Skin['icon.png']
-      timeline(:guide)
-    end
-
-    on_finish_guide do |world|
-      ach.take!
-    end
-
-    seq = at(:guide_sequence)
-    case seq
-    when nil, :first
-      jump_seq(:first)
+    if Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(1).to_a.empty?
+      guide_start(ach)
     else
-      sequence.
-        say(_("前回の続きから説明するね")).
-        next{ jump_seq(seq) }
+      ach.take!
     end
   end
 end

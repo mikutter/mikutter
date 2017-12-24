@@ -165,8 +165,8 @@ Plugin.create :achievement do
     unachievements = Plugin.filtering(:unachievements, {}).first.reject{ |k, v| v.hidden? }
     unless unachievements.empty?
       not_achieved =
-        if unachievements.has_key?(:guide)
-          unachievements[:guide]
+        if unachievements.has_key?(:tutorial)
+          unachievements[:tutorial]
         else
           unachievements.values.sample.notachieved_parent{|a|!a.hidden?}
         end
