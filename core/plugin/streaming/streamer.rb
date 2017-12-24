@@ -110,7 +110,7 @@ module ::Plugin::Streaming
           Plugin.activity :system, "unsupported event:\n" + YAML.dump(json) end end end
 
     defevent(:update, true) do |data|
-      events = {update: Messages.new, mention: Messages.new, mypost: Messages.new}
+      events = {update: Set.new, mention: Set.new, mypost: Set.new}
       data.each { |json|
         msg = MikuTwitter::ApiCallSupport::Request::Parser.streaming_message(json.symbolize)
         events[:update] << msg
@@ -136,8 +136,8 @@ module ::Plugin::Streaming
 
     defevent(:favorited_retweet) do |json|
       by = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
-      to = Message.findbyid(json['target_object']['id'].to_i)
-      if to.is_a? Message
+      to = Plugin::Twitter::Message.findbyid(json['target_object']['id'].to_i)
+      if to.is_a?(Plugin::Twitter::Message)
         source_message = to.retweet_source
         if(to.respond_to?(:add_favorited_by))
           source_message.add_favorited_by(by, Time.parse(json['created_at'])) end end end
@@ -156,9 +156,9 @@ module ::Plugin::Streaming
       source = MikuTwitter::ApiCallSupport::Request::Parser.user(json['source'].symbolize)
       target = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize)
       if target.me?(@service)
-        Plugin.call(:followers_created, @service, Users.new([source]))
+        Plugin.call(:followers_created, @service, [source])
       elsif source.me?(@service)
-        Plugin.call(:followings_created, @service, Users.new([target])) end end
+        Plugin.call(:followings_created, @service, [target]) end end
 
     defevent(:list_member_added) do |json|
       target_user = MikuTwitter::ApiCallSupport::Request::Parser.user(json['target'].symbolize) # リストに追加されたユーザ

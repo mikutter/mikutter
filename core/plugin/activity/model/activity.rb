@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Activity
-  class Activity < Retriever::Model
+  class Activity < Diva::Model
     extend Memoist
 
-    include Retriever::Model::MessageMixin
-    include Retriever::Model::UserMixin
+    include Diva::Model::MessageMixin
+    include Diva::Model::UserMixin
 
     register :activity, name: "Activity"
 
     field.string :description, required: true
     field.string :title, required: true
-    field.string :icon
+    field.has :icon, Diva::Model
     field.bool :related
     field.string :plugin_slug
     field.time :date, required: true
     field.string :kind, required: true
     field.string :identity
-    field.has :children, [Retriever::Model]
+    field.has :children, [Diva::Model]
     # model_field
     # service
 

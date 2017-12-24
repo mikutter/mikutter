@@ -32,9 +32,6 @@ class Gtk::UserList < Gtk::EventBox
   def each
     @listview.each{ |m, p, i| i[Gtk::InnerUserList::COL_USER] } end
 
-  def to_a
-    @to_a ||= inject(Users.new, &:<<).freeze end
-
   # Userの配列 _users_ を追加する
   # ==== Args
   # [users] Enumerable ユーザを繰り返すEnumerable

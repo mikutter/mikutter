@@ -24,10 +24,11 @@ Plugin.create :rest do
 
   def start
     if Service.instances.empty?
-      @account_observer ||= on_service_registered do |s|
+      @account_observer ||= on_world_create do |_new_world|
         start
         @account_observer.detach
-        @account_observer = nil end
+        @account_observer = nil
+      end
     else
       Service.instances.each do |service|
         @crawlers.each{ |s| s.call(service) }

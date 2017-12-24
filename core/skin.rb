@@ -8,6 +8,7 @@ module Skin
   class ModelNotFoundError < SkinError; end
 
   extend self
+  extend Gem::Deprecate
 
   SKIN_ROOT = File.join(CHIConfig::CONFROOT, "skin")
   USER_SKIN = if :vanilla == UserConfig[:skin_dir]
@@ -40,7 +41,7 @@ module Skin
   # [filename] 画像ファイル名
   # [fallback_dirs] スキンディレクトリのリスト
   # ==== Return
-  # [Retriever::Mixin::PhotoMixin] 画像
+  # [Diva::Mixin::PhotoMixin] 画像
   # ==== Raises
   # [Skin::FileNotFoundError] 画像 _filename_ が見つからなかった時
   def photo(filename, fallback_dirs=[])

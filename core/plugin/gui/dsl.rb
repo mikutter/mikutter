@@ -7,11 +7,7 @@ module Plugin::GUI
     def ui_setting
       UserConfig[:ui_tab_order] || {
         default: {
-          default: [:home_timeline,
-                    :mentions,
-                    :activity,
-                    :directmessage,
-                    :search] } } end
+          default: [:activity] } } end
 
     # 設定されているタブの位置を返す
     # ==== Args

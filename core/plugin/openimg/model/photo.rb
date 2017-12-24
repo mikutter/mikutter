@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'retriever/mixin/photo_mixin'
 
 module Plugin::Openimg
-  class Photo < Retriever::Model
-    include Retriever::Model::PhotoMixin
+  class Photo < Diva::Model
+    include Diva::Model::PhotoMixin
     register :openimg_photo, name: Plugin[:openimg]._('画像ビューア')
 
     field.uri    :perma_link

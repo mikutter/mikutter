@@ -1,89 +1,92 @@
 # -*- coding: utf-8 -*-
 module ::Plugin::ChangeAccount
-  class AccountControl < Gtk::CRUD
+  class AccountControl < Gtk::TreeView
     include Gtk::TreeViewPrettyScroll
     COL_ICON = 0
-    COL_SCREEN_NAME = 1
-    COL_NAME = 2
-    COL_SERVICE = 3
+    COL_NAME = 1
+    COL_WORLD_NAME = 2
+    COL_WORLD = 3
 
-    def column_schemer
-      [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => ''},
-       {:kind => :text, :type => String, :label => Plugin[:change_account]._('SN')},
-       {:kind => :text, :type => String, :label => Plugin[:change_account]._('名前')},
-       {:type => Object},
-      ].freeze
+    type_register
+    signal_new(:delete_world, GLib::Signal::RUN_FIRST, nil, nil, Array)
+
+    def initialize(plugin)
+      @plugin = plugin
+      super()
+      set_model(::Gtk::ListStore.new(GdkPixbuf::Pixbuf, String, String, Object))
+      append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
+      append_column ::Gtk::TreeViewColumn.new("name", ::Gtk::CellRendererText.new, text: COL_NAME)
+      append_column ::Gtk::TreeViewColumn.new("provider", ::Gtk::CellRendererText.new, text: COL_WORLD_NAME)
+      content_initialize
+      register_signal_handlers
+      event_listener_initialize
     end
 
-    def force_record_create(service)
-      type_strict service => Service
-      return if self.destroyed?
-      [service.user_obj[:name], service.user_obj[:idname], service]
-      iter = model.model.append
-      iter[COL_ICON] = service.user_obj.icon.load_pixbuf(width: 16, height: 16) { |new_pixbuf|
-        iter[COL_ICON] = new_pixbuf if not self.destroyed? }
-      iter[COL_SCREEN_NAME] = service.user_obj[:idname]
-      iter[COL_NAME] = service.user_obj[:name]
-      iter[COL_SERVICE] = service
-      on_created(iter)
-    end
-
-    def on_deleted(iter)
-      Service.destroy(iter[COL_SERVICE]) end
-
-    def popup_input_window(defaults = [])
-      parent_window = self and self.toplevel.toplevel? and self.toplevel
-      twitter = MikuTwitter.new
-      twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
-      twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
-      request_token = twitter.request_oauth_token
-      result = nil
-      dialog = ::Gtk::Dialog.new("#{dialog_title} - " + Environment::NAME)
-      dialog.set_size_request(640, 480)
-      dialog.window_position = Gtk::Window::POS_CENTER
-
-      container = ::Gtk::VBox.new
-      code_input = ::Gtk::Entry.new
-      code_input.text = ""
-      code_input.signal_connect('activate') { |elm|
-        dialog.response(::Gtk::Dialog::RESPONSE_OK) }
-      container.add(::Gtk::IntelligentTextview.new(request_token.authorize_url))
-      container.closeup(code_input.center)
-      dialog.vbox.pack_start(container, true, true, 30)
-
-      dialog.add_button(::Gtk::Stock::OK, ::Gtk::Dialog::RESPONSE_OK)
-      dialog.add_button(::Gtk::Stock::CANCEL, ::Gtk::Dialog::RESPONSE_CANCEL)
-      dialog.signal_connect('response'){ |widget, response|
-        if response == ::Gtk::Dialog::RESPONSE_OK
-          access_token = request_token.get_access_token(oauth_token: request_token.token,
-                                                        oauth_verifier: code_input.text)
-          dialog.sensitive = false
-          Service.add_service(access_token.token, access_token.secret).next { |service|              result = service
-            parent_window.sensitive = true
-            dialog.hide_all.destroy
-            Gtk::main_quit
-          }.trap { |e|
-            alert = ::Gtk::Dialog.new(Plugin[:change_account]._("エラー - %{name}") % {name: Environment::NAME})
-            alert.set_size_request(420, 90)
-            alert.window_position = ::Gtk::Window::POS_CENTER
-            alert.vbox.add(::Gtk::Label.new(e.to_s))
-            alert.add_button(::Gtk::Stock::OK, ::Gtk::Dialog::RESPONSE_OK)
-            alert.show_all
-            alert.signal_connect('response'){
-              dialog.sensitive = true
-              alert.hide_all.destroy }
-          }.terminate
-        else
-          result = nil
-          parent_window.sensitive = true
-          dialog.hide_all.destroy
-          Gtk::main_quit
-        end
+    def selected_worlds
+      self.selection.to_enum(:selected_each).map {|model, path, iter|
+        iter[COL_WORLD]
       }
-      parent_window.sensitive = false
-      dialog.show_all
-      Gtk::main
-      result
     end
+
+    private
+
+    def content_initialize
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.each(&method(:add_column))
+    end
+
+    def add_column(world)
+      iter = model.append
+      if world.respond_to?(:icon) && world.icon
+        iter[COL_ICON] = world.icon.load_pixbuf(width: 16, height: 16) do |loaded|
+          iter[COL_ICON] = loaded unless destroyed?
+        end
+      end
+      iter[COL_NAME] = world.title
+      iter[COL_WORLD_NAME] = world.class.slug
+      iter[COL_WORLD] = world
+    end
+
+    def menu_pop(widget, event)
+      contextmenu = Gtk::ContextMenu.new
+      contextmenu.register("削除") do
+        signal_emit(:delete_world, selected_worlds)
+      end
+      contextmenu.popup(widget, widget)
+    end
+
+    def event_listener_initialize
+      tag = @plugin.handler_tag do
+        @plugin.on_world_create do |world|
+          add_column(world)
+        end
+        @plugin.on_world_destroy do |world|
+          _, _, iter = Enumerator.new(model).find{|m,p,i| i[COL_WORLD] == world }
+          model.remove(iter) if iter
+        end
+      end
+      register_detach_listener_at_destroy(tag)
+    end
+
+    def register_signal_handlers
+      ssc(:button_release_event) do |widget, event|
+        if (event.button == 3)
+          menu_pop(self, event)
+          true
+        end
+      end
+    end
+
+    def register_detach_listener_at_destroy(tag)
+      ssc(:destroy) do
+        @plugin.detach(tag)
+        false
+      end
+    end
+
+    def signal_do_delete_world(worlds)
+    end
+
   end
 end

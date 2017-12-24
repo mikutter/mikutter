@@ -196,11 +196,12 @@ class Gdk::MiraclePainter < Gtk::Object
        message.favorite? ? "unfav.png".freeze : "fav.png".freeze] ] end
 
   def iob_icon_pixbuf_off
+    world, = Plugin.filtering(:world_current, nil)
     [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png".freeze),
        UserConfig[:show_verified_icon] && message.user.verified? && "verified.png"],
       [ if UserConfig[:show_protected_icon] and message.user.protected?
           "protected.png".freeze
-        elsif message.retweeted?
+        elsif Plugin[:miracle_painter].shared?(message, world)
           "retweet.png".freeze end,
        message.favorite? ? "unfav.png".freeze : nil]
     ]
@@ -210,13 +211,13 @@ class Gdk::MiraclePainter < Gtk::Object
     @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    if message.retweeted?
+    world, = Plugin.filtering(:world_current, nil)
+    if Plugin[:miracle_painter].shared?(message, world)
       retweet = message.retweeted_statuses.find(&:from_me?)
       retweet.destroy if retweet
     else
-      message.retweet
+      Plugin[:miracle_painter].share(message, world)
     end
-    # @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked

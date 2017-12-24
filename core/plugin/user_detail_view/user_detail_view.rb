@@ -5,7 +5,7 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_icon_size] ||= 64
   UserConfig[:profile_icon_margin] ||= 8
 
-  intent User, label: _('プロフィール') do |intent_token|
+  intent :twitter_user, label: _('プロフィール') do |intent_token|
     show_profile(intent_token.model, intent_token)
   end
 
@@ -15,10 +15,10 @@ Plugin.create :user_detail_view do
 
   Delayer.new do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
-      retrieve_user(user_id).next{|user|
+      retrieve_user(user_id)&.next{|user|
         user ||= User.findbyid(user_id)
         show_profile(user, nil, true) if user
-      }.terminate end end
+      }&.terminate end end
 
   def retrieve_user(user_id, services = Service.services.shuffle)
     if services.nil? or services.empty?
@@ -61,28 +61,29 @@ Plugin.create :user_detail_view do
       }.next {
         Plugin.call(:filter_stream_reconnect_request)
         if !force
-          i_cluster.active! end }
+          i_cluster.active! end
+      }.terminate(_("%{user} のプロフィールの取得中二エラーが発生しました。見るなってことですかね。") % {user: user.name})
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do
     set_icon Skin['timeline.png']
-    user_id = retriever.id
+    user_id = model.id
     i_timeline = timeline nil do
       order do |message|
         retweet = message.retweeted_statuses.find{ |r| user_id == r.user.id }
         (retweet || message)[:created].to_i end end
     Service.primary.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
-    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: retriever[:idname]})
-    timeline_storage[i_timeline.slug] = retriever end
+    }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: model[:idname]})
+    timeline_storage[i_timeline.slug] = model end
 
   user_fragment :aboutuser, _("ユーザについて") do
-    set_icon retriever.icon
+    set_icon model.icon
     bio = ::Gtk::IntelligentTextview.new("")
     container = ::Gtk::VBox.new.
       closeup(bio).
-      closeup(plugin.relation_bar(retriever))
-    container.closeup(plugin.mutebutton(retriever)) if not retriever.me?
+      closeup(plugin.relation_bar(model))
+    container.closeup(plugin.mutebutton(model)) if not model.me?
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
@@ -95,19 +96,19 @@ Plugin.create :user_detail_view do
       wrapper.no_show_all = false
       wrapper.show_all
       false end
-    retriever_complete do
-      biotext = (retriever[:detail] || "")
-      if retriever[:url]
-        biotext += "\n\n" + _('Web: %{url}') % {url: retriever[:url]} end
-      ago = (Time.now - (retriever[:created] or 1)).to_i / (60 * 60 * 24)
+    model_complete do
+      biotext = (model[:detail] || "")
+      if model[:url]
+        biotext += "\n\n" + _('Web: %{url}') % {url: model[:url]} end
+      ago = (Time.now - (model[:created] or 1)).to_i / (60 * 60 * 24)
       text_since = _("Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)") % {
-        year: retriever[:created].strftime('%Y'),
-        month: retriever[:created].strftime('%m'),
-        day: retriever[:created].strftime('%d'),
-        hour: retriever[:created].strftime('%H'),
-        minute: retriever[:created].strftime('%M'),
-        second: retriever[:created].strftime('%S'),
-        tweets_per_day: ago == 0 ? retriever[:statuses_count] : "%.2f" % (retriever[:statuses_count].to_f / ago)
+        year: model[:created].strftime('%Y'),
+        month: model[:created].strftime('%m'),
+        day: model[:created].strftime('%d'),
+        hour: model[:created].strftime('%H'),
+        minute: model[:created].strftime('%M'),
+        second: model[:created].strftime('%S'),
+        tweets_per_day: ago == 0 ? model[:statuses_count] : "%.2f" % (model[:statuses_count].to_f / ago)
       }
       bio.rewind("#{biotext}\n#{text_since}")
     end
@@ -176,7 +177,11 @@ Plugin.create :user_detail_view do
     icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
     arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = ::Gtk::VBox.new(false, 4)
-    Service.each{ |me|
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :twitter
+    }.each{ |me|
       following = followed = nil
       w_following_label = ::Gtk::Label.new(_("関係を取得中"))
       w_followed_label = ::Gtk::Label.new("")
@@ -189,7 +194,7 @@ Plugin.create :user_detail_view do
                      closeup(w_eventbox_image_following).
                      closeup(w_following_label) end
       relation_container = ::Gtk::HBox.new(false, icon_size.width/2)
-      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
+      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user_obj.idname}(#{me.user_obj[:name]})"))
       relation_container.closeup(::Gtk::VBox.new.
                                  closeup(relation).
                                  closeup(::Gtk::HBox.new.
@@ -219,7 +224,7 @@ Plugin.create :user_detail_view do
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
             w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get_path(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない") end }
-        Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
+        me.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
             m_following_refresh.call(rel[:following])
             m_followed_refresh.call(rel[:followed_by])
@@ -233,7 +238,7 @@ Plugin.create :user_detail_view do
               followbutton.sensitive = false
               event = following ? :followings_destroy : :followings_created
               me.__send__(following ? :unfollow : :follow, user_id: user.id).next{ |msg|
-                Plugin.call(event, me, Users.new([user]))
+                Plugin.call(event, me, [user])
                 followbutton.sensitive = true unless followbutton.destroyed? }.
               terminate.trap{
                 followbutton.sensitive = true unless followbutton.destroyed? }

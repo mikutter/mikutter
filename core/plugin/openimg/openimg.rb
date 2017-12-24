@@ -29,7 +29,7 @@ Plugin.create :openimg do
   # 画像を新しいウィンドウで開く
   defevent :openimg_open,
            priority: :ui_response,
-           prototype: [String, Message]
+           prototype: [String, Diva::Model]
 
   defdsl :defimageopener do |name, condition, &proc|
     opener = Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze
@@ -37,31 +37,34 @@ Plugin.create :openimg do
       openers << opener
       [openers] end end
 
-  defimageopener(_('画像直リンク'), /.*\.(?:jpg|jpeg|png|gif|)\Z/i) do |display_url|
-    begin
-      if display_url.start_with?('file:')
-        open(Addressable::URI.parse(display_url).path)
-      else
-        open(display_url)
-      end
-    rescue => _
-      error _
-      nil end end
-
   filter_openimg_pixbuf_from_display_url do |photo, loader, thread|
     loader = GdkPixbuf::PixbufLoader.new
-    [photo, loader, photo.download{|partial| Delayer.new{ loader.write partial } }]
+    [photo, loader, photo.download{|partial| loader.write partial }]
   end
 
   filter_openimg_raw_image_from_display_url do |display_url, content|
     unless content
-      openers = Plugin.filtering(:openimg_image_openers, Set.new).first
-      content = openers.lazy.select{ |opener|
+      content = Enumerator.new{|y|
+        Plugin.filtering(:openimg_image_openers, y)
+      }.lazy.select{ |opener|
         opener.condition === display_url
       }.map{ |opener|
         opener.open.(display_url)
-      }.select(&ret_nth).take(1).force.first end
-    [display_url, content] end
+      }.find(&ret_nth)
+      if !content and /\.(?:jpe?g|png|gif|)\z/i.match(display_url)
+        begin
+          if display_url.start_with?('file:')
+            content = open(Addressable::URI.parse(display_url).path)
+          else
+            content = open(display_url)
+          end
+        rescue => _
+          error _
+        end
+      end
+    end
+    [display_url, content]
+  end
 
   on_openimg_open do |display_url|
     Plugin.call(:open, display_url)

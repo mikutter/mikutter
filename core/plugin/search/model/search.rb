@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Search
-  class Search < Retriever::Model
+  class Search < Diva::Model
     extend Memoist
-
     register :twitter_search, name: Plugin[:search]._('Twitter検索')
 
     field.string :query, required: true
@@ -24,7 +23,7 @@ module Plugin::Search
     end
 
     memoize def perma_link
-      Retriever::URI.new("https://twitter.com/search?q=#{CGI.escape(self.query)}")
+      Diva::URI.new("https://twitter.com/search?q=#{CGI.escape(self.query)}")
     end
   end
 end

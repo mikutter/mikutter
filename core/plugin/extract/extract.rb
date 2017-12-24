@@ -2,6 +2,7 @@
 
 require_relative 'edit_window'
 require_relative 'extract_tab_list'
+require_relative 'model/setting'
 
 module Plugin::Extract
   class ConditionNotFoundError < RuntimeError; end
@@ -35,6 +36,8 @@ module Plugin::Extract
 
     def call(*_args, **_named, &block)
       @block.(*_args, **_named, &block) end end
+
+  Order = Struct.new(:slug, :name, :ordering)
 
   class Calc
     def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
@@ -120,6 +123,15 @@ Plugin.create :extract do
       operators << Plugin::Extract::ExtensibleOperator.new(slug, name, args, &block).freeze
       [operators] end end
 
+  defdsl :defextractorder do |slug, name:, &block|
+    slug = slug.to_sym
+    name = name.to_s.freeze
+    filter_extract_order do |orders|
+      orders << Plugin::Extract::Order.new(slug, name, block)
+      [orders]
+    end
+  end
+
   defextractoperator(:==, name: _('＝'), args: 1, &:==)
   defextractoperator(:!=, name: _('≠'), args: 1, &:!=)
   defextractoperator(:match_regexp, name: _('正規表現'), args: 1, &:match_regexp)
@@ -131,33 +143,48 @@ Plugin.create :extract do
 
   defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
-  on_extract_tab_create do |record|
-    record[:id] = Time.now.to_i unless record[:id]
-    slug = "extract_#{record[:id]}".to_sym
-    record = record.melt
-    record[:slug] = slug
-    extract_tabs[record[:id]] = record.freeze
-    tab(slug, record[:name]) do
-      set_icon record[:icon] if record[:icon].is_a? String and not record[:icon].empty?
-      timeline slug end
+  defextractorder(:created, name: _('投稿時刻')) do |model|
+    model.created.to_i
+  end
+
+  defextractorder(:modified, name: _('投稿時刻 (ふぁぼやリツイートでageる)')) do |model|
+    model.modified.to_i
+  end
+
+  on_extract_tab_create do |setting|
+    if setting.is_a?(Hash)
+      setting = Plugin::Extract::Setting.new(setting)
+    end
+    extract_tabs[setting.id] = setting
+    tab(setting.slug, setting.name) do
+      set_icon setting.icon.to_s if setting.icon?
+      timeline setting.slug do
+        oo = setting.find_ordering_obj
+        order(&setting.find_ordering_obj.ordering) if oo
+      end
+    end
     modify_extract_tabs end
 
-  on_extract_tab_update do |record|
-    extract_tabs[record[:id]] = record.freeze
-    tab(record[:slug]).set_icon record[:icon] if record[:icon].is_a? String and not record[:icon].empty?
+  on_extract_tab_update do |setting|
+    extract_tabs[setting.id] = setting
+    tab(setting.slug).set_icon setting.icon.to_s if setting.icon?
+    oo = setting.find_ordering_obj
+    if oo
+      timeline(setting.slug).order(&setting.find_ordering_obj.ordering)
+    end
     modify_extract_tabs end
 
   on_extract_tab_delete do |id|
     if extract_tabs.has_key? id
       deleted_tab = extract_tabs[id]
-      tab(deleted_tab[:slug]).destroy
+      tab(deleted_tab.slug).destroy
       extract_tabs.delete(id)
       modify_extract_tabs end end
 
   on_extract_tab_delete_with_confirm do |id|
     extract = extract_tabs[id]
     if extract
-      message = _("本当に抽出タブ「%{name}」を削除しますか？") % {name: extract[:name]}
+      message = _("本当に抽出タブ「%{name}」を削除しますか？") % {name: extract.name}
       dialog = Gtk::MessageDialog.new(nil,
                                       Gtk::Dialog::DESTROY_WITH_PARENT,
                                       Gtk::MessageDialog::QUESTION,
@@ -179,12 +206,22 @@ Plugin.create :extract do
           add(prompt).show_all)
     dialog.run{ |response|
       if Gtk::Dialog::RESPONSE_ACCEPT == response
-        Plugin.call :extract_tab_create, name: prompt.text end
+        Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(name: prompt.text))
+      end
       dialog.destroy
       prompt = dialog = nil } end
 
   on_extract_open_edit_dialog do |extract_id|
-    ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+    event = on_extract_tab_update do |setting|
+      if extract_id == setting.id && !window.destroyed?
+        window.refresh_title
+      end
+    end
+    window.ssc(:destroy) do
+      event.detach
+      false
+    end
   end
 
   on_appear do |messages|
@@ -192,16 +229,23 @@ Plugin.create :extract do
 
   on_update do |service, messages|
     Plugin.call :extract_receive_message, :update, messages
-    if service
+    if service and service.class.slug == :twitter
       service_datasource = "home_timeline-#{service.user_obj.id}".to_sym
       if active_datasources.include? service_datasource
-        Plugin.call :extract_receive_message, service_datasource, messages end end end
+        Plugin.call :extract_receive_message, service_datasource, messages
+      end
+    end
+  end
 
   on_mention do |service, messages|
     Plugin.call :extract_receive_message, :mention, messages
+    if service.class.slug == :twitter
     service_datasource = "mentions-#{service.user_obj.id}".to_sym
     if active_datasources.include? service_datasource
-      Plugin.call :extract_receive_message, service_datasource, messages end end
+      Plugin.call :extract_receive_message, service_datasource, messages
+    end
+    end
+  end
 
   on_extract_receive_message do |source, messages|
     append_message source, messages
@@ -217,8 +261,11 @@ Plugin.create :extract do
       update: _("ホームタイムライン(全てのアカウント)"),
       mention: _("自分宛ての投稿(全てのアカウント)")
     }.merge datasources
-    Service.map{ |service|
-      user = service.user_obj
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.lazy.select{|world|
+      world.class.slug == :twitter
+    }.map(&:user_obj).each{ |user|
       datasources.merge!({ "home_timeline-#{user.id}".to_sym => "@#{user.idname}/" + _("Home Timeline"),
                            "mentions-#{user.id}".to_sym => "@#{user.idname}/" + _("Mentions")
                          })
@@ -227,16 +274,14 @@ Plugin.create :extract do
 
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
-    UserConfig[:extract_tabs] = extract_tabs.values
+    UserConfig[:extract_tabs] = extract_tabs.values.map(&:export_to_userconfig)
     self end
 
   # 使用されているデータソースのSetを返す
   def active_datasources
     @active_datasources ||=
       extract_tabs.values.map{|tab|
-        tab[:sources]
-      }.select{|sources|
-        sources.is_a? Enumerable
+        tab.sources
       }.inject(Set.new, &:merge).freeze end
 
   def compile(tab_id, code)
@@ -258,7 +303,7 @@ Plugin.create :extract do
                         kind: 'error'.freeze,
                         title: _("抽出タブ条件エラー"),
                         date: Time.new,
-                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_id][:name], error_string: exception.to_s})
+                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_id].name, error_string: exception.to_s})
             warn exception
             ret_nth end end end end
 
@@ -309,26 +354,23 @@ Plugin.create :extract do
 
   def append_message(source, messages)
     type_strict source => Symbol, messages => Enumerable
-    tabs = extract_tabs.values.select{ |r| r[:sources] && r[:sources].include?(source) }
+    tabs = extract_tabs.values.select{ |r| r.sources && r.using?(source) }
     return if tabs.empty?
     converted_messages = messages.map{ |message| message.retweet_source ? message.retweet_source : message }
-    tabs.deach{ |record|
-      begin
-        filtered_messages = timeline(record[:slug]).not_in_message(converted_messages.select(&compile(record[:id], record[:sexp])))
-        timeline(record[:slug]) << filtered_messages
+    tabs.each{ |record|
+        filtered_messages = timeline(record.slug).not_in_message(converted_messages.select(&compile(record.id, record.sexp)))
+        timeline(record.slug) << filtered_messages
         notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
-        if record[:popup]
+        if record.popup?
           notificate_messages.deach do |message|
             Plugin.call(:popup_notify, message.user, message.to_show) end end
-        if record[:sound].is_a?(String) and notificate_messages.first and FileTest.exist?(record[:sound])
-          Plugin.call(:play_sound, record[:sound]) end
-      rescue Exception => exception
-        error "filter '#{record[:name]}' crash: #{exception.to_s}"
-        error exception end } end
+        if record.sound.is_a?(String) and notificate_messages.first and FileTest.exist?(record.sound)
+          Plugin.call(:play_sound, record.sound) end
+    } end
 
-  (UserConfig[:extract_tabs] or []).each{ |record|
-    extract_tabs[record[:id]] = record.freeze
-    Plugin.call(:extract_tab_create, record) }
+  (UserConfig[:extract_tabs] or []).each do |record|
+    Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(record))
+  end
 
   on_userconfig_modify do |key, val|
     next if key != :extract_tabs

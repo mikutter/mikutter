@@ -75,10 +75,10 @@ module Plugin::GUI::TabLike
 
   def set_icon(icon)
     icon_model = case icon
-    when Retriever::Model
+    when Diva::Model
       icon
     when String
-      Retriever::Model(:photo)[icon]
+      Diva::Model(:photo)[icon]
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end

@@ -25,7 +25,7 @@ module Gtk
     def initialize(url, rect = DEFAULT_RECTANGLE, height = nil)
       rect = Gdk::Rectangle.new(0, 0, rect, height) if height
       case url
-      when Retriever::Model
+      when Diva::Model
         super(load_model(url, rect))
       when GdkPixbuf::Pixbuf
         super(url)
@@ -33,7 +33,7 @@ module Gtk
         photo = Enumerator.new{|y|
           Plugin.filtering(:photo_filter, url, y)
         }.first
-        super(load_model(photo, rect))
+        super(load_model(photo || Skin['notfound.png'], rect))
       end
     end
 

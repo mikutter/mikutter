@@ -1,0 +1,10 @@
+---
+slug: :guide
+depends:
+  mikutter: '3.6'
+  plugin:
+  - achievement
+version: '1.0'
+author: toshi_a
+name: guide
+description: はじめてmikutterを起動したとき、みくったーちゃんがWorldの作成を手伝ってくれる機能を追加するプラグイン

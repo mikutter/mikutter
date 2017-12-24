@@ -32,7 +32,7 @@ module Plugin::Shortcutkey
         if commands[slug]
           icon = commands[slug][:icon]
           icon = icon.call(nil) if icon.is_a? Proc
-          icon = Retriever::Model(:photo)[icon] if icon
+          icon = Diva::Model(:photo)[icon] if icon
           if icon
             iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16, height: 16){ |pixbuf|
               if not destroyed?
@@ -219,9 +219,9 @@ module Plugin::Shortcutkey
         case icon
         when Proc
           icon_model(icon.call(nil))
-        when Retriever::Model
+        when Diva::Model
           icon
-        when String, URI, Addressable::URI, Retriever::URI
+        when String, URI, Addressable::URI, Diva::URI
           Enumerator.new{|y| Plugin.filtering(:photo_filter, icon, y) }.first
         end
       end

@@ -1,0 +1,9 @@
+---
+name: World
+slug: world
+description: mikutterにアカウント機能を追加するプラグインです
+depends:
+  mikutter: '3.6'
+  plugin: []
+version: '1.0'
+author: toshi_a

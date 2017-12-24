@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'retriever', 'skin'
-miquire :lib, 'retriever/mixin/user_mixin'
+miquire :core, 'skin'
+miquire :lib, 'diva_hacks'
 
-class Mikutter::System::User < Retriever::Model
+class Mikutter::System::User < Diva::Model
   extend Memoist
-  include Retriever::Model::UserMixin
+
+  include Diva::Model::UserMixin
+
   field.string :idname
   field.string :name
   field.string :detail
-  field.has :icon, Retriever::Model
+  field.has :icon, Diva::Model
 
   memoize def self.system
     Mikutter::System::User.new(idname: 'mikutter_bot',

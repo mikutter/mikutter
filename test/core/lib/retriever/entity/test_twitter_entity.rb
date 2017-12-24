@@ -3,15 +3,15 @@
 require 'securerandom'
 require_relative '../../../../helper'
 
-miquire :lib, 'retriever'
+miquire :lib, 'diva_hacks'
 
 class TC_TwitterEntity < Test::Unit::TestCase
-  class EntityTestModel < Retriever::Model
+  class EntityTestModel < Diva::Model
     field.string :message, required: true
     field.time   :created
     field.time   :modified
 
-    entity_class Retriever::Entity::ExtendedTwitterEntity
+    entity_class Diva::Entity::ExtendedTwitterEntity
 
     def to_show
       self[:message]

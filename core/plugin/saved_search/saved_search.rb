@@ -133,20 +133,29 @@ Plugin.create :saved_search do
   # ==== Return
   # Service か、見つからなければnil
   def service_by_user_id(user_id)
-    Service.find{ |service| service.user_obj.id == user_id } end
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.lazy.select{ |world|
+      world.class.slug == :twitter
+    }.find{ |twitter|
+      twitter.user_obj.id == user_id
+    }
+  end
 
-  at(:last_saved_search_state, {}).values.each{ |s|
-    service = service_by_user_id(s[:service_id])
-    if service
-      add_tab(Plugin::SavedSearch::SavedSearch.new(s[:id],
-                                                   URI.decode(s[:query]),
-                                                   URI.decode(s[:name]),
-                                                   s[:slug],
-                                                   service))
-    elsif s[:slug]
-      zombie_tab = tab(s[:slug])
-      zombie_tab.destroy if zombie_tab end }
-
+  Delayer.new do
+    at(:last_saved_search_state, {}).values.each{ |s|
+      service = service_by_user_id(s[:service_id])
+      if service
+        add_tab(Plugin::SavedSearch::SavedSearch.new(s[:id],
+                                                     URI.decode(s[:query]),
+                                                     URI.decode(s[:name]),
+                                                     s[:slug],
+                                                     service))
+      elsif s[:slug]
+        zombie_tab = tab(s[:slug])
+        zombie_tab.destroy if zombie_tab end }
+  end
+  
   Delayer.new{ refresh(true) }
 
 end

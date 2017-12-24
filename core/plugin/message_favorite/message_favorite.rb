@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 Plugin.create :message_favorite do
   message_fragment :favorited, "Favorite" do
-    message = retriever
+    message = model
     set_icon Skin['unfav.png']
     user_list = Gtk::UserList.new
     begin
-      user_list.add_user retriever.favorited_by
+      user_list.add_user model.favorited_by
     rescue => err
       error err
     end

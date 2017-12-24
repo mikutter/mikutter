@@ -2,23 +2,23 @@
 
 module Gtk
   # message_detail_viewプラグインなどで使われている、ヘッダ部分のユーザ情報。
-  # コンストラクタにはUserではなくMessageなど、userを保持しているRetrieverを渡すことに注意。
+  # コンストラクタにはUserではなくMessageなど、userを保持しているDivaを渡すことに注意。
   # このウィジェットによって表示されるタイムスタンプをクリックすると、
-  # コンストラクタに渡されたretrieverのperma_linkを開くようになっている。
-  class RetrieverHeaderWidget < Gtk::EventBox
+  # コンストラクタに渡されたModelのperma_linkを開くようになっている。
+  class DivaHeaderWidget < Gtk::EventBox
     extend Memoist
 
-    def initialize(retriever, *args, intent_token: nil)
-      type_strict retriever => Retriever::Model
+    def initialize(model, *args, intent_token: nil)
+      type_strict model => Diva::Model
       super(*args)
       ssc_atonce(:visibility_notify_event, &widget_style_setter)
       add(Gtk::VBox.new(false, 0).
            closeup(Gtk::HBox.new(false, 0).
-                     closeup(icon(retriever.user).top).
+                     closeup(icon(model.user).top).
                      closeup(Gtk::VBox.new(false, 0).
-                              closeup(idname(retriever.user).left).
-                              closeup(Gtk::Label.new(retriever.user[:name]).left))).
-           closeup(post_date(retriever, intent_token).right))
+                              closeup(idname(model.user).left).
+                              closeup(Gtk::Label.new(model.user[:name]).left))).
+           closeup(post_date(model, intent_token).right))
     end
 
     private
@@ -48,10 +48,10 @@ module Gtk
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
 
-    def post_date(retriever, intent_token)
+    def post_date(model, intent_token)
       label = Gtk::EventBox.new.
-                add(Gtk::Label.new(retriever.created.strftime('%Y/%m/%d %H:%M:%S')))
-      label.ssc(:button_press_event, &(intent_token ? intent_forwarder(intent_token) : message_opener(retriever)))
+                add(Gtk::Label.new(model.created.strftime('%Y/%m/%d %H:%M:%S')))
+      label.ssc(:button_press_event, &(intent_token ? intent_forwarder(intent_token) : message_opener(model)))
       label.ssc_atonce(:realize, &cursor_changer(Gdk::Cursor.new(Gdk::Cursor::HAND2)))
       label.ssc_atonce(:visibility_notify_event, &widget_style_setter)
       label end
@@ -62,7 +62,7 @@ module Gtk
         true end end
 
     def profile_opener(user)
-      type_strict user => Retriever::Model
+      type_strict user => Diva::Model
       proc do
         Plugin.call(:open, user)
         true end end
@@ -92,4 +92,6 @@ module Gtk
         false end end
 
   end
+
+  RetrieverHeaderWidget = DivaHeaderWidget
 end

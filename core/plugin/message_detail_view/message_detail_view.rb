@@ -2,7 +2,7 @@
 miquire :mui, 'retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
-  intent Message, label: _('ツイートの詳細') do |intent_token|
+  intent :twitter_tweet, label: _('ツイートの詳細') do |intent_token|
     show_message(intent_token.model, intent_token)
   end
 
@@ -25,7 +25,7 @@ Plugin.create(:message_detail_view) do
     if !force and Plugin::GUI::Tab.exist?(slug)
       Plugin::GUI::Tab.instance(slug).active!
     else
-      container = Gtk::RetrieverHeaderWidget.new(message, intent_token: token)
+      container = Gtk::DivaHeaderWidget.new(message, intent_token: token)
       i_cluster = tab slug, _("詳細タブ") do
         set_icon Skin['message.png']
         set_deletable true
@@ -59,7 +59,7 @@ Plugin.create(:message_detail_view) do
   message_fragment :body, "body" do
     set_icon Skin['message.png']
     container = Gtk::HBox.new
-    textview = Gtk::IntelligentTextview.new(retriever.to_s, 'font' => :mumble_basic_font, style: style)
+    textview = Gtk::IntelligentTextview.new(model.to_s, 'font' => :mumble_basic_font, style: style)
     vscrollbar = Gtk::VScrollbar.new
     textview.set_scroll_adjustment(nil, vscrollbar.adjustment)
     container.add textview

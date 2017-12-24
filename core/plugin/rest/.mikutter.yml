@@ -2,7 +2,8 @@
 slug: :rest
 depends:
   mikutter: '0.2'
-  plugin: []
+  plugin:
+    - twitter
 version: '1.0'
 author: toshi_a
 name: REST

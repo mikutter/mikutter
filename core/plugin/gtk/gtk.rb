@@ -18,6 +18,7 @@ require_relative 'delayer'
 require_relative 'slug_dictionary'
 require_relative 'mainloop'
 require_relative 'konami_watcher'
+require_relative 'dialog_window'
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}
@@ -330,8 +331,14 @@ Plugin.create :gtk do
     widgetof(i_timeline).set_order(&order) end
 
   filter_gui_timeline_select_messages do |i_timeline, messages|
-    [i_timeline,
-     messages.select(&widgetof(i_timeline).method(:include?))] end
+    timeline = widgetof(i_timeline)
+    if timeline
+      [i_timeline,
+       messages.select(&timeline.method(:include?))]
+    else
+      [i_timeline, messages]
+    end
+  end
 
   filter_gui_timeline_reject_messages do |i_timeline, messages|
     w_timeline = widgetof(i_timeline)
@@ -479,6 +486,10 @@ Plugin.create :gtk do
 
   filter_gui_get_gtk_widget do |i_widget|
     [widgetof(i_widget)] end
+
+  on_gui_dialog do |plugin, title, default, proc, promise|
+    Plugin::Gtk::DialogWindow.open(plugin: plugin, title: title, default: default, promise: promise, &proc)
+  end
 
   # タブ _tab_ に _widget_ を入れる
   # ==== Args
