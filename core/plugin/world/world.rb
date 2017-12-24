@@ -135,7 +135,7 @@ Plugin.create(:world) do
         if provider
           provider.new(serialized)
         else
-          activity :error, _('アカウント「%{world}」のためのプラグインが読み込めなかったため、このアカウントの登録をmikutterから解除しました。') % {world: id},
+          activity :system, _('アカウント「%{world}」のためのプラグインが読み込めなかったため、このアカウントの登録をmikutterから解除しました。') % {world: id},
                    description: _('アカウント「%{world}」に必要な%{plugin}プラグインが見つからなかったため、このアカウントの登録をmikutterから解除しました。') % {plugin: serialized[:provider], world: id}
           Plugin.call(:world_destroy, Plugin::World::Zombie.new(slug: id))
           nil
