@@ -55,6 +55,7 @@ Plugin.create :change_account do
       true
     end
     btn_delete.ssc(:clicked) do
+      delete_world_with_confirm(listview.selected_worlds)
       true
     end
     listview.ssc(:delete_world) do |widget, worlds|
@@ -63,8 +64,9 @@ Plugin.create :change_account do
     end
     pack_start(Gtk::HBox.new(false, 4).
                  add(listview).
-                 closeup(Gtk::HBox.new.
-                           add(btn_add)))
+                 closeup(Gtk::VBox.new.
+                           add(btn_add).
+                           add(btn_delete)))
   end
 
   on_request_world_add do

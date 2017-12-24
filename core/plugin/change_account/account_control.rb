@@ -22,6 +22,12 @@ module ::Plugin::ChangeAccount
       event_listener_initialize
     end
 
+    def selected_worlds
+      self.selection.to_enum(:selected_each).map {|model, path, iter|
+        iter[COL_WORLD]
+      }
+    end
+
     private
 
     def content_initialize
@@ -45,9 +51,7 @@ module ::Plugin::ChangeAccount
     def menu_pop(widget, event)
       contextmenu = Gtk::ContextMenu.new
       contextmenu.register("削除") do
-        signal_emit(:delete_world, self.selection.to_enum(:selected_each).map {|model, path, iter|
-                      iter[COL_WORLD]
-                    })
+        signal_emit(:delete_world, selected_worlds)
       end
       contextmenu.popup(widget, widget)
     end
