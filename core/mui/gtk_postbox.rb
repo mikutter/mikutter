@@ -307,7 +307,7 @@ module Gtk
     def remain_charcount
       if not widget_post.destroyed?
         text = trim_hidden_regions(widget_post.buffer.text + UserConfig[:footer])
-        Twitter::Extractor.extract_urls(text).map{|url|
+        Twitter::TwitterText::Extractor.extract_urls(text).map{|url|
           if url.length < posted_url_length(url)
             -(posted_url_length(url) - url.length)
           else
