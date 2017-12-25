@@ -320,10 +320,11 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    if message.user[:idname]
-      Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
+    user = message.user
+    if user.respond_to?(:idname)
+      Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
     else
-      Pango.parse_markup(Pango.escape(message.user.name || ''))
+      Pango.parse_markup(Pango.escape(user.name || ''))
     end
   end
 

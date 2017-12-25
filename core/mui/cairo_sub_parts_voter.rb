@@ -46,7 +46,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
             user = get_user_by_point(x)
             last_motion_user = user
             if user
-              tipset = user.idname end end end
+              tipset = user.title end end end
         usertip.set_tip(helper.tree, tipset, '')
         if tipset == ''
           last_motion_user = nil

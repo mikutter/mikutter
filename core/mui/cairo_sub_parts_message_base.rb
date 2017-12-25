@@ -35,8 +35,14 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [Pango::FontDescription] フォント情報
   # [Pango::Attribute] マークアップ情報
   def header_left_content(message)
-    attr_list, text = Pango.parse_markup("<b>#{Pango.escape(message[:user][:idname])}</b> #{Pango.escape(message[:user][:name] || '')}")
-    return text, header_left_font(message), attr_list end
+    user = message.user
+    if message.user[:idname]
+      attr_list, text = Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
+    else
+      attr_list, text = Pango.parse_markup(Pango.escape(user.name || ''))
+    end
+    return text, header_left_font(message), attr_list
+  end
 
   # ヘッダ左に使用するフォントを返す
   # ==== Args
