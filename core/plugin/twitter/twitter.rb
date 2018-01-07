@@ -216,6 +216,28 @@ Plugin.create(:twitter) do
     twitter.search(**options)
   end
 
+  defspell(:update_profile_name, :twitter) do |twitter, name:|
+    (twitter/'account/update_profile').user(name: name)
+  end
+
+  defspell(:update_profile_location, :twitter) do |twitter, location:|
+    (twitter/'account/update_profile').user(location: location)
+  end
+
+  defspell(:update_profile_url, :twitter) do |twitter, url:|
+    (twitter/'account/update_profile').user(url: url)
+  end
+
+  defspell(:update_profile_biography, :twitter) do |twitter, biography:|
+    (twitter/'account/update_profile').user(description: biography)
+  end
+
+  defspell(:update_profile_icon, :twitter, :photo) do |twitter, photo|
+    photo.download.next{ |downloaded|
+      (twitter/'account/update_profile_image').user(image: Base64.encode64(downloaded.blob))
+    }
+  end
+
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
   on_destroyed do |messages|
     messages.each{ |message|
