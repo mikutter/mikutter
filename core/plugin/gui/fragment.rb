@@ -43,7 +43,7 @@ class Plugin::GUI::Fragment
           @model_promise = Service.primary.user_show(user_id: model[:id]).next{ |u|
             @model_promise = false
             u }.terminate{
-            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: model[:idname]}
+            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: model.title}
           } end
         @model_promise = @model_promise.next{ |u| callback.call(u); u } } end
   end

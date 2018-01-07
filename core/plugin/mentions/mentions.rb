@@ -36,7 +36,7 @@ Plugin.create :mentions do
       end
 
       on_favorite do |service, fav_by, message|
-        if UserConfig[:favorited_by_anyone_act_as_reply] and fav_by[:idname] != service.idname
+        if UserConfig[:favorited_by_anyone_act_as_reply] and fav_by.respond_to?(:idname) and service.respond_to?(:idname) and fav_by.idname != service.idname
           timeline(:mentions) << message
         end
       end

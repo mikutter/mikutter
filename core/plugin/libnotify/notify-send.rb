@@ -15,7 +15,7 @@ Plugin::create(:libnotify) do
       command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
       if user
         command << "-i" << icon_file_name
-        command << "@#{user.idname} (#{user.name})" end
+        command << user.title end
       command << text
       bg_system(*command)
     }.terminate

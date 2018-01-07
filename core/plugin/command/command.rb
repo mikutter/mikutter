@@ -32,7 +32,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     messages = opt.messages
     opt.widget.create_postbox(to: messages,
-                              header: messages.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
+                              header: messages.select{|x|x.respond_to?(:idname)}.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:reply_all,
@@ -43,7 +43,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     messages = opt.messages.map{ |m| m.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
-                              header: messages.map(&:user).uniq.reject(&:me?).map{|x| "@#{x.idname}"}.join(' ') + ' ',
+                              header: messages.map(&:user).uniq.reject(&:me?).select{|x|x.respond_to?(:idname)}.map{|x| "@#{x.idname}"}.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:legacy_retweet,
