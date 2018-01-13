@@ -20,23 +20,28 @@ module Plugin::Openimg
         if pixbufloader.is_a? GdkPixbuf::PixbufLoader
           rect = nil
           pixbufloader.ssc(:area_updated, self) do |_, x, y, width, height|
-            if rect
-              rect[:left] = [rect[:left], x].min
-              rect[:top] = [rect[:top], y].min
-              rect[:right] = [rect[:right], x+width].max
-              rect[:bottom] = [rect[:bottom], y+height].max
-            else
-              rect = {left: x, top: y, right: x+width, bottom: y+height}
-              Delayer.new do
-                progress(pixbufloader.pixbuf,
-                         x: rect[:left],
-                         y: rect[:top],
-                         width: rect[:right] - rect[:left],
-                         height: rect[:bottom] - rect[:top])
-                rect = nil
+            atomic do
+              if rect
+                rect[:left] = [rect[:left], x].min
+                rect[:top] = [rect[:top], y].min
+                rect[:right] = [rect[:right], x+width].max
+                rect[:bottom] = [rect[:bottom], y+height].max
+              else
+                rect = {left: x, top: y, right: x+width, bottom: y+height}
+                Delayer.new do
+                  atomic do
+                    progress(pixbufloader.pixbuf,
+                             x: rect[:left],
+                             y: rect[:top],
+                             width: rect[:right] - rect[:left],
+                             height: rect[:bottom] - rect[:top])
+                    rect = nil
+                  end
+                end
               end
             end
-            true end
+            true
+          end
 
           complete_promise.next{
             progress(pixbufloader.pixbuf, paint: true)
