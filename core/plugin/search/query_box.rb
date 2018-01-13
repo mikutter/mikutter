@@ -18,15 +18,16 @@ module Plugin::Search
         @searchbtn.clicked }
 
       @searchbtn.signal_connect('clicked'){ |elm|
-        elm.sensitive = @querybox.sensitive = false
         plugin.timeline(:search).clear
-        plugin.search(Service.primary, q: @querybox.text, count: 100).next{ |res|
-          plugin.timeline(:search) << res if res.is_a? Array
-          elm.sensitive = @querybox.sensitive = true
-        }.trap{ |e|
-          error e
-          plugin.timeline(:search) << Mikutter::System::Message.new(description: Plugin[:search]._("検索中にエラーが発生しました (%{error})") % {error: e.to_s})
-          elm.sensitive = @querybox.sensitive = true } }
+        unless @querybox.text.empty?
+          elm.sensitive = @querybox.sensitive = false
+          plugin.search(Service.primary, q: @querybox.text, count: 100).next{ |res|
+            plugin.timeline(:search) << res if res.is_a? Array
+            elm.sensitive = @querybox.sensitive = true
+          }.trap{ |e|
+            error e
+            plugin.timeline(:search) << Mikutter::System::Message.new(description: Plugin[:search]._("検索中にエラーが発生しました (%{error})") % {error: e.to_s})
+            elm.sensitive = @querybox.sensitive = true } end }
 
       savebtn.signal_connect('clicked'){ |elm|
         query = @querybox.text
