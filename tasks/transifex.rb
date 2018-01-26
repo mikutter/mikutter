@@ -6,6 +6,7 @@
 module Transifex
   extend self
 
+  API_URL_PREFIX = 'https://www.transifex.com/api/2'.freeze
   SLUG_SIZE = 50
   CONTENT_TYPE_MULTIPART_FORMDATA = 'multipart/form-data'
   CONTENT_TYPE_APPLICATION_JSON = 'application/json'
@@ -16,7 +17,7 @@ module Transifex
   # ==== Return
   # Hashプロジェクトの情報
   def project_detail(project_name)
-    get_request("http://www.transifex.com/api/2/project/#{project_name}/?details")
+    get_request("/project/#{project_name}/?details")
   end
 
   # resource(mikutterの場合はpotファイル)をアップロードし、新しいResourceとして登録する。
@@ -40,7 +41,7 @@ module Transifex
     raise SlugTooLongError, "The current maximum value for the field slug is #{SLUG_SIZE} characters. http://docs.transifex.com/api/resources/#uploading-and-downloading-resources" if slug.size > SLUG_SIZE
     if content.is_a? IO
       content = content.read end
-    post_request("http://www.transifex.com/api/2/project/#{project_name}/resources/",
+    post_request("/project/#{project_name}/resources/",
                  content_type: CONTENT_TYPE_APPLICATION_JSON,
                  params: {
                    slug: slug,
@@ -67,7 +68,7 @@ module Transifex
     slug = slug.to_s
     if content.is_a? IO
       content = content.read end
-    put_request("http://www.transifex.com/api/2/project/#{project_name}/resource/#{slug}/content/",
+    put_request("/project/#{project_name}/resource/#{slug}/content/",
                 content_type: CONTENT_TYPE_APPLICATION_JSON,
                 params: {content: content}
                )
@@ -75,41 +76,41 @@ module Transifex
 
   def resource_get(project_name:, slug:)
     slug = slug.to_s
-    get_request("http://www.transifex.com/api/2/project/#{project_name}/resource/#{slug}/content/")
+    get_request("/project/#{project_name}/resource/#{slug}/content/")
   end
 
   private
 
-  def get_request(url)
+  def get_request(path)
     clnt = HTTPClient.new
-    clnt.set_auth(url, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
-    JSON.parse(clnt.get_content(url), symbolize_names: true)
+    clnt.set_auth(API_URL_PREFIX, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
+    JSON.parse(clnt.get_content(API_URL_PREFIX + path), symbolize_names: true)
   end
 
-  def post_request(url, content_type: CONTENT_TYPE_MULTIPART_FORMDATA, params:)
+  def post_request(path, content_type: CONTENT_TYPE_MULTIPART_FORMDATA, params:)
     clnt = HTTPClient.new
-    clnt.set_auth(url, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
+    clnt.set_auth(API_URL_PREFIX, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
     case content_type
     when CONTENT_TYPE_MULTIPART_FORMDATA
       content = params
     when CONTENT_TYPE_APPLICATION_JSON
       content = params.to_json
     end
-    JSON.parse(clnt.post_content(url, content, 'Content-Type' => content_type), symbolize_names: true)
+    JSON.parse(clnt.post_content(API_URL_PREFIX + path, content, 'Content-Type' => content_type), symbolize_names: true)
   rescue HTTPClient::BadResponseError => err
     pp err.res.content
   end
 
-  def put_request(url, content_type: CONTENT_TYPE_MULTIPART_FORMDATA, params:)
+  def put_request(path, content_type: CONTENT_TYPE_MULTIPART_FORMDATA, params:)
     clnt = HTTPClient.new
-    clnt.set_auth(url, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
+    clnt.set_auth(API_URL_PREFIX, ENV['TRANSIFEX_USER'], ENV['TRANSIFEX_PASSWORD'])
     case content_type
     when CONTENT_TYPE_MULTIPART_FORMDATA
       content = params
     when CONTENT_TYPE_APPLICATION_JSON
       content = params.to_json
     end
-    JSON.parse(clnt.__send__(:follow_redirect, :put, url, nil, content, 'Content-Type' => content_type).content, symbolize_names: true)
+    JSON.parse(clnt.__send__(:follow_redirect, :put, API_URL_PREFIX + path, nil, content, 'Content-Type' => content_type).content, symbolize_names: true)
   rescue HTTPClient::BadResponseError => err
     pp err.res.content
   end
