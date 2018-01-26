@@ -8,6 +8,7 @@ require_if_exist 'Win32API'
 class GLib::Instantiatable
   # signal_connectと同じだが、イベントが呼ばれるたびにselfが削除されたGLib Objectでない場合のみブロックを実行する点が異なる。
   # また、relatedの中に既に削除されたGLib objectがあれば、ブロックを実行せずにシグナルをselfから切り離す。
+  # signal_connectは、ブロックが例外を投げるとSegmentation Faultするが、このメソッドを使えば正常にクラッシュする。
   # ==== Args
   # [signal] イベント名か、イベントとブロックの連想配列
   #   Symbol|String :: イベントの名前
@@ -25,16 +26,32 @@ class GLib::Instantiatable
       related.each{ |gobj|
         raise ArgumentError.new(gobj.to_s) unless gobj.is_a?(GLib::Object) }
       if related
-        sid = signal_connect(signal){ |*args|
-          if not(destroyed?)
-            if (related.any?(&:destroyed?))
-              signal_handler_disconnect(sid)
-            else
-              proc.call(*args) end end }
+        sid = signal_connect(signal) do |*args|
+          begin
+            if not(destroyed?)
+              if (related.any?(&:destroyed?))
+                signal_handler_disconnect(sid)
+              else
+                proc.call(*args)
+              end
+            end
+          rescue Exception => err
+            Gtk.exception = err
+            Gtk.main_quit
+          end
+        end
       else
-        signal_connect(signal){ |*args|
-          if not(destroyed?)
-            proc.call(*args) end } end
+        signal_connect(signal) do |*args|
+          begin
+            if not(destroyed?)
+              proc.call(*args)
+            end
+          rescue Exception => err
+            Gtk.exception = err
+            Gtk.main_quit
+          end
+        end
+      end
     else
       raise ArgumentError, "First argument should Hash, String, or Symbol." end end
   alias ssc safety_signal_connect
