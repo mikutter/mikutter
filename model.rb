@@ -71,30 +71,40 @@ module Plugin::Worldon
     end
   end
 
+  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   class Account < Diva::Model
     include Diva::Model::UserMixin
 
     register :worldon_account, name: "Mastodonアカウント(Worldon)"
 
+    field.string :id, required: true
+    field.string :username, required: true
     field.string :acct, required: true
-    field.string :display_name
-    field.string :avatar, required: true
+    field.string :display_name, required: true
+    field.bool :locked, required: true
+    field.time :created_at, required: true
+    field.int :followers_count, required: true
+    field.int :following_count, required: true
+    field.int :statuses_count, required: true
+    field.string :note, required: true
     field.uri :url, required: true
+    field.uri :avatar, required: true
+    field.uri :avatar_static, required: true
+    field.uri :header, required: true
+    field.uri :header_static, required: true
+    field.has :moved, Account
 
     alias_method :perma_link, :url
     alias_method :uri, :url
     alias_method :idname, :acct
     alias_method :name, :display_name
 
-    class << self
-      def build(json)
-        Account.new_ifnecessary(
-          acct: json['acct'],
-          display_name: json['display_name'],
-          avatar: json['avatar'],
-          url: Diva::URI.new(json['url']),
-        )
+    def initialize(hash)
+      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      if hash[:acct].index('@').nil?
+        hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
       end
+      super hash
     end
 
     def title
@@ -159,14 +169,14 @@ module Plugin::Worldon
       def build(json)
         return [] if json.nil?
         json.map do |record|
-          record[:url] = Diva::URI.new record[:url]
-          record[:created_at] = Time.parse(record[:created_at]).localtime
           Status.new_ifnecessary(record)
         end
       end
     end
 
     def initialize(hash)
+      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+
       @emojis = hash[:emojis].map { |v| Emoji.new_ifnecessary(v) }
       @media_attachments = hash[:media_attachments].map { |v| Attachment.new_ifnecessary(v) }
       @mentions = hash[:mentions].map { |v| Mention.new_ifnecessary(v) }
