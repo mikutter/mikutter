@@ -1,0 +1,9 @@
+---
+slug: :worldon
+depends:
+  mikutter: 3.6.1
+  plugin: []
+version: '1.0'
+author: 
+name: Worldon
+description: mikutterでMastodonへ接続するworldプラグインです。
