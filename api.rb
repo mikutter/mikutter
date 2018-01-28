@@ -6,18 +6,16 @@ module Plugin::Worldon
   class API
     class << self
       def call(method, domain, path, access_token = nil, **opts)
-        #pp opts
         url = 'https://' + domain + path
+        uri = Diva::URI.new(url)
         case method
         when :get
           if !opts.empty?
-            path = path + '?' + URI.encode_www_form(opts)
+            path = uri.path + '?' + URI.encode_www_form(opts)
           end
-          url = Diva::URI.new(url)
-          req = Net::HTTP::Get.new(url.path)
+          req = Net::HTTP::Get.new(path)
         when :post
-          url = Diva::URI.new(url)
-          req = Net::HTTP::Post.new(url.path)
+          req = Net::HTTP::Post.new(uri.path)
           req.set_form_data(opts)
         end
 
@@ -27,9 +25,9 @@ module Plugin::Worldon
 
         notice "Worldon::API.call #{method.to_s} #{domain} #{req.path}"
 
-        http = Net::HTTP.new(url.host, url.port)
+        http = Net::HTTP.new(uri.host, uri.port)
         #http.set_debug_output $stderr
-        if url.scheme == 'https'
+        if uri.scheme == 'https'
           http.use_ssl = true
         end
 
