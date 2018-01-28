@@ -71,6 +71,14 @@ module Plugin::Worldon
     end
   end
 
+  class AccountSource < Diva::Model
+    register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
+
+    field.string :privacy
+    field.bool :sensitive
+    field.string :note
+  end
+
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   class Account < Diva::Model
     include Diva::Model::UserMixin
@@ -93,6 +101,7 @@ module Plugin::Worldon
     field.uri :header, required: true
     field.uri :header_static, required: true
     field.has :moved, Account
+    field.has :source, AccountSource
 
     alias_method :perma_link, :url
     alias_method :uri, :url
