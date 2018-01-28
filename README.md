@@ -1,6 +1,8 @@
 # Worldon
 mikutterでMastodonへ接続するWorldプラグインです。
 
+まだほとんどの機能がなく、非常にbuggyです。mikutterでMastodonを使用する場合は https://github.com/sora0920/mikutodon がオススメです。
+
 ## インストール方法
 ```shell-session
 mkdir -p ~/.mikutter/plugin
