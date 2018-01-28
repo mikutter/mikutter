@@ -54,7 +54,7 @@ module Plugin::Worldon
 
       def status_by_url(domain, access_token, url)
         resp = call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true)
-        resp.statuses
+        resp[:statuses]
       end
 
       def get_local_status_id(world, status)
@@ -63,7 +63,7 @@ module Plugin::Worldon
           status.id
         else
           # 別インスタンス起源のstatusだったので検索する
-          statuses = Plugin::Worldon::API.status_by_url(status.url)
+          statuses = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, status.url)
           statuses[0][:id].to_i
         end
       end
