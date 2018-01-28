@@ -11,53 +11,78 @@ module Plugin::Worldon
 end
 
 Plugin.create(:worldon) do
+  # 各インスタンス向けアプリケーションキー用のストレージを確保しておく
   keys = at(:instances)
   if keys.nil?
     keys = Hash.new
     store(:instances, keys)
   end
 
-  def init_instance_stream (domain)
-    instance = Plugin::Worldon::Instance.load(domain)
-
-    notice "[worldon] get initial ftl/ltl for #{domain}"
-    ftl_slug = Plugin::Worldon::Instance.datasource_slug(domain, :federated)
-    ltl_slug = Plugin::Worldon::Instance.datasource_slug(domain, :local)
-    ftl = Plugin::Worldon::Status.build Plugin::Worldon::API.call(:get, domain, '/api/v1/timelines/public', limit: 40)
-    ltl = Plugin::Worldon::Status.build Plugin::Worldon::API.call(:get, domain, '/api/v1/timelines/public', local: 1, limit: 40)
-    Plugin.call :extract_receive_message, ftl_slug, ftl
-    Plugin.call :extract_receive_message, ltl_slug, ltl
-
-    Plugin::Worldon::Stream.start(domain, 'public', ftl_slug)
-    Plugin::Worldon::Stream.start(domain, 'public:local', ltl_slug)
-  end
-
+  # ストリーム開始＆直近取得イベント
   defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
 
+  # ストリーム開始＆直近取得
   on_worldon_start_stream do |domain, type, slug, token, list_id|
+    # ストリーム開始
     Plugin::Worldon::Stream.start(domain, type, slug, token, list_id)
+
+    # 直近の分を取得
     opts = { limit: 40 }
+    path_base = '/api/v1/timelines/'
     case type
     when 'user'
-      rest_type = 'home'
+      path = path_base + 'home'
     when 'public'
-      rest_type = 'public'
+      path = path_base + 'public'
     when 'public:local'
-      rest_type = 'public'
+      path = path_base + 'public'
       opts[:local] = 1
     when 'list'
-      rest_type = 'list/' + list_id.to_s
+      path = path_base + 'list/' + list_id.to_s
     end
-    tl = Plugin::Worldon::Status.build Plugin::Worldon::API.call(:get, domain, '/api/v1/timelines/' + type, token, opts)
+    tl = Plugin::Worldon::Status.build Plugin::Worldon::API.call(:get, domain, path, token, opts)
     Plugin.call :extract_receive_message, slug, tl
   end
 
+  # FTL・LTLのdatasource追加＆開始
+  def init_instance_stream (domain)
+    instance = Plugin::Worldon::Instance.load(domain)
+
+    Plugin::Worldon::Instance.add_datasources(domain)
+
+    ftl_slug = Plugin::Worldon::Instance.datasource_slug(domain, :federated)
+    ltl_slug = Plugin::Worldon::Instance.datasource_slug(domain, :local)
+
+    if UserConfig[:realtime_rewind]
+      # ストリーム開始
+      Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
+    end
+  end
+
+  # FTL・LTLの終了
+  def remove_instance_stream (domain)
+    worlds = Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :worldon_for_mastodon
+    }.select{|world|
+      world.domain == domain
+    }
+    if worlds.empty?
+      Plugin::Worldon::Stream.kill Plugin::Worldon::Instance.datasource_slug(domain, :federated)
+      Plugin::Worldon::Stream.kill Plugin::Worldon::Instance.datasource_slug(domain, :local)
+      Plugin::Worldon::Instance.remove_datasources(domain)
+    end
+  end
+
+  # HTL・通知のdatasource追加＆開始
   def init_auth_stream (world)
+    lists = world.get_lists!
+
     filter_extract_datasources do |dss|
-      notice '[worldon] preparing worldon datasources'
       instance = Plugin::Worldon::Instance.load(world.domain)
       datasources = { world.datasource_slug(:home) => "#{world.slug}(Worldon)/ホームタイムライン" }
-      lists = world.get_lists
       if lists.is_a? Array
         lists.each do |l|
           slug = world.datasource_slug(:list, l[:id])
@@ -70,10 +95,10 @@ Plugin.create(:worldon) do
     end
 
     if UserConfig[:realtime_rewind]
+      # ストリーム開始
       Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
-      Plugin.call(:worldon_start_stream, world.domain, 'user:notification', world.datasource_slug(:notification), world.access_token)
+      #Plugin.call(:worldon_start_stream, world.domain, 'user:notification', world.datasource_slug(:notification), world.access_token)
 
-      lists = world.get_lists
       if lists.is_a? Array
         lists.each do |l|
           id = l[:id].to_i
@@ -84,16 +109,45 @@ Plugin.create(:worldon) do
     end
   end
 
+  # HTL・通知の終了
+  def remove_auth_stream (world)
+    slugs = []
+    slugs.push world.datasource_slug(:home)
+    slugs.push world.datasource_slug(:notification)
+
+    lists = world.get_lists!
+    if lists.is_a? Array
+      lists.each do |l|
+        id = l[:id].to_i
+        slugs.push world.datasource_slug(:list, id)
+      end
+    end
+
+    slugs.each do |slug|
+      Plugin::Worldon::Stream.kill slug
+    end
+
+    filter_extract_datasources do |datasources|
+      slugs.each do |slug|
+        datasources.delete slug
+      end
+      [datasources]
+    end
+  end
+
+
+  # 終了時
   onunload do
     Plugin::Worldon::Stream.killall
   end
 
+  # 起動時
   Delayer.new {
     worlds = Enumerator.new{|y|
       Plugin.filtering(:worlds, y)
-    }.select do |world|
+    }.select{|world|
       world.class.slug == :worldon_for_mastodon
-    end
+    }
 
     worlds.each do |world|
       pp world
@@ -103,17 +157,34 @@ Plugin.create(:worldon) do
     worlds.map{|world|
       world.domain
     }.to_a.uniq.each{|domain|
-      Plugin::Worldon::Instance.add_datasources(domain)
       init_instance_stream(domain)
     }
   }
 
+
+  # world系
+
+  # world追加
   on_world_create do |world|
     if world.class.slug == :worldon_for_mastodon
-      init_auth_stream(world)
+      Delayer.new {
+        init_instance_stream(world.domain)
+        init_auth_stream(world)
+      }
     end
   end
 
+  # world削除
+  on_world_destroy do |world|
+    if world.class.slug == :worldon_for_mastodon
+      Delayer.new {
+        remove_instance_stream(world.domain)
+        remove_auth_stream(world)
+      }
+    end
+  end
+
+  # world作成
   world_setting(:worldon, _('Mastodonアカウント(Worldon)')) do
     input 'インスタンスのドメイン', :domain
 
@@ -149,7 +220,6 @@ Plugin.create(:worldon) do
       access_token: token,
       account: account
     )
-    notice "added new Worldon account #{screen_name}"
 
     label '認証に成功しました。このアカウントを追加しますか？'
     label('アカウント名：' + screen_name)

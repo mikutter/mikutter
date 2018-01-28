@@ -296,7 +296,7 @@ module Plugin::Worldon
       end
     end
 
-    def get_lists
+    def get_lists!
       API.call(:get, domain, '/api/v1/lists', access_token)
     end
 

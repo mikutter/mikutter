@@ -8,8 +8,10 @@ module Plugin::Worldon
 
     class << self
       def kill(datasource_slug)
-        @@streams[datasource_slug][:ws].close
-        @@streams.delete(datasource_slug)
+        if @@streams.has_key? datasource_slug
+          @@streams[datasource_slug][:ws].close
+          @@streams.delete(datasource_slug)
+        end
       end
 
       def killall

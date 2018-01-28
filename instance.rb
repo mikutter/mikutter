@@ -28,6 +28,14 @@ module Plugin::Worldon
         end
       end
 
+      def remove_datasources(domain)
+        Plugin[:worldon].filter_extract_datasources do |datasources|
+          datasources.delete datasource_slug(domain, :local)
+          datasources.delete datasource_slug(domain, :federated)
+          [datasources]
+        end
+      end
+
       def load(domain)
         keys = Plugin[:worldon].at(:instances)
         if keys.has_key?(domain)
