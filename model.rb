@@ -162,8 +162,8 @@ module Plugin::Worldon
 
     alias_method :created, :created_at
     alias_method :perma_link, :url
-    alias_method :retweeted?, :reblogged
-    alias_method :favorited?, :favourited
+    alias_method :share?, :reblogged
+    alias_method :favorite?, :favourited
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
 
@@ -263,6 +263,16 @@ module Plugin::Worldon
         msg.spoiler_text
       else
         msg.content
+      end
+    end
+
+    # ふぁぼ
+    def favorite(do_fav)
+      world, = Plugin.filtering(:world_current, nil)
+      if do_fav
+        Plugin[:worldon].favorite(world, self)
+      else
+        # TODO: unfavorite spell
       end
     end
   end

@@ -162,6 +162,41 @@ Plugin.create(:worldon) do
   }
 
 
+  # spell系
+
+  # ふぁぼ
+  defevent :worldon_favorite, prototype: [Plugin::Worldon::World, Plugin::Worldon::Status]
+  # ふぁぼる
+  on_worldon_favorite do |world, status|
+    # TODO: guiなどの他plugin向け通知イベントの調査
+    status_id = Plugin::Worldon::API.get_local_status_id(world, status)
+    Plugin::Worldon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+    status.favourited = true
+  end
+  defspell(:favorite, :worldon_for_mastodon, :worldon_status,
+           condition: -> (world, status) { !status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
+          ) do |world, status|
+    Plugin.call(:worldon_favorite, world, status)
+  end
+
+  # ブーストイベント
+  defevent :worldon_share, prototype: [Plugin::Worldon::World, Plugin::Worldon::Status]
+
+  # ブースト
+  on_worldon_share do |world, status|
+    # TODO: guiなどの他plugin向け通知イベントの調査
+    status_id = Plugin::Worldon::API.get_local_status_id(world, status)
+    Plugin::Worldon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', world.access_token)
+    status.reblogged = true
+  end
+
+  defspell(:share, :worldon_for_mastodon, :worldon_status,
+           condition: -> (world, status) { !status.shared? } # TODO: shared?の引数にworldを取って正しく判定できるようにする
+          ) do |world, status|
+    Plugin.call(:worldon_share, world, status)
+  end
+
+
   # world系
 
   # world追加
