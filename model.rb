@@ -222,8 +222,8 @@ module Plugin::Worldon
 
     def dehtmlize(text)
       text
-        .gsub(/^<p>|<\/p>$|<\/?span[^>]*>|/, '')
-        .gsub(/<br[^>]*>|<\/p><p>/) { "\n" }
+        .gsub(/<p>|<\/p>$|<\/?span[^>]*>|/, '')
+        .gsub(/<br[^>]*>|<\/p>/) { "\n" }
     end
 
     def description
