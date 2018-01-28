@@ -5,30 +5,43 @@ require_relative 'model'
 module Plugin::Worldon
   class Stream
     @@streams = {}
+    @@mutex = Thread::Mutex.new
 
     class << self
+      def show_datasources
+        @@mutex.synchronize {
+          pp @@streams.keys
+        }
+      end
+
       def kill(datasource_slug)
-        if @@streams.has_key? datasource_slug
-          @@streams[datasource_slug][:ws].close
+        ws = nil
+        @@mutex.synchronize {
+          if !@@streams.has_key? datasource_slug
+            return
+          end
+          ws = @@streams[datasource_slug][:ws]
           @@streams.delete(datasource_slug)
-        end
+        }
+        ws.close
+        notice "Worldon::Stream.kill #{datasource_slug} done"
       end
 
       def killall
-        @@streams.each do |key, value|
-          value[:ws].close
+        wss = []
+        @@mutex.synchronize {
+          @@streams.each do |key, value|
+            wss.push value[:ws]
+          end
+          @@streams = {}
+        }
+        wss.each do |ws|
+          ws.close
         end
-        @@streams = {}
+        notice "Worldon::Stream.killall done"
       end
 
       def start(domain, type, datasource_slug, access_token = nil, list_id = nil)
-        @@streams[datasource_slug] = {
-          domain: domain,
-          type: type,
-          access_token: access_token,
-          list_id: list_id,
-          ws: nil,
-        }
         url = 'wss://' + domain + '/api/v1/streaming?stream=' + type
         if !access_token.nil?
           url += '&access_token=' + access_token
@@ -58,11 +71,30 @@ module Plugin::Worldon
 
         ws.on :close do |event|
           warn "websocket closed ("+domain+","+type+","+(list_id.to_s)+")"
-          sleep 3 # TODO: 再接続待ち戦略
-          Plugin.call(:worldon_start_stream, domain, type, datasource_slug, access_token, list_id)
+          restart = false
+          @@mutex.synchronize {
+            if @@streams.has_key? datasource_slug
+              restart = true
+            end
+          }
+          if restart
+            sleep 3 # TODO: 再接続待ち戦略
+            Plugin.call(:worldon_start_stream, domain, type, datasource_slug, access_token, list_id)
+          end
         end
 
-        @@streams[datasource_slug][:ws] = ws
+        @@mutex.synchronize {
+          @@streams[datasource_slug] = {
+            domain: domain,
+            type: type,
+            access_token: access_token,
+            list_id: list_id,
+            ws: nil,
+          }
+          @@streams[datasource_slug][:ws] = ws
+        }
+
+        notice "Worldon::Stream.start #{datasource_slug} done"
       end
     end
 
