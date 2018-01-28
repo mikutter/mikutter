@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require_relative 'model'
+require_relative 'world'
 require_relative 'api'
 require_relative 'instance'
 require_relative 'stream'
@@ -113,7 +114,7 @@ Plugin.create(:worldon) do
   def remove_auth_stream (world)
     slugs = []
     slugs.push world.datasource_slug(:home)
-    slugs.push world.datasource_slug(:notification)
+    #slugs.push world.datasource_slug(:notification)
 
     lists = world.get_lists!
     if lists.is_a? Array
@@ -150,7 +151,6 @@ Plugin.create(:worldon) do
     }
 
     worlds.each do |world|
-      pp world
       init_auth_stream(world)
     end
 
