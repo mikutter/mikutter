@@ -10,8 +10,9 @@ module Plugin::Worldon
         uri = Diva::URI.new(url)
         case method
         when :get
+          path = uri.path
           if !opts.empty?
-            path = uri.path + '?' + URI.encode_www_form(opts)
+            path += '?' + URI.encode_www_form(opts)
           end
           req = Net::HTTP::Get.new(path)
         when :post
