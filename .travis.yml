@@ -9,3 +9,5 @@ deploy:
   file: "*.AppImage"
   file_glob: true
   skip_cleanup: true
+  on:
+    all_branches: true
