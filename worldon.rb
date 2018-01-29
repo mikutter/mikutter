@@ -75,6 +75,16 @@ Plugin.create(:worldon) do
 
   # spell系
 
+  # 投稿
+  defspell(:compose, :worldon_for_mastodon, condition: -> (world) { true }) do |world, body:, **opts|
+    # TODO: PostBoxから渡ってくるoptsを適当に変換する
+    pp opts
+    if opts[:visibility].nil?
+      opts.delete :visibility
+    end
+    world.post(body, opts)
+  end
+
   # ふぁぼ
   defevent :worldon_favorite, prototype: [PM::World, PM::Status]
 

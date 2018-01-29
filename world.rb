@@ -1,4 +1,5 @@
 require_relative 'model'
+require_relative 'api'
 
 module Plugin::Worldon
   class World < Diva::Model
@@ -10,12 +11,6 @@ module Plugin::Worldon
     field.string :domain, required: true
     field.string :access_token, required: true
     field.has :account, Account, required: true
-
-    # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#getting-the-current-user
-    # TODO: 認証時に取得して保存
-    # TODO: 更新するコマンドを用意
-    field.string :privacy # tootのデフォルト公開度
-    field.bool :sensitive # デフォルトでNSFWにするかどうか
 
     def icon
       account.icon
@@ -40,11 +35,23 @@ module Plugin::Worldon
     end
 
     def get_lists!
-      API.call(:get, domain, '/api/v1/lists', access_token)
+      @lists ||= API.call(:get, domain, '/api/v1/lists', access_token)
+      @lists
     end
 
     def lists
       @lists
+    end
+
+    # 投稿する
+    # opts[:in_reply_to_id] Integer 返信先Statusの（ローカル）ID
+    # opts[:media_ids] Array 添付画像IDの配列（最大4）
+    # opts[:sensitive] True | False NSFWフラグの明示的な指定
+    # opts[:spoiler_text] String ContentWarning用のコメント
+    # opts[:visibility] String 公開範囲。 "direct", "private", "unlisted", "public" のいずれか。
+    def post(content, **opts)
+      opts[:status] = content
+      API.call(:post, domain, '/api/v1/statuses', access_token, opts)
     end
   end
 end
