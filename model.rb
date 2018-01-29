@@ -277,7 +277,12 @@ module Plugin::Worldon
     end
 
     def retweeted_statuses
-      [] # TODO: まじめにやる
+      # TODO: APIで個別取得するタイミングがわからないので適当
+      if reblog.nil?
+        []
+      else
+        [self]
+      end
     end
   end
 end
