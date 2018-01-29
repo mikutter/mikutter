@@ -58,12 +58,11 @@ module Plugin::Worldon
       end
 
       def get_local_status_id(world, status)
-        remote_status = Plugin::Worldon::API.status(world.domain, status.id)
-        if remote_status[:uri] == status.uri
-          status.id
+        # 別インスタンス起源のstatusかもしれないのでとりあえず検索する
+        statuses = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, status.url)
+        if statuses.nil? || statuses[0].nil? || statuses[0][:id].nil?
+          nil
         else
-          # 別インスタンス起源のstatusだったので検索する
-          statuses = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, status.url)
           statuses[0][:id].to_i
         end
       end

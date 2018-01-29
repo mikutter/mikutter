@@ -186,10 +186,10 @@ module Plugin::Worldon
     def initialize(hash)
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
 
-      @emojis = hash[:emojis].map { |v| Emoji.new_ifnecessary(v) }
-      @media_attachments = hash[:media_attachments].map { |v| Attachment.new_ifnecessary(v) }
-      @mentions = hash[:mentions].map { |v| Mention.new_ifnecessary(v) }
-      @tags = hash[:tags].map { |v| Tag.new_ifnecessary(v) }
+      @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new_ifnecessary(v) }
+      @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new_ifnecessary(v) }
+      @mentions = hash[:mentions].nil? ? [] : hash[:mentions].map { |v| Mention.new_ifnecessary(v) }
+      @tags = hash[:tags].nil? ? [] : hash[:tags].map { |v| Tag.new_ifnecessary(v) }
       hash.delete :emojis
       hash.delete :media_attachments
       hash.delete :mentions
@@ -274,6 +274,10 @@ module Plugin::Worldon
       else
         # TODO: unfavorite spell
       end
+    end
+
+    def retweeted_statuses
+      [] # TODO: まじめにやる
     end
   end
 end

@@ -143,7 +143,7 @@ module Plugin::Worldon
               datasources[slug] = "#{world.slug}(Worldon)/リスト/#{l[:title]}"
             end
           else
-            warn '[worldon] failed to get lists:' + lists['error']
+            warn '[worldon] failed to get lists:' + lists['error'].to_s
           end
           [datasources.merge(dss)]
         end
