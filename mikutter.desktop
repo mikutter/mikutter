@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=mikutter
+Comment=Twitter Client
+Comment[ja]=至高のTwitterクライアント
+Exec=mikutter
+Icon=mikutter
+Type=Application
+Terminal=false
+Categories=Network;
+Keywords=Twitter;
