@@ -33,15 +33,26 @@ echo "--> install gems"
 ./$APP_DIR/usr/bin/gem install bundler
 ./$APP_DIR/usr/bin/bundle install
 
+echo "--> remove doc, man, ri"
+rm -rf "$APP_DIR/usr/share"
+
+echo "--> copy mikutter"
+mkdir -p $APP_DIR/usr/share/mikutter
+cp core mikutter.rb $APP_DIR/usr/share/mikutter
+cat > $APP_DIR/usr/bin/mikutter << EOF
+#!/bin/sh
+
+export DISABLE_BUNDLER_SETUP=1
+exec bin/ruby share/mikutter/mikutter.rb "\$@"
+EOF
+chmod a+x $APP_DIR/usr/bin/mikutter
+
 echo "--> get helper functions"
 wget -q https://github.com/AppImage/AppImages/raw/master/functions.sh -O ./functions.sh
 . ./functions.sh
 
 echo "--> patch away absolute paths"
-patch_strings_in_file "$APP_DIR/usr/bin/ruby" "$APP_DIR/usr" ""
-
-echo "--> remove doc, man, ri"
-rm -rf "$APP_DIR/usr/share"
+patch_strings_in_file "$APP_DIR/usr/bin/ruby" "$APP_DIR/usr" "."
 
 pushd "$APP_DIR"
 
