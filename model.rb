@@ -162,7 +162,7 @@ module Plugin::Worldon
 
     alias_method :created, :created_at
     alias_method :perma_link, :url
-    alias_method :share?, :reblogged
+    alias_method :shared?, :reblogged
     alias_method :favorite?, :favourited
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
