@@ -91,22 +91,24 @@ Plugin.create(:worldon) do
   # ふぁぼる
   on_worldon_favorite do |world, status|
     # TODO: guiなどの他plugin向け通知イベントの調査
-    status_id = PM::API.get_local_status_id(world, status)
-    PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
-    status.favourited = true
+    status_id = PM::API.get_local_status_id(world, status.actual_status)
+    if !status_id.nil?
+      PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+      status.actual_status.favourited = true
+    end
   end
 
   defspell(:favorite, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { !status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
+           condition: -> (world, status) { !status.actual_status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
           ) do |world, status|
-    Plugin.call(:worldon_favorite, world, status)
+    Plugin.call(:worldon_favorite, world, status.actual_status)
   end
 
   defspell(:favorited, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { status.favorite? } # TODO: worldを使って正しく判定する
+           condition: -> (world, status) { status.actual_status.favorite? } # TODO: worldを使って正しく判定する
           ) do |world, status|
     Delayer::Deferred.new.next {
-      status.favorite? # TODO: 何を返せばいい？
+      status.actual_status.favorite? # TODO: 何を返せばいい？
     }
   end
 
@@ -116,22 +118,24 @@ Plugin.create(:worldon) do
   # ブースト
   on_worldon_share do |world, status|
     # TODO: guiなどの他plugin向け通知イベントの調査
-    status_id = PM::API.get_local_status_id(world, status)
-    PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', world.access_token)
-    status.reblogged = true
+    status_id = PM::API.get_local_status_id(world, status.actual_status)
+    if !status_id.nil?
+      PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', world.access_token)
+      status.actual_status.reblogged = true
+    end
   end
 
   defspell(:share, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { !status.shared? } # TODO: shared?の引数にworldを取って正しく判定できるようにする
+           condition: -> (world, status) { !status.actual_status.shared? } # TODO: shared?の引数にworldを取って正しく判定できるようにする
           ) do |world, status|
-    Plugin.call(:worldon_share, world, status)
+    Plugin.call(:worldon_share, world, status.actual_status)
   end
 
   defspell(:shared, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { status.shared? } # TODO: worldを使って正しく判定する
+           condition: -> (world, status) { status.actual_status.shared? } # TODO: worldを使って正しく判定する
           ) do |world, status|
     Delayer::Deferred.new.next {
-      status.shared? # TODO: 何を返せばいい？
+      status.actual_status.shared? # TODO: 何を返せばいい？
     }
   end
 
