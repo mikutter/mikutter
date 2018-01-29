@@ -69,6 +69,8 @@ module Plugin::Worldon
       keys = Plugin[:worldon].at(:instances)
       if keys.nil?
         keys = Hash.new
+      else
+        keys = keys.dup
       end
       keys[domain] = { client_key: client_key, client_secret: client_secret }
       Plugin[:worldon].store(:instances, keys)
