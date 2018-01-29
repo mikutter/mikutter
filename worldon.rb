@@ -93,9 +93,11 @@ Plugin.create(:worldon) do
   end
 
   defspell(:favorited, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { true }
+           condition: -> (world, status) { status.favorite? } # TODO: worldを使って正しく判定する
           ) do |world, status|
-    status.favourited # TODO: worldを使って正しく判定する
+    Delayer::Deferred.new.next {
+      status.favorite? # TODO: 何を返せばいい？
+    }
   end
 
   # ブーストイベント
@@ -116,9 +118,11 @@ Plugin.create(:worldon) do
   end
 
   defspell(:shared, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { true }
+           condition: -> (world, status) { status.shared? } # TODO: worldを使って正しく判定する
           ) do |world, status|
-    status.reblogged # TODO: worldを使って正しく判定する
+    Delayer::Deferred.new.next {
+      status.shared? # TODO: 何を返せばいい？
+    }
   end
 
 
