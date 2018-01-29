@@ -96,7 +96,100 @@ module Plugin::Worldon
 
         notice "Worldon::Stream.start #{datasource_slug} done"
       end
-    end
 
-  end
-end
+
+      # FTL・LTLのdatasource追加＆開始
+      def init_instance_stream (domain)
+        instance = Instance.load(domain)
+
+        Instance.add_datasources(domain)
+
+        ftl_slug = Instance.datasource_slug(domain, :federated)
+        ltl_slug = Instance.datasource_slug(domain, :local)
+
+        if UserConfig[:realtime_rewind]
+          # ストリーム開始
+          Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
+          Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
+        end
+      end
+
+      # FTL・LTLの終了
+      def remove_instance_stream (domain)
+        worlds = Enumerator.new{|y|
+          Plugin.filtering(:worlds, y)
+        }.select{|world|
+          world.class.slug == :worldon_for_mastodon
+        }.select{|world|
+          world.domain == domain
+        }
+        if worlds.empty?
+          Stream.kill Instance.datasource_slug(domain, :federated)
+          Stream.kill Instance.datasource_slug(domain, :local)
+          Instance.remove_datasources(domain)
+        end
+      end
+
+      # HTL・通知のdatasource追加＆開始
+      def init_auth_stream (world)
+        lists = world.get_lists!
+
+        Plugin[:worldon].filter_extract_datasources do |dss|
+          instance = Instance.load(world.domain)
+          datasources = { world.datasource_slug(:home) => "#{world.slug}(Worldon)/ホームタイムライン" }
+          if lists.is_a? Array
+            lists.each do |l|
+              slug = world.datasource_slug(:list, l[:id])
+              datasources[slug] = "#{world.slug}(Worldon)/リスト/#{l[:title]}"
+            end
+          else
+            warn '[worldon] failed to get lists:' + lists['error']
+          end
+          [datasources.merge(dss)]
+        end
+
+        if UserConfig[:realtime_rewind]
+          # ストリーム開始
+          Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
+          #Plugin.call(:worldon_start_stream, world.domain, 'user:notification', world.datasource_slug(:notification), world.access_token)
+
+          if lists.is_a? Array
+            lists.each do |l|
+              id = l[:id].to_i
+              slug = world.datasource_slug(:list, id)
+              Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world.access_token, id)
+            end
+          end
+        end
+      end
+
+      # HTL・通知の終了
+      def remove_auth_stream (world)
+        slugs = []
+        slugs.push world.datasource_slug(:home)
+        #slugs.push world.datasource_slug(:notification)
+
+        lists = world.get_lists!
+        if lists.is_a? Array
+          lists.each do |l|
+            id = l[:id].to_i
+            slugs.push world.datasource_slug(:list, id)
+          end
+        end
+
+        slugs.each do |slug|
+          Stream.kill slug
+        end
+
+        Plugin[:worldon].filter_extract_datasources do |datasources|
+          slugs.each do |slug|
+            datasources.delete slug
+          end
+          [datasources]
+        end
+      end
+
+    end # Stream.class
+
+  end # Stream
+end # Plugin::Worldon
