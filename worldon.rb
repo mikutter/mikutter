@@ -78,7 +78,6 @@ Plugin.create(:worldon) do
   # 投稿
   defspell(:compose, :worldon_for_mastodon, condition: -> (world) { true }) do |world, body:, **opts|
     # TODO: PostBoxから渡ってくるoptsを適当に変換する
-    pp opts
     if opts[:visibility].nil?
       opts.delete :visibility
     end

@@ -48,7 +48,6 @@ module Plugin::Worldon
                                            scopes: 'read write follow',
                                            website: Plugin::Worldon::WEB_SITE
                                           )
-          pp resp
           client_key = resp[:client_id]
           client_secret = resp[:client_secret]
           add_datasources(domain)
