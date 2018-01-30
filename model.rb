@@ -108,6 +108,7 @@ module Plugin::Worldon
     alias_method :uri, :url
     alias_method :idname, :acct
     alias_method :name, :display_name
+    alias_method :description, :note
 
     def initialize(hash)
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
@@ -123,12 +124,6 @@ module Plugin::Worldon
 
     def icon
       Plugin::Worldon::Icon.new(uri: avatar)
-      #Skin['list.png']
-    end
-
-    def description
-      # TODO: Account.noteを返す
-      ''
     end
   end
 
