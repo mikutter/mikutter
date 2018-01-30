@@ -230,6 +230,15 @@ module Plugin::Worldon
       actual_status.sensitive
     end
 
+    # sub_parts_client用
+    def source
+      if actual_status.application
+        actual_status.application.name
+      else
+        nil
+      end
+    end
+
     def dehtmlize(text)
       text
         .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
