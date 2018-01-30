@@ -84,6 +84,22 @@ Plugin.create(:worldon) do
     world.post(body, opts)
   end
 
+  defspell(:compose, :worldon_for_mastodon, :worldon_status,
+           condition: -> (world, status) { true }
+          ) do |world, status, body:, **opts|
+    # TODO: PostBoxから渡ってくるoptsを適当に変換する
+    if opts[:visibility].nil?
+      opts.delete :visibility
+    end
+    status_id = status.id
+    _status_id = PM::API.get_local_status_id(world, status)
+    if !_status_id.nil?
+      status_id = _status_id
+    end
+    opts[:in_reply_to_id] = status_id
+    world.post(body, opts)
+  end
+
   # ふぁぼ
   defevent :worldon_favorite, prototype: [PM::World, PM::Status]
 
