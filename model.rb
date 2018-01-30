@@ -293,12 +293,11 @@ module Plugin::Worldon
     def quoting?
       content = actual_status.content
       r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/status/\d+)"!.match(content).nil?
-      pp content if !r
+      !r
     end
 
     def quoting_messages(force_retrieve=false)
       content = actual_status.content
-      pp content
       matches = []
       regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/\d+))"!
       rest = content
@@ -306,7 +305,6 @@ module Plugin::Worldon
         matches.push m.to_a
         rest = m.post_match
       end
-      pp matches
       matches
         .map do |m|
           url = m[1]
