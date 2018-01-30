@@ -1,4 +1,5 @@
 require_relative 'entity_class'
+require_relative 'api'
 
 module Plugin::Worldon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#application
@@ -146,6 +147,7 @@ module Plugin::Worldon
     field.has :reblog, Plugin::Worldon::Status
     field.string :content, required: true
     field.time :created_at, required: true
+    field.time :created
     field.int :reblogs_count
     field.int :favourites_count
     field.bool :reblogged
@@ -160,7 +162,8 @@ module Plugin::Worldon
     field.string :language
     field.bool :pinned
 
-    alias_method :created, :created_at
+    field.string :domain # APIには無い追加フィールド
+
     alias_method :perma_link, :url
     alias_method :shared?, :reblogged
     alias_method :favorite?, :favourited
@@ -175,16 +178,17 @@ module Plugin::Worldon
     entity_class MastodonEntity
 
     class << self
-      def build(json)
+      def build(domain_name, json)
         return [] if json.nil?
         json.map do |record|
+          record[:domain] = domain_name
           Status.new(record)
         end
       end
     end
 
     def initialize(hash)
-      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      hash[:created] = hash[:created_at] = Time.parse(hash[:created_at]).localtime
 
       @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
       @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
@@ -284,6 +288,48 @@ module Plugin::Worldon
       else
         [self]
       end
+    end
+
+    def quoting?
+      content = actual_status.content
+      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/status/\d+)"!.match(content).nil?
+      pp content if !r
+    end
+
+    def quoting_messages(force_retrieve=false)
+      content = actual_status.content
+      pp content
+      matches = []
+      regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/\d+))"!
+      rest = content
+      while m = regexp.match(rest)
+        matches.push m.to_a
+        rest = m.post_match
+      end
+      pp matches
+      matches
+        .map do |m|
+          url = m[1]
+          if url.index('twitter.com')
+            Plugin::Twitter::Message.findbyid(quoted_id, -1)
+          else
+            m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)
+            next nil if m.nil?
+            domain_name = m[1]
+            id = m[2]
+            resp = Plugin::Worldon::API.status(domain_name, id)
+            next nil if resp.nil?
+            resp[:domain] = domain_name
+            Status.new(resp)
+          end
+        end
+        .compact
+    end
+
+    def around(force_retrieve=false)
+      resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
+      return [] if resp.nil?
+      Status.build(domain, resp[:ancestors] + resp[:descendants])
     end
   end
 end

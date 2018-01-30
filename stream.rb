@@ -63,7 +63,7 @@ module Plugin::Worldon
           #pp data
           if data[:event] == 'update'
             payload = JSON.parse(data[:payload], symbolize_names: true)
-            Plugin.call :extract_receive_message, datasource_slug, Plugin::Worldon::Status.build([payload])
+            Plugin.call :extract_receive_message, datasource_slug, Plugin::Worldon::Status.build(domain, [payload])
           elsif data[:event] == 'delete'
             # 消す必要ある？
           elsif data[:event] == 'notification'

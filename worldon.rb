@@ -43,7 +43,7 @@ Plugin.create(:worldon) do
     when 'list'
       path = path_base + 'list/' + list_id.to_s
     end
-    tl = PM::Status.build PM::API.call(:get, domain, path, token, opts)
+    tl = PM::Status.build(domain, PM::API.call(:get, domain, path, token, opts))
     Plugin.call :extract_receive_message, slug, tl
   end
 
