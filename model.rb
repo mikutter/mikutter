@@ -321,8 +321,10 @@ module Plugin::Worldon
 
     def around(force_retrieve=false)
       resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
-      return [] if resp.nil?
-      Status.build(domain, resp[:ancestors] + resp[:descendants])
+      return [self] if resp.nil?
+      ancestors = Status.build(domain, resp[:ancestors])
+      descendants = Status.build(domain, resp[:descendants])
+      ancestors + [self] + descendants
     end
 
     def has_receive_message?
