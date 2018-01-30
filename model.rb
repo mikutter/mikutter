@@ -226,6 +226,7 @@ module Plugin::Worldon
       end
     end
 
+    # NSFW系プラグイン用
     def sensitive?
       actual_status.sensitive
     end
@@ -296,12 +297,14 @@ module Plugin::Worldon
       end
     end
 
+    # quoted_message用
     def quoting?
       content = actual_status.content
       r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/status/\d+)"!.match(content).nil?
       !r
     end
 
+    # quoted_message用
     def quoting_messages(force_retrieve=false)
       content = actual_status.content
       matches = []
@@ -330,6 +333,7 @@ module Plugin::Worldon
         .compact
     end
 
+    # 返信スレッド用
     def around(force_retrieve=false)
       resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
       return [self] if resp.nil?
@@ -338,10 +342,12 @@ module Plugin::Worldon
       ancestors + [self] + descendants
     end
 
+    # 返信表示用
     def has_receive_message?
       !in_reply_to_id.nil?
     end
 
+    # 返信表示用
     def replyto_source(force_retrieve=false)
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
@@ -349,6 +355,7 @@ module Plugin::Worldon
       Status.new(resp)
     end
 
+    # 返信表示用
     def replyto_source_d(force_retrieve=true)
       promise = Delayer::Deferred.new(true)
       Thread.new do
