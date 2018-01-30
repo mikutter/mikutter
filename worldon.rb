@@ -95,9 +95,12 @@ Plugin.create(:worldon) do
     _status_id = PM::API.get_local_status_id(world, status)
     if !_status_id.nil?
       status_id = _status_id
+      opts[:in_reply_to_id] = status_id
+      world.post(body, opts)
+    else
+      warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
+      nil
     end
-    opts[:in_reply_to_id] = status_id
-    world.post(body, opts)
   end
 
   # ふぁぼ
