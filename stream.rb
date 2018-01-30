@@ -8,10 +8,12 @@ module Plugin::Worldon
     @@mutex = Thread::Mutex.new
 
     class << self
-      def show_datasources
+      def datasources
+        ret = nil
         @@mutex.synchronize {
-          pp @@streams.keys
+          ret = @@streams.keys.dup
         }
+        ret
       end
 
       def kill(datasource_slug)
