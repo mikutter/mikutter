@@ -329,5 +329,33 @@ module Plugin::Worldon
       return [] if resp.nil?
       Status.build(domain, resp[:ancestors] + resp[:descendants])
     end
+
+    def has_receive_message?
+      !in_reply_to_id.nil?
+    end
+
+    def replyto_source(force_retrieve=false)
+      resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
+      return nil if resp.nil?
+      resp[:domain] = domain
+      Status.new(resp)
+    end
+
+    def replyto_source_d(force_retrieve=true)
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          result = replyto_source(force_retrieve)
+          if result.is_a? Status
+            promise.call(result)
+          else
+            promise.fail(result)
+          end
+        rescue Exception => e
+          promise.fail(e)
+        end
+      end
+      promise
+    end
   end
 end
