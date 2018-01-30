@@ -134,7 +134,6 @@ module Plugin::Worldon
     register :worldon_status, name: "Mastodonステータス(Worldon)", timeline: true, reply: true, myself: true
 
     field.string :id, required: true
-    field.string :uri, required: true
     field.uri :url, required: true
     field.has :account, Plugin::Worldon::Account, required: true
     field.string :in_reply_to_id
@@ -159,6 +158,7 @@ module Plugin::Worldon
 
     field.string :domain # APIには無い追加フィールド
 
+    alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
     alias_method :shared?, :reblogged
     alias_method :favorite?, :favourited
@@ -184,6 +184,8 @@ module Plugin::Worldon
 
     def initialize(hash)
       hash[:created] = hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      hash[:original_uri] = hash[:uri]
+      hash.delete :uri
 
       @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
       @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
