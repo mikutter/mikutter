@@ -121,7 +121,7 @@ module Plugin::Worldon
     end
 
     def icon
-      Plugin::Worldon::Icon.new_ifnecessary(uri: avatar)
+      Plugin::Worldon::Icon.new(uri: avatar)
       #Skin['list.png']
     end
 
@@ -178,7 +178,7 @@ module Plugin::Worldon
       def build(json)
         return [] if json.nil?
         json.map do |record|
-          Status.new_ifnecessary(record)
+          Status.new(record)
         end
       end
     end
@@ -186,10 +186,10 @@ module Plugin::Worldon
     def initialize(hash)
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
 
-      @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new_ifnecessary(v) }
-      @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new_ifnecessary(v) }
-      @mentions = hash[:mentions].nil? ? [] : hash[:mentions].map { |v| Mention.new_ifnecessary(v) }
-      @tags = hash[:tags].nil? ? [] : hash[:tags].map { |v| Tag.new_ifnecessary(v) }
+      @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
+      @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
+      @mentions = hash[:mentions].nil? ? [] : hash[:mentions].map { |v| Mention.new(v) }
+      @tags = hash[:tags].nil? ? [] : hash[:tags].map { |v| Tag.new(v) }
       hash.delete :emojis
       hash.delete :media_attachments
       hash.delete :mentions

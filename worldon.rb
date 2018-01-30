@@ -208,7 +208,7 @@ Plugin.create(:worldon) do
     end
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
-    account = PM::Account.new_ifnecessary(resp)
+    account = PM::Account.new(resp)
     world = PM::World.new(
       id: screen_name,
       slug: screen_name,

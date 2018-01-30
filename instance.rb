@@ -52,7 +52,7 @@ module Plugin::Worldon
           client_secret = resp[:client_secret]
           add_datasources(domain)
         end
-        instance = Instance.new_ifnecessary(
+        instance = Instance.new(
           domain: domain,
           client_key: client_key,
           client_secret: client_secret
