@@ -96,7 +96,16 @@ Plugin.create(:worldon) do
     if !_status_id.nil?
       status_id = _status_id
       opts[:in_reply_to_id] = status_id
-      world.post(body, opts)
+      hash = world.post(body, opts)
+      if hash.nil?
+        warn "投稿に失敗したかもしれません"
+        pp hash
+      else
+        hash[:domain] = world.domain
+        new_status = PM::Status.new(hash)
+        Plugin.call(:posted, world, [new_status])
+        Plugin.call(:update, world, [new_status])
+      end
     else
       warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
       nil
@@ -111,8 +120,14 @@ Plugin.create(:worldon) do
     # TODO: guiなどの他plugin向け通知イベントの調査
     status_id = PM::API.get_local_status_id(world, status.actual_status)
     if !status_id.nil?
-      PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
-      status.actual_status.favourited = true
+      Plugin.call(:before_favorite, world, world.account, status)
+      ret = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+      if ret.nil? || ret[:error]
+        Plugin.call(:fail_favorite, world, world.account, status)
+      else
+        status.actual_status.favourited = true
+        Plugin.call(:favorite, world, world.account, status)
+      end
     end
   end
 
@@ -137,10 +152,17 @@ Plugin.create(:worldon) do
   on_worldon_share do |world, status|
     # TODO: guiなどの他plugin向け通知イベントの調査
     status_id = PM::API.get_local_status_id(world, status.actual_status)
-    if !status_id.nil?
-      PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', world.access_token)
-      status.actual_status.reblogged = true
-    end
+    next nil if status_id.nil?
+
+    new_status_hash = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', world.access_token)
+    next nil if !new_status_hash.nil?
+
+    new_status_hash[:domain] = world.domain
+    new_status = PM::Status.new(new_status_hash)
+    status.actual_status.reblogged = true
+    Plugin.call(:posted, world, [new_status])
+    Plugin.call(:update, world, [new_status])
+    new_status
   end
 
   defspell(:share, :worldon_for_mastodon, :worldon_status,
