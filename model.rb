@@ -164,6 +164,7 @@ module Plugin::Worldon
     alias_method :favorite?, :favourited
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
+    alias_method :retweet_ancestor, :reblog
 
     attr_accessor :emojis
     attr_accessor :media_attachments
@@ -216,6 +217,10 @@ module Plugin::Worldon
 
     def favorite_count
       actual_status.favourites_count
+    end
+
+    def retweet?
+      !reblog.nil?
     end
 
     def retweeted_by
@@ -318,6 +323,7 @@ module Plugin::Worldon
         .map do |m|
           url = m[1]
           if url.index('twitter.com')
+            # TODO: 可能ならMessageをリモートから取得
             Plugin::Twitter::Message.findbyid(quoted_id, -1)
           else
             m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)
