@@ -21,8 +21,8 @@ module Plugin::Worldon
       def add_datasources(domain)
         Plugin[:worldon].filter_extract_datasources do |dss|
           datasources = {
-            datasource_slug(domain, :local) => "Mastodon公開タイムライン(Worldon)/ローカル/#{domain}",
-            datasource_slug(domain, :federated) => "Mastodon公開タイムライン(Worldon)/連合/#{domain}",
+            datasource_slug(domain, :local) => "Mastodon公開タイムライン(Worldon)/#{domain} ローカル",
+            datasource_slug(domain, :federated) => "Mastodon公開タイムライン(Worldon)/#{domain} 連合",
           }
           [datasources.merge(dss)]
         end
