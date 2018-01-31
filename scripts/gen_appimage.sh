@@ -8,6 +8,7 @@
 
 # replace paths in binary file, padding paths with /
 # usage: replace_paths_in_file FILE PATTERN REPLACEMENT
+# https://unix.stackexchange.com/a/122227
 replace_paths_in_file () {
   local file="$1"
   local pattern="$2"
@@ -48,6 +49,10 @@ make install
 popd
 
 echo "--> install gems"
+# for Travis CI
+if type rvm &> /dev/null; then
+  rvm reset # don't use rvm
+fi
 $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
 $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
 
