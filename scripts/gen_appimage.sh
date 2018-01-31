@@ -48,8 +48,8 @@ make install
 popd
 
 echo "--> install gems"
-$APP_DIR/usr/bin/gem install bundler
-$APP_DIR/usr/bin/bundle install
+$APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
+$APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
 
 echo "--> remove doc, man, ri"
 rm -rf "$APP_DIR/usr/share"
