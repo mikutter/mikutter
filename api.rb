@@ -39,13 +39,30 @@ module Plugin::Worldon
 
         case resp
         when Net::HTTPSuccess
-          JSON.parse(resp.body, symbolize_names: true)
+          hash = JSON.parse(resp.body, symbolize_names: true)
+          parse_Link(resp, hash)
         else
           error "API.call did'nt return Net::HTTPSuccess"
           pp req.path
           pp resp
           {}
         end
+      end
+
+      def parse_Link(resp, hash)
+        link = resp['Link']
+        return hash if ((!hash.is_a? Array) || link.nil?)
+        pp link
+        pp hash
+        hash = { array: hash, __Link__: {} }
+        link
+          .split(', ')
+          .each do |line|
+            /^<(.*)>; rel="(.*)"$/.match(line) do |m|
+              hash[:__Link__][$2.to_sym] = Diva::URI.new($1)
+            end
+          end
+        hash
       end
 
       def status(domain, id)

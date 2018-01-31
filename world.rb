@@ -43,6 +43,13 @@ module Plugin::Worldon
       @lists
     end
 
+    def update_mutes!
+      mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, limit: 80) # TODO: 80以上ある場合に再帰的に取得
+      if mutes.is_a? Hash
+        Status.add_mutes(mutes[:array])
+      end
+    end
+
     # 投稿する
     # opts[:in_reply_to_id] Integer 返信先Statusの（ローカル）ID
     # opts[:media_ids] Array 添付画像IDの配列（最大4）

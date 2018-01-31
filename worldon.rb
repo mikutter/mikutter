@@ -43,7 +43,8 @@ Plugin.create(:worldon) do
     when 'list'
       path = path_base + 'list/' + list_id.to_s
     end
-    tl = PM::Status.build(domain, PM::API.call(:get, domain, path, token, opts))
+    hashes = PM::API.call(:get, domain, path, token, opts)
+    tl = PM::Status.build(domain, hashes[:array])
     Plugin.call :extract_receive_message, slug, tl
   end
 
@@ -62,6 +63,7 @@ Plugin.create(:worldon) do
     }
 
     worlds.each do |world|
+      world.update_mutes!
       PM::Stream.init_auth_stream(world)
     end
 
@@ -228,6 +230,7 @@ Plugin.create(:worldon) do
     if resp.has_key?(:error)
       Deferred.fail(resp[:error])
     end
+
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
     account = PM::Account.new(resp)
@@ -238,6 +241,7 @@ Plugin.create(:worldon) do
       access_token: token,
       account: account
     )
+    world.update_mutes!
 
     label '認証に成功しました。このアカウントを追加しますか？'
     label('アカウント名：' + screen_name)

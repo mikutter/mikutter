@@ -110,11 +110,16 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
-    def initialize(hash)
-      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+    def self.regularize_acct(hash)
       if hash[:acct].index('@').nil?
         hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
       end
+      hash
+    end
+
+    def initialize(hash)
+      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      hash = self.class.regularize_acct(hash)
 
       # activity対策
       hash[:idname] = hash[:acct]
@@ -175,19 +180,41 @@ module Plugin::Worldon
     attr_accessor :mentions
     attr_accessor :tags
 
+    @mute_mutex = Thread::Mutex.new
+
     entity_class MastodonEntity
 
     class << self
+      def add_mutes(account_hashes)
+        @mute_mutex.synchronize {
+          @mutes ||= []
+          @mutes += account_hashes.map do |hash|
+            hash = Account.regularize_acct hash
+            hash[:acct]
+          end
+          @mutes.uniq
+          pp @mutes
+        }
+      end
+
       def build(domain_name, json)
         return [] if json.nil?
         json.map do |record|
           record[:domain] = domain_name
           Status.new(record)
-        end
+        end.compact
       end
     end
 
     def initialize(hash)
+      @mutes ||= []
+      if hash[:account] && hash[:account][:acct]
+        account_hash = Account.regularize_acct(hash[:account])
+        if @mutes.index(account_hash[:acct])
+          return nil
+        end
+      end
+
       # タイムゾーン考慮
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       # cairo_sub_parts_message_base用
@@ -202,6 +229,7 @@ module Plugin::Worldon
         hash[:source] = hash[:application][:name]
       end
 
+      # Array系はDiva::Modelが解釈できないのでインスタンス変数へ退避
       @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
       @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
       @mentions = hash[:mentions].nil? ? [] : hash[:mentions].map { |v| Mention.new(v) }
@@ -210,6 +238,7 @@ module Plugin::Worldon
       hash.delete :media_attachments
       hash.delete :mentions
       hash.delete :tags
+
       super hash
     end
 
@@ -354,8 +383,7 @@ module Plugin::Worldon
             resp[:domain] = domain_name
             Status.new(resp)
           end
-        end
-        .compact
+        end.compact
     end
 
     # 返信スレッド用
