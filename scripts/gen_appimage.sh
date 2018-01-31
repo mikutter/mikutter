@@ -50,11 +50,9 @@ popd
 
 echo "--> install gems"
 # for Travis CI
-# if type rvm &> /dev/null; then
-#   rvm system # don't use rvm
-# fi
-GEM_HOME= GEM_PATH= $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
-GEM_HOME= GEM_PATH= $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
+GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
 
 echo "--> remove doc, man, ri"
 rm -rf "$APP_DIR/usr/share"
