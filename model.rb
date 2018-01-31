@@ -115,6 +115,10 @@ module Plugin::Worldon
       if hash[:acct].index('@').nil?
         hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
       end
+
+      # activity対策
+      hash[:idname] = hash[:acct]
+
       super hash
     end
 
@@ -184,9 +188,19 @@ module Plugin::Worldon
     end
 
     def initialize(hash)
-      hash[:created] = hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      # タイムゾーン考慮
+      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      # cairo_sub_parts_message_base用
+      hash[:created] = hash[:created_at]
+
+      # mikutterはuriをURI型であるとみなす
       hash[:original_uri] = hash[:uri]
       hash.delete :uri
+
+      # sub_parts_client用
+      if hash[:application] && hash[:application][:name]
+        hash[:source] = hash[:application][:name]
+      end
 
       @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
       @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
@@ -281,6 +295,11 @@ module Plugin::Worldon
       else
         msg.content
       end
+    end
+
+    # activity用
+    def to_s
+      dehtmlize(title)
     end
 
     # ふぁぼ
