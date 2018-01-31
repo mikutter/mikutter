@@ -28,10 +28,18 @@ mikutterでMastodonへ接続するWorldプラグインです。
 - 同期処理多すぎ
 
 ## インストール方法
+以下のコマンドを実行します。
+
 ```shell-session
 mkdir -p ~/.mikutter/plugin
 git clone github.com:cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
 cd /path/to/mikutter
 bundle install
 ```
+
+mikutterを起動して「設定＞アカウント情報＞追加」もしくは画面左上のアイコンから「Worldを追加」からWorld追加ウィザードを開き、「Mastodonアカウント(Worldon)」を選択して、指示に従ってください。
+
+WSLなどではリンクからブラウザが開けないと思うので、あらかじめ「設定＞表示＞URLを開く方法」で適当なブラウザを指定しておいてください。
+
+Worldが追加されると、ストリーム受信が始まり、データソースが準備されますので、「設定＞抽出タブ」で適当なタブを追加し、データソースの一覧から、眺めたいタイムラインを選択してください。
 
