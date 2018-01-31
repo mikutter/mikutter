@@ -51,7 +51,7 @@ popd
 echo "--> install gems"
 # for Travis CI
 if type rvm &> /dev/null; then
-  rvm reset # don't use rvm
+  rvm system # don't use rvm
 fi
 $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
 $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
