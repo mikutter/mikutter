@@ -6,6 +6,24 @@
 # For more information, see http://appimage.org/
 ########################################################################
 
+# replace paths in binary file, padding paths with /
+# usage: replace_paths_in_file FILE PATTERN REPLACEMENT
+replace_paths_in_file () {
+  local file="$1"
+  local pattern="$2"
+  local replacement="$3"
+  if [[ ${#pattern} -lt ${#replacement} ]]; then
+    echo "New path '$replacement' is longer than '$pattern'. Exiting."
+    return
+  fi
+  while [[ ${#pattern} -gt ${#replacement} ]]; do
+    replacement="${replacement}/"
+  done
+  echo -n "Replacing $pattern with $replacement ... "
+  sed -i -e "s|$pattern|$replacement|g" $file
+  echo "Done!"
+}
+
 # App arch, used by generate_appimage.
 if [ -z "$ARCH" ]; then
   export ARCH="$(arch)"
@@ -30,15 +48,15 @@ make install
 popd
 
 echo "--> install gems"
-./$APP_DIR/usr/bin/gem install bundler
-./$APP_DIR/usr/bin/bundle install
+$APP_DIR/usr/bin/gem install bundler
+$APP_DIR/usr/bin/bundle install
 
 echo "--> remove doc, man, ri"
 rm -rf "$APP_DIR/usr/share"
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
-cp core mikutter.rb $APP_DIR/usr/share/mikutter
+cp -a core mikutter.rb $APP_DIR/usr/share/mikutter
 cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
 
@@ -47,12 +65,12 @@ exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
 
+echo "--> patch away absolute paths"
+replace_paths_in_file "$APP_DIR/usr/bin/ruby" "$APP_DIR/usr" "."
+
 echo "--> get helper functions"
 wget -q https://github.com/AppImage/AppImages/raw/master/functions.sh -O ./functions.sh
 . ./functions.sh
-
-echo "--> patch away absolute paths"
-patch_strings_in_file "$APP_DIR/usr/bin/ruby" "$APP_DIR/usr" "."
 
 pushd "$APP_DIR"
 
