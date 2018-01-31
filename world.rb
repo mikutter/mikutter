@@ -44,9 +44,17 @@ module Plugin::Worldon
     end
 
     def update_mutes!
-      mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, limit: 80) # TODO: 80以上ある場合に再帰的に取得
-      if mutes.is_a? Hash
+      mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, limit: 80)
+      since_id = nil
+      while mutes.is_a? Hash
         Status.add_mutes(mutes[:array])
+        url = mutes[:__Link__][:prev]
+        opts = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
+        return if opts[:since_id].to_i == since_id
+        since_id = opts[:since_id].to_i
+
+        sleep 1
+        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, opts)
       end
     end
 

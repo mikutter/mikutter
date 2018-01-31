@@ -192,7 +192,7 @@ module Plugin::Worldon
             hash = Account.regularize_acct hash
             hash[:acct]
           end
-          @mutes.uniq
+          @mutes = @mutes.uniq
           pp @mutes
         }
       end

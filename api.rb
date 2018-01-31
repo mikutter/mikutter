@@ -35,7 +35,6 @@ module Plugin::Worldon
         resp = http.start do |http|
           http.request(req)
         end
-        #pp resp
 
         case resp
         when Net::HTTPSuccess
@@ -52,8 +51,6 @@ module Plugin::Worldon
       def parse_Link(resp, hash)
         link = resp['Link']
         return hash if ((!hash.is_a? Array) || link.nil?)
-        pp link
-        pp hash
         hash = { array: hash, __Link__: {} }
         link
           .split(', ')
