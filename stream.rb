@@ -59,16 +59,18 @@ module Plugin::Worldon
         end
 
         ws.on :message do |event|
-          data = JSON.parse(event.data, symbolize_names: true)
-          #pp data
-          if data[:event] == 'update'
-            payload = JSON.parse(data[:payload], symbolize_names: true)
-            Plugin.call :extract_receive_message, datasource_slug, Plugin::Worldon::Status.build(domain, [payload])
-          elsif data[:event] == 'delete'
-            # 消す必要ある？
-          elsif data[:event] == 'notification'
-            # TODO: 通知対応
-          end
+          Delayer.new {
+            data = JSON.parse(event.data, symbolize_names: true)
+            #pp data
+            if data[:event] == 'update'
+              payload = JSON.parse(data[:payload], symbolize_names: true)
+              Plugin.call :extract_receive_message, datasource_slug, Plugin::Worldon::Status.build(domain, [payload])
+            elsif data[:event] == 'delete'
+              # 消す必要ある？
+            elsif data[:event] == 'notification'
+              # TODO: 通知対応
+            end
+          }
         end
 
         ws.on :close do |event|
