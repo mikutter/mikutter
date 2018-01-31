@@ -59,7 +59,7 @@ module Plugin::Worldon
         end
 
         ws.on :message do |event|
-          Delayer.new {
+          Thread.new {
             data = JSON.parse(event.data, symbolize_names: true)
             #pp data
             if data[:event] == 'update'
