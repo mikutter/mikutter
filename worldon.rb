@@ -102,11 +102,13 @@ Plugin.create(:worldon) do
       if hash.nil?
         warn "投稿に失敗したかもしれません"
         pp hash
+        nil
       else
         hash[:domain] = world.domain
         new_status = PM::Status.new(hash)
         Plugin.call(:posted, world, [new_status])
         Plugin.call(:update, world, [new_status])
+        new_status
       end
     else
       warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
