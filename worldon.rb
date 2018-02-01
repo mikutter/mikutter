@@ -48,6 +48,7 @@ Plugin.create(:worldon) do
       path = path_base + 'list/' + list_id.to_s
     end
     hashes = PM::API.call(:get, domain, path, token, opts)
+    next if hashes.nil?
     tl = PM::Status.build(domain, hashes[:array])
     Plugin.call :extract_receive_message, slug, tl
   end
