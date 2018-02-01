@@ -68,20 +68,6 @@ module Plugin::Worldon
     field.uri :url, required: true
   end
 
-  class Icon < Diva::Model
-    include Diva::Model::PhotoMixin
-
-    register :worldon_icon, name: "Mastodonアカウントアイコン(Worldon)"
-
-    field.uri :uri
-
-    handle ->uri{
-      uri.path.start_with?('/system/accounts/avatars/')
-    } do |uri|
-      new(uri: uri)
-    end
-  end
-
   class AccountSource < Diva::Model
     #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
 
@@ -120,6 +106,9 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
+    # UserMixin#.iconに渡すURL
+    alias_method :profile_image_url, :avatar
+
     def self.regularize_acct(hash)
       if hash[:acct].index('@').nil?
         hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
@@ -139,10 +128,6 @@ module Plugin::Worldon
 
     def title
       "#{acct}(#{display_name})"
-    end
-
-    def icon
-      Plugin::Worldon::Icon.new(uri: avatar)
     end
   end
 
