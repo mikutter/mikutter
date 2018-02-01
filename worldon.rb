@@ -24,6 +24,10 @@ Plugin.create(:worldon) do
   # ストリーム開始＆直近取得イベント
   defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
 
+  defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
+    open(url)
+  end
+
   # ストリーム開始＆直近取得
   on_worldon_start_stream do |domain, type, slug, token, list_id|
     # ストリーム開始

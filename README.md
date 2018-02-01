@@ -13,6 +13,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 - 返信の表示
 - 各種汎用イベントの発火
 - ミュート設定の反映
+- mikutter-subparts-image による画像表示
 
 ### まだできない🙅
 - 引用・返信のタグ除去
