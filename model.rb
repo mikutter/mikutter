@@ -12,16 +12,32 @@ module Plugin::Worldon
 
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#emoji
   class Emoji < Diva::Model
-    register :worldon_emoji, name: "Mastodon絵文字(Worldon)"
+    #register :worldon_emoji, name: "Mastodon絵文字(Worldon)"
 
     field.string :shortcode, required: true
     field.uri :static_url, required: true
     field.uri :url, required: true
   end
 
+  class AttachmentMeta < Diva::Model
+    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報(Worldon)"
+
+    field.int :width
+    field.int :height
+    field.string :size
+    field.string :aspect
+  end
+
+  class AttachmentMetaSet < Diva::Model
+    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報セット(Worldon)"
+
+    field.has :original, AttachmentMeta
+    field.has :small, AttachmentMeta
+  end
+
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#attachment
   class Attachment < Diva::Model
-    register :worldon_attachment, name: "Mastodon添付メディア(Worldon)"
+    #register :worldon_attachment, name: "Mastodon添付メディア(Worldon)"
 
     field.string :id, required: true
     field.string :type, required: true
@@ -31,18 +47,12 @@ module Plugin::Worldon
     field.uri :text_url
     field.string :description
 
-    attr_accessor :meta
-
-    def initialize(hash)
-      @meta = hash[:meta]
-      hash.delete :meta
-      super hash
-    end
+    field.has :meta, AttachmentMetaSet
   end
 
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#mention
   class Mention < Diva::Model
-    register :worldon_mention, name: "Mastodonメンション(Worldon)"
+    #register :worldon_mention, name: "Mastodonメンション(Worldon)"
 
     field.uri :url, required: true
     field.string :username, required: true
@@ -52,7 +62,7 @@ module Plugin::Worldon
 
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#tag
   class Tag < Diva::Model
-    register :worldon_tag, name: "Mastodonタグ(Worldon)"
+    #register :worldon_tag, name: "Mastodonタグ(Worldon)"
 
     field.string :name, required: true
     field.uri :url, required: true
@@ -73,7 +83,7 @@ module Plugin::Worldon
   end
 
   class AccountSource < Diva::Model
-    register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
+    #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
 
     field.string :privacy
     field.bool :sensitive
@@ -167,6 +177,11 @@ module Plugin::Worldon
 
     field.string :domain # APIには無い追加フィールド
 
+    field.has :emojis, [Emoji]
+    field.has :media_attachments, [Attachment]
+    field.has :mentions, [Mention]
+    field.has :tags, [Tag]
+
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
     alias_method :shared?, :reblogged
@@ -174,11 +189,6 @@ module Plugin::Worldon
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
     alias_method :retweet_ancestor, :reblog
-
-    attr_accessor :emojis
-    attr_accessor :media_attachments
-    attr_accessor :mentions
-    attr_accessor :tags
 
     @mute_mutex = Thread::Mutex.new
 
@@ -193,7 +203,7 @@ module Plugin::Worldon
             hash[:acct]
           end
           @mutes = @mutes.uniq
-          pp @mutes
+          #pp @mutes
         }
       end
 
@@ -228,16 +238,6 @@ module Plugin::Worldon
       if hash[:application] && hash[:application][:name]
         hash[:source] = hash[:application][:name]
       end
-
-      # Array系はDiva::Modelが解釈できないのでインスタンス変数へ退避
-      @emojis = hash[:emojis].nil? ? [] : hash[:emojis].map { |v| Emoji.new(v) }
-      @media_attachments = hash[:media_attachments].nil? ? [] : hash[:media_attachments].map { |v| Attachment.new(v) }
-      @mentions = hash[:mentions].nil? ? [] : hash[:mentions].map { |v| Mention.new(v) }
-      @tags = hash[:tags].nil? ? [] : hash[:tags].map { |v| Tag.new(v) }
-      hash.delete :emojis
-      hash.delete :media_attachments
-      hash.delete :mentions
-      hash.delete :tags
 
       super hash
     end

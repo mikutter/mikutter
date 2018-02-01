@@ -44,7 +44,7 @@ module Plugin::Worldon
           error "API.call did'nt return Net::HTTPSuccess"
           pp req.path
           pp resp
-          {}
+          nil
         end
       end
 
