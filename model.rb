@@ -411,5 +411,30 @@ module Plugin::Worldon
       end
       promise
     end
+
+    def retweet_source_d
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          if reblog.is_a? Status
+            promise.call(reblog)
+          else
+            promise.fail(reblog)
+          end
+        rescue Exception => e
+          promise.fail(e)
+        end
+      end
+      promise
+    end
+
+    def retweet_ancestors(force_retrieve=false)
+      if reblog.is_a? Status
+        [self, reblog]
+      else
+        [self]
+      end
+    end
+
   end
 end

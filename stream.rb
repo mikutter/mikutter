@@ -60,19 +60,7 @@ module Plugin::Worldon
 
         ws.on :message do |event|
           Thread.new {
-            data = JSON.parse(event.data, symbolize_names: true)
-            #pp data
-            if data[:event] == 'update'
-              payload = JSON.parse(data[:payload], symbolize_names: true)
-              Plugin.call :extract_receive_message, datasource_slug, Plugin::Worldon::Status.build(domain, [payload])
-            elsif data[:event] == 'delete'
-              # 消す必要ある？
-            elsif data[:event] == 'notification'
-              # TODO: 通知対応
-              pp data
-            else
-              pp data
-            end
+            Stream.message_handler(domain, datasource_slug, access_token, event)
           }
         end
 
@@ -104,6 +92,81 @@ module Plugin::Worldon
         notice "Worldon::Stream.start #{datasource_slug} done"
       end
 
+      def stream_world(domain, access_token)
+        Enumerator.new{|y|
+          Plugin.filtering(:worlds, y)
+        }.select{|world|
+          world.domain == domain && world.access_token == access_token
+        }.first
+      end
+
+      def message_handler(domain, datasource_slug, access_token, event)
+        data = JSON.parse(event.data, symbolize_names: true)
+        #pp data
+        if data[:event] == 'update'
+          update_handler(domain, datasource_slug, data)
+        elsif data[:event] == 'delete'
+          # 消す必要ある？
+          # pawooは一定時間後（1分～7日後）に自動消滅するtootができる拡張をしている。
+          # また、手動で即座に消す人もいる。
+          # これは後からアクセスすることはできないがTLに流れてきたものは、
+          # フォローした人々には見えている、という前提があるように思う。
+          # だから消さないよ。
+        elsif data[:event] == 'notification'
+          payload = JSON.parse(data[:payload], symbolize_names: true)
+          case payload[:type]
+          when 'mention'
+            user = Plugin::Worldon::Account.new payload[:account]
+            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
+            world = stream_world(domain, access_token)
+            if !world.nil?
+              Plugin.call(:mention, world, [status])
+            end
+          when 'reblog'
+            user = Plugin::Worldon::Account.new payload[:account]
+            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
+            reblog = status.dup
+            reblog.id = payload[:id]
+            reblog.reblog = status
+            reblog.account = user
+            reblog.created_at = Time.parse(payload[:created_at]).localtime
+            puts "\n\n\n\nreblog:\n"
+            pp reblog
+            puts "\n\n\n\n"
+            Plugin.call(:retweet, [reblog])
+          when 'favourite'
+            user = Plugin::Worldon::Account.new payload[:account]
+            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
+            world = stream_world(domain, access_token)
+            if !world.nil?
+              Plugin.call(:favorite, world, user, status)
+            end
+          when 'follow'
+            user = Plugin::Worldon::Account.new payload[:account]
+            world = stream_world(domain, access_token)
+            if !world.nil?
+              Plugin.call(:followers_created, world, [user])
+            end
+          else
+            # 未知の通知
+            warn 'unknown notification'
+            pp data
+          end
+        else
+          # 未知のevent
+          warn 'unknown stream event'
+          pp data
+        end
+      end
+
+      def update_handler(domain, datasource_slug, data)
+        payload = JSON.parse(data[:payload], symbolize_names: true)
+        statuses = Plugin::Worldon::Status.build(domain, [payload])
+        Plugin.call :extract_receive_message, datasource_slug, statuses
+        if statuses.first.reblog
+          Plugin.call :retweet, statuses
+        end
+      end
 
       # FTL・LTLのdatasource追加＆開始
       def init_instance_stream (domain)
