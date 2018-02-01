@@ -6,25 +6,6 @@
 # For more information, see http://appimage.org/
 ########################################################################
 
-# replace paths in binary file, padding paths with /
-# usage: replace_paths_in_file FILE PATTERN REPLACEMENT
-# https://unix.stackexchange.com/a/122227
-replace_paths_in_file () {
-  local file="$1"
-  local pattern="$2"
-  local replacement="$3"
-  if [[ ${#pattern} -lt ${#replacement} ]]; then
-    echo "New path '$replacement' is longer than '$pattern'. Exiting."
-    return
-  fi
-  while [[ ${#pattern} -gt ${#replacement} ]]; do
-    replacement="${replacement}/"
-  done
-  echo -n "Replacing $pattern with $replacement ... "
-  sed -i -e "s|$pattern|$replacement|g" $file
-  echo "Done!"
-}
-
 # App arch, used by generate_appimage.
 if [ -z "$ARCH" ]; then
   export ARCH="$(arch)"
@@ -43,13 +24,14 @@ tar xf ruby-2.3.6.tar.gz
 
 echo "--> compile Ruby and install it into AppDir"
 pushd ruby-2.3.6
-./configure "--prefix=$APP_DIR/usr"
+# use relative load paths at run time
+./configure --enable-load-relative --prefix=/usr
 make -j2
-make install
+make "DESTDIR=$APP_DIR" install
 popd
 
 echo "--> install gems"
-# for Travis CI
+# for Travis CI, disable RVM
 GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
@@ -67,9 +49,6 @@ export DISABLE_BUNDLER_SETUP=1
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
-
-echo "--> patch away absolute paths"
-replace_paths_in_file "$APP_DIR/usr/bin/ruby" "$APP_DIR/usr" "."
 
 echo "--> get helper functions"
 wget -q https://github.com/AppImage/AppImages/raw/master/functions.sh -O ./functions.sh
