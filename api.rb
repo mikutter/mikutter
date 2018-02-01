@@ -68,6 +68,7 @@ module Plugin::Worldon
 
       def status_by_url(domain, access_token, url)
         resp = call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true)
+        return nil if resp.nil?
         resp[:statuses]
       end
 

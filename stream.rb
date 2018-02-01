@@ -69,6 +69,9 @@ module Plugin::Worldon
               # 消す必要ある？
             elsif data[:event] == 'notification'
               # TODO: 通知対応
+              pp data
+            else
+              pp data
             end
           }
         end

@@ -12,6 +12,8 @@ module Plugin::Worldon
     field.string :access_token, required: true
     field.has :account, Account, required: true
 
+    alias_method :user_obj, :account
+
     def icon
       account.icon
     end
@@ -67,6 +69,44 @@ module Plugin::Worldon
     def post(content, **opts)
       opts[:status] = content
       API.call(:post, domain, '/api/v1/statuses', access_token, opts)
+    end
+
+    def do_reblog(status)
+      # TODO: guiなどの他plugin向け通知イベントの調査
+      status_id = PM::API.get_local_status_id(self, status.actual_status)
+      if status_id.nil?
+        error 'cannot get local status id'
+        return nil
+      end
+
+      new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
+      if new_status_hash.nil? || new_status_hash.has_key?(:error)
+        error 'failed reblog request'
+        pp new_status_hash
+        return nil
+      end
+
+      new_status_hash[:domain] = domain
+      new_status = PM::Status.new(new_status_hash)
+      status.actual_status.reblogged = true
+    end
+
+    def reblog(status)
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          new_status = do_reblog(status)
+          if new_status.is_a? Status
+            promise.call(new_status)
+          else
+            promise.fail(new_status)
+          end
+        rescue Exception => e
+          pp e
+          promise.fail(e)
+        end
+      end
+      promise
     end
   end
 end
