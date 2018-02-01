@@ -106,9 +106,6 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
-    # UserMixin#.iconに渡すURL
-    alias_method :profile_image_url, :avatar
-
     def self.regularize_acct(hash)
       if hash[:acct].index('@').nil?
         hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
@@ -128,6 +125,10 @@ module Plugin::Worldon
 
     def title
       "#{acct}(#{display_name})"
+    end
+
+    def icon
+      Plugin.filtering(:photo_filter, avatar, [])[1].first
     end
   end
 
