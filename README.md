@@ -1,7 +1,7 @@
 # Worldon
 mikutterでMastodonへ接続するWorldプラグインです。
 
-まだほとんどの機能がなく、非常にbuggyです。mikutterでMastodonを使用する場合は https://github.com/sora0920/mikutodon がオススメです。
+まだほとんどの機能がなく、非常にbuggyです。mikutterでMastodonを使用する場合は [mikutodon](https://github.com/sora0920/mikutodon) がオススメです。
 
 ## 特徴
 ### できる🙆
@@ -13,7 +13,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 - 返信の表示
 - 各種汎用イベントの発火
 - ミュート設定の反映
-- mikutter-subparts-image による画像表示
+- [mikutter-subparts-image](https://github.com/moguno/mikutter-subparts-image) による画像表示
 
 ### まだできない🙅
 - 引用・返信のタグ除去
