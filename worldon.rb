@@ -50,7 +50,16 @@ Plugin.create(:worldon) do
     hashes = PM::API.call(:get, domain, path, token, opts)
     next if hashes.nil?
     tl = PM::Status.build(domain, hashes[:array])
+    if domain.nil?
+      puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
+      pp tl.select{|status| status.domain.nil? }
+    end
     Plugin.call :extract_receive_message, slug, tl
+
+    reblogs = tl.select{|status| status.reblog? }
+    if !reblogs.empty?
+      Plugin.call(:retweet, reblogs)
+    end
   end
 
 
@@ -109,8 +118,7 @@ Plugin.create(:worldon) do
         pp hash
         nil
       else
-        hash[:domain] = world.domain
-        new_status = PM::Status.new(hash)
+        new_status = PM::Status.build(world.domain, [hash]).first
         Plugin.call(:posted, world, [new_status])
         Plugin.call(:update, world, [new_status])
         new_status

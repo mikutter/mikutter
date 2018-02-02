@@ -113,45 +113,7 @@ module Plugin::Worldon
           # フォローした人々には見えている、という前提があるように思う。
           # だから消さないよ。
         elsif data[:event] == 'notification'
-          payload = JSON.parse(data[:payload], symbolize_names: true)
-          case payload[:type]
-          when 'mention'
-            user = Plugin::Worldon::Account.new payload[:account]
-            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-            world = stream_world(domain, access_token)
-            if !world.nil?
-              Plugin.call(:mention, world, [status])
-            end
-          when 'reblog'
-            user = Plugin::Worldon::Account.new payload[:account]
-            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-            reblog = status.dup
-            reblog.id = payload[:id]
-            reblog.reblog = status
-            reblog.account = user
-            reblog.created_at = Time.parse(payload[:created_at]).localtime
-            puts "\n\n\n\nreblog:\n"
-            pp reblog
-            puts "\n\n\n\n"
-            Plugin.call(:retweet, [reblog])
-          when 'favourite'
-            user = Plugin::Worldon::Account.new payload[:account]
-            status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-            world = stream_world(domain, access_token)
-            if !world.nil?
-              Plugin.call(:favorite, world, user, status)
-            end
-          when 'follow'
-            user = Plugin::Worldon::Account.new payload[:account]
-            world = stream_world(domain, access_token)
-            if !world.nil?
-              Plugin.call(:followers_created, world, [user])
-            end
-          else
-            # 未知の通知
-            warn 'unknown notification'
-            pp data
-          end
+          notification_handler(domain, access_token, data)
         else
           # 未知のevent
           warn 'unknown stream event'
@@ -161,10 +123,58 @@ module Plugin::Worldon
 
       def update_handler(domain, datasource_slug, data)
         payload = JSON.parse(data[:payload], symbolize_names: true)
-        statuses = Plugin::Worldon::Status.build(domain, [payload])
-        Plugin.call :extract_receive_message, datasource_slug, statuses
-        if statuses.first.reblog
-          Plugin.call :retweet, statuses
+        status = Plugin::Worldon::Status.build(domain, [payload]).first
+        Plugin.call :extract_receive_message, datasource_slug, [status]
+        if status.reblog.is_a? Status
+          Plugin.call(:retweet, [status])
+        end
+      end
+
+      def notification_handler(domain, access_token, data)
+        payload = JSON.parse(data[:payload], symbolize_names: true)
+
+        case payload[:type]
+        when 'mention'
+          status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
+          world = stream_world(domain, access_token)
+          if !world.nil?
+            Plugin.call(:mention, world, [status])
+          end
+
+        when 'reblog'
+          user = Plugin::Worldon::Account.new payload[:account]
+          status_hash = payload[:status]
+          reblog_hash = Marshal.load(Marshal.dump(status_hash))
+          status = Plugin::Worldon::Status.build(domain, [status_hash]).first
+          reblog = Plugin::Worldon::Status.build(domain, [reblog_hash]).first
+          reblog.id = payload[:id]
+          reblog.reblog = status
+          reblog.account = user
+          reblog.created_at = Time.parse(payload[:created_at]).localtime
+          #puts "\n\n\n\nreblog:\n"
+          #pp reblog
+          #puts "\n\n\n\n"
+          Plugin.call(:retweet, [reblog])
+
+        when 'favourite'
+          user = Plugin::Worldon::Account.new payload[:account]
+          status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
+          world = stream_world(domain, access_token)
+          if !world.nil?
+            Plugin.call(:favorite, world, user, status)
+          end
+
+        when 'follow'
+          user = Plugin::Worldon::Account.new payload[:account]
+          world = stream_world(domain, access_token)
+          if !world.nil?
+            Plugin.call(:followers_created, world, [user])
+          end
+
+        else
+          # 未知の通知
+          warn 'unknown notification'
+          pp data
         end
       end
 
@@ -221,7 +231,6 @@ module Plugin::Worldon
         if UserConfig[:realtime_rewind]
           # ストリーム開始
           Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
-          #Plugin.call(:worldon_start_stream, world.domain, 'user:notification', world.datasource_slug(:notification), world.access_token)
 
           if lists.is_a? Array
             lists.each do |l|

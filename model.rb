@@ -237,7 +237,7 @@ module Plugin::Worldon
     end
 
     def user
-      actual_status.account
+      account
     end
 
     def retweet_count
@@ -249,7 +249,7 @@ module Plugin::Worldon
     end
 
     def retweet?
-      !reblog.nil?
+      reblog.is_a? Status
     end
 
     def retweeted_by
@@ -262,7 +262,7 @@ module Plugin::Worldon
 
     # NSFW系プラグイン用
     def sensitive?
-      actual_status.sensitive
+      sensitive
     end
 
     # sub_parts_client用
@@ -292,14 +292,18 @@ module Plugin::Worldon
 
     # register reply:true用API
     def mentioned_by_me?
-      # TODO: Status.in_reply_to_account_id と current_world（もしくは受信時のworld？）を見てどうにかする
-      false
+      !mentions.empty? && myself?
     end
 
     # register myself:true用API
     def myself?
-      # TODO: Status.account と current_world（もしくは受信時のworld？）を見てどうにかする
-      false
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :worldon_for_mastodon && actual_status.user.acct == world.account.acct
+      }.map{|_|
+        true
+      }.any?
     end
 
     # Basis Model API
@@ -366,8 +370,7 @@ module Plugin::Worldon
             id = m[2]
             resp = Plugin::Worldon::API.status(domain_name, id)
             next nil if resp.nil?
-            resp[:domain] = domain_name
-            Status.new(resp)
+            Status.build(domain_name, [resp]).first
           end
         end.compact
     end
@@ -390,8 +393,7 @@ module Plugin::Worldon
     def replyto_source(force_retrieve=false)
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
-      resp[:domain] = domain
-      Status.new(resp)
+      Status.build(domain, [resp]).first
     end
 
     # 返信表示用
@@ -410,6 +412,10 @@ module Plugin::Worldon
         end
       end
       promise
+    end
+
+    def retweet_source(force_retrieve=false)
+      reblog
     end
 
     def retweet_source_d
