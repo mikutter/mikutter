@@ -161,7 +161,7 @@ module Plugin::Worldon
     field.string :language
     field.bool :pinned
 
-    field.string :domain # APIには無い追加フィールド
+    field.string :domain, required: true # APIには無い追加フィールド
 
     field.has :emojis, [Emoji]
     field.has :media_attachments, [Attachment]
@@ -197,6 +197,9 @@ module Plugin::Worldon
         return [] if json.nil?
         json.map do |record|
           record[:domain] = domain_name
+          if record[:reblog]
+            record[:reblog][:domain] = domain_name
+          end
           Status.new(record)
         end.compact
       end
