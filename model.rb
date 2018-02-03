@@ -233,6 +233,11 @@ module Plugin::Worldon
       end
 
       super hash
+
+      self[:user] = self[:account]
+      if self[:reblog]
+        self[:reblog][:user] = self[:reblog][:account]
+      end
     end
 
     def actual_status
