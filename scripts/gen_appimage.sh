@@ -69,11 +69,23 @@ get_desktopintegration $APP
 echo "--> copy dependencies"
 copy_deps
 
+# copy Typelibs for gobject-introspection
+cp -a /usr/lib/girepository-* usr/lib
+
 echo "--> move the libraries to usr/bin"
 move_lib
 
 echo "--> delete stuff that should not go into the AppImage."
 delete_blacklisted
+
+# TODO should we remove libssl and libcrypto?
+# additional_exclude="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+# for f in $additional_exclude; do
+#   found="$(find . -name "$f" -not -path "./usr/optional/*")"
+#   for f2 in $found; do
+#     rm -vf "$f2" "$(readlink -f "$f2")"
+#   done
+# done
 
 popd
 
