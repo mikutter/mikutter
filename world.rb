@@ -27,12 +27,11 @@ module Plugin::Worldon
       when :home
         # ホームTL
         "worldon-#{slug}-home".to_sym
-      when :notification
-        # 通知
-        "worldon-#{slug}-notification".to_sym
       when :list
         # リストTL
         "worldon-#{slug}-list-#{n}".to_sym
+      else
+        "worldon-#{slug}-#{type.to_s}".to_sym
       end
     end
 
@@ -86,8 +85,7 @@ module Plugin::Worldon
         return nil
       end
 
-      new_status_hash[:domain] = domain
-      new_status = PM::Status.new(new_status_hash)
+      new_status = PM::Status.build(domain, [new_status_hash]).first
       status.actual_status.reblogged = true
     end
 

@@ -106,9 +106,13 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
+    def self.domain(url)
+      Diva::URI.new(url).host
+    end
+
     def self.regularize_acct(hash)
       if hash[:acct].index('@').nil?
-        hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
+        hash[:acct] = hash[:acct] + '@' + self.domain(hash[:url])
       end
       hash
     end
@@ -161,7 +165,7 @@ module Plugin::Worldon
     field.string :language
     field.bool :pinned
 
-    field.string :domain # APIには無い追加フィールド
+    field.string :domain, required: true # APIには無い追加フィールド
 
     field.has :emojis, [Emoji]
     field.has :media_attachments, [Attachment]
@@ -197,6 +201,9 @@ module Plugin::Worldon
         return [] if json.nil?
         json.map do |record|
           record[:domain] = domain_name
+          if record[:reblog]
+            record[:reblog][:domain] = domain_name
+          end
           Status.new(record)
         end.compact
       end
@@ -226,6 +233,11 @@ module Plugin::Worldon
       end
 
       super hash
+
+      self[:user] = self[:account]
+      if self[:reblog]
+        self[:reblog][:user] = self[:reblog][:account]
+      end
     end
 
     def actual_status
@@ -237,7 +249,7 @@ module Plugin::Worldon
     end
 
     def user
-      actual_status.account
+      account
     end
 
     def retweet_count
@@ -249,7 +261,7 @@ module Plugin::Worldon
     end
 
     def retweet?
-      !reblog.nil?
+      reblog.is_a? Status
     end
 
     def retweeted_by
@@ -262,7 +274,7 @@ module Plugin::Worldon
 
     # NSFW系プラグイン用
     def sensitive?
-      actual_status.sensitive
+      sensitive
     end
 
     # sub_parts_client用
@@ -292,14 +304,18 @@ module Plugin::Worldon
 
     # register reply:true用API
     def mentioned_by_me?
-      # TODO: Status.in_reply_to_account_id と current_world（もしくは受信時のworld？）を見てどうにかする
-      false
+      !mentions.empty? && myself?
     end
 
     # register myself:true用API
     def myself?
-      # TODO: Status.account と current_world（もしくは受信時のworld？）を見てどうにかする
-      false
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :worldon_for_mastodon && actual_status.user.acct == world.account.acct
+      }.map{|_|
+        true
+      }.any?
     end
 
     # Basis Model API
@@ -366,8 +382,7 @@ module Plugin::Worldon
             id = m[2]
             resp = Plugin::Worldon::API.status(domain_name, id)
             next nil if resp.nil?
-            resp[:domain] = domain_name
-            Status.new(resp)
+            Status.build(domain_name, [resp]).first
           end
         end.compact
     end
@@ -388,10 +403,27 @@ module Plugin::Worldon
 
     # 返信表示用
     def replyto_source(force_retrieve=false)
+      if domain.nil?
+        # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
+        world = Plugin.filtering(:current_worldon, nil)
+        if !world.nil?
+          # 見つかったworldでstatusを取得し、id, domain, in_reply_to_idを上書きする。
+          status = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, url)
+          if !status.nil?
+            self[:id] = status[:id]
+            self[:domain] = world.domain
+            self[:in_reply_to_id] = status[:in_reply_to_id]
+            if status[:reblog]
+              self.reblog[:id] = status[:reblog][:id]
+              self.reblog[:domain] = world.domain
+              self.reblog[:in_reply_to_id] = status[:reblog][:in_reply_to_id]
+            end
+          end
+        end
+      end
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
-      resp[:domain] = domain
-      Status.new(resp)
+      Status.build(domain, [resp]).first
     end
 
     # 返信表示用
@@ -411,5 +443,34 @@ module Plugin::Worldon
       end
       promise
     end
+
+    def retweet_source(force_retrieve=false)
+      reblog
+    end
+
+    def retweet_source_d
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          if reblog.is_a? Status
+            promise.call(reblog)
+          else
+            promise.fail(reblog)
+          end
+        rescue Exception => e
+          promise.fail(e)
+        end
+      end
+      promise
+    end
+
+    def retweet_ancestors(force_retrieve=false)
+      if reblog.is_a? Status
+        [self, reblog]
+      else
+        [self]
+      end
+    end
+
   end
 end
