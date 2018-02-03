@@ -28,20 +28,25 @@ Plugin.create(:worldon) do
     open(url)
   end
 
+  defevent :worldon_worlds, prototype: [NilClass]
+
   # すべてのworldon worldを返す
   filter_worldon_worlds do
-    Enumerator.new{|y|
+    [Enumerator.new{|y|
       Plugin.filtering(:worlds, y)
     }.select{|world|
       world.class.slug == :worldon_for_mastodon
-    }.to_a
+    }.to_a]
   end
+
+  defevent :current_worldon, prototype: [NilClass]
 
   # world_currentがworldonならそれを、そうでなければ適当に探す。
   filter_current_worldon do
     world, = Plugin.filtering(:world_current, nil)
     if world.class.slug != :worldon_for_mastodon
-      world = Plugin.filter(:worldon_worlds, nil).first
+      worlds, = Plugin.filter(:worldon_worlds, nil)
+      world = worlds.first
     end
     [world]
   end
@@ -88,11 +93,7 @@ Plugin.create(:worldon) do
 
   # 起動時
   Delayer.new {
-    worlds = Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.select{|world|
-      world.class.slug == :worldon_for_mastodon
-    }
+    worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|
       world.update_mutes!

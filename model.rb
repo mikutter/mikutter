@@ -309,10 +309,8 @@ module Plugin::Worldon
 
     # register myself:true用API
     def myself?
-      Enumerator.new{|y|
-        Plugin.filtering(:worlds, y)
-      }.select{|world|
-        world.class.slug == :worldon_for_mastodon && actual_status.user.acct == world.account.acct
+      Plugin.filtering(:worldon_worlds, nil).first.select{|world|
+        actual_status.user.acct == world.account.acct
       }.map{|_|
         true
       }.any?
