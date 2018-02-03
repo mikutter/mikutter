@@ -41,7 +41,7 @@ module Plugin::Worldon
           hash = JSON.parse(resp.body, symbolize_names: true)
           parse_Link(resp, hash)
         else
-          error "API.call did'nt return Net::HTTPSuccess"
+          warn "API.call did'nt return Net::HTTPSuccess"
           pp req.path
           pp resp
           nil
