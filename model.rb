@@ -106,9 +106,13 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
+    def self.domain(url)
+      Diva::URI.new(url).host
+    end
+
     def self.regularize_acct(hash)
       if hash[:acct].index('@').nil?
-        hash[:acct] = hash[:acct] + '@' + Diva::URI.new(hash[:url]).host
+        hash[:acct] = hash[:acct] + '@' + self.domain(hash[:url])
       end
       hash
     end
