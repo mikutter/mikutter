@@ -403,6 +403,24 @@ module Plugin::Worldon
 
     # 返信表示用
     def replyto_source(force_retrieve=false)
+      if domain.nil?
+        # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
+        world = Plugin.filtering(:current_worldon, nil)
+        if !world.nil?
+          # 見つかったworldでstatusを取得し、id, domain, in_reply_to_idを上書きする。
+          status = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, url)
+          if !status.nil?
+            self[:id] = status[:id]
+            self[:domain] = world.domain
+            self[:in_reply_to_id] = status[:in_reply_to_id]
+            if status[:reblog]
+              self.reblog[:id] = status[:reblog][:id]
+              self.reblog[:domain] = world.domain
+              self.reblog[:in_reply_to_id] = status[:reblog][:in_reply_to_id]
+            end
+          end
+        end
+      end
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
       Status.build(domain, [resp]).first
