@@ -28,6 +28,24 @@ Plugin.create(:worldon) do
     open(url)
   end
 
+  # すべてのworldon worldを返す
+  filter_worldon_worlds do
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :worldon_for_mastodon
+    }.to_a
+  end
+
+  # world_currentがworldonならそれを、そうでなければ適当に探す。
+  filter_current_worldon do
+    world, = Plugin.filtering(:world_current, nil)
+    if world.class.slug != :worldon_for_mastodon
+      world = Plugin.filter(:worldon_worlds, nil).first
+    end
+    [world]
+  end
+
   # ストリーム開始＆直近取得
   on_worldon_start_stream do |domain, type, slug, token, list_id|
     # ストリーム開始
