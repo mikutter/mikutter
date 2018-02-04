@@ -69,10 +69,14 @@ get_desktopintegration $APP
 echo "--> copy dependencies"
 copy_deps
 
-# copy Typelibs for gobject-introspection
-cp -a /usr/lib/girepository-* usr/lib
+# copy Typelibs for gobject-introspection gem
+cp -av /usr/lib/girepository-* usr/lib
 
-echo "--> move the libraries to usr/bin"
+echo "--> patch away absolute paths"
+# for gobject-introspection gem
+find usr/lib -name libgirepository-1.0.so.1 -exec sed -i -e 's|/usr/lib/girepository-1.0|.////lib/girepository-1.0|g' {} \;
+
+echo "--> move the libraries to usr/lib"
 move_lib
 
 echo "--> delete stuff that should not go into the AppImage."
