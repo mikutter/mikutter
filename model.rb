@@ -309,10 +309,8 @@ module Plugin::Worldon
 
     # register myself:true用API
     def myself?
-      Enumerator.new{|y|
-        Plugin.filtering(:worlds, y)
-      }.select{|world|
-        world.class.slug == :worldon_for_mastodon && actual_status.user.acct == world.account.acct
+      Plugin.filtering(:worldon_worlds, nil).first.select{|world|
+        actual_status.user.acct == world.account.acct
       }.map{|_|
         true
       }.any?
@@ -355,7 +353,7 @@ module Plugin::Worldon
     # quoted_message用
     def quoting?
       content = actual_status.content
-      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/status/\d+)"!.match(content).nil?
+      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content).nil?
       !r
     end
 
@@ -363,7 +361,7 @@ module Plugin::Worldon
     def quoting_messages(force_retrieve=false)
       content = actual_status.content
       matches = []
-      regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|twitter\.com/[^/]+/\d+))"!
+      regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))"!
       rest = content
       while m = regexp.match(rest)
         matches.push m.to_a
@@ -372,8 +370,11 @@ module Plugin::Worldon
       matches
         .map do |m|
           url = m[1]
-          if url.index('twitter.com')
-            # TODO: 可能ならMessageをリモートから取得
+          has_twitter = Plugin.const_defined?('Plugin::Twitter::Message') && Plugin::Twitter::Message.is_a?(Class)
+          if has_twitter && url.index('twitter.com')
+            m = %r!https://(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/(\d+)!.match(url)
+            next if m.nil?
+            quoted_id = m[1]
             Plugin::Twitter::Message.findbyid(quoted_id, -1)
           else
             m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)

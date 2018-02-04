@@ -1,32 +1,33 @@
 # Worldon
 mikutterでMastodonへ接続するWorldプラグインです。
 
-まだほとんどの機能がなく、非常にbuggyです。mikutterでMastodonを使用する場合は [mikutodon](https://github.com/sora0920/mikutodon) がオススメです。
-
 ## 特徴
 ### できる🙆
 - HTL, FTL, LTL, リストのストリーム受信
 - 投稿・返信・ふぁぼ・ブーストの送信（world対応かつインスタンス越境可能）
 - URL・ハッシュタグリンク等の機能
-- 引用tootの展開（暫定）
+- 引用tootの展開
+  - twitterのステータスURLも引用として展開可能
 - 返信スレッド表示
 - 返信の表示
 - 各種汎用イベントの発火
 - ミュート設定の反映
+- 通知（たぶん？）
 - [mikutter-subparts-image](https://github.com/moguno/mikutter-subparts-image) による画像表示
+- [sub_parts_client](https://github.com/toshia/mikutter-sub-parts-client) によるクライアント表示
+- [mikutter_subparts_nsfw](https://github.com/cobodo/mikutter_subparts_nsfw) によるNSFW表示
 
 ### まだできない🙅
 - 引用・返信のタグ除去
-- 通知
 - 投稿時の画像添付・CW入力・公開範囲変更
 - トゥートの削除
 - CW時の本文隠し＆表示機構
 - カスタム絵文字表示
+- リストの作成・リネーム・削除
 - ユーザーのプロフィール表示
+  - リストへの追加・削除
+- 検索
 - アカウント登録していないインスタンスの公開TL取得
-
-### クソ💩
-- 同期処理多すぎ
 
 ## インストール方法
 以下のコマンドを実行します。

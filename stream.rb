@@ -94,7 +94,7 @@ module Plugin::Worldon
 
       def stream_world(domain, access_token)
         Enumerator.new{|y|
-          Plugin.filtering(:worlds, y)
+          Plugin.filtering(:worldon_worlds, nil).first
         }.select{|world|
           world.domain == domain && world.access_token == access_token
         }.first
@@ -196,11 +196,7 @@ module Plugin::Worldon
 
       # FTL・LTLの終了
       def remove_instance_stream (domain)
-        worlds = Enumerator.new{|y|
-          Plugin.filtering(:worlds, y)
-        }.select{|world|
-          world.class.slug == :worldon_for_mastodon
-        }.select{|world|
+        worlds = Plugin.filtering(:worldon_worlds, nil).first.select{|world|
           world.domain == domain
         }
         if worlds.empty?
