@@ -85,6 +85,7 @@ Plugin.create(:worldon) do
     end
   end
 
+  defevent :worldon_appear_toots, prototype: [[PM::Status]]
 
   # 終了時
   onunload do

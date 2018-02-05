@@ -12,7 +12,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 - 返信の表示
 - 各種汎用イベントの発火
 - ミュート設定の反映
-- 通知（たぶん？）
+- ふぁぼ・ブーストのactivity表示
 - [mikutter-subparts-image](https://github.com/moguno/mikutter-subparts-image) による画像表示
 - [sub_parts_client](https://github.com/toshia/mikutter-sub-parts-client) によるクライアント表示
 - [mikutter_subparts_nsfw](https://github.com/cobodo/mikutter_subparts_nsfw) によるNSFW表示
@@ -28,6 +28,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
   - リストへの追加・削除
 - 検索
 - アカウント登録していないインスタンスの公開TL取得
+- 通知サウンド
 
 ## インストール方法
 以下のコマンドを実行します。
