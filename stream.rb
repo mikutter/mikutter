@@ -124,7 +124,8 @@ module Plugin::Worldon
       def update_handler(domain, datasource_slug, data)
         payload = JSON.parse(data[:payload], symbolize_names: true)
         status = Plugin::Worldon::Status.build(domain, [payload]).first
-        Plugin.call :extract_receive_message, datasource_slug, [status]
+        Plugin.call(:extract_receive_message, datasource_slug, [status])
+        Plugin.call(:worldon_appear_toots, [status])
         if status.reblog.is_a? Status
           Plugin.call(:retweet, [status])
         end
@@ -154,6 +155,7 @@ module Plugin::Worldon
           #puts "\n\n\n\nreblog:\n"
           #pp reblog
           #puts "\n\n\n\n"
+          Plugin.call(:worldon_appear_toots, [status])
           Plugin.call(:retweet, [reblog])
           if reblog.to_me?
             Plugin.call(:mention, [reblog])

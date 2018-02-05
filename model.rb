@@ -306,6 +306,7 @@ module Plugin::Worldon
         .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
+        .gsub(/&apos;/) { "'" }
     end
 
     def description
