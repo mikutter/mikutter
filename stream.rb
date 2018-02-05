@@ -128,6 +128,10 @@ module Plugin::Worldon
         Plugin.call(:worldon_appear_toots, [status])
         if status.reblog.is_a? Status
           Plugin.call(:retweet, [status])
+          world = status.to_me_world
+          if !world.nil?
+            Plugin.call(:mention, world, [status])
+          end
         end
       end
 
@@ -148,15 +152,19 @@ module Plugin::Worldon
           reblog_hash = Marshal.load(Marshal.dump(status_hash))
           status = Plugin::Worldon::Status.build(domain, [status_hash]).first
           reblog = Plugin::Worldon::Status.build(domain, [reblog_hash]).first
-          reblog.id = payload[:id]
-          reblog.reblog = status
-          reblog.account = user
-          reblog.created_at = Time.parse(payload[:created_at]).localtime
+          status.id = payload[:id]
+          status[:retweet] = status.reblog = reblog
+          status[:user] = status.account = user
+          status.created_at = Time.parse(payload[:created_at]).localtime
           #puts "\n\n\n\nreblog:\n"
           #pp reblog
           #puts "\n\n\n\n"
           Plugin.call(:worldon_appear_toots, [status])
-          Plugin.call(:retweet, [reblog])
+          Plugin.call(:retweet, [status])
+          world = status.to_me_world
+          if !world.nil?
+            Plugin.call(:mention, world, [status])
+          end
 
         when 'favourite'
           user = Plugin::Worldon::Account.new payload[:account]

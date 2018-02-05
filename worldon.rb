@@ -97,7 +97,7 @@ Plugin.create(:worldon) do
   end
 
   # 起動時
-  Delayer.new {
+  Thread.new {
     worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|

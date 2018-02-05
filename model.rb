@@ -106,14 +106,17 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
-    def self.domain(url)
-      Diva::URI.new(url).host
+    def self.regularize_acct_by_domain(domain, acct)
+      if acct.index('@').nil?
+        acct = acct + '@' + domain
+      end
+      acct
     end
 
     def self.regularize_acct(hash)
-      if hash[:acct].index('@').nil?
-        hash[:acct] = hash[:acct] + '@' + self.domain(hash[:url])
-      end
+      domain = Diva::URI.new(hash[:url]).host
+      acct = hash[:acct]
+      hash[:acct] = self.regularize_acct_by_domain(domain, acct)
       hash
     end
 
@@ -199,6 +202,7 @@ module Plugin::Worldon
 
       def build(domain_name, json)
         return [] if json.nil?
+        return build(domain_name, [json]) if json.is_a? Hash
         json.map do |record|
           record[:domain] = domain_name
           if record[:reblog]
@@ -231,6 +235,17 @@ module Plugin::Worldon
       if hash[:application] && hash[:application][:name]
         hash[:source] = hash[:application][:name]
       end
+
+      # Mentionのacctにドメイン付加
+      if hash[:mentions]
+        hash[:mentions].each_index do |i|
+          acct = hash[:mentions][i][:acct]
+          hash[:mentions][i][:acct] = Account.regularize_acct_by_domain(hash[:domain], acct)
+        end
+      end
+
+      # notification用
+      hash[:retweet] = hash[:reblog]
 
       super hash
 
@@ -305,16 +320,46 @@ module Plugin::Worldon
 
     # register reply:true用API
     def mentioned_by_me?
-      !mentions.empty? && myself?
+      !mentions.empty? && from_me?
     end
 
     # register myself:true用API
-    def myself?
-      Plugin.filtering(:worldon_worlds, nil).first.select{|world|
-        actual_status.user.acct == world.account.acct
-      }.map{|_|
-        true
-      }.any?
+    def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+      case world
+      when Enumerable
+        world.select{|w| w.class.slug == :worldon_for_mastodon }.any?(&method(:from_me?))
+      when Diva::Model
+        user.acct == world.account.acct
+      end
+    end
+
+    # 通知用
+    # 自分へのmention
+    def mention_to_me?(world)
+      return false if mentions.empty?
+      mentions.map{|mention| mention.acct }.include?(world.account.acct)
+    end
+
+    # 自分へのreblog
+    def reblog_to_me?(world)
+      return false if reblog.nil?
+      reblog.from_me?(world)
+    end
+
+    def to_me_world
+      worlds = Plugin.filtering(:worldon_worlds, nil).first
+      return nil if worlds.nil?
+      worlds.select{|world|
+        mention_to_me?(world) || reblog_to_me?(world)
+      }.first
+    end
+
+    # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
+    def to_me?(world = nil)
+      if !world.nil?
+        return mention_to_me?(world) || reblog_to_me?(world)
+      end
+      !to_me_world.nil?
     end
 
     # Basis Model API
@@ -473,6 +518,5 @@ module Plugin::Worldon
         [self]
       end
     end
-
   end
 end
