@@ -48,7 +48,14 @@ module Plugin::Worldon
       mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, limit: 80)
       since_id = nil
       while mutes.is_a? Hash
-        Status.add_mutes(mutes[:array])
+        arr = mutes
+        if mutes.is_a? Hash
+          arr = mutes[:array]
+        end
+        Status.add_mutes(arr)
+        if mutes.is_a? Array || mutes[:__Link__].nil? || mutes[:__Link__][:prev].nil?
+          return
+        end
         url = mutes[:__Link__][:prev]
         opts = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
         return if opts[:since_id].to_i == since_id

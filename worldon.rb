@@ -72,7 +72,11 @@ Plugin.create(:worldon) do
     end
     hashes = PM::API.call(:get, domain, path, token, opts)
     next if hashes.nil?
-    tl = PM::Status.build(domain, hashes[:array])
+    arr = hashes
+    if (hashes.is_a?(Hash) && hashes[:array].is_a?(Array))
+      arr = hashes[:array]
+    end
+    tl = PM::Status.build(domain, arr)
     if domain.nil?
       puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
       pp tl.select{|status| status.domain.nil? }
