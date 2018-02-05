@@ -245,7 +245,7 @@ module Plugin::Worldon
       end
 
       # notification用
-      hash[:retweet] = !hash[:reblog].nil?
+      hash[:retweet] = hash[:reblog]
 
       super hash
 
@@ -329,7 +329,7 @@ module Plugin::Worldon
       when Enumerable
         world.select{|w| w.class.slug == :worldon_for_mastodon }.any?(&method(:from_me?))
       when Diva::Model
-        actual_status.user.acct == world.account.acct
+        user.acct == world.account.acct
       end
     end
 
@@ -343,17 +343,23 @@ module Plugin::Worldon
     # 自分へのreblog
     def reblog_to_me?(world)
       return false if reblog.nil?
-      reblog.account.acct == world.account.acct
+      reblog.from_me?(world)
+    end
+
+    def to_me_world
+      worlds = Plugin.filtering(:worldon_worlds, nil).first
+      return nil if worlds.nil?
+      worlds.select{|world|
+        mention_to_me?(world) || reblog_to_me?(world)
+      }.first
     end
 
     # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
-    def to_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
-      case world
-      when Enumerable
-        world.select{|w| w.class.slug == :worldon_for_mastodon }.any?(&method(:to_me?))
-      when Diva::Model
-        mention_to_me?(world) || reblog_to_me?(world)
+    def to_me?(world = nil)
+      if !world.nil?
+        return mention_to_me?(world) || reblog_to_me?(world)
       end
+      !to_me_world.nil?
     end
 
     # Basis Model API
