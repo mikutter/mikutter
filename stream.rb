@@ -169,7 +169,7 @@ module Plugin::Worldon
         when 'favourite'
           user = Plugin::Worldon::Account.new payload[:account]
           status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-          world = stream_world(domain, access_token)
+          world = status.from_me_world
           if !world.nil?
             Plugin.call(:favorite, world, user, status)
           end
