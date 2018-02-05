@@ -141,7 +141,7 @@ module Plugin::Worldon
         case payload[:type]
         when 'mention'
           status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-          world = stream_world(domain, access_token)
+          world = status.to_me_world
           if !world.nil?
             Plugin.call(:mention, world, [status])
           end
