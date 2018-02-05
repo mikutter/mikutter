@@ -7,123 +7,42 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2014-10-19 13:26+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
-"Language-Team: Vietnamese (http://www.transifex.com/projects/p/mikutter/language/vi/)\n"
+"Language-Team: Vietnamese (http://www.transifex.com/lindwurm/mikutter/language/vi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../account_control.rb:12
-msgid "SN"
-msgstr ""
-
-#: ../account_control.rb:13
-msgid "名前"
-msgstr ""
-
-#: ../account_control.rb:66
-msgid "エラー - %{name}"
-msgstr ""
-
 #: ../change_account.rb:8
-msgid "アカウントエラー (@{user})"
-msgstr ""
-
-#: ../change_account.rb:9
-msgid ""
-"ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
-"設定から、認証をやり直してください。"
-msgstr ""
-
-#: ../change_account.rb:16
 msgid "前のアカウント"
 msgstr ""
 
-#: ../change_account.rb:29
+#: ../change_account.rb:19
 msgid "次のアカウント"
 msgstr ""
 
-#: ../change_account.rb:48
-msgid "@%{screen_name}(%{name}) に切り替える"
+#: ../change_account.rb:38
+msgid "%{title}(%{world}) に切り替える"
 msgstr ""
 
-#: ../change_account.rb:58
+#: ../change_account.rb:49
 msgid "アカウント情報"
 msgstr ""
 
-#: ../change_account.rb:101
-msgid "インストールお疲れ様！"
+#: ../change_account.rb:73
+msgid "アカウント追加"
 msgstr ""
 
-#: ../change_account.rb:102
-msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
+#: ../change_account.rb:92
+msgid "アカウントの削除"
 msgstr ""
 
-#: ../change_account.rb:117
-msgid "確定"
-msgstr ""
-
-#: ../change_account.rb:120
-msgid "コードを入力→"
-msgstr ""
-
-#: ../change_account.rb:137
-msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
-msgstr ""
-
-#: ../change_account.rb:149
+#: ../change_account.rb:93
 msgid ""
-"コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
-"(%{code} %{message})"
-msgstr ""
-
-#: ../change_account.rb:152
-msgid ""
-"何かがおかしいよ。\n"
-"(%{code} %{message})"
-msgstr ""
-
-#: ../change_account.rb:157
-msgid ""
-"何かがおかしいよ。\n"
-"(%{error})"
-msgstr ""
-
-#: ../change_account.rb:165
-msgid ""
-"登録方法は、\n"
-"1. %{authorize_url} にアクセスする\n"
-"2. mikutterに登録したいTwitterアカウントでログイン\n"
-"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
-"だよ。"
-msgstr ""
-
-#: ../change_account.rb:171
-msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
-msgstr ""
-
-#: ../change_account.rb:177
-msgid ""
-"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
-"をインストールしてくれたんだもんね。"
-msgstr ""
-
-#: ../change_account.rb:178
-msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
-msgstr ""
-
-#: ../change_account.rb:189
-msgid "mikutterのチュートリアルを見た"
-msgstr ""
-
-#: ../change_account.rb:200
-msgid "前回の続きから説明するね"
-msgstr ""
-
-#: ../interactive.rb:5
-msgid "次へ"
+"以下のアカウントを本当に削除しますか？\n"
+"一度削除するともう戻ってこないよ"
 msgstr ""

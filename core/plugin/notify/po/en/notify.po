@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2016-09-01 18:39+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:29+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -66,18 +66,18 @@ msgstr "When received a direct message."
 msgid "通知を表示し続ける秒数"
 msgstr "Keep notification displayed for (seconds)."
 
-#: ../notify.rb:45
+#: ../notify.rb:44
 msgid "%{users} にフォローされました。"
 msgstr "Followed by %{users}."
 
-#: ../notify.rb:52
+#: ../notify.rb:51
 msgid "%{users} にリムーブされました。"
 msgstr "Unfollowed by %{users}."
 
-#: ../notify.rb:59
+#: ../notify.rb:58
 msgid "fav by %{from_user} \"%{tweet}\""
 msgstr "fav by %{from_user} \"%{tweet}\""
 
-#: ../notify.rb:70
+#: ../notify.rb:69
 msgid "ReTweet: %{tweet}"
 msgstr "ReTweet: %{tweet}"

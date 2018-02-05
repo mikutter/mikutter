@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2015-12-23 08:21+0000\n"
-"Last-Translator: Hotaka Hitagi\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:45+0000\n"
+"Last-Translator: lindwurm\n"
 "Language-Team: Spanish (http://www.transifex.com/lindwurm/mikutter/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,10 +21,10 @@ msgstr ""
 msgid "会話スレッドを表示"
 msgstr "Ver conversación"
 
-#: ../smartthread.rb:32
+#: ../smartthread.rb:36
 msgid "会話%{serial_id}"
 msgstr "Conversación %{serial_id}"
 
-#: ../smartthread.rb:60
+#: ../smartthread.rb:63
 msgid "引用ツイートが取得できませんでした"
 msgstr ""

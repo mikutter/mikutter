@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 08:16+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Romanian (Romania) (http://www.transifex.com/lindwurm/mikutter/language/ro_RO/)\n"
 "MIME-Version: 1.0\n"
@@ -18,22 +18,26 @@ msgstr ""
 "Language: ro_RO\n"
 "Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));\n"
 
-#: ../model/search.rb:5
+#: ../model/search.rb:6
 msgid "Twitter検索"
 msgstr ""
 
-#: ../search.rb:11 ../search.rb:21
+#: ../model/search.rb:22
+msgid "「%{query}」でツイート検索"
+msgstr ""
+
+#: ../query_box.rb:8 ../search.rb:33
 msgid "検索"
 msgstr "Caută"
 
-#: ../search.rb:12
+#: ../query_box.rb:9
 msgid "保存"
 msgstr "Salvează"
 
-#: ../search.rb:45
+#: ../query_box.rb:29
 msgid "検索中にエラーが発生しました (%{error})"
 msgstr "A apărut o eroare la căutare (%{error})"
 
-#: ../search.rb:52
+#: ../query_box.rb:36
 msgid "検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
 msgstr "Nu se pot salva cheile de căutare,\"% {query}\" . Te rugăm să reîncerci mai târziu."

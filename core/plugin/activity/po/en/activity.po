@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-08-30 10:34+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-23 19:04+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -35,111 +35,111 @@ msgstr "Description"
 msgid "時刻"
 msgstr "Time"
 
-#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
+#: ../activity.rb:166 ../activity.rb:315 ../activity.rb:318
 msgid "アクティビティ"
 msgstr "Activities"
 
-#: ../activity.rb:195
+#: ../activity.rb:222
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr "@%{user} favorited"
 
-#: ../activity.rb:205
+#: ../activity.rb:232
 msgid "@%{user} があんふぁぼしました"
 msgstr "@%{user} unfavorited"
 
-#: ../activity.rb:217
+#: ../activity.rb:244
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} retweeted"
 
-#: ../activity.rb:223
+#: ../activity.rb:250
 msgid "リツイートソースが取得できませんでした"
 msgstr "Failed to retrieve the retweet source"
 
-#: ../activity.rb:228
+#: ../activity.rb:254
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user} was added to list %{list}"
 
-#: ../activity.rb:236 ../activity.rb:253
+#: ../activity.rb:262 ../activity.rb:279
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (by @%{user})"
 
-#: ../activity.rb:245
+#: ../activity.rb:271
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user} was removed from list %{list}"
 
-#: ../activity.rb:265
+#: ../activity.rb:291
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} followed @%{follower}"
 
-#: ../activity.rb:276
+#: ../activity.rb:303
 msgid "差出人: @%{sender}"
 msgstr "Sender: @%{sender}"
 
-#: ../activity.rb:277
+#: ../activity.rb:304
 msgid "宛先: @%{recipient}"
 msgstr "Recipient: @%{recipient}"
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を表示する"
 msgstr "Show %{name}"
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
 msgstr "Show %{name} in the activity timeline. If unchecked, any other settings in %{name} section will be disabled."
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid "自分に関係ない%{name}も表示する"
 msgstr "Show %{name} which are not related to me"
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
 msgstr "If checked, any %{name} which are not related to you will show up in the activity timeline. Uncheck this to disable it."
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "タイムラインに表示"
 msgstr "Display on timeline"
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
 msgstr "Notify %{name} as system message."
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "ステータスバーに表示"
 msgstr "Display on status bar"
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
 msgstr "When you received %{name}, leave it being shown in the status bar for several seconds."
 
-#: ../activity.rb:315
+#: ../activity.rb:343
 msgid "リツイート"
 msgstr "Retweets"
 
-#: ../activity.rb:316
+#: ../activity.rb:344
 msgid "ふぁぼ"
 msgstr "Favs"
 
-#: ../activity.rb:317
+#: ../activity.rb:345
 msgid "フォロー"
 msgstr "Followings"
 
-#: ../activity.rb:318
+#: ../activity.rb:346
 msgid "リストに追加"
 msgstr "Additon to list"
 
-#: ../activity.rb:319
+#: ../activity.rb:347
 msgid "リストから削除"
 msgstr "Removal from list"
 
-#: ../activity.rb:320
+#: ../activity.rb:348
 msgid "ダイレクトメッセージ"
 msgstr "Direct messages"
 
-#: ../activity.rb:321
+#: ../activity.rb:349
 msgid "システムメッセージ"
 msgstr "System messages"
 
-#: ../activity.rb:322
+#: ../activity.rb:350
 msgid "エラー"
 msgstr "Errors"

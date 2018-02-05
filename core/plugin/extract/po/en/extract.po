@@ -5,7 +5,7 @@
 # Translators:
 # Akkiesoft <akkiesoft@marokun.net>, 2013,2015
 # Alice Takashina <cannorin@gmail.com>, 2016
-# ABE Satoru <s@polamjag.info>, 2013
+# polamjag <s@polamjag.info>, 2013
 # shinmili <rmsk.pl.ur.lpt@gmail.com>, 2014
 # Toshiaki Asai <toshi.alternative@gmail.com>, 2015
 # Yuki Shira <shirayuking@gmail.com>, 2013
@@ -13,9 +13,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2016-01-05 06:58+0000\n"
-"Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,121 +23,132 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../edit_window.rb:13 ../edit_window.rb:128
+#: ../edit_window.rb:19 ../edit_window.rb:99
 msgid "%{name} - 抽出タブ - %{application_name}"
 msgstr "%{name} - filtered tab - %{application_name}"
 
-#: ../edit_window.rb:16
+#: ../edit_window.rb:22
 msgid "データソース"
 msgstr "Data source"
 
-#: ../edit_window.rb:17
+#: ../edit_window.rb:23
 msgid "絞り込み条件"
 msgstr "Criteria"
 
-#: ../edit_window.rb:18
+#: ../edit_window.rb:24
 msgid "オプション"
 msgstr "Options"
 
-#: ../edit_window.rb:69 ../edit_window.rb:113 ../extract.rb:178
-#: ../extract_tab_list.rb:19
+#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:19
 msgid "名前"
 msgstr "Name"
 
-#: ../edit_window.rb:114
+#: ../edit_window.rb:84
 msgid "アイコン"
 msgstr "Icon"
 
-#: ../edit_window.rb:115
+#: ../edit_window.rb:85
 msgid "通知"
 msgstr "Notification"
 
-#: ../edit_window.rb:116
+#: ../edit_window.rb:86
 msgid "サウンド"
 msgstr "Sound"
 
-#: ../edit_window.rb:117
+#: ../edit_window.rb:87
 msgid "ポップアップ"
 msgstr "Popup"
 
-#: ../edit_window.rb:120
+#: ../edit_window.rb:89
+msgid "並び順"
+msgstr ""
+
+#: ../edit_window.rb:94
 msgid "閉じる"
 msgstr "Close"
 
-#: ../extract.rb:68
+#: ../extract.rb:71
 msgid "抽出タブ"
 msgstr "Filtered tab"
 
-#: ../extract.rb:98
+#: ../extract.rb:101
 msgid "抽出条件を編集"
 msgstr "Edit criteria"
 
-#: ../extract.rb:123
+#: ../extract.rb:135
 msgid "＝"
 msgstr "Equals"
 
-#: ../extract.rb:124
+#: ../extract.rb:136
 msgid "≠"
 msgstr "Not equals"
 
-#: ../extract.rb:125
+#: ../extract.rb:137
 msgid "正規表現"
 msgstr "Regular Expression"
 
-#: ../extract.rb:126
+#: ../extract.rb:138
 msgid "含む"
 msgstr "Includes"
 
-#: ../extract.rb:128
+#: ../extract.rb:140
 msgid "ユーザ名"
 msgstr "Name"
 
-#: ../extract.rb:130
+#: ../extract.rb:142
 msgid "本文"
 msgstr "Text"
 
-#: ../extract.rb:132
+#: ../extract.rb:144
 msgid "Twitterクライアント"
 msgstr "Twitter Client Name"
 
-#: ../extract.rb:160
+#: ../extract.rb:146
+msgid "投稿時刻"
+msgstr ""
+
+#: ../extract.rb:150
+msgid "投稿時刻 (ふぁぼやリツイートでageる)"
+msgstr ""
+
+#: ../extract.rb:187
 msgid "本当に抽出タブ「%{name}」を削除しますか？"
 msgstr "Are you sure you want to remove filtered tab \"%{name}\" ?"
 
-#: ../extract.rb:172
+#: ../extract.rb:199
 msgid "抽出タブを作成 - %{mikutter}"
 msgstr "Create a new filtered tab - %{mikutter}"
 
-#: ../extract.rb:216
+#: ../extract.rb:260
 msgid "受信したすべての投稿"
 msgstr "All posts received"
 
-#: ../extract.rb:217
+#: ../extract.rb:261
 msgid "ホームタイムライン(全てのアカウント)"
 msgstr "Home Timeline (all accounts)"
 
-#: ../extract.rb:218
+#: ../extract.rb:262
 msgid "自分宛ての投稿(全てのアカウント)"
 msgstr "Mentions (all accounts)"
 
-#: ../extract.rb:222
+#: ../extract.rb:269
 msgid "Home Timeline"
 msgstr "Home Timeline"
 
-#: ../extract.rb:223
+#: ../extract.rb:270
 msgid "Mentions"
 msgstr "Mentions"
 
-#: ../extract.rb:259
+#: ../extract.rb:304
 msgid "抽出タブ条件エラー"
 msgstr "Extract condition error"
 
-#: ../extract.rb:261
+#: ../extract.rb:306
 msgid ""
 "抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n"
 "%{error_string}"
 msgstr "Criteria that used in filtered tab '%{tab_name}' not found:\n%{error_string}"
 
-#: ../extract.rb:290
+#: ../extract.rb:335
 msgid "抽出条件 `%{condition}' が見つかりませんでした"
 msgstr "Criteria '%{condition}' not found"

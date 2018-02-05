@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2015-10-31 10:08+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -18,10 +18,10 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../saved_search.rb:29
+#: ../saved_search.rb:28
 msgid "保存した検索を削除"
 msgstr "刪除儲存的搜尋結果"
 
-#: ../saved_search.rb:76
+#: ../saved_search.rb:75
 msgid "更新中にエラーが発生しました (%{error})"
 msgstr "更新時發生錯誤: (%{error})"

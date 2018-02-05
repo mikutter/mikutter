@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-18 11:37+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:29+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -30,111 +30,111 @@ msgstr "说明"
 msgid "時刻"
 msgstr "时间"
 
-#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
+#: ../activity.rb:166 ../activity.rb:315 ../activity.rb:318
 msgid "アクティビティ"
 msgstr "活动"
 
-#: ../activity.rb:195
+#: ../activity.rb:222
 msgid "@%{user} がふぁぼふぁぼしました"
 msgstr "@%{user} 给你加星星了"
 
-#: ../activity.rb:205
+#: ../activity.rb:232
 msgid "@%{user} があんふぁぼしました"
 msgstr "@%{user} 拿走了星星"
 
-#: ../activity.rb:217
+#: ../activity.rb:244
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} RT了你的推"
 
-#: ../activity.rb:223
+#: ../activity.rb:250
 msgid "リツイートソースが取得できませんでした"
 msgstr "RT源获取失败"
 
-#: ../activity.rb:228
+#: ../activity.rb:254
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user} 被加入 %{list} 列表中"
 
-#: ../activity.rb:236 ../activity.rb:253
+#: ../activity.rb:262 ../activity.rb:279
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (来自 @%{user})"
 
-#: ../activity.rb:245
+#: ../activity.rb:271
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user} 被踢出 %{list} 了"
 
-#: ../activity.rb:265
+#: ../activity.rb:291
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} 关~注了 @%{follower}"
 
-#: ../activity.rb:276
+#: ../activity.rb:303
 msgid "差出人: @%{sender}"
 msgstr ""
 
-#: ../activity.rb:277
+#: ../activity.rb:304
 msgid "宛先: @%{recipient}"
 msgstr ""
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を表示する"
 msgstr ""
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
 msgstr ""
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid "自分に関係ない%{name}も表示する"
 msgstr ""
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
 msgstr ""
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "タイムラインに表示"
 msgstr "显示在时间线上"
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
 msgstr ""
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "ステータスバーに表示"
 msgstr "显示在状态栏上"
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
 msgstr ""
 
-#: ../activity.rb:315
+#: ../activity.rb:343
 msgid "リツイート"
 msgstr "转推"
 
-#: ../activity.rb:316
+#: ../activity.rb:344
 msgid "ふぁぼ"
 msgstr "加星"
 
-#: ../activity.rb:317
+#: ../activity.rb:345
 msgid "フォロー"
 msgstr "关注"
 
-#: ../activity.rb:318
+#: ../activity.rb:346
 msgid "リストに追加"
 msgstr "添加至列表"
 
-#: ../activity.rb:319
+#: ../activity.rb:347
 msgid "リストから削除"
 msgstr "从列表中删除"
 
-#: ../activity.rb:320
+#: ../activity.rb:348
 msgid "ダイレクトメッセージ"
 msgstr "DM"
 
-#: ../activity.rb:321
+#: ../activity.rb:349
 msgid "システムメッセージ"
 msgstr "系统信息"
 
-#: ../activity.rb:322
+#: ../activity.rb:350
 msgid "エラー"
 msgstr "错误信息"

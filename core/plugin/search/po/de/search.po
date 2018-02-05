@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-12 10:28+0000\n"
-"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,22 +18,26 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../model/search.rb:5
+#: ../model/search.rb:6
 msgid "Twitter検索"
 msgstr "Twitter-Suche"
 
-#: ../search.rb:11 ../search.rb:21
+#: ../model/search.rb:22
+msgid "「%{query}」でツイート検索"
+msgstr ""
+
+#: ../query_box.rb:8 ../search.rb:33
 msgid "検索"
 msgstr "Suche"
 
-#: ../search.rb:12
+#: ../query_box.rb:9
 msgid "保存"
 msgstr "Speichern"
 
-#: ../search.rb:45
+#: ../query_box.rb:29
 msgid "検索中にエラーが発生しました (%{error})"
 msgstr "Ein Fehler ist beim suchen aufgetreten (%{error})."
 
-#: ../search.rb:52
+#: ../query_box.rb:36
 msgid "検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
 msgstr "Keywords konnten nicht gespeichert werden, \"% {query}\". Bitte versuchen sie es später."

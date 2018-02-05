@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2015-11-13 13:44+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../profiletab.rb:40
+#: ../fragment.rb:46
 msgid "%{user} のユーザ情報が取得できませんでした"
 msgstr "無法取得 %{user} 的使用者資訊"
 

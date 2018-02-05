@@ -4,7 +4,7 @@
 # 
 # Translators:
 # Akkiesoft <akkiesoft@marokun.net>, 2013
-# ABE Satoru <s@polamjag.info>, 2013
+# polamjag <s@polamjag.info>, 2013
 # Iori Y <fivo.11235813@gmail.com>, 2013
 # Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
 # numpad0 <triphenylmethane@gmail.com>, 2013
@@ -14,7 +14,7 @@ msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2016-09-01 11:56+0000\n"
+"PO-Revision-Date: 2017-09-19 18:30+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"

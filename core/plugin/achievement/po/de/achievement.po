@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2016-09-05 13:26+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:29+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -19,50 +19,50 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../achievement.rb:97
+#: ../achievement.rb:102
 msgid "実績"
 msgstr "Errungenschaft"
 
-#: ../achievement.rb:100
+#: ../achievement.rb:105
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
 msgstr "Dein Twitter Konto wurde mit mikutter verbunden, dies wird dir sehr hilfreich für dein weiteres Twitterleben sein!"
 
-#: ../achievement.rb:107
+#: ../achievement.rb:112
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
 msgstr "Du kannst mikutter im Einstellungen Fenster anpassen."
 
-#: ../achievement.rb:108
+#: ../achievement.rb:113
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
 msgstr "Klicke auf das Schraubenschlüssel-Symbol in der unteren rechten Ecke des Bildschirms."
 
-#: ../achievement.rb:115
+#: ../achievement.rb:120
 msgid "ヾ(＠⌒ー⌒＠)ノ"
 msgstr "ヾ(＠⌒ー⌒＠)ノ"
 
-#: ../achievement.rb:116
+#: ../achievement.rb:121
 msgid "https://github.com/toshia/display_requirements"
 msgstr "https://github.com/toshia/display_requirements"
 
-#: ../achievement.rb:124
+#: ../achievement.rb:129
 msgid "新規ペインを追加コマンドでペインを増やせます"
 msgstr "Um ein neues Paneel hinzuzufügen klicke \"Neues Paneel hinzufügen.\"."
 
-#: ../achievement.rb:125
+#: ../achievement.rb:130
 msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
 msgstr "Rechtsklicke den Tab und klicke auf \"Verschiebe in neues Paneel.\"."
 
-#: ../achievement.rb:133
+#: ../achievement.rb:138
 msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
 msgstr "Du kannst Tabs verschieben indem du sie von Paneel zu Paneel drag and dropst."
 
-#: ../achievement.rb:134
+#: ../achievement.rb:139
 msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
 msgstr "Versuche den Tab zu drag and droppen wenn zwei oder mehr Paneele geöffnet sind."
 
-#: ../achievement.rb:144
+#: ../achievement.rb:149
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "Danke das du uns deinen Crash Report geschickt hast."
 
-#: ../achievement.rb:170
+#: ../achievement.rb:180
 msgid "実績 %s を達成しました！おめでとう♪"
 msgstr "Herzlichen Glückwunsch♪ Du hast folgende Errungenschaft gefunden! %s"

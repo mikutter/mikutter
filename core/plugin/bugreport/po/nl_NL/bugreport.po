@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the bugreport package.
+# 
+# Translators:
+# Heimen Stoffels <vistausss@outlook.com>, 2017
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-23 17:07+0000\n"
+"Last-Translator: Heimen Stoffels <vistausss@outlook.com>\n"
+"Language-Team: Dutch (Netherlands) (http://www.transifex.com/lindwurm/mikutter/language/nl_NL/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl_NL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../bugreport.rb:50
+msgid "%{mikutter} が突然終了してしまったみたいで ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ"
+msgstr ""
+
+#: ../bugreport.rb:51
+msgid "OKボタンを押したら、自動的に以下のテキストが送られます。これがバグを直すのにとっても役に立つんですよ。よかったら送ってくれません？"
+msgstr "Zodra je op de Oké-knop klikt, wordt de volgende tekst automatisch verzonden. Dit is ook handig voor het oplossen van fouten (bugs). Wil je dit alsjeblieft verzenden?"
+
+#: ../bugreport.rb:86
+msgid "エラー報告を送信しました。ありがとう♡"
+msgstr "Je hebt het foutrapport verstuurd. Bedankt. ♡"
+
+#: ../bugreport.rb:89
+msgid "ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww"
+msgstr "PIAAAAAAAAAAAAAAAAA wwwwwwwwwwwwwwwwwwwwww"

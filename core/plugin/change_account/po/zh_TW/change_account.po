@@ -4,14 +4,14 @@
 # 
 # Translators:
 # Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
-# Vel <veloci85@gmail.com>, 2015
+# Vel <veloci85@gmail.com>, 2015,2018
 # Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2015-10-30 14:06+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-21 09:20+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -20,113 +20,32 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../account_control.rb:12
-msgid "SN"
-msgstr "SN"
-
-#: ../account_control.rb:13
-msgid "名前"
-msgstr "名字"
-
-#: ../account_control.rb:66
-msgid "エラー - %{name}"
-msgstr "錯誤 - %{name}"
-
 #: ../change_account.rb:8
-msgid "アカウントエラー (@{user})"
-msgstr "帳號錯誤 (@{user})"
-
-#: ../change_account.rb:9
-msgid ""
-"ユーザ @{user} のOAuth 認証が失敗しました (@{response})\n"
-"設定から、認証をやり直してください。"
-msgstr "使用者帳戶 @{user} 的 OAuth 認證失敗了（@{response}）\n請從設定裡重新進行認證程序。"
-
-#: ../change_account.rb:16
 msgid "前のアカウント"
 msgstr "前一帳號"
 
-#: ../change_account.rb:29
+#: ../change_account.rb:19
 msgid "次のアカウント"
 msgstr "下一帳號"
 
-#: ../change_account.rb:48
-msgid "@%{screen_name}(%{name}) に切り替える"
-msgstr "切換為 @%{screen_name} (%{name})"
+#: ../change_account.rb:38
+msgid "%{title}(%{world}) に切り替える"
+msgstr "切換為 %{title}(%{world}) "
 
-#: ../change_account.rb:58
+#: ../change_account.rb:49
 msgid "アカウント情報"
 msgstr "帳號資訊"
 
-#: ../change_account.rb:101
-msgid "インストールお疲れ様！"
-msgstr "安裝辛苦了！"
+#: ../change_account.rb:73
+msgid "アカウント追加"
+msgstr "新增帳號"
 
-#: ../change_account.rb:102
-msgid "はじめまして！私はマスコットキャラクターのみくったーちゃん。よろしくね。まずはTwitterアカウントを登録しようね。"
-msgstr "你好！我是吉祥物 Mikutter 醬，請多指教。首先請進行推特帳號的登錄喔。"
+#: ../change_account.rb:92
+msgid "アカウントの削除"
+msgstr "刪除帳號"
 
-#: ../change_account.rb:117
-msgid "確定"
-msgstr "確定"
-
-#: ../change_account.rb:120
-msgid "コードを入力→"
-msgstr "輸入授權碼→"
-
-#: ../change_account.rb:137
-msgid "おっと。初めてアカウントを登録したから実績が解除されちゃったね。"
-msgstr "喔喔、你因為首次進行了帳號的登錄所以取得成就了唷！"
-
-#: ../change_account.rb:149
+#: ../change_account.rb:93
 msgid ""
-"コードが間違ってるみたい。URLを再生成するから、もう一度アクセスしなおしてね。\n"
-"(%{code} %{message})"
-msgstr "授權碼似乎有誤。授權網址將重新生成，請以新網址重新登錄。\n(%{code} %{message})"
-
-#: ../change_account.rb:152
-msgid ""
-"何かがおかしいよ。\n"
-"(%{code} %{message})"
-msgstr "好像哪裡怪怪的。\n(%{code} %{message})"
-
-#: ../change_account.rb:157
-msgid ""
-"何かがおかしいよ。\n"
-"(%{error})"
-msgstr "好像哪裡怪怪的。\n(%{error})"
-
-#: ../change_account.rb:165
-msgid ""
-"登録方法は、\n"
-"1. %{authorize_url} にアクセスする\n"
-"2. mikutterに登録したいTwitterアカウントでログイン\n"
-"3. 適当に進んでいって取得できる7桁のコードをこのウィンドウの一番上に入力\n"
-"だよ。"
-msgstr "登録步驟：\n1. 開啟網址 %{authorize_url}\n2. 登入想在 mikutter 上使用的 Twitter 帳號\n3. 在上面的輸入框裡面輸入推特給你的7位數字授權碼\n以上～"
-
-#: ../change_account.rb:171
-msgid "実績は、まだ %{name} さんが使ったことのない機能を、たまに教えてあげる機能だよ。"
-msgstr "所謂成就，其實是偶爾會告訴%{name}桑你還沒有用過的功能的功能喔。"
-
-#: ../change_account.rb:177
-msgid ""
-"……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} "
-"をインストールしてくれたんだもんね。"
-msgstr "……雖然有點短，不過目前我只能告訴你這麼多了。再說你裝 %{mikutter} 的目的是要上推吧。"
-
-#: ../change_account.rb:178
-msgid "これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。"
-msgstr "未來我還會一點一點教你使用技巧的。下次見囉～"
-
-#: ../change_account.rb:189
-msgid "mikutterのチュートリアルを見た"
-msgstr "看了 mikutter 的教學"
-
-#: ../change_account.rb:200
-msgid "前回の続きから説明するね"
-msgstr "繼續上次的說明吧"
-
-#: ../interactive.rb:5
-msgid "次へ"
-msgstr "下一步"
+"以下のアカウントを本当に削除しますか？\n"
+"一度削除するともう戻ってこないよ"
+msgstr "確定要刪除以下帳號嗎？\n刪下去就無法復原了喔"
