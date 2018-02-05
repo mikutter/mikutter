@@ -155,6 +155,9 @@ module Plugin::Worldon
           #pp reblog
           #puts "\n\n\n\n"
           Plugin.call(:retweet, [reblog])
+          if reblog.to_me?
+            Plugin.call(:mention, [reblog])
+          end
 
         when 'favourite'
           user = Plugin::Worldon::Account.new payload[:account]
