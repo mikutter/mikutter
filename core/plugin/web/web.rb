@@ -14,7 +14,7 @@ Plugin.create(:web) do
       bg_system(url_open_command, url)
     elsif(defined? Win32API) then
       shellExecuteA = Win32API.new('shell32.dll','ShellExecuteA',%w(p p p p p i),'i')
-      shellExecuteA.call(0, 'open', url, 0, 0, 1)
+      shellExecuteA.call(0, 'open', url.melt, 0, 0, 1)
     else
       url_open_command = find_url_open_command
       if url_open_command
