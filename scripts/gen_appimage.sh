@@ -42,6 +42,7 @@ rm -rf "$APP_DIR/usr/share"
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 cp -a core mikutter.rb $APP_DIR/usr/share/mikutter
+# NOTE GI_TYPELIB_PATH must be a absolute path
 cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
 
@@ -84,13 +85,15 @@ echo "--> delete stuff that should not go into the AppImage."
 delete_blacklisted
 
 # TODO should we remove libssl and libcrypto?
-# additional_exclude="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
-# for f in $additional_exclude; do
-#   found="$(find . -name "$f" -not -path "./usr/optional/*")"
-#   for f2 in $found; do
-#     rm -vf "$f2" "$(readlink -f "$f2")"
-#   done
-# done
+# blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+# see https://github.com/AppImage/AppImageKit/issues/454
+blacklist="libharfbuzz.so.0 libfreetype.so.6"
+for f in $blacklist; do
+  found="$(find . -name "$f" -not -path "./usr/optional/*")"
+  for f2 in $found; do
+    rm -vf "$f2" "$(readlink -f "$f2")"
+  done
+done
 
 popd
 
