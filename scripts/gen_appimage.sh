@@ -83,6 +83,7 @@ delete_blacklisted
 
 # TODO should we remove libssl and libcrypto?
 # blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+# remove libharfbuzz and it's dependencies,
 # see https://github.com/AppImage/AppImageKit/issues/454
 blacklist="libharfbuzz.so.0 libfreetype.so.6"
 for f in $blacklist; do
