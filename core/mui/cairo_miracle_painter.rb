@@ -297,7 +297,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list if attr_list
-    layout.wrap = Pango::WRAP_CHAR
+    layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
     font = Plugin.filtering(:message_font, message, nil).last
@@ -337,7 +337,7 @@ class Gdk::MiraclePainter < Gtk::Object
     font = Plugin.filtering(:message_header_right_font, message, nil).last
     layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
-    layout.alignment = Pango::ALIGN_RIGHT
+    layout.alignment = Pango::Alignment::RIGHT
     layout end
 
   def timestamp_label

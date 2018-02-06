@@ -36,7 +36,7 @@ module Plugin::DirectMessage
            Delayer.new{
              if not destroyed?
                renderer.set_property "wrap-width", 10
-               renderer.set_property "wrap-mode", Pango::WRAP_CHAR end }
+               renderer.set_property "wrap-mode", Pango::WrapMode::CHAR end }
            renderer } },
        {:type => Integer},
        {:type => Object},
