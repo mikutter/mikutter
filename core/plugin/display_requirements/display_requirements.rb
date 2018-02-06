@@ -196,7 +196,7 @@ class ::Gdk::SubPartsVoter
   def render_user(context, user)
     render_icon(context, user)
     layout = context.create_pango_layout
-    layout.wrap = Pango::WRAP_CHAR
+    layout.wrap = Pango::WrapMode::CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = "#{user[:name]}"
     context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
