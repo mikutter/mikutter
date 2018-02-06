@@ -109,6 +109,13 @@ Plugin.create(:world) do
     Plugin::World::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
     @worlds = nil
     Plugin.call(:service_registered, new) # 互換性のため
+  rescue Plugin::World::AlreadyExistError
+    description = {
+      new_world: new.title,
+      duplicated_world: @worlds.find{|w| w.slug == new.slug }&.title,
+      world_slug: new.slug }
+    activity :system, _('既に登録されているアカウントと重複しているため、登録に失敗しました。'),
+             description: _('登録しようとしたアカウント「%{new_world}」は、既に登録されている「%{duplicated_world}」と同じ識別子「%{world_slug}」を持っているため、登録に失敗しました。') % description
   end
 
   def modify_world(target)
