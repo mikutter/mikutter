@@ -46,7 +46,7 @@ cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
 
 export DISABLE_BUNDLER_SETUP=1
-export GI_TYPELIB_PATH=lib/girepository-1.0
+export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
@@ -75,7 +75,7 @@ cp -av /usr/lib/girepository-* usr/lib
 
 echo "--> patch away absolute paths"
 # for gobject-introspection gem
-find usr/lib -name libgirepository-1.0.so.1 -exec sed -i -e 's|/usr/lib/girepository-1.0|.////lib/girepository-1.0|g' {} \;
+# find usr/lib -name libgirepository-1.0.so.1 -exec sed -i -e 's|/usr/lib/girepository-1.0|.////lib/girepository-1.0|g' {} \;
 
 echo "--> move the libraries to usr/lib"
 move_lib
