@@ -53,7 +53,8 @@ EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
 
 echo "--> get helper functions"
-wget -q https://github.com/AppImage/AppImages/raw/master/functions.sh -O ./functions.sh
+PKG2AICOMMIT=23dd041c0e31f4c63f6e479baf14143cb159b395
+wget -q https://github.com/AppImage/AppImages/raw/${PKG2AICOMMIT}/functions.sh -O ./functions.sh
 . ./functions.sh
 
 pushd "$APP_DIR"
@@ -102,6 +103,7 @@ sudo modprobe fuse
 sudo usermod -a -G fuse $(whoami)
 
 echo "--> generate AppImage"
+# TODO use type2 appimage
 #   - Expects: $ARCH, $APP, $VERSION env vars
 #   - Expects: ./$APP.AppDir/ directory
 #   - Produces: ../out/$APP-$VERSION.glibc$GLIBC_NEEDED-$ARCH.AppImage
