@@ -6,12 +6,8 @@
 # For more information, see http://appimage.org/
 ########################################################################
 
-# App arch, used by generate_appimage.
-if [ -z "$ARCH" ]; then
-  export ARCH="$(arch)"
-fi
-
-# App name, used by generate_appimage.
+# env vars used by generate_type2_appimage.
+[[ -z "$ARCH" ]] && export ARCH="$(arch)"
 APP=mikutter
 VERSION=$(git describe --tags)
 
@@ -103,13 +99,12 @@ sudo modprobe fuse
 sudo usermod -a -G fuse $(whoami)
 
 echo "--> generate AppImage"
-# TODO use type2 appimage
 #   - Expects: $ARCH, $APP, $VERSION env vars
 #   - Expects: ./$APP.AppDir/ directory
 #   - Produces: ../out/$APP-$VERSION.glibc$GLIBC_NEEDED-$ARCH.AppImage
-generate_appimage
+generate_type2_appimage
 
-echo "--> generated $APP-$VERSION-$ARCH.AppImage"
-mv ../out/*.AppImage "$TRAVIS_BUILD_DIR/${APP}-${VERSION}-${ARCH}.AppImage"
+echo "--> generated $(ls ../out)"
+mv ../out/*.AppImage* "$TRAVIS_BUILD_DIR/"
 
 echo '==> finished'
