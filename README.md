@@ -35,7 +35,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 
 ```shell-session
 mkdir -p ~/.mikutter/plugin
-git clone github.com:cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
+git clone git://github.com/cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
 cd /path/to/mikutter
 bundle install
 ```
