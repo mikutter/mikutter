@@ -34,7 +34,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
-  WHITE = [65536, 65536, 65536].freeze
+  WHITE = ([0xffff]*3).freeze
   BLACK = [0, 0, 0].freeze
 
   attr_reader :message, :p_message, :tree, :selected
@@ -289,21 +289,16 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
-    begin
-      attr_list, text = Pango.parse_markup(textselector_markup(styled_main_text))
-    rescue GLib::Error => e
-      attr_list, text = nil, Pango.escape(message.to_show)
-    end
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
-    layout.attributes = attr_list if attr_list
-    layout.wrap = Pango::WRAP_CHAR
+    layout.attributes = textselector_attr_list(description_attr_list)
+    layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
     font = Plugin.filtering(:message_font, message, nil).last
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
     layout.font_description = Pango::FontDescription.new(font) if font
-    layout.text = text
+    layout.text = plain_description
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す

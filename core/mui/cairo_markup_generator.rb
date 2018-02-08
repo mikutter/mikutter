@@ -25,30 +25,32 @@ module Pango
 =end
 
 module Gdk::MarkupGenerator
-
-  ESCAPE_KEYS = Regexp::union(*Diva::Entity::BasicTwitterEntity::ESCAPE_RULE.keys)
-  ESCAPE_KV = Diva::Entity::BasicTwitterEntity::ESCAPE_RULE.method(:[])
-
-  # 本文を返す
-  def main_text
-    message.to_show
+  # 表示する際に本文に適用すべき装飾オブジェクトを作成する
+  # ==== Return
+  # Pango::AttrList 本文に適用する装飾
+  def description_attr_list(attr_list=Pango::AttrList.new)
+    gap = 0
+    message.links.each do |l|
+      underline = Pango::AttrUnderline.new(Pango::Underline::SINGLE)
+      actual_start = l[:range].first
+      actual_end = l[:range].last
+      faced_start = actual_start + gap
+      faced_end = faced_start + l[:face].size
+      gap += faced_end - actual_end
+      underline.start_index = plain_description[0...faced_start].bytesize
+      underline.end_index = plain_description[0...faced_end].bytesize
+      attr_list.insert(underline)
+    end
+    attr_list
   end
 
-  # 本文のタグをエスケープしたものを返す
-  def escaped_main_text
-    Pango.escape(main_text) end
-
-  # リンクに装飾をつけた文字列の配列を返す。だいたい一文字づつに分かれてる。
-  def styled_main_text
+  # Entityを適用したあとのプレーンテキストを返す。
+  def plain_description
     splited = message.to_show.dup
-    terminate = splited.size
-    message.links.to_a.reverse_each{ |l|
-      escape_range = l[:range].last ... terminate
-      splited[escape_range] = splited[escape_range].gsub(ESCAPE_KEYS, &ESCAPE_KV)
-      splited[l[:range]] = '<span underline="single">'+"#{Pango.escape(l[:face])}</span>"
-      terminate = l[:range].first
-    }
-    splited[0...terminate] = splited[0...terminate].gsub(ESCAPE_KEYS, &ESCAPE_KV) if terminate != 0
-    splited end
+    message.links.to_a.reverse_each do |l|
+      splited[l[:range]] = l[:face]
+    end
+    splited
+  end
 
 end
