@@ -56,7 +56,14 @@ wget -q https://github.com/AppImage/AppImages/raw/${PKG2AICOMMIT}/functions.sh -
 pushd "$APP_DIR"
 
 echo "--> get AppRun"
-get_apprun
+# get_apprun
+# use darealshinji/AppImageKit-checkrt's AppRun to exec xdg-open placed
+# outside of the AppImage
+# see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
+wget -O $APP_DIR/AppRun https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
+chmod a+x $APP_DIR/AppRun
+mkdir -p $APP_DIR/usr/optional || true
+wget -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 
 echo "--> get desktop file and icon"
 cp $ROOT_DIR/$APP.desktop .
