@@ -67,7 +67,11 @@ wget -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKi
 
 echo "--> get desktop file and icon"
 cp $ROOT_DIR/$APP.desktop .
+# icon should be placed in two place
+# see https://github.com/AppImage/AppImageKit/issues/402
 cp $ROOT_DIR/core/skin/data/icon.png $APP.png
+mkdir -p $APP_DIR/usr/share/icons/hicolor/256x256/apps || true
+cp $ROOT_DIR/core/skin/data/icon.png $APP_DIR/usr/share/icons/hicolor/256x256/apps/$APP.png
 
 echo "--> get desktop integration"
 get_desktopintegration $APP
