@@ -314,7 +314,7 @@ module Plugin::Worldon
     def description
       msg = actual_status
       desc = dehtmlize(msg.content)
-      if !msg.spoiler_text.nil? && msg.spoiler_text.size > 0
+      if !msg.spoiler_text.empty?
         desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
       end
       desc
@@ -381,7 +381,7 @@ module Plugin::Worldon
     # Basis Model API
     def title
       msg = actual_status
-      if !msg.spoiler_text.nil? && msg.spoiler_text.size > 0
+      if !msg.spoiler_text.empty?
         msg.spoiler_text
       else
         msg.content
@@ -415,8 +415,8 @@ module Plugin::Worldon
     # quoted_message用
     def quoting?
       content = actual_status.content
-      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content).nil?
-      !r
+      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content)
+      !r.nil?
     end
 
     # quoted_message用
