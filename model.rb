@@ -307,6 +307,8 @@ module Plugin::Worldon
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
+        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
+        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
     end
 
     def description
