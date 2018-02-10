@@ -332,7 +332,7 @@ class Gdk::MiraclePainter < Gtk::Object
     font = Plugin.filtering(:message_header_right_font, message, nil).last
     layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
-    layout.alignment = Pango::ALIGN_RIGHT
+    layout.alignment = Pango::Alignment::RIGHT
     layout end
 
   def timestamp_label

@@ -40,7 +40,7 @@ module ::Plugin::Command
   CanReplyAll = Condition.new{ |opt|
     if not opt.messages.empty?
       current_world, = Plugin.filtering(:world_current, nil)
-      current_world & opt.messages =~ :postable?
+      Plugin[:command].compose?(current_world, to: opt.messages)
     end
   }
 

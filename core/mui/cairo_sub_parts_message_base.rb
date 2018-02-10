@@ -280,7 +280,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       layout.attributes = attr_list if attr_list
       layout.font_description = font if font
       layout.text = text
-      layout.alignment = Pango::ALIGN_RIGHT
+      layout.alignment = Pango::Alignment::RIGHT
       layout end end
 
   def render_header(message, context, base_y)
@@ -321,7 +321,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     layout = context.create_pango_layout
     layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
     layout.attributes = attr_list
-    layout.wrap = Pango::WRAP_CHAR
+    layout.wrap = Pango::WrapMode::CHAR
     layout.font_description = default_font
     layout.text = text
     layout end

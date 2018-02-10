@@ -55,13 +55,14 @@ module Plugin::World
     # [name] アカウントのキー(Symbol)
     # [options] アカウント情報(Hash)
     # ==== Exceptions
-    # ArgumentError name のサービスが既に存在している場合、optionsの情報が足りない場合
+    # [Plugin::World::AlreadyExistError] _name_ のサービスが既に存在している場合
+    # [ArgumentError] _options_ の情報が足りない場合
     # ==== Return
-    # Service
+    # self
     def account_register(name, provider:, slug:, **options)
       name = name.to_sym
       @@service_lock.synchronize do
-        raise ArgumentError, "account #{name} already exists." if accounts.has_key? name
+        raise Plugin::World::AlreadyExistError, "account #{name} already exists." if accounts.has_key? name
         @account_data = account_write(
           accounts.merge(
             name => options.merge(
@@ -78,7 +79,7 @@ module Plugin::World
     # ==== Exceptions
     # ArgumentError name のサービスが存在しない場合
     # ==== Return
-    # Service
+    # self
     def account_modify(name, options)
       name = name.to_sym
       @@service_lock.synchronize do
@@ -94,7 +95,7 @@ module Plugin::World
     # ==== Args
     # [name]
     # ==== Return
-    # Service
+    # self
     def account_destroy(name)
       name = name.to_sym
       @@service_lock.synchronize do
