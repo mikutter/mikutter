@@ -1,6 +1,6 @@
 require 'json'
 require_relative 'websocket-client-simple-patch'
-require_relative 'model'
+require_relative 'model/model'
 
 module Plugin::Worldon
   class Stream

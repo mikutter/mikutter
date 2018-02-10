@@ -5,6 +5,9 @@ module Plugin::Worldon
     field.string :domain, required: true
     field.string :client_key, required: true
     field.string :client_secret, required: true
+    field.bool :retrieve, required: true
+
+    alias_method :retrieve?, :retrieve
 
     class << self
       def datasource_slug(domain, type)
@@ -37,10 +40,10 @@ module Plugin::Worldon
       end
 
       def load(domain)
-        keys = Plugin[:worldon].at(:instances)
-        if keys.has_key?(domain)
-          client_key = keys[domain][:client_key]
-          client_secret = keys[domain][:client_secret]
+        if !UserConfig[:worldon_instances][domain].nil?
+          client_key = UserConfig[:worldon_instances][domain][:client_key]
+          client_secret = UserConfig[:worldon_instances][domain][:client_secret]
+          retrieve = UserConfig[:worldon_instances][domain][:retrieve]
         else
           resp = Plugin::Worldon::API.call(:post, domain, '/api/v1/apps',
                                            client_name: Plugin::Worldon::CLIENT_NAME,
@@ -50,29 +53,28 @@ module Plugin::Worldon
                                           )
           client_key = resp[:client_id]
           client_secret = resp[:client_secret]
+          retrieve = true
           add_datasources(domain)
         end
-        instance = Instance.new(
+        instance = self.new(
           domain: domain,
           client_key: client_key,
-          client_secret: client_secret
+          client_secret: client_secret,
+          retrieve: retrieve
         )
-        if !keys.has_key?(domain)
+        if UserConfig[:worldon_instances][domain].nil?
           instance.store
         end
         instance
       end
-    end
+
+      def domains
+        UserConfig[:worldon_instances].keys.dup
+      end
+    end # class instance
 
     def store
-      keys = Plugin[:worldon].at(:instances)
-      if keys.nil?
-        keys = Hash.new
-      else
-        keys = keys.dup
-      end
-      keys[domain] = { client_key: client_key, client_secret: client_secret }
-      Plugin[:worldon].store(:instances, keys)
+      UserConfig[:worldon_instances][domain] = { client_key: client_key, client_secret: client_secret, retrieve: retrieve }
       self
     end
 

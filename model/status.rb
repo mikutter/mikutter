@@ -1,144 +1,6 @@
 require_relative 'entity_class'
-require_relative 'api'
 
 module Plugin::Worldon
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#application
-  class Application < Diva::Model
-    register :worldon_application, name: "Mastodonアプリケーション(Worldon)"
-
-    field.string :name, required: true
-    field.uri :website
-  end
-
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#emoji
-  class Emoji < Diva::Model
-    #register :worldon_emoji, name: "Mastodon絵文字(Worldon)"
-
-    field.string :shortcode, required: true
-    field.uri :static_url, required: true
-    field.uri :url, required: true
-  end
-
-  class AttachmentMeta < Diva::Model
-    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報(Worldon)"
-
-    field.int :width
-    field.int :height
-    field.string :size
-    field.string :aspect
-  end
-
-  class AttachmentMetaSet < Diva::Model
-    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報セット(Worldon)"
-
-    field.has :original, AttachmentMeta
-    field.has :small, AttachmentMeta
-  end
-
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#attachment
-  class Attachment < Diva::Model
-    #register :worldon_attachment, name: "Mastodon添付メディア(Worldon)"
-
-    field.string :id, required: true
-    field.string :type, required: true
-    field.uri :url
-    field.uri :remote_url
-    field.uri :preview_url, required: true
-    field.uri :text_url
-    field.string :description
-
-    field.has :meta, AttachmentMetaSet
-  end
-
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#mention
-  class Mention < Diva::Model
-    #register :worldon_mention, name: "Mastodonメンション(Worldon)"
-
-    field.uri :url, required: true
-    field.string :username, required: true
-    field.string :acct, required: true
-    field.string :id, required: true
-  end
-
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#tag
-  class Tag < Diva::Model
-    #register :worldon_tag, name: "Mastodonタグ(Worldon)"
-
-    field.string :name, required: true
-    field.uri :url, required: true
-  end
-
-  class AccountSource < Diva::Model
-    #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
-
-    field.string :privacy
-    field.bool :sensitive
-    field.string :note
-  end
-
-  # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
-  class Account < Diva::Model
-    include Diva::Model::UserMixin
-
-    register :worldon_account, name: "Mastodonアカウント(Worldon)"
-
-    field.string :id, required: true
-    field.string :username, required: true
-    field.string :acct, required: true
-    field.string :display_name, required: true
-    field.bool :locked, required: true
-    field.time :created_at, required: true
-    field.int :followers_count, required: true
-    field.int :following_count, required: true
-    field.int :statuses_count, required: true
-    field.string :note, required: true
-    field.uri :url, required: true
-    field.uri :avatar, required: true
-    field.uri :avatar_static, required: true
-    field.uri :header, required: true
-    field.uri :header_static, required: true
-    field.has :moved, Account
-    field.has :source, AccountSource
-
-    alias_method :perma_link, :url
-    alias_method :uri, :url
-    alias_method :idname, :acct
-    alias_method :name, :display_name
-    alias_method :description, :note
-
-    def self.regularize_acct_by_domain(domain, acct)
-      if acct.index('@').nil?
-        acct = acct + '@' + domain
-      end
-      acct
-    end
-
-    def self.regularize_acct(hash)
-      domain = Diva::URI.new(hash[:url]).host
-      acct = hash[:acct]
-      hash[:acct] = self.regularize_acct_by_domain(domain, acct)
-      hash
-    end
-
-    def initialize(hash)
-      hash[:created_at] = Time.parse(hash[:created_at]).localtime
-      hash = self.class.regularize_acct(hash)
-
-      # activity対策
-      hash[:idname] = hash[:acct]
-
-      super hash
-    end
-
-    def title
-      "#{acct}(#{display_name})"
-    end
-
-    def icon
-      Plugin.filtering(:photo_filter, avatar, [])[1].first
-    end
-  end
-
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   class Status < Diva::Model
     include Diva::Model::MessageMixin
@@ -161,7 +23,6 @@ module Plugin::Worldon
     field.bool :muted
     field.bool :sensitive
     field.string :visibility
-    field.bool :sensitive?
     field.string :spoiler_text
     field.string :visibility
     field.has :application, Application
@@ -182,6 +43,7 @@ module Plugin::Worldon
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
     alias_method :retweet_ancestor, :reblog
+    alias_method :sensitive?, :sensitive # NSFW系プラグイン用
 
     @mute_mutex = Thread::Mutex.new
 
@@ -285,11 +147,6 @@ module Plugin::Worldon
       else
         [account]
       end
-    end
-
-    # NSFW系プラグイン用
-    def sensitive?
-      sensitive
     end
 
     # sub_parts_client用

@@ -1,6 +1,3 @@
-require_relative 'model'
-require_relative 'api'
-
 module Plugin::Worldon
   class World < Diva::Model
     register :worldon_for_mastodon, name: "Mastodonアカウント(Worldon)"
