@@ -307,12 +307,14 @@ module Plugin::Worldon
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
+        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
+        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
     end
 
     def description
       msg = actual_status
       desc = dehtmlize(msg.content)
-      if !msg.spoiler_text.nil? && msg.spoiler_text.size > 0
+      if !msg.spoiler_text.empty?
         desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
       end
       desc
@@ -323,14 +325,24 @@ module Plugin::Worldon
       !mentions.empty? && from_me?
     end
 
+    def from_me_world
+      worlds = Plugin.filtering(:worldon_worlds, nil).first
+      return nil if worlds.nil?
+      worlds.select{|world|
+        account.acct == world.account.acct
+      }.first
+    end
+
     # register myself:true用API
-    def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
-      case world
-      when Enumerable
-        world.select{|w| w.class.slug == :worldon_for_mastodon }.any?(&method(:from_me?))
-      when Diva::Model
-        user.acct == world.account.acct
+    def from_me?(world = nil)
+      if !world.nil?
+        if world.is_a? Plugin::Worldon::World
+          return account.acct == world.account.acct
+        else
+          return false
+        end
       end
+      !from_me_world.nil?
     end
 
     # 通知用
@@ -357,7 +369,11 @@ module Plugin::Worldon
     # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
     def to_me?(world = nil)
       if !world.nil?
-        return mention_to_me?(world) || reblog_to_me?(world)
+        if world.is_a? Plugin::Worldon::World
+          return mention_to_me?(world) || reblog_to_me?(world)
+        else
+          return false
+        end
       end
       !to_me_world.nil?
     end
@@ -365,7 +381,7 @@ module Plugin::Worldon
     # Basis Model API
     def title
       msg = actual_status
-      if !msg.spoiler_text.nil? && msg.spoiler_text.size > 0
+      if !msg.spoiler_text.empty?
         msg.spoiler_text
       else
         msg.content
@@ -399,8 +415,8 @@ module Plugin::Worldon
     # quoted_message用
     def quoting?
       content = actual_status.content
-      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content).nil?
-      !r
+      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content)
+      !r.nil?
     end
 
     # quoted_message用

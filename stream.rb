@@ -141,7 +141,7 @@ module Plugin::Worldon
         case payload[:type]
         when 'mention'
           status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-          world = stream_world(domain, access_token)
+          world = status.to_me_world
           if !world.nil?
             Plugin.call(:mention, world, [status])
           end
@@ -169,7 +169,7 @@ module Plugin::Worldon
         when 'favourite'
           user = Plugin::Worldon::Account.new payload[:account]
           status = Plugin::Worldon::Status.build(domain, [payload[:status]]).first
-          world = stream_world(domain, access_token)
+          world = status.from_me_world
           if !world.nil?
             Plugin.call(:favorite, world, user, status)
           end
@@ -197,11 +197,9 @@ module Plugin::Worldon
         ftl_slug = Instance.datasource_slug(domain, :federated)
         ltl_slug = Instance.datasource_slug(domain, :local)
 
-        if UserConfig[:realtime_rewind]
-          # ストリーム開始
-          Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
-          Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
-        end
+        # ストリーム開始
+        Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
+        Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
       end
 
       # FTL・LTLの終了
@@ -234,16 +232,14 @@ module Plugin::Worldon
           [datasources.merge(dss)]
         end
 
-        if UserConfig[:realtime_rewind]
-          # ストリーム開始
-          Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
+        # ストリーム開始
+        Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
 
-          if lists.is_a? Array
-            lists.each do |l|
-              id = l[:id].to_i
-              slug = world.datasource_slug(:list, id)
-              Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world.access_token, id)
-            end
+        if lists.is_a? Array
+          lists.each do |l|
+            id = l[:id].to_i
+            slug = world.datasource_slug(:list, id)
+            Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world.access_token, id)
           end
         end
       end

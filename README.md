@@ -13,6 +13,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 - 各種汎用イベントの発火
 - ミュート設定の反映
 - ふぁぼ・ブーストのactivity表示
+- 通知サウンド
 - [mikutter-subparts-image](https://github.com/moguno/mikutter-subparts-image) による画像表示
 - [sub_parts_client](https://github.com/toshia/mikutter-sub-parts-client) によるクライアント表示
 - [mikutter_subparts_nsfw](https://github.com/cobodo/mikutter_subparts_nsfw) によるNSFW表示
@@ -28,14 +29,13 @@ mikutterでMastodonへ接続するWorldプラグインです。
   - リストへの追加・削除
 - 検索
 - アカウント登録していないインスタンスの公開TL取得
-- 通知サウンド
 
 ## インストール方法
 以下のコマンドを実行します。
 
 ```shell-session
 mkdir -p ~/.mikutter/plugin
-git clone github.com:cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
+git clone git://github.com/cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
 cd /path/to/mikutter
 bundle install
 ```
