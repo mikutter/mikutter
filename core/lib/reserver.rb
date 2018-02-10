@@ -17,12 +17,12 @@ class Reserver < Delegator
     raise ArgumentError.new('Block necessary for Reserver.new') unless block_given?
     @proc = proc
     @thread_class = thread
-    case
-    when time.is_a?(Time)
+    case time
+    when Time
       @time = time.freeze
-    when time.is_a?(String)
+    when String
       @time = (Time.parse time).freeze
-    when time.is_a?(Integer)
+    when Integer
       @time = (Time.new + time).freeze
     else
       raise ArgumentError.new('first argument must be Integer, String or Time')
