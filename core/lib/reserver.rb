@@ -9,6 +9,10 @@ require 'set'
 require 'delegate'
 
 class Reserver < Delegator
+  WakeUp = Class.new(Timeout::Error)
+  Add = Struct.new(:reserver)
+  Delete = Struct.new(:reserver)
+  @queue = Thread::Queue.new
 
   attr_reader :time, :thread_class
   alias __getobj__ time
@@ -17,12 +21,13 @@ class Reserver < Delegator
     raise ArgumentError.new('Block necessary for Reserver.new') unless block_given?
     @proc = proc
     @thread_class = thread
-    case
-    when time.is_a?(Time)
+    @sequence = :wait
+    case time
+    when Time
       @time = time.freeze
-    when time.is_a?(String)
+    when String
       @time = (Time.parse time).freeze
-    when time.is_a?(Integer)
+    when Integer
       @time = (Time.new + time).freeze
     else
       raise ArgumentError.new('first argument must be Integer, String or Time')
@@ -30,46 +35,128 @@ class Reserver < Delegator
     Reserver.register(self)
   end
 
-  def call
-    @proc.call
-    self end
-
+  # コンストラクタに渡したブロックのProcオブジェクトを返す
   def to_proc
-    @proc end
+    @proc
+  end
 
+  # Reserverの実行をキャンセルする。
+  # 実行がキャンセルされたReserverはスケジューラから削除され、その時刻になってもブロックが実行されない。
+  # このメソッドを呼ぶと、このインスタンスはfreezeされる。
+  # 既に実行が完了しているかキャンセルされたものに対して呼んでも何も起きない。
   def cancel
-    Reserver.unregister(self)
+    if !finished?
+      @sequence = :cancel
+      freeze
+      Reserver.unregister(self)
+    end
+    self
+  rescue FrozenError
+  end
+
+  # このReserverを実行する時間になっていれば true を返す
+  def expired?
+    sleep_time <= 0
+  end
+
+  # このReserverを何秒後に実行するかを返す
+  def sleep_time
+    time - Time.now
+  end
+
+  # このReserverの処理が既に完了している場合には true を返す
+  def finished?
+    %i<complete canceled>.include?(@sequence)
+  end
+
+  def inspect
+    "#<#{self.class} #{@sequence} in #{@proc.source_location&.join(':')} at #{time}>"
+  end
+
+  # 内部で呼ぶためのメソッドなので呼ばないでください
+  def complete
+    @sequence = :complete
+    freeze
+  rescue FrozenError
   end
 
   class << self
-    WakeUp = Class.new(Timeout::Error)
-
-    def register(new)
-      atomic do
-        (@reservers ||= SortedSet.new) << new
-        waiter.run end end
-
-    def unregister(reserver)
-      @reservers.delete(reserver)
+    def register(reserver)
+      @queue.push(Add.new(reserver))
     end
 
-    def waiter
-      atomic do
-        @waiter = nil if @waiter and not @waiter.alive?
-        @waiter ||= Thread.new do
-          while !@reservers.empty?
-            begin
-              reserver = @reservers.first
-              sleep_time = reserver.time - Time.now
-              if sleep_time <= 0
-                @reservers.delete reserver
-                reserver.thread_class.new(&reserver)
-              else
-                Timeout.timeout(1 + sleep_time / 2, WakeUp){ Thread.stop } end
-            rescue WakeUp
-              ;
-            rescue Exception => e
-              warn e end end end end end
+    def unregister(reserver)
+      @queue.push(Delete.new(reserver))
+    end
 
+    private
+
+    attr_reader :reservers
+
+    def sorted_reservers
+      if @sorted
+        reservers
+      else
+        @sorted = true
+        reservers.sort_by!(&:time)
+      end
+    end
+
+    def wait_expired
+      next_reserver = fetch
+      if next_reserver
+        if !next_reserver.expired?
+          Timeout.timeout(1 + next_reserver.sleep_time / 2, WakeUp) do
+            wait
+          end
+        end
+      else
+        wait
+      end
+    rescue WakeUp
+      # ɛ ʘɞʘ ɜ
+    end
+
+    def wait
+      operation = @queue.pop
+      case operation
+      when Add
+        push(operation.reserver)
+      when Delete
+        reservers.delete(operation.reserver)
+      end
+    end
+
+    def fetch
+      sorted_reservers[0]
+    end
+
+    def pop
+      sorted_reservers.shift
+    end
+
+    def push(new)
+      reservers.unshift(new)
+      @sorted = false
+    end
+
+    def execute(reserver)
+      if !reserver.finished?
+        reserver.thread_class.new(&reserver)
+        reserver.complete
+      end
+    end
   end
+
+  @reservers = Array.new
+  Thread.new do
+    begin
+      loop do
+        wait_expired
+        execute(pop) if fetch&.expired?
+      end
+    ensure
+      @queue.close
+    end
+  end.abort_on_exception = true
 end
