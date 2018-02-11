@@ -30,6 +30,8 @@ echo "--> compile Ruby and install it into AppDir"
 ./configure --enable-load-relative --prefix=/usr
 make -j2
 make "DESTDIR=$APP_DIR" install
+# copy license related files
+cp -v BSDL COPYING* GPL LEGAL README* $APP_DIR/usr/lib/ruby
 popd
 
 echo "--> install gems"
@@ -43,7 +45,7 @@ rm -rf "$APP_DIR/usr/share"
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
-cp -a core mikutter.rb $APP_DIR/usr/share/mikutter
+cp -av core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
 # NOTE GI_TYPELIB_PATH must be a absolute path
 cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
