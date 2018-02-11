@@ -28,6 +28,7 @@ Plugin.create(:worldon) do
       if hash.nil?
         warn "投稿に失敗したかもしれません"
         pp hash
+        $stdout.flush
         nil
       else
         new_status = PM::Status.build(world.domain, [hash]).first

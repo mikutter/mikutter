@@ -118,6 +118,7 @@ module Plugin::Worldon
           # 未知のevent
           warn 'unknown stream event'
           pp data
+          $stdout.flush
         end
       end
 
@@ -185,6 +186,7 @@ module Plugin::Worldon
           # 未知の通知
           warn 'unknown notification'
           pp data
+          $stdout.flush
         end
       end
 

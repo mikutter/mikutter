@@ -54,6 +54,7 @@ Plugin.create(:worldon) do
     if domain.nil?
       puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
       pp tl.select{|status| status.domain.nil? }
+      $stdout.flush
     end
     Plugin.call :extract_receive_message, slug, tl
 

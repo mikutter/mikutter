@@ -44,6 +44,7 @@ module Plugin::Worldon
           warn "API.call did'nt return Net::HTTPSuccess"
           pp req.path
           pp resp
+          $stdout.flush
           nil
         end
       end
