@@ -51,6 +51,14 @@ module Plugin::Worldon
       hash
     end
 
+    def self.domain(url)
+      Diva::URI.new(url.to_s).host
+    end
+
+    def domain
+      self.class.domain(url)
+    end
+
     def initialize(hash)
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       hash = self.class.regularize_acct(hash)

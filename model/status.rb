@@ -2,17 +2,19 @@ require_relative 'entity_class'
 
 module Plugin::Worldon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
+  # 必ずStatus.buildメソッドを通して生成すること
   class Status < Diva::Model
     include Diva::Model::MessageMixin
 
     register :worldon_status, name: "Mastodonステータス(Worldon)", timeline: true, reply: true, myself: true
 
     field.string :id, required: true
+    field.string :original_uri, required: true # APIから取得するfediverse uniqueなURI文字列
     field.uri :url, required: true
-    field.has :account, Plugin::Worldon::Account, required: true
+    field.has :account, Account, required: true
     field.string :in_reply_to_id
     field.string :in_reply_to_account_id
-    field.has :reblog, Plugin::Worldon::Status
+    field.has :reblog, Status
     field.string :content, required: true
     field.time :created_at, required: true
     field.time :created
@@ -49,6 +51,8 @@ module Plugin::Worldon
 
     entity_class MastodonEntity
 
+    @@storage = WeakStorage.new(String, Status)
+
     class << self
       def add_mutes(account_hashes)
         @mute_mutex.synchronize {
@@ -70,8 +74,34 @@ module Plugin::Worldon
           if record[:reblog]
             record[:reblog][:domain] = domain_name
           end
-          Status.new(record)
+
+          status = @@storage[record[:uri]]
+          if status.nil?
+            has_reblog = false
+            if !record[:reblog].nil?
+              reblog = @@storage[record[:reblog][:uri]]
+              if !reblog.nil?
+                has_reblog = true
+                reblog.merge(domain_name, record[:reblog])
+                record.delete(:reblog) # 入れ子newされないように消しておく
+              end
+            end
+            @@storage[record[:uri]] = Status.new(record).tap do |st|
+              if has_reblog
+                st.reblog = reblog # 消しておいたreblogを再代入
+              end
+            end
+          else
+            @@storage[record[:uri]] = @@storage[record[:uri]].merge(domain_name, record)
+          end
         end.compact
+      end
+
+      # fediverse uriで検索する。
+      # フィールドとしては:original_uriで、:uriとは別。
+      # URIとしてparse可能であるとは限らない点に注意。
+      def findbyuri(uri)
+        @@storage[uri]
       end
     end
 
@@ -117,6 +147,21 @@ module Plugin::Worldon
       end
     end
 
+    def merge(domain_name, new_hash)
+      # 取得元が発言者の所属インスタンスであれば優先する
+      account_domain = account&.domain
+      account_domain2 = Account.domain(new_hash[:account][:url])
+      if domain.nil? || domain != account_domain && domain_name == account_domain2
+        self.id = new_hash[:id]
+        self.domain = domain_name
+        if (application.nil? || self[:source].nil?) && !new_hash[:application].nil?
+          self.application = Application.new(new_hash[:application])
+          self[:source] = application.name
+        end
+      end
+      self
+    end
+
     def actual_status
       if reblog.nil?
         self
@@ -151,11 +196,7 @@ module Plugin::Worldon
 
     # sub_parts_client用
     def source
-      if actual_status.application
-        actual_status.application.name
-      else
-        nil
-      end
+      actual_status.application&.name
     end
 
     def dehtmlize(text)

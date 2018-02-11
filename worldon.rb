@@ -15,9 +15,6 @@ require_relative 'setting'
 Plugin.create(:worldon) do
   PM = Plugin::Worldon
 
-  # 各インスタンス向けアプリケーションキー用のストレージを確保しておく
-  UserConfig[:worldon_instances] ||= Hash.new
-
   defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
     open(url)
   end

@@ -1,6 +1,15 @@
 require_relative 'instance_tab_list'
 
 Plugin.create(:worldon) do
+  # 設定の初期化
+  UserConfig[:worldon_instances] ||= Hash.new
+  if UserConfig[:worldon_enable_streaming].nil?
+    UserConfig[:worldon_enable_streaming] = true
+  end
+  if UserConfig[:worldon_rest_interval].nil?
+    UserConfig[:worldon_rest_interval] = UserConfig[:retrieve_interval_friendtl]
+  end
+
   # 設定
   settings "Worldon" do
     settings "接続" do

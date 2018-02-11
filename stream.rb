@@ -127,7 +127,7 @@ module Plugin::Worldon
         status = Plugin::Worldon::Status.build(domain, [payload]).first
         Plugin.call(:extract_receive_message, datasource_slug, [status])
         Plugin.call(:worldon_appear_toots, [status])
-        if status.reblog.is_a? Status
+        if (status&.reblog).is_a?(Status)
           Plugin.call(:retweet, [status])
           world = status.to_me_world
           if !world.nil?
