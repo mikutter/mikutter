@@ -22,6 +22,7 @@ pushd ruby-2.3.6
 echo "--> patching Ruby"
 # patching Ruby not to use SSLv3_method
 # this fix is for systems which disable SSLv3 support e.g. Arch Linux
+# see https://github.com/rbenv/ruby-build/wiki#openssl-sslv3_method-undeclared-error
 patch -u -p0 < $ROOT_DIR/scripts/no-sslv3-patch.diff
 
 echo "--> compile Ruby and install it into AppDir"
