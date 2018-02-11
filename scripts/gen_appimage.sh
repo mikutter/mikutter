@@ -97,11 +97,12 @@ move_lib
 echo "--> delete stuff that should not go into the AppImage."
 delete_blacklisted
 
-# TODO should we remove libssl and libcrypto?
-# blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+# remove libssl and libcrypto
+# see https://github.com/AppImage/AppImageKit/wiki/Desktop-Linux-Platform-Issues#openssl
+blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
 # remove libharfbuzz and it's dependencies,
 # see https://github.com/AppImage/AppImageKit/issues/454
-blacklist="libharfbuzz.so.0 libfreetype.so.6"
+blacklist=$blacklist" libharfbuzz.so.0 libfreetype.so.6"
 for f in $blacklist; do
   found="$(find . -name "$f" -not -path "./usr/optional/*")"
   for f2 in $found; do
