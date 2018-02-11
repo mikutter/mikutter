@@ -18,8 +18,13 @@ echo "--> get ruby source"
 wget https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.6.tar.gz
 tar xf ruby-2.3.6.tar.gz
 
-echo "--> compile Ruby and install it into AppDir"
 pushd ruby-2.3.6
+echo "--> patching Ruby"
+# patching Ruby not to use SSLv3_method
+# this fix is for systems which disable SSLv3 support e.g. Arch Linux
+patch -u -p0 < $ROOT_DIR/scripts/no-sslv3-patch.diff
+
+echo "--> compile Ruby and install it into AppDir"
 # use relative load paths at run time
 ./configure --enable-load-relative --prefix=/usr
 make -j2
