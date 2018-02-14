@@ -3,6 +3,11 @@ require_relative 'instance_setting_list'
 Plugin.create(:worldon) do
   # 設定の初期化
   UserConfig[:worldon_instances] ||= Hash.new
+  instance_config = at(:instances)
+  if instance_config
+    UserConfig[:worldon_instances] = instance_config.merge(UserConfig[:worldon_instances])
+    store(:instances, nil)
+  end
   if UserConfig[:worldon_enable_streaming].nil?
     UserConfig[:worldon_enable_streaming] = true
   end
@@ -29,7 +34,7 @@ Plugin.create(:worldon) do
           error_msg = "既に登録済みのドメインです。入力し直してください。"
           next
         end
-        instance = Plugin::Worldon::Instance.add(result[:domain])
+        instance, = Plugin.filtering(:worldon_add_instance, result[:domain])
         if instance.nil?
           error_msg = "接続に失敗しました。もう一度確認してください。"
           next
@@ -39,7 +44,8 @@ Plugin.create(:worldon) do
       end
       domain = result[:domain]
       label "#{domain} インスタンスを追加しました"
-      Plugin.call(:worldon_instance_create, domain)
+      Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_instance_created, domain)
     end
   end
 
@@ -96,7 +102,7 @@ Plugin.create(:worldon) do
           closeup(btn_add).
           closeup(btn_delete)))
       Plugin.create :worldon do
-        add_tab_observer = on_worldon_instance_create(&treeview.method(:add_record))
+        add_tab_observer = on_worldon_instance_created(&treeview.method(:add_record))
         delete_tab_observer = on_worldon_instance_delete(&treeview.method(:remove_record))
         treeview.ssc(:destroy) do
           detach add_tab_observer

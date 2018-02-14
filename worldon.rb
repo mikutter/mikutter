@@ -6,6 +6,10 @@ module Plugin::Worldon
   WEB_SITE = 'https://github.com/cobodo/mikutter-worldon'
 end
 
+Plugin.create(:worldon) do
+  PM = Plugin::Worldon
+end
+
 require_relative 'api'
 require_relative 'model/model'
 require_relative 'stream'
@@ -13,8 +17,6 @@ require_relative 'spell'
 require_relative 'setting'
 
 Plugin.create(:worldon) do
-  PM = Plugin::Worldon
-
   defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
     open(url)
   end
@@ -117,6 +119,7 @@ Plugin.create(:worldon) do
 
   # インスタンスストリームを必要に応じて再起動
   on_worldon_instance_restart_stream do |domain, retrieve = true|
+    instance = PM::Instance.load(domain)
     if instance.retrieve != retrieve
       instance.retrieve = retrieve
       instance.store
@@ -134,11 +137,12 @@ Plugin.create(:worldon) do
     end
   end
 
-  # インスタンス追加
-  on_worldon_instance_create do |domain|
-    # 設定＞インスタンス追加の場合は追加済み
-    # world追加時はcreate_or_updateの方が呼ばれるのでここで追加する必要はない
-    PM::Stream.init_instance_stream(domain)
+  # 別プラグインからインスタンスを追加してストリームを開始する例
+  # domain = 'friends.nico'
+  # instance, = Plugin.filtering(:worldon_add_instance, domain)
+  # Plugin.call(:worldon_instance_restart_stream, instance.domain) if instance
+  filter_worldon_add_instance do |domain|
+    [PM::Instance.add(domain)]
   end
 
   # インスタンス編集
@@ -153,7 +157,7 @@ Plugin.create(:worldon) do
   on_worldon_instance_create_or_update do |domain|
     instance = PM::Instance.load(domain)
     if instance.nil?
-      instance = PM::Instance.add(domain)
+      instance, = Plugin.filtering(:worldon_add_instance, domain)
     end
     next if instance.nil? # 既存にない＆接続失敗
 
@@ -163,7 +167,11 @@ Plugin.create(:worldon) do
   # インスタンス削除
   on_worldon_instance_delete do |domain|
     PM::Stream.remove_instance_stream(domain)
-    UserConfig[:worldon_instances].delete(domain)
+    if UserConfig[:worldon_instances].has_key?(domain)
+      config = UserConfig[:worldon_instances].dup
+      config.delete(domain)
+      UserConfig[:worldon_instances] = config
+    end
   end
 
   # world追加
@@ -207,7 +215,7 @@ Plugin.create(:worldon) do
       instance = PM::Instance.load(domain)
       if instance.nil?
         # 既存にないので追加
-        instance = PM::Instance.add(domain)
+        instance, = Plugin.filtering(:worldon_add_instance, domain)
         if instance.nil?
           # 追加失敗
           error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"

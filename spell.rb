@@ -1,6 +1,4 @@
 Plugin.create(:worldon) do
-  PM = Plugin::Worldon
-
   # spell系
 
   # 投稿
