@@ -132,12 +132,23 @@ Plugin.create(:worldon) do
 
   # world作成
   world_setting(:worldon, _('Mastodonアカウント(Worldon)')) do
-    input 'インスタンスのドメイン', :domain
+    error_msg = nil
+    while true
+      if error_msg.is_a? String
+        label error_msg
+      end
+      input 'インスタンスのドメイン', :domain
 
-    result = await_input
-    domain = result[:domain]
+      result = await_input
+      domain = result[:domain]
 
-    instance = PM::Instance.load(domain)
+      instance = PM::Instance.load(domain)
+      if instance.nil?
+        error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"
+      else
+        break
+      end
+    end
 
     label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
     link instance.authorize_url
