@@ -48,6 +48,7 @@ module Plugin::Worldon
                                            scopes: 'read write follow',
                                            website: Plugin::Worldon::WEB_SITE
                                           )
+          return nil if resp.nil?
           client_key = resp[:client_id]
           client_secret = resp[:client_secret]
           add_datasources(domain)
