@@ -68,8 +68,10 @@ Plugin.create(:worldon) do
     PM::Stream.killall
   end
 
-  # 起動時
-  Thread.new {
+  # すべてのストリームを再起動
+  on_worldon_restart_all_stream do
+    PM::Stream.killall
+
     worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|
@@ -77,11 +79,14 @@ Plugin.create(:worldon) do
       PM::Stream.init_auth_stream(world)
     end
 
-    worlds.map{|world|
-      world.domain
-    }.to_a.uniq.each{|domain|
+    UserConfig[:worldon_instances].map do |domain, setting|
       PM::Stream.init_instance_stream(domain)
-    }
+    end
+  end
+
+  # 起動時
+  Thread.new {
+    Plugin.call(:worldon_restart_all_stream)
   }
 
 
@@ -110,11 +115,62 @@ Plugin.create(:worldon) do
     [world]
   end
 
+  # インスタンスストリームを必要に応じて再起動
+  on_worldon_instance_restart_stream do |domain, retrieve = true|
+    if instance.retrieve != retrieve
+      instance.retrieve = retrieve
+      instance.store
+    end
+
+    PM::Stream.remove_instance_stream(domain)
+    if retrieve
+      PM::Stream.init_instance_stream(domain)
+    end
+  end
+
+  on_userconfig_modify do |key, value|
+    if key == :worldon_enable_streaming
+      Plugin.call(:worldon_restart_all_stream)
+    end
+  end
+
+  # インスタンス追加
+  on_worldon_instance_create do |domain|
+    # 設定＞インスタンス追加の場合は追加済み
+    # world追加時はcreate_or_updateの方が呼ばれるのでここで追加する必要はない
+    PM::Stream.init_instance_stream(domain)
+  end
+
+  # インスタンス編集
+  on_worldon_instance_update do |domain|
+    instance = PM::Instance.load(domain)
+    next if instance.nil? # 既存にない
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
+  end
+
+  # world追加時用
+  on_worldon_instance_create_or_update do |domain|
+    instance = PM::Instance.load(domain)
+    if instance.nil?
+      instance = PM::Instance.add(domain)
+    end
+    next if instance.nil? # 既存にない＆接続失敗
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
+  end
+
+  # インスタンス削除
+  on_worldon_instance_delete do |domain|
+    PM::Stream.remove_instance_stream(domain)
+    UserConfig[:worldon_instances].delete(domain)
+  end
+
   # world追加
   on_world_create do |world|
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
-        PM::Stream.init_instance_stream(world.domain)
+        Plugin.call(:worldon_instance_create_or_update, world.domain, true)
         PM::Stream.init_auth_stream(world)
       }
     end
@@ -124,7 +180,13 @@ Plugin.create(:worldon) do
   on_world_destroy do |world|
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
-        PM::Stream.remove_instance_stream(world.domain)
+        worlds = Plugin.filtering(:worldon_worlds, nil).first
+        # 他のworldで使わなくなったものは削除してしまう。
+        # filter_worldsから削除されるのはココと同様にon_world_destroyのタイミングらしいので、
+        # この時点では削除済みである保証はなく、そのためworld.slugで判定する必要がある（はず）。
+        unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
+          Plugin.call(:worldon_instance_delete, world.domain)
+        end
         PM::Stream.remove_auth_stream(world)
       }
     end
@@ -144,10 +206,16 @@ Plugin.create(:worldon) do
 
       instance = PM::Instance.load(domain)
       if instance.nil?
-        error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"
-      else
-        break
+        # 既存にないので追加
+        instance = PM::Instance.add(domain)
+        if instance.nil?
+          # 追加失敗
+          error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"
+          next
+        end
       end
+
+      break
     end
 
     label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'

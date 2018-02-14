@@ -7,8 +7,6 @@ module Plugin::Worldon
     field.string :client_secret, required: true
     field.bool :retrieve, required: true
 
-    alias_method :retrieve?, :retrieve
-
     class << self
       def datasource_slug(domain, type)
         case type
@@ -39,43 +37,59 @@ module Plugin::Worldon
         end
       end
 
-      def load(domain)
-        if !UserConfig[:worldon_instances][domain].nil?
-          client_key = UserConfig[:worldon_instances][domain][:client_key]
-          client_secret = UserConfig[:worldon_instances][domain][:client_secret]
-          retrieve = UserConfig[:worldon_instances][domain][:retrieve]
-        else
-          resp = Plugin::Worldon::API.call(:post, domain, '/api/v1/apps',
-                                           client_name: Plugin::Worldon::CLIENT_NAME,
-                                           redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
-                                           scopes: 'read write follow',
-                                           website: Plugin::Worldon::WEB_SITE
-                                          )
-          return nil if resp.nil?
-          client_key = resp[:client_id]
-          client_secret = resp[:client_secret]
-          retrieve = true
-          add_datasources(domain)
-        end
-        instance = self.new(
+      def add(domain, retrieve = true)
+        return nil if UserConfig[:worldon_instances].has_key?(domain)
+
+        resp = Plugin::Worldon::API.call(:post, domain, '/api/v1/apps',
+                                         client_name: Plugin::Worldon::CLIENT_NAME,
+                                         redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
+                                         scopes: 'read write follow',
+                                         website: Plugin::Worldon::WEB_SITE
+                                        )
+        return nil if resp.nil?
+        add_datasources(domain)
+
+        self.new(
           domain: domain,
-          client_key: client_key,
-          client_secret: client_secret,
-          retrieve: retrieve
-        )
+          client_key: resp[:client_id],
+          client_secret: resp[:client_secret],
+          retrieve: retrieve,
+        ).store
+      end
+
+      def load(domain)
         if UserConfig[:worldon_instances][domain].nil?
-          instance.store
+          nil
+        else
+          self.new(
+            domain: domain,
+            client_key: UserConfig[:worldon_instances][domain][:client_key],
+            client_secret: UserConfig[:worldon_instances][domain][:client_secret],
+            retrieve: UserConfig[:worldon_instances][domain][:retrieve],
+          )
         end
-        instance
+      end
+
+      def remove(domain)
+        remove_datasources(domain)
+        UserConfig[:worldon_instances].delete(domain)
       end
 
       def domains
         UserConfig[:worldon_instances].keys.dup
       end
+
+      def settings
+        UserConfig[:worldon_instances].map do |domain, value|
+          { domain: domain, retrieve: value[:retrieve] }
+        end
+      end
     end # class instance
 
     def store
-      UserConfig[:worldon_instances][domain] = { client_key: client_key, client_secret: client_secret, retrieve: retrieve }
+      configs = UserConfig[:worldon_instances].dup
+      configs[domain] = { client_key: client_key, client_secret: client_secret, retrieve: retrieve }
+      UserConfig[:worldon_instances] = configs
       self
     end
 
@@ -88,5 +102,6 @@ module Plugin::Worldon
       })
       'https://' + domain + '/oauth/authorize?' + params
     end
+
   end
 end

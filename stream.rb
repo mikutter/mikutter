@@ -43,6 +43,29 @@ module Plugin::Worldon
         notice "Worldon::Stream.killall done"
       end
 
+      def restart_all
+        settings = {}
+        wss = []
+        @@mutex.synchronize {
+          @@streams.each do |datasource_slug, hash|
+            settings[datasource_slug] = {
+              domain: hash[:domain],
+              type: hash[:type],
+              access_token: hash[:access_token],
+              list_id: hash[:list_id],
+            }
+            wss.push hash[:ws]
+          end
+          @@streams = {}
+        }
+        wss.each do |ws|
+          ws.close
+        end
+        settings.each do |datasource_slug, hash|
+          Plugin.call(:worldon_start_stream, hash[:domain], hash[:type], datasource_slug, hash[:token], hash[:list_id])
+        end
+      end
+
       def start(domain, type, datasource_slug, access_token = nil, list_id = nil)
         url = 'wss://' + domain + '/api/v1/streaming?stream=' + type
         if !access_token.nil?
@@ -84,9 +107,8 @@ module Plugin::Worldon
             type: type,
             access_token: access_token,
             list_id: list_id,
-            ws: nil,
+            ws: ws,
           }
-          @@streams[datasource_slug][:ws] = ws
         }
 
         notice "Worldon::Stream.start #{datasource_slug} done"
@@ -192,6 +214,8 @@ module Plugin::Worldon
 
       # FTL・LTLのdatasource追加＆開始
       def init_instance_stream (domain)
+        return if !UserConfig[:worldon_enable_streaming]
+
         instance = Instance.load(domain)
 
         Instance.add_datasources(domain)
@@ -206,18 +230,15 @@ module Plugin::Worldon
 
       # FTL・LTLの終了
       def remove_instance_stream (domain)
-        worlds = Plugin.filtering(:worldon_worlds, nil).first.select{|world|
-          world.domain == domain
-        }
-        if worlds.empty?
-          Stream.kill Instance.datasource_slug(domain, :federated)
-          Stream.kill Instance.datasource_slug(domain, :local)
-          Instance.remove_datasources(domain)
-        end
+        Stream.kill Instance.datasource_slug(domain, :federated)
+        Stream.kill Instance.datasource_slug(domain, :local)
+        Instance.remove_datasources(domain)
       end
 
       # HTL・通知のdatasource追加＆開始
       def init_auth_stream (world)
+        return if !UserConfig[:worldon_enable_streaming]
+
         lists = world.get_lists!
 
         Plugin[:worldon].filter_extract_datasources do |dss|
