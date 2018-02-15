@@ -1,55 +1,28 @@
 # -*- coding: utf-8 -*-
 
-require_relative 'model'
-require_relative 'world'
-require_relative 'api'
-require_relative 'instance'
-require_relative 'stream'
-
 module Plugin::Worldon
+  PM = Plugin::Worldon
   CLIENT_NAME = 'mikutter Worldon'
   WEB_SITE = 'https://github.com/cobodo/mikutter-worldon'
 end
 
 Plugin.create(:worldon) do
   PM = Plugin::Worldon
+end
 
-  # 各インスタンス向けアプリケーションキー用のストレージを確保しておく
-  keys = at(:instances)
-  if keys.nil?
-    keys = Hash.new
-    store(:instances, keys)
-  end
+require_relative 'api'
+require_relative 'model/model'
+require_relative 'stream'
+require_relative 'spell'
+require_relative 'setting'
 
-  # ストリーム開始＆直近取得イベント
-  defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
-
+Plugin.create(:worldon) do
   defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
     open(url)
   end
 
-  defevent :worldon_worlds, prototype: [NilClass]
-
-  # すべてのworldon worldを返す
-  filter_worldon_worlds do
-    [Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.select{|world|
-      world.class.slug == :worldon_for_mastodon
-    }.to_a]
-  end
-
-  defevent :current_worldon, prototype: [NilClass]
-
-  # world_currentがworldonならそれを、そうでなければ適当に探す。
-  filter_current_worldon do
-    world, = Plugin.filtering(:world_current, nil)
-    if world.class.slug != :worldon_for_mastodon
-      worlds, = Plugin.filter(:worldon_worlds, nil)
-      world = worlds.first
-    end
-    [world]
-  end
+  # ストリーム開始＆直近取得イベント
+  defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
 
   # ストリーム開始＆直近取得
   on_worldon_start_stream do |domain, type, slug, token, list_id|
@@ -80,6 +53,7 @@ Plugin.create(:worldon) do
     if domain.nil?
       puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
       pp tl.select{|status| status.domain.nil? }
+      $stdout.flush
     end
     Plugin.call :extract_receive_message, slug, tl
 
@@ -96,8 +70,10 @@ Plugin.create(:worldon) do
     PM::Stream.killall
   end
 
-  # 起動時
-  Thread.new {
+  # すべてのストリームを再起動
+  on_worldon_restart_all_stream do
+    PM::Stream.killall
+
     worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|
@@ -105,120 +81,104 @@ Plugin.create(:worldon) do
       PM::Stream.init_auth_stream(world)
     end
 
-    worlds.map{|world|
-      world.domain
-    }.to_a.uniq.each{|domain|
+    UserConfig[:worldon_instances].map do |domain, setting|
       PM::Stream.init_instance_stream(domain)
-    }
+    end
+  end
+
+  # 起動時
+  Thread.new {
+    Plugin.call(:worldon_restart_all_stream)
   }
 
 
-  # spell系
-
-  # 投稿
-  defspell(:compose, :worldon_for_mastodon, condition: -> (world) { true }) do |world, body:, **opts|
-    # TODO: PostBoxから渡ってくるoptsを適当に変換する
-    if opts[:visibility].nil?
-      opts.delete :visibility
-    end
-    world.post(body, opts)
-  end
-
-  defspell(:compose, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { true }
-          ) do |world, status, body:, **opts|
-    # TODO: PostBoxから渡ってくるoptsを適当に変換する
-    if opts[:visibility].nil?
-      opts.delete :visibility
-    end
-    status_id = status.id
-    _status_id = PM::API.get_local_status_id(world, status)
-    if !_status_id.nil?
-      status_id = _status_id
-      opts[:in_reply_to_id] = status_id
-      hash = world.post(body, opts)
-      if hash.nil?
-        warn "投稿に失敗したかもしれません"
-        pp hash
-        nil
-      else
-        new_status = PM::Status.build(world.domain, [hash]).first
-        Plugin.call(:posted, world, [new_status])
-        Plugin.call(:update, world, [new_status])
-        new_status
-      end
-    else
-      warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
-      nil
-    end
-  end
-
-  # ふぁぼ
-  defevent :worldon_favorite, prototype: [PM::World, PM::Status]
-
-  # ふぁぼる
-  on_worldon_favorite do |world, status|
-    # TODO: guiなどの他plugin向け通知イベントの調査
-    status_id = PM::API.get_local_status_id(world, status.actual_status)
-    if !status_id.nil?
-      Plugin.call(:before_favorite, world, world.account, status)
-      ret = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
-      if ret.nil? || ret[:error]
-        Plugin.call(:fail_favorite, world, world.account, status)
-      else
-        status.actual_status.favourited = true
-        Plugin.call(:favorite, world, world.account, status)
-      end
-    end
-  end
-
-  defspell(:favorite, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { !status.actual_status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
-          ) do |world, status|
-    Plugin.call(:worldon_favorite, world, status.actual_status)
-  end
-
-  defspell(:favorited, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { status.actual_status.favorite? } # TODO: worldを使って正しく判定する
-          ) do |world, status|
-    Delayer::Deferred.new.next {
-      status.actual_status.favorite? # TODO: 何を返せばいい？
-    }
-  end
-
-  # ブーストイベント
-  defevent :worldon_share, prototype: [PM::World, PM::Status]
-
-  # ブースト
-  on_worldon_share do |world, status|
-    world.reblog(status).next{|shared|
-      Plugin.call(:posted, world, [shared])
-      Plugin.call(:update, world, [shared])
-    }
-  end
-
-  defspell(:share, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { !status.actual_status.shared? } # TODO: shared?の引数にworldを取って正しく判定できるようにする
-          ) do |world, status|
-    world.reblog status
-  end
-
-  defspell(:shared, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { status.actual_status.shared? } # TODO: worldを使って正しく判定する
-          ) do |world, status|
-    Delayer::Deferred.new.next {
-      status.actual_status.shared? # TODO: 何を返せばいい？
-    }
-  end
-
-
   # world系
+
+  defevent :worldon_worlds, prototype: [NilClass]
+
+  # すべてのworldon worldを返す
+  filter_worldon_worlds do
+    [Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :worldon_for_mastodon
+    }.to_a]
+  end
+
+  defevent :current_worldon, prototype: [NilClass]
+
+  # world_currentがworldonならそれを、そうでなければ適当に探す。
+  filter_current_worldon do
+    world, = Plugin.filtering(:world_current, nil)
+    if world.class.slug != :worldon_for_mastodon
+      worlds, = Plugin.filter(:worldon_worlds, nil)
+      world = worlds.first
+    end
+    [world]
+  end
+
+  # インスタンスストリームを必要に応じて再起動
+  on_worldon_instance_restart_stream do |domain, retrieve = true|
+    instance = PM::Instance.load(domain)
+    if instance.retrieve != retrieve
+      instance.retrieve = retrieve
+      instance.store
+    end
+
+    PM::Stream.remove_instance_stream(domain)
+    if retrieve
+      PM::Stream.init_instance_stream(domain)
+    end
+  end
+
+  on_userconfig_modify do |key, value|
+    if key == :worldon_enable_streaming
+      Plugin.call(:worldon_restart_all_stream)
+    end
+  end
+
+  # 別プラグインからインスタンスを追加してストリームを開始する例
+  # domain = 'friends.nico'
+  # instance, = Plugin.filtering(:worldon_add_instance, domain)
+  # Plugin.call(:worldon_instance_restart_stream, instance.domain) if instance
+  filter_worldon_add_instance do |domain|
+    [PM::Instance.add(domain)]
+  end
+
+  # インスタンス編集
+  on_worldon_instance_update do |domain|
+    instance = PM::Instance.load(domain)
+    next if instance.nil? # 既存にない
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
+  end
+
+  # world追加時用
+  on_worldon_instance_create_or_update do |domain|
+    instance = PM::Instance.load(domain)
+    if instance.nil?
+      instance, = Plugin.filtering(:worldon_add_instance, domain)
+    end
+    next if instance.nil? # 既存にない＆接続失敗
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
+  end
+
+  # インスタンス削除
+  on_worldon_instance_delete do |domain|
+    PM::Stream.remove_instance_stream(domain)
+    if UserConfig[:worldon_instances].has_key?(domain)
+      config = UserConfig[:worldon_instances].dup
+      config.delete(domain)
+      UserConfig[:worldon_instances] = config
+    end
+  end
 
   # world追加
   on_world_create do |world|
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
-        PM::Stream.init_instance_stream(world.domain)
+        Plugin.call(:worldon_instance_create_or_update, world.domain, true)
         PM::Stream.init_auth_stream(world)
       }
     end
@@ -228,7 +188,13 @@ Plugin.create(:worldon) do
   on_world_destroy do |world|
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
-        PM::Stream.remove_instance_stream(world.domain)
+        worlds = Plugin.filtering(:worldon_worlds, nil).first
+        # 他のworldで使わなくなったものは削除してしまう。
+        # filter_worldsから削除されるのはココと同様にon_world_destroyのタイミングらしいので、
+        # この時点では削除済みである保証はなく、そのためworld.slugで判定する必要がある（はず）。
+        unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
+          Plugin.call(:worldon_instance_delete, world.domain)
+        end
         PM::Stream.remove_auth_stream(world)
       }
     end
@@ -248,10 +214,16 @@ Plugin.create(:worldon) do
 
       instance = PM::Instance.load(domain)
       if instance.nil?
-        error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"
-      else
-        break
+        # 既存にないので追加
+        instance, = Plugin.filtering(:worldon_add_instance, domain)
+        if instance.nil?
+          # 追加失敗
+          error_msg = "#{domain} インスタンスへの接続に失敗しました。やり直してください。"
+          next
+        end
       end
+
+      break
     end
 
     label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'

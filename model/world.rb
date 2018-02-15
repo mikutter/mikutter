@@ -1,6 +1,3 @@
-require_relative 'model'
-require_relative 'api'
-
 module Plugin::Worldon
   class World < Diva::Model
     register :worldon_for_mastodon, name: "Mastodonアカウント(Worldon)"
@@ -89,6 +86,7 @@ module Plugin::Worldon
       if new_status_hash.nil? || new_status_hash.has_key?(:error)
         error 'failed reblog request'
         pp new_status_hash
+        $stdout.flush
         return nil
       end
 
@@ -108,6 +106,7 @@ module Plugin::Worldon
           end
         rescue Exception => e
           pp e
+          $stdout.flush
           promise.fail(e)
         end
       end
