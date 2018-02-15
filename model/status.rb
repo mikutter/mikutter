@@ -368,6 +368,13 @@ module Plugin::Worldon
       ancestors + [self] + descendants
     end
 
+    def ancestors(force_retrieve=false)
+      resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
+      return [self] if resp.nil?
+      ancestors = Status.build(domain, resp[:ancestors])
+      [self] + ancestors.reverse
+    end
+
     # 返信表示用
     def has_receive_message?
       !in_reply_to_id.nil?
