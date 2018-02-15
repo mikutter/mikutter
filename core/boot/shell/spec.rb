@@ -3,6 +3,7 @@
 
 require "fileutils"
 require 'ripper'
+miquire :boot, "delayer"
 miquire :core, "userconfig"
 
 # イカサマ依存関係自動解決クラス。
