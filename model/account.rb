@@ -74,7 +74,7 @@ module Plugin::Worldon
     end
 
     def icon
-      Plugin.filtering(:photo_filter, avatar, [])[1].first
+      Plugin.filtering(:photo_filter, avatar_static, [])[1].first
     end
   end
 end

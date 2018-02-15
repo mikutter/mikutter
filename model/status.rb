@@ -71,29 +71,33 @@ module Plugin::Worldon
         return build(domain_name, [json]) if json.is_a? Hash
         json.map do |record|
           record[:domain] = domain_name
+          has_reblog = false
           if record[:reblog]
+            has_reblog = true
             record[:reblog][:domain] = domain_name
           end
+          uri = record[:uri]
 
-          status = @@storage[record[:uri]]
-          if status.nil?
-            has_reblog = false
-            if !record[:reblog].nil?
+          status = @@storage[uri]
+          if status
+            status = status.merge(domain_name, record)
+          else
+            if has_reblog
               reblog = @@storage[record[:reblog][:uri]]
-              if !reblog.nil?
-                has_reblog = true
+              if reblog
                 reblog.merge(domain_name, record[:reblog])
-                record.delete(:reblog) # 入れ子newされないように消しておく
+              else
+                reblog = Status.new(record[:reblog])
               end
+              record.delete(:reblog) # 入れ子newされないように消しておく
             end
-            @@storage[record[:uri]] = Status.new(record).tap do |st|
+            status = Status.new(record).tap do |st|
               if has_reblog
                 st.reblog = reblog # 消しておいたreblogを再代入
               end
             end
-          else
-            @@storage[record[:uri]] = @@storage[record[:uri]].merge(domain_name, record)
           end
+          @@storage[uri] = status
         end.compact
       end
 
@@ -310,6 +314,13 @@ module Plugin::Worldon
       end
     end
 
+    # Message#.introducer
+    # 本当はreblogがあればreblogをreblogした最後のStatusを返す
+    # reblogがなければselfを返す
+    def introducer(world = nil)
+      self
+    end
+
     # quoted_message用
     def quoting?
       content = actual_status.content
@@ -355,6 +366,13 @@ module Plugin::Worldon
       ancestors = Status.build(domain, resp[:ancestors])
       descendants = Status.build(domain, resp[:descendants])
       ancestors + [self] + descendants
+    end
+
+    def ancestors(force_retrieve=false)
+      resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
+      return [self] if resp.nil?
+      ancestors = Status.build(domain, resp[:ancestors])
+      [self] + ancestors.reverse
     end
 
     # 返信表示用
