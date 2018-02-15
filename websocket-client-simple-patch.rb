@@ -14,6 +14,7 @@ class WebSocket::Client::Simple::Client
         end
       end
       @socket = ::OpenSSL::SSL::SSLSocket.new(@socket, context)
+      @socket.hostname = host
       @socket.connect
     end
     @socket
