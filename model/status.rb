@@ -310,6 +310,13 @@ module Plugin::Worldon
       end
     end
 
+    # Message#.introducer
+    # 本当はreblogがあればreblogをreblogした最後のStatusを返す
+    # reblogがなければselfを返す
+    def introducer(world = nil)
+      self
+    end
+
     # quoted_message用
     def quoting?
       content = actual_status.content
