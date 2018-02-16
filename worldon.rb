@@ -15,6 +15,7 @@ require_relative 'model/model'
 require_relative 'stream'
 require_relative 'spell'
 require_relative 'setting'
+require_relative 'subparts_visibility'
 
 Plugin.create(:worldon) do
   defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
