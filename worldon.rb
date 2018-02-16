@@ -56,7 +56,6 @@ Plugin.create(:worldon) do
       pp tl.select{|status| status.domain.nil? }
       $stdout.flush
     end
-    Plugin.call :update, tl
     Plugin.call :extract_receive_message, slug, tl
 
     reblogs = tl.select{|status| status.reblog? }
