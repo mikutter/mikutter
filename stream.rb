@@ -126,7 +126,7 @@ module Plugin::Worldon
         data = JSON.parse(event.data, symbolize_names: true)
         #pp data
         if data[:event] == 'update'
-          update_handler(domain, datasource_slug, data)
+          update_handler(domain, datasource_slug, access_token, data)
         elsif data[:event] == 'delete'
           # 消す必要ある？
           # pawooは一定時間後（1分～7日後）に自動消滅するtootができる拡張をしている。
@@ -144,12 +144,13 @@ module Plugin::Worldon
         end
       end
 
-      def update_handler(domain, datasource_slug, data)
+      def update_handler(domain, datasource_slug, access_token, data)
         payload = JSON.parse(data[:payload], symbolize_names: true)
         status = Plugin::Worldon::Status.build(domain, [payload]).first
         Plugin.call(:extract_receive_message, datasource_slug, [status])
         Plugin.call(:worldon_appear_toots, [status])
-        Plugin.call(:update, [status])
+        world = stream_world(domain, access_token)
+        Plugin.call(:update, world, [status])
         if (status&.reblog).is_a?(Status)
           Plugin.call(:retweet, [status])
           world = status.to_me_world

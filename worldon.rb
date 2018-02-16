@@ -15,9 +15,10 @@ require_relative 'model/model'
 require_relative 'stream'
 require_relative 'spell'
 require_relative 'setting'
+require_relative 'subparts_visibility'
 
 Plugin.create(:worldon) do
-  defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
+  defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+\Z>) do |url|
     open(url)
   end
 
@@ -55,7 +56,6 @@ Plugin.create(:worldon) do
       pp tl.select{|status| status.domain.nil? }
       $stdout.flush
     end
-    Plugin.call :update, tl
     Plugin.call :extract_receive_message, slug, tl
 
     reblogs = tl.select{|status| status.reblog? }
