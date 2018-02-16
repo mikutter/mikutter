@@ -1,5 +1,5 @@
 module Plugin::Worldon
-  class InstanceSettingList < ::Gtk::CRUD
+  class InstanceSettingList < ::Gtk::TreeView
     COL_DOMAIN = 0
 
     def initialize()
