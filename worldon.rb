@@ -18,7 +18,7 @@ require_relative 'setting'
 require_relative 'subparts_visibility'
 
 Plugin.create(:worldon) do
-  defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/\w+>) do |url|
+  defimageopener('Mastodon添付画像', %r<https?://[^/]+/media/[0-9A-Za-z_-]+>) do |url|
     open(url)
   end
 
