@@ -98,7 +98,9 @@ module Plugin::Worldon
             end
           end
           @@storage[uri] = status
-        end.compact
+        end.compact.tap do |statuses|
+          Plugin.call(:worldon_appear_toots, statuses)
+        end
       end
 
       # fediverse uriで検索する。
