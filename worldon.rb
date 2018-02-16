@@ -66,6 +66,15 @@ Plugin.create(:worldon) do
 
   defevent :worldon_appear_toots, prototype: [[PM::Status]]
 
+  filter_extract_datasources do |dss|
+    datasources = { worldon_appear_toots: "受信したすべてのトゥート(Worldon)" }
+    [datasources.merge(dss)]
+  end
+
+  on_worldon_appear_toots do |statuses|
+    Plugin.call(:extract_receive_message, :worldon_appear_toots, statuses)
+  end
+
   # 終了時
   onunload do
     PM::Stream.killall
