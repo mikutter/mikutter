@@ -1,5 +1,6 @@
 module Plugin::Worldon
   class InstanceSettingList < ::Gtk::TreeView
+    extend Memoist
     COL_DOMAIN = 0
 
     def initialize()
