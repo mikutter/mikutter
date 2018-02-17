@@ -85,7 +85,7 @@ Plugin.create(:worldon) do
   end
 
   defspell(:share, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { !status.actual_status.shared? } # TODO: shared?の引数にworldを取って正しく判定できるようにする
+           condition: -> (world, status) { status.rebloggable? } # TODO: rebloggable?の引数にworldを取って正しく判定できるようにする
           ) do |world, status|
     world.reblog status
   end

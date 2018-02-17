@@ -457,5 +457,9 @@ module Plugin::Worldon
         [self]
       end
     end
+
+    def rebloggable?
+      !actual_status.shared? && actual_status.visibility != 'private' && actual_status.visibility != 'direct'
+    end
   end
 end
