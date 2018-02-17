@@ -38,7 +38,8 @@ echo "--> install gems"
 # for Travis CI, disable RVM
 GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install
+# only install default group
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without="test plugin"
 
 echo "--> remove doc, man, ri"
 rm -rf "$APP_DIR/usr/share"
@@ -50,6 +51,7 @@ cp -av core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
 # NOTE GI_TYPELIB_PATH must be a absolute path
 # set GEM_PATH not to load host's gems
 # set GEM_HOME to install additional dependencies of mikutter plugins
+# install gems on which mikutter plugins depend
 cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
 
@@ -58,9 +60,7 @@ export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
 export GEM_HOME=\$HOME/.mikutter/gems
 export GEM_PATH=\$PWD/lib/ruby/gems/2.3.0:\$GEM_HOME
 
-if [ "\$1" = "bundle_install" ]; then
-  exec bin/ruby bin/bundle install
-fi
+bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile --with=plugin --without="default test"
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
