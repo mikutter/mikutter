@@ -46,6 +46,7 @@ rm -rf "$APP_DIR/usr/share"
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 cp -av core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
+# $PWD is $APP_DIR/usr
 # NOTE GI_TYPELIB_PATH must be a absolute path
 # set GEM_PATH not to load host's gems
 # set GEM_HOME to install additional dependencies of mikutter plugins
@@ -57,7 +58,7 @@ export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
 export GEM_HOME=\$HOME/.mikutter/gems
 export GEM_PATH=\$PWD/lib/ruby/gems/2.3.0:\$GEM_HOME
 
-if [ "\$1" = "setup_plugins" ]; then
+if [ "\$1" = "bundle_install" ]; then
   exec bin/ruby bin/bundle install
 fi
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
