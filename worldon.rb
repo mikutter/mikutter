@@ -120,7 +120,7 @@ Plugin.create(:worldon) do
         unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
           Plugin.call(:worldon_instance_delete, world.domain)
         end
-        Plugin.call(:worldon_remove_instance_stream, world)
+        Plugin.call(:worldon_remove_auth_stream, world)
       }
     end
   end
