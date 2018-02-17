@@ -47,25 +47,8 @@ rm -rf "$APP_DIR/usr/share"
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
-# NOTE copy .bundle/config to load `--without=test` option
 cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
-# $PWD is $APP_DIR/usr
-# NOTE GI_TYPELIB_PATH must be a absolute path
-# set GEM_PATH not to load host's gems
-# set GEM_HOME to install additional dependencies of mikutter plugins
-# install gems on which mikutter plugins depend
-# NOTE `--without=test` is persistent by .bundle/config
-cat > $APP_DIR/usr/bin/mikutter << EOF
-#!/bin/sh
-
-export DISABLE_BUNDLER_SETUP=1
-export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
-export GEM_HOME=\$HOME/.mikutter/gems
-export GEM_PATH=\$PWD/lib/ruby/gems/2.3.0:\$GEM_HOME
-
-bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile
-exec bin/ruby share/mikutter/mikutter.rb "\$@"
-EOF
+cp -v scripts/mikutter $APP_DIR/usr/bin/mikutter
 chmod a+x $APP_DIR/usr/bin/mikutter
 
 echo "--> get helper functions"

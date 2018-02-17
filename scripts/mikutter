@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# $PWD is $APP_DIR/usr
+
+export DISABLE_BUNDLER_SETUP=1
+# NOTE GI_TYPELIB_PATH must be a absolute path
+export GI_TYPELIB_PATH=$PWD/lib/girepository-1.0
+# set GEM_PATH not to load host's gems
+export GEM_PATH=$PWD/lib/ruby/gems/2.3.0
+
+# install additional dependencies of mikutter plugins
+mkdir -p ~/.mikutter/plugin || true
+for d in ~/.mikutter/plugin/*; do
+  if [ ! -f "$d/Gemfile" ]; then
+    continue
+  fi
+  bin/ruby bin/bundle install "--gemfile=$d/Gemfile" --path=vendor/bundler
+  export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
+done
+
+exec bin/ruby share/mikutter/mikutter.rb "$@"
