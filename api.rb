@@ -1,6 +1,7 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'openssl'
 
 module Plugin::Worldon
   class API

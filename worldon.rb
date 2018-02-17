@@ -12,56 +12,17 @@ end
 
 require_relative 'api'
 require_relative 'model/model'
-require_relative 'stream'
+#require_relative 'stream'
 require_relative 'spell'
 require_relative 'setting'
 require_relative 'subparts_visibility'
 
+require_relative 'sse_client'
+require_relative 'sse_stream'
+
 Plugin.create(:worldon) do
   defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+\Z>) do |url|
     open(url)
-  end
-
-  # ストリーム開始＆直近取得イベント
-  defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
-
-  # ストリーム開始＆直近取得
-  on_worldon_start_stream do |domain, type, slug, token, list_id|
-    # ストリーム開始
-    PM::Stream.start(domain, type, slug, token, list_id)
-
-    # 直近の分を取得
-    opts = { limit: 40 }
-    path_base = '/api/v1/timelines/'
-    case type
-    when 'user'
-      path = path_base + 'home'
-    when 'public'
-      path = path_base + 'public'
-    when 'public:local'
-      path = path_base + 'public'
-      opts[:local] = 1
-    when 'list'
-      path = path_base + 'list/' + list_id.to_s
-    end
-    hashes = PM::API.call(:get, domain, path, token, opts)
-    next if hashes.nil?
-    arr = hashes
-    if (hashes.is_a?(Hash) && hashes[:array].is_a?(Array))
-      arr = hashes[:array]
-    end
-    tl = PM::Status.build(domain, arr)
-    if domain.nil?
-      puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
-      pp tl.select{|status| status.domain.nil? }
-      $stdout.flush
-    end
-    Plugin.call :extract_receive_message, slug, tl
-
-    reblogs = tl.select{|status| status.reblog? }
-    if !reblogs.empty?
-      Plugin.call(:retweet, reblogs)
-    end
   end
 
   defevent :worldon_appear_toots, prototype: [[PM::Status]]
@@ -73,27 +34,6 @@ Plugin.create(:worldon) do
 
   on_worldon_appear_toots do |statuses|
     Plugin.call(:extract_receive_message, :worldon_appear_toots, statuses)
-  end
-
-  # 終了時
-  onunload do
-    PM::Stream.killall
-  end
-
-  # すべてのストリームを再起動
-  on_worldon_restart_all_stream do
-    PM::Stream.killall
-
-    worlds, = Plugin.filtering(:worldon_worlds, nil)
-
-    worlds.each do |world|
-      world.update_mutes!
-      PM::Stream.init_auth_stream(world)
-    end
-
-    UserConfig[:worldon_instances].map do |domain, setting|
-      PM::Stream.init_instance_stream(domain)
-    end
   end
 
   # 起動時
@@ -127,20 +67,6 @@ Plugin.create(:worldon) do
     [world]
   end
 
-  # インスタンスストリームを必要に応じて再起動
-  on_worldon_instance_restart_stream do |domain, retrieve = true|
-    instance = PM::Instance.load(domain)
-    if instance.retrieve != retrieve
-      instance.retrieve = retrieve
-      instance.store
-    end
-
-    PM::Stream.remove_instance_stream(domain)
-    if retrieve
-      PM::Stream.init_instance_stream(domain)
-    end
-  end
-
   on_userconfig_modify do |key, value|
     if key == :worldon_enable_streaming
       Plugin.call(:worldon_restart_all_stream)
@@ -163,20 +89,9 @@ Plugin.create(:worldon) do
     Plugin.call(:worldon_instance_restart_stream, domain)
   end
 
-  # world追加時用
-  on_worldon_instance_create_or_update do |domain|
-    instance = PM::Instance.load(domain)
-    if instance.nil?
-      instance, = Plugin.filtering(:worldon_add_instance, domain)
-    end
-    next if instance.nil? # 既存にない＆接続失敗
-
-    Plugin.call(:worldon_instance_restart_stream, domain)
-  end
-
   # インスタンス削除
   on_worldon_instance_delete do |domain|
-    PM::Stream.remove_instance_stream(domain)
+    Plugin.call(:worldon_remove_instance_stream, domain)
     if UserConfig[:worldon_instances].has_key?(domain)
       config = UserConfig[:worldon_instances].dup
       config.delete(domain)
@@ -189,7 +104,7 @@ Plugin.create(:worldon) do
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
         Plugin.call(:worldon_instance_create_or_update, world.domain, true)
-        PM::Stream.init_auth_stream(world)
+        Plugin.call(:worldon_init_auth_stream, world)
       }
     end
   end
@@ -205,9 +120,20 @@ Plugin.create(:worldon) do
         unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
           Plugin.call(:worldon_instance_delete, world.domain)
         end
-        PM::Stream.remove_auth_stream(world)
+        Plugin.call(:worldon_remove_instance_stream, world)
       }
     end
+  end
+
+  # world追加時用
+  on_worldon_instance_create_or_update do |domain|
+    instance = PM::Instance.load(domain)
+    if instance.nil?
+      instance, = Plugin.filtering(:worldon_add_instance, domain)
+    end
+    next if instance.nil? # 既存にない＆接続失敗
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
   end
 
   # world作成
@@ -259,7 +185,7 @@ Plugin.create(:worldon) do
     account = PM::Account.new(resp)
     world = PM::World.new(
       id: screen_name,
-      slug: screen_name,
+      slug: :"worldon:#{screen_name}",
       domain: domain,
       access_token: token,
       account: account
