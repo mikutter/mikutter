@@ -165,10 +165,14 @@ Plugin.create(:sse_client) do
   on_sse_kill_connection do |slug|
     thread = nil
     mutex.synchronize {
-      thread = connections[slug][:thread]
-      connections.delete(slug)
+      if connections.has_key? slug
+        thread = connections[slug][:thread]
+        connections.delete(slug)
+      end
     }
-    thread.kill
+    if !thread.nil?
+      thread.kill
+    end
   end
 
   on_sse_kill_all do
