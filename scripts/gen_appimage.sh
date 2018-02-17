@@ -48,7 +48,7 @@ rm -rf "$APP_DIR/usr/share"
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 # NOTE copy .bundle/config to load `--without=test` option
-cp -av .bundle core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
+cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
 # $PWD is $APP_DIR/usr
 # NOTE GI_TYPELIB_PATH must be a absolute path
 # set GEM_PATH not to load host's gems
