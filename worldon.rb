@@ -99,6 +99,17 @@ Plugin.create(:worldon) do
     end
   end
 
+  # world追加時用
+  on_worldon_instance_create_or_update do |domain|
+    instance = PM::Instance.load(domain)
+    if instance.nil?
+      instance, = Plugin.filtering(:worldon_add_instance, domain)
+    end
+    next if instance.nil? # 既存にない＆接続失敗
+
+    Plugin.call(:worldon_instance_restart_stream, domain)
+  end
+
   # world追加
   on_world_create do |world|
     if world.class.slug == :worldon_for_mastodon
@@ -123,17 +134,6 @@ Plugin.create(:worldon) do
         Plugin.call(:worldon_remove_auth_stream, world)
       }
     end
-  end
-
-  # world追加時用
-  on_worldon_instance_create_or_update do |domain|
-    instance = PM::Instance.load(domain)
-    if instance.nil?
-      instance, = Plugin.filtering(:worldon_add_instance, domain)
-    end
-    next if instance.nil? # 既存にない＆接続失敗
-
-    Plugin.call(:worldon_instance_restart_stream, domain)
   end
 
   # world作成

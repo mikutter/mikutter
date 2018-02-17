@@ -23,12 +23,12 @@ module Plugin::Worldon
       case type
       when :home
         # ホームTL
-        "worldon-#{slug}-home".to_sym
+        "worldon-#{account.acct}-home".to_sym
       when :list
         # リストTL
-        "worldon-#{slug}-list-#{n}".to_sym
+        "worldon-#{account.acct}-list-#{n}".to_sym
       else
-        "worldon-#{slug}-#{type.to_s}".to_sym
+        "worldon-#{account.acct}-#{type.to_s}".to_sym
       end
     end
 

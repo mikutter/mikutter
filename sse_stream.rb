@@ -88,11 +88,11 @@ Plugin.create(:worldon) do
 
     filter_extract_datasources do |dss|
       instance = PM::Instance.load(world.domain)
-      datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.slug}" }
+      datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
       if lists.is_a? Array
         lists.each do |l|
           slug = world.datasource_slug(:list, l[:id])
-          datasources[slug] = "Mastodonリスト(Worldon)/#{world.slug}/#{l[:title]}"
+          datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
         end
       else
         warn '[worldon] failed to get lists:' + lists['error'].to_s
