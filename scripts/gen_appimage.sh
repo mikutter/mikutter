@@ -39,6 +39,7 @@ echo "--> install gems"
 GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
 # do not install test group
+# NOTE option `--without=test` is persistent by .bundle/config
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without=test
 
 echo "--> remove doc, man, ri"
@@ -46,12 +47,14 @@ rm -rf "$APP_DIR/usr/share"
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
-cp -av core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
+# NOTE copy .bundle/config to load `--without=test` option
+cp -av .bundle core mikutter.rb LICENSE README $APP_DIR/usr/share/mikutter
 # $PWD is $APP_DIR/usr
 # NOTE GI_TYPELIB_PATH must be a absolute path
 # set GEM_PATH not to load host's gems
 # set GEM_HOME to install additional dependencies of mikutter plugins
 # install gems on which mikutter plugins depend
+# NOTE `--without=test` is persistent by .bundle/config
 cat > $APP_DIR/usr/bin/mikutter << EOF
 #!/bin/sh
 
@@ -60,7 +63,7 @@ export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
 export GEM_HOME=\$HOME/.mikutter/gems
 export GEM_PATH=\$PWD/lib/ruby/gems/2.3.0:\$GEM_HOME
 
-bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile --without=test
+bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
