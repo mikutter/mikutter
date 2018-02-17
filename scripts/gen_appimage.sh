@@ -38,8 +38,8 @@ echo "--> install gems"
 # for Travis CI, disable RVM
 GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
-# only install default group
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without="test plugin"
+# do not install test group
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without=test
 
 echo "--> remove doc, man, ri"
 rm -rf "$APP_DIR/usr/share"
@@ -60,7 +60,7 @@ export GI_TYPELIB_PATH=\$PWD/lib/girepository-1.0
 export GEM_HOME=\$HOME/.mikutter/gems
 export GEM_PATH=\$PWD/lib/ruby/gems/2.3.0:\$GEM_HOME
 
-bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile --with=plugin --without="default test"
+bin/ruby bin/bundle install --gemfile=share/mikutter/Gemfile --without=test
 exec bin/ruby share/mikutter/mikutter.rb "\$@"
 EOF
 chmod a+x $APP_DIR/usr/bin/mikutter
