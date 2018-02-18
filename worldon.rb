@@ -37,7 +37,7 @@ Plugin.create(:worldon) do
   end
 
   # 起動時
-  Thread.new {
+  Delayer.new {
     Plugin.call(:worldon_restart_all_stream)
   }
 
