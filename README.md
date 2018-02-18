@@ -5,10 +5,7 @@ mikutterでMastodonへ接続するWorldプラグインです。
 以下のコマンドを実行します。
 
 ```shell-session
-mkdir -p ~/.mikutter/plugin
-git clone git://github.com/cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
-cd /path/to/mikutter
-bundle install
+mkdir -p ~/.mikutter/plugin && git clone git://github.com/cobodo/mikutter-worldon ~/.mikutter/plugin/worldon
 ```
 
 mikutterを起動して「設定＞アカウント情報＞追加」もしくは画面左上のアイコンから「Worldを追加」からWorld追加ウィザードを開き、「Mastodonアカウント(Worldon)」を選択して、指示に従ってください。
