@@ -29,7 +29,7 @@ class Gdk::SubPartsWorldonVisibility < Gdk::SubParts
   end
 
   def show_icon?
-    return nil if !helper.message.respond_to?(:visibility)
+    return false if (!UserConfig[:worldon_show_subparts_visibility] || !helper.message.respond_to?(:visibility))
     fn = filename(helper.message.visibility)
     !fn.nil?
   end
