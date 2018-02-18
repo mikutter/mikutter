@@ -391,7 +391,7 @@ module Plugin::Worldon
     def replyto_source(force_retrieve=false)
       if domain.nil?
         # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
-        world = Plugin.filtering(:current_worldon, nil)
+        world = Plugin.filtering(:worldon_current, nil)
         if !world.nil?
           # 見つかったworldでstatusを取得し、id, domain, in_reply_to_idを上書きする。
           status = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, url)
