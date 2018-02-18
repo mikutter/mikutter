@@ -1,4 +1,51 @@
 Plugin.create(:worldon) do
+  # command
+  custom_postable = Proc.new do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    world.class.slug == :worldon_for_mastodon && opt.widget.editable?
+  end
+
+  command(
+    :worldon_custom_post,
+    name: 'カスタム投稿',
+    condition: custom_postable,
+    visible: true,
+    icon: Skin['post.png'],
+    role: :postbox
+  ) do |opt|
+    i_postbox = opt.widget
+    postbox, = Plugin.filtering(:gui_get_gtk_widget, i_postbox)
+    body = postbox.widget_post.buffer.text
+    #to_list = postbox.all_options[:to]  # private methodなので無理
+    dialog "カスタム投稿" do
+      # オプションを並べる
+      input "CW警告文", :spoiler_text
+      self[:body] = body
+      multitext "本文", :body
+      boolean "メディアを閲覧注意としてマークする（添付メディアがある場合のみ）", :sensitive
+      vis_opts = {
+        public: '公開',
+        unlisted: '未収載',
+        private: '非公開',
+        direct: 'ダイレクト',
+      }
+      select "公開範囲", :visibility do
+        option :public, "公開"
+        option :unlisted, "未収載"
+        option :private, "非公開"
+        option :direct, "ダイレクト"
+      end
+      fileselect "添付メディア1", :media1
+      fileselect "添付メディア2", :media2
+      fileselect "添付メディア3", :media3
+      fileselect "添付メディア4", :media4
+    end.next do |result|
+      # 投稿
+      # まず画像をアップロード
+      # 画像がアップロードできたらcompose spellを起動
+    end
+  end
+
   # spell系
 
   # 投稿
