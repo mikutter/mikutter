@@ -2,17 +2,21 @@ require_relative 'instance_setting_list'
 
 Plugin.create(:worldon) do
   # 設定の初期化
-  UserConfig[:worldon_instances] ||= Hash.new
+  defaults = {
+    worldon_enable_streaming: true,
+    worldon_rest_interval: UserConfig[:retrieve_interval_friendtl],
+    worldon_show_subparts_visibility: true,
+  }
+  defaults.each do |key, value|
+    if UserConfig[key].nil?
+      UserConfig[key] = value
+    end
+  end
+
   instance_config = at(:instances)
   if instance_config
     UserConfig[:worldon_instances] = instance_config.merge(UserConfig[:worldon_instances])
     store(:instances, nil)
-  end
-  if UserConfig[:worldon_enable_streaming].nil?
-    UserConfig[:worldon_enable_streaming] = true
-  end
-  if UserConfig[:worldon_rest_interval].nil?
-    UserConfig[:worldon_rest_interval] = UserConfig[:retrieve_interval_friendtl]
   end
 
 
@@ -72,10 +76,13 @@ Plugin.create(:worldon) do
 
   # 設定
   settings "Worldon" do
+    settings "表示" do
+      boolean 'トゥートに公開範囲を表示する', :worldon_show_subparts_visibility
+    end
+
     settings "接続" do
       boolean 'ストリーミング接続する', :worldon_enable_streaming
-      #adjustment '接続間隔（分）', :worldon_rest_interval, 1, 60*24
-      #label "※注：ポーリングは未実装のため、ストリーミング接続しない場合、何も通信しません。\n接続間隔の設定は無視されます。"
+      adjustment '接続間隔（分）', :worldon_rest_interval, 1, 60*24
     end
 
     settings "公開タイムライン" do

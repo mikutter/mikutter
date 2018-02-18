@@ -1,6 +1,7 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'openssl'
 
 module Plugin::Worldon
   class API
@@ -31,6 +32,7 @@ module Plugin::Worldon
           #http.set_debug_output $stderr
           if uri.scheme == 'https'
             http.use_ssl = true
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
           end
 
           resp = http.start do |http|

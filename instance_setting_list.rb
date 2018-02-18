@@ -1,5 +1,5 @@
 module Plugin::Worldon
-  class InstanceSettingList < ::Gtk::TreeView
+  class InstanceSettingList < ::Gtk::CRUD
     extend Memoist
     COL_DOMAIN = 0
 
