@@ -12,13 +12,13 @@ end
 
 require_relative 'api'
 require_relative 'model/model'
-#require_relative 'stream'
 require_relative 'spell'
 require_relative 'setting'
 require_relative 'subparts_visibility'
-
 require_relative 'sse_client'
 require_relative 'sse_stream'
+
+require_relative 'rest'
 
 Plugin.create(:worldon) do
   defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+\Z>) do |url|

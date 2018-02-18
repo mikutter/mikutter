@@ -2,9 +2,18 @@ require_relative 'sse_client'
 
 Plugin.create(:worldon) do
   # ストリーム開始＆直近取得イベント
-  defevent :worldon_start_stream, prototype: [String, String, String, String, Integer]
+  defevent :worldon_start_stream, prototype: [String, String, String, PM::World, Integer]
 
-  on_worldon_start_stream do |domain, type, slug, token, list_id|
+  on_worldon_start_stream do |domain, type, slug, world, list_id|
+    next if !UserConfig[:worldon_enable_streaming]
+
+    sleep(rand(10))
+
+    token = nil
+    if world.is_a? PM::World
+      token = world.access_token
+    end
+
     base_url = 'https://' + domain + '/api/v1/streaming/'
     params = {}
     case type
@@ -61,8 +70,6 @@ Plugin.create(:worldon) do
   end
 
   on_worldon_init_instance_stream do |domain|
-    return if !UserConfig[:worldon_enable_streaming]
-
     instance = PM::Instance.load(domain)
 
     PM::Instance.add_datasources(domain)
@@ -82,8 +89,6 @@ Plugin.create(:worldon) do
   end
 
   on_worldon_init_auth_stream do |world|
-    return if !UserConfig[:worldon_enable_streaming]
-
     lists = world.get_lists!
 
     filter_extract_datasources do |dss|
@@ -101,13 +106,13 @@ Plugin.create(:worldon) do
     end
 
     # ストリーム開始
-    Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world.access_token)
+    Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
 
     if lists.is_a? Array
       lists.each do |l|
         id = l[:id].to_i
         slug = world.datasource_slug(:list, id)
-        Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world.access_token, id)
+        Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
       end
     end
   end
