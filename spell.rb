@@ -22,18 +22,13 @@ Plugin.create(:worldon) do
       input "CW警告文", :spoiler_text
       self[:body] = body
       multitext "本文", :body
-      boolean "メディアを閲覧注意としてマークする（添付メディアがある場合のみ）", :sensitive
-      vis_opts = {
-        public: '公開',
-        unlisted: '未収載',
-        private: '非公開',
-        direct: 'ダイレクト',
-      }
+      # TODO: sensitiveとvisibilityの初期値をworld_currentから取得する
+      boolean "閲覧注意", :sensitive
       select "公開範囲", :visibility do
-        option :public, "公開"
-        option :unlisted, "未収載"
-        option :private, "非公開"
-        option :direct, "ダイレクト"
+        option :"1public", "公開"
+        option :"2unlisted", "未収載"
+        option :"3private", "非公開"
+        option :"4direct", "ダイレクト"
       end
       fileselect "添付メディア1", :media1
       fileselect "添付メディア2", :media2
