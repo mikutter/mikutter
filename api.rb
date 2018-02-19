@@ -3,10 +3,51 @@ require 'json'
 require 'uri'
 require 'openssl'
 
+require "stringio"
+
 module Plugin::Worldon
+  # https://qiita.com/asukamirai/items/c950c65c6473ca8ca96c
+  class MultiPartFormDataStream
+    def initialize(name, filename, file, boundary=nil)
+      @boundary = boundary || "boundary"
+      first = [boundary_line, content_disposition(name, filename), "", ""].join(new_line)
+      last = ["", boundary_last, ""].join(new_line)
+      @first = StringIO.new(first)
+      @file = file
+      @last = StringIO.new(last)
+      @size = @first.size + @file.size + @last.size
+    end
+    def content_type
+      "multipart/form-data; boundary=#{@boundary}"
+    end
+    def boundary_line
+      "--#{@boundary}"
+    end
+    def boundary_last
+      "--#{@boundary}--"
+    end
+    def content_disposition(name, filename)
+      "content-disposition: form-data; name=\"#{name}\"; filename=\"#{filename}\""
+    end
+    def new_line
+      "\r\n"
+    end
+    def read(len=nil, buf=nil)
+      return @first.read(len, buf) unless @first.eof?
+      return @file.read(len, buf) unless @file.eof?
+      return @last.read(len, buf)
+    end
+    def size
+      @size
+    end
+    def eof?
+      @last.eof?
+    end
+  end
+
   class API
     class << self
-      def call(method, domain, path, access_token = nil, **opts)
+      def call(method, domain, path, access_token = nil, file: filepath = nil, **opts)
         begin
           url = 'https://' + domain + path
           uri = Diva::URI.new(url)
@@ -19,7 +60,21 @@ module Plugin::Worldon
             req = Net::HTTP::Get.new(path)
           when :post
             req = Net::HTTP::Post.new(uri.path)
-            req.set_form_data(opts)
+            if filepath.nil? && !opts.empty?
+              params = []
+              opts.each do |key, value|
+                if value.is_a? Array
+                  value.each do |v|
+                    params << ["#{key.to_s}[]", v]
+                  end
+                else
+                  params << [key.to_s, value]
+                end
+              end
+              req.body = URI.encode_www_form(params)
+            else
+              # TODO: ファイルアップロードとパラメータ付与が同時にあるケース
+            end
           end
 
           if !access_token.nil? && access_token.length > 0
@@ -36,7 +91,19 @@ module Plugin::Worldon
           end
 
           resp = http.start do |http|
-            http.request(req)
+            begin
+              fobj = nil
+              if method === :post && !filepath.nil?
+                fobj = File.open(filepath.to_s, "rb")
+                form_data = MultiPartFormDataStream.new('file', filepath.basename.to_s, fobj)
+                req.body_stream = form_data
+                req['Content-Length'] = form_data.size
+              end
+
+              http.request(req)
+            ensure
+              fobj.close if !fobj.nil?
+            end
           end
 
           case resp
