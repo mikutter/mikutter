@@ -73,6 +73,7 @@ Plugin.create(:worldon) do
       # 投稿
       # まず画像をアップロード
       media_ids = []
+      media_urls = []
       (1..4).each do |i|
         if result[:"media#{i}"]
           pp result[:"media#{i}"]
@@ -80,6 +81,7 @@ Plugin.create(:worldon) do
           hash = PM::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
           pp hash
           media_ids << hash[:id].to_i
+          media_urls << hash[:text_url]
         end
       end
       # 画像がアップロードできたらcompose spellを起動
@@ -88,6 +90,7 @@ Plugin.create(:worldon) do
       }
       if !media_ids.empty?
         opts[:media_ids] = media_ids
+        opts[:body] += ' ' + media_urls.join(' ')
       end
       if !result[:spoiler_text].empty?
         opts[:spoiler_text] = result[:spoiler_text]
