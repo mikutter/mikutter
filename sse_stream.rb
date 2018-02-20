@@ -142,10 +142,12 @@ Plugin.create(:worldon) do
   end
 
   on_worldon_sse_stream_restart do |slug|
-    Plugin.call(:sse_kill_connection, slug)
-    sleep(rand(3..10))
-    connection, = Plugin.filtering(:sse_connection, slug)
-    Plugin.call(:sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
+    Thread.new {
+      connection, = Plugin.filtering(:sse_connection, slug)
+      Plugin.call(:sse_kill_connection, slug)
+      sleep(rand(3..10))
+      Plugin.call(:sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
+    }
   end
 
   on_sse_connection_opening do |slug|
