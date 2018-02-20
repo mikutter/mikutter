@@ -7,33 +7,35 @@ Plugin.create(:worldon) do
   on_worldon_start_stream do |domain, type, slug, world, list_id|
     next if !UserConfig[:worldon_enable_streaming]
 
-    sleep(rand(10))
+    Thread.new {
+      sleep(rand(10))
 
-    token = nil
-    if world.is_a? PM::World
-      token = world.access_token
-    end
+      token = nil
+      if world.is_a? PM::World
+        token = world.access_token
+      end
 
-    base_url = 'https://' + domain + '/api/v1/streaming/'
-    params = {}
-    case type
-    when 'user'
-      uri = Diva::URI.new(base_url + 'user')
-    when 'public'
-      uri = Diva::URI.new(base_url + 'public')
-    when 'public:local'
-      uri = Diva::URI.new(base_url + 'public/local')
-    when 'list'
-      uri = Diva::URI.new(base_url + 'list')
-      params[:list] = list_id
-    end
+      base_url = 'https://' + domain + '/api/v1/streaming/'
+      params = {}
+      case type
+      when 'user'
+        uri = Diva::URI.new(base_url + 'user')
+      when 'public'
+        uri = Diva::URI.new(base_url + 'public')
+      when 'public:local'
+        uri = Diva::URI.new(base_url + 'public/local')
+      when 'list'
+        uri = Diva::URI.new(base_url + 'list')
+        params[:list] = list_id
+      end
 
-    headers = {}
-    if token
-      headers["Authorization"] = "Bearer " + token
-    end
+      headers = {}
+      if token
+        headers["Authorization"] = "Bearer " + token
+      end
 
-    Plugin.call(:sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
+      Plugin.call(:sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
+    }
   end
 
   on_worldon_stop_stream do |slug|
@@ -46,8 +48,10 @@ Plugin.create(:worldon) do
     worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|
-      world.update_mutes!
-      Plugin.call(:worldon_init_auth_stream, world)
+      Thread.new {
+        world.update_mutes!
+        Plugin.call(:worldon_init_auth_stream, world)
+      }
     end
 
     UserConfig[:worldon_instances].map do |domain, setting|
@@ -57,29 +61,33 @@ Plugin.create(:worldon) do
 
   # インスタンスストリームを必要に応じて再起動
   on_worldon_instance_restart_stream do |domain, retrieve = true|
-    instance = PM::Instance.load(domain)
-    if instance.retrieve != retrieve
-      instance.retrieve = retrieve
-      instance.store
-    end
+    Thread.new {
+      instance = PM::Instance.load(domain)
+      if instance.retrieve != retrieve
+        instance.retrieve = retrieve
+        instance.store
+      end
 
-    Plugin.call(:worldon_remove_instance_stream, domain)
-    if retrieve
-      Plugin.call(:worldon_init_instance_stream, domain)
-    end
+      Plugin.call(:worldon_remove_instance_stream, domain)
+      if retrieve
+        Plugin.call(:worldon_init_instance_stream, domain)
+      end
+    }
   end
 
   on_worldon_init_instance_stream do |domain|
-    instance = PM::Instance.load(domain)
+    Thread.new {
+      instance = PM::Instance.load(domain)
 
-    PM::Instance.add_datasources(domain)
+      PM::Instance.add_datasources(domain)
 
-    ftl_slug = PM::Instance.datasource_slug(domain, :federated)
-    ltl_slug = PM::Instance.datasource_slug(domain, :local)
+      ftl_slug = PM::Instance.datasource_slug(domain, :federated)
+      ltl_slug = PM::Instance.datasource_slug(domain, :local)
 
-    # ストリーム開始
-    Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
-    Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
+      # ストリーム開始
+      Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
+    }
   end
 
   on_worldon_remove_instance_stream do |domain|
@@ -89,32 +97,34 @@ Plugin.create(:worldon) do
   end
 
   on_worldon_init_auth_stream do |world|
-    lists = world.get_lists!
+    Thread.new {
+      lists = world.get_lists!
 
-    filter_extract_datasources do |dss|
-      instance = PM::Instance.load(world.domain)
-      datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
+      filter_extract_datasources do |dss|
+        instance = PM::Instance.load(world.domain)
+        datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
+        if lists.is_a? Array
+          lists.each do |l|
+            slug = world.datasource_slug(:list, l[:id])
+            datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
+          end
+        else
+          warn '[worldon] failed to get lists:' + lists['error'].to_s
+        end
+        [datasources.merge(dss)]
+      end
+
+      # ストリーム開始
+      Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
+
       if lists.is_a? Array
         lists.each do |l|
-          slug = world.datasource_slug(:list, l[:id])
-          datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
+          id = l[:id].to_i
+          slug = world.datasource_slug(:list, id)
+          Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
-      else
-        warn '[worldon] failed to get lists:' + lists['error'].to_s
       end
-      [datasources.merge(dss)]
-    end
-
-    # ストリーム開始
-    Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
-
-    if lists.is_a? Array
-      lists.each do |l|
-        id = l[:id].to_i
-        slug = world.datasource_slug(:list, id)
-        Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
-      end
-    end
+    }
   end
 
   on_worldon_remove_auth_stream do |world|

@@ -151,17 +151,19 @@ Plugin.create(:worldon) do
 
   # ふぁぼる
   on_worldon_favorite do |world, status|
-    status_id = PM::API.get_local_status_id(world, status.actual_status)
-    if !status_id.nil?
-      Plugin.call(:before_favorite, world, world.account, status)
-      ret = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
-      if ret.nil? || ret[:error]
-        Plugin.call(:fail_favorite, world, world.account, status)
-      else
-        status.actual_status.favourited = true
-        Plugin.call(:favorite, world, world.account, status)
+    Thread.new {
+      status_id = PM::API.get_local_status_id(world, status.actual_status)
+      if !status_id.nil?
+        Plugin.call(:before_favorite, world, world.account, status)
+        ret = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+        if ret.nil? || ret[:error]
+          Plugin.call(:fail_favorite, world, world.account, status)
+        else
+          status.actual_status.favourited = true
+          Plugin.call(:favorite, world, world.account, status)
+        end
       end
-    end
+    }
   end
 
   defspell(:favorite, :worldon_for_mastodon, :worldon_status,
@@ -183,9 +185,11 @@ Plugin.create(:worldon) do
 
   # ブースト
   on_worldon_share do |world, status|
-    world.reblog(status).next{|shared|
-      Plugin.call(:posted, world, [shared])
-      Plugin.call(:update, world, [shared])
+    Thread.new {
+      world.reblog(status).next{|shared|
+        Plugin.call(:posted, world, [shared])
+        Plugin.call(:update, world, [shared])
+      }
     }
   end
 
