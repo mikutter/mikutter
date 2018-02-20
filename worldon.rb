@@ -55,10 +55,10 @@ Plugin.create(:worldon) do
     }.to_a]
   end
 
-  defevent :current_worldon, prototype: [NilClass]
+  defevent :worldon_current, prototype: [NilClass]
 
   # world_currentがworldonならそれを、そうでなければ適当に探す。
-  filter_current_worldon do
+  filter_worldon_current do
     world, = Plugin.filtering(:world_current, nil)
     if world.class.slug != :worldon_for_mastodon
       worlds, = Plugin.filter(:worldon_worlds, nil)
