@@ -31,35 +31,10 @@ module Plugin::Worldon
       "--#{@boundary}--"
     end
 
-    def mime_type(filename)
-      case Pathname(filename).extname.to_s.downcase(:ascii)
-      when ".png"
-        "image/png"
-      when ".jpg"
-        "image/jpeg"
-      when ".jpeg"
-        "image/jpeg"
-      when ".gif"
-        "image/gif"
-      when ".bmp"
-        "image/bmp"
-      when ".ico"
-        "image/x-icon"
-      when ".svg"
-        "image/svg+xml"
-      when ".tif"
-        "image/tiff"
-      when ".tiff"
-        "image/tiff"
-      when ".webp"
-        "image/webp"
-      end
-    end
-
     def part_header(name, filename)
       [
         "Content-Disposition: form-data; name=\"#{name}\"; filename=\"#{filename}\"",
-        "Content-Type: #{mime_type(filename)}",
+        "Content-Type: application/octet-stream",
         "",
         ""
       ].join(new_line)
