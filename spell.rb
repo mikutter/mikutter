@@ -78,7 +78,7 @@ Plugin.create(:worldon) do
         if result[:"media#{i}"]
           pp result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = PM::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
+          hash = PM::API.call(:post, world.domain, '/api/v1/media', world.access_token, filepath: path)
           pp hash
           media_ids << hash[:id].to_i
           media_urls << hash[:text_url]

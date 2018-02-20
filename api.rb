@@ -6,40 +6,79 @@ require 'openssl'
 require "stringio"
 
 module Plugin::Worldon
-  # https://qiita.com/asukamirai/items/c950c65c6473ca8ca96c
+  # MultiPartFormDataStreamクラス
+  # https://qiita.com/asukamirai/items/c950c65c6473ca8ca96c を元に一部改変
   class MultiPartFormDataStream
     def initialize(name, filename, file, boundary=nil)
       @boundary = boundary || "boundary"
-      first = [boundary_line, content_disposition(name, filename), "", ""].join(new_line)
+      first = [boundary_line, part_header(name, filename)].join(new_line)
       last = ["", boundary_last, ""].join(new_line)
       @first = StringIO.new(first)
       @file = file
       @last = StringIO.new(last)
       @size = @first.size + @file.size + @last.size
     end
+
     def content_type
       "multipart/form-data; boundary=#{@boundary}"
     end
+
     def boundary_line
       "--#{@boundary}"
     end
+
     def boundary_last
       "--#{@boundary}--"
     end
-    def content_disposition(name, filename)
-      "content-disposition: form-data; name=\"#{name}\"; filename=\"#{filename}\""
+
+    def mime_type(filename)
+      case Pathname(filename).extname.to_s.downcase(:ascii)
+      when ".png"
+        "image/png"
+      when ".jpg"
+        "image/jpeg"
+      when ".jpeg"
+        "image/jpeg"
+      when ".gif"
+        "image/gif"
+      when ".bmp"
+        "image/bmp"
+      when ".ico"
+        "image/x-icon"
+      when ".svg"
+        "image/svg+xml"
+      when ".tif"
+        "image/tiff"
+      when ".tiff"
+        "image/tiff"
+      when ".webp"
+        "image/webp"
+      end
     end
+
+    def part_header(name, filename)
+      [
+        "Content-Disposition: form-data; name=\"#{name}\"; filename=\"#{filename}\"",
+        "Content-Type: #{mime_type(filename)}",
+        "",
+        ""
+      ].join(new_line)
+    end
+
     def new_line
       "\r\n"
     end
+
     def read(len=nil, buf=nil)
       return @first.read(len, buf) unless @first.eof?
       return @file.read(len, buf) unless @file.eof?
       return @last.read(len, buf)
     end
+
     def size
       @size
     end
+
     def eof?
       @last.eof?
     end
@@ -47,10 +86,17 @@ module Plugin::Worldon
 
   class API
     class << self
-      def call(method, domain, path, access_token = nil, file: filepath = nil, **opts)
+      def call(method, domain, path = nil, access_token = nil, filepath: nil, **opts)
         begin
-          url = 'https://' + domain + path
-          uri = Diva::URI.new(url)
+          if domain.is_a? Diva::URI
+            uri = domain
+            domain = uri.host
+            path = uri.path
+          else
+            url = 'https://' + domain + path
+            uri = Diva::URI.new(url)
+          end
+
           case method
           when :get
             path = uri.path
@@ -77,7 +123,7 @@ module Plugin::Worldon
             end
           end
 
-          if !access_token.nil? && access_token.length > 0
+          if access_token && !access_token.empty?
             req["Authorization"] = "Bearer " + access_token
           end
 
@@ -91,18 +137,21 @@ module Plugin::Worldon
           end
 
           resp = http.start do |http|
+            fobj = nil
             begin
-              fobj = nil
-              if method === :post && !filepath.nil?
+              if method === :post && filepath
+                notice "Worldon::API.call uploading #{filepath.to_s}"
+
                 fobj = File.open(filepath.to_s, "rb")
                 form_data = MultiPartFormDataStream.new('file', filepath.basename.to_s, fobj)
                 req.body_stream = form_data
-                req['Content-Length'] = form_data.size
+                req["Content-Length"] = form_data.size
+                req["Content-Type"] = form_data.content_type
               end
 
               http.request(req)
             ensure
-              fobj.close if !fobj.nil?
+              fobj.close if fobj
             end
           end
 
