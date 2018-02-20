@@ -74,30 +74,40 @@ module Plugin::Worldon
           has_reblog = false
           if record[:reblog]
             has_reblog = true
-            record[:reblog][:domain] = domain_name
+            reblog_record = record.dup
+            reblog_record.delete(:reblog)
+            record = record[:reblog]
+            record[:domain] = domain_name
           end
           uri = record[:uri]
 
+          # actual_statusがあればmerge、なければnew。
           status = @@storage[uri]
           if status
             status = status.merge(domain_name, record)
           else
-            if has_reblog
-              reblog = @@storage[record[:reblog][:uri]]
-              if reblog
-                reblog.merge(domain_name, record[:reblog])
-              else
-                reblog = Status.new(record[:reblog])
-              end
-              record.delete(:reblog) # 入れ子newされないように消しておく
-            end
-            status = Status.new(record).tap do |st|
-              if has_reblog
-                st.reblog = reblog # 消しておいたreblogを再代入
-              end
-            end
+            status = Status.new(record)
           end
           @@storage[uri] = status
+
+          # reblog statusの処理
+          if has_reblog
+            reblog_uri = reblog_record[:uri]
+            reblog = @@storage[reblog_uri]
+            if reblog
+              reblog.merge(domain_name, reblog_record)
+            else
+              reblog = Status.new(reblog_record)
+            end
+
+            reblog.reblog = status
+              # わかりづらいが「reblogした」statusの'reblog'プロパティにreblog元のstatusを入れている
+            @@storage[reblog_uri] = reblog
+              # 「reblogした」statusを返す（appearしたのはそれに間違いないので。reblog元はdon't care。
+          else
+            status
+              # reblogではないので、普通にstatusを返す。
+          end
         end.compact.tap do |statuses|
           Plugin.call(:worldon_appear_toots, statuses)
         end
@@ -340,30 +350,29 @@ module Plugin::Worldon
         matches.push m.to_a
         rest = m.post_match
       end
-      matches
-        .map do |m|
-          url = m[1]
-          if url.index('twitter.com')
-            has_twitter = Plugin.const_defined?('Plugin::Twitter::Message') &&
-              Plugin::Twitter::Message.is_a?(Class) &&
-              Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|world| world.class.slug == :twitter }
+      matches.map do |m|
+        url = m[1]
+        if url.index('twitter.com')
+          has_twitter = Plugin.const_defined?('Plugin::Twitter::Message') &&
+            Plugin::Twitter::Message.is_a?(Class) &&
+            Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|world| world.class.slug == :twitter }
 
-            if has_twitter
-              m = %r!https://(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/(\d+)!.match(url)
-              next if m.nil?
-              quoted_id = m[1]
-              Plugin::Twitter::Message.findbyid(quoted_id, -1)
-            end
-          else
-            m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)
-            next nil if m.nil?
-            domain_name = m[1]
-            id = m[2]
-            resp = Plugin::Worldon::API.status(domain_name, id)
-            next nil if resp.nil?
-            Status.build(domain_name, [resp]).first
+          if has_twitter
+            m = %r!https://(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/(\d+)!.match(url)
+            next if m.nil?
+            quoted_id = m[1]
+            Plugin::Twitter::Message.findbyid(quoted_id, -1)
           end
-        end.compact
+        else
+          m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)
+          next nil if m.nil?
+          domain_name = m[1]
+          id = m[2]
+          resp = Plugin::Worldon::API.status(domain_name, id)
+          next nil if resp.nil?
+          Status.build(domain_name, [resp]).first
+        end
+      end.compact
     end
 
     # 返信スレッド用
