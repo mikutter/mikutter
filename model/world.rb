@@ -75,7 +75,6 @@ module Plugin::Worldon
     end
 
     def do_reblog(status)
-      # TODO: guiなどの他plugin向け通知イベントの調査
       status_id = PM::API.get_local_status_id(self, status.actual_status)
       if status_id.nil?
         error 'cannot get local status id'
