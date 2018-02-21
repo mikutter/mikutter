@@ -83,10 +83,12 @@ Plugin.create(:worldon) do
 
   # インスタンス編集
   on_worldon_instance_update do |domain|
-    instance = PM::Instance.load(domain)
-    next if instance.nil? # 既存にない
+    Thread.new {
+      instance = PM::Instance.load(domain)
+      next if instance.nil? # 既存にない
 
-    Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_instance_restart_stream, domain)
+    }
   end
 
   # インスタンス削除
@@ -101,13 +103,15 @@ Plugin.create(:worldon) do
 
   # world追加時用
   on_worldon_instance_create_or_update do |domain|
-    instance = PM::Instance.load(domain)
-    if instance.nil?
-      instance, = Plugin.filtering(:worldon_add_instance, domain)
-    end
-    next if instance.nil? # 既存にない＆接続失敗
+    Thread.new {
+      instance = PM::Instance.load(domain)
+      if instance.nil?
+        instance, = Plugin.filtering(:worldon_add_instance, domain)
+      end
+      next if instance.nil? # 既存にない＆接続失敗
 
-    Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_instance_restart_stream, domain)
+    }
   end
 
   # world追加
