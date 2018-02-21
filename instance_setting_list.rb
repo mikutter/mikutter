@@ -1,18 +1,15 @@
 module Plugin::Worldon
-  class InstanceSettingList < ::Gtk::CRUD
-    extend Memoist
+  class InstanceSettingList < ::Gtk::TreeView
+    include Gtk::TreeViewPrettyScroll
     COL_DOMAIN = 0
 
     def initialize()
       super()
+      set_model(::Gtk::ListStore.new(String))
+      append_column ::Gtk::TreeViewColumn.new("ドメイン名", ::Gtk::CellRendererText.new, text: COL_DOMAIN)
 
       Instance.domains.each(&method(:add_record))
     end
-
-    def column_schemer
-      [{ kind: :text, type: String, label: 'ドメイン名'}].freeze
-    end
-    memoize :column_schemer
 
     def selected_domain
       selected_iter = selection.selected
