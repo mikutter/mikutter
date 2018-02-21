@@ -155,6 +155,10 @@ Plugin.create(:worldon) do
     Thread.new {
       connection, = Plugin.filtering(:sse_connection, slug)
       Plugin.call(:sse_kill_connection, slug)
+      if connection.nil?
+        error(pp([slug, connection], ''))
+        next
+      end
       sleep(rand(3..10))
       Plugin.call(:sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
     }
@@ -165,10 +169,14 @@ Plugin.create(:worldon) do
   end
 
   on_sse_connection_failure do |slug, response|
-    notice "SSE: connection failure for #{slug.to_s}"
-    pp response
+    Thread.new {
+      error "SSE: connection failure for #{slug.to_s}"
+      pp response
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+      sleep(rand(3..10))
+
+      Plugin.call(:worldon_sse_stream_restart, slug)
+    }
   end
 
   on_sse_connection_success do |slug, response|
@@ -176,16 +184,24 @@ Plugin.create(:worldon) do
   end
 
   on_sse_connection_closed do |slug|
-    notice "SSE: connection closed for #{slug.to_s}"
+    Thread.new {
+      warn "SSE: connection closed for #{slug.to_s}"
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+      sleep(rand(3..10))
+
+      Plugin.call(:worldon_sse_stream_restart, slug)
+    }
   end
 
   on_sse_connection_error do |slug, e|
-    error "SSE: connection error for #{slug.to_s}"
-    pp e
+    Thread.new {
+      error "SSE: connection error for #{slug.to_s}"
+      pp e
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+      sleep(rand(3..10))
+
+      Plugin.call(:worldon_sse_stream_restart, slug)
+    }
   end
 
   on_sse_on_update do |slug, json|

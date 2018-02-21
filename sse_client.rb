@@ -170,7 +170,7 @@ Plugin.create(:sse_client) do
         connections.delete(slug)
       end
     }
-    if !thread.nil?
+    if thread
       thread.kill
     end
   end
