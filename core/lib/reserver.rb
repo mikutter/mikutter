@@ -51,7 +51,7 @@ class Reserver < Delegator
       Reserver.unregister(self)
     end
     self
-  rescue FrozenError
+  rescue defined?(FrozenError) ? FrozenError : RuntimeError
   end
 
   # このReserverを実行する時間になっていれば true を返す
@@ -77,7 +77,7 @@ class Reserver < Delegator
   def complete
     @sequence = :complete
     freeze
-  rescue FrozenError
+  rescue defined?(FrozenError) ? FrozenError : RuntimeError
   end
 
   class << self
