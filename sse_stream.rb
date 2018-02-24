@@ -292,7 +292,7 @@ Plugin.create(:worldon) do
       Plugin.call(:worldon_appear_toots, [status])
       Plugin.call(:retweet, [status])
       world = status.to_me_world
-      if !world.nil?
+      if world
         Plugin.call(:mention, world, [status])
       end
 
