@@ -75,7 +75,10 @@ Plugin.create(:worldon) do
       fileselect "添付メディア3", :media3
       fileselect "添付メディア4", :media4
     end.next do |result|
-      postbox.destroy
+      if Gtk::PostBox.list[0] != postbox
+        postbox.destroy
+      end
+
       # 投稿
       # まず画像をアップロード
       media_ids = []
