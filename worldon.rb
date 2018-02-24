@@ -10,6 +10,7 @@ Plugin.create(:worldon) do
   PM = Plugin::Worldon
 end
 
+require_relative 'util'
 require_relative 'api'
 require_relative 'model/model'
 require_relative 'spell'
