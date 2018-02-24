@@ -234,12 +234,15 @@ module Plugin::Worldon
     end
 
     def description
+      if @description_text
+        return @description_text
+      end
       msg = actual_status
       desc = dehtmlize(msg.content)
       if !msg.spoiler_text.empty?
         desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
       end
-      desc
+      @description_text = desc
     end
 
     # register reply:true用API
