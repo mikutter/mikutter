@@ -1,3 +1,9 @@
+class Gtk::PostBox
+  def worldon_get_reply_to
+    @to&.first
+  end
+end
+
 Plugin.create(:worldon) do
   # command
   custom_postable = Proc.new do |opt|
@@ -48,11 +54,11 @@ Plugin.create(:worldon) do
     i_postbox = opt.widget
     postbox, = Plugin.filtering(:gui_get_gtk_widget, i_postbox)
     body = postbox.widget_post.buffer.text
-    #to_list = postbox.all_options[:to]  # private methodなので無理
+    reply_to = postbox.worldon_get_reply_to
 
     dialog "カスタム投稿" do
       # オプションを並べる
-      input "CW警告文", :spoiler_text
+      multitext "CW警告文", :spoiler_text
       self[:body] = body
       multitext "本文", :body
       self[:sensitive] = world.account.source.sensitive
@@ -69,16 +75,15 @@ Plugin.create(:worldon) do
       fileselect "添付メディア3", :media3
       fileselect "添付メディア4", :media4
     end.next do |result|
+      postbox.destroy
       # 投稿
       # まず画像をアップロード
       media_ids = []
       media_urls = []
       (1..4).each do |i|
         if result[:"media#{i}"]
-          pp result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
           hash = PM::API.call(:post, world.domain, '/api/v1/media', world.access_token, filepath: path)
-          pp hash
           media_ids << hash[:id].to_i
           media_urls << hash[:text_url]
         end
@@ -96,9 +101,7 @@ Plugin.create(:worldon) do
       end
       opts[:sensitive] = result[:sensitive]
       opts[:visibility] = select2visibility(result[:visibility])
-      pp opts
-      $stdout.flush
-      compose(world, **opts)
+      compose(world, reply_to, **opts)
     end
   end
 
@@ -115,9 +118,7 @@ Plugin.create(:worldon) do
     world.post(body, opts)
   end
 
-  defspell(:compose, :worldon_for_mastodon, :worldon_status,
-           condition: -> (world, status) { true }
-          ) do |world, status, body:, **opts|
+  defspell(:compose, :worldon_for_mastodon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
