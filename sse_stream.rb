@@ -271,18 +271,24 @@ Plugin.create(:worldon) do
       end
 
     when 'reblog'
-      user = PM::Account.new payload[:account]
-      status_hash = payload[:status]
-      reblog_hash = Marshal.load(Marshal.dump(status_hash))
-      status = PM::Status.build(domain, [status_hash]).first
-      reblog = PM::Status.build(domain, [reblog_hash]).first
-      status.id = payload[:id]
-      status[:retweet] = status.reblog = reblog
-      status[:user] = status.account = user
-      status.created_at = Time.parse(payload[:created_at]).localtime
-      #puts "\n\n\n\nreblog:\n"
-      #pp reblog
-      #puts "\n\n\n\n"
+      user_id = payload[:account][:id]
+      user_statuses = PM::API.call(:get, domain, "/api/v1/accounts/#{user_id}/statuses", access_token)
+      if user_statuses.nil?
+        error "Worldon: ブーストStatusの取得に失敗"
+        return
+      end
+      if user_statuses.is_a?(Hash) && user_statuses[:array].is_a?(Array)
+        user_statuses = user_statuses[:array]
+      end
+      idx = user_statuses.index do |hash|
+        hash[:reblog] && hash[:reblog][:uri] == payload[:status][:uri]
+      end
+      if idx.nil?
+        error "Worldon: ブーストStatusの取得に失敗（流れ速すぎ？）"
+        return
+      end
+
+      status = PM::Status.build(domain, [user_statuses[idx]]).first
       Plugin.call(:worldon_appear_toots, [status])
       Plugin.call(:retweet, [status])
       world = status.to_me_world

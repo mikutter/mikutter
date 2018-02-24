@@ -51,7 +51,7 @@ module Plugin::Worldon
 
     entity_class MastodonEntity
 
-    @@storage = WeakStorage.new(String, Status)
+    @@status_storage = WeakStorage.new(String, Status)
 
     class << self
       def add_mutes(account_hashes)
@@ -69,55 +69,63 @@ module Plugin::Worldon
       def build(domain_name, json)
         return [] if json.nil?
         return build(domain_name, [json]) if json.is_a? Hash
+
         json.map do |record|
-          record[:domain] = domain_name
-          has_reblog = false
-          if record[:reblog]
-            has_reblog = true
-            reblog_record = record.dup
-            reblog_record.delete(:reblog)
-            record = record[:reblog]
-            record[:domain] = domain_name
-          end
-          uri = record[:uri]
-
-          # actual_statusがあればmerge、なければnew。
-          status = @@storage[uri]
-          if status
-            status = status.merge(domain_name, record)
-          else
-            status = Status.new(record)
-          end
-          @@storage[uri] = status
-
-          # reblog statusの処理
-          if has_reblog
-            reblog_uri = reblog_record[:uri]
-            reblog = @@storage[reblog_uri]
-            if reblog
-              reblog.merge(domain_name, reblog_record)
-            else
-              reblog = Status.new(reblog_record)
-            end
-
-            reblog.reblog = status
-              # わかりづらいが「reblogした」statusの'reblog'プロパティにreblog元のstatusを入れている
-            @@storage[reblog_uri] = reblog
-              # 「reblogした」statusを返す（appearしたのはそれに間違いないので。reblog元はdon't care。
-          else
-            status
-              # reblogではないので、普通にstatusを返す。
-          end
+          json2status(domain_name, record)
         end.compact.tap do |statuses|
           Plugin.call(:worldon_appear_toots, statuses)
         end
       end
 
-      # fediverse uriで検索する。
-      # フィールドとしては:original_uriで、:uriとは別。
-      # URIとしてparse可能であるとは限らない点に注意。
-      def findbyuri(uri)
-        @@storage[uri]
+      def json2status(domain_name, record)
+        record[:domain] = domain_name
+        is_boost = false
+
+        if record[:reblog]
+          is_boost = true
+
+          boost_record = Util.deep_dup(record)
+          boost_record[:reblog] = nil
+
+          record = record[:reblog]
+          record[:domain] = domain_name
+        end
+        uri = record[:url] # quoting_messages等のために@@status_storageには:urlで入れておく
+
+        status = merge_or_create(domain_name, uri, record)
+
+        # ブーストの処理
+        if !is_boost
+          status
+            # ブーストではないので、普通にstatusを返す。
+        else
+          boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
+          boost = merge_or_create(domain_name, boost_uri, boost_record)
+
+          boost[:retweet] = boost.reblog = status
+            # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
+          @@status_storage[boost_uri] = boost
+          boost
+            # 「ブーストした」statusを返す（appearしたのはそれに間違いないので。ブースト元はdon't care。
+            # Gtk::TimeLine#block_addではmessage.retweet?ならmessage.retweet_sourceを取り出して追加する。
+        end
+      end
+
+      # urlで検索する。
+      # 但しブーストの場合はfediverse uri
+      def findbyurl(url)
+        @@status_storage[url]
+      end
+
+      def merge_or_create(domain_name, uri, new_hash)
+        status = @@status_storage[uri]
+        if status
+          status = status.merge(domain_name, new_hash)
+        else
+          status = Status.new(new_hash)
+        end
+        @@status_storage[uri] = status
+        status
       end
     end
 
@@ -158,8 +166,8 @@ module Plugin::Worldon
       super hash
 
       self[:user] = self[:account]
-      if self[:reblog]
-        self[:reblog][:user] = self[:reblog][:account]
+      if self.reblog.is_a?(Status) && self.reblog.account.is_a?(Account)
+        self.reblog[:user] = self.reblog.account
       end
     end
 
@@ -170,7 +178,7 @@ module Plugin::Worldon
       if domain.nil? || domain != account_domain && domain_name == account_domain2
         self.id = new_hash[:id]
         self.domain = domain_name
-        if (application.nil? || self[:source].nil?) && !new_hash[:application].nil?
+        if (application.nil? || self[:source].nil?) && new_hash[:application]
           self.application = Application.new(new_hash[:application])
           self[:source] = application.name
         end
