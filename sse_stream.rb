@@ -60,7 +60,7 @@ Plugin.create(:worldon) do
   end
 
   # インスタンスストリームを必要に応じて再起動
-  on_worldon_instance_restart_stream do |domain, retrieve = true|
+  on_worldon_restart_instance_stream do |domain, retrieve = true|
     Thread.new {
       instance = PM::Instance.load(domain)
       if instance.retrieve != retrieve
@@ -151,7 +151,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  on_worldon_sse_stream_restart do |slug|
+  on_worldon_restart_sse_stream do |slug|
     Thread.new {
       connection, = Plugin.filtering(:sse_connection, slug)
       if connection.nil?
@@ -173,7 +173,7 @@ Plugin.create(:worldon) do
     error "SSE: connection failure for #{slug.to_s}"
     pp response
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_connection_success do |slug, response|
@@ -183,14 +183,14 @@ Plugin.create(:worldon) do
   on_sse_connection_closed do |slug|
     warn "SSE: connection closed for #{slug.to_s}"
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_connection_error do |slug, e|
     error "SSE: connection error for #{slug.to_s}"
     pp e
 
-    Plugin.call(:worldon_sse_stream_restart, slug)
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_on_update do |slug, json|
