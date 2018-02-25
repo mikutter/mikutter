@@ -118,5 +118,41 @@ module Plugin::Worldon
       end
       promise
     end
+
+    def followings(**args)
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          accounts = []
+          opts = {
+            limit: 80
+          }
+          while true
+            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, opts)
+            if list.is_a? Array
+              accounts.concat(list)
+              break
+            elsif list[:__Link__]
+              accounts.concat(list[:array])
+
+              if list[:__Link__].has_key?(:next)
+                url = list[:__Link__][:next]
+                opts = URI.decode_www_form(url.query).to_h.symbolize
+                next
+              else
+                break
+              end
+            end
+            sleep 1
+          end
+          promise.call(accounts.map {|hash| Account.new hash })
+        rescue Exception => e
+          pp e
+          $stdout.flush
+          promise.call([]) # whenできるように失敗しても空リストを返す
+        end
+      end
+      promise
+    end
   end
 end
