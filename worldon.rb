@@ -18,7 +18,6 @@ require_relative 'setting'
 require_relative 'subparts_visibility'
 require_relative 'sse_client'
 require_relative 'sse_stream'
-
 require_relative 'rest'
 
 Plugin.create(:worldon) do
@@ -77,23 +76,23 @@ Plugin.create(:worldon) do
   # 別プラグインからインスタンスを追加してストリームを開始する例
   # domain = 'friends.nico'
   # instance, = Plugin.filtering(:worldon_add_instance, domain)
-  # Plugin.call(:worldon_instance_restart_stream, instance.domain) if instance
+  # Plugin.call(:worldon_restart_instance_stream, instance.domain) if instance
   filter_worldon_add_instance do |domain|
     [PM::Instance.add(domain)]
   end
 
   # インスタンス編集
-  on_worldon_instance_update do |domain|
+  on_worldon_update_instance do |domain|
     Thread.new {
       instance = PM::Instance.load(domain)
       next if instance.nil? # 既存にない
 
-      Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_restart_instance_stream, domain)
     }
   end
 
   # インスタンス削除
-  on_worldon_instance_delete do |domain|
+  on_worldon_delete_instance do |domain|
     Plugin.call(:worldon_remove_instance_stream, domain)
     if UserConfig[:worldon_instances].has_key?(domain)
       config = UserConfig[:worldon_instances].dup
@@ -103,7 +102,7 @@ Plugin.create(:worldon) do
   end
 
   # world追加時用
-  on_worldon_instance_create_or_update do |domain|
+  on_worldon_create_or_update_instance do |domain|
     Thread.new {
       instance = PM::Instance.load(domain)
       if instance.nil?
@@ -111,7 +110,7 @@ Plugin.create(:worldon) do
       end
       next if instance.nil? # 既存にない＆接続失敗
 
-      Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_restart_instance_stream, domain)
     }
   end
 
@@ -119,7 +118,7 @@ Plugin.create(:worldon) do
   on_world_create do |world|
     if world.class.slug == :worldon_for_mastodon
       Delayer.new {
-        Plugin.call(:worldon_instance_create_or_update, world.domain, true)
+        Plugin.call(:worldon_create_or_update_instance, world.domain, true)
         Plugin.call(:worldon_init_auth_stream, world)
       }
     end
@@ -134,7 +133,7 @@ Plugin.create(:worldon) do
         # filter_worldsから削除されるのはココと同様にon_world_destroyのタイミングらしいので、
         # この時点では削除済みである保証はなく、そのためworld.slugで判定する必要がある（はず）。
         unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
-          Plugin.call(:worldon_instance_delete, world.domain)
+          Plugin.call(:worldon_delete_instance, world.domain)
         end
         Plugin.call(:worldon_remove_auth_stream, world)
       }

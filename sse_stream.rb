@@ -60,7 +60,7 @@ Plugin.create(:worldon) do
   end
 
   # インスタンスストリームを必要に応じて再起動
-  on_worldon_instance_restart_stream do |domain, retrieve = true|
+  on_worldon_restart_instance_stream do |domain, retrieve = true|
     Thread.new {
       instance = PM::Instance.load(domain)
       if instance.retrieve != retrieve
@@ -151,14 +151,15 @@ Plugin.create(:worldon) do
     end
   end
 
-  on_worldon_sse_stream_restart do |slug|
+  on_worldon_restart_sse_stream do |slug|
     Thread.new {
       connection, = Plugin.filtering(:sse_connection, slug)
-      Plugin.call(:sse_kill_connection, slug)
       if connection.nil?
-        error(pp([slug, connection], ''))
+        # 終了済み
         next
       end
+      Plugin.call(:sse_kill_connection, slug)
+
       sleep(rand(3..10))
       Plugin.call(:sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
     }
@@ -169,14 +170,10 @@ Plugin.create(:worldon) do
   end
 
   on_sse_connection_failure do |slug, response|
-    Thread.new {
-      error "SSE: connection failure for #{slug.to_s}"
-      pp response
+    error "SSE: connection failure for #{slug.to_s}"
+    pp response
 
-      sleep(rand(3..10))
-
-      Plugin.call(:worldon_sse_stream_restart, slug)
-    }
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_connection_success do |slug, response|
@@ -184,24 +181,16 @@ Plugin.create(:worldon) do
   end
 
   on_sse_connection_closed do |slug|
-    Thread.new {
-      warn "SSE: connection closed for #{slug.to_s}"
+    warn "SSE: connection closed for #{slug.to_s}"
 
-      sleep(rand(3..10))
-
-      Plugin.call(:worldon_sse_stream_restart, slug)
-    }
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_connection_error do |slug, e|
-    Thread.new {
-      error "SSE: connection error for #{slug.to_s}"
-      pp e
+    error "SSE: connection error for #{slug.to_s}"
+    pp e
 
-      sleep(rand(3..10))
-
-      Plugin.call(:worldon_sse_stream_restart, slug)
-    }
+    Plugin.call(:worldon_restart_sse_stream, slug)
   end
 
   on_sse_on_update do |slug, json|

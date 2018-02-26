@@ -48,7 +48,7 @@ Plugin.create(:worldon) do
       end
       domain = result[:domain]
       label "#{domain} インスタンスを追加しました"
-      Plugin.call(:worldon_instance_restart_stream, domain)
+      Plugin.call(:worldon_restart_instance_stream, domain)
       Plugin.call(:worldon_instance_created, domain)
     end
   end
@@ -60,7 +60,7 @@ Plugin.create(:worldon) do
     dialog "インスタンス設定の編集" do
       label "インスタンスのドメイン： #{domain}"
     end.next do |result|
-      Plugin.call(:worldon_instance_update, result.domain)
+      Plugin.call(:worldon_update_instance, result.domain)
     end
   end
 
@@ -70,7 +70,7 @@ Plugin.create(:worldon) do
     dialog "インスタンス設定の削除" do
       label "インスタンス #{domain} を削除しますか？"
     end.next {
-      Plugin.call(:worldon_instance_delete, domain)
+      Plugin.call(:worldon_delete_instance, domain)
     }
   end
 
@@ -110,7 +110,7 @@ Plugin.create(:worldon) do
           closeup(btn_delete)))
       Plugin.create :worldon do
         add_tab_observer = on_worldon_instance_created(&treeview.method(:add_record))
-        delete_tab_observer = on_worldon_instance_delete(&treeview.method(:remove_record))
+        delete_tab_observer = on_worldon_delete_instance(&treeview.method(:remove_record))
         treeview.ssc(:destroy) do
           detach add_tab_observer
           detach delete_tab_observer

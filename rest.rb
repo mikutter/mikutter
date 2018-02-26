@@ -1,7 +1,7 @@
 Plugin.create(:worldon) do
   settings = {}
 
-  on_worldon_rest_request do |slug|
+  on_worldon_request_rest do |slug|
     Thread.new {
       notice "Worldon: rest request for #{slug}"
       domain = settings[slug][:domain]
@@ -59,7 +59,7 @@ Plugin.create(:worldon) do
       opts: opts,
     }
 
-    Plugin.call(:worldon_rest_request, slug)
+    Plugin.call(:worldon_request_rest, slug)
   end
 
   on_worldon_start_stream do |domain, type, slug, world, list_id|
@@ -94,7 +94,7 @@ Plugin.create(:worldon) do
       now = Time.now.to_i
       settings.each do |slug, setting|
         if (now - settings[slug][:last_time]) >= 60 * UserConfig[:worldon_rest_interval]
-          Plugin.call(:worldon_rest_request, slug)
+          Plugin.call(:worldon_request_rest, slug)
         end
       end
     end
