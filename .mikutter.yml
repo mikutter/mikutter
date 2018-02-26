@@ -5,6 +5,9 @@ depends:
   plugin:
     - world
     - spell
+    - gui
+    - gtk
+    - settings
 version: '1.0'
 author: 
 name: Worldon
