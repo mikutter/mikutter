@@ -233,6 +233,21 @@ module Plugin::Worldon
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
     end
 
+    def add_attachments(text)
+      if media_attachments && !media_attachments.empty?
+        media_attachments.each do |attachment|
+          url = attachment.text_url
+          if url.nil?
+            url = attachment.url
+          end
+          if !text.include?(url.to_s)
+            text += " <a href=\"#{url}\">#{url}</a>"
+          end
+        end
+      end
+      text
+    end
+
     def description
       if @description_text
         return @description_text
@@ -242,6 +257,7 @@ module Plugin::Worldon
       if !msg.spoiler_text.empty?
         desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
       end
+      desc = add_attachments(desc)
       @description_text = desc
     end
 
