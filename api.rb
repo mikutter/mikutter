@@ -181,7 +181,7 @@ module Plugin::Worldon
         if statuses.nil? || statuses[0].nil? || statuses[0][:id].nil?
           nil
         else
-          statuses[0][:id].to_i
+          statuses[0][:id]
         end
       end
     end
