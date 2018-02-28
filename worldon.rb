@@ -6,10 +6,6 @@ module Plugin::Worldon
   WEB_SITE = 'https://github.com/cobodo/mikutter-worldon'
 end
 
-Plugin.create(:worldon) do
-  PM = Plugin::Worldon
-end
-
 require_relative 'util'
 require_relative 'api'
 require_relative 'model/model'
@@ -21,11 +17,13 @@ require_relative 'sse_stream'
 require_relative 'rest'
 
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
+
   defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+\Z>) do |url|
     open(url)
   end
 
-  defevent :worldon_appear_toots, prototype: [[PM::Status]]
+  defevent :worldon_appear_toots, prototype: [[pm::Status]]
 
   filter_extract_datasources do |dss|
     datasources = { worldon_appear_toots: "受信したすべてのトゥート(Worldon)" }
@@ -78,13 +76,13 @@ Plugin.create(:worldon) do
   # instance, = Plugin.filtering(:worldon_add_instance, domain)
   # Plugin.call(:worldon_restart_instance_stream, instance.domain) if instance
   filter_worldon_add_instance do |domain|
-    [PM::Instance.add(domain)]
+    [pm::Instance.add(domain)]
   end
 
   # インスタンス編集
   on_worldon_update_instance do |domain|
     Thread.new {
-      instance = PM::Instance.load(domain)
+      instance = pm::Instance.load(domain)
       next if instance.nil? # 既存にない
 
       Plugin.call(:worldon_restart_instance_stream, domain)
@@ -104,7 +102,7 @@ Plugin.create(:worldon) do
   # world追加時用
   on_worldon_create_or_update_instance do |domain|
     Thread.new {
-      instance = PM::Instance.load(domain)
+      instance = pm::Instance.load(domain)
       if instance.nil?
         instance, = Plugin.filtering(:worldon_add_instance, domain)
       end
@@ -152,7 +150,7 @@ Plugin.create(:worldon) do
       result = await_input
       domain = result[:domain]
 
-      instance = PM::Instance.load(domain)
+      instance = pm::Instance.load(domain)
       if instance.nil?
         # 既存にないので追加
         instance, = Plugin.filtering(:worldon_add_instance, domain)
@@ -170,7 +168,7 @@ Plugin.create(:worldon) do
     link instance.authorize_url
     input '認証コード', :authorization_code
     result = await_input
-    resp = PM::API.call(:post, domain, '/oauth/token',
+    resp = pm::API.call(:post, domain, '/oauth/token',
                                      client_id: instance.client_key,
                                      client_secret: instance.client_secret,
                                      grant_type: 'authorization_code',
@@ -179,15 +177,15 @@ Plugin.create(:worldon) do
                                     )
     token = resp[:access_token]
 
-    resp = PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
+    resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.has_key?(:error)
       Deferred.fail(resp[:error])
     end
 
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
-    account = PM::Account.new(resp)
-    world = PM::World.new(
+    account = pm::Account.new(resp)
+    world = pm::World.new(
       id: screen_name,
       slug: :"worldon:#{screen_name}",
       domain: domain,

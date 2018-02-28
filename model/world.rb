@@ -91,7 +91,6 @@ module Plugin::Worldon
 
       new_status = PM::Status.build(domain, [new_status_hash]).first
       status.actual_status.reblogged = true
-      Plugin.call(:worldon_appear_toots, [new_status])
       Plugin.call(:retweet, [new_status])
 
       status_world = status.from_me_world

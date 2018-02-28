@@ -5,6 +5,8 @@ class Gtk::PostBox
 end
 
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
+
   # command
   custom_postable = Proc.new do |opt|
     world, = Plugin.filtering(:world_current, nil)
@@ -86,7 +88,7 @@ Plugin.create(:worldon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = PM::API.call(:post, world.domain, '/api/v1/media', world.access_token, filepath: path)
+          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, filepath: path)
           media_ids << hash[:id].to_i
           media_urls << hash[:text_url]
         end
@@ -128,7 +130,7 @@ Plugin.create(:worldon) do
       opts[:visibility] = opts[:visibility].to_s
     end
     status_id = status.id
-    _status_id = PM::API.get_local_status_id(world, status)
+    _status_id = pm::API.get_local_status_id(world, status)
     if !_status_id.nil?
       status_id = _status_id
       opts[:in_reply_to_id] = status_id
@@ -139,7 +141,7 @@ Plugin.create(:worldon) do
         $stdout.flush
         nil
       else
-        new_status = PM::Status.build(world.domain, [hash]).first
+        new_status = pm::Status.build(world.domain, [hash]).first
         Plugin.call(:posted, world, [new_status])
         Plugin.call(:update, world, [new_status])
         new_status
@@ -151,15 +153,15 @@ Plugin.create(:worldon) do
   end
 
   # ふぁぼ
-  defevent :worldon_favorite, prototype: [PM::World, PM::Status]
+  defevent :worldon_favorite, prototype: [pm::World, pm::Status]
 
   # ふぁぼる
   on_worldon_favorite do |world, status|
     Thread.new {
-      status_id = PM::API.get_local_status_id(world, status.actual_status)
+      status_id = pm::API.get_local_status_id(world, status.actual_status)
       if !status_id.nil?
         Plugin.call(:before_favorite, world, world.account, status)
-        ret = PM::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
         if ret.nil? || ret[:error]
           Plugin.call(:fail_favorite, world, world.account, status)
         else
@@ -185,7 +187,7 @@ Plugin.create(:worldon) do
   end
 
   # ブーストイベント
-  defevent :worldon_share, prototype: [PM::World, PM::Status]
+  defevent :worldon_share, prototype: [pm::World, pm::Status]
 
   # ブースト
   on_worldon_share do |world, status|

@@ -1,8 +1,10 @@
 require_relative 'sse_client'
 
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
+
   # ストリーム開始＆直近取得イベント
-  defevent :worldon_start_stream, prototype: [String, String, String, PM::World, Integer]
+  defevent :worldon_start_stream, prototype: [String, String, String, pm::World, Integer]
 
   on_worldon_start_stream do |domain, type, slug, world, list_id|
     next if !UserConfig[:worldon_enable_streaming]
@@ -11,7 +13,7 @@ Plugin.create(:worldon) do
       sleep(rand(10))
 
       token = nil
-      if world.is_a? PM::World
+      if world.is_a? pm::World
         token = world.access_token
       end
 
@@ -62,7 +64,7 @@ Plugin.create(:worldon) do
   # インスタンスストリームを必要に応じて再起動
   on_worldon_restart_instance_stream do |domain, retrieve = true|
     Thread.new {
-      instance = PM::Instance.load(domain)
+      instance = pm::Instance.load(domain)
       if instance.retrieve != retrieve
         instance.retrieve = retrieve
         instance.store
@@ -77,12 +79,12 @@ Plugin.create(:worldon) do
 
   on_worldon_init_instance_stream do |domain|
     Thread.new {
-      instance = PM::Instance.load(domain)
+      instance = pm::Instance.load(domain)
 
-      PM::Instance.add_datasources(domain)
+      pm::Instance.add_datasources(domain)
 
-      ftl_slug = PM::Instance.datasource_slug(domain, :federated)
-      ltl_slug = PM::Instance.datasource_slug(domain, :local)
+      ftl_slug = pm::Instance.datasource_slug(domain, :federated)
+      ltl_slug = pm::Instance.datasource_slug(domain, :local)
 
       # ストリーム開始
       Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
@@ -91,9 +93,9 @@ Plugin.create(:worldon) do
   end
 
   on_worldon_remove_instance_stream do |domain|
-    Plugin.call(:worldon_stop_stream, PM::Instance.datasource_slug(domain, :federated))
-    Plugin.call(:worldon_stop_stream, PM::Instance.datasource_slug(domain, :local))
-    PM::Instance.remove_datasources(domain)
+    Plugin.call(:worldon_stop_stream, pm::Instance.datasource_slug(domain, :federated))
+    Plugin.call(:worldon_stop_stream, pm::Instance.datasource_slug(domain, :local))
+    pm::Instance.remove_datasources(domain)
   end
 
   on_worldon_init_auth_stream do |world|
@@ -101,7 +103,7 @@ Plugin.create(:worldon) do
       lists = world.get_lists!
 
       filter_extract_datasources do |dss|
-        instance = PM::Instance.load(world.domain)
+        instance = pm::Instance.load(world.domain)
         datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
         if lists.is_a? Array
           lists.each do |l|
@@ -232,12 +234,11 @@ Plugin.create(:worldon) do
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
-    status = PM::Status.build(domain, [payload]).first
+    status = pm::Status.build(domain, [payload]).first
     Plugin.call(:extract_receive_message, datasource_slug, [status])
-    Plugin.call(:worldon_appear_toots, [status])
     world = stream_world(domain, access_token)
     Plugin.call(:update, world, [status])
-    if (status&.reblog).is_a?(PM::Status)
+    if (status&.reblog).is_a?(pm::Status)
       Plugin.call(:retweet, [status])
       world = status.to_me_world
       if !world.nil?
@@ -253,7 +254,7 @@ Plugin.create(:worldon) do
 
     case payload[:type]
     when 'mention'
-      status = PM::Status.build(domain, [payload[:status]]).first
+      status = pm::Status.build(domain, [payload[:status]]).first
       world = status.to_me_world
       if !world.nil?
         Plugin.call(:mention, world, [status])
@@ -261,7 +262,7 @@ Plugin.create(:worldon) do
 
     when 'reblog'
       user_id = payload[:account][:id]
-      user_statuses = PM::API.call(:get, domain, "/api/v1/accounts/#{user_id}/statuses", access_token)
+      user_statuses = pm::API.call(:get, domain, "/api/v1/accounts/#{user_id}/statuses", access_token)
       if user_statuses.nil?
         error "Worldon: ブーストStatusの取得に失敗"
         return
@@ -277,8 +278,7 @@ Plugin.create(:worldon) do
         return
       end
 
-      status = PM::Status.build(domain, [user_statuses[idx]]).first
-      Plugin.call(:worldon_appear_toots, [status])
+      status = pm::Status.build(domain, [user_statuses[idx]]).first
       Plugin.call(:retweet, [status])
       world = status.to_me_world
       if world
@@ -286,15 +286,15 @@ Plugin.create(:worldon) do
       end
 
     when 'favourite'
-      user = PM::Account.new payload[:account]
-      status = PM::Status.build(domain, [payload[:status]]).first
+      user = pm::Account.new payload[:account]
+      status = pm::Status.build(domain, [payload[:status]]).first
       world = status.from_me_world
       if !world.nil?
         Plugin.call(:favorite, world, user, status)
       end
 
     when 'follow'
-      user = PM::Account.new payload[:account]
+      user = pm::Account.new payload[:account]
       world = stream_world(domain, access_token)
       if !world.nil?
         Plugin.call(:followers_created, world, [user])

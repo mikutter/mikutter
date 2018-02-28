@@ -1,4 +1,5 @@
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
   settings = {}
 
   on_worldon_request_rest do |slug|
@@ -16,7 +17,7 @@ Plugin.create(:worldon) do
 
       tl = []
       begin
-        hashes = PM::API.call(:get, domain, path, token, opts)
+        hashes = pm::API.call(:get, domain, path, token, opts)
         settings[slug][:last_time] = Time.now.to_i
         next if hashes.nil?
         arr = hashes
@@ -24,7 +25,7 @@ Plugin.create(:worldon) do
           arr = hashes[:array]
         end
         ids = arr.map{|hash| hash[:id].to_i }
-        tl = PM::Status.build(domain, arr).concat(tl)
+        tl = pm::Status.build(domain, arr).concat(tl)
 
         notice "Worldon: REST取得数： #{ids.size} for #{slug}"
         if ids.size > 0
@@ -68,7 +69,7 @@ Plugin.create(:worldon) do
 
       # 直近の分を取得
       token = nil
-      if world.is_a? PM::World
+      if world.is_a? pm::World
         token = world.access_token
       end
       opts = { limit: 40 }
