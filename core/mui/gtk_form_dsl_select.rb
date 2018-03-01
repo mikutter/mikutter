@@ -88,13 +88,12 @@ class Gtk::FormDSL::Select
   # すべてテキストなら、コンボボックスで要素を描画する
   def build_combobox(config_key)
     input = Gtk::ComboBox.new(true)
-    sorted = @options.map{ |o| o.first }.sort_by(&:to_s).freeze
-    sorted.each{ |x|
-      input.append_text(@options.assoc(x).last) }
-    input.active = (sorted.index{ |i| i.to_s == @parent_dslobj[config_key].to_s } || 0)
-    @parent_dslobj[config_key] = sorted[input.active]
+    @options.each{ |t|
+      input.append_text(t.last) }
+    input.active = (@options.index{ |i| i.first.to_s == @parent_dslobj[config_key].to_s } || 0)
+    @parent_dslobj[config_key] = @options[input.active].first
     input.ssc(:changed){ |widget|
-      @parent_dslobj[config_key] = sorted[widget.active]
+      @parent_dslobj[config_key] = @options[widget.active].first
       false }
     input
   end
