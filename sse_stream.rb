@@ -231,6 +231,8 @@ Plugin.create(:worldon) do
   end
 
   def update_handler(datasource_slug, payload)
+    pm = Plugin::Worldon
+
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
@@ -248,6 +250,8 @@ Plugin.create(:worldon) do
   end
 
   def notification_handler(datasource_slug, payload)
+    pm = Plugin::Worldon
+
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
