@@ -20,18 +20,33 @@ module Plugin::Worldon
             headers << ["Authorization", "Bearer " + access_token]
           end
 
+          conv = []
           begin
+            files = []
+            file_keys.each do |key|
+              f = File.open(params[key], 'rb')
+              files << f
+              params[key] = f
+            end
+            params.each do |key, val|
+              if val.is_a? Array
+                val.each do |v|
+                  conv << [key.to_s + '[]', v]
+                end
+              else
+                conv << [key.to_s, val]
+              end
+            end
+            pp conv
+
             query = {}
             body = {}
 
             case method
             when :get
-              query = params
+              query = conv
             when :post
-              body = params
-              file_keys.each do |key|
-                body[key] = File.open(body[key], 'rb')
-              end
+              body = conv
             end
 
             notice "Worldon::API.call #{method.to_s} #{uri} #{params.to_s}"
@@ -39,8 +54,8 @@ module Plugin::Worldon
             client = HTTPClient.new
             resp = client.request(method, uri.to_s, query, body, headers)
           ensure
-            file_keys.each do |key|
-              body[key].close
+            files.each do |f|
+              f.close
             end
           end
 
