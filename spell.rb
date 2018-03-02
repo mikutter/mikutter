@@ -88,7 +88,9 @@ Plugin.create(:worldon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, filepath: path)
+          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: path)
+          pp hash
+          $stdout.flush
           media_ids << hash[:id].to_i
           media_urls << hash[:text_url]
         end
@@ -106,6 +108,7 @@ Plugin.create(:worldon) do
       end
       opts[:sensitive] = result[:sensitive]
       opts[:visibility] = select2visibility(result[:visibility])
+      sleep 1
       compose(world, reply_to, **opts)
     end
   end
@@ -120,7 +123,21 @@ Plugin.create(:worldon) do
     else
       opts[:visibility] = opts[:visibility].to_s
     end
-    world.post(body, opts)
+    pp opts
+    hash = world.post(body, opts)
+    pp hash
+    $stdout.flush
+    if hash.nil?
+      warn "投稿に失敗したかもしれません"
+      pp hash
+      $stdout.flush
+      nil
+    else
+      new_status = pm::Status.build(world.domain, [hash]).first
+      Plugin.call(:posted, world, [new_status])
+      Plugin.call(:update, world, [new_status])
+      new_status
+    end
   end
 
   defspell(:compose, :worldon_for_mastodon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|

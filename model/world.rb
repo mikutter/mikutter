@@ -54,12 +54,12 @@ module Plugin::Worldon
           return
         end
         url = mutes[:__Link__][:prev]
-        opts = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
-        return if opts[:since_id].to_i == since_id
-        since_id = opts[:since_id].to_i
+        params = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
+        return if params[:since_id].to_i == since_id
+        since_id = params[:since_id].to_i
 
         sleep 1
-        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, opts)
+        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
       end
     end
 
@@ -69,9 +69,9 @@ module Plugin::Worldon
     # opts[:sensitive] True | False NSFWフラグの明示的な指定
     # opts[:spoiler_text] String ContentWarning用のコメント
     # opts[:visibility] String 公開範囲。 "direct", "private", "unlisted", "public" のいずれか。
-    def post(content, **opts)
-      opts[:status] = content
-      API.call(:post, domain, '/api/v1/statuses', access_token, opts)
+    def post(content, **params)
+      params[:status] = content
+      API.call(:post, domain, '/api/v1/statuses', access_token, **params)
     end
 
     def do_reblog(status)
@@ -89,7 +89,13 @@ module Plugin::Worldon
         return nil
       end
 
+      puts "\ndo_reblog hash: acct=#{new_status_hash[:account][:acct]}@#{domain} avatar_static=#{new_status_hash[:account][:avatar_static]}\n"
+
       new_status = PM::Status.build(domain, [new_status_hash]).first
+
+      puts "\ndo_reblog obj : acct=#{new_status.account.acct} avatar_static=#{new_status.account.avatar_static}\n"
+      $stdout.flush
+
       status.actual_status.reblogged = true
       Plugin.call(:retweet, [new_status])
 
@@ -123,11 +129,11 @@ module Plugin::Worldon
       Thread.new do
         begin
           accounts = []
-          opts = {
+          params = {
             limit: 80
           }
           while true
-            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, opts)
+            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, **params)
             if list.is_a? Array
               accounts.concat(list)
               break
@@ -136,7 +142,7 @@ module Plugin::Worldon
 
               if list[:__Link__].has_key?(:next)
                 url = list[:__Link__][:next]
-                opts = URI.decode_www_form(url.query).to_h.symbolize
+                params = URI.decode_www_form(url.query).to_h.symbolize
                 next
               else
                 break
