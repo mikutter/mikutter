@@ -164,10 +164,24 @@ Plugin.create(:worldon) do
       break
     end
 
-    label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
-    link instance.authorize_url
-    input '認証コード', :authorization_code
-    result = await_input
+    error_msg = nil
+    while true
+      if error_msg.is_a? String
+        label error_msg
+      end
+      label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
+      link instance.authorize_url
+      puts instance.authorize_url
+      input '認証コード', :authorization_code
+      result = await_input
+
+      if result[:authorization_code].nil? || result[:authorization_code].empty?
+        error_msg = "認証コードを入力してください"
+        next
+      end
+
+      break
+    end
     resp = pm::API.call(:post, domain, '/oauth/token',
                                      client_id: instance.client_key,
                                      client_secret: instance.client_secret,
@@ -175,11 +189,14 @@ Plugin.create(:worldon) do
                                      redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
                                      code: result[:authorization_code]
                                     )
+    if resp.nil? || resp.has_key?(:error)
+      Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+    end
     token = resp[:access_token]
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
-    if resp.has_key?(:error)
-      Deferred.fail(resp[:error])
+    if resp.nil? || resp.has_key?(:error)
+      Deferred.fail(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
     end
 
     screen_name = resp[:acct] + '@' + domain

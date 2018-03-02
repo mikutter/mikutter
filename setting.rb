@@ -8,6 +8,7 @@ Plugin.create(:worldon) do
     worldon_enable_streaming: true,
     worldon_rest_interval: UserConfig[:retrieve_interval_friendtl],
     worldon_show_subparts_visibility: true,
+    worldon_instances: Hash.new,
   }
   defaults.each do |key, value|
     if UserConfig[key].nil?
