@@ -1,5 +1,4 @@
-require 'net/http'
-require 'uri'
+require 'httpclient'
 
 module Plugin::SseClient
   class Parser
@@ -98,48 +97,44 @@ Plugin.create(:sse_client) do
 
   on_sse_create do |slug, method, uri, params = {}, headers = {}, **opts|
     begin
-      case method
-      when :get
-        path = uri.path
-        if !params.empty?
-          path += '?' + URI.encode_www_form(params)
-        end
-        req = Net::HTTP::Get.new(path)
-      when :post
-        req = Net::HTTP::Post.new(uri.path)
-        if !params.empty?
-          req.set_form_data(params)
+      conv = []
+      params.each do |key, val|
+        if val.is_a? Array
+          val.each do |v|
+            conv << [key.to_s + '[]', v]
+          end
+        else
+          conv << [key.to_s, val]
         end
       end
-      headers.each do |key, value|
-        req[key] = value
+
+      query = {}
+      body = {}
+
+      case method
+      when :get
+        query = conv
+      when :post
+        body = conv
       end
 
       Plugin.call(:sse_connection_opening, slug)
-      http = Net::HTTP.new(uri.host, uri.port)
-      if uri.scheme == 'https'
-        http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      end
+      client = HTTPClient.new
 
       thread = Thread.new {
-        http.start do |http|
-          http.request(req) do |response|
-            if !response.is_a?(Net::HTTPSuccess)
-              Plugin.call(:sse_connection_failure, slug, response)
-              error "ServerSentEvents connection failure"
-              pp response
-              $stdout.flush
-              next
-            end
+        parser = Plugin::SseClient::Parser.new(self, slug)
+        response = client.request(method, uri.to_s, query, body, headers) do |fragment|
+          parser << fragment
+        end
 
-            Plugin.call(:sse_connection_success, slug, response)
-
-            parser = Plugin::SseClient::Parser.new(self, slug)
-            response.read_body do |fragment|
-              parser << fragment
-            end
-          end
+        case response.status
+        when 200
+        else
+          Plugin.call(:sse_connection_failure, slug, response)
+          error "ServerSentEvents connection failure"
+          pp response if Mopt.error_level >= 1
+          $stdout.flush
+          next
         end
 
         Plugin.call(:sse_connection_closed, slug)
@@ -158,7 +153,7 @@ Plugin.create(:sse_client) do
     rescue => e
       Plugin.call(:sse_connection_error, slug, e)
       error "ServerSentEvents connection error"
-      pp e
+      pp e if Mopt.error_level >= 1
       $stdout.flush
       nil
     end
