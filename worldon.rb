@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'pp'
 
 module Plugin::Worldon
   PM = Plugin::Worldon
