@@ -77,10 +77,6 @@ Plugin.create(:worldon) do
       fileselect "添付メディア3", :media3
       fileselect "添付メディア4", :media4
     end.next do |result|
-      if Gtk::PostBox.list[0] != postbox
-        postbox.destroy
-      end
-
       # 投稿
       # まず画像をアップロード
       media_ids = []
@@ -106,8 +102,13 @@ Plugin.create(:worldon) do
       end
       opts[:sensitive] = result[:sensitive]
       opts[:visibility] = select2visibility(result[:visibility])
-      sleep 1
       compose(world, reply_to, **opts)
+
+      if Gtk::PostBox.list[0] != postbox
+        postbox.destroy
+      else
+        postbox.widget_post.buffer.text = ''
+      end
     end
   end
 
