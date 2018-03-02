@@ -20,8 +20,8 @@ module Plugin::Worldon
             headers << ["Authorization", "Bearer " + access_token]
           end
 
-          conv = []
           begin
+            conv = []
             files = []
             file_keys.each do |key|
               f = File.open(params[key], 'rb')
