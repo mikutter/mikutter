@@ -296,7 +296,7 @@ Plugin.create(:activity) do
 
   on_direct_messages do |service, dms|
     dms.each{ |dm|
-      date = Time.parse(dm[:created_at])
+      date = dm[:created]
       if date > BOOT_TIME
         activity(:dm, dm[:text],
                  description:
