@@ -171,7 +171,8 @@ Plugin.create(:worldon) do
       end
       label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
       link instance.authorize_url
-      puts instance.authorize_url
+      puts instance.authorize_url # ブラウザで開けない時のため
+      $stdout.flush
       input '認証コード', :authorization_code
       result = await_input
 

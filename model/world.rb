@@ -84,17 +84,12 @@ module Plugin::Worldon
       new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
       if new_status_hash.nil? || new_status_hash.has_key?(:error)
         error 'failed reblog request'
-        pp new_status_hash
+        pp new_status_hash if Mopt.error_level >= 1
         $stdout.flush
         return nil
       end
 
-      puts "\ndo_reblog hash: acct=#{new_status_hash[:account][:acct]}@#{domain} avatar_static=#{new_status_hash[:account][:avatar_static]}\n"
-
       new_status = PM::Status.build(domain, [new_status_hash]).first
-
-      puts "\ndo_reblog obj : acct=#{new_status.account.acct} avatar_static=#{new_status.account.avatar_static}\n"
-      $stdout.flush
 
       status.actual_status.reblogged = true
       Plugin.call(:retweet, [new_status])
@@ -116,7 +111,7 @@ module Plugin::Worldon
             promise.fail(new_status)
           end
         rescue Exception => e
-          pp e
+          pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
           promise.fail(e)
         end
@@ -152,9 +147,9 @@ module Plugin::Worldon
           end
           promise.call(accounts.map {|hash| Account.new hash })
         rescue Exception => e
-          pp e
+          pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
-          promise.call([]) # whenできるように失敗しても空リストを返す
+          promise.call('failed to get followings')
         end
       end
       promise

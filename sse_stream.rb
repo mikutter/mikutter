@@ -173,13 +173,9 @@ Plugin.create(:worldon) do
 
   on_sse_connection_failure do |slug, response|
     error "SSE: connection failure for #{slug.to_s}"
-    pp response
+    pp response if Mopt.error_level >= 1
 
     Plugin.call(:worldon_restart_sse_stream, slug)
-  end
-
-  on_sse_connection_success do |slug, response|
-    notice "SSE: connection success for #{slug.to_s}: #{response.class.to_s}"
   end
 
   on_sse_connection_closed do |slug|
@@ -190,7 +186,7 @@ Plugin.create(:worldon) do
 
   on_sse_connection_error do |slug, e|
     error "SSE: connection error for #{slug.to_s}"
-    pp e
+    pp e if Mopt.error_level >= 1
 
     Plugin.call(:worldon_restart_sse_stream, slug)
   end
@@ -307,7 +303,7 @@ Plugin.create(:worldon) do
     else
       # 未知の通知
       warn 'unknown notification'
-      pp data
+      pp data if Mopt.error_level >= 2
       $stdout.flush
     end
   end

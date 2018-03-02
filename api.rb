@@ -37,7 +37,6 @@ module Plugin::Worldon
                 conv << [key.to_s, val]
               end
             end
-            pp conv
 
             query = {}
             body = {}
@@ -65,13 +64,13 @@ module Plugin::Worldon
             parse_Link(resp, hash)
           else
             warn "API.call did'nt return 200 Success"
-            pp [uri.to_s, params, resp]
+            pp [uri.to_s, params, resp] if Mopt.error_level >= 2
             $stdout.flush
             nil
           end
         rescue => e
           error "API.call raise exception"
-          pp e
+          pp e if Mopt.error_level >= 1
           $stdout.flush
           nil
         end

@@ -36,7 +36,7 @@ Plugin.create(:worldon) do
           end
         end
       end while (!settings[slug][:last_id].nil? && ids.size == 20)
-      if domain.nil?
+      if domain.nil? && Mopt.error_level >= 2 # warn
         puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
         pp tl.select{|status| status.domain.nil? }
         $stdout.flush

@@ -89,8 +89,6 @@ Plugin.create(:worldon) do
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
           hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: path)
-          pp hash
-          $stdout.flush
           media_ids << hash[:id].to_i
           media_urls << hash[:text_url]
         end
@@ -123,13 +121,10 @@ Plugin.create(:worldon) do
     else
       opts[:visibility] = opts[:visibility].to_s
     end
-    pp opts
     hash = world.post(body, opts)
-    pp hash
-    $stdout.flush
     if hash.nil?
       warn "投稿に失敗したかもしれません"
-      pp hash
+      pp hash if Mopt.error_level >= 2
       $stdout.flush
       nil
     else
@@ -154,7 +149,7 @@ Plugin.create(:worldon) do
       hash = world.post(body, opts)
       if hash.nil?
         warn "投稿に失敗したかもしれません"
-        pp hash
+        pp hash if Mopt.error_level >= 2
         $stdout.flush
         nil
       else
