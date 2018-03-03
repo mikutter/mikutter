@@ -32,6 +32,7 @@ class Gtk::WorldShifter < Gtk::EventBox
         item.set_image Gtk::WebIcon.new(world.icon, UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
         item.ssc(:activate) { |w|
           Plugin.call(:world_change_current, world)
+          @tips.set_tip(@face, world.title, nil)
           false }
         menu.append item
       end
@@ -107,6 +108,11 @@ class Gtk::WorldShifter < Gtk::EventBox
     if not @face
       @face = Gtk::Image.new(Skin['loading.png'].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
       self.add(@face).show_all
+    end
+    if not @tips
+      world, = Plugin.filtering(:world_current, nil)
+      @tips = Gtk::Tooltips.new()
+      @tips.set_tip(@face, world.title, nil)
     end
   end
 
