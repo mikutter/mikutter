@@ -347,11 +347,11 @@ module Gtk::FormDSL
         when GdkPixbuf::Pixbuf
           value
         when Diva::Model
-          value.pixbuf(width: 128, height: 128)
+          value.pixbuf(width: 48, height: 48)
         else
           Enumerator.new{ |y|
             Plugin.filtering(:photo_filter, value, y)
-          }.first.pixbuf(width: 128, height: 128) rescue nil
+          }.first.pixbuf(width: 48, height: 48) rescue nil
         end
       }
     )
