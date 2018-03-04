@@ -1,4 +1,5 @@
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
   settings = {}
 
   on_worldon_request_rest do |slug|
@@ -7,16 +8,16 @@ Plugin.create(:worldon) do
       domain = settings[slug][:domain]
       path = settings[slug][:path]
       token = settings[slug][:token]
-      opts = settings[slug][:opts]
+      params = settings[slug][:params]
 
       if !settings[slug][:last_id].nil?
-        opts[:since_id] = settings[slug][:last_id]
-        opts.delete(:limit)
+        params[:since_id] = settings[slug][:last_id]
+        params.delete(:limit)
       end
 
       tl = []
       begin
-        hashes = PM::API.call(:get, domain, path, token, opts)
+        hashes = pm::API.call(:get, domain, path, token, **params)
         settings[slug][:last_time] = Time.now.to_i
         next if hashes.nil?
         arr = hashes
@@ -24,18 +25,18 @@ Plugin.create(:worldon) do
           arr = hashes[:array]
         end
         ids = arr.map{|hash| hash[:id].to_i }
-        tl = PM::Status.build(domain, arr).concat(tl)
+        tl = pm::Status.build(domain, arr).concat(tl)
 
         notice "Worldon: REST取得数： #{ids.size} for #{slug}"
         if ids.size > 0
-          settings[slug][:last_id] = opts[:since_id] = ids.max
+          settings[slug][:last_id] = params[:since_id] = ids.max
           # 2回目以降、limit=20いっぱいまで取れてしまった場合は続きの取得を行なう。
           if (!settings[slug][:last_id].nil? && ids.size == 20)
             notice "Worldon: 継ぎ足しREST #{slug}"
           end
         end
       end while (!settings[slug][:last_id].nil? && ids.size == 20)
-      if domain.nil?
+      if domain.nil? && Mopt.error_level >= 2 # warn
         puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
         pp tl.select{|status| status.domain.nil? }
         $stdout.flush
@@ -49,14 +50,14 @@ Plugin.create(:worldon) do
     }
   end
 
-  on_worldon_init_polling do |slug, domain, path, token, opts|
+  on_worldon_init_polling do |slug, domain, path, token, params|
     settings[slug] = {
       last_time: 0,
       last_id: nil,
       domain: domain,
       path: path,
       token: token,
-      opts: opts,
+      params: params,
     }
 
     Plugin.call(:worldon_request_rest, slug)
@@ -68,10 +69,10 @@ Plugin.create(:worldon) do
 
       # 直近の分を取得
       token = nil
-      if world.is_a? PM::World
+      if world.is_a? pm::World
         token = world.access_token
       end
-      opts = { limit: 40 }
+      params = { limit: 40 }
       path_base = '/api/v1/timelines/'
       case type
       when 'user'
@@ -80,12 +81,12 @@ Plugin.create(:worldon) do
         path = path_base + 'public'
       when 'public:local'
         path = path_base + 'public'
-        opts[:local] = 1
+        params[:local] = 1
       when 'list'
         path = path_base + 'list/' + list_id.to_s
       end
 
-      Plugin.call(:worldon_init_polling, slug, domain, path, token, opts)
+      Plugin.call(:worldon_init_polling, slug, domain, path, token, params)
     }
   end
 

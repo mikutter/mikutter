@@ -24,7 +24,6 @@ module Plugin::Worldon
     field.bool :favourited
     field.bool :muted
     field.bool :sensitive
-    field.string :visibility
     field.string :spoiler_text
     field.string :visibility
     field.has :application, Application

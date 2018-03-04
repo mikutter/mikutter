@@ -1,6 +1,8 @@
 require_relative 'instance_setting_list'
 
 Plugin.create(:worldon) do
+  pm = Plugin::Worldon
+
   # 設定の初期化
   defaults = {
     worldon_enable_streaming: true,
@@ -110,6 +112,8 @@ Plugin.create(:worldon) do
           closeup(btn_add).
           closeup(btn_delete)))
       Plugin.create :worldon do
+        pm = Plugin::Worldon
+
         add_tab_observer = on_worldon_instance_created(&treeview.method(:add_record))
         delete_tab_observer = on_worldon_delete_instance(&treeview.method(:remove_record))
         treeview.ssc(:destroy) do

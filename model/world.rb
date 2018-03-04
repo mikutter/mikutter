@@ -54,12 +54,12 @@ module Plugin::Worldon
           return
         end
         url = mutes[:__Link__][:prev]
-        opts = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
-        return if opts[:since_id].to_i == since_id
-        since_id = opts[:since_id].to_i
+        params = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
+        return if params[:since_id].to_i == since_id
+        since_id = params[:since_id].to_i
 
         sleep 1
-        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, opts)
+        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
       end
     end
 
@@ -69,9 +69,9 @@ module Plugin::Worldon
     # opts[:sensitive] True | False NSFWフラグの明示的な指定
     # opts[:spoiler_text] String ContentWarning用のコメント
     # opts[:visibility] String 公開範囲。 "direct", "private", "unlisted", "public" のいずれか。
-    def post(content, **opts)
-      opts[:status] = content
-      API.call(:post, domain, '/api/v1/statuses', access_token, opts)
+    def post(content, **params)
+      params[:status] = content
+      API.call(:post, domain, '/api/v1/statuses', access_token, **params)
     end
 
     def do_reblog(status)
@@ -84,14 +84,14 @@ module Plugin::Worldon
       new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
       if new_status_hash.nil? || new_status_hash.has_key?(:error)
         error 'failed reblog request'
-        pp new_status_hash
+        pp new_status_hash if Mopt.error_level >= 1
         $stdout.flush
         return nil
       end
 
       new_status = PM::Status.build(domain, [new_status_hash]).first
+
       status.actual_status.reblogged = true
-      Plugin.call(:worldon_appear_toots, [new_status])
       Plugin.call(:retweet, [new_status])
 
       status_world = status.from_me_world
@@ -111,7 +111,7 @@ module Plugin::Worldon
             promise.fail(new_status)
           end
         rescue Exception => e
-          pp e
+          pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
           promise.fail(e)
         end
@@ -124,11 +124,11 @@ module Plugin::Worldon
       Thread.new do
         begin
           accounts = []
-          opts = {
+          params = {
             limit: 80
           }
           while true
-            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, opts)
+            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, **params)
             if list.is_a? Array
               accounts.concat(list)
               break
@@ -137,7 +137,7 @@ module Plugin::Worldon
 
               if list[:__Link__].has_key?(:next)
                 url = list[:__Link__][:next]
-                opts = URI.decode_www_form(url.query).to_h.symbolize
+                params = URI.decode_www_form(url.query).to_h.symbolize
                 next
               else
                 break
@@ -147,9 +147,9 @@ module Plugin::Worldon
           end
           promise.call(accounts.map {|hash| Account.new hash })
         rescue Exception => e
-          pp e
+          pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
-          promise.call([]) # whenできるように失敗しても空リストを返す
+          promise.call('failed to get followings')
         end
       end
       promise
