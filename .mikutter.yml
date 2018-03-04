@@ -9,6 +9,7 @@ depends:
     - gtk
     - settings
     - command
+    - extract
 version: '1.0'
 author: 
 name: Worldon
