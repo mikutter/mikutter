@@ -110,7 +110,9 @@ class Gtk::WorldShifter < Gtk::EventBox
       self.add(@face).show_all
     end
     world, = Plugin.filtering(:world_current, nil)
-    @face.tooltip(world.title)
+    if world
+      @face.tooltip(world.title)
+    end
   end
 
   def remove_face_widget_ifn
