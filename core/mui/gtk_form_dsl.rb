@@ -201,7 +201,7 @@ module Gtk::FormDSL
   #   _:comments_ :: コメント
   #   _:license_ :: ライセンス
   #   _:website_ :: Webページ
-  #   _:logo_ :: ロゴ画像のフルパス
+  #   _:logo_ :: ロゴ画像。 フルパス(String)か、Photo Modelか、GdkPixbuf::Pixbufを指定する
   #   _:authors_ :: 作者の名前。通常Twitter screen name（Array）
   #   _:artists_ :: デザイナとかの名前。通常Twitter screen name（Array）
   #   _:documenters_ :: ドキュメントかいた人とかの名前。通常Twitter screen name（Array）
@@ -341,7 +341,20 @@ module Gtk::FormDSL
   private
 
   def about_converter
-    Hash.new(ret_nth).merge!( :logo => lambda{ |value| Gtk::WebIcon.new(value).pixbuf rescue nil } )
+    Hash.new(ret_nth).merge!(
+      logo: -> value {
+        case value
+        when GdkPixbuf::Pixbuf
+          value
+        when Diva::Model
+          value.pixbuf(width: 48, height: 48)
+        else
+          Enumerator.new{ |y|
+            Plugin.filtering(:photo_filter, value, y)
+          }.first.pixbuf(width: 48, height: 48) rescue nil
+        end
+      }
+    )
   end
   memoize :about_converter
 
