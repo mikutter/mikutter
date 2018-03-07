@@ -1,6 +1,7 @@
+# coding: utf-8
 module Plugin::Worldon
   class World < Diva::Model
-    register :worldon_for_mastodon, name: "Mastodonアカウント(Worldon)"
+    register :worldon, name: "Mastodonアカウント(Worldon)"
 
     field.string :id, required: true
     field.string :slug, required: true

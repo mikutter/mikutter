@@ -1,3 +1,4 @@
+# coding: utf-8
 module Plugin::Worldon
   class AccountSource < Diva::Model
     #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
@@ -74,7 +75,11 @@ module Plugin::Worldon
     end
 
     def icon
-      Plugin.filtering(:photo_filter, avatar_static, [])[1].first
+      Enumerator.new{|y|
+        Plugin.filtering(:photo_filter, avatar_static, y)
+      }.lazy.map{|photo|
+        Plugin.filtering(:miracle_icon_filter, photo)[0]
+      }.first
     end
   end
 end

@@ -1,3 +1,4 @@
+# coding: utf-8
 class Gtk::PostBox
   def worldon_get_reply_to
     @to&.first
@@ -10,7 +11,7 @@ Plugin.create(:worldon) do
   # command
   custom_postable = Proc.new do |opt|
     world, = Plugin.filtering(:world_current, nil)
-    world.class.slug == :worldon_for_mastodon && opt.widget.editable?
+    world.class.slug == :worldon && opt.widget.editable?
   end
 
   def visibility2select(s)
@@ -116,7 +117,7 @@ Plugin.create(:worldon) do
   # spell系
 
   # 投稿
-  defspell(:compose, :worldon_for_mastodon, condition: -> (world) { true }) do |world, body:, **opts|
+  defspell(:compose, :worldon, condition: -> (world) { true }) do |world, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
@@ -136,7 +137,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  defspell(:compose, :worldon_for_mastodon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
+  defspell(:compose, :worldon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
@@ -185,13 +186,13 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:favorite, :worldon_for_mastodon, :worldon_status,
+  defspell(:favorite, :worldon, :worldon_status,
            condition: -> (world, status) { !status.actual_status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
           ) do |world, status|
     Plugin.call(:worldon_favorite, world, status.actual_status)
   end
 
-  defspell(:favorited, :worldon_for_mastodon, :worldon_status,
+  defspell(:favorited, :worldon, :worldon_status,
            condition: -> (world, status) { status.actual_status.favorite? } # TODO: worldを使って正しく判定する
           ) do |world, status|
     Delayer::Deferred.new.next {
@@ -212,13 +213,13 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:share, :worldon_for_mastodon, :worldon_status,
+  defspell(:share, :worldon, :worldon_status,
            condition: -> (world, status) { status.rebloggable? } # TODO: rebloggable?の引数にworldを取って正しく判定できるようにする
           ) do |world, status|
     world.reblog status
   end
 
-  defspell(:shared, :worldon_for_mastodon, :worldon_status,
+  defspell(:shared, :worldon, :worldon_status,
            condition: -> (world, status) { status.actual_status.shared? } # TODO: worldを使って正しく判定する
           ) do |world, status|
     Delayer::Deferred.new.next {
