@@ -51,7 +51,7 @@ Plugin.create(:worldon) do
     [Enumerator.new{|y|
       Plugin.filtering(:worlds, y)
     }.select{|world|
-      world.class.slug == :worldon_for_mastodon
+      world.class.slug == :worldon
     }.to_a]
   end
 
@@ -60,7 +60,7 @@ Plugin.create(:worldon) do
   # world_currentがworldonならそれを、そうでなければ適当に探す。
   filter_worldon_current do
     world, = Plugin.filtering(:world_current, nil)
-    if world.class.slug != :worldon_for_mastodon
+    if world.class.slug != :worldon
       worlds, = Plugin.filter(:worldon_worlds, nil)
       world = worlds.first
     end
@@ -116,7 +116,7 @@ Plugin.create(:worldon) do
 
   # world追加
   on_world_create do |world|
-    if world.class.slug == :worldon_for_mastodon
+    if world.class.slug == :worldon
       Delayer.new {
         Plugin.call(:worldon_create_or_update_instance, world.domain, true)
         Plugin.call(:worldon_init_auth_stream, world)
@@ -126,7 +126,7 @@ Plugin.create(:worldon) do
 
   # world削除
   on_world_destroy do |world|
-    if world.class.slug == :worldon_for_mastodon
+    if world.class.slug == :worldon
       Delayer.new {
         worlds = Plugin.filtering(:worldon_worlds, nil).first
         # 他のworldで使わなくなったものは削除してしまう。
