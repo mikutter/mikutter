@@ -182,6 +182,8 @@ module Plugin::Worldon
           self[:source] = application.name
         end
       end
+      reblogs_count = new_hash[:reblogs_count]
+      favourites_count = new_hash[:favourites_count]
       self
     end
 
@@ -282,7 +284,7 @@ module Plugin::Worldon
           return false
         end
       end
-      !from_me_world.nil?
+      !!from_me_world
     end
 
     # 通知用
