@@ -61,7 +61,9 @@ module Plugin::Worldon
     end
 
     def initialize(hash)
-      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      if hash[:created_at].is_a? String
+        hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      end
       hash = self.class.regularize_acct(hash)
 
       # activity対策
