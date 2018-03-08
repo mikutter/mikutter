@@ -9,6 +9,8 @@ file:core/skin/data/icon.png
 ** 必須
 - ruby :: Gemfile に記載されているRubyのバージョンを参考にしてください。
 
+必要な gem については Gemfile および core/plugin/*/Gemfile を参照してください
+
 ** プラグインが必要とするもの(必須ではない):
 - notify-send コマンド :: ubuntuでは、sudo apt install libnotify-bin
 - aplay コマンド :: サウンド通知のため・ubuntuなら最初から入ってる
