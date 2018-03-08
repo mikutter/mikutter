@@ -96,7 +96,6 @@ Plugin.create(:worldon) do
       }
       if !media_ids.empty?
         opts[:media_ids] = media_ids
-        opts[:body] += ' ' + media_urls.join(' ')
       end
       if !result[:spoiler_text].empty?
         opts[:spoiler_text] = result[:spoiler_text]
