@@ -61,7 +61,7 @@ Plugin.create(:worldon) do
   filter_worldon_current do
     world, = Plugin.filtering(:world_current, nil)
     if world.class.slug != :worldon
-      worlds, = Plugin.filter(:worldon_worlds, nil)
+      worlds, = Plugin.filtering(:worldon_worlds, nil)
       world = worlds.first
     end
     [world]
