@@ -66,7 +66,13 @@ Plugin.create(:worldon) do
       multitext "本文", :body
       self[:sensitive] = world.account.source.sensitive
       boolean "閲覧注意", :sensitive
-      self[:visibility] = visibility2select(world.account.source.privacy)
+
+      visibility_default = world.account.source.privacy
+      if reply_to.is_a?(pm::Status) && reply_to.visibility == "direct"
+        # 返信先がDMの場合はデフォルトでDMにする。但し編集はできるようにするため、この時点でデフォルト値を代入するのみ。
+        visibility_default = "direct"
+      end
+      self[:visibility] = visibility2select(visibility_default)
       select "公開範囲", :visibility do
         option :"1public", "公開"
         option :"2unlisted", "未収載"
@@ -139,12 +145,17 @@ Plugin.create(:worldon) do
   defspell(:compose, :worldon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
+      if status.visibility == "direct"
+        # 返信先がDMの場合はデフォルトでDMにする。但し呼び出し元が明示的に指定してきた場合はそちらを尊重する。
+        opts[:visibility] = "direct"
+      end
     else
       opts[:visibility] = opts[:visibility].to_s
     end
+
     status_id = status.id
     _status_id = pm::API.get_local_status_id(world, status)
-    if !_status_id.nil?
+    if _status_id
       status_id = _status_id
       opts[:in_reply_to_id] = status_id
       hash = world.post(body, opts)
