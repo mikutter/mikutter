@@ -142,6 +142,26 @@ Plugin.create(:worldon) do
     end
   end
 
+  memoize def media_tmp_dir
+    path = Pathname(Environment::TMPDIR) / 'worldon' / 'media'
+    FileUtils.mkdir_p(path.to_s)
+    path
+  end
+
+  defspell(:compose, :worldon, :photo, condition: -> (world, photo) { true }) do |world, photo, body:, **opts|
+    photo.download.next{|photo|
+      ext = photo.uri.path.split('.').last || 'png'
+      tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
+      tmp_path = media_tmp_dir / tmp_name
+      file_put_contents(tmp_path, photo.blob)
+      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: tmp_path.to_s)
+      if hash
+        media_id = hash[:id]
+        compose(world, body: body, media_ids: [media_id], **opts)
+      end
+    }
+  end
+
   defspell(:compose, :worldon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
