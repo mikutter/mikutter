@@ -11,7 +11,7 @@ Plugin.create(:worldon) do
   # command
   custom_postable = Proc.new do |opt|
     world, = Plugin.filtering(:world_current, nil)
-    world.class.slug == :worldon && opt.widget.editable?
+    [:worldon, :portal].include?(world.class.slug) && opt.widget.editable?
   end
 
   def visibility2select(s)
