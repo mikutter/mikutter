@@ -4,17 +4,16 @@ file:core/skin/data/icon.png
 全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
 略して至高のTwitter Client。
 
-* 用件
+* 要件
 
-** 必須アプリケーション:
-- ruby (2.1 - 2.3)
-- ruby gtk (3.0.8)
-- rcairo (1.15.2)
-- Open SSL
+** 必須
+- ruby :: Gemfile に記載されているRubyのバージョンを参考にしてください。
+
+必要な gem については Gemfile および core/plugin/*/Gemfile を参照してください
 
 ** プラグインが必要とするもの(必須ではない):
-- notify-sendコマンド(ubuntuでは、sudo apt install libnotify-bin)
-- aplayコマンド(サウンド通知のため・ubuntuなら最初から入ってる)
+- notify-send コマンド :: ubuntuでは、sudo apt install libnotify-bin
+- aplay コマンド :: サウンド通知のため・ubuntuなら最初から入ってる
 
 * インストール方法
   MikutterInstallBattle を参照してください。

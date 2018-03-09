@@ -7,6 +7,8 @@ def source(url)
 
 source 'https://rubygems.org'
 
+ruby '>= 2.3.0'
+
 group :default do
   gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
