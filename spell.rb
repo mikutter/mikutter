@@ -256,4 +256,8 @@ Plugin.create(:worldon) do
       status.actual_status.shared? # TODO: 何を返せばいい？
     }
   end
+
+  defspell(:update_profile, :worldon, condition: -> (world) { true }) do |world, **opts|
+    world.update_profile(**opts)
+  end
 end

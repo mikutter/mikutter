@@ -44,7 +44,7 @@ module Plugin::Worldon
             case method
             when :get
               query = conv
-            when :post
+            else # :post, :patch
               body = conv
             end
 
