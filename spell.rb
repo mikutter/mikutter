@@ -122,7 +122,7 @@ Plugin.create(:worldon) do
   # spell系
 
   # 投稿
-  defspell(:compose, :worldon, condition: -> (world) { true }) do |world, body:, **opts|
+  defspell(:compose, :worldon) do |world, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
@@ -148,7 +148,7 @@ Plugin.create(:worldon) do
     path
   end
 
-  defspell(:compose, :worldon, :photo, condition: -> (world, photo) { true }) do |world, photo, body:, **opts|
+  defspell(:compose, :worldon, :photo) do |world, photo, body:, **opts|
     photo.download.next{|photo|
       ext = photo.uri.path.split('.').last || 'png'
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
@@ -162,7 +162,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:compose, :worldon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
+  defspell(:compose, :worldon, :worldon_status) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
       if status.visibility == "direct"
@@ -257,7 +257,17 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:update_profile, :worldon, condition: -> (world) { true }) do |world, **opts|
+  update_profile_block = Proc.new do |world, **opts|
     world.update_profile(**opts)
+  end
+
+  defspell(:update_profile, :worldon, &update_profile_block)
+  defspell(:update_profile_name, :worldon, &update_profile_block)
+  defspell(:update_profile_biography, :worldon, &update_profile_block)
+  defspell(:update_profile_icon, :worldon, :photo) do |world, photo|
+    update_profile_block.call(world, icon: photo)
+  end
+  defspell(:update_profile_header, :worldon, :photo) do |world, photo|
+    update_profile_block.call(world, header: photo)
   end
 end
