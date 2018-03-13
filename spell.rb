@@ -257,6 +257,7 @@ Plugin.create(:worldon) do
     }
   end
 
+  # プロフィール更新系
   update_profile_block = Proc.new do |world, **opts|
     world.update_profile(**opts)
   end
