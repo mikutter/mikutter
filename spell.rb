@@ -196,6 +196,15 @@ Plugin.create(:worldon) do
     end
   end
 
+  defspell(:destroy, :worldon, :worldon_status) do |world, status|
+    status_id = pm::API.get_local_status_id(world, status.actual_status)
+    if status_id
+      ret = pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
+      Plugin.call(:destroyed, status.actual_status)
+      status.actual_status
+    end
+  end
+
   # ふぁぼ
   defevent :worldon_favorite, prototype: [pm::World, pm::Status]
 
@@ -203,7 +212,7 @@ Plugin.create(:worldon) do
   on_worldon_favorite do |world, status|
     Thread.new {
       status_id = pm::API.get_local_status_id(world, status.actual_status)
-      if !status_id.nil?
+      if status_id
         Plugin.call(:before_favorite, world, world.account, status)
         ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
         if ret.nil? || ret[:error]
