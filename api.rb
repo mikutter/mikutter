@@ -21,31 +21,64 @@ module Plugin::Worldon
           end
 
           begin
-            conv = []
-            files = []
-            file_keys.each do |key|
-              f = File.open(params[key], 'rb')
-              files << f
-              params[key] = f
-            end
+            conv = {}
             params.each do |key, val|
               if val.is_a? Array
-                val.each do |v|
-                  conv << [key.to_s + '[]', v]
+                val.each_index do |i|
+                  elem_key = "#{key.to_s}[#{i}]"
+                  elem_val = val[i]
+                  conv[elem_key] = elem_val
                 end
               else
-                conv << [key.to_s, val]
+                conv[key.to_s] = val
               end
             end
+            params = conv
+
+            files = []
+            conv = []
+            if file_keys.size == 0
+              params.each do |key, val|
+                req_key = key.gsub(/\[[0-9]*\]/) { "[]" }
+                conv << [req_key, val]
+              end
+            else
+              # multipart/form-data にするが、POSTリクエストではない可能性がある（PATCH等）ため、ある程度自力でつくる。
+              # boundary作成や実際のbody構築はhttpclientに任せる。
+              headers << ["Content-Type", "multipart/form-data"]
+              file_keys.each do |key|
+                key = key.to_s
+                filename = params[key]
+                req_key = key.gsub(/\[[0-9]*\]/) { "[]" }
+                req_filename = Pathname(filename).basename.to_s
+                disposition = "form-data; name=\"#{req_key}\"; filename=\"#{req_filename}\""
+                f = File.open(filename, 'rb')
+                files << f
+                conv << {
+                  "Content-Type" => "application/octet-stream",
+                  "Content-Disposition" => disposition,
+                  :content => f,
+                }
+                params.delete(key)
+              end
+              params.each do |key, val|
+                conv << {
+                  "Content-Type" => "application/octet-stream",
+                  "Content-Disposition" => "form-data; name=\"#{key}\"",
+                  :content => val,
+                }
+              end
+            end
+            params = conv
 
             query = {}
             body = {}
 
             case method
             when :get
-              query = conv
+              query = params
             else # :post, :patch
-              body = conv
+              body = params
             end
 
             notice "Worldon::API.call #{method.to_s} #{uri} #{params.to_s}"
@@ -64,7 +97,7 @@ module Plugin::Worldon
             parse_Link(resp, hash)
           else
             warn "API.call did'nt return 200 Success"
-            pp [uri.to_s, params, resp] if Mopt.error_level >= 2
+            pp [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
             $stdout.flush
             nil
           end

@@ -178,7 +178,7 @@ module Plugin::Worldon
           photo = pair[1]
           ext = photo.uri.path.split('.').last || 'png'
           tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
-          tmp_path = media_tmp_dir / tmp_name
+          tmp_path = Plugin[:worldon].media_tmp_dir / tmp_name
           file_put_contents(tmp_path, photo.blob)
           key = pair[0]
           params[key] = tmp_path.to_s
