@@ -34,8 +34,19 @@ module Plugin::Worldon
     end
 
     def get_lists!
-      @lists ||= API.call(:get, domain, '/api/v1/lists', access_token)
-      @lists
+      return @lists if @lists
+
+      lists = API.call(:get, domain, '/api/v1/lists', access_token)
+      if lists.is_a? Array
+        @lists = lists
+      else
+        if lists.nil?
+          warn "[worldon] failed to get lists"
+        elsif lists.is_a?(Hash) && lists['error']
+          warn "[worldon] failed to get lists: #{lists['error'].to_s}"
+        end
+        @lists = []
+      end
     end
 
     def lists
