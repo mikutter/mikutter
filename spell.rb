@@ -196,7 +196,9 @@ Plugin.create(:worldon) do
     end
   end
 
-  defspell(:destroy, :worldon, :worldon_status) do |world, status|
+  defspell(:destroy, :worldon, :worldon_status, condition: -> (world, status) {
+    world.account.acct == status.actual_status.account.acct
+  }) do |world, status|
     status_id = pm::API.get_local_status_id(world, status.actual_status)
     if status_id
       ret = pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)

@@ -37,6 +37,9 @@ module Plugin::Worldon
     field.has :mentions, [Mention]
     field.has :tags, [Tag]
 
+    attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
+      # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）。
+
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
     alias_method :shared?, :reblogged
@@ -101,6 +104,8 @@ module Plugin::Worldon
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
 
+          status.reblog_status_uris = status.reblog_status_uris << boost_uri
+
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
           @@status_storage[boost_uri] = boost
@@ -136,6 +141,8 @@ module Plugin::Worldon
           return nil
         end
       end
+
+      @reblog_status_uris = []
 
       # タイムゾーン考慮
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
@@ -212,11 +219,7 @@ module Plugin::Worldon
     end
 
     def retweeted_by
-      if reblog.nil?
-        []
-      else
-        [account]
-      end
+      actual_status.reblog_status_uris.map{|uri| @@status_storage[uri]&.account }.compact.uniq{|account| account.acct }
     end
 
     # sub_parts_client用
@@ -346,12 +349,7 @@ module Plugin::Worldon
     end
 
     def retweeted_statuses
-      # TODO: APIで個別取得するタイミングがわからないので適当
-      if reblog.nil?
-        []
-      else
-        [self]
-      end
+      reblog_status_uris.map{|uri| @@status_storage[uri] }.compact
     end
 
     # Message#.introducer
