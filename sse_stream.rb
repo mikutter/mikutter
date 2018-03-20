@@ -285,7 +285,7 @@ Plugin.create(:worldon) do
       user = pm::Account.new payload[:account]
       status = pm::Status.build(domain, [payload[:status]]).first
       world = status.from_me_world
-      if !world.nil?
+      if user && status && world
         Plugin.call(:favorite, world, user, status)
       end
 
