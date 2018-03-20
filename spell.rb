@@ -1,9 +1,4 @@
 # coding: utf-8
-class Gtk::PostBox
-  def worldon_get_reply_to
-    @to&.first
-  end
-end
 
 Plugin.create(:worldon) do
   pm = Plugin::Worldon

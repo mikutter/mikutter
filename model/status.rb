@@ -227,14 +227,18 @@ module Plugin::Worldon
       actual_status.application&.name
     end
 
-    def dehtmlize(text)
-      text
+    def dehtmlize(text, remove_anchor = false)
+      result = text
         .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
+      if remove_anchor
+        result = result.gsub(/<\/?a[^>]*>/) { '' }
+      end
+      result
     end
 
     def add_attachments(text)
@@ -263,6 +267,10 @@ module Plugin::Worldon
       end
       desc = add_attachments(desc)
       @description_text = desc
+    end
+
+    def description_plain
+      dehtmlize(description, true)
     end
 
     # register reply:true用API

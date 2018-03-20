@@ -10,6 +10,7 @@ end
 require_relative 'util'
 require_relative 'api'
 require_relative 'model/model'
+require_relative 'patch'
 require_relative 'spell'
 require_relative 'setting'
 require_relative 'subparts_visibility'
