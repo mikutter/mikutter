@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the gtk package.
 # 
 # Translators:
-# Vel <veloci85@gmail.com>, 2015
+# Vel <veloci85@gmail.com>, 2015,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2015-10-31 08:10+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-20 05:27+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../mikutter_window.rb:55
+#: ../mikutter_window.rb:66
 msgid "Statusbar default message"
 msgstr "Statusbar default message"
+
+#: ../world_shifter.rb:39
+msgid "Worldを追加"
+msgstr "加入 World"

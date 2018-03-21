@@ -1,0 +1,10 @@
+---
+name: Spell
+slug: spell
+depends:
+  mikutter: '3.6'
+  plugin: []
+version: '1.0'
+description: >-
+  Diva::Modelを操作するための手続きを拡張するため手段として、Spellを提供します。
+  定義されたSpellは、他のプラグインから使うことも出来ます。

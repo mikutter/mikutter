@@ -9,7 +9,7 @@ class Gtk::ListList < Gtk::CRUD
   def column_schemer
     [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
      {:kind => :text, :type => String, :label => 'リスト名'},
-     {:type => UserList},
+     {:type => Diva::Model},
     ].freeze
   end
 
@@ -22,12 +22,12 @@ class Gtk::ListList < Gtk::CRUD
   # self
   def set_auto_getter(plugin, own = false, &proc)
     type_strict plugin => Plugin, proc => Proc
-    add_hook(Service.primary, own, UserLists.new(Plugin.filtering(:following_lists, UserLists.new).first), &proc)
+    add_hook(Service.primary, own, Plugin.filtering(:following_lists, Array.new).first, &proc)
     create = plugin.add_event(:list_created) { |service, lists|
       if destroyed?
         error "gtk widget already destroyed."
       else
-        add_hook(service, own, UserLists.new(lists), &proc) end }
+        add_hook(service, own, lists, &proc) end }
     destroy = plugin.add_event(:list_destroy){ |service, list_ids|
       if destroyed?
         error "gtk widget already destroyed."
@@ -45,9 +45,8 @@ class Gtk::ListList < Gtk::CRUD
   # ==== Args
   # [service] Service
   # [own] 真なら自分の作成したリストのみを追加する
-  # [lists] リストの配列(UserLists)
+  # [lists] リストの配列(Array)
   def add_hook(service, own, lists, &proc)
-    type_strict service => Service, lists => UserLists, proc => Proc
     (own ? lists.select{ |list| list[:user].me? } : lists).each{ |list|
       proc.call(service, list, model.append) } end
 

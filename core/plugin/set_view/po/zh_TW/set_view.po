@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the set_view package.
 # 
 # Translators:
-# Vel <veloci85@gmail.com>, 2015-2016
+# Vel <veloci85@gmail.com>, 2015-2016,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-13 15:18+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-21 15:43+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -45,11 +45,11 @@ msgstr "本文"
 
 #: ../set_view.rb:55
 msgid "ヘッダ（左）"
-msgstr "標題（左）"
+msgstr "標頭（左）"
 
 #: ../set_view.rb:56
 msgid "ヘッダ（右）"
-msgstr "標題（右）"
+msgstr "標頭（右）"
 
 #: ../set_view.rb:62
 msgid "自分宛の%{retriever}"
@@ -77,7 +77,7 @@ msgstr "顯示項目"
 
 #: ../set_view.rb:85 ../set_view.rb:106
 msgid "ヘッダを表示する"
-msgstr "顯示頁首"
+msgstr "顯示標頭"
 
 #: ../set_view.rb:86 ../set_view.rb:107
 msgid "アイコンを表示する"
@@ -141,31 +141,31 @@ msgstr "已回覆推文上的回覆按鈕會維持在顯示狀態"
 
 #: ../set_view.rb:127
 msgid "ふぁぼふぁぼ"
-msgstr "打星收藏"
+msgstr "表示喜歡"
 
 #: ../set_view.rb:128
 msgid "ふぁぼられをリプライの受信として処理する"
-msgstr "將被星的推文視為回覆"
+msgstr "將被喜歡的推文視為回覆"
 
 #: ../set_view.rb:129
 msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
-msgstr "被人收藏的推文會顯示在回覆頁籤"
+msgstr "被人喜歡的推文會顯示在回覆頁籤"
 
 #: ../set_view.rb:130
 msgid "ふぁぼられたつぶやきをTL上でageる"
-msgstr "將被打星的推文拉到時間軸頂端"
+msgstr "將被喜歡的推文拉到時間軸頂端"
 
 #: ../set_view.rb:131
 msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
-msgstr "無視原推的發推時間，只要推文被打星就會出現在時間軸最上面"
+msgstr "無視原推的發推時間，只要推文被喜歡就會出現在時間軸最上面"
 
 #: ../set_view.rb:132
 msgid "自分がふぁぼったつぶやきをTL上でageる"
-msgstr "將自己打星的推文拉到時間軸頂端"
+msgstr "將自己喜歡的推文拉到時間軸頂端"
 
 #: ../set_view.rb:133
 msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
-msgstr "自己打星的推文也會出現在時間軸的最上方"
+msgstr "自己喜歡的推文也會出現在時間軸的最上方"
 
 #: ../set_view.rb:136
 msgid "Retweets"
@@ -244,13 +244,45 @@ msgid "右"
 msgstr "右"
 
 #: ../set_view.rb:160
+msgid "投稿ボックス"
+msgstr "發推欄位"
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "常に表示する"
+msgstr "總是顯示"
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "表示しない"
+msgstr "不顯示"
+
+#: ../set_view.rb:160
+msgid "1アカウント以上あれば表示"
+msgstr "有１個以上的帳號時顯示"
+
+#: ../set_view.rb:162
+msgid "アカウント切り替え"
+msgstr "切換帳號"
+
+#: ../set_view.rb:162
+msgid "2アカウント以上あれば表示"
+msgstr "有２個以上的帳號時顯示"
+
+#: ../set_view.rb:164
 msgid "URLを開く方法"
 msgstr "URL開啟方式"
 
-#: ../set_view.rb:161
+#: ../set_view.rb:165
 msgid "デフォルトブラウザを使う"
 msgstr "使用預設瀏覽器"
 
-#: ../set_view.rb:163
+#: ../set_view.rb:167
 msgid "次のコマンドを使う"
 msgstr "使用以下指令"
+
+#: ../set_view.rb:171
+msgid "タイムライン"
+msgstr "時間軸"
+
+#: ../set_view.rb:172
+msgid "最大表示件数"
+msgstr "推文顯示數量上限"

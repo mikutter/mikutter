@@ -18,7 +18,7 @@ class Gtk::FormDSL::MultiSelect < Gtk::FormDSL::Select
     else
       group = Gtk::Frame.new.set_border_width(8).
         set_label(label)
-      box = @parent_klass.create_inner_setting.set_border_width(4).
+      box = @parent_dslobj.create_inner_setting.set_border_width(4).
         closeup(build_combobox(config_key))
       group.add(box)
     end

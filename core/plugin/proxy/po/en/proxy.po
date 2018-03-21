@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-22 23:59+0900\n"
-"PO-Revision-Date: 2016-01-05 04:44+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:30+0000\n"
 "Last-Translator: Alice Takashina <cannorin@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -20,38 +20,38 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../proxy.rb:34 ../proxy.rb:35
+#: ../proxy.rb:35 ../proxy.rb:36
 msgid "プロキシ"
 msgstr "Proxy"
 
-#: ../proxy.rb:36
+#: ../proxy.rb:37
 msgid "自分で設定する"
 msgstr "Manual configuration"
 
-#: ../proxy.rb:37
+#: ../proxy.rb:38
 msgid "サーバ"
 msgstr "Server"
 
-#: ../proxy.rb:38
+#: ../proxy.rb:39
 msgid "ポート"
 msgstr "Port"
 
-#: ../proxy.rb:39
+#: ../proxy.rb:40
 msgid "ユーザ"
 msgstr "User"
 
-#: ../proxy.rb:40
+#: ../proxy.rb:41
 msgid "パスワード"
 msgstr "Password"
 
-#: ../proxy.rb:41
+#: ../proxy.rb:42
 msgid "ユーザ認証が必要"
 msgstr "Need user authentication"
 
-#: ../proxy.rb:43
+#: ../proxy.rb:44
 msgid "環境変数の設定を使う"
 msgstr "Use environment variable setting"
 
-#: ../proxy.rb:44
+#: ../proxy.rb:45
 msgid "プロキシを使わない"
 msgstr "Don't use proxy"

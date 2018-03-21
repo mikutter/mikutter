@@ -54,11 +54,11 @@ Plugin::create(:basic_settings) do
     about (_("%s について") % Environment::NAME), {
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,
-      :copyright => _('2009-%s Toshiaki Asai') % '2017',
+      :copyright => _('2009-%s Toshiaki Asai') % '2018',
       :comments => _("全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n略して至高のTwitter Client。\n圧倒的なかわいさではないか我がミクは\n\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
       :license => (file_get_contents('../LICENSE') rescue nil),
       :website => _('http://mikutter.hachune.net/'),
-      :logo => Skin.get_path('icon.png'),
+      :logo => Skin.photo('icon.png'),
       :authors => ['toshi_a', 'Phenomer', 'osa_k', 'katsyoshi'],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],
       :documenters => ['toshi_a']

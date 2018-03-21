@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the notify package.
 # 
 # Translators:
+# French Dupont, 2017
 # Manuel Tancoigne <m.tancoigne@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2016-12-12 09:11+0000\n"
-"Last-Translator: Manuel Tancoigne <m.tancoigne@gmail.com>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-22 00:00+0000\n"
+"Last-Translator: French Dupont\n"
 "Language-Team: French (http://www.transifex.com/lindwurm/mikutter/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: ../notify.rb:7
 msgid "通知"
-msgstr ""
+msgstr "Notifier"
 
 #: ../notify.rb:10
 msgid "ポップアップ"
@@ -28,7 +29,7 @@ msgstr "Popup"
 
 #: ../notify.rb:11
 msgid "サウンド"
-msgstr "So"
+msgstr "Son"
 
 #: ../notify.rb:13
 msgid "フレンドタイムライン"
@@ -36,44 +37,44 @@ msgstr "Fil d'actualité des amis"
 
 #: ../notify.rb:14
 msgid "リプライ"
-msgstr ""
+msgstr "Répondre"
 
 #: ../notify.rb:15
 msgid "フォローされたとき"
-msgstr ""
+msgstr "Quand suivi par quelqu'un"
 
 #: ../notify.rb:16
 msgid "フォロー解除されたとき"
-msgstr ""
+msgstr "Quand quelqu'un a arrêté de vous suivre"
 
 #: ../notify.rb:17
 msgid "リツイートされたとき"
-msgstr ""
+msgstr "Quand mon tweet est retweeté par quelqu'un"
 
 #: ../notify.rb:18
 msgid "ふぁぼられたとき"
-msgstr ""
+msgstr "Quand mon tweet est ajouté aux favoris de quelqu'un"
 
 #: ../notify.rb:19
 msgid "ダイレクトメッセージ受信"
-msgstr ""
+msgstr "Quand je reçois un Message Direct"
 
 #: ../notify.rb:20
 msgid "通知を表示し続ける秒数"
-msgstr ""
+msgstr "Garder les notifications affichées pendant (secondes)"
 
-#: ../notify.rb:45
+#: ../notify.rb:44
 msgid "%{users} にフォローされました。"
-msgstr ""
+msgstr "Suivi par %{users}."
 
-#: ../notify.rb:52
+#: ../notify.rb:51
 msgid "%{users} にリムーブされました。"
-msgstr ""
+msgstr "Désabonné⋅e par %{users}."
 
-#: ../notify.rb:59
+#: ../notify.rb:58
 msgid "fav by %{from_user} \"%{tweet}\""
-msgstr ""
+msgstr "%{from_user} a ajouté \"%{tweet}\" à ses favoris"
 
-#: ../notify.rb:70
+#: ../notify.rb:69
 msgid "ReTweet: %{tweet}"
-msgstr ""
+msgstr "ReTweet: %{tweet}"

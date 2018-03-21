@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the set_view package.
 # 
 # Translators:
+# French Dupont, 2017
 # Manuel Tancoigne <m.tancoigne@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-12 09:12+0000\n"
-"Last-Translator: Manuel Tancoigne <m.tancoigne@gmail.com>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/lindwurm/mikutter/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,7 +21,7 @@ msgstr ""
 
 #: ../set_view.rb:45
 msgid "表示"
-msgstr ""
+msgstr "Affichage"
 
 #: ../set_view.rb:46
 msgid "選択中"
@@ -37,23 +38,23 @@ msgstr "Défaut"
 
 #: ../set_view.rb:53 ../set_view.rb:81 ../set_view.rb:102
 msgid "フォント"
-msgstr ""
+msgstr "Fonte de police"
 
 #: ../set_view.rb:54
 msgid "本文"
-msgstr ""
+msgstr "Cet article:"
 
 #: ../set_view.rb:55
 msgid "ヘッダ（左）"
-msgstr ""
+msgstr "En-tête gauche"
 
 #: ../set_view.rb:56
 msgid "ヘッダ（右）"
-msgstr ""
+msgstr "En-tête droit"
 
 #: ../set_view.rb:62
 msgid "自分宛の%{retriever}"
-msgstr ""
+msgstr "Pour: %{retriever}"
 
 #: ../set_view.rb:68
 msgid "自分の%{retriever}"
@@ -61,7 +62,7 @@ msgstr ""
 
 #: ../set_view.rb:76 ../set_view.rb:101
 msgid "コメント付きリツイート"
-msgstr ""
+msgstr "Retweeter avec un commentaire"
 
 #: ../set_view.rb:77
 msgid "コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです"
@@ -69,7 +70,7 @@ msgstr ""
 
 #: ../set_view.rb:80
 msgid "リプライ先"
-msgstr ""
+msgstr "Destination de la réponse"
 
 #: ../set_view.rb:84 ../set_view.rb:105
 msgid "表示項目"
@@ -77,15 +78,15 @@ msgstr ""
 
 #: ../set_view.rb:85 ../set_view.rb:106
 msgid "ヘッダを表示する"
-msgstr ""
+msgstr "Montrer l'en-tête"
 
 #: ../set_view.rb:86 ../set_view.rb:107
 msgid "アイコンを表示する"
-msgstr ""
+msgstr "Montrer l'icône"
 
 #: ../set_view.rb:87 ../set_view.rb:108
 msgid "アイコンのサイズ"
-msgstr ""
+msgstr "Taille de l'icône"
 
 #: ../set_view.rb:90 ../set_view.rb:111
 msgid "枠線を表示する"
@@ -97,47 +98,47 @@ msgstr ""
 
 #: ../set_view.rb:91 ../set_view.rb:112
 msgid "影"
-msgstr ""
+msgstr "Ombre"
 
 #: ../set_view.rb:91 ../set_view.rb:112
 msgid "線"
-msgstr ""
+msgstr "Ligne"
 
 #: ../set_view.rb:91 ../set_view.rb:112
 msgid "枠線なし"
-msgstr ""
+msgstr "Couleur de fond seulement"
 
 #: ../set_view.rb:93 ../set_view.rb:114
 msgid "本文の最大行数"
-msgstr ""
+msgstr "Nombre maximum de lignes par tweet"
 
 #: ../set_view.rb:95 ../set_view.rb:116
 msgid "クリックされたときの挙動"
-msgstr ""
+msgstr "Action effectuée lors d'un clic"
 
 #: ../set_view.rb:96 ../set_view.rb:117
 msgid "何もしない"
-msgstr ""
+msgstr "Ne rien faire"
 
 #: ../set_view.rb:97 ../set_view.rb:118
 msgid "開く"
-msgstr ""
+msgstr "Ouvrir"
 
 #: ../set_view.rb:98 ../set_view.rb:119
 msgid "会話スレッドを表示"
-msgstr ""
+msgstr "Montrer le fil de conversation"
 
 #: ../set_view.rb:122
 msgid "Mentions"
-msgstr ""
+msgstr "Mentions"
 
 #: ../set_view.rb:123
 msgid "リプライを返したつぶやきにはアイコンを表示"
-msgstr ""
+msgstr "Montrer les icônes des tweets ayant déjà reçu une réponse"
 
 #: ../set_view.rb:124
 msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
-msgstr ""
+msgstr "Laisser le bouton répondre affiché dans la section avatar d'un tweet auquel vous avez déjà répondu."
 
 #: ../set_view.rb:127
 msgid "ふぁぼふぁぼ"
@@ -145,19 +146,19 @@ msgstr ""
 
 #: ../set_view.rb:128
 msgid "ふぁぼられをリプライの受信として処理する"
-msgstr ""
+msgstr "Traiter mes actions \"favori\" comme des réponses"
 
 #: ../set_view.rb:129
 msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
-msgstr ""
+msgstr "Le tweet que vous avez sélectionné en tant que \"favori\" s'affichera dans l'onglet des réponses."
 
 #: ../set_view.rb:130
 msgid "ふぁぼられたつぶやきをTL上でageる"
-msgstr ""
+msgstr "Placer mes tweets favoris en haut de la Timeline"
 
 #: ../set_view.rb:131
 msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
-msgstr ""
+msgstr "Le tweet que vous avez sélectionné en tant que \"favori\" s'affichera en haut de votre Timeline"
 
 #: ../set_view.rb:132
 msgid "自分がふぁぼったつぶやきをTL上でageる"
@@ -165,19 +166,19 @@ msgstr ""
 
 #: ../set_view.rb:133
 msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
-msgstr ""
+msgstr "Les tweets que vous ajoutez aux favoris s'afficheront en haut de votre Timeline"
 
 #: ../set_view.rb:136
 msgid "Retweets"
-msgstr ""
+msgstr "Retweets"
 
 #: ../set_view.rb:137
 msgid "リツイートされたつぶやきをTL上でageる"
-msgstr ""
+msgstr "Placer ce que j'ai retweeté en haut de la Timeline"
 
 #: ../set_view.rb:138
 msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
-msgstr ""
+msgstr "Le post que vous avez retweeté s'affichera en haut de votre Timeline"
 
 #: ../set_view.rb:139
 msgid "自分がリツイートしたつぶやきをTL上でageる"
@@ -189,39 +190,39 @@ msgstr ""
 
 #: ../set_view.rb:143
 msgid "非公開アカウント"
-msgstr ""
+msgstr "Compte privé"
 
 #: ../set_view.rb:144
 msgid "非公開アカウントのつぶやきにはアイコンを表示"
-msgstr ""
+msgstr "Afficher l'icône \"cadenas\" sur les tweets protégés"
 
 #: ../set_view.rb:145
 msgid "非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"
-msgstr ""
+msgstr "Laisser une icône de cadenas affichée au-dessus de l'avatar sur les Tweets protégés pour indiquer que vous ne pouvez pas les retweeter."
 
 #: ../set_view.rb:148
 msgid "承認済みアカウント"
-msgstr ""
+msgstr "Compte vérifié"
 
 #: ../set_view.rb:149
 msgid "承認済みアカウントのつぶやきにはアイコンを表示"
-msgstr ""
+msgstr "Afficher le badge sur les tweets des comptes vérifiés"
 
 #: ../set_view.rb:150
 msgid "Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"
-msgstr ""
+msgstr "Laisser le badge \"vérifié\" affiché au-dessus de l'avatar sur les Tweets provenants de comptes vérifiés."
 
 #: ../set_view.rb:153
 msgid "短縮URL"
-msgstr ""
+msgstr "URL raccourcie"
 
 #: ../set_view.rb:154
 msgid "短縮URLを展開して表示"
-msgstr ""
+msgstr "Convertir l'URL raccourcie en l'URL originale"
 
 #: ../set_view.rb:155
 msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
-msgstr ""
+msgstr "Toujours convertir les URLs raccourcies dans les tweets reçus"
 
 #: ../set_view.rb:158
 msgid "タブの位置"
@@ -229,28 +230,60 @@ msgstr ""
 
 #: ../set_view.rb:158
 msgid "上"
-msgstr ""
+msgstr "Haut"
 
 #: ../set_view.rb:158
 msgid "下"
-msgstr ""
+msgstr "Bas"
 
 #: ../set_view.rb:158
 msgid "左"
-msgstr ""
+msgstr "Gauche"
 
 #: ../set_view.rb:158
 msgid "右"
+msgstr "Droite"
+
+#: ../set_view.rb:160
+msgid "投稿ボックス"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "常に表示する"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "表示しない"
 msgstr ""
 
 #: ../set_view.rb:160
+msgid "1アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "アカウント切り替え"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "2アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:164
 msgid "URLを開く方法"
-msgstr ""
+msgstr "Méthode d'ouverture des URL"
 
-#: ../set_view.rb:161
+#: ../set_view.rb:165
 msgid "デフォルトブラウザを使う"
+msgstr "Utiliser le navigateur Web par défaut"
+
+#: ../set_view.rb:167
+msgid "次のコマンドを使う"
+msgstr "Utiliser la commande suivant"
+
+#: ../set_view.rb:171
+msgid "タイムライン"
 msgstr ""
 
-#: ../set_view.rb:163
-msgid "次のコマンドを使う"
+#: ../set_view.rb:172
+msgid "最大表示件数"
 msgstr ""

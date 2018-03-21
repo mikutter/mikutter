@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'pane')
-require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab')
-require File.expand_path File.join(File.dirname(__FILE__), 'widget')
+require_relative 'pane'
+require_relative 'cuscadable'
+require_relative 'hierarchy_child'
+require_relative 'tab'
+require_relative 'widget'
 
 # タブにコマンドを表示するウィジェット
 class Plugin::GUI::TabToolbar

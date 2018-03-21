@@ -5,18 +5,18 @@
 # Translators:
 # Akkiesoft <akkiesoft@marokun.net>, 2013,2016
 # Alice Takashina <cannorin@gmail.com>, 2016
-# ABE Satoru <s@polamjag.info>, 2013-2014
+# polamjag <s@polamjag.info>, 2013-2014
 # Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
-# Hotaka Hitagi, 2013
+# lindwurm, 2013
 # mt_caret <mtakeda.enigsol@gmail.com>, 2014
 # Yuki Shira <shirayuking@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-02 21:35+0900\n"
-"PO-Revision-Date: 2016-10-02 12:42+0000\n"
-"Last-Translator: Akkiesoft <akkiesoft@marokun.net>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -159,10 +159,6 @@ msgstr "Presenting the supreme Twitter Client for Miku fans and Twitter junkies.
 msgid "http://mikutter.hachune.net/"
 msgstr "http://mikutter.hachune.net/"
 
-#: ../builder.rb:287
-msgid "参照"
-msgstr "Select file"
-
-#: ../settings.rb:9 ../settings.rb:23
+#: ../settings.rb:11 ../settings.rb:24
 msgid "設定"
 msgstr "Preferences"

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'conditions')
+require_relative 'conditions'
 
 Plugin.create :command do
 
@@ -32,7 +32,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     messages = opt.messages
     opt.widget.create_postbox(to: messages,
-                              header: messages.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
+                              header: messages.select{|x|x.respond_to?(:idname)}.map{|x| "@#{x.idname}"}.uniq.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:reply_all,
@@ -43,7 +43,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     messages = opt.messages.map{ |m| m.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
-                              header: messages.map(&:user).uniq.reject(&:me?).map{|x| "@#{x.idname}"}.join(' ') + ' ',
+                              header: messages.map(&:user).uniq.reject(&:me?).select{|x|x.respond_to?(:idname)}.map{|x| "@#{x.idname}"}.join(' ') + ' ',
                               use_blind_footer: !UserConfig[:footer_exclude_reply]) end
 
   command(:legacy_retweet,
@@ -63,12 +63,16 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    target = opt.messages.select(&:retweetable?).reject{ |m| m.retweeted_by_me? Service.primary }.map(&:introducer)
-    if target.any?{|message| message.from_me?([Service.primary]) }
+    world, = Plugin.filtering(:world_current, nil)
+    target = opt.messages.select{|m| share?(m, world) }.reject{|m| shared?(m, world) }.map(&:introducer)
+    if target.any?{|message| message.from_me?([world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each(&:retweet) end
+        target.each{|m| share(m, world) }
+      end
     else
-      target.each(&:retweet) end end
+      target.each{|m| share(m, world) }
+    end
+  end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),
@@ -76,9 +80,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
-    opt.messages.each { |m|
-      retweet = m.retweeted_statuses.find(&:from_me?)
-      retweet.destroy if retweet and ::Gtk::Dialog.confirm("このつぶやきのリツイートをキャンセルしますか？\n\n#{m.to_show}") } end
+    current_world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| destroy_share(current_world, m) }
+    ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
+  end
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
@@ -86,7 +92,15 @@ Plugin.create :command do
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
-    opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.map(&:introducer).each(&:favorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.select{|m|
+        favorite?(world, m) && !favorited?(world, m)
+      }.map{|m|
+        favorite(world, m)
+      }
+    ).terminate(_('ふぁぼふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),
@@ -94,7 +108,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
-    opt.messages.each(&:unfavorite) end
+    world, = Plugin.filtering(:world_current, nil)
+    Delayer::Deferred.when(
+      opt.messages.map{|m| unfavorite(world, m) }
+    ).terminate(_('あんふぁぼしている途中でエラーが発生しました'))
+  end
 
   command(:delete,
           name: _('削除'),
@@ -102,8 +120,15 @@ Plugin.create :command do
           visible: true,
           icon: Skin['close.png'],
           role: :timeline) do |opt|
-    opt.messages.each { |m|
-      m.destroy if ::Gtk::Dialog.confirm(_('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？') + "\n\n#{m.to_show}") } end
+    opt.messages.deach { |m|
+      +dialog(_('削除')) {
+        label _('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？')
+        link m
+      }.next {
+        m.destroy
+      }
+    }
+  end
 
   command(:select_prev,
           name: _('一つ上のメッセージを選択'),

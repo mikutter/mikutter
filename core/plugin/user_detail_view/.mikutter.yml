@@ -9,6 +9,7 @@ depends:
   - uitranslator
   - intent
   - skin
+  - twitter
 version: '1.0'
 author: toshi_a
 name: プロフィール

@@ -28,9 +28,11 @@ module Gdk::WebImageLoader
     else
       Enumerator.new{|y|
         Plugin.filtering(:photo_filter, url, y)
-      }.first.pixbuf(width: width, height: height) ||
-        Skin['notfound.png'].pixbuf(width: width, height: height)
+      }.first.pixbuf(width: width, height: height)
     end
+  rescue => err
+    warn err
+    Skin['notfound.png'].pixbuf(width: width, height: height)
   end
   deprecate :pixbuf, "Diva::Model::PhotoMixin#load_pixbuf", 2018, 1 if Environment::VERSION >= [3, 6]
 

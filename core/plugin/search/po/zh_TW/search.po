@@ -4,13 +4,13 @@
 # 
 # Translators:
 # Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
-# Vel <veloci85@gmail.com>, 2016
+# Vel <veloci85@gmail.com>, 2016,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 09:28+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-21 15:27+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -19,22 +19,26 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../model/search.rb:5
+#: ../model/search.rb:6
 msgid "Twitter検索"
 msgstr "搜尋 Twitter"
 
-#: ../search.rb:11 ../search.rb:21
+#: ../model/search.rb:22
+msgid "「%{query}」でツイート検索"
+msgstr "搜尋「%{query}」的推文"
+
+#: ../query_box.rb:8 ../search.rb:33
 msgid "検索"
 msgstr "搜尋"
 
-#: ../search.rb:12
+#: ../query_box.rb:9
 msgid "保存"
 msgstr "存檔"
 
-#: ../search.rb:45
+#: ../query_box.rb:29
 msgid "検索中にエラーが発生しました (%{error})"
 msgstr "搜尋中發生錯誤 (%{error})"
 
-#: ../search.rb:52
+#: ../query_box.rb:36
 msgid "検索キーワード「%{query}」を保存できませんでした。あとで試してみてください"
-msgstr "無法將搜尋關鍵字「%{query}」存檔。之後請再試試看。"
+msgstr "無法存檔搜尋關鍵字「%{query}」。請稍後再試試看。"

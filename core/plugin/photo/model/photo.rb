@@ -23,15 +23,9 @@ module Plugin::Photo
       case uri
       when Diva::Model
         uri
-      when URI, Addressable::URI, Diva::URI
-        photos[uri.to_s.hash] ||= wrap(uri)
-      when String
-        if uri.start_with?('http')
-          photos[uri.hash] ||= wrap(uri)
-        elsif uri.start_with?('/')
-          uri = Diva::URI.new(scheme: 'file', path: uri)
-          photos[uri.hash] ||= wrap(uri)
-        end
+      when URI, Addressable::URI, Diva::URI, String
+        wrapped_uri = Diva::URI(uri)
+        photos[wrapped_uri.to_s.hash] ||= wrap(wrapped_uri)
       end
     end
 

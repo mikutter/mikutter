@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 08:16+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:29+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../direct_message.rb:14 ../direct_message.rb:20
+#: ../direct_message.rb:35 ../direct_message.rb:80
 msgid "DM"
 msgstr "DM"
 
-#: ../direct_message.rb:30 ../direct_message.rb:34
+#: ../direct_message.rb:58 ../direct_message.rb:65
 msgid "ダイレクトメッセージ"
 msgstr ""
 

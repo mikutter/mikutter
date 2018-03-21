@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-12 10:35+0000\n"
-"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -244,13 +244,45 @@ msgid "右"
 msgstr "rechts"
 
 #: ../set_view.rb:160
+msgid "投稿ボックス"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "常に表示する"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "表示しない"
+msgstr ""
+
+#: ../set_view.rb:160
+msgid "1アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "アカウント切り替え"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "2アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:164
 msgid "URLを開く方法"
 msgstr "Methode eine URL zu öffnen."
 
-#: ../set_view.rb:161
+#: ../set_view.rb:165
 msgid "デフォルトブラウザを使う"
 msgstr "Benutze Standard Browser."
 
-#: ../set_view.rb:163
+#: ../set_view.rb:167
 msgid "次のコマンドを使う"
 msgstr "Benutze folgenden Befehl."
+
+#: ../set_view.rb:171
+msgid "タイムライン"
+msgstr ""
+
+#: ../set_view.rb:172
+msgid "最大表示件数"
+msgstr ""

@@ -2,6 +2,7 @@
 
 module Gtk
   class ContextMenu
+    extend Gem::Deprecate
     def initialize(*context)
       reset(context) end
 
@@ -9,14 +10,19 @@ module Gtk
       @contextmenu = context
     end
 
-    def registmenu(label, condition=ret_nth(), &callback)
+    def register(label, condition=ret_nth(), &callback)
       @contextmenu = @contextmenu.push([label, condition, callback]) end
+    alias :registmenu :register
+    deprecate :registmenu, "register", 2018, 04
 
-    def registline
+    def line
       if block_given?
-        registmenu(nil, lambda{ |*a| yield *a }){ |a,b| }
+        register(nil, lambda{ |*a| yield(*a) }){ |a,b| }
       else
-        registmenu(nil){ |a,b| } end end
+        register(nil){ |a,b| } end end
+    alias :registline :line
+    deprecate :registline, "line", 2018, 04
+
 
     # メニューが閉じられた時、自身を自動的に破棄する Gtk::Menu を作成して返す
     def temporary_menu

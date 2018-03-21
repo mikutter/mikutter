@@ -1,15 +1,15 @@
-# Japanese translations for extract package.
-# Copyright (C) 2015 THE PACKAGE'S COPYRIGHT HOLDER
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the extract package.
 # 
 # Translators:
-# Vel <veloci85@gmail.com>, 2015
+# Vel <veloci85@gmail.com>, 2015,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-11 01:10+0900\n"
-"PO-Revision-Date: 2015-11-07 03:40+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-19 15:39+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -18,121 +18,132 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../edit_window.rb:13 ../edit_window.rb:128
+#: ../edit_window.rb:19 ../edit_window.rb:99
 msgid "%{name} - 抽出タブ - %{application_name}"
 msgstr "%{name} - 抽出頁籤 - %{application_name}"
 
-#: ../edit_window.rb:16
+#: ../edit_window.rb:22
 msgid "データソース"
 msgstr "資料來源"
 
-#: ../edit_window.rb:17
+#: ../edit_window.rb:23
 msgid "絞り込み条件"
 msgstr "篩選條件"
 
-#: ../edit_window.rb:18
+#: ../edit_window.rb:24
 msgid "オプション"
 msgstr "選項"
 
-#: ../edit_window.rb:69 ../edit_window.rb:113 ../extract.rb:178
-#: ../extract_tab_list.rb:19
+#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:19
 msgid "名前"
-msgstr "名字"
+msgstr "名稱"
 
-#: ../edit_window.rb:114
+#: ../edit_window.rb:84
 msgid "アイコン"
 msgstr "圖示"
 
-#: ../edit_window.rb:115
+#: ../edit_window.rb:85
 msgid "通知"
 msgstr "通知"
 
-#: ../edit_window.rb:116
+#: ../edit_window.rb:86
 msgid "サウンド"
 msgstr "通知音效"
 
-#: ../edit_window.rb:117
+#: ../edit_window.rb:87
 msgid "ポップアップ"
 msgstr "彈出視窗"
 
-#: ../edit_window.rb:120
+#: ../edit_window.rb:89
+msgid "並び順"
+msgstr "排序方式"
+
+#: ../edit_window.rb:94
 msgid "閉じる"
 msgstr "關閉"
 
-#: ../extract.rb:68
+#: ../extract.rb:71
 msgid "抽出タブ"
 msgstr "抽出頁籤"
 
-#: ../extract.rb:98
+#: ../extract.rb:101
 msgid "抽出条件を編集"
 msgstr "編輯篩選條件"
 
-#: ../extract.rb:123
+#: ../extract.rb:135
 msgid "＝"
 msgstr "＝"
 
-#: ../extract.rb:124
+#: ../extract.rb:136
 msgid "≠"
 msgstr "≠"
 
-#: ../extract.rb:125
+#: ../extract.rb:137
 msgid "正規表現"
 msgstr "正規表示法"
 
-#: ../extract.rb:126
+#: ../extract.rb:138
 msgid "含む"
 msgstr "包含"
 
-#: ../extract.rb:128
+#: ../extract.rb:140
 msgid "ユーザ名"
 msgstr "使用者"
 
-#: ../extract.rb:130
+#: ../extract.rb:142
 msgid "本文"
 msgstr "內文"
 
-#: ../extract.rb:132
+#: ../extract.rb:144
 msgid "Twitterクライアント"
 msgstr "Twitter 用戶端"
 
-#: ../extract.rb:160
+#: ../extract.rb:146
+msgid "投稿時刻"
+msgstr "推文時間"
+
+#: ../extract.rb:150
+msgid "投稿時刻 (ふぁぼやリツイートでageる)"
+msgstr "推文時間（被喜歡或轉推會頂上去）"
+
+#: ../extract.rb:187
 msgid "本当に抽出タブ「%{name}」を削除しますか？"
 msgstr "你確定要刪除抽出頁籤「%{name}」嗎？"
 
-#: ../extract.rb:172
+#: ../extract.rb:199
 msgid "抽出タブを作成 - %{mikutter}"
 msgstr "新增抽出頁籤 - %{mikutter}"
 
-#: ../extract.rb:216
+#: ../extract.rb:260
 msgid "受信したすべての投稿"
 msgstr "收取的所有推文"
 
-#: ../extract.rb:217
+#: ../extract.rb:261
 msgid "ホームタイムライン(全てのアカウント)"
 msgstr "主要時間軸 (所有帳號)"
 
-#: ../extract.rb:218
+#: ../extract.rb:262
 msgid "自分宛ての投稿(全てのアカウント)"
 msgstr "提及訊息 (所有帳號)"
 
-#: ../extract.rb:222
+#: ../extract.rb:269
 msgid "Home Timeline"
 msgstr "主要時間軸"
 
-#: ../extract.rb:223
+#: ../extract.rb:270
 msgid "Mentions"
 msgstr "提及"
 
-#: ../extract.rb:260
+#: ../extract.rb:304
 msgid "抽出タブ条件エラー"
 msgstr "篩選條件錯誤"
 
-#: ../extract.rb:262
+#: ../extract.rb:306
 msgid ""
 "抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n"
 "%{error_string}"
 msgstr "找不到抽出頁籤「%{tab_name}」所使用的條件:\n%{error_string}"
 
-#: ../extract.rb:290
+#: ../extract.rb:335
 msgid "抽出条件 `%{condition}' が見つかりませんでした"
 msgstr "找不到篩選條件 `%{condition}'"

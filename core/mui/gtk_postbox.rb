@@ -25,11 +25,12 @@ module Gtk
     # ==== Args
     # [postable] Service|Message リプライ先か、投稿するアカウント(3.3 obsolete)
     # [to] Enumerable 返信するMessage
-    # [from] Service|nil 送信者。nilを指定すると、その時のプライマリアカウントになる
+    # [from] Diva::Model|nil 送信者。nilを指定すると、その時のカレントワールドになる
     # [header] String テキストフィールドのカーソルの前に最初から入力されている文字列
     # [footer] String テキストフィールドのカーソルの後ろに最初から入力されている文字列
     # [to_display_only] true|false toに宛てたリプライを送るなら偽。真ならUI上にtoが表示されるだけ
     # [use_blind_footer] true|false blind footerを追加するか否か
+    # [visibility] Symbol|nil compose Spellに渡すvisibilityオプションの値
     # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
     #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
@@ -42,6 +43,7 @@ module Gtk
                    footer: ''.freeze,
                    to_display_only: false,
                    use_blind_footer: true,
+                   visibility: nil,
                    **kwrest)
       mainthread_only
       @posting = nil
@@ -50,15 +52,20 @@ module Gtk
 
       @from = from
       @to = (Array(to) + Array(@options[:subreplies])).uniq.freeze
-      case postable
-      when Service
-        @from = postable
-      when Message
-        @to = [postable, *@to].freeze unless @to.include? postable end
+      if postable
+        warn "Gtk::Postbox.new(postable) is deprecated. see http://mikutter.hachune.net/rdoc/Gtk/PostBox.html"
+        case postable
+        when Message
+          @to = [postable, *@to].freeze unless @to.include? postable
+        when Diva::Model
+          @from = postable
+        end
+      end
       @header = (header || '').freeze
       @footer = (footer || '').freeze
       @to_display_only = !!to_display_only
       @use_blind_footer = !!use_blind_footer
+      @visibility = visibility
       super()
       signal_connect('parent-set'){
         if parent
@@ -148,14 +155,20 @@ module Gtk
         return unless before_post
         text = widget_post.buffer.text
         text += UserConfig[:footer] if use_blind_footer?
-        @posting = service.post(:message => text){ |event, msg|
-          case event
-          when :start
-            Delayer.new{ start_post }
-          when :fail
-            Delayer.new{ end_post }
-          when :success
-            Delayer.new{ destroy } end } end end
+        @posting = Plugin[:gtk].compose(
+          current_world,
+          to_display_only? ? nil : @to.first,
+          body: text,
+          visibility: @visibility
+        ).next{
+          destroy
+        }.trap{ |err|
+          warn err
+          end_post
+        }
+        start_post
+      end
+    end
 
     def destroy
       @@ringlock.synchronize{
@@ -187,7 +200,8 @@ module Gtk
       Gtk::TextView.new end
 
     def postable?
-      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) end
+      not(widget_post.buffer.text.empty?) and (/[^\p{blank}]/ === widget_post.buffer.text) and Plugin[:gtk].compose?(current_world, to_display_only? ? nil : @to.first, visibility: @visibility)
+    end
 
     # 新しいPostBoxを作り、そちらにフォーカスを回す
     # ==== Return
@@ -235,10 +249,13 @@ module Gtk
         true end end
 
     def service
-      if to_display_only?
-        @from || Service.primary
-      else
-        @to.first || @from || Service.primary end end
+      current_world
+    end
+
+    private def current_world
+      world, = Plugin.filtering(:world_current, nil)
+      world
+    end
 
     # テキストが編集前と同じ状態なら真を返す。
     # ウィジェットが破棄されている場合は、常に真を返す
@@ -290,7 +307,7 @@ module Gtk
     def remain_charcount
       if not widget_post.destroyed?
         text = trim_hidden_regions(widget_post.buffer.text + UserConfig[:footer])
-        Twitter::Extractor.extract_urls(text).map{|url|
+        Twitter::TwitterText::Extractor.extract_urls(text).map{|url|
           if url.length < posted_url_length(url)
             -(posted_url_length(url) - url.length)
           else
@@ -382,6 +399,7 @@ module Gtk
         to: @to,
         footer: @footer,
         to_display_only: to_display_only?,
+        visibility: @visibility,
         **@options } end
 
     # 真を返すなら、 @to の要素はPostBoxの下に表示するのみで、投稿時にリプライにしない

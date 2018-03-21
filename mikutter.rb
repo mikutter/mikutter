@@ -4,17 +4,16 @@ exec ruby -x "$0" "$@"
 #!ruby
 =begin rdoc
 = mikutter - the moest twitter client
-Copyright (C) 2009-2017 Toshiaki Asai
+Copyright (C) 2009-2018 Toshiaki Asai
 
 This software is released under the MIT License.
 
 http://opensource.org/licenses/mit-license.php
 
 =end
-mikutter_directory = File.expand_path(File.dirname(__FILE__))
 module Mikutter; end
 
-require File.expand_path(File.join(mikutter_directory, 'core/boot/option'))
+require_relative 'core/boot/option'
 Mopt.parse exec_command: true
 
 if !ENV['DISABLE_BUNDLER_SETUP'] || ['', '0'].include?(ENV['DISABLE_BUNDLER_SETUP'].to_s)
@@ -34,11 +33,12 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
-require File.expand_path(File.join(mikutter_directory, 'core/utils'))
+require_relative 'core/utils'
 
 miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
-miquire :core, 'service', 'environment'
+miquire :core, 'environment'
 Dir.chdir(Environment::CONFROOT)
+miquire :lib, 'diva_hacks'
 miquire :boot, 'load_plugin'
 
 notice "fire boot event"
@@ -69,12 +69,12 @@ def boot!(profile)
   rescue => exception
     into_debug_mode(exception)
     notice "catch exception `#{exception.class}'"
-    raise exception
+    raise
   rescue Exception => exception
     notice "catch exception `#{exception.class}'"
     exception = Mainloop.exception_filter(exception)
     notice "=> `#{exception.class}'"
-    raise exception end
+    raise end
   exception = Mainloop.exception_filter(nil)
   if exception
     notice "raise mainloop exception `#{exception.class}'"
@@ -83,6 +83,13 @@ def boot!(profile)
 
 def error_handling!(exception)
   notice "catch #{exception.class}"
+  if Mopt.debug && exception.respond_to?(:deferred) && exception.deferred
+    if command_exist?('dot')
+      notice "[[#{exception.deferred.graph_draw}]]"
+    else
+      notice exception.deferred.graph
+    end
+  end
   File.open(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception')), 'w'){ |io| Marshal.dump(exception, io) }
   raise exception end
 

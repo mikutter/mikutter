@@ -127,7 +127,12 @@ class ::Gdk::MiraclePainter
   # 必ず名前のあとにスクリーンネームを表示しなければいけない。
   # また、スクリーンネームの前には必ず @ が必要。
   def header_left_markup
-    Pango.parse_markup("<b>#{Pango.escape(message.user.name || '')}</b> @#{Pango.escape(message.user.idname)}")
+    user = message.user
+    if user.respond_to?(:idname)
+      Pango.parse_markup("<b>#{Pango.escape(user.name || '')}</b> @#{Pango.escape(user.idname)}")
+    else
+      Pango.parse_markup(Pango.escape(user.name || ''))
+    end
   end
 
   # 時刻の表記は必ず相対表記にしなければいけない。
@@ -191,7 +196,7 @@ class ::Gdk::SubPartsVoter
   def render_user(context, user)
     render_icon(context, user)
     layout = context.create_pango_layout
-    layout.wrap = Pango::WRAP_CHAR
+    layout.wrap = Pango::WrapMode::CHAR
     layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
     layout.text = "#{user[:name]}"
     context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })

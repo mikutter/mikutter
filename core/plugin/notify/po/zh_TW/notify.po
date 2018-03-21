@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-19 21:35+0900\n"
-"PO-Revision-Date: 2015-10-31 08:31+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -18,62 +18,62 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../notify.rb:8
+#: ../notify.rb:7
 msgid "通知"
 msgstr "通知"
 
-#: ../notify.rb:11
+#: ../notify.rb:10
 msgid "ポップアップ"
 msgstr "彈出視窗"
 
-#: ../notify.rb:12
+#: ../notify.rb:11
 msgid "サウンド"
 msgstr "通知音效"
 
-#: ../notify.rb:14
+#: ../notify.rb:13
 msgid "フレンドタイムライン"
 msgstr "好友時間軸"
 
-#: ../notify.rb:15
+#: ../notify.rb:14
 msgid "リプライ"
 msgstr "回覆"
 
-#: ../notify.rb:16
+#: ../notify.rb:15
 msgid "フォローされたとき"
 msgstr "被加入關注"
 
-#: ../notify.rb:17
+#: ../notify.rb:16
 msgid "フォロー解除されたとき"
 msgstr "被取消關注"
 
-#: ../notify.rb:18
+#: ../notify.rb:17
 msgid "リツイートされたとき"
 msgstr "推文被轉推"
 
-#: ../notify.rb:19
+#: ../notify.rb:18
 msgid "ふぁぼられたとき"
 msgstr "推文被打星"
 
-#: ../notify.rb:20
+#: ../notify.rb:19
 msgid "ダイレクトメッセージ受信"
 msgstr "收到私訊 (DM)"
 
-#: ../notify.rb:21
+#: ../notify.rb:20
 msgid "通知を表示し続ける秒数"
 msgstr "通知視窗顯示的時間 (秒)"
 
-#: ../notify.rb:46
+#: ../notify.rb:44
 msgid "%{users} にフォローされました。"
 msgstr "%{users} 已跟隨你。"
 
-#: ../notify.rb:53
+#: ../notify.rb:51
 msgid "%{users} にリムーブされました。"
 msgstr "%{users} 取消跟隨你。"
 
-#: ../notify.rb:60
+#: ../notify.rb:58
 msgid "fav by %{from_user} \"%{tweet}\""
 msgstr "%{from_user} 已收藏推文 \"%{tweet}\""
 
-#: ../notify.rb:71
+#: ../notify.rb:69
 msgid "ReTweet: %{tweet}"
 msgstr "ReTweet: %{tweet}"

@@ -16,15 +16,9 @@ module Plugin::Photo
         uri.maximum_original
       when Diva::Model
         uri
-      when URI, Addressable::URI, Diva::URI
-        photos[uri.to_s.hash] ||= new(perma_link: uri)
-      when String
-        if uri.start_with?('http')
-          photos[uri.hash] ||= new(perma_link: uri)
-        elsif uri.start_with?('/')
-          uri = Diva::URI.new(scheme: 'file', path: uri)
-          photos[uri.hash] ||= new(perma_link: uri)
-        end
+      when URI, Addressable::URI, Diva::URI, String
+        wrapped_uri = Diva::URI(uri)
+        photos[wrapped_uri.to_s.hash] ||= new(perma_link: wrapped_uri)
       end
     end
 

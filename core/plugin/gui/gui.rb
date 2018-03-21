@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # mikutterにGUIをつけるプラグイン
 
-require File.expand_path File.join(File.dirname(__FILE__), 'dsl')
-require File.expand_path File.join(File.dirname(__FILE__), 'window')
-require File.expand_path File.join(File.dirname(__FILE__), 'pane')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab')
-require File.expand_path File.join(File.dirname(__FILE__), 'cluster')
-require File.expand_path File.join(File.dirname(__FILE__), 'fragment')
-require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
-require File.expand_path File.join(File.dirname(__FILE__), 'tab_child_widget')
-require File.expand_path File.join(File.dirname(__FILE__), 'postbox')
-require File.expand_path File.join(File.dirname(__FILE__), 'command')
+require_relative 'dsl'
+require_relative 'window'
+require_relative 'pane'
+require_relative 'tab'
+require_relative 'cluster'
+require_relative 'fragment'
+require_relative 'timeline'
+require_relative 'tab_child_widget'
+require_relative 'postbox'
+require_relative 'command'
 
 Plugin.create :gui do
 
@@ -31,6 +31,13 @@ Plugin.create :gui do
     else
       Plugin::GUI::Tab.instance(slug, name, self.name) end end
 
+  # タブが存在するか調べる。
+  # _tab_ メソッドは存在しないslugを指定した場合には常に作成してしまうため、存在を確認するのには使えない。
+  # 単純に存在確認をするにはこのメソッドを使う
+  defdsl :tab? do |slug|
+    Plugin::GUI::Tab.exist?(slug)
+  end
+
   # _slug_ に対応するタイムラインを返す
   # ==== Args
   # [slug] タイムラインのスラッグ
@@ -40,6 +47,13 @@ Plugin.create :gui do
     tl = Plugin::GUI::Timeline.instance(slug)
     tl.instance_eval(&proc) if proc
     tl end
+
+  # タイムラインが存在するか調べる。
+  # _timeline_ メソッドは存在しないslugを指定した場合には常に作成してしまうため、存在を確認するのには使えない。
+  # 単純に存在確認をするにはこのメソッドを使う
+  defdsl :timeline? do |slug|
+    Plugin::GUI::Timeline.exist?(slug)
+  end
 
   # プロフィールタブを定義する
   # ==== Args

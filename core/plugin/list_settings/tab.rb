@@ -21,7 +21,7 @@ module Plugin::ListSettings
 
     def column_schemer
       [{:kind => :text, :type => String, :label => @plugin._('リスト名')},
-       {:type => UserList},
+       {:type => Diva::Model},
        {:type => String, :widget => :input, :label => @plugin._('リストの名前')},
        {:type => String, :widget => :input, :label => @plugin._('リスト説明')},
        {:type => TrueClass, :widget => :boolean, :label => @plugin._('公開')},
@@ -34,10 +34,10 @@ module Plugin::ListSettings
     def menu_pop(widget, event)
       _p = Plugin[:list_settings]
       contextmenu = Gtk::ContextMenu.new
-      contextmenu.registmenu(_p._("新規作成"), &method(:record_create))
-      contextmenu.registmenu(_p._("編集"), &method(:record_update))
-      contextmenu.registmenu(_p._("削除"), &method(:record_delete))
-      contextmenu.registmenu(_p._("タブを作成"), &method(:record_extract))
+      contextmenu.register(_p._("新規作成"), &method(:record_create))
+      contextmenu.register(_p._("編集"), &method(:record_update))
+      contextmenu.register(_p._("削除"), &method(:record_delete))
+      contextmenu.register(_p._("タブを作成"), &method(:record_extract))
       contextmenu.popup(widget, widget) end
 
     def extract_button
@@ -52,16 +52,22 @@ module Plugin::ListSettings
         on_extract(iter) } end
 
     def on_created(iter)
-      iter[SLUG] = "@#{Service.primary.user}/#{iter[NAME]}"
-      Service.primary.add_list(user: Service.primary.user_obj,
-                               mode: iter[PUBLICITY],
-                               name: iter[NAME],
-                               description: iter[DESCRIPTION]){ |event, list|
+      world, = Plugin.filtering(:world_current, nil)
+      return if world.class.slug == :twitter
+      iter[SLUG] = "@#{world.user_obj.idname}/#{iter[NAME]}"
+      world.add_list(user: world.user_obj,
+                     mode: iter[PUBLICITY],
+                     name: iter[NAME],
+                     description: iter[DESCRIPTION]){ |event, list|
         if :success == event and list
-          Plugin.call(:list_created, Service.primary, UserLists.new([list]))
+          Plugin.call(:list_created, world, [list])
           if not(destroyed?)
             iter[LIST] = list
-            iter[SLUG] = list[:full_name] end end } end
+            iter[SLUG] = list[:full_name]
+          end
+        end
+      }
+    end
 
     def on_updated(iter)
       list = iter[LIST]
@@ -84,7 +90,7 @@ module Plugin::ListSettings
       if list
         Service.primary.delete_list(list_id: list[:id]){ |event, deleted_list|
           if event == :success
-            Plugin.call(:list_destroy, Service.primary, UserLists.new([deleted_list]))
+            Plugin.call(:list_destroy, Service.primary, [deleted_list])
             model.remove(iter) if not destroyed? end
         }.terminate end end
 

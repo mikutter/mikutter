@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # ツイート投稿ウィジェット
 
-require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
-require File.expand_path File.join(File.dirname(__FILE__), 'window')
-require File.expand_path File.join(File.dirname(__FILE__), 'timeline')
-require File.expand_path File.join(File.dirname(__FILE__), 'widget')
+require_relative 'cuscadable'
+require_relative 'hierarchy_child'
+require_relative 'window'
+require_relative 'timeline'
+require_relative 'widget'
 
 class Plugin::GUI::Postbox
 

@@ -8,60 +8,60 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-05-07 01:14+0900\n"
-"PO-Revision-Date: 2014-10-15 05:01+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:29+0000\n"
 "Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
-"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/mikutter/language/zh_CN/)\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../achievement.rb:98
+#: ../achievement.rb:102
 msgid "実績"
 msgstr "成就"
 
-#: ../achievement.rb:101
+#: ../achievement.rb:105
 msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
 msgstr "您的Twitter账户已成功登录进mikutter。这下刷推爽啦"
 
-#: ../achievement.rb:108
+#: ../achievement.rb:112
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
 msgstr "进入设定界面定制你自己的mikutter吧"
 
-#: ../achievement.rb:109
+#: ../achievement.rb:113
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
 msgstr "点击窗口右下角的扳手图标吧"
 
-#: ../achievement.rb:116
+#: ../achievement.rb:120
 msgid "ヾ(＠⌒ー⌒＠)ノ"
 msgstr "ヾ(＠⌒ー⌒＠)ノ"
 
-#: ../achievement.rb:117
+#: ../achievement.rb:121
 msgid "https://github.com/toshia/display_requirements"
 msgstr "https://github.com/toshia/display_requirements"
 
-#: ../achievement.rb:125
+#: ../achievement.rb:129
 msgid "新規ペインを追加コマンドでペインを増やせます"
 msgstr "通过命令“添加新栏”来增加栏数"
 
-#: ../achievement.rb:126
+#: ../achievement.rb:130
 msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
 msgstr "右击标签后选择“移动至新栏”看看吧"
 
-#: ../achievement.rb:134
+#: ../achievement.rb:138
 msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
 msgstr "拖动标签到其他栏，就可以把该标签移动至该栏"
 
-#: ../achievement.rb:135
+#: ../achievement.rb:139
 msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
 msgstr "在一栏中有两个以上标签的时候，试试拖动标签到其他栏上吧"
 
-#: ../achievement.rb:145
+#: ../achievement.rb:149
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "谢谢您发送崩溃报告"
 
-#: ../achievement.rb:163
+#: ../achievement.rb:180
 msgid "実績 %s を達成しました！おめでとう♪"
 msgstr "成就已达成 %s ！祝贺你♪"

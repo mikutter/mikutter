@@ -9,10 +9,10 @@ end
 miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'postbox'
 miquire :mui, 'inner_tl', 'dark_matter_prification'
 
-miquire :core, 'message'
-miquire :core, 'user'
-
 miquire :lib, 'reserver'
+
+# タイムラインに表示するメッセージの数
+UserConfig[:timeline_max] ||= 200
 
 =begin rdoc
   タイムラインのGtkウィジェット。
@@ -165,11 +165,10 @@ class Gtk::TimeLine
   # TLのMessageの数が上限を超えたときに削除するためのキューの初期化
   # オーバーしてもすぐには削除せず、1秒間更新がなければ削除するようになっている。
   def init_remover
-    @timeline_max = 200
     @remover_queue = TimeLimitedQueue.new(1024, 1){ |messages|
       Delayer.new{
         if not destroyed?
-          remove_count = size - timeline_max
+          remove_count = size - (timeline_max || UserConfig[:timeline_max])
           if remove_count > 0
             to_enum(:each_iter).to_a[-remove_count, remove_count].each{ |iter|
               tl_model_remove(iter) } end end } } end
@@ -192,8 +191,9 @@ class Gtk::TimeLine
       while current[0].to_i >= last[0].to_i
         messages << current[1]
         break if not current.next! end
-      (messages - @exposing_miraclepainter).each{ |exposed|
-        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) if exposed.is_a? Message }
+      (messages - @exposing_miraclepainter).each do |exposed|
+        @tl.cell_renderer_message.miracle_painter(exposed).signal_emit(:expose_event) if exposed.is_a? Diva::Model
+      end
       @exposing_miraclepainter = messages end end
 
   def postbox

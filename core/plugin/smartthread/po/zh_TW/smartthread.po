@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2015-12-27 14:47+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -22,10 +22,10 @@ msgstr ""
 msgid "会話スレッドを表示"
 msgstr "顯示對話串"
 
-#: ../smartthread.rb:32
+#: ../smartthread.rb:36
 msgid "会話%{serial_id}"
 msgstr "對話%{serial_id}"
 
-#: ../smartthread.rb:60
+#: ../smartthread.rb:63
 msgid "引用ツイートが取得できませんでした"
 msgstr "無法取得引用的推文"

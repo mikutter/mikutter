@@ -2,7 +2,7 @@
 
 require "gtk2"
 
-require File.expand_path File.join(File.dirname(__FILE__), 'toolbar_generator')
+require_relative 'toolbar_generator'
 
 class Gtk::TabToolbar < Gtk::HBox
   def initialize(imaginally, *args)

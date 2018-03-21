@@ -7,18 +7,20 @@ def source(url)
 
 source 'https://rubygems.org'
 
+ruby '>= 2.3.0'
+
 group :default do
   gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
   gem 'addressable', '~> 2.3'
-  gem 'diva', '>= 0.1.1', '< 2.0'
+  gem 'diva', '>= 0.3.1', '< 2.0'
   gem 'memoist', '>= 0.16', '< 0.17'
   gem 'ruby-hmac', '~> 0.4'
   gem 'typed-array', '~> 0.1'
   gem 'delayer', '~> 0.0'
   gem 'pluggaloid', '>= 1.1.1', '< 2.0'
-  gem 'delayer-deferred', '>= 1.0.4', '< 1.1'
-  gem 'twitter-text', '>= 1.14.6'
+  gem 'delayer-deferred', '>= 2.0', '< 3.0'
+  gem 'twitter-text', '>= 2.1.0'
 end
 
 group :test do
@@ -32,10 +34,10 @@ end
 
 
 group :plugin do
-  Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), "core/plugin/*/Gemfile"))){ |path|
+  Dir.glob(File.expand_path(File.join(__dir__, 'core/plugin/*/Gemfile'))){ |path|
     eval File.open(path).read
   }
-  Dir.glob(File.expand_path("~/.mikutter/plugin/*/Gemfile")){ |path|
+  Dir.glob(File.join(File.expand_path(ENV['MIKUTTER_CONFROOT'] || '~/.mikutter'), 'plugin/*/Gemfile')){ |path|
     eval File.open(path).read
   }
 end

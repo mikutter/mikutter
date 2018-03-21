@@ -29,7 +29,7 @@ Plugin.create :openimg do
   # 画像を新しいウィンドウで開く
   defevent :openimg_open,
            priority: :ui_response,
-           prototype: [String, Message]
+           prototype: [String, Diva::Model]
 
   defdsl :defimageopener do |name, condition, &proc|
     opener = Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze

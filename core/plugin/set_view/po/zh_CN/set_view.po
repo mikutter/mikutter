@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 08:16+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -244,13 +244,45 @@ msgid "右"
 msgstr "右"
 
 #: ../set_view.rb:160
+msgid "投稿ボックス"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "常に表示する"
+msgstr ""
+
+#: ../set_view.rb:160 ../set_view.rb:162
+msgid "表示しない"
+msgstr ""
+
+#: ../set_view.rb:160
+msgid "1アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "アカウント切り替え"
+msgstr ""
+
+#: ../set_view.rb:162
+msgid "2アカウント以上あれば表示"
+msgstr ""
+
+#: ../set_view.rb:164
 msgid "URLを開く方法"
 msgstr "打开URL的方法"
 
-#: ../set_view.rb:161
+#: ../set_view.rb:165
 msgid "デフォルトブラウザを使う"
 msgstr "使用默认浏览器"
 
-#: ../set_view.rb:163
+#: ../set_view.rb:167
 msgid "次のコマンドを使う"
 msgstr "使用以下命令"
+
+#: ../set_view.rb:171
+msgid "タイムライン"
+msgstr ""
+
+#: ../set_view.rb:172
+msgid "最大表示件数"
+msgstr ""

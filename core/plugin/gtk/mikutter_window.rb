@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 require "gtk2"
-require File.expand_path(File.join(File.dirname(__FILE__), 'toolbar_generator'))
-require File.expand_path(File.join(File.dirname(__FILE__), 'account_box'))
+require_relative 'toolbar_generator'
+require_relative 'world_shifter'
 
 class Gtk::MikutterWindow < Gtk::Window
 
@@ -15,18 +15,22 @@ class Gtk::MikutterWindow < Gtk::Window
     @plugin = plugin
     @container = Gtk::VBox.new(false, 0)
     @panes = Gtk::HBox.new(true, 0)
-    account = Gtk::AccountBox.new
     header = Gtk::HBox.new(false, 0)
     @postboxes = Gtk::VBox.new(false, 0)
     add @container.
       closeup(header.
-              closeup(account).
-              pack_start(@postboxes)).
+                closeup(Gtk::WorldShifter.new).
+                pack_start(@postboxes)).
       pack_start(@panes).
       closeup(create_statusbar)
-    Plugin[:gtk].on_service_registered do |service|
+    Plugin[:gtk].on_userconfig_modify do |key, newval|
+      if key == :postbox_visibility
+        refresh
+      end
+    end
+    Plugin[:gtk].on_world_create do |new_world|
       refresh end
-    Plugin[:gtk].on_service_destroyed do |service|
+    Plugin[:gtk].on_world_destroy do |deleted_world|
       refresh end
   end
 
@@ -39,7 +43,7 @@ class Gtk::MikutterWindow < Gtk::Window
     @postboxes.pack_start(postbox)
     set_focus(postbox.post) unless options[:delegated_by]
     postbox.no_show_all = false
-    postbox.show_all if not Service.to_a.empty?
+    postbox.show_all if visible?
     postbox end
 
   private
@@ -51,10 +55,8 @@ class Gtk::MikutterWindow < Gtk::Window
       window << postbox end end
 
   def refresh
-    if Service.to_a.empty?
-      @postboxes.children.each(&:hide)
-    else
-      @postboxes.children.each(&:show_all) end end
+    @postboxes.children.each(&(visible? ? :show_all : :hide))
+  end
 
   # ステータスバーを返す
   # ==== Return
@@ -74,5 +76,16 @@ class Gtk::MikutterWindow < Gtk::Window
     Plugin::Gtk::ToolbarGenerator.generate(container,
                                            Plugin::GUI::Event.new(:window_toolbar, @imaginally, []),
                                            :window) end
+
+  def visible?
+    case UserConfig[:postbox_visibility]
+    when :always
+      true
+    when :auto
+      !!Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
+    else
+      false
+    end
+  end
 
 end

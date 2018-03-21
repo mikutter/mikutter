@@ -20,7 +20,12 @@ Plugin.create :streaming do
         Plugin.call(:filter_stream_force_retry) } end end
 
   def start
-    service = Service.primary
+    twitter = Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.find{|world|
+      world.class.slug == :twitter
+    }
+    return unless twitter
     @success_flag = false
     @fail = MikuTwitter::StreamingFailedActions.new("Filter Stream", self)
     Thread.new{
@@ -34,7 +39,7 @@ Plugin.create :streaming do
             param = {}
             param[:follow] = follow.to_a[0, 5000].map(&:id).join(',') if not follow.empty?
             param[:track] = track if not track.empty?
-            r = service.streaming(:filter_stream, param){ |json|
+            r = twitter.streaming(:filter_stream, param){ |json|
               json.strip!
               case json
               when /\A\{.*\}\Z/

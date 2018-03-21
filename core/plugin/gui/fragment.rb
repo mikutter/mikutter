@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path File.join(File.dirname(__FILE__), 'cuscadable')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_parent')
-require File.expand_path File.join(File.dirname(__FILE__), 'hierarchy_child')
-require File.expand_path File.join(File.dirname(__FILE__), 'window')
-require File.expand_path File.join(File.dirname(__FILE__), 'tablike')
-require File.expand_path File.join(File.dirname(__FILE__), 'widget')
+require_relative 'cuscadable'
+require_relative 'hierarchy_parent'
+require_relative 'hierarchy_child'
+require_relative 'window'
+require_relative 'tablike'
+require_relative 'widget'
 
 class Plugin::GUI::Fragment
   extend Gem::Deprecate
@@ -43,7 +43,7 @@ class Plugin::GUI::Fragment
           @model_promise = Service.primary.user_show(user_id: model[:id]).next{ |u|
             @model_promise = false
             u }.terminate{
-            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: model[:idname]}
+            Plugin[:gui]._("%{user} のユーザ情報が取得できませんでした") % {user: model.title}
           } end
         @model_promise = @model_promise.next{ |u| callback.call(u); u } } end
   end

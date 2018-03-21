@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-02 21:35+0900\n"
-"PO-Revision-Date: 2016-10-02 12:35+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Serbian (http://www.transifex.com/lindwurm/mikutter/language/sr/)\n"
 "MIME-Version: 1.0\n"
@@ -152,10 +152,6 @@ msgstr ""
 msgid "http://mikutter.hachune.net/"
 msgstr ""
 
-#: ../builder.rb:287
-msgid "参照"
-msgstr ""
-
-#: ../settings.rb:9 ../settings.rb:23
+#: ../settings.rb:11 ../settings.rb:24
 msgid "設定"
 msgstr ""

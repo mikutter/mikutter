@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the activity package.
 # 
 # Translators:
-# Vel <veloci85@gmail.com>, 2015-2016
+# Vel <veloci85@gmail.com>, 2015-2016,2018
 # Vergil Gefenbauer <sephiroth8719@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-18 20:32+0900\n"
-"PO-Revision-Date: 2016-06-19 14:35+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-21 04:58+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -31,111 +31,111 @@ msgstr "說明"
 msgid "時刻"
 msgstr "時間"
 
-#: ../activity.rb:152 ../activity.rb:287 ../activity.rb:290
+#: ../activity.rb:166 ../activity.rb:315 ../activity.rb:318
 msgid "アクティビティ"
 msgstr "活動"
 
-#: ../activity.rb:195
+#: ../activity.rb:222
 msgid "@%{user} がふぁぼふぁぼしました"
-msgstr "@%{user} 收藏了這則推"
+msgstr "@%{user} 喜歡這則推"
 
-#: ../activity.rb:205
+#: ../activity.rb:232
 msgid "@%{user} があんふぁぼしました"
-msgstr "@%{user} 拿走了星星"
+msgstr "@%{user} 不喜歡這則推了"
 
-#: ../activity.rb:217
+#: ../activity.rb:244
 msgid "@%{user} がリツイートしました"
 msgstr "@%{user} RT了這則推"
 
-#: ../activity.rb:223
+#: ../activity.rb:250
 msgid "リツイートソースが取得できませんでした"
 msgstr "RT來源取得失敗"
 
-#: ../activity.rb:228
+#: ../activity.rb:254
 msgid "@%{user}が%{list}に追加されました"
 msgstr "@%{user} 被加入 %{list} 列表中"
 
-#: ../activity.rb:236 ../activity.rb:253
+#: ../activity.rb:262 ../activity.rb:279
 msgid "%{description} (by @%{user})"
 msgstr "%{description} (來自 @%{user})"
 
-#: ../activity.rb:245
+#: ../activity.rb:271
 msgid "@%{user}が%{list}から削除されました"
 msgstr "@%{user} 被踢出 %{list} 了"
 
-#: ../activity.rb:265
+#: ../activity.rb:291
 msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
 msgstr "@%{followee} 關注了 @%{follower}"
 
-#: ../activity.rb:276
+#: ../activity.rb:303
 msgid "差出人: @%{sender}"
 msgstr "發訊者: @%{sender}"
 
-#: ../activity.rb:277
+#: ../activity.rb:304
 msgid "宛先: @%{recipient}"
 msgstr "收訊者: @%{recipient}"
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を表示する"
 msgstr "顯示 %{name}"
 
-#: ../activity.rb:307
+#: ../activity.rb:335
 msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
 msgstr "在活動時間軸中顯示%{name}。若取消勾選，%{name}的其他設定皆不會生效。"
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid "自分に関係ない%{name}も表示する"
 msgstr "顯示與自己無關的%{name}"
 
-#: ../activity.rb:308
+#: ../activity.rb:336
 msgid ""
 "自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
 msgstr "與自己無關的%{name}也會顯示在活動時間軸中。\n若取消勾選，則只會顯示與自己相關的%{name}。"
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "タイムラインに表示"
 msgstr "顯示在時間軸"
 
-#: ../activity.rb:309
+#: ../activity.rb:337
 msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
 msgstr "收到%{name}的通知時，以系統訊息通知%{name}"
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "ステータスバーに表示"
 msgstr "顯示在狀態欄"
 
-#: ../activity.rb:310
+#: ../activity.rb:338
 msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
 msgstr "收到%{name}的通知時，狀態欄中會出現暫時性的訊息"
 
-#: ../activity.rb:315
+#: ../activity.rb:343
 msgid "リツイート"
 msgstr "轉推"
 
-#: ../activity.rb:316
+#: ../activity.rb:344
 msgid "ふぁぼ"
-msgstr "打星"
+msgstr "喜歡"
 
-#: ../activity.rb:317
+#: ../activity.rb:345
 msgid "フォロー"
 msgstr "關注"
 
-#: ../activity.rb:318
+#: ../activity.rb:346
 msgid "リストに追加"
 msgstr "添加至列表"
 
-#: ../activity.rb:319
+#: ../activity.rb:347
 msgid "リストから削除"
 msgstr "從列表中刪除"
 
-#: ../activity.rb:320
+#: ../activity.rb:348
 msgid "ダイレクトメッセージ"
 msgstr "DM"
 
-#: ../activity.rb:321
+#: ../activity.rb:349
 msgid "システムメッセージ"
 msgstr "系統訊息"
 
-#: ../activity.rb:322
+#: ../activity.rb:350
 msgid "エラー"
 msgstr "錯誤訊息"

@@ -5,7 +5,7 @@ Plugin.create :user_detail_view do
   UserConfig[:profile_icon_size] ||= 64
   UserConfig[:profile_icon_margin] ||= 8
 
-  intent User, label: _('プロフィール') do |intent_token|
+  intent :twitter_user, label: _('プロフィール') do |intent_token|
     show_profile(intent_token.model, intent_token)
   end
 
@@ -15,10 +15,10 @@ Plugin.create :user_detail_view do
 
   Delayer.new do
     (UserConfig[:profile_opened_tabs] || []).uniq.each do |user_id|
-      retrieve_user(user_id).next{|user|
+      retrieve_user(user_id)&.next{|user|
         user ||= User.findbyid(user_id)
         show_profile(user, nil, true) if user
-      }.terminate end end
+      }&.terminate end end
 
   def retrieve_user(user_id, services = Service.services.shuffle)
     if services.nil? or services.empty?
@@ -31,7 +31,8 @@ Plugin.create :user_detail_view do
   filter_show_filter do |messages|
     muted_users = UserConfig[:muted_users]
     if muted_users && !muted_users.empty?
-      [messages.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? }]
+      tweets, else_messages = messages.partition{|m| m.class.slug == :twitter_tweet }
+      [ tweets.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? } + else_messages ]
     else
       [messages] end end
 
@@ -61,7 +62,8 @@ Plugin.create :user_detail_view do
       }.next {
         Plugin.call(:filter_stream_reconnect_request)
         if !force
-          i_cluster.active! end }
+          i_cluster.active! end
+      }.terminate(_("%{user} のプロフィールの取得中にエラーが発生しました。見るなってことですかね。") % {user: user.name})
     end end
 
   user_fragment :usertimeline, _("最近のツイート") do
@@ -176,7 +178,11 @@ Plugin.create :user_detail_view do
     icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
     arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = ::Gtk::VBox.new(false, 4)
-    Service.each{ |me|
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :twitter
+    }.each{ |me|
       following = followed = nil
       w_following_label = ::Gtk::Label.new(_("関係を取得中"))
       w_followed_label = ::Gtk::Label.new("")
@@ -189,7 +195,7 @@ Plugin.create :user_detail_view do
                      closeup(w_eventbox_image_following).
                      closeup(w_following_label) end
       relation_container = ::Gtk::HBox.new(false, icon_size.width/2)
-      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user}(#{me.user_obj[:name]})"))
+      relation_container.closeup(::Gtk::WebIcon.new(me.user_obj.icon, icon_size).tooltip("#{me.user_obj.idname}(#{me.user_obj[:name]})"))
       relation_container.closeup(::Gtk::VBox.new.
                                  closeup(relation).
                                  closeup(::Gtk::HBox.new.
@@ -219,7 +225,7 @@ Plugin.create :user_detail_view do
             w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
             w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get_path(new ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
             w_followed_label.text = new ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない") end }
-        Service.primary.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
+        me.friendship(target_id: user[:id], source_id: me.user_obj[:id]).next{ |rel|
           if rel and not(w_eventbox_image_following.destroyed?)
             m_following_refresh.call(rel[:following])
             m_followed_refresh.call(rel[:followed_by])
@@ -233,7 +239,7 @@ Plugin.create :user_detail_view do
               followbutton.sensitive = false
               event = following ? :followings_destroy : :followings_created
               me.__send__(following ? :unfollow : :follow, user_id: user.id).next{ |msg|
-                Plugin.call(event, me, Users.new([user]))
+                Plugin.call(event, me, [user])
                 followbutton.sensitive = true unless followbutton.destroyed? }.
               terminate.trap{
                 followbutton.sensitive = true unless followbutton.destroyed? }

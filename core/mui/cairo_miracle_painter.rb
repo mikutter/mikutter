@@ -196,11 +196,12 @@ class Gdk::MiraclePainter < Gtk::Object
        message.favorite? ? "unfav.png".freeze : "fav.png".freeze] ] end
 
   def iob_icon_pixbuf_off
+    world, = Plugin.filtering(:world_current, nil)
     [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png".freeze),
        UserConfig[:show_verified_icon] && message.user.verified? && "verified.png"],
       [ if UserConfig[:show_protected_icon] and message.user.protected?
           "protected.png".freeze
-        elsif message.retweeted?
+        elsif Plugin[:miracle_painter].shared?(message, world)
           "retweet.png".freeze end,
        message.favorite? ? "unfav.png".freeze : nil]
     ]
@@ -210,13 +211,13 @@ class Gdk::MiraclePainter < Gtk::Object
     @tree.imaginary.create_reply_postbox(message) end
 
   def iob_retweet_clicked
-    if message.retweeted?
+    world, = Plugin.filtering(:world_current, nil)
+    if Plugin[:miracle_painter].shared?(message, world)
       retweet = message.retweeted_statuses.find(&:from_me?)
       retweet.destroy if retweet
     else
-      message.retweet
+      Plugin[:miracle_painter].share(message, world)
     end
-    # @tree.imaginary.create_reply_postbox(message, :retweet => true)
   end
 
   def iob_fav_clicked
@@ -296,7 +297,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = attr_list if attr_list
-    layout.wrap = Pango::WRAP_CHAR
+    layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
     font = Plugin.filtering(:message_font, message, nil).last
@@ -319,10 +320,11 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    if message.user[:idname]
-      Pango.parse_markup("<b>#{Pango.escape(message.user.idname)}</b> #{Pango.escape(message.user.name || '')}")
+    user = message.user
+    if user.respond_to?(:idname)
+      Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
     else
-      Pango.parse_markup(Pango.escape(message.user.name || ''))
+      Pango.parse_markup(Pango.escape(user.name || ''))
     end
   end
 
@@ -335,7 +337,7 @@ class Gdk::MiraclePainter < Gtk::Object
     font = Plugin.filtering(:message_header_right_font, message, nil).last
     layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = text
-    layout.alignment = Pango::ALIGN_RIGHT
+    layout.alignment = Pango::Alignment::RIGHT
     layout end
 
   def timestamp_label

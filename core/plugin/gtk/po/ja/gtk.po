@@ -18,4 +18,4 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "Statusbar default message"
-msgstr "これが、3.5"
+msgstr "mikutter 3.6へようこそ。ここから未来が始まります。"

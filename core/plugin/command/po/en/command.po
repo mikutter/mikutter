@@ -12,9 +12,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-12 11:06+0000\n"
-"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,90 +46,102 @@ msgstr "Quote"
 msgid "リツイート"
 msgstr "Retweet"
 
-#: ../command.rb:68
+#: ../command.rb:69
 msgid "過去の栄光にすがりますか？"
 msgstr "Do you \"Sugari\" on past Glory?"
 
-#: ../command.rb:74
+#: ../command.rb:78
 msgid "リツイートをキャンセル"
 msgstr "Cancel Retweet"
 
-#: ../command.rb:84
+#: ../command.rb:86
+msgid "リツイートをキャンセルしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:90
 msgid "ふぁぼふぁぼする"
 msgstr "Favorite"
 
-#: ../command.rb:92
+#: ../command.rb:102
+msgid "ふぁぼふぁぼしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:106
 msgid "あんふぁぼ"
 msgstr "Unfavorite"
 
-#: ../command.rb:100
+#: ../command.rb:114
+msgid "あんふぁぼしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:118 ../command.rb:124
 msgid "削除"
 msgstr "Delete"
 
-#: ../command.rb:106
+#: ../command.rb:125
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "Deleting this tweet isn't going to help recover any credibility that you may have lost, you know. Do you still want to do it?"
 
-#: ../command.rb:109
+#: ../command.rb:134
 msgid "一つ上のメッセージを選択"
 msgstr "Select previous message"
 
-#: ../command.rb:116
+#: ../command.rb:141
 msgid "一つ下のメッセージを選択"
 msgstr "Select next message"
 
-#: ../command.rb:123
+#: ../command.rb:148
 msgid "投稿する"
 msgstr "Post"
 
-#: ../command.rb:131
+#: ../command.rb:156
 msgid "ggrks"
 msgstr "RTFG"
 
-#: ../command.rb:139
+#: ../command.rb:164
 msgid "ブラウザで開く"
 msgstr "Open in browser."
 
-#: ../command.rb:146
+#: ../command.rb:171
 msgid "リンクを開く"
 msgstr "Open this link"
 
-#: ../command.rb:162
+#: ../command.rb:187
 msgid "リンクをコピー"
 msgstr "Copy URL"
 
-#: ../command.rb:171
+#: ../command.rb:196
 msgid "新規ペインに移動"
 msgstr "Move to new pane"
 
-#: ../command.rb:189
+#: ../command.rb:214
 msgid "タブを閉じる"
 msgstr "Close tab"
 
-#: ../command.rb:199
+#: ../command.rb:224
 msgid "次のタブを選択"
 msgstr "Select the next tab"
 
-#: ../command.rb:207
+#: ../command.rb:232
 msgid "前のタブを選択"
 msgstr "Select the previous tab"
 
-#: ../command.rb:215
+#: ../command.rb:240
 msgid "右のペインを選択"
 msgstr "Select right pane"
 
-#: ../command.rb:223
+#: ../command.rb:248
 msgid "左のペインを選択"
 msgstr "Select left pane"
 
-#: ../command.rb:231
+#: ../command.rb:256
 msgid "投稿ボックスにフォーカス"
 msgstr "Focus to post box"
 
-#: ../command.rb:243
+#: ../command.rb:268
 msgid "タブにフォーカス"
 msgstr "Focus to tab"
 
-#: ../command.rb:251
+#: ../command.rb:276
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "Jump to top of timeline!"

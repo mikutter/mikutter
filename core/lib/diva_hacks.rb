@@ -41,7 +41,10 @@ module Diva
   class << self
     private def model_dict
       @model ||= Hash.new do |h,k|
-        h[k] = ObjectSpace.each_object(Retriever::Model.singleton_class).find do |klass|
+        ObjectSpace.each_object(Retriever::Model.singleton_class).find do |klass|
+          if klass.slug
+            h[klass.slug] = klass
+          end
           klass.slug == k
         end
       end

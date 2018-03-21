@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 08:16+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Romanian (Romania) (http://www.transifex.com/lindwurm/mikutter/language/ro_RO/)\n"
 "MIME-Version: 1.0\n"
@@ -42,90 +42,102 @@ msgstr "Citat"
 msgid "リツイート"
 msgstr "Retweet"
 
-#: ../command.rb:68
+#: ../command.rb:69
 msgid "過去の栄光にすがりますか？"
 msgstr ""
 
-#: ../command.rb:74
+#: ../command.rb:78
 msgid "リツイートをキャンセル"
 msgstr "Anulează Retweet"
 
-#: ../command.rb:84
+#: ../command.rb:86
+msgid "リツイートをキャンセルしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:90
 msgid "ふぁぼふぁぼする"
 msgstr "Marchează fav, fav."
 
-#: ../command.rb:92
+#: ../command.rb:102
+msgid "ふぁぼふぁぼしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:106
 msgid "あんふぁぼ"
 msgstr "Demarcare ca fav"
 
-#: ../command.rb:100
+#: ../command.rb:114
+msgid "あんふぁぼしている途中でエラーが発生しました"
+msgstr ""
+
+#: ../command.rb:118 ../command.rb:124
 msgid "削除"
 msgstr "Şterge"
 
-#: ../command.rb:106
+#: ../command.rb:125
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "Trebuie să şti că, ştergând acest tweet nu te va ajuta să-ţi recuperezi credibilitatea pe care ai fi putut-o pierde. Tot vrei să face acest lucru?"
 
-#: ../command.rb:109
+#: ../command.rb:134
 msgid "一つ上のメッセージを選択"
 msgstr "Selectare mesaj anterior"
 
-#: ../command.rb:116
+#: ../command.rb:141
 msgid "一つ下のメッセージを選択"
 msgstr "Selectare mesaj următor"
 
-#: ../command.rb:123
+#: ../command.rb:148
 msgid "投稿する"
 msgstr "Postează"
 
-#: ../command.rb:131
+#: ../command.rb:156
 msgid "ggrks"
 msgstr "RTFG"
 
-#: ../command.rb:139
+#: ../command.rb:164
 msgid "ブラウザで開く"
 msgstr ""
 
-#: ../command.rb:146
+#: ../command.rb:171
 msgid "リンクを開く"
 msgstr "Deschide linkul"
 
-#: ../command.rb:162
+#: ../command.rb:187
 msgid "リンクをコピー"
 msgstr "Copiere legătură"
 
-#: ../command.rb:171
+#: ../command.rb:196
 msgid "新規ペインに移動"
 msgstr "Mută în panou nou"
 
-#: ../command.rb:189
+#: ../command.rb:214
 msgid "タブを閉じる"
 msgstr "Închide fila"
 
-#: ../command.rb:199
+#: ../command.rb:224
 msgid "次のタブを選択"
 msgstr ""
 
-#: ../command.rb:207
+#: ../command.rb:232
 msgid "前のタブを選択"
 msgstr ""
 
-#: ../command.rb:215
+#: ../command.rb:240
 msgid "右のペインを選択"
 msgstr "Selectează panoul din dreapta"
 
-#: ../command.rb:223
+#: ../command.rb:248
 msgid "左のペインを選択"
 msgstr "Selectează panoul din stânga"
 
-#: ../command.rb:231
+#: ../command.rb:256
 msgid "投稿ボックスにフォーカス"
 msgstr "Concentrare pe cutia poştală"
 
-#: ../command.rb:243
+#: ../command.rb:268
 msgid "タブにフォーカス"
 msgstr "Concentrare pe filă"
 
-#: ../command.rb:251
+#: ../command.rb:276
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "Salt, sus, la capătul cronologiei"

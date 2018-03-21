@@ -1,0 +1,139 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the activity package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2013-07-20 11:47+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Esperanto (http://www.transifex.com/lindwurm/mikutter/language/eo/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: eo\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../activity.rb:47
+msgid "種類"
+msgstr ""
+
+#: ../activity.rb:48
+msgid "説明"
+msgstr ""
+
+#: ../activity.rb:49
+msgid "時刻"
+msgstr ""
+
+#: ../activity.rb:166 ../activity.rb:315 ../activity.rb:318
+msgid "アクティビティ"
+msgstr ""
+
+#: ../activity.rb:222
+msgid "@%{user} がふぁぼふぁぼしました"
+msgstr ""
+
+#: ../activity.rb:232
+msgid "@%{user} があんふぁぼしました"
+msgstr ""
+
+#: ../activity.rb:244
+msgid "@%{user} がリツイートしました"
+msgstr ""
+
+#: ../activity.rb:250
+msgid "リツイートソースが取得できませんでした"
+msgstr ""
+
+#: ../activity.rb:254
+msgid "@%{user}が%{list}に追加されました"
+msgstr ""
+
+#: ../activity.rb:262 ../activity.rb:279
+msgid "%{description} (by @%{user})"
+msgstr ""
+
+#: ../activity.rb:271
+msgid "@%{user}が%{list}から削除されました"
+msgstr ""
+
+#: ../activity.rb:291
+msgid "@%{followee} が @%{follower} をﾌｮﾛｰしました"
+msgstr ""
+
+#: ../activity.rb:303
+msgid "差出人: @%{sender}"
+msgstr ""
+
+#: ../activity.rb:304
+msgid "宛先: @%{recipient}"
+msgstr ""
+
+#: ../activity.rb:335
+msgid "%{name}を表示する"
+msgstr ""
+
+#: ../activity.rb:335
+msgid "%{name}を、アクティビティタイムラインに表示します。チェックを外すと、%{name}の他の設定は無効になります。"
+msgstr ""
+
+#: ../activity.rb:336
+msgid "自分に関係ない%{name}も表示する"
+msgstr ""
+
+#: ../activity.rb:336
+msgid ""
+"自分に関係ない%{name}もアクティビティタイムラインに表示されるようになります。チェックを外すと、自分に関係ない%{name}は表示されません。"
+msgstr ""
+
+#: ../activity.rb:337
+msgid "タイムラインに表示"
+msgstr ""
+
+#: ../activity.rb:337
+msgid "%{name}が通知された時に、システムメッセージで%{name}を通知します"
+msgstr ""
+
+#: ../activity.rb:338
+msgid "ステータスバーに表示"
+msgstr ""
+
+#: ../activity.rb:338
+msgid "%{name}が通知された時に、ステータスバーにしばらく表示します"
+msgstr ""
+
+#: ../activity.rb:343
+msgid "リツイート"
+msgstr ""
+
+#: ../activity.rb:344
+msgid "ふぁぼ"
+msgstr ""
+
+#: ../activity.rb:345
+msgid "フォロー"
+msgstr ""
+
+#: ../activity.rb:346
+msgid "リストに追加"
+msgstr ""
+
+#: ../activity.rb:347
+msgid "リストから削除"
+msgstr ""
+
+#: ../activity.rb:348
+msgid "ダイレクトメッセージ"
+msgstr ""
+
+#: ../activity.rb:349
+msgid "システムメッセージ"
+msgstr ""
+
+#: ../activity.rb:350
+msgid "エラー"
+msgstr ""

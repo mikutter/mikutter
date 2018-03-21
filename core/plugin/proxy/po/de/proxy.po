@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2016-09-01 12:34+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:30+0000\n"
 "Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -19,38 +19,38 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../proxy.rb:34 ../proxy.rb:35
+#: ../proxy.rb:35 ../proxy.rb:36
 msgid "プロキシ"
 msgstr "Proxy"
 
-#: ../proxy.rb:36
+#: ../proxy.rb:37
 msgid "自分で設定する"
 msgstr "Manuelle Proxy Konfiguration"
 
-#: ../proxy.rb:37
+#: ../proxy.rb:38
 msgid "サーバ"
 msgstr "Server"
 
-#: ../proxy.rb:38
+#: ../proxy.rb:39
 msgid "ポート"
 msgstr "Port"
 
-#: ../proxy.rb:39
+#: ../proxy.rb:40
 msgid "ユーザ"
 msgstr "Benutzer"
 
-#: ../proxy.rb:40
+#: ../proxy.rb:41
 msgid "パスワード"
 msgstr "Kennwort"
 
-#: ../proxy.rb:41
+#: ../proxy.rb:42
 msgid "ユーザ認証が必要"
 msgstr "Benötigt Benutzerauthentifizierung"
 
-#: ../proxy.rb:43
+#: ../proxy.rb:44
 msgid "環境変数の設定を使う"
 msgstr "Umgebungsvariable wird benutzt"
 
-#: ../proxy.rb:44
+#: ../proxy.rb:45
 msgid "プロキシを使わない"
 msgstr "Keinen Proxy verwenden"

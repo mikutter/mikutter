@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-17 04:14+0900\n"
-"PO-Revision-Date: 2015-11-07 15:23+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -22,39 +22,39 @@ msgstr ""
 msgid "ショートカットキー"
 msgstr "鍵盤捷徑"
 
-#: ../shortcutkey_listview.rb:41 ../shortcutkey_listview.rb:131
-#: ../shortcutkey_listview.rb:134
+#: ../shortcutkey_listview.rb:42 ../shortcutkey_listview.rb:132
+#: ../shortcutkey_listview.rb:135
 msgid "キーバインド"
 msgstr "綁定按鍵"
 
-#: ../shortcutkey_listview.rb:42
+#: ../shortcutkey_listview.rb:43
 msgid "機能名"
 msgstr "功能名稱"
 
-#: ../shortcutkey_listview.rb:94
+#: ../shortcutkey_listview.rb:95
 msgid "設定 - %{software_name}"
 msgstr "設定 - %{software_name}"
 
-#: ../shortcutkey_listview.rb:98
+#: ../shortcutkey_listview.rb:99
 msgid "OK"
 msgstr "確定"
 
-#: ../shortcutkey_listview.rb:99
+#: ../shortcutkey_listview.rb:100
 msgid "キャンセル"
 msgstr "取消"
 
-#: ../shortcutkey_listview.rb:114
+#: ../shortcutkey_listview.rb:115
 msgid "キーバインドを選択してください"
 msgstr "請選擇綁定的按鍵"
 
-#: ../shortcutkey_listview.rb:115
+#: ../shortcutkey_listview.rb:116
 msgid "コマンドを選択してください"
 msgstr "請選擇指令"
 
-#: ../shortcutkey_listview.rb:179
+#: ../shortcutkey_listview.rb:180
 msgid "コマンド名"
 msgstr "指令名稱"
 
-#: ../shortcutkey_listview.rb:180
+#: ../shortcutkey_listview.rb:181
 msgid "スラッグ"
 msgstr "slug 字串"

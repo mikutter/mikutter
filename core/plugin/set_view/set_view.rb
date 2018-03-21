@@ -157,6 +157,10 @@ Plugin::create(:set_view) do
 
     select _('タブの位置'), :tab_position, 0 => _('上'), 1 => _('下'), 2 => _('左'), 3 => _('右')
 
+    select _('投稿ボックス'), :postbox_visibility, always: _('常に表示する'), none: _('表示しない'), auto: _('1アカウント以上あれば表示')
+
+    select _('アカウント切り替え'), :world_shifter_visibility, always: _('常に表示する'), none: _('表示しない'), auto: _('2アカウント以上あれば表示')
+
     select(_('URLを開く方法'), :url_open_specified_command) do
       option false, _("デフォルトブラウザを使う")
       option true do
@@ -164,5 +168,8 @@ Plugin::create(:set_view) do
       end
     end
 
+    settings(_('タイムライン')) do
+      adjustment(_('最大表示件数'), :timeline_max, 1, 10000)
+    end
   end
 end

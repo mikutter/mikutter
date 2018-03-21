@@ -152,6 +152,9 @@ Plugin.create :extract do
   end
 
   on_extract_tab_create do |setting|
+    if setting.is_a?(Hash)
+      setting = Plugin::Extract::Setting.new(setting)
+    end
     extract_tabs[setting.id] = setting
     tab(setting.slug, setting.name) do
       set_icon setting.icon.to_s if setting.icon?
@@ -203,7 +206,8 @@ Plugin.create :extract do
           add(prompt).show_all)
     dialog.run{ |response|
       if Gtk::Dialog::RESPONSE_ACCEPT == response
-        Plugin::Extract::Setting.new(name: prompt.text) end
+        Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(name: prompt.text))
+      end
       dialog.destroy
       prompt = dialog = nil } end
 
@@ -225,16 +229,23 @@ Plugin.create :extract do
 
   on_update do |service, messages|
     Plugin.call :extract_receive_message, :update, messages
-    if service
+    if service and service.class.slug == :twitter
       service_datasource = "home_timeline-#{service.user_obj.id}".to_sym
       if active_datasources.include? service_datasource
-        Plugin.call :extract_receive_message, service_datasource, messages end end end
+        Plugin.call :extract_receive_message, service_datasource, messages
+      end
+    end
+  end
 
   on_mention do |service, messages|
     Plugin.call :extract_receive_message, :mention, messages
+    if service.class.slug == :twitter
     service_datasource = "mentions-#{service.user_obj.id}".to_sym
     if active_datasources.include? service_datasource
-      Plugin.call :extract_receive_message, service_datasource, messages end end
+      Plugin.call :extract_receive_message, service_datasource, messages
+    end
+    end
+  end
 
   on_extract_receive_message do |source, messages|
     append_message source, messages
@@ -250,8 +261,11 @@ Plugin.create :extract do
       update: _("ホームタイムライン(全てのアカウント)"),
       mention: _("自分宛ての投稿(全てのアカウント)")
     }.merge datasources
-    Service.map{ |service|
-      user = service.user_obj
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.lazy.select{|world|
+      world.class.slug == :twitter
+    }.map(&:user_obj).each{ |user|
       datasources.merge!({ "home_timeline-#{user.id}".to_sym => "@#{user.idname}/" + _("Home Timeline"),
                            "mentions-#{user.id}".to_sym => "@#{user.idname}/" + _("Mentions")
                          })
@@ -355,7 +369,7 @@ Plugin.create :extract do
     } end
 
   (UserConfig[:extract_tabs] or []).each do |record|
-    extract_tabs[record[:id]] = Plugin::Extract::Setting.new(record)
+    Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(record))
   end
 
   on_userconfig_modify do |key, val|

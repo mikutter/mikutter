@@ -1,0 +1,148 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the extract package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
+"Language-Team: Esperanto (http://www.transifex.com/lindwurm/mikutter/language/eo/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: eo\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../edit_window.rb:19 ../edit_window.rb:99
+msgid "%{name} - 抽出タブ - %{application_name}"
+msgstr ""
+
+#: ../edit_window.rb:22
+msgid "データソース"
+msgstr ""
+
+#: ../edit_window.rb:23
+msgid "絞り込み条件"
+msgstr ""
+
+#: ../edit_window.rb:24
+msgid "オプション"
+msgstr ""
+
+#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:19
+msgid "名前"
+msgstr ""
+
+#: ../edit_window.rb:84
+msgid "アイコン"
+msgstr ""
+
+#: ../edit_window.rb:85
+msgid "通知"
+msgstr ""
+
+#: ../edit_window.rb:86
+msgid "サウンド"
+msgstr ""
+
+#: ../edit_window.rb:87
+msgid "ポップアップ"
+msgstr ""
+
+#: ../edit_window.rb:89
+msgid "並び順"
+msgstr ""
+
+#: ../edit_window.rb:94
+msgid "閉じる"
+msgstr ""
+
+#: ../extract.rb:71
+msgid "抽出タブ"
+msgstr ""
+
+#: ../extract.rb:101
+msgid "抽出条件を編集"
+msgstr ""
+
+#: ../extract.rb:135
+msgid "＝"
+msgstr ""
+
+#: ../extract.rb:136
+msgid "≠"
+msgstr ""
+
+#: ../extract.rb:137
+msgid "正規表現"
+msgstr ""
+
+#: ../extract.rb:138
+msgid "含む"
+msgstr ""
+
+#: ../extract.rb:140
+msgid "ユーザ名"
+msgstr ""
+
+#: ../extract.rb:142
+msgid "本文"
+msgstr ""
+
+#: ../extract.rb:144
+msgid "Twitterクライアント"
+msgstr ""
+
+#: ../extract.rb:146
+msgid "投稿時刻"
+msgstr ""
+
+#: ../extract.rb:150
+msgid "投稿時刻 (ふぁぼやリツイートでageる)"
+msgstr ""
+
+#: ../extract.rb:187
+msgid "本当に抽出タブ「%{name}」を削除しますか？"
+msgstr ""
+
+#: ../extract.rb:199
+msgid "抽出タブを作成 - %{mikutter}"
+msgstr ""
+
+#: ../extract.rb:260
+msgid "受信したすべての投稿"
+msgstr ""
+
+#: ../extract.rb:261
+msgid "ホームタイムライン(全てのアカウント)"
+msgstr ""
+
+#: ../extract.rb:262
+msgid "自分宛ての投稿(全てのアカウント)"
+msgstr ""
+
+#: ../extract.rb:269
+msgid "Home Timeline"
+msgstr ""
+
+#: ../extract.rb:270
+msgid "Mentions"
+msgstr ""
+
+#: ../extract.rb:304
+msgid "抽出タブ条件エラー"
+msgstr ""
+
+#: ../extract.rb:306
+msgid ""
+"抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n"
+"%{error_string}"
+msgstr ""
+
+#: ../extract.rb:335
+msgid "抽出条件 `%{condition}' が見つかりませんでした"
+msgstr ""

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'gtk2'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'utils'))
-miquire :core, 'message', 'skin'
+require_relative '../utils'
+miquire :core, 'skin'
 miquire :mui, 'mtk'
 miquire :mui, 'extension'
 miquire :mui, 'webicon'

@@ -4,13 +4,13 @@
 # 
 # Translators:
 # Hsiao-Ting Wang <hsiaoting.wang@gmail.com>, 2014
-# Vel <veloci85@gmail.com>, 2015-2016
+# Vel <veloci85@gmail.com>, 2015-2016,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-11 17:15+0900\n"
-"PO-Revision-Date: 2016-12-11 09:21+0000\n"
+"POT-Creation-Date: 2018-01-14 03:49+0900\n"
+"PO-Revision-Date: 2018-01-21 15:28+0000\n"
 "Last-Translator: Vel <veloci85@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr "複製"
 
 #: ../command.rb:20
 msgid "本文をコピー"
-msgstr "複製文字"
+msgstr "複製推文內容"
 
 #: ../command.rb:28
 msgid "返信"
@@ -43,90 +43,102 @@ msgstr "引用"
 msgid "リツイート"
 msgstr "轉推"
 
-#: ../command.rb:68
+#: ../command.rb:69
 msgid "過去の栄光にすがりますか？"
 msgstr "還沈緬於過去的榮光嗎？"
 
-#: ../command.rb:74
+#: ../command.rb:78
 msgid "リツイートをキャンセル"
 msgstr "取消轉推"
 
-#: ../command.rb:84
+#: ../command.rb:86
+msgid "リツイートをキャンセルしている途中でエラーが発生しました"
+msgstr "取消轉推時發生錯誤"
+
+#: ../command.rb:90
 msgid "ふぁぼふぁぼする"
-msgstr "打星"
+msgstr "打心"
 
-#: ../command.rb:92
+#: ../command.rb:102
+msgid "ふぁぼふぁぼしている途中でエラーが発生しました"
+msgstr "打心時發生錯誤"
+
+#: ../command.rb:106
 msgid "あんふぁぼ"
-msgstr "取消打星"
+msgstr "取消打心"
 
-#: ../command.rb:100
+#: ../command.rb:114
+msgid "あんふぁぼしている途中でエラーが発生しました"
+msgstr "取消打心時發生錯誤"
+
+#: ../command.rb:118 ../command.rb:124
 msgid "削除"
 msgstr "刪除"
 
-#: ../command.rb:106
+#: ../command.rb:125
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "即使無法取回失去的信任，您仍要刪除這則推文嗎？"
 
-#: ../command.rb:109
+#: ../command.rb:134
 msgid "一つ上のメッセージを選択"
 msgstr "選擇上一個訊息"
 
-#: ../command.rb:116
+#: ../command.rb:141
 msgid "一つ下のメッセージを選択"
 msgstr "選擇下一個訊息"
 
-#: ../command.rb:123
+#: ../command.rb:148
 msgid "投稿する"
 msgstr "發推"
 
-#: ../command.rb:131
+#: ../command.rb:156
 msgid "ggrks"
 msgstr "為何不 google"
 
-#: ../command.rb:139
+#: ../command.rb:164
 msgid "ブラウザで開く"
 msgstr "以瀏覽器開啟"
 
-#: ../command.rb:146
+#: ../command.rb:171
 msgid "リンクを開く"
 msgstr "開啟連結"
 
-#: ../command.rb:162
+#: ../command.rb:187
 msgid "リンクをコピー"
 msgstr "複製連結"
 
-#: ../command.rb:171
+#: ../command.rb:196
 msgid "新規ペインに移動"
 msgstr "移動到新建窗格"
 
-#: ../command.rb:189
+#: ../command.rb:214
 msgid "タブを閉じる"
 msgstr "關閉頁籤"
 
-#: ../command.rb:199
+#: ../command.rb:224
 msgid "次のタブを選択"
 msgstr "選擇下一頁籤"
 
-#: ../command.rb:207
+#: ../command.rb:232
 msgid "前のタブを選択"
 msgstr "選擇前一頁籤"
 
-#: ../command.rb:215
+#: ../command.rb:240
 msgid "右のペインを選択"
 msgstr "選擇右方窗格"
 
-#: ../command.rb:223
+#: ../command.rb:248
 msgid "左のペインを選択"
 msgstr "選擇左方窗格"
 
-#: ../command.rb:231
+#: ../command.rb:256
 msgid "投稿ボックスにフォーカス"
 msgstr "焦點移至發推欄位"
 
-#: ../command.rb:243
+#: ../command.rb:268
 msgid "タブにフォーカス"
 msgstr "焦點移至頁籤"
 
-#: ../command.rb:251
+#: ../command.rb:276
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr "跳到時間軸頂端！"
