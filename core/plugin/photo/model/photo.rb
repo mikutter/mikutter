@@ -104,18 +104,20 @@ module Plugin::Photo
       maximum_original.blob
     end
 
-    # 指定された幅と高さを上回るvariantのなかで最小のものを返す
+    # 指定された幅と高さを上回るvariantを返す。
+    # 既に画像がダウンロードされているvariantのうち、最小のものを使う。
+    # 引数に指定された条件を満たす中で既にダウンロードされている画像がない場合は、条件を満たす最小のvariantを返す。
     # ==== Args
     # [width:] (Integer)
     # [height:] (Integer)
     # ==== Return
     # [Photo Model] 最適なPhoto Model
     def larger_than(width:, height:)
-      largers = variants.select{|pv| pv.policy.to_sym == :fit && pv.width >= width && pv.height >= height }
+      largers = variants.select{|pv| pv.policy.to_sym == :fit && pv.width >= width && pv.height >= height }.sort_by(&:width)
       if largers.empty?
         maximum_original
       else
-        largers.min_by{|pv| pv.width }.photo
+        (largers.find{|pv| pv.photo.completed? } || largers.first).photo
       end
     end
 
