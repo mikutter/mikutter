@@ -23,7 +23,11 @@ end
 
 class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_message(message, context = dummy_context)
-    attr_list, text = Pango.parse_markup(Pango.escape(message.description_plain))
+    show_text = message.to_show
+    if message.is_a?(Plugin::Worldon::Status)
+      show_text = message.description_plain
+    end
+    attr_list, text = Pango.parse_markup(Pango.escape(show_text))
     layout = context.create_pango_layout
     layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
     layout.attributes = attr_list
