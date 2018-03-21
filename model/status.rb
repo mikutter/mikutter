@@ -39,11 +39,10 @@ module Plugin::Worldon
 
     attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
       # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）。
+    attr_accessor :favorite_accts # :: [String] APIには無い追加フィールド
 
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
-    alias_method :shared?, :reblogged
-    alias_method :favorite?, :favourited
     alias_method :muted?, :muted
     alias_method :pinned?, :pinned
     alias_method :retweet_ancestor, :reblog
@@ -105,6 +104,7 @@ module Plugin::Worldon
           boost = merge_or_create(domain_name, boost_uri, boost_record)
 
           status.reblog_status_uris = status.reblog_status_uris << boost_uri
+          status.reblog_status_uris.uniq!
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
@@ -143,6 +143,7 @@ module Plugin::Worldon
       end
 
       @reblog_status_uris = []
+      @favorite_accts = []
 
       # タイムゾーン考慮
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
@@ -222,6 +223,33 @@ module Plugin::Worldon
       actual_status.reblog_status_uris.map{|uri| @@status_storage[uri]&.account }.compact.uniq{|account| account.acct }
     end
 
+    def shared?(counterpart = nil)
+      if counterpart.nil?
+        counterpart = Plugin.filtering(:world_current, nil).first
+      end
+      if counterpart.respond_to?(:user_obj)
+        counterpart = counterpart.user_obj
+      end
+      retweeted_by.include?(counterpart.idname)
+    end
+
+    alias_method :retweeted?, :shared?
+
+    def favorited_by
+      @favorite_accts.map{|acct| Account.findbyacct(acct) }.compact.uniq
+    end
+
+    def favorite?(counterpart = nil)
+      if counterpart.nil?
+        counterpart = Plugin.filtering(:world_current, nil).first
+      end
+      if counterpart.respond_to?(:user_obj)
+        counterpart = counterpart.user_obj
+      end
+
+      @favorite_accts.include?(counterpart.idname)
+    end
+
     # sub_parts_client用
     def source
       actual_status.application&.name
@@ -279,16 +307,15 @@ module Plugin::Worldon
     end
 
     def from_me_world
-      worlds = Plugin.filtering(:worldon_worlds, nil).first
-      return nil if worlds.nil?
-      worlds.select{|world|
-        account.acct == world.account.acct
-      }.first
+      world = Plugin.filtering(:world_current, nil).first
+      return nil if (world.nil? || world.class.slug != :worldon)
+      return nil if account.acct != world.account.acct
+      world
     end
 
     # register myself:true用API
     def from_me?(world = nil)
-      if !world.nil?
+      if world
         if world.is_a? Plugin::Worldon::World
           return account.acct == world.account.acct
         else
@@ -312,11 +339,10 @@ module Plugin::Worldon
     end
 
     def to_me_world
-      worlds = Plugin.filtering(:worldon_worlds, nil).first
-      return nil if worlds.nil?
-      worlds.select{|world|
-        mention_to_me?(world) || reblog_to_me?(world)
-      }.first
+      world = Plugin.filtering(:world_current, nil).first
+      return nil if (world.nil? || world.class.slug != :worldon)
+      return nil if (!mention_to_me?(world) && !reblog_to_me?(world))
+      world
     end
 
     # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
@@ -352,7 +378,7 @@ module Plugin::Worldon
       if do_fav
         Plugin[:worldon].favorite(world, self)
       else
-        # TODO: unfavorite spell
+        Plugin[:worldon].unfavorite(world, self)
       end
     end
 
@@ -501,8 +527,12 @@ module Plugin::Worldon
       end
     end
 
-    def rebloggable?
-      !actual_status.shared? && actual_status.visibility != 'private' && actual_status.visibility != 'direct'
+    def rebloggable?(world = nil)
+      result = !actual_status.shared? && actual_status.visibility != 'private' && actual_status.visibility != 'direct'
+      if world
+        result = result && !shared?(world)
+      end
+      result
     end
   end
 end

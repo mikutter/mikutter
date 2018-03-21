@@ -282,8 +282,9 @@ Plugin.create(:worldon) do
       end
 
     when 'favourite'
-      user = pm::Account.new payload[:account]
+      user = pm::Account.new(payload[:account])
       status = pm::Status.build(domain, [payload[:status]]).first
+      status.favorite_accts << user.acct
       world = status.from_me_world
       if user && status && world
         Plugin.call(:favorite, world, user, status)
