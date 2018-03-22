@@ -3,10 +3,10 @@ class Gtk::PostBox
     @to&.first
   end
 
-  alias generate_box_org generate_box
+  alias generate_box_worldon generate_box
 
   def generate_box
-    vbox = generate_box_org
+    vbox = generate_box_worldon
     @to.select{|m| m.is_a?(Plugin::Worldon::Status) }.each{|message|
       w_reply = Gtk::HBox.new
       itv = Gtk::IntelligentTextview.new(message.description_plain, 'font' => :mumble_basic_font)
