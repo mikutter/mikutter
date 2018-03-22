@@ -308,19 +308,17 @@ module Plugin::Worldon
 
     def from_me_world
       world = Plugin.filtering(:world_current, nil).first
-      return nil if (world.nil? || world.class.slug != :worldon)
-      return nil if account.acct != world.account.acct
-      world
+      if account.acct == world&.account&.acct
+        world
+      else
+        nil
+      end
     end
 
     # register myself:true用API
     def from_me?(world = nil)
       if world
-        if world.is_a? Plugin::Worldon::World
-          return account.acct == world.account.acct
-        else
-          return false
-        end
+        return account.acct == world&.account&.acct
       end
       !!from_me_world
     end
@@ -329,7 +327,7 @@ module Plugin::Worldon
     # 自分へのmention
     def mention_to_me?(world)
       return false if mentions.empty?
-      mentions.map{|mention| mention.acct }.include?(world.account.acct)
+      mentions.map{|mention| mention.acct }.include?(world&.account&.acct)
     end
 
     # 自分へのreblog
@@ -340,9 +338,7 @@ module Plugin::Worldon
 
     def to_me_world
       world = Plugin.filtering(:world_current, nil).first
-      return nil if (world.nil? || world.class.slug != :worldon)
-      return nil if (!mention_to_me?(world) && !reblog_to_me?(world))
-      world
+      (mention_to_me?(world) || reblog_to_me?(world)) ? world : nil
     end
 
     # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
