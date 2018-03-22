@@ -215,7 +215,9 @@ Plugin.create(:worldon) do
   end
 
   def stream_world(domain, access_token)
-    Plugin.filtering(:worldon_worlds, nil).first.to_a.select{|world|
+    Enumerator.new{|y|
+      Plugin.filtering(:worldon_worlds, nil).first
+    }.select{|world|
       world.domain == domain && world.access_token == access_token
     }.first
   end
