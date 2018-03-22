@@ -308,7 +308,7 @@ module Plugin::Worldon
 
     def from_me_world
       world = Plugin.filtering(:world_current, nil).first
-      return nil if (world.nil? || world.class.slug != :worldon)
+      return nil if (!world.respond_to?(:account) || !world.account.respond_to?(:acct))
       return nil if account.acct != world.account.acct
       world
     end
@@ -329,6 +329,7 @@ module Plugin::Worldon
     # 自分へのmention
     def mention_to_me?(world)
       return false if mentions.empty?
+      return false if (!world.respond_to?(:account) || !world.account.respond_to?(:acct))
       mentions.map{|mention| mention.acct }.include?(world.account.acct)
     end
 
@@ -340,7 +341,6 @@ module Plugin::Worldon
 
     def to_me_world
       world = Plugin.filtering(:world_current, nil).first
-      return nil if (world.nil? || world.class.slug != :worldon)
       return nil if (!mention_to_me?(world) && !reblog_to_me?(world))
       world
     end
