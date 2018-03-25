@@ -122,22 +122,31 @@ Plugin.create(:sse_client) do
       client = HTTPClient.new
 
       thread = Thread.new {
-        parser = Plugin::SseClient::Parser.new(self, slug)
-        response = client.request(method, uri.to_s, query, body, headers) do |fragment|
-          parser << fragment
-        end
+        begin
+          parser = Plugin::SseClient::Parser.new(self, slug)
+          response = client.request(method, uri.to_s, query, body, headers) do |fragment|
+            parser << fragment
+          end
 
-        case response.status
-        when 200
-        else
-          Plugin.call(:sse_connection_failure, slug, response)
-          error "ServerSentEvents connection failure"
-          pp response if Mopt.error_level >= 1
+          case response.status
+          when 200
+          else
+            Plugin.call(:sse_connection_failure, slug, response)
+            error "ServerSentEvents connection failure"
+            pp response if Mopt.error_level >= 1
+            $stdout.flush
+            next
+          end
+
+          Plugin.call(:sse_connection_closed, slug)
+
+        rescue => e
+          Plugin.call(:sse_connection_error, slug, e)
+          error "ServerSentEvents connection error"
+          pp e if Mopt.error_level >= 1
           $stdout.flush
           next
         end
-
-        Plugin.call(:sse_connection_closed, slug)
       }
       mutex.synchronize {
         connections[slug] = {
