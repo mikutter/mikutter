@@ -103,7 +103,7 @@ module Plugin::Worldon
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
 
-          status.reblog_status_uris = status.reblog_status_uris << boost_uri
+          status.reblog_status_uris << boost_uri
           status.reblog_status_uris.uniq!
 
           boost[:retweet] = boost.reblog = status
@@ -230,7 +230,7 @@ module Plugin::Worldon
       if counterpart.respond_to?(:user_obj)
         counterpart = counterpart.user_obj
       end
-      retweeted_by.include?(counterpart.idname)
+      actual_status.retweeted_by.include?(counterpart.idname)
     end
 
     alias_method :retweeted?, :shared?
@@ -528,11 +528,7 @@ module Plugin::Worldon
     end
 
     def rebloggable?(world = nil)
-      result = !actual_status.shared? && actual_status.visibility != 'private' && actual_status.visibility != 'direct'
-      if world
-        result = result && !shared?(world)
-      end
-      result
+      !actual_status.shared?(world) && !['private', 'direct'].include?(actual_status.visibility)
     end
   end
 end

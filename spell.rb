@@ -249,9 +249,9 @@ Plugin.create(:worldon) do
 
   # ブースト
   defspell(:share, :worldon, :worldon_status,
-           condition: -> (world, status) { status.rebloggable?(world) }
+           condition: -> (world, status) { status.actual_status.rebloggable?(world) }
           ) do |world, status|
-    world.reblog(status).next{|shared|
+    world.reblog(status.actual_status).next{|shared|
       Plugin.call(:posted, world, [shared])
       Plugin.call(:update, world, [shared])
     }
@@ -265,7 +265,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:destroy_share, :worldon, :worldon_status, condition: -> (world, status) { status.shared?(world) }) do |world, status|
+  defspell(:destroy_share, :worldon, :worldon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
     Thread.new {
       status_id = pm::API.get_local_status_id(world, status.actual_status)
       if status_id

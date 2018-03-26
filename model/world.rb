@@ -105,6 +105,7 @@ module Plugin::Worldon
 
       status.actual_status.reblogged = true
       status.reblog_status_uris << new_status.original_uri
+      status.reblog_status_uris.uniq!
       Plugin.call(:retweet, [new_status])
 
       status_world = status.from_me_world
