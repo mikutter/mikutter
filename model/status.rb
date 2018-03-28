@@ -262,7 +262,6 @@ module Plugin::Worldon
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
-        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
       if remove_anchor
         result = result.gsub(/<\/?a[^>]*>/) { '' }
       end
