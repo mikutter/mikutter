@@ -74,10 +74,18 @@ Plugin.create(:worldon) do
         option :"3private", "非公開"
         option :"4direct", "ダイレクト"
       end
-      fileselect "添付メディア1", :media1
-      fileselect "添付メディア2", :media2
-      fileselect "添付メディア3", :media3
-      fileselect "添付メディア4", :media4
+
+      # mikutter-uwm-hommageの設定を勝手に持ってくる
+      dirs = 10.times.map { |i|
+        UserConfig["galary_dir#{i + 1}".to_sym]
+      }.compact.select { |str|
+        !str.empty?
+      }.to_a
+
+      fileselect "添付メディア1", :media1, shortcuts: dirs
+      fileselect "添付メディア2", :media2, shortcuts: dirs
+      fileselect "添付メディア3", :media3, shortcuts: dirs
+      fileselect "添付メディア4", :media4, shortcuts: dirs
     end.next do |result|
       # 投稿
       # まず画像をアップロード
