@@ -1,9 +1,4 @@
 # coding: utf-8
-class Gtk::PostBox
-  def worldon_get_reply_to
-    @to&.first
-  end
-end
 
 Plugin.create(:worldon) do
   pm = Plugin::Worldon
@@ -79,10 +74,18 @@ Plugin.create(:worldon) do
         option :"3private", "非公開"
         option :"4direct", "ダイレクト"
       end
-      fileselect "添付メディア1", :media1
-      fileselect "添付メディア2", :media2
-      fileselect "添付メディア3", :media3
-      fileselect "添付メディア4", :media4
+
+      # mikutter-uwm-hommageの設定を勝手に持ってくる
+      dirs = 10.times.map { |i|
+        UserConfig["galary_dir#{i + 1}".to_sym]
+      }.compact.select { |str|
+        !str.empty?
+      }.to_a
+
+      fileselect "添付メディア1", :media1, shortcuts: dirs
+      fileselect "添付メディア2", :media2, shortcuts: dirs
+      fileselect "添付メディア3", :media3, shortcuts: dirs
+      fileselect "添付メディア4", :media4, shortcuts: dirs
     end.next do |result|
       # 投稿
       # まず画像をアップロード
@@ -122,7 +125,7 @@ Plugin.create(:worldon) do
   # spell系
 
   # 投稿
-  defspell(:compose, :worldon, condition: -> (world) { true }) do |world, body:, **opts|
+  defspell(:compose, :worldon) do |world, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
@@ -148,7 +151,7 @@ Plugin.create(:worldon) do
     path
   end
 
-  defspell(:compose, :worldon, :photo, condition: -> (world, photo) { true }) do |world, photo, body:, **opts|
+  defspell(:compose, :worldon, :photo) do |world, photo, body:, **opts|
     photo.download.next{|photo|
       ext = photo.uri.path.split('.').last || 'png'
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
@@ -162,7 +165,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:compose, :worldon, :worldon_status, condition: -> (world, status) { true }) do |world, status, body:, **opts|
+  defspell(:compose, :worldon, :worldon_status) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
       if status.visibility == "direct"
@@ -196,64 +199,111 @@ Plugin.create(:worldon) do
     end
   end
 
-  # ふぁぼ
-  defevent :worldon_favorite, prototype: [pm::World, pm::Status]
+  defspell(:destroy, :worldon, :worldon_status, condition: -> (world, status) {
+    world.account.acct == status.actual_status.account.acct
+  }) do |world, status|
+    status_id = pm::API.get_local_status_id(world, status.actual_status)
+    if status_id
+      ret = pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
+      Plugin.call(:destroyed, status.actual_status)
+      status.actual_status
+    end
+  end
 
-  # ふぁぼる
-  on_worldon_favorite do |world, status|
+  # ふぁぼ
+  defspell(:favorite, :worldon, :worldon_status,
+           condition: -> (world, status) { !status.actual_status.favorite?(world) }
+          ) do |world, status|
     Thread.new {
       status_id = pm::API.get_local_status_id(world, status.actual_status)
-      if !status_id.nil?
+      if status_id
         Plugin.call(:before_favorite, world, world.account, status)
         ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
         if ret.nil? || ret[:error]
           Plugin.call(:fail_favorite, world, world.account, status)
         else
           status.actual_status.favourited = true
+          status.actual_status.favorite_accts << world.account.acct
           Plugin.call(:favorite, world, world.account, status)
         end
       end
     }
   end
 
-  defspell(:favorite, :worldon, :worldon_status,
-           condition: -> (world, status) { !status.actual_status.favorite? } # TODO: favorite?の引数にworldを取って正しく判定できるようにする
-          ) do |world, status|
-    Plugin.call(:worldon_favorite, world, status.actual_status)
-  end
-
   defspell(:favorited, :worldon, :worldon_status,
-           condition: -> (world, status) { status.actual_status.favorite? } # TODO: worldを使って正しく判定する
+           condition: -> (world, status) { status.actual_status.favorite?(world) }
           ) do |world, status|
     Delayer::Deferred.new.next {
-      status.actual_status.favorite? # TODO: 何を返せばいい？
+      status.actual_status.favorite?(world)
     }
   end
 
-  # ブーストイベント
-  defevent :worldon_share, prototype: [pm::World, pm::Status]
+  defspell(:unfavorite, :worldon, :worldon_status, condition: -> (world, status) { status.favorite?(world) }) do |world, status|
+    Thread.new {
+      status_id = pm::API.get_local_status_id(world, status.actual_status)
+      if status_id
+        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
+        if ret.nil? || ret[:error]
+          warn "[worldon] failed to unfavourite: #{ret}"
+        else
+          status.actual_status.favourited = false
+          status.actual_status.favorite_accts.delete(world.account.acct)
+          Plugin.call(:favorite, world, world.account, status)
+        end
+        status.actual_status
+      end
+    }
+  end
 
   # ブースト
-  on_worldon_share do |world, status|
-    Thread.new {
-      world.reblog(status).next{|shared|
-        Plugin.call(:posted, world, [shared])
-        Plugin.call(:update, world, [shared])
-      }
-    }
-  end
-
   defspell(:share, :worldon, :worldon_status,
-           condition: -> (world, status) { status.rebloggable? } # TODO: rebloggable?の引数にworldを取って正しく判定できるようにする
+           condition: -> (world, status) { status.actual_status.rebloggable?(world) }
           ) do |world, status|
-    world.reblog status
+    world.reblog(status.actual_status).next{|shared|
+      Plugin.call(:posted, world, [shared])
+      Plugin.call(:update, world, [shared])
+    }
   end
 
   defspell(:shared, :worldon, :worldon_status,
-           condition: -> (world, status) { status.actual_status.shared? } # TODO: worldを使って正しく判定する
+           condition: -> (world, status) { status.actual_status.shared?(world) }
           ) do |world, status|
     Delayer::Deferred.new.next {
-      status.actual_status.shared? # TODO: 何を返せばいい？
+      status.actual_status.shared?(world)
     }
+  end
+
+  defspell(:destroy_share, :worldon, :worldon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
+    Thread.new {
+      status_id = pm::API.get_local_status_id(world, status.actual_status)
+      if status_id
+        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
+        reblog = nil
+        if ret.nil? || ret[:error]
+          warn "[worldon] failed to unreblog: #{ret}"
+        else
+          status.actual_status.reblogged = false
+          reblog = status.actual_status.retweeted_statuses.select{|s| s.account.acct == world.user_obj.acct }.first
+          status.actual_status.reblog_status_uris.delete(reblog.original_uri)
+          Plugin.call(:destroyed, [reblog])
+        end
+        reblog
+      end
+    }
+  end
+
+  # プロフィール更新系
+  update_profile_block = Proc.new do |world, **opts|
+    world.update_profile(**opts)
+  end
+
+  defspell(:update_profile, :worldon, &update_profile_block)
+  defspell(:update_profile_name, :worldon, &update_profile_block)
+  defspell(:update_profile_biography, :worldon, &update_profile_block)
+  defspell(:update_profile_icon, :worldon, :photo) do |world, photo|
+    update_profile_block.call(world, icon: photo)
+  end
+  defspell(:update_profile_header, :worldon, :photo) do |world, photo|
+    update_profile_block.call(world, header: photo)
   end
 end

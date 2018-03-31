@@ -38,6 +38,8 @@ module Plugin::Worldon
     alias_method :name, :display_name
     alias_method :description, :note
 
+    @@account_storage = WeakStorage.new(String, Account)
+
     def self.regularize_acct_by_domain(domain, acct)
       if acct.index('@').nil?
         acct = acct + '@' + domain
@@ -56,6 +58,10 @@ module Plugin::Worldon
       Diva::URI.new(url.to_s).host
     end
 
+    def self.findbyacct(acct)
+      @@account_storage[acct]
+    end
+
     def domain
       self.class.domain(url)
     end
@@ -70,6 +76,10 @@ module Plugin::Worldon
       hash[:idname] = hash[:acct]
 
       super hash
+
+      @@account_storage[hash[:acct]] = self
+
+      self
     end
 
     def title

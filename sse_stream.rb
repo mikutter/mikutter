@@ -105,13 +105,9 @@ Plugin.create(:worldon) do
       filter_extract_datasources do |dss|
         instance = pm::Instance.load(world.domain)
         datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
-        if lists.is_a? Array
-          lists.each do |l|
-            slug = world.datasource_slug(:list, l[:id])
-            datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
-          end
-        else
-          warn '[worldon] failed to get lists:' + lists['error'].to_s
+        lists.each do |l|
+          slug = world.datasource_slug(:list, l[:id])
+          datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
         end
         [datasources.merge(dss)]
       end
@@ -286,10 +282,11 @@ Plugin.create(:worldon) do
       end
 
     when 'favourite'
-      user = pm::Account.new payload[:account]
+      user = pm::Account.new(payload[:account])
       status = pm::Status.build(domain, [payload[:status]]).first
+      status.favorite_accts << user.acct
       world = status.from_me_world
-      if !world.nil?
+      if user && status && world
         Plugin.call(:favorite, world, user, status)
       end
 

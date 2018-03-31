@@ -34,8 +34,19 @@ module Plugin::Worldon
     end
 
     def get_lists!
-      @lists ||= API.call(:get, domain, '/api/v1/lists', access_token)
-      @lists
+      return @lists if @lists
+
+      lists = API.call(:get, domain, '/api/v1/lists', access_token)
+      if lists.is_a? Array
+        @lists = lists
+      else
+        if lists.nil?
+          warn "[worldon] failed to get lists"
+        elsif lists.is_a?(Hash) && lists['error']
+          warn "[worldon] failed to get lists: #{lists['error'].to_s}"
+        end
+        @lists = []
+      end
     end
 
     def lists
@@ -93,6 +104,8 @@ module Plugin::Worldon
       new_status = PM::Status.build(domain, [new_status_hash]).first
 
       status.actual_status.reblogged = true
+      status.reblog_status_uris << new_status.original_uri
+      status.reblog_status_uris.uniq!
       Plugin.call(:retweet, [new_status])
 
       status_world = status.from_me_world
@@ -154,6 +167,39 @@ module Plugin::Worldon
         end
       end
       promise
+    end
+
+    def update_profile(**opts)
+      params = {}
+      params[:display_name] = opts[:name] if opts[:name]
+      params[:note] = opts[:biography] if opts[:biography]
+      ds = []
+      if opts[:icon]
+        ds << opts[:icon].download.next{|photo| [:avatar, photo] }
+      end
+      if opts[:header]
+        ds << opts[:header].download.next{|photo| [:header, photo] }
+      end
+      if ds.size == 0
+        ds << Delayer::Deferred.new.next{ [:none, nil] }
+      end
+      Delayer::Deferred.when(ds).next{|vs|
+        file_keys = []
+        vs.each do |pair|
+          next unless pair[1].is_a?(Plugin::Photo::Photo)
+
+          photo = pair[1]
+          ext = photo.uri.path.split('.').last || 'png'
+          tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
+          tmp_path = Plugin[:worldon].media_tmp_dir / tmp_name
+          file_put_contents(tmp_path, photo.blob)
+          key = pair[0]
+          params[key] = tmp_path.to_s
+          file_keys << key
+        end
+        new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, file_keys, **params)
+        account = PM::Account.new(new_account)
+      }
     end
   end
 end
