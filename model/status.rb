@@ -1,4 +1,5 @@
 require_relative 'entity_class'
+require 'cgi' # unescapeHTML
 
 module Plugin::Worldon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
@@ -263,7 +264,7 @@ module Plugin::Worldon
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
       if remove_anchor
-        result = result.gsub(/<\/?a[^>]*>/) { '' }
+        result = CGI.unescapeHTML(result.gsub(/<\/?a[^>]*>/) { '' })
       end
       result
     end
