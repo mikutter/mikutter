@@ -177,13 +177,33 @@ class Gdk::MiraclePainter < Gtk::Object
   def point_moved(x, y)
     point_moved_main_icon(x, y)
     signal_emit(:motion_notify_event, x, y)
-    textselector_select(*main_pos_to_index_forclick(x, y)[1..2]) end
+    textselector_select(*main_pos_to_index_forclick(x, y)[1..2])
+
+    # change cursor shape
+    index = main_pos_to_index(x, y)
+    c = if index # the cursor is placed on text
+          if message.links.respond_to?(:segment_by_index) \
+              && message.links.segment_by_index(index)
+            # the cursor is placed on link
+            Gdk::Cursor.new(Gdk::Cursor::HAND1)
+          else
+            Gdk::Cursor.new(Gdk::Cursor::XTERM)
+          end
+        else
+          Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
+        end
+    @tree.get_ancestor(Gtk::Window).window.set_cursor(c)
+  end
 
   # leaveイベントを発生させる
   def point_leaved(x, y)
     iob_main_leave
     signal_emit(:leave_notify_event)
     # textselector_release
+
+    # restore cursor shape
+    c = Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
+    @tree.get_ancestor(Gtk::Window).window.set_cursor(c)
   end
 
   # MiraclePainterが選択解除されたことを通知する
