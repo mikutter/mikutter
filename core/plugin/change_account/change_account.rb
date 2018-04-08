@@ -33,7 +33,9 @@ Plugin.create :change_account do
       slug = "switch_account_to_#{world.slug}".to_sym
       menu[slug] = {
         slug: slug,
-        exec: -> options { switch_account_to(slug) },
+        exec: -> options {
+          Plugin.call(:world_change_current, world)
+        },
         plugin: @name,
         name: _('%{title}(%{world}) に切り替える'.freeze) % {
           title: world.title,
@@ -86,17 +88,6 @@ Plugin.create :change_account do
     }.trap{ |err|
       error err
     }
-  end
-
-  def switch_account_to(slug)
-    slug_str = slug.to_s.gsub(/^switch_account_to_/, '')
-    worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
-    worlds.each_with_index do |world, i|
-      if world[:slug].to_s == slug_str
-        Plugin.call(:world_change_current, worlds[i])
-        break
-      end
-    end
   end
 
   def delete_world_with_confirm(worlds)
