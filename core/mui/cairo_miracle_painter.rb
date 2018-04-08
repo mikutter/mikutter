@@ -181,18 +181,21 @@ class Gdk::MiraclePainter < Gtk::Object
 
     # change cursor shape
     index = main_pos_to_index(x, y)
-    c = if index # the cursor is placed on text
-          if message.links.respond_to?(:segment_by_index) \
-              && message.links.segment_by_index(index)
-            # the cursor is placed on link
-            Gdk::Cursor.new(Gdk::Cursor::HAND1)
-          else
-            Gdk::Cursor.new(Gdk::Cursor::XTERM)
-          end
-        else
-          Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
-        end
-    @tree.get_ancestor(Gtk::Window).window.set_cursor(c)
+    cursor_name = if index # the cursor is placed on text
+                    if message.links.respond_to?(:segment_by_index) \
+                       && message.links.segment_by_index(index)
+                      # the cursor is placed on link
+                      'pointer'
+                    else
+                      'text'
+                    end
+                  else
+                    'default'
+                  end
+    window = @tree.get_ancestor Gtk::Window
+    display = window.screen.display
+    cursor = Gdk::Cursor.new display, cursor_name
+    window.window.cursor = cursor
   end
 
   # leaveイベントを発生させる
@@ -202,8 +205,10 @@ class Gdk::MiraclePainter < Gtk::Object
     # textselector_release
 
     # restore cursor shape
-    c = Gdk::Cursor.new(Gdk::Cursor::LEFT_PTR)
-    @tree.get_ancestor(Gtk::Window).window.set_cursor(c)
+    window = @tree.get_ancestor Gtk::Window
+    display = window.screen.display
+    cursor = Gdk::Cursor.new display, 'default'
+    window.window.cursor = cursor
   end
 
   # MiraclePainterが選択解除されたことを通知する
