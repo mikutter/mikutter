@@ -180,22 +180,7 @@ class Gdk::MiraclePainter < Gtk::Object
     textselector_select(*main_pos_to_index_forclick(x, y)[1..2])
 
     # change cursor shape
-    index = main_pos_to_index(x, y)
-    cursor_name = if index # the cursor is placed on text
-                    if message.links.respond_to?(:segment_by_index) \
-                       && message.links.segment_by_index(index)
-                      # the cursor is placed on link
-                      'pointer'
-                    else
-                      'text'
-                    end
-                  else
-                    'default'
-                  end
-    window = @tree.get_ancestor Gtk::Window
-    display = window.screen.display
-    cursor = Gdk::Cursor.new display, cursor_name
-    window.window.cursor = cursor
+    set_cursor(cursor_name_of(x, y))
   end
 
   # leaveイベントを発生させる
@@ -205,10 +190,38 @@ class Gdk::MiraclePainter < Gtk::Object
     # textselector_release
 
     # restore cursor shape
+    set_cursor('default')
+  end
+
+  # このMiraclePainterの(x , y)にマウスポインタがある時に表示すべきカーソルの名前を返す。
+  # ==== Args
+  # [x] x座標(Integer)
+  # [y] y座標(Integer)
+  # ==== Return
+  # [String] カーソルの名前
+  private def cursor_name_of(x, y)
+    index = main_pos_to_index(x, y)
+    if index # the cursor is placed on text
+      if message.links.respond_to?(:segment_by_index) \
+         && message.links.segment_by_index(index)
+        # the cursor is placed on link
+        'pointer'
+      else
+        'text'
+      end
+    else
+      'default'
+    end
+  end
+
+  # _name_ に対応するマウスカーソルに変更する。
+  # ==== Args
+  # [name] カーソルの名前(String)
+  private def set_cursor(name)
     window = @tree.get_ancestor Gtk::Window
     display = window.screen.display
-    cursor = Gdk::Cursor.new display, 'default'
-    window.window.cursor = cursor
+    window.window.cursor = Gdk::Cursor.new(display, name)
+    self
   end
 
   # MiraclePainterが選択解除されたことを通知する
