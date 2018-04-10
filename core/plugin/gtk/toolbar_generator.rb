@@ -12,7 +12,8 @@ module Plugin::Gtk
     def self.generate(container, event, role)
       Thread.new{
         Plugin.filtering(:command, {}).first.values.select{ |command|
-          command[:icon] and command[:role] == role and command[:condition] === event }
+          command[:visible] and command[:icon] and
+            command[:role] == role and command[:condition] === event }
       }.next{ |commands|
         commands.each{ |command|
           face = command[:show_face] || command[:name] || command[:slug].to_s
