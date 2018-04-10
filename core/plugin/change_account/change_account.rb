@@ -33,13 +33,15 @@ Plugin.create :change_account do
       slug = "switch_account_to_#{world.slug}".to_sym
       menu[slug] = {
         slug: slug,
-        exec: -> options {},
+        exec: -> options {
+          Plugin.call(:world_change_current, world)
+        },
         plugin: @name,
         name: _('%{title}(%{world}) に切り替える'.freeze) % {
           title: world.title,
           world: world.class.slug
         },
-        condition: -> options {},
+        condition: -> options { true },
         visible: false,
         role: :window,
         icon: world.icon } end
