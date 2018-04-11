@@ -131,6 +131,11 @@ Plugin.create(:worldon) do
     else
       opts[:visibility] = opts[:visibility].to_s
     end
+
+    if opts[:sensitive].nil? && opts[:media_ids].nil? && opts[:spoiler_text].nil?
+      opts[:sensitive] = false;
+    end
+
     hash = world.post(body, opts)
     if hash.nil?
       warn "投稿に失敗したかもしれません"
@@ -174,6 +179,9 @@ Plugin.create(:worldon) do
       end
     else
       opts[:visibility] = opts[:visibility].to_s
+    end
+    if opts[:sensitive].nil? && opts[:media_ids].nil? && opts[:spoiler_text].nil?
+      opts[:sensitive] = false;
     end
 
     status_id = status.id
