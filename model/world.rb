@@ -104,7 +104,7 @@ module Plugin::Worldon
       new_status = PM::Status.build(domain, [new_status_hash]).first
 
       status.actual_status.reblogged = true
-      status.reblog_status_uris << new_status.original_uri
+      status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }
       status.reblog_status_uris.uniq!
       Plugin.call(:retweet, [new_status])
 
