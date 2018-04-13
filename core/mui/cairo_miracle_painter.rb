@@ -150,14 +150,16 @@ class Gdk::MiraclePainter < Gtk::Object
       iob_clicked(x, y)
       if not textselector_range
         index = main_pos_to_index(x, y)
-        if index and message.links.respond_to?(:segment_by_index)
-          l = message.links.segment_by_index(index)
-          if l
-            case
-            when l[:callback]
-              l[:callback].call(l)
-            when l[:open]
-              Plugin.call(:open, l[:open]) end end end end
+        if index
+          clicked_note = Plugin[:gtk].score_of(message).find{|note|
+            index -= note.title.size
+            index <= 0
+          }
+          if !clicked_note.respond_to?(:ancestor)
+            Plugin.call(:open, clicked_note)
+          end
+        end
+      end
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       Plugin::GUI::Command.menu_pop
