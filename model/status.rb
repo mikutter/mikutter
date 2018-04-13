@@ -39,7 +39,7 @@ module Plugin::Worldon
     field.has :tags, [Tag]
 
     attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
-      # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）。
+      # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）と、acctを保持する。
     attr_accessor :favorite_accts # :: [String] APIには無い追加フィールド
 
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
@@ -104,7 +104,7 @@ module Plugin::Worldon
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
 
-          status.reblog_status_uris << boost_uri
+          status.reblog_status_uris << { uri: boost_uri, acct: boost_record[:account][:acct] }
           status.reblog_status_uris.uniq!
 
           boost[:retweet] = boost.reblog = status
@@ -221,7 +221,7 @@ module Plugin::Worldon
     end
 
     def retweeted_by
-      actual_status.reblog_status_uris.map{|uri| @@status_storage[uri]&.account }.compact.uniq{|account| account.acct }
+      actual_status.reblog_status_uris.map{|pair| pair[:acct] }.compact.uniq.map{|acct| Account.findbyacct(acct) }
     end
 
     def shared?(counterpart = nil)
@@ -231,7 +231,7 @@ module Plugin::Worldon
       if counterpart.respond_to?(:user_obj)
         counterpart = counterpart.user_obj
       end
-      actual_status.retweeted_by.include?(counterpart.idname)
+      actual_status.retweeted_by.include?(counterpart)
     end
 
     alias_method :retweeted?, :shared?
@@ -383,8 +383,10 @@ module Plugin::Worldon
     end
 
     def retweeted_statuses
-      reblog_status_uris.map{|uri| @@status_storage[uri] }.compact
+      reblog_status_uris.map{|pair| @@status_storage[pair[:uri]] }.compact
     end
+
+    alias_method :retweeted_sources, :retweeted_statuses
 
     # Message#.introducer
     # 本当はreblogがあればreblogをreblogした最後のStatusを返す

@@ -292,8 +292,10 @@ Plugin.create(:worldon) do
         else
           status.actual_status.reblogged = false
           reblog = status.actual_status.retweeted_statuses.select{|s| s.account.acct == world.user_obj.acct }.first
-          status.actual_status.reblog_status_uris.delete(reblog.original_uri)
-          Plugin.call(:destroyed, [reblog])
+          status.actual_status.reblog_status_uris.delete_if {|pair| pair[:acct] == world.user_obj.acct }
+          if reblog
+            Plugin.call(:destroyed, [reblog])
+          end
         end
         reblog
       end
