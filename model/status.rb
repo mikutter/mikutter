@@ -221,7 +221,7 @@ module Plugin::Worldon
     end
 
     def retweeted_by
-      actual_status.reblog_status_uris.map{|pair| pair[:acct] }.compact.uniq.map{|acct| Account.findbyacct(acct) }
+      actual_status.reblog_status_uris.map{|pair| pair[:acct] }.compact.uniq.map{|acct| Account.findbyacct(acct) }.compact
     end
 
     def shared?(counterpart = nil)
