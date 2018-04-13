@@ -344,7 +344,11 @@ Plugin.create(:twitter) do
       extended_entities.map do |media|
         case media[:type]
         when 'photo'
-          Diva::Model(:photo)[media[:media_url_https]]
+          photo = Diva::Model(:photo)[media[:media_url_https]]
+          Diva::Model(:score_hyperlink).new(
+            description: photo.uri,
+            uri: photo.uri,
+            reference: photo)
         when 'video'
           variant = Array(media[:video_info][:variants])
                       .select{|v|v[:content_type] == "video/mp4"}
@@ -372,7 +376,10 @@ Plugin.create(:twitter) do
     entities_to_notes(user_entities) do |user_entity|
       user = Plugin::Twitter::User.findbyid(user_entity[:id], Diva::DataSource::USE_LOCAL_ONLY)
       if user
-        user
+        Diva::Model(:score_hyperlink).new(
+          description: "@#{user.idname}",
+          uri: user.uri,
+          reference: user)
       else
         screen_name = user_entity[:screen_name] || tweet.description[Range.new(*user_entity[:indices])]
         Diva::Model(:score_hyperlink).new(
@@ -391,9 +398,8 @@ Plugin.create(:twitter) do
   end
 
   def entity_hashtag(tweet, hashtag_entities)
-    twitter_search = Diva::Model(:twitter_search)
     entities_to_notes(hashtag_entities) do |hashtag|
-      twitter_search.new(query: "##{hashtag[:text]}")
+      Plugin::Twitter::HashTag.new(name: hashtag[:text])
     end
   end
 

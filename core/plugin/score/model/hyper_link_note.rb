@@ -6,6 +6,7 @@ module Plugin::Score
 
     field.string :description, required: true
     field.uri :uri, required: true
+    field.has :reference, Diva::Model, required: false
 
     def inspect
       "hyperlink note(#{description}, #{uri})"
