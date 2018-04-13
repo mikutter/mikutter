@@ -14,6 +14,15 @@ Plugin.create(:score) do
     Plugin::Score.score_by_score(Plugin::Score::TextNote.new(ancestor: model, description: model.description))
   end
 
+  intent Plugin::Score::HyperLinkNote, label: 'Link Text' do |intent_token|
+    forward_to = intent_token.model.reference
+    if forward_to
+      Plugin.call(:open, forward_to)
+    else
+      intent_token.forward
+    end
+  end
+
   # generic URL
   filter_score_filter do |parent_score, yielder|
     text = parent_score.description
