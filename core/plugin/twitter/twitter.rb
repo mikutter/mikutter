@@ -291,6 +291,120 @@ Plugin.create(:twitter) do
     [url, posted_url_length(url)]
   end
 
+  filter_score_filter do |parent_score, yielder|
+    model = parent_score.ancestor
+    if (model.is_a?(Plugin::Twitter::Message) || model.is_a?(Plugin::Twitter::DirectMessage)) && model.description == parent_score.description
+      score = score_by_entity(model)
+      if score && score.size >= 2
+        yielder << score + entity_media(model)
+      end
+    end
+    [parent_score, yielder]
+  end
+
+  def score_by_entity(tweet)
+    score = Array.new
+    cur = 0
+    text = tweet.description
+    tweet[:entities].flat_map{|kind, entities|
+      case kind
+      when :hashtags
+        entity_hashtag(tweet, entities)
+      when :urls
+        entity_urls(tweet, entities)
+      when :user_mentions
+        entitiy_users(tweet, entities)
+      when :symbols
+      # 誰得
+      when :media
+      end
+    }.compact.sort_by{|range, _|
+      range.first
+    }.each do |range, note|
+      if range.first != cur
+        score << Plugin::Score::TextNote.new(
+          ancestor: tweet,
+          description: text[cur...range.first])
+      end
+      score << note
+      cur = range.last
+    end
+    return if cur == 0
+    if cur != text.size
+      score << Plugin::Score::TextNote.new(
+        ancestor: tweet,
+        description: text[cur...text.size])
+    end
+    score
+  end
+
+  def entity_media(tweet)
+    extended_entities = (tweet[:extended_entities][:media] rescue nil)
+    if extended_entities
+      extended_entities.map do |media|
+        case media[:type]
+        when 'photo'
+          Diva::Model(:photo)[media[:media_url_https]]
+        when 'video'
+          variant = Array(media[:video_info][:variants])
+                      .select{|v|v[:content_type] == "video/mp4"}
+                      .sort_by{|v|v[:bitrate]}
+                      .last
+          Plugin::Score::HyperLinkNote.new(
+            description: "#{media[:display_url]} (%.1fs)" % (media.dig(:video_info, :duration_millis)/1000.0),
+            uri: variant[:url])
+        when 'animated_gif'
+          variant = Array(media[:video_info][:variants])
+                      .select{|v|v[:content_type] == "video/mp4"}
+                      .sort_by{|v|v[:bitrate]}
+                      .last
+          Plugin::Score::HyperLinkNote.new(
+            description: "#{media[:display_url]} (GIF)",
+            uri: variant[:url])
+        end
+      end
+    else
+      []
+    end
+  end
+
+  def entitiy_users(tweet, user_entities)
+    entities_to_notes(user_entities) do |user_entity|
+      user = Plugin::Twitter::User.findbyid(user_entity[:id], Diva::DataSource::USE_LOCAL_ONLY)
+      if user
+        user
+      else
+        screen_name = user_entity[:screen_name] || tweet.description[Range.new(*user_entity[:indices])]
+        Plugin::Score::HyperLinkNote.new(
+          description: "@#{screen_name}",
+          uri: "https://twitter.com/#{screen_name}")
+      end
+    end
+  end
+
+  def entity_urls(tweet, urls)
+    entities_to_notes(urls) do |url_entity|
+      Plugin::Score::HyperLinkNote.new(
+        description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url],
+        uri: url_entity[:expanded_url] || url_entity[:url])
+    end
+  end
+
+  def entity_hashtag(tweet, hashtag_entities)
+    twitter_search = Diva::Model(:twitter_search)
+    entities_to_notes(hashtag_entities) do |hashtag|
+      twitter_search.new(query: "##{hashtag[:text]}")
+    end
+  end
+
+  def entities_to_notes(entities)
+    entities.map do |entity|
+      [ Range.new(*entity[:indices], false),
+        yield(entity) ]
+    end
+  end
+
+
   # トークン切れの警告
   MikuTwitter::AuthenticationFailedAction.register do |service, method = nil, url = nil, options = nil, res = nil|
     activity(:system, _("アカウントエラー (@{user})", user: service.user),

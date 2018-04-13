@@ -18,6 +18,7 @@ class Plugin::Twitter::Message < Diva::Model
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
     %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)] # Hey, Twitter. Please BAN me rhenium!
   ).freeze
+  MentionMatcher = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
 
   extend Gem::Deprecate
   include Diva::Model::Identity
@@ -56,7 +57,6 @@ class Plugin::Twitter::Message < Diva::Model
   field.time   :created                             # posted time
   field.time   :modified                            # updated time
 
-  entity_class Diva::Entity::ExtendedTwitterEntity
   handle PermalinkMatcher do |uri|
     match = PermalinkMatcher.match(uri.to_s)
     notice match.inspect
@@ -222,7 +222,7 @@ class Plugin::Twitter::Message < Diva::Model
       self[:receiver] = parallel{
         self[:receiver] = Plugin::Twitter::User.findbyid(receiver_id) }
     else
-      match = Diva::Entity::BasicTwitterEntity::MentionMatcher.match(self[:message].to_s)
+      match = MentionMatcher.match(self[:message].to_s)
       if match
         result = Plugin::Twitter::User.findbyidname(match[1])
         self[:receiver] = result if result end end end
@@ -238,7 +238,7 @@ class Plugin::Twitter::Message < Diva::Model
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_screen_names
-    self[:message].to_s.scan(Diva::Entity::BasicTwitterEntity::MentionMatcher).map(&:first) end
+    self[:message].to_s.scan(MentionMatcher).map(&:first) end
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
@@ -633,6 +633,7 @@ class Plugin::Twitter::Message < Diva::Model
   def body
     self[:message].to_s.freeze
   end
+  alias_method :description, :body
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s

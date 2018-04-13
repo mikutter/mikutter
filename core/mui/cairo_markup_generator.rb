@@ -4,11 +4,13 @@ require 'gtk2'
 miquire :lib, 'diva_hacks'
 
 module Pango
+  ESCAPE_RULE = {'&': '&amp;'.freeze ,'>': '&gt;'.freeze, '<': '&lt;'.freeze}.freeze
   class << self
 
     # テキストをPango.parse_markupで安全にパースできるようにエスケープする。
     def escape(text)
-      text.gsub(/[<>&]/){|m| Diva::Entity::BasicTwitterEntity::ESCAPE_RULE[m] } end
+      text.gsub(/[<>&]/){|m| ESCAPE_RULE[m] }
+    end
 
     alias old_parse_markup parse_markup
 
