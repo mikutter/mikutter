@@ -322,7 +322,7 @@ Plugin.create(:twitter) do
       range.first
     }.each do |range, note|
       if range.first != cur
-        score << Plugin::Score::TextNote.new(
+        score << Diva::Model(:score_text).new(
           ancestor: tweet,
           description: text[cur...range.first])
       end
@@ -331,7 +331,7 @@ Plugin.create(:twitter) do
     end
     return if cur == 0
     if cur != text.size
-      score << Plugin::Score::TextNote.new(
+      score << Diva::Model(:score_text).new(
         ancestor: tweet,
         description: text[cur...text.size])
     end
@@ -350,7 +350,7 @@ Plugin.create(:twitter) do
                       .select{|v|v[:content_type] == "video/mp4"}
                       .sort_by{|v|v[:bitrate]}
                       .last
-          Plugin::Score::HyperLinkNote.new(
+          Diva::Model(:score_hyperlink).new(
             description: "#{media[:display_url]} (%.1fs)" % (media.dig(:video_info, :duration_millis)/1000.0),
             uri: variant[:url])
         when 'animated_gif'
@@ -358,7 +358,7 @@ Plugin.create(:twitter) do
                       .select{|v|v[:content_type] == "video/mp4"}
                       .sort_by{|v|v[:bitrate]}
                       .last
-          Plugin::Score::HyperLinkNote.new(
+          Diva::Model(:score_hyperlink).new(
             description: "#{media[:display_url]} (GIF)",
             uri: variant[:url])
         end
@@ -375,7 +375,7 @@ Plugin.create(:twitter) do
         user
       else
         screen_name = user_entity[:screen_name] || tweet.description[Range.new(*user_entity[:indices])]
-        Plugin::Score::HyperLinkNote.new(
+        Diva::Model(:score_hyperlink).new(
           description: "@#{screen_name}",
           uri: "https://twitter.com/#{screen_name}")
       end
@@ -384,7 +384,7 @@ Plugin.create(:twitter) do
 
   def entity_urls(tweet, urls)
     entities_to_notes(urls) do |url_entity|
-      Plugin::Score::HyperLinkNote.new(
+      Diva::Model(:score_hyperlink).new(
         description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url],
         uri: url_entity[:expanded_url] || url_entity[:url])
     end

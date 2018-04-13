@@ -2,7 +2,7 @@
 
 module Plugin::Score
   class TextNote < Diva::Model
-    # register_model
+    register :score_text, name: "Text Note"
 
     field.has :ancestor, Diva::Model, required: true
     field.string :description, required: true

@@ -2,7 +2,7 @@
 
 module Plugin::Score
   class HyperLinkNote < Diva::Model
-    # register_model
+    register :score_hyperlink, name: "Hyperlink Note"
 
     field.string :description, required: true
     field.uri :uri, required: true

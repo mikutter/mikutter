@@ -7,5 +7,6 @@ depends:
   plugin:
   - world
   - spell
+  - score
 version: '1.0'
 author: toshi_a
