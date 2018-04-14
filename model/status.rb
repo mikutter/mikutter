@@ -248,7 +248,7 @@ module Plugin::Worldon
         counterpart = counterpart.user_obj
       end
 
-      @favorite_accts.include?(counterpart.idname)
+      @favorite_accts.include?(counterpart.idname) if counterpart
     end
 
     # sub_parts_client用
