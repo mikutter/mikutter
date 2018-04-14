@@ -1,0 +1,11 @@
+---
+slug: :score
+depends:
+  mikutter: 3.6.5
+  plugin:
+    - intent
+version: '1.0'
+author: toshi_a
+name: Score
+description: >-
+  Modelの本文としてリッチテキストや添付ファイルなどの追加情報を提供するための、他のプラグインによって拡張可能なインターフェイスを追加します。
