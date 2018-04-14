@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require_relative 'model/emoji_note'
 require_relative 'model/hyper_link_note'
 require_relative 'model/text_note'
 require_relative 'select'

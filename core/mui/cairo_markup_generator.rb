@@ -33,7 +33,13 @@ module Gdk::MarkupGenerator
   def description_attr_list(attr_list=Pango::AttrList.new)
     Plugin[:gtk].score_of(message).inject(0){|start_index, note|
       end_index = start_index + note.title.bytesize
-      if !note.respond_to?(:ancestor)
+      if note.respond_to?(:inline_photo)
+        rect = Pango::Rectangle.new(0, 0, 24 * Pango::SCALE, 24 * Pango::SCALE)
+        shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
+        shape.start_index = start_index
+        shape.end_index = end_index
+        attr_list.insert(shape)
+      elsif !note.respond_to?(:ancestor)
         underline = Pango::AttrUnderline.new(Pango::Underline::SINGLE)
         underline.start_index = start_index
         underline.end_index = end_index

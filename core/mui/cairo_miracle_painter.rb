@@ -301,6 +301,16 @@ class Gdk::MiraclePainter < Gtk::Object
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
     layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = plain_description
+    layout.context.set_shape_renderer do |c, shape, _|
+      photo = shape.data
+      if photo
+        width, height = shape.ink_rect.width/Pango::SCALE, shape.ink_rect.height/Pango::SCALE
+        pixbuf = photo.load_pixbuf(width: width, height: height){ on_modify }
+        c.set_source_pixbuf(pixbuf)
+        c.rectangle(0, 0, width, height)
+        c.fill
+      end
+    end
     layout end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
