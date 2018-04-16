@@ -10,7 +10,7 @@ class Gtk::PostBox
     vbox = generate_box_worldon
     @to.select{|m| m.is_a?(Plugin::Worldon::Status) }.each{|message|
       w_reply = Gtk::HBox.new
-      itv = Gtk::IntelligentTextview.new(message.description_plain, 'font' => :mumble_basic_font)
+      itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
       itv.style_generator = lambda{ get_backgroundstyle(message) }
       itv.bg_modifier
       ev = Gtk::EventBox.new
@@ -19,24 +19,6 @@ class Gtk::PostBox
       @reply_widgets << itv
     }
     vbox
-  end
-end
-
-# Plugin::Worldon::Statusの場合、<a>タグが付かないようにto_showではなくdescription_plainを呼ぶ。
-class Gdk::SubPartsMessageBase < Gdk::SubParts
-  def main_message(message, context = dummy_context)
-    show_text = message.to_show
-    if message.is_a?(Plugin::Worldon::Status)
-      show_text = message.description_plain
-    end
-    attr_list, text = Pango.parse_markup(Pango.escape(show_text))
-    layout = context.create_pango_layout
-    layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
-    layout.attributes = attr_list
-    layout.wrap = Pango::WrapMode::CHAR
-    layout.font_description = default_font
-    layout.text = text
-    layout
   end
 end
 

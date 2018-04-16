@@ -259,16 +259,13 @@ module Plugin::Worldon
       actual_status.application&.name
     end
 
-    def dehtmlize(text, remove_anchor = false)
+    def dehtmlize(text)
       result = text
         .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
-      if remove_anchor
-        result = CGI.unescapeHTML(result.gsub(/<\/?a[^>]*>/) { '' })
-      end
       result
     end
 
@@ -285,10 +282,6 @@ module Plugin::Worldon
         end
       end
       text
-    end
-
-    def description_plain
-      dehtmlize(description, true)
     end
 
     # register reply:true用API
