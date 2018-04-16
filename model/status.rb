@@ -342,7 +342,7 @@ module Plugin::Worldon
 
     # activity用
     def to_s
-      dehtmlize(title)
+      description
     end
 
     # ふぁぼ
