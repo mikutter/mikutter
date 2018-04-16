@@ -574,7 +574,7 @@ module Plugin::Worldon
           end
           photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, emoji.static_url, y) }.first
           score << Diva::Model(:score_emoji).new(
-            descriptio: code,
+            description: code,
             inline_photo: photo,
             uri: Diva::URI.new(emoji.static_url),
           )
