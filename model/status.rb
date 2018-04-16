@@ -562,7 +562,7 @@ module Plugin::Worldon
         )
       end
 
-      @description = score.inject('') { |desc, note| desc + note.description }
+      @description = CGI.unescapeHTML(score.inject('') { |desc, note| desc + note.description })
       @score = score
     end
 
