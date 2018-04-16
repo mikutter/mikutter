@@ -1,4 +1,3 @@
-require_relative 'entity_class'
 require 'cgi' # unescapeHTML
 
 module Plugin::Worldon
@@ -41,6 +40,8 @@ module Plugin::Worldon
     attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
       # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）と、acctを保持する。
     attr_accessor :favorite_accts # :: [String] APIには無い追加フィールド
+    attr_accessor :description
+    attr_accessor :score
 
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
@@ -50,8 +51,6 @@ module Plugin::Worldon
     alias_method :sensitive?, :sensitive # NSFW系プラグイン用
 
     @mute_mutex = Thread::Mutex.new
-
-    entity_class MastodonEntity
 
     @@status_storage = WeakStorage.new(String, Status)
 
@@ -177,6 +176,10 @@ module Plugin::Worldon
       if self.reblog.is_a?(Status) && self.reblog.account.is_a?(Account)
         self.reblog[:user] = self.reblog.account
       end
+
+      dictate_score
+
+      self
     end
 
     def merge(domain_name, new_hash)
@@ -282,19 +285,6 @@ module Plugin::Worldon
         end
       end
       text
-    end
-
-    def description
-      if @description_text
-        return @description_text
-      end
-      msg = actual_status
-      desc = dehtmlize(msg.content)
-      if !msg.spoiler_text.empty?
-        desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
-      end
-      desc = add_attachments(desc)
-      @description_text = desc
     end
 
     def description_plain
@@ -532,5 +522,79 @@ module Plugin::Worldon
     def rebloggable?(world = nil)
       !actual_status.shared?(world) && !['private', 'direct'].include?(actual_status.visibility)
     end
+
+    # <a>タグ（のみ）を処理したscoreを構築する
+    # emojiは別途行なう
+    def dictate_score
+      msg = actual_status
+      desc = dehtmlize(msg.content)
+      if !msg.spoiler_text.empty?
+        # TODO: CW用のNoteを実現する方法がある？
+        desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
+      end
+
+      score = []
+
+      # リンク処理
+      # TODO: user_detail_viewを作ったらacctを処理から除外する
+      # TODO: search spellを作ったらハッシュタグを処理から除外する
+      pos = 0
+      anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
+      while m = anchor_re.match(desc, pos)
+        anchor_begin = m.begin(0)
+        anchor_end = m.end(0)
+        if pos < anchor_begin
+          score << Diva::Model(:score_text).new(
+            ancestor: self,
+            description: desc[pos...anchor_begin],
+          )
+        end
+        score << Diva::Model(:score_hyperlink).new(
+          description: m["text"],
+          uri: m["url"],
+        )
+        pos = anchor_end + 1
+      end
+      if pos < desc.size
+        score << Diva::Model(:score_text).new(
+          ancestor: self,
+          description: desc[pos...desc.size],
+        )
+      end
+
+      @description = score.inject('') { |desc, note| desc + note.description }
+      @score = score
+    end
+
+    # 与えられたテキスト断片に対し、このStatusが持っているemoji情報でscoreを返します。
+    # どうせscore_by_scoreで先頭から順に選択して再帰するんだから、こっちはemojiごとに別のscoreを投げ込もう！
+    def dictate_emoji(text, yielder)
+      emojis.each do |emoji|
+        code = ':' + emoji.shortcode + ':'
+        if pos = text.index(code)
+          score = []
+          if 0 < pos
+            score << Diva::Model(:score_text).new(
+              ancestor: self,
+              description: text[0...pos],
+            )
+          end
+          photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, emoji.static_url, y) }.first
+          score << Diva::Model(:score_emoji).new(
+            descriptio: code,
+            inline_photo: photo,
+            uri: Diva::URI.new(emoji.static_url),
+          )
+          if pos + code.size < text.size
+            score << Diva::Model(:score_text).new(
+              ancestor: self,
+              description: text[(pos + code.size)...text.size],
+            )
+          end
+          yielder << score
+        end
+      end
+    end
+
   end
 end

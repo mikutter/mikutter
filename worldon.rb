@@ -18,6 +18,7 @@ require_relative 'extractcondition'
 require_relative 'sse_client'
 require_relative 'sse_stream'
 require_relative 'rest'
+require_relative 'score'
 
 Plugin.create(:worldon) do
   pm = Plugin::Worldon
