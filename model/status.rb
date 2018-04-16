@@ -340,16 +340,6 @@ module Plugin::Worldon
       !to_me_world.nil?
     end
 
-    # Basis Model API
-    def title
-      msg = actual_status
-      if !msg.spoiler_text.empty?
-        msg.spoiler_text
-      else
-        msg.content
-      end
-    end
-
     # activity用
     def to_s
       dehtmlize(title)
@@ -537,19 +527,19 @@ module Plugin::Worldon
         anchor_begin = m.begin(0)
         anchor_end = m.end(0)
         if pos < anchor_begin
-          score << Diva::Model(:score_text).new(
+          score << Plugin::Score::TextNote.new(
             ancestor: self,
             description: desc[pos...anchor_begin],
           )
         end
-        score << Diva::Model(:score_hyperlink).new(
+        score << Plugin::Score::HyperLinkNote.new(
           description: m["text"],
           uri: m["url"],
         )
         pos = anchor_end + 1
       end
       if pos < desc.size
-        score << Diva::Model(:score_text).new(
+        score << Plugin::Score::TextNote.new(
           ancestor: self,
           description: desc[pos...desc.size],
         )
@@ -567,19 +557,19 @@ module Plugin::Worldon
         if pos = text.index(code)
           score = []
           if 0 < pos
-            score << Diva::Model(:score_text).new(
+            score << Plugin::Score::TextNote.new(
               ancestor: self,
               description: text[0...pos],
             )
           end
           photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, emoji.static_url, y) }.first
-          score << Diva::Model(:score_emoji).new(
+          score << Plugin::Score::EmojiNote.new(
             description: code,
             inline_photo: photo,
             uri: Diva::URI.new(emoji.static_url),
           )
           if pos + code.size < text.size
-            score << Diva::Model(:score_text).new(
+            score << Plugin::Score::TextNote.new(
               ancestor: self,
               description: text[(pos + code.size)...text.size],
             )

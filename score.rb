@@ -5,7 +5,6 @@ Plugin.create(:worldon) do
   filter_score_filter do |parent_score, yielder|
     model = parent_score.ancestor
     if model.is_a?(pm::Status) && model.description == parent_score.description && model.score.size > 1
-      pp model.score
       yielder << model.score
     end
     [parent_score, yielder]
