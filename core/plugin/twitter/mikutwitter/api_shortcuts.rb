@@ -236,7 +236,8 @@ module MikuTwitter::APIShortcuts
                                              params,
                                              { 'Host' => parsed_url.host,
                                                'User-Agent' => "#{Environment::NAME}/#{Environment::VERSION}",
-                                               'accept-encoding' => "identity;q=1"})
+                                               'accept-encoding' => "identity;q=1",
+                                               'tweet_mode' => "extended"})
     proc = line_accumlator("\x0D\x0A", &chunk)
     http.request(request){ |res|
       if res.code == '200'
