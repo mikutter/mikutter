@@ -15,9 +15,9 @@ module Plugin::Score
 
   def score_by_score(parent_score)
     score_filter = Enumerator.new{ |y| Plugin.filtering(:score_filter, parent_score, y) }
-    selected = max_all(score_filter, &method(:score_order))
+    selected = min_all(score_filter, &method(:score_order))
     if selected
-      selected = min_all(selected, &:count) if selected.size != 1
+      selected = max_all(selected, &:count) if selected.size != 1
       Enumerator.new { |yielder|
         selected.first.each do |note|
           if note.is_a? Plugin::Score::TextNote
@@ -32,7 +32,7 @@ module Plugin::Score
     end
   end
 
-  def max_all(list, &proc)
+  def min_all(list, &proc)
     order = Hash.new{|h,k| h[k] = proc.(k) }
     _, result = list.sort_by{|node|
       order[node]
@@ -42,7 +42,7 @@ module Plugin::Score
     result
   end
 
-  def min_all(list, &proc)
-    max_all(list){|x| -proc.(x) }
+  def max_all(list, &proc)
+    min_all(list){|x| -proc.(x) }
   end
 end
