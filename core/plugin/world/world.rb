@@ -108,6 +108,7 @@ Plugin.create(:world) do
   def register_world(new)
     Plugin::World::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
     @worlds = nil
+    Plugin.call(:world_after_created, new)
     Plugin.call(:service_registered, new) # 互換性のため
   rescue Plugin::World::AlreadyExistError
     description = {

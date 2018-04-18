@@ -29,7 +29,7 @@ Plugin.create :streaming do
     end
   end
 
-  on_world_create do |new_world|
+  on_world_after_created do |new_world|
     if UserConfig[:realtime_rewind] && new_world.class.slug == :twitter
       streamers[new_world.slug] ||= Plugin::Streaming::PermaStreamer.new(new_world) end end
 

@@ -23,21 +23,21 @@ Plugin.create :rest do
     Plugin.call(:mypost, service, messages.select{ |m| m.from_me? }) end
 
   def start
-    if Service.instances.empty?
-      @account_observer ||= on_world_create do |_new_world|
-        start
-        @account_observer.detach
-        @account_observer = nil
-      end
-    else
-      Service.instances.each do |service|
-        @crawlers.each{ |s| s.call(service) }
-      end
-      Reserver.new(60, thread: Delayer) do
-        start
+    Delayer.new do
+      if Service.instances.empty?
+        @account_observer ||= on_world_after_created do |_new_world|
+          start
+          @account_observer.detach
+          @account_observer = nil
+        end
+      else
+        Service.instances.each do |service|
+          @crawlers.each{ |s| s.call(service) }
+        end
+        Reserver.new(60, thread: Delayer) do
+          start
+        end
       end
     end
   end
-
-  Delayer.new{ start }
 end

@@ -58,7 +58,7 @@ module ::Plugin::ChangeAccount
 
     def event_listener_initialize
       tag = @plugin.handler_tag do
-        @plugin.on_world_create do |world|
+        @plugin.on_world_after_created do |world|
           add_column(world)
         end
         @plugin.on_world_destroy do |world|
