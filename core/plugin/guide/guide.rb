@@ -101,14 +101,14 @@ Plugin.create :guide do
           world_dict.size == 1 ?
             _('%{world_name}アカウント追加ウィザードだよ。この画面はそのまま次に進んでね。') % {world_name: world_dict.values.first.name} :
             _('World追加ウィザードだよ。追加したいWorldを選んで、次に進んでね。')
-           ).
+        ).
         next{ Thread.new{ sleep 3 } }.
         say(_('そのあとは指示に従って認証情報とかを入れてね。私は見ないようにしておくから。')).next{
-        world_created_observer = on_world_create do |world|
+        world_created_observer = on_world_after_created do |world|
           detach(world_created_observer)
           jump_seq(:hello_world)
         end
-      }
+      }.terminate("guide error")
     end
   end
 
