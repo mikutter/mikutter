@@ -124,10 +124,11 @@ module MikuTwitter::ApiCallSupport
       # ↓
       # 死にたいのか！？
       # ↓
-      # 恒例の身売り話が出てくる
-      # see: http://www.afpbb.com/articles/-/3101961
+      # つついさん「行けたけど」
+      # see: https://dev.mikutter.hachune.net/issues/1206
       # ↓
-      # 死ぬのか！？
+      # 死んでいる
+      # see: https://twitter.com/toshi_a
       def streaming_message(msg)
         cnv = msg.dup
         if msg[:extended_tweet]
