@@ -28,7 +28,7 @@ class Gtk::MikutterWindow < Gtk::Window
         refresh
       end
     end
-    Plugin[:gtk].on_world_create do |new_world|
+    Plugin[:gtk].on_world_after_created do |new_world|
       refresh end
     Plugin[:gtk].on_world_destroy do |deleted_world|
       refresh end

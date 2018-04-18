@@ -11,7 +11,7 @@ Plugin.create :search do
     refresh_tab
   end
 
-  on_world_create do |world|
+  on_world_after_created do |world|
     refresh_tab
   end
 

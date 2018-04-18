@@ -40,7 +40,7 @@ Plugin.create :list do
     using_lists.each do |list|
       Plugin.call(:extract_receive_message, datasource_slug(list), messages.lazy.select(&list.method(:related?))) end end
 
-  on_world_create do |world|
+  on_world_after_created do |world|
     fetch_and_modify_for_using_lists(world) if world.class.slug == :twitter
   end
 
