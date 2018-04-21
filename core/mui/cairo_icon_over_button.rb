@@ -58,6 +58,7 @@ module Gdk::IconOverButton
   # - _gy_MiraclePainter 全体から見たy座標
   def point_moved_main_icon(gx, gy)
     icon_position = globalpos2iconpos(gx, gy)
+    @tree.pointer_on_main_icon = !!icon_position
     if icon_position
       if current_icon_pos != icon_position
         on_modify
