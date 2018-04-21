@@ -169,6 +169,17 @@ module Plugin::Worldon
       promise
     end
 
+    def update_account
+      resp = PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token)
+      if resp.nil? || resp.has_key?(:error)
+        warn(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
+        return
+      end
+
+      resp[:acct] = resp[:acct] + '@' + domain
+      self.account = PM::Account.new(resp)
+    end
+
     def update_profile(**opts)
       params = {}
       params[:display_name] = opts[:name] if opts[:name]
@@ -198,7 +209,8 @@ module Plugin::Worldon
           file_keys << key
         end
         new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, file_keys, **params)
-        account = PM::Account.new(new_account)
+        self.account = PM::Account.new(new_account)
+        Plugin.call(:world_modify, self)
       }
     end
   end
