@@ -231,7 +231,9 @@ module Plugin::Worldon
       if counterpart.respond_to?(:user_obj)
         counterpart = counterpart.user_obj
       end
-      actual_status.retweeted_by.include?(counterpart)
+      if counterpart.is_a?(Account)
+        actual_status.retweeted_by.include?(counterpart)
+      end
     end
 
     alias_method :retweeted?, :shared?
@@ -248,7 +250,9 @@ module Plugin::Worldon
         counterpart = counterpart.user_obj
       end
 
-      @favorite_accts.include?(counterpart.idname) if counterpart
+      if counterpart.is_a?(Account)
+        @favorite_accts.include?(counterpart.idname)
+      end
     end
 
     # sub_parts_client用
