@@ -40,6 +40,10 @@ Plugin.create(:worldon) do
 
   # 起動時
   Delayer.new {
+    Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
+      world.update_account
+      Plugin.call(:world_modify, world)
+    end
     Plugin.call(:worldon_restart_all_stream)
   }
 
