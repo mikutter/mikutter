@@ -177,6 +177,8 @@ module Plugin::Worldon
         self.reblog[:user] = self.reblog.account
       end
 
+      @emoji_h = emojis.map{|emoji| [emoji.shortcode, emoji] }.to_h
+      @emoji_score = Hash.new
       dictate_score
 
       self
@@ -523,18 +525,15 @@ module Plugin::Worldon
       score = []
 
       # リンク処理
-      # TODO: user_detail_viewを作ったらacctを処理から除外する
-      # TODO: search spellを作ったらハッシュタグを処理から除外する
+      # TODO: user_detail_viewを作ったらacctをAccount Modelにする
+      # TODO: search spellを作ったらハッシュタグをなんかそれっぽいModelにする
       pos = 0
       anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
       while m = anchor_re.match(desc, pos)
         anchor_begin = m.begin(0)
         anchor_end = m.end(0)
         if pos < anchor_begin
-          score << Plugin::Score::TextNote.new(
-            ancestor: self,
-            description: desc[pos...anchor_begin],
-          )
+          score << Plugin::Score::TextNote.new(description: desc[pos...anchor_begin])
         end
         score << Plugin::Score::HyperLinkNote.new(
           description: m["text"],
@@ -543,10 +542,7 @@ module Plugin::Worldon
         pos = anchor_end + 1
       end
       if pos < desc.size
-        score << Plugin::Score::TextNote.new(
-          ancestor: self,
-          description: desc[pos...desc.size],
-        )
+        score << Plugin::Score::TextNote.new(description: desc[pos...desc.size])
       end
 
       @description = CGI.unescapeHTML(score.inject('') { |desc, note| desc + note.description })
@@ -554,33 +550,53 @@ module Plugin::Worldon
     end
 
     # 与えられたテキスト断片に対し、このStatusが持っているemoji情報でscoreを返します。
-    # どうせscore_by_scoreで先頭から順に選択して再帰するんだから、こっちはemojiごとに別のscoreを投げ込もう！
     def dictate_emoji(text, yielder)
-      emojis.each do |emoji|
-        code = ':' + emoji.shortcode + ':'
-        if pos = text.index(code)
-          score = []
-          if 0 < pos
-            score << Plugin::Score::TextNote.new(
-              ancestor: self,
-              description: text[0...pos],
-            )
+      if @emoji_score[text]
+        score = @emoji_score[text]
+        if score.size > 1
+          yielder << score
+        end
+        return yielder
+      end
+
+      score = []
+
+      code_re = %r|:(\w{2,}):|
+      pos = 0
+      prev_text = ''
+
+      while m = code_re.match(text, pos)
+        code_begin = m.begin(0)
+        code_end = m.end(0)
+        emoji = @emoji_h[m[1]]
+        if emoji
+          if pos < code_begin
+            score << Plugin::Score::TextNote.new(description: prev_text + text[pos...code_begin])
+            prev_text = ''
           end
           photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, emoji.static_url, y) }.first
           score << Plugin::Score::EmojiNote.new(
-            description: code,
+            description: m[0],
             inline_photo: photo,
             uri: Diva::URI.new(emoji.static_url),
           )
-          if pos + code.size < text.size
-            score << Plugin::Score::TextNote.new(
-              ancestor: self,
-              description: text[(pos + code.size)...text.size],
-            )
-          end
-          yielder << score
+          pos = code_end
+        else
+          # このマッチはEmoji shortcodeではなかった。終端の':'が次の始端になるようにして再探索させる。
+          next_pos = code_end - 1
+          prev_text += text[pos...next_pos]
+          pos = next_pos
         end
       end
+      if pos < text.size
+        score << Plugin::Score::TextNote.new(description: prev_text + text[pos...text.size])
+      end
+
+      if score.size > 1
+        yielder << score
+      end
+
+      @emoji_score[text] = score
     end
 
   end

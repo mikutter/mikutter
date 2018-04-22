@@ -2,21 +2,19 @@ Plugin.create(:worldon) do
   pm = Plugin::Worldon
 
   # <a>タグをHyperLinkNoteにするフィルタ
-  filter_score_filter do |parent_score, yielder|
-    model = parent_score.ancestor
-    if model.is_a?(pm::Status) && model.description == parent_score.description && model.score.size > 1
+  filter_score_filter do |model, note, yielder|
+    if model.is_a?(pm::Status) && model == note && model.score.size > 1
       yielder << model.score
     end
-    [parent_score, yielder]
+    [model, note, yielder]
   end
 
   # カスタム絵文字をEmojiNoteにするフィルタ
-  filter_score_filter do |parent_score, yielder|
-    model = parent_score.ancestor
+  filter_score_filter do |model, note, yielder|
     if model.is_a?(pm::Status)
-      model.dictate_emoji(parent_score.description, yielder)
+      model.dictate_emoji(note.description, yielder)
     end
-    [parent_score, yielder]
+    [model, note, yielder]
   end
 
   # TODO: 添付画像を付加するscore_filter
