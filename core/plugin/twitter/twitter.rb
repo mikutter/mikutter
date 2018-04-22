@@ -291,15 +291,14 @@ Plugin.create(:twitter) do
     [url, posted_url_length(url)]
   end
 
-  filter_score_filter do |parent_score, yielder|
-    model = parent_score.ancestor
-    if (model.is_a?(Plugin::Twitter::Message) || model.is_a?(Plugin::Twitter::DirectMessage)) && model.description == parent_score.description
-      score = score_by_entity(model)
+  filter_score_filter do |message, note, yielder|
+    if note.is_a?(Plugin::Twitter::Message) || note.is_a?(Plugin::Twitter::DirectMessage)
+      score = score_by_entity(message)
       if score && score.size >= 2
-        yielder << score + entity_media(model)
+        yielder << score + entity_media(message)
       end
     end
-    [parent_score, yielder]
+    [message, note, yielder]
   end
 
   def score_by_entity(tweet)

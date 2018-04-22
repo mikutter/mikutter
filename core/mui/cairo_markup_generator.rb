@@ -39,7 +39,7 @@ module Gdk::MarkupGenerator
         shape.start_index = start_index
         shape.end_index = end_index
         attr_list.insert(shape)
-      elsif !note.respond_to?(:ancestor)
+      elsif clickable?(note)
         underline = Pango::AttrUnderline.new(Pango::Underline::SINGLE)
         underline.start_index = start_index
         underline.end_index = end_index
@@ -48,6 +48,16 @@ module Gdk::MarkupGenerator
       end_index
     }
     attr_list
+  end
+
+  def clickable?(model)
+    has_model_intent = Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model.class.slug, y) }.first
+    return true if has_model_intent
+    Enumerator.new {|y|
+      Plugin.filtering(:model_of_uri, model.uri, y)
+    }.any?{|model_slug|
+      Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model_slug, y) }.first
+    }
   end
 
   # Entityを適用したあとのプレーンテキストを返す。

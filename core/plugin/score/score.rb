@@ -12,7 +12,7 @@ Plugin.create(:score) do
   # ==== Return
   # [Enumerable] 内容をModelの配列にしたもの
   defdsl :score_of do |model|
-    Plugin::Score.score_by_score(Plugin::Score::TextNote.new(ancestor: model, description: model.description))
+    Plugin::Score.score_by_score(model)
   end
 
   intent Plugin::Score::HyperLinkNote, label: 'Link Text' do |intent_token|
@@ -25,39 +25,37 @@ Plugin.create(:score) do
   end
 
   # generic URL
-  filter_score_filter do |parent_score, yielder|
-    text = parent_score.description
-    matched = URI.regexp(%w<http https>).match(text)
-    if matched
-      score = Array.new
-      if matched.begin(0) != 0
-        score << Plugin::Score::TextNote.new(
-          ancestor: parent_score.ancestor,
-          description: text[0...matched.begin(0)])
+  filter_score_filter do |target_model, note, yielder|
+    if target_model != note
+      text = note.description
+      matched = URI.regexp(%w<http https>).match(text)
+      if matched
+        score = Array.new
+        if matched.begin(0) != 0
+          score << Plugin::Score::TextNote.new(
+            description: text[0...matched.begin(0)])
+        end
+        score << Diva::Model(:web).new(perma_link: matched.to_s)
+        if matched.end(0) != text.size
+          score << Plugin::Score::TextNote.new(
+            description: text[matched.end(0)..text.size])
+        end
+        yielder << score
       end
-      score << Diva::Model(:web).new(perma_link: matched.to_s)
-      if matched.end(0) != text.size
-        score << Plugin::Score::TextNote.new(
-          ancestor: parent_score.ancestor,
-          description: text[matched.end(0)..text.size])
-      end
-      yielder << score
     end
-    [parent_score, yielder]
+    [target_model, note, yielder]
   end
 
   # Entity compat
-  filter_score_filter do |parent_score, yielder|
-    model = parent_score.ancestor
-    if model.class.respond_to?(:entity_class) && model.class.entity_class && parent_score.description == model.description && !model.links.to_a.empty?
+  filter_score_filter do |target_model, note, yielder|
+    if target_model == note && target_model.class.respond_to?(:entity_class) && target_model.class.entity_class && !target_model.links.to_a.empty?
       score = Array.new
-      text = model.description
+      text = target_model.description
       cur = 0
-      model.links.each do |link|
+      target_model.links.each do |link|
         range = link[:range]
         if range.first != cur
           score << Plugin::Score::TextNote.new(
-            ancestor: model,
             description: text[cur...range.first])
         end
         if link[:open].is_a?(Diva::Model)
@@ -68,7 +66,6 @@ Plugin.create(:score) do
           uri = link[:open] || link[:url]
         end
         score << Plugin::Score::HyperLinkNote.new(
-          ancestor: model,
           description: link[:face] || text[range],
           model: related_model,
           uri: uri
@@ -77,11 +74,10 @@ Plugin.create(:score) do
       end
       if cur != text.size
         score << Plugin::Score::TextNote.new(
-          ancestor: model,
           description: text[cur..text.size])
       end
       yielder << score
     end
-    [parent_score, yielder]
+    [target_model, note, yielder]
   end
 end

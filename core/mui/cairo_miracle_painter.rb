@@ -155,9 +155,7 @@ class Gdk::MiraclePainter < Gtk::Object
             index -= note.title.size
             index <= 0
           }
-          if !clicked_note.respond_to?(:ancestor)
-            Plugin.call(:open, clicked_note)
-          end
+          Plugin.call(:open, clicked_note) if clickable?(clicked_note)
         end
       end
     when 3

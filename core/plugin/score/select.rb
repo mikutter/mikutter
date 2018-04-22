@@ -13,22 +13,24 @@ module Plugin::Score
     end
   end
 
-  def score_by_score(parent_score)
-    score_filter = Enumerator.new{ |y| Plugin.filtering(:score_filter, parent_score, y) }
+  def score_by_score(model, target_note=model)
+    score_filter = Enumerator.new{ |y| Plugin.filtering(:score_filter, model, target_note, y) }
     selected = min_all(score_filter, &method(:score_order))
     if selected
       selected = max_all(selected, &:count) if selected.size != 1
       Enumerator.new { |yielder|
         selected.first.each do |note|
           if note.is_a? Plugin::Score::TextNote
-            score_by_score(note).each(&yielder.method(:<<))
+            score_by_score(model, note).each(&yielder.method(:<<))
           else
             yielder << note
           end
         end
       }
+    elsif target_note.is_a?(Plugin::Score::TextNote)
+      [target_note]
     else
-      [parent_score]
+      score_by_score(model, Plugin::Score::TextNote.new(description: model.description))
     end
   end
 
