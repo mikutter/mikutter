@@ -304,6 +304,9 @@ class Gdk::MiraclePainter < Gtk::Object
       if photo
         width, height = shape.ink_rect.width/Pango::SCALE, shape.ink_rect.height/Pango::SCALE
         pixbuf = photo.load_pixbuf(width: width, height: height){ on_modify }
+        x = layout.index_to_pos(shape.start_index).x / Pango::SCALE
+        y = layout.index_to_pos(shape.start_index).y / Pango::SCALE
+        c.translate(x, y)
         c.set_source_pixbuf(pixbuf)
         c.rectangle(0, 0, width, height)
         c.fill
