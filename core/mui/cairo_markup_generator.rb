@@ -30,12 +30,12 @@ module Gdk::MarkupGenerator
   # 表示する際に本文に適用すべき装飾オブジェクトを作成する
   # ==== Return
   # Pango::AttrList 本文に適用する装飾
-  def description_attr_list(attr_list=Pango::AttrList.new)
+  def description_attr_list(attr_list=Pango::AttrList.new, emoji_height: 24)
     Plugin[:gtk].score_of(message).inject(0){|start_index, note|
       end_index = start_index + note.description.bytesize
       if note.respond_to?(:inline_photo)
         end_index += -note.description.bytesize + 1
-        rect = Pango::Rectangle.new(0, 0, 24 * Pango::SCALE, 24 * Pango::SCALE)
+        rect = Pango::Rectangle.new(0, 0, emoji_height * Pango::SCALE, emoji_height * Pango::SCALE)
         shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
         shape.start_index = start_index
         shape.end_index = end_index

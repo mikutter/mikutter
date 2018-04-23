@@ -290,14 +290,14 @@ class Gdk::MiraclePainter < Gtk::Object
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
     layout = context.create_pango_layout
+    font = Plugin.filtering(:message_font, message, nil).last
+    layout.font_description = Pango::FontDescription.new(font) if font
     layout.width = pos.main_text.width * Pango::SCALE
-    layout.attributes = textselector_attr_list(description_attr_list)
+    layout.attributes = textselector_attr_list(description_attr_list(emoji_height: emoji_height(layout.font_description)))
     layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
-    font = Plugin.filtering(:message_font, message, nil).last
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = plain_description
     layout.context.set_shape_renderer do |c, shape, _|
       photo = shape.data
@@ -313,6 +313,18 @@ class Gdk::MiraclePainter < Gtk::Object
       end
     end
     layout end
+
+  # 絵文字を描画する時の一辺の大きさを返す
+  # ==== Args
+  # [font] font description
+  # ==== Return
+  # [Integer] 高さ(px)
+  memoize def emoji_height(font)
+    layout = dummy_context.create_pango_layout
+    layout.font_description = font
+    layout.text = '.'
+    layout.pixel_size[1]
+  end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
