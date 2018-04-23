@@ -152,7 +152,7 @@ class Gdk::MiraclePainter < Gtk::Object
         index = main_pos_to_index(x, y)
         if index
           clicked_note = Plugin[:gtk].score_of(message).find{|note|
-            index -= note.title.size
+            index -= note.description.size
             index <= 0
           }
           Plugin.call(:open, clicked_note) if clickable?(clicked_note)

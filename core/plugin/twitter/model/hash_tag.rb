@@ -6,7 +6,7 @@ module Plugin::Twitter
 
     field.string :name, required: true
 
-    def title
+    def description
       "##{name}"
     end
 

@@ -19,5 +19,9 @@ module Plugin::Web
     def title
       perma_link.to_s
     end
+
+    def description
+      perma_link.to_s
+    end
   end
 end
