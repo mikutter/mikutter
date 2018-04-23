@@ -6,12 +6,16 @@ module Plugin::Twitter
 
     field.string :name, required: true
 
+    def title
+      "##{name}"
+    end
+
     def description
       "##{name}"
     end
 
     def perma_link
-      Diva::URI.new("https://twitter.com/search?q=#{CGI.escape(title)}")
+      Diva::URI.new("https://twitter.com/hashtag/#{CGI.escape(name)}")
     end
   end
 end
