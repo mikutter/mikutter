@@ -533,7 +533,7 @@ module Plugin::Worldon
         anchor_begin = m.begin(0)
         anchor_end = m.end(0)
         if pos < anchor_begin
-          score << Plugin::Score::TextNote.new(description: desc[pos...anchor_begin])
+          score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
         score << Plugin::Score::HyperLinkNote.new(
           description: m["text"],
@@ -542,10 +542,10 @@ module Plugin::Worldon
         pos = anchor_end + 1
       end
       if pos < desc.size
-        score << Plugin::Score::TextNote.new(description: desc[pos...desc.size])
+        score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...desc.size]))
       end
 
-      @description = CGI.unescapeHTML(score.inject('') { |desc, note| desc + note.description })
+      @description = score.inject('') { |desc, note| desc + note.description }
       @score = score
     end
 
