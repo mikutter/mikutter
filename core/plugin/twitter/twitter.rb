@@ -294,7 +294,7 @@ Plugin.create(:twitter) do
   filter_score_filter do |message, note, yielder|
     if note.is_a?(Plugin::Twitter::Message) || note.is_a?(Plugin::Twitter::DirectMessage)
       score = score_by_entity(message)
-      if score && score.size >= 2
+      if score && !score.all?{|n| n.class.slug == :score_text }
         yielder << score + entity_media(message)
       end
     end
