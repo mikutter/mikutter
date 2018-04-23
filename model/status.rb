@@ -553,7 +553,7 @@ module Plugin::Worldon
     def dictate_emoji(text, yielder)
       if @emoji_score[text]
         score = @emoji_score[text]
-        if score.size > 1
+        if (score.size > 1 || score.size == 1 && !score[0].is_a?(Plugin::Score::TextNote))
           yielder << score
         end
         return yielder
@@ -592,7 +592,7 @@ module Plugin::Worldon
         score << Plugin::Score::TextNote.new(description: prev_text + text[pos...text.size])
       end
 
-      if score.size > 1
+      if (score.size > 1 || score.size == 1 && !score[0].is_a?(Plugin::Score::TextNote))
         yielder << score
       end
 

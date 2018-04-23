@@ -3,7 +3,7 @@ Plugin.create(:worldon) do
 
   # <a>タグをHyperLinkNoteにするフィルタ
   filter_score_filter do |model, note, yielder|
-    if model.is_a?(pm::Status) && model == note && model.score.size > 1
+    if model.is_a?(pm::Status) && model == note && (model.score.size > 1 || model.score.size == 1 && !model.score[0].is_a?(Plugin::Score::TextNote))
       yielder << model.score
     end
     [model, note, yielder]
