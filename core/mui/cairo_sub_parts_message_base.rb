@@ -327,7 +327,6 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         hr_layout end end end
 
   def main_message(message, context = dummy_context)
-    #attr_list, text = Pango.parse_markup(Pango.escape(message.to_show))
     layout = context.create_pango_layout
     layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
     layout.attributes = description_attr_list(message)
