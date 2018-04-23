@@ -34,6 +34,7 @@ module Gdk::MarkupGenerator
     Plugin[:gtk].score_of(message).inject(0){|start_index, note|
       end_index = start_index + note.description.bytesize
       if note.respond_to?(:inline_photo)
+        end_index += -note.description.bytesize + 1
         rect = Pango::Rectangle.new(0, 0, 24 * Pango::SCALE, 24 * Pango::SCALE)
         shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
         shape.start_index = start_index
@@ -61,8 +62,15 @@ module Gdk::MarkupGenerator
   end
 
   # Entityを適用したあとのプレーンテキストを返す。
+  # Pangoの都合上、絵文字は1文字で表現する
   def plain_description
-    Plugin[:gtk].score_of(message).map(&:description).to_a.join
+    Plugin[:gtk].score_of(message).map{|note|
+      if note.respond_to?(:inline_photo)
+        '.'
+      else
+        note.description
+      end
+    }.to_a.join
   end
 
 end
