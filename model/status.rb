@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'cgi' # unescapeHTML
 
 module Plugin::Worldon
@@ -177,7 +178,6 @@ module Plugin::Worldon
         self.reblog[:user] = self.reblog.account
       end
 
-      @emoji_h = emojis.map{|emoji| [emoji.shortcode, emoji] }.to_h
       @emoji_score = Hash.new
       dictate_score
 
@@ -559,43 +559,28 @@ module Plugin::Worldon
         return yielder
       end
 
-      score = []
-
-      code_re = %r|:(\w{2,}):|
-      pos = 0
-      prev_text = ''
-
-      while m = code_re.match(text, pos)
-        code_begin = m.begin(0)
-        code_end = m.end(0)
-        emoji = @emoji_h[m[1]]
-        if emoji
-          if pos < code_begin
-            score << Plugin::Score::TextNote.new(description: prev_text + text[pos...code_begin])
-            prev_text = ''
+      score = emojis.inject(Array(text)){ |fragments, emoji|
+        shortcode = ":#{emoji.shortcode}:"
+        fragments.flat_map{|fragment|
+          if fragment.is_a?(String)
+            fragment = fragment.split(shortcode).flat_map{|str|
+              [str, emoji]
+            }
+            fragment.pop unless text.end_with?(shortcode)
           end
-          photo = Enumerator.new{|y| Plugin.filtering(:photo_filter, emoji.static_url, y) }.first
-          score << Plugin::Score::EmojiNote.new(
-            description: m[0],
-            inline_photo: photo,
-            uri: Diva::URI.new(emoji.static_url),
-          )
-          pos = code_end
+          fragment
+        }
+      }.map{|chunk|
+        if chunk.is_a?(String)
+          Plugin::Score::TextNote.new(description: chunk)
         else
-          # このマッチはEmoji shortcodeではなかった。終端の':'が次の始端になるようにして再探索させる。
-          next_pos = code_end - 1
-          prev_text += text[pos...next_pos]
-          pos = next_pos
+          chunk
         end
-      end
-      if pos < text.size
-        score << Plugin::Score::TextNote.new(description: prev_text + text[pos...text.size])
-      end
+      }
 
       if (score.size > 1 || score.size == 1 && !score[0].is_a?(Plugin::Score::TextNote))
         yielder << score
       end
-
       @emoji_score[text] = score
     end
 
