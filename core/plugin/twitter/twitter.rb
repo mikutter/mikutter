@@ -291,12 +291,31 @@ Plugin.create(:twitter) do
     [url, posted_url_length(url)]
   end
 
+  # Twitter Entity情報を元にScoreをあれする
   filter_score_filter do |message, note, yielder|
-    if note.is_a?(Plugin::Twitter::Message) || note.is_a?(Plugin::Twitter::DirectMessage)
+    if message == note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
       score = score_by_entity(message)
       if score && !score.all?{|n| n.class.slug == :score_text }
         yielder << score + entity_media(message)
       end
+    end
+    [message, note, yielder]
+  end
+
+  # 正規表現マッチで、ユーザのSNっぽいやつをユーザページにリンクする
+  filter_score_filter do |message, note, yielder|
+    if message != note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
+      score = score_by_screen_name_regexp(note.description)
+      yielder << score if score.size >= 2
+    end
+    [message, note, yielder]
+  end
+
+  # 正規表現マッチで、ハッシュタグっぽいやつをHashTag Modelにリンクする
+  filter_score_filter do |message, note, yielder|
+    if message != note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
+      score = score_by_hashtag_regexp(note.description)
+      yielder << score if score.size >= 2
     end
     [message, note, yielder]
   end
@@ -409,6 +428,38 @@ Plugin.create(:twitter) do
     end
   end
 
+  def score_by_screen_name_regexp(text)
+    score_by_regexp(text,
+                    pattern: Plugin::Twitter::Message::MentionMatcher,
+                    reference_generator: ->(name){ Plugin::Twitter::User.findbyidname(name, Diva::DataSource::USE_LOCAL_ONLY) },
+                    uri_generator: ->(name){ "https://twitter.com/#{CGI.escape(name)}" })
+  end
+
+  def score_by_hashtag_regexp(text)
+    score_by_regexp(text,
+                    pattern: /(?:#|＃)[a-zA-Z0-9_]+/,
+                    reference_generator: ->(name){ Plugin::Twitter::HashTag.new(name: name) },
+                    uri_generator: ->(name){ "https://twitter.com/hashtag/#{CGI.escape(name)}" })
+  end
+
+  def score_by_regexp(text, score=Array.new, pattern:, reference_generator:, uri_generator:)
+    lead, target, trail = text.partition(pattern)
+    score << Diva::Model(:score_text).new(description: lead)
+    if !(target.empty? || trail.empty?)
+      trim = target[1, target.size]
+      puts({trim: trim, target: target})
+      score << Diva::Model(:score_hyperlink).new(
+        description: target,
+        uri: uri_generator.(trim),
+        reference: reference_generator.(trim))
+      score_by_regexp(trail, score,
+                      pattern: pattern,
+                      reference_generator: reference_generator,
+                      uri_generator: uri_generator)
+    else
+      score
+    end
+  end
 
   # トークン切れの警告
   MikuTwitter::AuthenticationFailedAction.register do |service, method = nil, url = nil, options = nil, res = nil|
