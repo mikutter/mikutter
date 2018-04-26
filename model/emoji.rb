@@ -19,5 +19,9 @@ module Plugin::Worldon
     def perma_link
       static_url
     end
+
+    def inspect
+      "worldon-emoji(:#{shortcode}:)"
+    end
   end
 end
