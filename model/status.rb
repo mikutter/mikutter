@@ -539,7 +539,7 @@ module Plugin::Worldon
           description: m["text"],
           uri: m["url"],
         )
-        pos = anchor_end + 1
+        pos = anchor_end
       end
       if pos < desc.size
         score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...desc.size]))
