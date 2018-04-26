@@ -569,7 +569,7 @@ module Plugin::Worldon
               sub_fragments = fragment.split(shortcode).flat_map{|str|
                 [str, emoji]
               }
-              sub_fragments.pop unless text.end_with?(shortcode)
+              sub_fragments.pop unless fragment.end_with?(shortcode)
               sub_fragments
             end
           else
