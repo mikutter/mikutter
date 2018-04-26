@@ -563,12 +563,18 @@ module Plugin::Worldon
         shortcode = ":#{emoji.shortcode}:"
         fragments.flat_map{|fragment|
           if fragment.is_a?(String)
-            fragment = fragment.split(shortcode).flat_map{|str|
-              [str, emoji]
-            }
-            fragment.pop unless text.end_with?(shortcode)
+            if fragment === shortcode
+              [emoji]
+            else
+              sub_fragments = fragment.split(shortcode).flat_map{|str|
+                [str, emoji]
+              }
+              sub_fragments.pop unless text.end_with?(shortcode)
+              sub_fragments
+            end
+          else
+            [fragment]
           end
-          fragment
         }
       }.map{|chunk|
         if chunk.is_a?(String)
