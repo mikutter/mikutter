@@ -9,8 +9,11 @@ module Gtk::TreeViewPrettyScroll
   FRAME_PER_SECOND = 30
   FRAME_MS = 1000.to_f / FRAME_PER_SECOND
 
+  attr_accessor :pointer_on_main_icon
+
   def initialize(*a)
     super
+    pointer_on_main_icon = false # メインアイコン上にポインタがあるなら真
     scroll_to_top_animation = false # 自動スクロールアニメーション中なら真
     get_scroll_to_top_animation_id = 0
     scroll_to_top_animation_id = lambda{
@@ -46,6 +49,6 @@ module Gtk::TreeViewPrettyScroll
     @scroll_to_zero_lator = true end
 
   def scroll_to_zero?
-    defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator end
+    !pointer_on_main_icon and defined?(@scroll_to_zero_lator) and @scroll_to_zero_lator end
 
 end
