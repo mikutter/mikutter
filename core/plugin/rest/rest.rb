@@ -40,4 +40,5 @@ Plugin.create :rest do
       end
     end
   end
+  start
 end
