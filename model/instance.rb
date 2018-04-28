@@ -103,5 +103,9 @@ module Plugin::Worldon
       'https://' + domain + '/oauth/authorize?' + params
     end
 
+    def inspect
+      "worldon-instance(#{domain})"
+    end
+
   end
 end

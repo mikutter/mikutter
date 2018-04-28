@@ -7,5 +7,9 @@ module Plugin::Worldon
     field.string :username, required: true
     field.string :acct, required: true
     field.string :id, required: true
+
+    def inspect
+      "worldon-mention(#{acct})"
+    end
   end
 end

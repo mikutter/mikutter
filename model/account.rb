@@ -82,6 +82,10 @@ module Plugin::Worldon
       self
     end
 
+    def inspect
+      "worldon-account(#{acct})"
+    end
+
     def title
       "#{acct}(#{display_name})"
     end

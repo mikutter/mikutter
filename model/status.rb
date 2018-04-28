@@ -184,6 +184,10 @@ module Plugin::Worldon
       self
     end
 
+    def inspect
+      "worldon-status(#{description})"
+    end
+
     def merge(domain_name, new_hash)
       # 取得元が発言者の所属インスタンスであれば優先する
       account_domain = account&.domain
