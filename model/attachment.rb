@@ -28,5 +28,9 @@ module Plugin::Worldon
     field.string :description
 
     field.has :meta, AttachmentMetaSet
+
+    def inspect
+      "worldon-attachment(#{remote_url})"
+    end
   end
 end
