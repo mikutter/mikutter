@@ -6,5 +6,9 @@ module Plugin::Worldon
     field.string :shortcode, required: true
     field.uri :static_url, required: true
     field.uri :url, required: true
+
+    def inspect
+      "worldon-emoji(#{shortcode})"
+    end
   end
 end

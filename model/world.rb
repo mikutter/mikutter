@@ -12,6 +12,10 @@ module Plugin::Worldon
 
     alias_method :user_obj, :account
 
+    def inspect
+      "worldon-world(#{account.acct})"
+    end
+
     def icon
       account.icon
     end

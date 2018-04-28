@@ -5,5 +5,9 @@ module Plugin::Worldon
 
     field.string :name, required: true
     field.uri :website
+
+    def inspect
+      "worldon-application(#{name})"
+    end
   end
 end

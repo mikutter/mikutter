@@ -5,5 +5,9 @@ module Plugin::Worldon
 
     field.string :name, required: true
     field.uri :url, required: true
+
+    def inspect
+      "worldon-tag(#{name})"
+    end
   end
 end
