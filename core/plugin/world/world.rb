@@ -120,7 +120,7 @@ Plugin.create(:world) do
   end
 
   def modify_world(target)
-    if Plugin::World::Keep.accounts.has_key? target.slug
+    if Plugin::World::Keep.accounts.has_key?(target.slug.to_sym)
       Plugin::World::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
       @worlds = nil
     end
