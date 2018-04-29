@@ -13,7 +13,7 @@ group :default do
   gem 'oauth', '>= 0.5.1'
   gem 'json_pure', '~> 1.8'
   gem 'addressable', '~> 2.3'
-  gem 'diva', '>= 0.3.1', '< 2.0'
+  gem 'diva', '>= 0.3.2', '< 2.0'
   gem 'memoist', '>= 0.16', '< 0.17'
   gem 'ruby-hmac', '~> 0.4'
   gem 'typed-array', '~> 0.1'
