@@ -13,11 +13,11 @@ module Plugin::Worldon
     end
 
     memoize def inline_photo
-      Enumerator.new{|y| Plugin.filtering(:photo_filter, perma_link, y) }.first
+      Enumerator.new{|y| Plugin.filtering(:photo_filter, static_url, y) }.first
     end
 
-    def perma_link
-      static_url
+    def path
+      "/#{static_url.host}/#{shortcode}"
     end
 
     def inspect
