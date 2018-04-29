@@ -294,9 +294,9 @@ Plugin.create(:twitter) do
   # Twitter Entity情報を元にScoreをあれする
   filter_score_filter do |message, note, yielder|
     if message == note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
-      score = score_by_entity(message)
-      if score && !score.all?{|n| n.class.slug == :score_text }
-        yielder << score + entity_media(message)
+      score = score_by_entity(message) + extended_entity_media(message)
+      if !score.all?{|n| n.class.slug == :score_text }
+        yielder << score
       end
     end
     [message, note, yielder]
@@ -335,31 +335,33 @@ Plugin.create(:twitter) do
       when :symbols
       # 誰得
       when :media
+        entity_media(tweet, entities)
       end
     }.compact.sort_by{|range, _|
       range.first
     }.each do |range, note|
       if range.first != cur
         score << Diva::Model(:score_text).new(
-          ancestor: tweet,
           description: text[cur...range.first])
       end
       score << note
       cur = range.last
     end
-    return if cur == 0
+    if cur == 0
+      return [Diva::Model(:score_text).new(description: text)]
+    end
     if cur != text.size
       score << Diva::Model(:score_text).new(
-        ancestor: tweet,
         description: text[cur...text.size])
     end
     score
   end
 
-  def entity_media(tweet)
+  def extended_entity_media(tweet)
     extended_entities = (tweet[:extended_entities][:media] rescue nil)
     if extended_entities
-      extended_entities.map do |media|
+      space = Diva::Model(:score_text).new(description: ' ')
+      result = extended_entities.map{ |media|
         case media[:type]
         when 'photo'
           photo = Diva::Model(:photo)[media[:media_url_https]]
@@ -384,9 +386,17 @@ Plugin.create(:twitter) do
             description: "#{media[:display_url]} (GIF)",
             uri: variant[:url])
         end
-      end
+      }.flat_map{|media| [media, space] }
+      result.pop
+      result
     else
       []
+    end
+  end
+
+  def entity_media(tweet, media_list)
+    entities_to_notes(media_list) do |media_entity|
+      Diva::Model(:score_text).new(description: '')
     end
   end
 
