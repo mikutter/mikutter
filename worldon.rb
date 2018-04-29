@@ -197,19 +197,19 @@ Plugin.create(:worldon) do
                                      redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
                                      code: result[:authorization_code]
                                     )
-    if resp.nil? || resp.has_key?(:error)
+    if resp.nil? || resp.value.has_key?(:error)
       Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
     end
     token = resp[:access_token]
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
-    if resp.nil? || resp.has_key?(:error)
+    if resp.nil? || resp.value.has_key?(:error)
       Deferred.fail(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
     end
 
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
-    account = pm::Account.new(resp)
+    account = pm::Account.new(resp.value)
     world = pm::World.new(
       id: screen_name,
       slug: :"worldon:#{screen_name}",

@@ -20,10 +20,7 @@ Plugin.create(:worldon) do
         hashes = pm::API.call(:get, domain, path, token, **params)
         settings[slug][:last_time] = Time.now.to_i
         next if hashes.nil?
-        arr = hashes
-        if (hashes.is_a?(Hash) && hashes[:array].is_a?(Array))
-          arr = hashes[:array]
-        end
+        arr = hashes.value
         ids = arr.map{|hash| hash[:id].to_i }
         tl = pm::Status.build(domain, arr).concat(tl)
 
