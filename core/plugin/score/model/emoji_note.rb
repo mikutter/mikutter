@@ -6,6 +6,5 @@ module Plugin::Score
 
     field.string :description, required: true
     field.has :inline_photo, Diva::Model, required: true
-    field.uri :uri, required: true
   end
 end
