@@ -224,8 +224,16 @@ class Gdk::MiraclePainter < Gtk::Object
   # [name] カーソルの名前(String)
   private def set_cursor(name)
     window = @tree.get_ancestor Gtk::Window
-    display = window.screen.display
-    window.window.cursor = Gdk::Cursor.new(display, name)
+    type =
+      case name
+      when 'pointer'
+        Gdk::Cursor::HAND2
+      when 'text'
+        Gdk::Cursor::XTERM
+      else
+        Gdk::Cursor::LEFT_PTR
+      end
+    window.window.cursor = Gdk::Cursor.new(type)
     self
   end
 
