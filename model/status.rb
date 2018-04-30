@@ -389,11 +389,11 @@ module Plugin::Worldon
     def quoting_messages(force_retrieve=false)
       content = actual_status.content
       matches = []
-      regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))"!
-      rest = content
-      while m = regexp.match(rest)
-        matches.push m.to_a
-        rest = m.post_match
+      regexp = %r!\A(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))\z!
+      @score.each do |note|
+        if note.is_a?(Plugin::Score::HyperLinkNote) && (m = regexp.match(note.uri.to_s))
+          matches.push m.to_a
+        end
       end
       matches.map do |m|
         url = m[1]
