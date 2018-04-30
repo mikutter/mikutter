@@ -406,7 +406,7 @@ module Gtk::FormDSL
     container = input(label, config)
     { container: container,
       path: container.children.last.children.first,
-      image: Gtk::Image.new(fs_photo_thumbnail_pixbuf(photo, width: width, height: height)),
+      image: Gtk::WebIcon.new(photo, width, height),
       image_container: Gtk::EventBox.new,
       button: Gtk::Button.new(Plugin[:settings]._('参照')) }
   end
@@ -428,19 +428,13 @@ module Gtk::FormDSL
     end
     button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &path.method(:text=)))
     path.signal_connect(:changed) do |w|
-      image.pixbuf = fs_photo_thumbnail_pixbuf(fs_photo_thumbnail(w.text), width: width, height: height)
+      image.load_model(fs_photo_thumbnail(w.text), Gdk::Rectangle.new(0, 0, width, height))
       false
     end
   end
 
   def fs_photo_thumbnail(path)
     Enumerator.new{|y| Plugin.filtering(:photo_filter, path, y) }.first
-  end
-
-  def fs_photo_thumbnail_pixbuf(photo, width:, height:)
-    if photo
-      photo.load_pixbuf(width: width, height: height){|pb| w_image.pixbuf = pb unless w_image.destroyed?}
-    end
   end
 
   def gen_fileselect_dialog_generator(title, action, dir, config:, &result_callback)
