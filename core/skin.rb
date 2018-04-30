@@ -17,7 +17,7 @@ module Skin
                 UserConfig[:skin_dir] end
 
   def default_dir
-    File.join(*[File.dirname(__FILE__), "skin", "data"].flatten)
+    File.join(__dir__, "skin", "data")
   end
 
   def default_image
