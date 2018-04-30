@@ -7,6 +7,10 @@ Plugin.create :search do
     Plugin.call(:search_start, token.model.query)
   end
 
+  intent :twitter_hashtag do |token|
+    Plugin.call(:search_start, token.model.title)
+  end
+
   Delayer.new do
     refresh_tab
   end

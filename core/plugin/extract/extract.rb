@@ -363,7 +363,7 @@ Plugin.create :extract do
         notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
         if record.popup?
           notificate_messages.deach do |message|
-            Plugin.call(:popup_notify, message.user, message.to_show) end end
+            Plugin.call(:popup_notify, message.user, message.description) end end
         if record.sound.is_a?(String) and notificate_messages.first and FileTest.exist?(record.sound)
           Plugin.call(:play_sound, record.sound) end
     } end

@@ -24,6 +24,11 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def messages
     [] end
 
+  # :nodoc:
+  memoize def score(message)
+    Plugin[:gtk].score_of(message)
+  end
+
   # ヘッダの左の、Screen name、名前が表示されている場所に表示するテキスト。
   # オーバライドしなければ、 _message_ の投稿者のscreen nameと名前が表示される。
   # nilを返した場合、ヘッダは表示されない。この場合、ヘッダ右も表示されない。
@@ -262,6 +267,16 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     else
       (result / pango_layout.line_count) * text_max_line_count(message) + pango_layout.spacing/Pango::SCALE * 2 end end
 
+  # 絵文字を描画する時の一辺の大きさを返す
+  # ==== Return
+  # [Integer] 高さ(px)
+  memoize def emoji_height
+    layout = dummy_context.create_pango_layout
+    layout.font_description = default_font
+    layout.text = '.'
+    layout.pixel_size[1]
+  end
+
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(message, context = dummy_context)
     text, font, attr_list = header_left_content(message)
@@ -317,13 +332,25 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
         hr_layout end end end
 
   def main_message(message, context = dummy_context)
-    attr_list, text = Pango.parse_markup(Pango.escape(message.to_show))
     layout = context.create_pango_layout
     layout.width = (width - icon_width - margin*3 - edge*2) * Pango::SCALE
-    layout.attributes = attr_list
+    layout.attributes = description_attr_list(message)
     layout.wrap = Pango::WrapMode::CHAR
     layout.font_description = default_font
-    layout.text = text
+    layout.text = plain_description(message)
+    layout.context.set_shape_renderer do |c, shape, _|
+      photo = shape.data
+      if photo
+        width, height = shape.ink_rect.width/Pango::SCALE, shape.ink_rect.height/Pango::SCALE
+        pixbuf = photo.load_pixbuf(width: width, height: height){ helper.on_modify }
+        x = layout.index_to_pos(shape.start_index).x / Pango::SCALE
+        y = layout.index_to_pos(shape.start_index).y / Pango::SCALE
+        c.translate(x, y)
+        c.set_source_pixbuf(pixbuf)
+        c.rectangle(0, 0, width, height)
+        c.fill
+      end
+    end
     layout end
 
   def render_outline(message, context, base_y)
@@ -420,4 +447,36 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def main_icon(message)
     message.user.icon.load_pixbuf(width: icon_size.width, height: icon_size.width){ helper.on_modify }
   end
+
+  # 表示する際に本文に適用すべき装飾オブジェクトを作成する
+  # ==== Return
+  # Pango::AttrList 本文に適用する装飾
+  def description_attr_list(message, attr_list=Pango::AttrList.new)
+    score(message).inject(0){|start_index, note|
+      end_index = start_index + note.description.bytesize
+      if note.respond_to?(:inline_photo)
+        end_index += -note.description.bytesize + 1
+        rect = Pango::Rectangle.new(0, 0, emoji_height * Pango::SCALE, emoji_height * Pango::SCALE)
+        shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
+        shape.start_index = start_index
+        shape.end_index = end_index
+        attr_list.insert(shape)
+      end
+      end_index
+    }
+    attr_list
+  end
+
+  # Entityを適用したあとのプレーンテキストを返す。
+  # Pangoの都合上、絵文字は1文字で表現する
+  memoize def plain_description(message)
+    score(message).map{|note|
+      if note.respond_to?(:inline_photo)
+        '.'
+      else
+        note.description
+      end
+    }.to_a.join
+  end
+
 end

@@ -22,7 +22,7 @@ Plugin.create :command do
           visible: true,
           icon: Skin['copy_all.png'],
           role: :timeline) do |opt|
-    ::Gtk::Clipboard.copy(opt.messages.first.to_show) end
+    ::Gtk::Clipboard.copy(opt.messages.first.description) end
 
   command(:reply,
           name: _('返信'),
@@ -53,7 +53,7 @@ Plugin.create :command do
           role: :timeline) do |opt|
     m = opt.messages.first
     opt.widget.create_postbox(to: [m],
-                              footer: " RT @#{m.idname}: #{m.to_show}",
+                              footer: " RT @#{m.idname}: #{m.description}",
                               to_display_only: !UserConfig[:legacy_retweet_act_as_reply],
                               use_blind_footer: !UserConfig[:footer_exclude_retweet]) end
 

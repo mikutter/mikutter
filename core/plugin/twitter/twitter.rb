@@ -291,6 +291,186 @@ Plugin.create(:twitter) do
     [url, posted_url_length(url)]
   end
 
+  # Twitter Entity情報を元にScoreをあれする
+  filter_score_filter do |message, note, yielder|
+    if message == note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
+      score = score_by_entity(message) + extended_entity_media(message)
+      if !score.all?{|n| n.class.slug == :score_text }
+        yielder << score
+      end
+    end
+    [message, note, yielder]
+  end
+
+  # 正規表現マッチで、ユーザのSNっぽいやつをユーザページにリンクする
+  filter_score_filter do |message, note, yielder|
+    if message != note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
+      score = score_by_screen_name_regexp(note.description)
+      yielder << score if score.size >= 2
+    end
+    [message, note, yielder]
+  end
+
+  # 正規表現マッチで、ハッシュタグっぽいやつをHashTag Modelにリンクする
+  filter_score_filter do |message, note, yielder|
+    if message != note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
+      score = score_by_hashtag_regexp(note.description)
+      yielder << score if score.size >= 2
+    end
+    [message, note, yielder]
+  end
+
+  def score_by_entity(tweet)
+    score = Array.new
+    cur = 0
+    text = tweet.description
+    tweet[:entities].flat_map{|kind, entities|
+      case kind
+      when :hashtags
+        entity_hashtag(tweet, entities)
+      when :urls
+        entity_urls(tweet, entities)
+      when :user_mentions
+        entitiy_users(tweet, entities)
+      when :symbols
+      # 誰得
+      when :media
+        entity_media(tweet, entities)
+      end
+    }.compact.sort_by{|range, _|
+      range.first
+    }.each do |range, note|
+      if range.first != cur
+        score << Diva::Model(:score_text).new(
+          description: text[cur...range.first])
+      end
+      score << note
+      cur = range.last
+    end
+    if cur == 0
+      return [Diva::Model(:score_text).new(description: text)]
+    end
+    if cur != text.size
+      score << Diva::Model(:score_text).new(
+        description: text[cur...text.size])
+    end
+    score
+  end
+
+  def extended_entity_media(tweet)
+    extended_entities = (tweet[:extended_entities][:media] rescue nil)
+    if extended_entities
+      space = Diva::Model(:score_text).new(description: ' ')
+      result = extended_entities.map{ |media|
+        case media[:type]
+        when 'photo'
+          photo = Diva::Model(:photo)[media[:media_url_https]]
+          Diva::Model(:score_hyperlink).new(
+            description: photo.uri,
+            uri: photo.uri,
+            reference: photo)
+        when 'video'
+          variant = Array(media[:video_info][:variants])
+                      .select{|v|v[:content_type] == "video/mp4"}
+                      .sort_by{|v|v[:bitrate]}
+                      .last
+          Diva::Model(:score_hyperlink).new(
+            description: "#{media[:display_url]} (%.1fs)" % (media.dig(:video_info, :duration_millis)/1000.0),
+            uri: variant[:url])
+        when 'animated_gif'
+          variant = Array(media[:video_info][:variants])
+                      .select{|v|v[:content_type] == "video/mp4"}
+                      .sort_by{|v|v[:bitrate]}
+                      .last
+          Diva::Model(:score_hyperlink).new(
+            description: "#{media[:display_url]} (GIF)",
+            uri: variant[:url])
+        end
+      }.flat_map{|media| [media, space] }
+      result.pop
+      result
+    else
+      []
+    end
+  end
+
+  def entity_media(tweet, media_list)
+    entities_to_notes(media_list) do |media_entity|
+      Diva::Model(:score_text).new(description: '')
+    end
+  end
+
+  def entitiy_users(tweet, user_entities)
+    entities_to_notes(user_entities) do |user_entity|
+      user = Plugin::Twitter::User.findbyid(user_entity[:id], Diva::DataSource::USE_LOCAL_ONLY)
+      if user
+        Diva::Model(:score_hyperlink).new(
+          description: "@#{user.idname}",
+          uri: user.uri,
+          reference: user)
+      else
+        screen_name = user_entity[:screen_name] || tweet.description[Range.new(*user_entity[:indices])]
+        Diva::Model(:score_hyperlink).new(
+          description: "@#{screen_name}",
+          uri: "https://twitter.com/#{screen_name}")
+      end
+    end
+  end
+
+  def entity_urls(tweet, urls)
+    entities_to_notes(urls) do |url_entity|
+      Diva::Model(:score_hyperlink).new(
+        description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url],
+        uri: url_entity[:expanded_url] || url_entity[:url])
+    end
+  end
+
+  def entity_hashtag(tweet, hashtag_entities)
+    entities_to_notes(hashtag_entities) do |hashtag|
+      Plugin::Twitter::HashTag.new(name: hashtag[:text])
+    end
+  end
+
+  def entities_to_notes(entities)
+    entities.map do |entity|
+      [ Range.new(*entity[:indices], false),
+        yield(entity) ]
+    end
+  end
+
+  def score_by_screen_name_regexp(text)
+    score_by_regexp(text,
+                    pattern: Plugin::Twitter::Message::MentionMatcher,
+                    reference_generator: ->(name){ Plugin::Twitter::User.findbyidname(name, Diva::DataSource::USE_LOCAL_ONLY) },
+                    uri_generator: ->(name){ "https://twitter.com/#{CGI.escape(name)}" })
+  end
+
+  def score_by_hashtag_regexp(text)
+    score_by_regexp(text,
+                    pattern: /(?:#|＃)[a-zA-Z0-9_]+/,
+                    reference_generator: ->(name){ Plugin::Twitter::HashTag.new(name: name) },
+                    uri_generator: ->(name){ "https://twitter.com/hashtag/#{CGI.escape(name)}" })
+  end
+
+  def score_by_regexp(text, score=Array.new, pattern:, reference_generator:, uri_generator:)
+    lead, target, trail = text.partition(pattern)
+    score << Diva::Model(:score_text).new(description: lead)
+    if !(target.empty? || trail.empty?)
+      trim = target[1, target.size]
+      puts({trim: trim, target: target})
+      score << Diva::Model(:score_hyperlink).new(
+        description: target,
+        uri: uri_generator.(trim),
+        reference: reference_generator.(trim))
+      score_by_regexp(trail, score,
+                      pattern: pattern,
+                      reference_generator: reference_generator,
+                      uri_generator: uri_generator)
+    else
+      score
+    end
+  end
+
   # トークン切れの警告
   MikuTwitter::AuthenticationFailedAction.register do |service, method = nil, url = nil, options = nil, res = nil|
     activity(:system, _("アカウントエラー (@{user})", user: service.user),

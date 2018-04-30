@@ -44,6 +44,11 @@ class Gdk::MiraclePainter < Gtk::Object
     message end
   deprecate :to_message, :none, 2017, 5
 
+  # :nodoc:
+  memoize def score
+    Plugin[:gtk].score_of(message)
+  end
+
   # @@miracle_painters = Hash.new
 
   # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す。
@@ -150,14 +155,14 @@ class Gdk::MiraclePainter < Gtk::Object
       iob_clicked(x, y)
       if not textselector_range
         index = main_pos_to_index(x, y)
-        if index and message.links.respond_to?(:segment_by_index)
-          l = message.links.segment_by_index(index)
-          if l
-            case
-            when l[:callback]
-              l[:callback].call(l)
-            when l[:open]
-              Plugin.call(:open, l[:open]) end end end end
+        if index
+          clicked_note = score.find{|note|
+            index -= note.description.size
+            index <= 0
+          }
+          Plugin.call(:open, clicked_note) if clickable?(clicked_note)
+        end
+      end
     when 3
       @tree.get_ancestor(Gtk::Window).set_focus(@tree)
       Plugin::GUI::Command.menu_pop
@@ -328,16 +333,45 @@ class Gdk::MiraclePainter < Gtk::Object
   # 本文のための Pango::Layout のインスタンスを返す
   def main_message(context = dummy_context)
     layout = context.create_pango_layout
+    font = Plugin.filtering(:message_font, message, nil).last
+    layout.font_description = font_description(font) if font
     layout.width = pos.main_text.width * Pango::SCALE
-    layout.attributes = textselector_attr_list(description_attr_list)
+    layout.attributes = textselector_attr_list(description_attr_list(emoji_height: emoji_height(layout.font_description)))
     layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
-    font = Plugin.filtering(:message_font, message, nil).last
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(font) if font
     layout.text = plain_description
+    layout.context.set_shape_renderer do |c, shape, _|
+      photo = shape.data
+      if photo
+        width, height = shape.ink_rect.width/Pango::SCALE, shape.ink_rect.height/Pango::SCALE
+        pixbuf = photo.load_pixbuf(width: width, height: height){ on_modify }
+        x = layout.index_to_pos(shape.start_index).x / Pango::SCALE
+        y = layout.index_to_pos(shape.start_index).y / Pango::SCALE
+        c.translate(x, y)
+        c.set_source_pixbuf(pixbuf)
+        c.rectangle(0, 0, width, height)
+        c.fill
+      end
+    end
     layout end
+
+  memoize def font_description(font)
+    Pango::FontDescription.new(font)
+  end
+
+  # 絵文字を描画する時の一辺の大きさを返す
+  # ==== Args
+  # [font] font description
+  # ==== Return
+  # [Integer] 高さ(px)
+  memoize def emoji_height(font)
+    layout = dummy_context.create_pango_layout
+    layout.font_description = font
+    layout.text = '.'
+    layout.pixel_size[1]
+  end
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
   def header_left(context = dummy_context)
@@ -348,7 +382,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.attributes = attr_list
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(font) if font
+    layout.font_description = font_description(font) if font
     layout.text = text
     layout end
 
@@ -368,7 +402,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.attributes = attr_list
     font = Plugin.filtering(:message_header_right_font, message, nil).last
-    layout.font_description = Pango::FontDescription.new(font) if font
+    layout.font_description = font_description(font) if font
     layout.text = text
     layout.alignment = Pango::Alignment::RIGHT
     layout end

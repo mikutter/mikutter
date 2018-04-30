@@ -187,7 +187,7 @@ module Gtk
       w_replies = Gtk::VBox.new.add(result)
       @to.select{|m|m.is_a?(Message)}.each{ |message|
         w_reply = Gtk::HBox.new
-        itv = Gtk::IntelligentTextview.new(message.to_show, 'font' => :mumble_basic_font)
+        itv = Gtk::IntelligentTextview.new(message.description, 'font' => :mumble_basic_font)
         itv.style_generator = lambda{ get_backgroundstyle(message) }
         itv.bg_modifier
         ev = Gtk::EventBox.new

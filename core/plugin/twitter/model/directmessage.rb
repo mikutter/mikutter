@@ -17,7 +17,7 @@ module Plugin::Twitter
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 
-    entity_class Diva::Entity::ExtendedTwitterEntity
+    alias_method :description, :text
 
     def self.memory
       @memory ||= DirectMessageMemory.new end
