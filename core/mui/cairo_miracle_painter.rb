@@ -207,8 +207,11 @@ class Gdk::MiraclePainter < Gtk::Object
   private def cursor_name_of(x, y)
     index = main_pos_to_index(x, y)
     if index # the cursor is placed on text
-      if message.links.respond_to?(:segment_by_index) \
-         && message.links.segment_by_index(index)
+      pointed_note = score.find{|note|
+        index -= note.description.size
+        index <= 0
+      }
+      if clickable?(pointed_note)
         # the cursor is placed on link
         'pointer'
       else
