@@ -11,6 +11,7 @@ depends:
     - settings
     - command
     - extract
+    - score
 version: '1.0'
 author: 
 name: Worldon

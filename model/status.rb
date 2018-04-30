@@ -1,4 +1,4 @@
-require_relative 'entity_class'
+# coding: utf-8
 require 'cgi' # unescapeHTML
 
 module Plugin::Worldon
@@ -41,6 +41,8 @@ module Plugin::Worldon
     attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
       # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）と、acctを保持する。
     attr_accessor :favorite_accts # :: [String] APIには無い追加フィールド
+    attr_accessor :description
+    attr_accessor :score
 
     alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
     alias_method :perma_link, :url
@@ -50,8 +52,6 @@ module Plugin::Worldon
     alias_method :sensitive?, :sensitive # NSFW系プラグイン用
 
     @mute_mutex = Thread::Mutex.new
-
-    entity_class MastodonEntity
 
     @@status_storage = WeakStorage.new(String, Status)
 
@@ -177,6 +177,11 @@ module Plugin::Worldon
       if self.reblog.is_a?(Status) && self.reblog.account.is_a?(Account)
         self.reblog[:user] = self.reblog.account
       end
+
+      @emoji_score = Hash.new
+      dictate_score
+
+      self
     end
 
     def inspect
@@ -264,16 +269,13 @@ module Plugin::Worldon
       actual_status.application&.name
     end
 
-    def dehtmlize(text, remove_anchor = false)
+    def dehtmlize(text)
       result = text
         .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
         .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
-      if remove_anchor
-        result = CGI.unescapeHTML(result.gsub(/<\/?a[^>]*>/) { '' })
-      end
       result
     end
 
@@ -290,23 +292,6 @@ module Plugin::Worldon
         end
       end
       text
-    end
-
-    def description
-      if @description_text
-        return @description_text
-      end
-      msg = actual_status
-      desc = dehtmlize(msg.content)
-      if !msg.spoiler_text.empty?
-        desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
-      end
-      desc = add_attachments(desc)
-      @description_text = desc
-    end
-
-    def description_plain
-      dehtmlize(description, true)
     end
 
     # register reply:true用API
@@ -365,19 +350,9 @@ module Plugin::Worldon
       !to_me_world.nil?
     end
 
-    # Basis Model API
-    def title
-      msg = actual_status
-      if !msg.spoiler_text.empty?
-        msg.spoiler_text
-      else
-        msg.content
-      end
-    end
-
     # activity用
     def to_s
-      dehtmlize(title)
+      description
     end
 
     # ふぁぼ
@@ -414,11 +389,11 @@ module Plugin::Worldon
     def quoting_messages(force_retrieve=false)
       content = actual_status.content
       matches = []
-      regexp = %r!<a [^>]*href="(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))"!
-      rest = content
-      while m = regexp.match(rest)
-        matches.push m.to_a
-        rest = m.post_match
+      regexp = %r!\A(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))\z!
+      @score.each do |note|
+        if note.is_a?(Plugin::Score::HyperLinkNote) && (m = regexp.match(note.uri.to_s))
+          matches.push m.to_a
+        end
       end
       matches.map do |m|
         url = m[1]
@@ -540,5 +515,98 @@ module Plugin::Worldon
     def rebloggable?(world = nil)
       !actual_status.shared?(world) && !['private', 'direct'].include?(actual_status.visibility)
     end
+
+    # <a>タグ（のみ）を処理したscoreを構築する
+    # emojiは別途行なう
+    def dictate_score
+      msg = actual_status
+      desc = dehtmlize(msg.content)
+      if !msg.spoiler_text.empty?
+        # TODO: CW用のNoteを実現する方法がある？
+        desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
+      end
+
+      score = []
+
+      # リンク処理
+      # TODO: user_detail_viewを作ったらacctをAccount Modelにする
+      # TODO: search spellを作ったらハッシュタグをなんかそれっぽいModelにする
+      pos = 0
+      anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
+      while m = anchor_re.match(desc, pos)
+        anchor_begin = m.begin(0)
+        anchor_end = m.end(0)
+        if pos < anchor_begin
+          score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
+        end
+        score << Plugin::Score::HyperLinkNote.new(
+          description: CGI.unescapeHTML(m["text"]),
+          uri: CGI.unescapeHTML(m["url"]),
+        )
+        pos = anchor_end
+      end
+      if pos < desc.size
+        score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...desc.size]))
+      end
+
+      # 添付ファイル用のwork around
+      # TODO: mikutter本体側が添付ファイル用のNoteを用意したらそちらに移行する
+      if media_attachments.size > 0
+        media_attachments.each do |attachment|
+          score << Plugin::Score::TextNote.new(description: "\n")
+
+          description = attachment.text_url
+          if !description
+            description = attachment.url
+          end
+          score << Plugin::Score::HyperLinkNote.new(description: description, uri: attachment.url)
+        end
+      end
+
+      @description = score.inject('') { |desc, note| desc + note.description }
+      @score = score
+    end
+
+    # 与えられたテキスト断片に対し、このStatusが持っているemoji情報でscoreを返します。
+    def dictate_emoji(text, yielder)
+      if @emoji_score[text]
+        score = @emoji_score[text]
+        if (score.size > 1 || score.size == 1 && !score[0].is_a?(Plugin::Score::TextNote))
+          yielder << score
+        end
+        return yielder
+      end
+
+      score = emojis.inject(Array(text)){ |fragments, emoji|
+        shortcode = ":#{emoji.shortcode}:"
+        fragments.flat_map{|fragment|
+          if fragment.is_a?(String)
+            if fragment === shortcode
+              [emoji]
+            else
+              sub_fragments = fragment.split(shortcode).flat_map{|str|
+                [str, emoji]
+              }
+              sub_fragments.pop unless fragment.end_with?(shortcode)
+              sub_fragments
+            end
+          else
+            [fragment]
+          end
+        }
+      }.map{|chunk|
+        if chunk.is_a?(String)
+          Plugin::Score::TextNote.new(description: chunk)
+        else
+          chunk
+        end
+      }
+
+      if (score.size > 1 || score.size == 1 && !score[0].is_a?(Plugin::Score::TextNote))
+        yielder << score
+      end
+      @emoji_score[text] = score
+    end
+
   end
 end
