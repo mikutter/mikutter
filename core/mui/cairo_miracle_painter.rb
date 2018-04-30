@@ -296,7 +296,7 @@ class Gdk::MiraclePainter < Gtk::Object
   def main_message(context = dummy_context)
     layout = context.create_pango_layout
     font = Plugin.filtering(:message_font, message, nil).last
-    layout.font_description = Pango::FontDescription.new(font) if font
+    layout.font_description = font_description(font) if font
     layout.width = pos.main_text.width * Pango::SCALE
     layout.attributes = textselector_attr_list(description_attr_list(emoji_height: emoji_height(layout.font_description)))
     layout.wrap = Pango::WrapMode::CHAR
@@ -319,6 +319,10 @@ class Gdk::MiraclePainter < Gtk::Object
     end
     layout end
 
+  memoize def font_description(font)
+    Pango::FontDescription.new(font)
+  end
+
   # 絵文字を描画する時の一辺の大きさを返す
   # ==== Args
   # [font] font description
@@ -340,7 +344,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.attributes = attr_list
     context.set_source_rgb(*color.map{ |c| c.to_f / 65536 })
-    layout.font_description = Pango::FontDescription.new(font) if font
+    layout.font_description = font_description(font) if font
     layout.text = text
     layout end
 
@@ -360,7 +364,7 @@ class Gdk::MiraclePainter < Gtk::Object
     layout = context.create_pango_layout
     layout.attributes = attr_list
     font = Plugin.filtering(:message_header_right_font, message, nil).last
-    layout.font_description = Pango::FontDescription.new(font) if font
+    layout.font_description = font_description(font) if font
     layout.text = text
     layout.alignment = Pango::Alignment::RIGHT
     layout end
