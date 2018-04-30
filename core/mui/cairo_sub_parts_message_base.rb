@@ -469,7 +469,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   # Entityを適用したあとのプレーンテキストを返す。
   # Pangoの都合上、絵文字は1文字で表現する
-  def plain_description(message)
+  memoize def plain_description(message)
     score(message).map{|note|
       if note.respond_to?(:inline_photo)
         '.'

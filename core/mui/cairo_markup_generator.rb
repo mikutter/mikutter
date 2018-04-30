@@ -63,8 +63,7 @@ module Gdk::MarkupGenerator
 
   # Entityを適用したあとのプレーンテキストを返す。
   # Pangoの都合上、絵文字は1文字で表現する
-  def plain_description
-    Plugin[:gtk].score_of(message).map{|note|
+  memoize def plain_description
     score.map{|note|
       if note.respond_to?(:inline_photo)
         '.'
