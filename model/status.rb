@@ -549,6 +549,20 @@ module Plugin::Worldon
         score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...desc.size]))
       end
 
+      # 添付ファイル用のwork around
+      # TODO: mikutter本体側が添付ファイル用のNoteを用意したらそちらに移行する
+      if media_attachments.size > 0
+        media_attachments.each do |attachment|
+          score << Plugin::Score::TextNote.new(description: "\n")
+
+          description = attachment.text_url
+          if !description
+            description = attachment.url
+          end
+          score << Plugin::Score::HyperLinkNote.new(description: description, uri: attachment.url)
+        end
+      end
+
       @description = score.inject('') { |desc, note| desc + note.description }
       @score = score
     end
