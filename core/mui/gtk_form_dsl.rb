@@ -7,6 +7,9 @@ UIを定義するためのDSLメソッドをクラスに追加するmix-in。
 module Gtk::FormDSL
   extend Memoist
 
+  PIXBUF_PHOTO_FILTER = Hash[GdkPixbuf::Pixbuf.formats.map{|f| ["#{f.description} (#{f.name})", f.extensions.flat_map{|x| [x.downcase.freeze, x.upcase.freeze] }.freeze] }].freeze
+  PHOTO_FILTER = {'All images' => PIXBUF_PHOTO_FILTER.values.flatten}.merge(PIXBUF_PHOTO_FILTER).merge('All files' => ['*'])
+
   def initialize(*args)
     super
     if block_given?
@@ -76,8 +79,12 @@ module Gtk::FormDSL
   # [label] ラベル
   # [config] キー
   # [dir] 初期のディレクトリ
-  def fileselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
-    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
+  # [title:] ファイル選択ダイアログのタイトル(String)
+  # [shortcuts:] ファイル選択ダイアログのサイドバーに表示しておくディレクトリの絶対パスの配列(Array)
+  # [filters:] ファイル選択ダイアログの拡張子フィルタ(Hash)。キーはコンボボックスに表示するラベル(String)、値は拡張子の配列(Array)。拡張子はStringで指定する。
+  # [use_preview:] ファイル選択ダイアログで、ファイルのプレビューを表示するか。 _true_ なら表示する。 (_true_ or _false_)
+  def fileselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s, shortcuts: [], filters: {}, use_preview: false)
+    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title, shortcuts: shortcuts, filters: filters, use_preview: use_preview)
   end
 
   # ファイルを選択する
@@ -85,8 +92,12 @@ module Gtk::FormDSL
   # [label] ラベル
   # [config] キー
   # [dir] 初期のディレクトリ
-  def photoselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
-    fs_photoselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title)
+  # [title:] ファイル選択ダイアログのタイトル(String)
+  # [shortcuts:] ファイル選択ダイアログのサイドバーに表示しておくディレクトリの絶対パスの配列(Array)
+  # [filters:] ファイル選択ダイアログの拡張子フィルタ(Hash)。キーはコンボボックスに表示するラベル(String)、値は拡張子の配列(Array)。拡張子はStringで指定する。
+  # [use_preview:] ファイル選択ダイアログで、ファイルのプレビューを表示するか。 _true_ なら表示する。 (_true_ or _false_)
+  def photoselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s, shortcuts: [], filters: nil, use_preview: true)
+    fs_photoselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_OPEN, title: title, shortcuts: shortcuts, filters: filters || PHOTO_FILTER, use_preview: use_preview)
   end
 
   # ディレクトリを選択する
@@ -94,8 +105,10 @@ module Gtk::FormDSL
   # [label] ラベル
   # [config] 設定のキー
   # [current] 初期のディレクトリ
-  def dirselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s)
-    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_SELECT_FOLDER, title: title)
+  # [title:] ファイル選択ダイアログのタイトル(String)
+  # [shortcuts:] ファイル選択ダイアログのサイドバーに表示しておくディレクトリの絶対パスの配列(Array)
+  def dirselect(label, config, _current=Dir.pwd, dir: _current, title: label.to_s, shortcuts: [])
+    fsselect(label, config, dir: dir, action: Gtk::FileChooser::ACTION_SELECT_FOLDER, title: title, shortcuts: shortcuts)
   end
 
   # 一行テキストボックス
@@ -374,16 +387,16 @@ module Gtk::FormDSL
       self[config] = w.font_name }
     button end
 
-  def fsselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label)
+  def fsselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, shortcuts: [], filters: {}, use_preview: false)
     container = input(label, config)
     input = container.children.last.children.first
     button = Gtk::Button.new(Plugin[:settings]._('参照'))
     container.pack_start(button, false)
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &input.method(:text=)))
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, shortcuts: shortcuts, filters: filters, use_preview: use_preview, &input.method(:text=)))
     container
   end
 
-  def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32)
+  def fs_photoselect(label, config, dir: Dir.pwd, action: Gtk::FileChooser::ACTION_OPEN, title: label, width: 64, height: 32, shortcuts: [], filters: {}, use_preview: true)
     widgets = fs_photo_create_widgets(
       photo: fs_photo_thumbnail(self[config]),
       width: width,
@@ -398,6 +411,9 @@ module Gtk::FormDSL
       dir: dir,
       width: width,
       height: height,
+      shortcuts: shortcuts,
+      filters: filters,
+      use_preview: use_preview,
       **widgets)
     widgets[:container]
   end
@@ -417,7 +433,7 @@ module Gtk::FormDSL
     container.pack_start(button, false)
   end
 
-  def fs_photo_handle_widgets(config:, title:, action:, dir:, width:, height:, image_container:, button:, path:, image:, **kwrest)
+  def fs_photo_handle_widgets(config:, title:, action:, dir:, width:, height:, image_container:, button:, path:, image:, shortcuts:, filters:, use_preview:, **kwrest)
     image_container.ssc(:button_press_event) do |w, event|
       Plugin.call(:open, fs_photo_thumbnail(path.text) || path.text) if event.button == 1
       false
@@ -426,7 +442,7 @@ module Gtk::FormDSL
       this.window.set_cursor(Gdk::Cursor.new(Gdk::Cursor::HAND2))
       false
     end
-    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, &path.method(:text=)))
+    button.signal_connect(:clicked, &gen_fileselect_dialog_generator(title, action, dir, config: config, shortcuts: shortcuts, filters: filters, use_preview: use_preview, &path.method(:text=)))
     path.signal_connect(:changed) do |w|
       image.pixbuf = fs_photo_thumbnail_pixbuf(fs_photo_thumbnail(w.text), width: width, height: height)
       false
@@ -443,7 +459,7 @@ module Gtk::FormDSL
     end
   end
 
-  def gen_fileselect_dialog_generator(title, action, dir, config:, &result_callback)
+  def gen_fileselect_dialog_generator(title, action, dir, config:, shortcuts: [], filters: {}, use_preview: false, &result_callback)
     ->(widget) do
       dialog = Gtk::FileChooserDialog.new(title,
                                           widget.get_ancestor(Gtk::Window),
@@ -452,6 +468,42 @@ module Gtk::FormDSL
                                           [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
                                           [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
       dialog.current_folder = File.expand_path(dir)
+
+      filters.each do |name, exts|
+        filter = Gtk::FileFilter.new
+        filter.name = name
+        exts.each do |ext|
+          filter.add_pattern("*.#{ext}")
+        end
+        dialog.add_filter(filter)
+      end
+
+      shortcuts.select { |dir|
+        !dialog.shortcut_folders.include?(dir)
+      }.each { |dir|
+        begin
+          dialog.add_shortcut_folder(dir)
+        rescue => e
+          puts e
+          puts e.backtrace
+        end
+      }
+
+      if use_preview
+        preview = Gtk::Image.new
+        dialog.preview_widget = preview
+        dialog.signal_connect("update-preview") do
+          begin
+            path = dialog.preview_filename
+            pixbuf = Gdk::Pixbuf.new(file: path, width: 256, height: 256)
+            preview.set_pixbuf(pixbuf)
+            dialog.set_preview_widget_active(true)
+          rescue => e
+            dialog.set_preview_widget_active(false)
+          end
+        end
+      end
+
       dialog.ssc_atonce(:response, &gen_fs_dialog_response_callback(config, &result_callback))
       dialog.show_all
       false
