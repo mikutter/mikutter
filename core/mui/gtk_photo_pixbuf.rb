@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-module Diva::Model::PhotoMixin
+module Diva::Model::PhotoInterface
 
   GdkPixbufCache = Struct.new(:pixbuf, :width, :height, :read_count, :reserver)
 
@@ -67,7 +67,7 @@ module Diva::Model::PhotoMixin
   private
 
   def gen_pixbuf_from_raw_data(width:, height:)
-    download.next{|photo|
+    download(width: width, height: height).next{|photo|
       pb = pixbuf(width: width, height: height)
       if pb
         pb

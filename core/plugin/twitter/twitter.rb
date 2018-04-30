@@ -364,7 +364,7 @@ Plugin.create(:twitter) do
       result = extended_entities.map{ |media|
         case media[:type]
         when 'photo'
-          photo = Diva::Model(:photo)[media[:media_url_https]]
+          photo = Diva::Model(:photo).generate(photo_variant_seeds(media), perma_link: media[:media_url_https])
           Diva::Model(:score_hyperlink).new(
             description: photo.uri,
             uri: photo.uri,
@@ -391,6 +391,22 @@ Plugin.create(:twitter) do
       result
     else
       []
+    end
+  end
+
+  def photo_variant_seeds(media)
+    Enumerator.new do |yielder|
+      yielder << { policy: :original,
+                   photo: "#{media[:media_url_https]}:orig" }
+      media[:sizes].select{ |size_name, size|
+        size.has_key?(:w) && size.has_key?(:h) && size.has_key?(:resize)
+      }.each do |size_name, size|
+        yielder << { name: size_name.to_sym,
+                     width: size[:w],
+                     height: size[:h],
+                     policy: size[:resize].to_sym,
+                     photo: "#{media[:media_url_https]}:#{size_name}" }
+      end
     end
   end
 
@@ -432,9 +448,9 @@ Plugin.create(:twitter) do
   end
 
   def entities_to_notes(entities)
-    entities.map do |entity|
-      [ Range.new(*entity[:indices], false),
-        yield(entity) ]
+    entities.map do |media|
+      [ Range.new(*media[:indices], false),
+        yield(media) ]
     end
   end
 
