@@ -44,6 +44,11 @@ class Gdk::MiraclePainter < Gtk::Object
     message end
   deprecate :to_message, :none, 2017, 5
 
+  # :nodoc:
+  memoize def score
+    Plugin[:gtk].score_of(message)
+  end
+
   # @@miracle_painters = Hash.new
 
   # _message_ を内部に持っているGdk::MiraclePainterの集合をSetで返す。
@@ -151,7 +156,7 @@ class Gdk::MiraclePainter < Gtk::Object
       if not textselector_range
         index = main_pos_to_index(x, y)
         if index
-          clicked_note = Plugin[:gtk].score_of(message).find{|note|
+          clicked_note = score.find{|note|
             index -= note.description.size
             index <= 0
           }

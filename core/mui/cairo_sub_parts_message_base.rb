@@ -24,6 +24,11 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def messages
     [] end
 
+  # :nodoc:
+  memoize def score(message)
+    Plugin[:gtk].score_of(message)
+  end
+
   # ヘッダの左の、Screen name、名前が表示されている場所に表示するテキスト。
   # オーバライドしなければ、 _message_ の投稿者のscreen nameと名前が表示される。
   # nilを返した場合、ヘッダは表示されない。この場合、ヘッダ右も表示されない。
@@ -447,7 +452,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # ==== Return
   # Pango::AttrList 本文に適用する装飾
   def description_attr_list(message, attr_list=Pango::AttrList.new)
-    Plugin[:gtk].score_of(message).inject(0){|start_index, note|
+    score(message).inject(0){|start_index, note|
       end_index = start_index + note.description.bytesize
       if note.respond_to?(:inline_photo)
         end_index += -note.description.bytesize + 1
@@ -465,7 +470,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # Entityを適用したあとのプレーンテキストを返す。
   # Pangoの都合上、絵文字は1文字で表現する
   def plain_description(message)
-    Plugin[:gtk].score_of(message).map{|note|
+    score(message).map{|note|
       if note.respond_to?(:inline_photo)
         '.'
       else

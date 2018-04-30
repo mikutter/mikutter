@@ -65,6 +65,7 @@ module Gdk::MarkupGenerator
   # Pangoの都合上、絵文字は1文字で表現する
   def plain_description
     Plugin[:gtk].score_of(message).map{|note|
+    score.map{|note|
       if note.respond_to?(:inline_photo)
         '.'
       else
