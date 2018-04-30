@@ -540,8 +540,8 @@ module Plugin::Worldon
           score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
         score << Plugin::Score::HyperLinkNote.new(
-          description: m["text"],
-          uri: m["url"],
+          description: CGI.unescapeHTML(m["text"]),
+          uri: CGI.unescapeHTML(m["url"]),
         )
         pos = anchor_end
       end
