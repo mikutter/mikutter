@@ -2,13 +2,21 @@
 
 Plugin.create(:notify) do
 
-  DEFAULT_SOUND_DIRECTORY = 'skin/data/sounds'
+  DEFAULT_SOUND_DIRECTORY = File.join(Skin.default_dir, 'sounds')
 
   settings(_("通知")) do
     def self.defnotify(label, kind)
       settings (label) do
         boolean _('ポップアップ'), "notify_#{kind}".to_sym
-      fileselect(_('サウンド'), "notify_sound_#{kind}".to_sym, DEFAULT_SOUND_DIRECTORY) end end
+        fileselect(_('サウンド'), "notify_sound_#{kind}".to_sym,
+                   dir: DEFAULT_SOUND_DIRECTORY,
+                   shortcuts: [DEFAULT_SOUND_DIRECTORY],
+                   filters: {_('非圧縮音声ファイル (*.wav, *.aiff)') => ['wav', 'WAV', 'aiff', 'AIFF'],
+                             _('FLAC (*.flac, *.fla)') => ['flac', 'FLAC', 'fla', 'FLA'],
+                             _('MPEG-1/2 Audio Layer-3 (*.mp3)') => ['mp3', 'MP3'],
+                             _('Ogg (*.ogg)') => ['ogg', 'OGG'],
+                             _('全てのファイル') => ['*']
+                            }) end end
 
     defnotify _("フレンドタイムライン"), :friend_timeline
     defnotify _("リプライ"), :mention

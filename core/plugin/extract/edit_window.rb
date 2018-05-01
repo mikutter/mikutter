@@ -81,9 +81,17 @@ class  Plugin::Extract::EditWindow < Gtk::Window
   def option_widget
     Plugin::Extract::OptionWidget.new(@plugin, @extract) do
       input _('名前'), :name
-      photoselect _('アイコン'), :icon, Skin.path
+      photoselect _('アイコン'), :icon, Skin.path, shortcuts: [Skin.default_dir, Skin.user_dir]
       settings _('通知') do
-        fileselect _('サウンド'), :sound
+        fileselect _('サウンド'), :sound,
+        dir: File.join(Skin.default_dir, 'sounds'),
+        shortcuts: [File.join(Skin.default_dir, 'sounds')],
+        filters: {_('非圧縮音声ファイル (*.wav, *.aiff)') => ['wav', 'WAV', 'aiff', 'AIFF'],
+                  _('FLAC (*.flac, *.fla)') => ['flac', 'FLAC', 'fla', 'FLA'],
+                  _('MPEG-1/2 Audio Layer-3 (*.mp3)') => ['mp3', 'MP3'],
+                  _('Ogg (*.ogg)') => ['ogg', 'OGG'],
+                  _('全てのファイル') => ['*']
+                 }
         boolean _('ポップアップ'), :popup
       end
       select(_('並び順'), :order, Hash[Plugin.filtering(:extract_order, []).first.map{|o| [o.slug.to_s, o.name] }])
