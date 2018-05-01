@@ -213,6 +213,10 @@ module Plugin::Worldon
       end
     end
 
+    def icon
+      actual_status.account.icon
+    end
+
     def user
       account
     end
