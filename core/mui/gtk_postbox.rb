@@ -185,14 +185,15 @@ module Gtk
       @reply_widgets = []
       result = Gtk::HBox.new(false, 0).closeup(widget_tool).pack_start(widget_post).closeup(widget_remain).closeup(widget_send)
       w_replies = Gtk::VBox.new.add(result)
-      @to.select{|m|m.is_a?(Message)}.each{ |message|
+      @to.select{|m|m.respond_to?(:description)}.each{ |message|
         w_reply = Gtk::HBox.new
         itv = Gtk::IntelligentTextview.new(message.description, 'font' => :mumble_basic_font)
         itv.style_generator = lambda{ get_backgroundstyle(message) }
         itv.bg_modifier
         ev = Gtk::EventBox.new
         ev.style = get_backgroundstyle(message)
-        w_replies.closeup(ev.add(w_reply.closeup(Gtk::WebIcon.new(message.user.icon, 32, 32).top).add(itv)))
+        w_reply.closeup(Gtk::WebIcon.new(message.icon, 32, 32).top) if message.respond_to?(:icon)
+        w_replies.closeup(ev.add(w_reply.add(itv)))
         @reply_widgets << itv }
       w_replies end
 
