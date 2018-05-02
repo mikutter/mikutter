@@ -75,7 +75,11 @@ Plugin.create :followingcontrol do
       container.ssc_atonce :expose_event do
         loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
-        Service.primary.followings(cache: true, user_id: model[:id]).next{ |users|
+        Enumerator.new{|y|
+          Plugin.filtering(:worlds, y)
+        }.select{|world|
+          world.class.slug == :twitter
+        }.first.followings(cache: true, user_id: model[:id]).next{ |users|
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)
@@ -111,7 +115,11 @@ Plugin.create :followingcontrol do
       container.ssc_atonce :expose_event do
         loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
-        Service.primary.followers(cache: true, user_id: model[:id]).next{ |users|
+        Enumerator.new{|y|
+          Plugin.filtering(:worlds, y)
+        }.select{|world|
+          world.class.slug == :twitter
+        }.first.followers(cache: true, user_id: model[:id]).next{ |users|
           container.remove(loading_image)
           loading_image = nil
           container.add(userlist.show_all)
