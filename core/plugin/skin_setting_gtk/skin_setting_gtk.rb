@@ -19,9 +19,7 @@ Plugin.create :skin do
       photos = Enumerator.new{|y|
         Plugin.filtering(:photo_filter, File.join(info[:dir], _), y)
       }
-      image = Gtk::Image.new photos.first.load_pixbuf(width: 32, height: 32) do |pixbuf|
-        image = pixbuf
-      end
+      image = Gtk::WebIcon.new(photos.first, 32, 32)
       box.pack_start(image, false, false)
     }
 
