@@ -25,7 +25,11 @@ module Plugin::ListForProfile
         iter[SERVICE] = service end
       toggled = get_column(0).cell_renderers[0]
       toggled.activatable = false
-      Service.primary.list_user_followers(user_id: @dest_user[:id], filter_to_owned_lists: 1).next{ |res|
+      Enumerator.new{|y|
+        Plugin.filtering(:worlds, y)
+      }.select{|world|
+        world.class.slug == :twitter
+      }.first.list_user_followers(user_id: @dest_user[:id], filter_to_owned_lists: 1).next{ |res|
         if res and not destroyed?
           followed_list_ids = res.map{|list| list['id'].to_i}
           model.each{ |m, path, iter|
