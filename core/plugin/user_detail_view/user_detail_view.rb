@@ -73,7 +73,11 @@ Plugin.create :user_detail_view do
       order do |message|
         retweet = message.retweeted_statuses.find{ |r| user_id == r.user.id }
         (retweet || message)[:created].to_i end end
-    Service.primary.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
+    Enumerator.new{|y|
+      Plugin.filtering(:worlds, y)
+    }.select{|world|
+      world.class.slug == :twitter
+    }.first.user_timeline(user_id: user_id, include_rts: 1, count: [UserConfig[:profile_show_tweet_once], 200].min).next{ |tl|
       i_timeline << tl
     }.terminate(_("@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね") % {user: model[:idname]})
     timeline_storage[i_timeline.slug] = model end
