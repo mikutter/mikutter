@@ -26,27 +26,6 @@ Plugin.create(:world) do
     [yielder]
   end
 
-  # 現在選択されているアカウントに対応するModelを返すフィルタ。
-  filter_world_current do |result|
-    if result
-      [result]
-    else
-      [current_world]
-    end
-  end
-
-  # カレントアカウントを _new_ に変更する
-  on_world_change_current do |new|
-    begin
-      if self.current_world != new
-        self.current_world = new
-        Plugin.call(:primary_service_changed, current_world)
-      end
-    rescue Plugin::World::InvalidWorldError => err
-      error err
-    end
-  end
-
   # 新たなアカウント _new_ を追加する
   on_world_create do |new|
     register_world(new)
@@ -75,31 +54,6 @@ Plugin.create(:world) do
         load_world_ifn
       end
     end
-  end
-
-  # 現在選択されているアカウントを返す
-  # ==== Return
-  # [Diva::Model] カレントアカウント
-  def current_world
-    if @current
-      @current
-    elsif worlds.first
-      self.current_world = worlds.first
-    end
-  end
-
-  # カレントアカウントを _new_ に変更する。
-  # ==== Args
-  # [new]
-  #   新たなカレントアカウント(Diva::Model)。
-  #   _worlds_ が返す内容のうちのいずれかでなければならない。
-  # ==== Return
-  # [Diva::Model] 新たなカレントアカウント
-  # ==== Raise
-  # [Plugin::World::InvalidWorldError] _worlds_ にないアカウントが渡された場合
-  def current_world=(new)
-    raise Plugin::World::InvalidWorldError unless worlds.include?(new)
-    @current = new
   end
 
   # 新たなアカウントを登録する。
