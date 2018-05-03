@@ -90,7 +90,7 @@ def error_handling!(exception)
       notice exception.deferred.graph
     end
   end
-  File.open(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception')), 'w'){ |io| Marshal.dump(exception, io) }
+  File.open(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception')), 'w'){ |io| Marshal.dump(exception, io) } rescue nil
   raise exception end
 
 begin
