@@ -6,7 +6,7 @@ module Plugin::Score
   def score_by_score(model, target_note=model)
     _, _, available_score_list = Plugin.filtering(:score_filter, model, target_note, Set.new)
     selected_score = choose_best_score(available_score_list)
-    if selected_score && !selected_score.all?(Plugin::Score::TextNote)
+    if selected_score &&  !selected_score.all? { |s| s.is_a?(Plugin::Score::TextNote) }
       score_expand(selected_score, model)
     elsif target_note.is_a?(Plugin::Score::TextNote)
       [target_note]
