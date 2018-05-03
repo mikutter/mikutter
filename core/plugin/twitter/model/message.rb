@@ -671,11 +671,6 @@ class Plugin::Twitter::Message < Diva::Model
   deprecate :parma_link, "perma_link", 2016, 12
 
   # :nodoc:
-  def marshal_dump
-    raise RuntimeError, 'Message cannot marshalize'
-  end
-
-  # :nodoc:
   def add_favorited_by(user, time=Time.now)
     type_strict user => Plugin::Twitter::User, time => Time
     return retweet_source.add_favorited_by(user, time) if retweet?
