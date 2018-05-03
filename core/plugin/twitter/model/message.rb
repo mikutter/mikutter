@@ -137,6 +137,7 @@ class Plugin::Twitter::Message < Diva::Model
 
   # この投稿のお気に入り状態を返す。お気に入り状態だった場合にtrueを返す
   def favorite?(user_or_world=Service.primary)
+    return unless user_or_world
     case user_or_world.class.slug
     when :twitter_user
       favorited_by.include?(user_or_world)
@@ -153,20 +154,20 @@ class Plugin::Twitter::Message < Diva::Model
   # この投稿にリプライする権限があればtrueを返す
   def repliable?(world=nil)
     world, = Plugin.filtering(:world_current, nil) unless world
-    world.class.slug == :twitter
+    world.class.slug == :twitter if world
   end
 
   # この投稿をお気に入りに追加する権限があればtrueを返す
   def favoritable?(world=nil)
     world, = Plugin.filtering(:world_current, nil) unless world
-    world.class.slug == :twitter
+    world.class.slug == :twitter if world
   end
   alias favoriable? favoritable?
 
   # この投稿をリツイートする権限があればtrueを返す
   def retweetable?(world=nil)
     world, = Plugin.filtering(:world_current, nil) unless world
-    world.class.slug == :twitter and not protected?
+    world.class.slug == :twitter and not protected? if world
   end
 
   # この投稿を削除する権限があればtrueを返す

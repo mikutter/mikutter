@@ -1,0 +1,10 @@
+---
+slug: :current_world
+depends:
+  mikutter: 3.7.0
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: Current World
+description: >-
+  mikutterに、ユーザが現在注目しているWorldがどれであるかを伝える手段である、カレントWorldの概念を追加します。
