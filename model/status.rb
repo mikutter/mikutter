@@ -58,9 +58,7 @@ module Plugin::Worldon
     TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!
 
     handle TOOT_URI_RE do |uri|
-      ret = (Status.findbyurl(uri) || Thread.new { Status.fetch(uri) })
-      pp ret
-      ret
+      Status.findbyurl(uri) || Thread.new { Status.fetch(uri) }
     end
 
     class << self
