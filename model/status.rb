@@ -513,16 +513,19 @@ module Plugin::Worldon
       # TODO: search spellを作ったらハッシュタグをなんかそれっぽいModelにする
       pos = 0
       anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
+      urls = []
       while m = anchor_re.match(desc, pos)
         anchor_begin = m.begin(0)
         anchor_end = m.end(0)
         if pos < anchor_begin
           score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
+        url = CGI.unescapeHTML(m["url"])
         score << Plugin::Score::HyperLinkNote.new(
           description: CGI.unescapeHTML(m["text"]),
-          uri: CGI.unescapeHTML(m["url"]),
+          uri: url,
         )
+        urls << url
         pos = anchor_end
       end
       if pos < desc.size
@@ -532,15 +535,19 @@ module Plugin::Worldon
       # 添付ファイル用のwork around
       # TODO: mikutter本体側が添付ファイル用のNoteを用意したらそちらに移行する
       if media_attachments.size > 0
-        media_attachments.each do |attachment|
-          score << Plugin::Score::TextNote.new(description: "\n")
+        media_attachments
+          .select {|attachment|
+            !urls.include?(attachment.url.to_s) && !urls.include?(attachment.text_url.to_s)
+          }
+          .each {|attachment|
+            score << Plugin::Score::TextNote.new(description: "\n")
 
-          description = attachment.text_url
-          if !description
-            description = attachment.url
-          end
-          score << Plugin::Score::HyperLinkNote.new(description: description, uri: attachment.url)
-        end
+            description = attachment.text_url
+            if !description
+              description = attachment.url
+            end
+            score << Plugin::Score::HyperLinkNote.new(description: description, uri: attachment.url)
+          }
       end
 
       @description = score.inject('') { |desc, note| desc + note.description }
