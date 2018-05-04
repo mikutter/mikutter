@@ -55,6 +55,14 @@ module Plugin::Worldon
 
     @@status_storage = WeakStorage.new(String, Status)
 
+    TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!
+
+    handle TOOT_URI_RE do |uri|
+      ret = (Status.findbyurl(uri) || Thread.new { Status.fetch(uri) })
+      pp ret
+      ret
+    end
+
     class << self
       def add_mutes(account_hashes)
         @mute_mutex.synchronize {
@@ -131,6 +139,16 @@ module Plugin::Worldon
         end
         @@status_storage[uri] = status
         status
+      end
+
+      def fetch(uri)
+        if m = TOOT_URI_RE.match(uri.to_s)
+          domain_name = m[1]
+          id = m[2]
+          resp = Plugin::Worldon::API.status(domain_name, id)
+          return nil if resp.nil?
+          Status.build(domain_name, [resp]).first
+        end
       end
     end
 
@@ -380,48 +398,6 @@ module Plugin::Worldon
     # reblogがなければselfを返す
     def introducer(world = nil)
       self
-    end
-
-    # quoted_message用
-    def quoting?
-      content = actual_status.content
-      r = %r!<a [^>]*href="https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+)"!.match(content)
-      !r.nil?
-    end
-
-    # quoted_message用
-    def quoting_messages(force_retrieve=false)
-      content = actual_status.content
-      matches = []
-      regexp = %r!\A(https://(?:[^/]+/@[^/]+/\d+|(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/\d+))\z!
-      @score.each do |note|
-        if note.is_a?(Plugin::Score::HyperLinkNote) && (m = regexp.match(note.uri.to_s))
-          matches.push m.to_a
-        end
-      end
-      matches.map do |m|
-        url = m[1]
-        if url.index('twitter.com')
-          has_twitter = Plugin.const_defined?('Plugin::Twitter::Message') &&
-            Plugin::Twitter::Message.is_a?(Class) &&
-            Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|world| world.class.slug == :twitter }
-
-          if has_twitter
-            m = %r!https://(?:mobile\.)?twitter\.com/[_0-9A-Za-z/]+/status/(\d+)!.match(url)
-            next if m.nil?
-            quoted_id = m[1]
-            Plugin::Twitter::Message.findbyid(quoted_id, -1)
-          end
-        else
-          m = %r!https://([^/]+)/@[^/]+/(\d+)!.match(url)
-          next nil if m.nil?
-          domain_name = m[1]
-          id = m[2]
-          resp = Plugin::Worldon::API.status(domain_name, id)
-          next nil if resp.nil?
-          Status.build(domain_name, [resp]).first
-        end
-      end.compact
     end
 
     # 返信スレッド用
