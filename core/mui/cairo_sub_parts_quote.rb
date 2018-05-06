@@ -24,13 +24,32 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   def initialize(*args)
     super
     @edge = show_edge? ? EDGE_PRESENT_SIZE : EDGE_ABSENT_SIZE
-    if helper.message.quoting?
-      Thread.new(helper.message) { |m|
-        m.quoting_messages(true)
-      }.next{ |quoting|
-        @messages = quoting.freeze
-        render_messages
-      }.terminate('コメント付きリツイート描画中にエラーが発生しました') end end
+    promise_list = helper.score.select{ |note|
+      note.respond_to?(:reference)
+    }.map{ |note|
+      note.reference&.uri || note.uri
+    }.select{ |u|
+      u.is_a?(Diva::URI)
+    }.map{ |target_uri|
+      model_class = Enumerator.new{ |y|
+        Plugin.filtering(:model_of_uri, target_uri, y)
+      }.lazy.map{ |model_slug|
+        Diva::Model(model_slug)
+      }.find{ |mc|
+        mc.spec.timeline
+      }
+      Delayer.Deferred.new{ model_class.find_by_uri(target_uri) } if model_class
+    }.compact
+    if !promise_list.empty?
+      Delayer::Deferred.when(promise_list).next{ |quoting|
+        quoting = quoting.compact
+        if !quoting.empty?
+          @messages = quoting.freeze
+          render_messages
+        end
+      }.terminate('コメント付きリツイート描画中にエラーが発生しました')
+    end
+  end
 
   def edge
     if show_edge?
