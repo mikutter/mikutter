@@ -341,17 +341,17 @@ Plugin.create(:twitter) do
       range.first
     }.each do |range, note|
       if range.first != cur
-        score << Diva::Model(:score_text).new(
+        score << text_note(
           description: text[cur...range.first])
       end
       score << note
       cur = range.last
     end
     if cur == 0
-      return [Diva::Model(:score_text).new(description: text)]
+      return [text_note(description: text)]
     end
     if cur != text.size
-      score << Diva::Model(:score_text).new(
+      score << text_note(
         description: text[cur...text.size])
     end
     score
@@ -360,7 +360,7 @@ Plugin.create(:twitter) do
   def extended_entity_media(tweet)
     extended_entities = (tweet[:extended_entities][:media] rescue nil)
     if extended_entities
-      space = Diva::Model(:score_text).new(description: ' ')
+      space = text_note(description: ' ')
       result = extended_entities.map{ |media|
         case media[:type]
         when 'photo'
@@ -412,7 +412,7 @@ Plugin.create(:twitter) do
 
   def entity_media(tweet, media_list)
     entities_to_notes(media_list) do |media_entity|
-      Diva::Model(:score_text).new(description: '')
+      text_note(description: '')
     end
   end
 
@@ -470,7 +470,7 @@ Plugin.create(:twitter) do
 
   def score_by_regexp(text, score=Array.new, pattern:, reference_generator:, uri_generator:)
     lead, target, trail = text.partition(pattern)
-    score << Diva::Model(:score_text).new(description: lead)
+    score << text_note(description: lead)
     if !(target.empty? || trail.empty?)
       trim = target[1, target.size]
       puts({trim: trim, target: target})
@@ -485,6 +485,14 @@ Plugin.create(:twitter) do
     else
       score
     end
+  end
+
+  # TextNoteを作成する。
+  # _description:_ から実体参照をアンエスケープした文字列を使ってText Noteを作る。
+  # Plugin::Twitter::Message#descriptionの結果が実体参照をエスケープすると
+  # Entityのインデックスがずれるので、このメソッドで行う。
+  def text_note(description:)
+    Diva::Model(:score_text).new(description: description.gsub(Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_REGEXP, &Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_RULE))
   end
 
   # トークン切れの警告
