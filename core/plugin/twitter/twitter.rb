@@ -504,9 +504,10 @@ Plugin.create(:twitter) do
   end
 
   world_setting(:twitter, _('Twitter')) do
+    ck, cs = Plugin.filtering(:twitter_default_api_keys, nil, nil)
     builder = Plugin::Twitter::Builder.new(
-      Environment::TWITTER_CONSUMER_KEY,
-      Environment::TWITTER_CONSUMER_SECRET)
+      ck || Environment::TWITTER_CONSUMER_KEY,
+      cs || Environment::TWITTER_CONSUMER_SECRET)
     label _("Webページにアクセスして表示された番号を、「トークン」に入力して、次へボタンを押してください。")
     link builder.authorize_url
     input "トークン", :token

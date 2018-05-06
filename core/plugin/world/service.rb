@@ -63,8 +63,9 @@ module Service
       type_strict token => String, secret => String
 
       twitter = MikuTwitter.new
-      twitter.consumer_key = Environment::TWITTER_CONSUMER_KEY
-      twitter.consumer_secret = Environment::TWITTER_CONSUMER_SECRET
+      ck, cs = Plugin.filtering(:twitter_default_api_keys, nil, nil)
+      twitter.consumer_key = ck || Environment::TWITTER_CONSUMER_KEY
+      twitter.consumer_secret = cs || Environment::TWITTER_CONSUMER_SECRET
       twitter.a_token = token
       twitter.a_secret = secret
 
