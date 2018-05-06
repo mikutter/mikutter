@@ -548,6 +548,21 @@ module Plugin::Worldon
           }
       end
 
+      score = score.flat_map do |note|
+        if !note.is_a?(Plugin::Score::TextNote)
+          [note]
+        else
+          emoji_score = Enumerator.new{|y|
+            dictate_emoji(note.description, y)
+          }.to_a
+          if emoji_score.size > 0
+            emoji_score
+          else
+            [note]
+          end
+        end
+      end
+
       @description = score.inject('') { |desc, note| desc + note.description }
       @score = score
     end
