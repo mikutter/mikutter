@@ -248,10 +248,11 @@ Plugin.create :user_detail_view do
               detach(:followings_created, handler_followings_created)
               detach(:followings_destroy, handler_followings_destroy)
               false }
-            followbutton.sensitive = true end
+            followbutton.sensitive = true
+            relation_container.closeup(followbutton) end
         }.terminate.trap{
           w_following_label.text = _("取得できませんでした") } end
-      container.closeup(relation_container.closeup(followbutton)) }
+      container.closeup(relation_container) }
     container end
 
   # ユーザのプロフィールのヘッダ部を返す
