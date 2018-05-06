@@ -40,11 +40,15 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [Pango::FontDescription] フォント情報
   # [Pango::Attribute] マークアップ情報
   def header_left_content(message)
-    user = message.user
-    if message.user[:idname]
-      attr_list, text = Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
+    if message.respond_to?(:user)
+      user = message.user
+      if message.user[:idname]
+        attr_list, text = Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
+      else
+        attr_list, text = Pango.parse_markup(Pango.escape(user.name || ''))
+      end
     else
-      attr_list, text = Pango.parse_markup(Pango.escape(user.name || ''))
+      attr_list, text = Pango.parse_markup(Pango.escape(''))
     end
     return text, header_left_font(message), attr_list
   end
@@ -445,7 +449,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
       context.paint end end
 
   def main_icon(message)
-    message.user.icon.load_pixbuf(width: icon_size.width, height: icon_size.width){ helper.on_modify }
+    message.icon.load_pixbuf(width: icon_size.width, height: icon_size.width){ helper.on_modify }
   end
 
   # 表示する際に本文に適用すべき装飾オブジェクトを作成する
