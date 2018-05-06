@@ -19,6 +19,7 @@ class Plugin::Twitter::Message < Diva::Model
     %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)] # Hey, Twitter. Please BAN me rhenium!
   ).freeze
   MentionMatcher = /(?:@|＠|〄|☯|⑨|♨)([a-zA-Z0-9_]+)/.freeze
+  DESCRIPTION_UNESCAPE_RULE = {'&gt;' => '>', '&lt;' => '<', '&amp;' => '&'}.to_proc
 
   extend Gem::Deprecate
   include Diva::Model::Identity
@@ -634,7 +635,6 @@ class Plugin::Twitter::Message < Diva::Model
   def body
     self[:message].to_s.freeze
   end
-  alias_method :description, :body
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
@@ -656,8 +656,9 @@ class Plugin::Twitter::Message < Diva::Model
   deprecate :to_message, :none, 2017, 05
 
   # 本文を人間に読みやすい文字列に変換する
-  def to_show
-    @to_show ||= body.gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze end
+  def description
+    @description ||= body.gsub(/&(?:gt|lt|amp);/, &DESCRIPTION_UNESCAPE_RULE).freeze end
+  alias_method :to_show, :description
 
   # このMessageのパーマリンクを取得する
   # ==== Return
