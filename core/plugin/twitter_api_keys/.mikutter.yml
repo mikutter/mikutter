@@ -1,0 +1,10 @@
+---
+slug: :twitter_api_keys
+depends:
+  mikutter: 3.7.0
+  plugin: []
+version: '1.0'
+author: toshi_a
+name: Twitter APIKeys
+description: >-
+  TwitterのAPIKeyを書き換えるためのプラグイン。オーバーライドして利用する。

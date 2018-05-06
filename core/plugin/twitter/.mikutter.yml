@@ -8,5 +8,6 @@ depends:
   - world
   - spell
   - score
+  - twitter_api_keys
 version: '1.0'
 author: toshi_a
