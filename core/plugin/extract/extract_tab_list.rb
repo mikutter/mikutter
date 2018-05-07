@@ -14,7 +14,6 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
     type_strict plugin => Plugin
     @plugin = plugin
     super(Gtk::ListStore.new(String, Numeric))
-    set_size_request(0, 200)
 
     append_column Gtk::TreeViewColumn.new(plugin._("名前"), Gtk::CellRendererText.new, text: ITER_NAME)
 
