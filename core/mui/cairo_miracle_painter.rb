@@ -245,15 +245,15 @@ class Gdk::MiraclePainter < Gtk::Object
     textselector_unselect end
 
   def iob_icon_pixbuf
-    [ ["reply.png".freeze, (message.respond_to?(:user) && message.user.verified?) ? "verified.png" : "etc.png"],
-      [if message.respond_to?(:user) && message.user.protected?; then "protected.png".freeze else "retweet.png".freeze end,
+    [ ["reply.png".freeze, message.user.verified? ? "verified.png" : "etc.png"],
+      [if message.user.protected? then "protected.png".freeze else "retweet.png".freeze end,
        message.favorite? ? "unfav.png".freeze : "fav.png".freeze] ] end
 
   def iob_icon_pixbuf_off
     world, = Plugin.filtering(:world_current, nil)
     [ [(UserConfig[:show_replied_icon] and message.mentioned_by_me? and "reply.png".freeze),
-       UserConfig[:show_verified_icon] && message.respond_to?(:user) && message.user.verified? && "verified.png"],
-      [ if UserConfig[:show_protected_icon] and message.respond_to?(:user) and message.user.protected?
+       UserConfig[:show_verified_icon] && message.user.verified? && "verified.png"],
+      [ if UserConfig[:show_protected_icon] and message.user.protected?
           "protected.png".freeze
         elsif Plugin[:miracle_painter].shared?(message, world)
           "retweet.png".freeze end,
@@ -398,15 +398,11 @@ class Gdk::MiraclePainter < Gtk::Object
     layout end
 
   def header_left_markup
-    if message.respond_to?(:user)
-      user = message.user
-      if user.respond_to?(:idname)
-        Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
-      else
-        Pango.parse_markup(Pango.escape(user.name || ''))
-      end
+    user = message.user
+    if user.respond_to?(:idname)
+      Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
     else
-      Pango.parse_markup(Pango.escape(''))
+      Pango.parse_markup(Pango.escape(user.name || ''))
     end
   end
 
@@ -446,7 +442,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   # アイコンのpixbufを返す
   def main_icon
-    @main_icon ||= message.icon.load_pixbuf(width: icon_width, height: icon_height){|pixbuf|
+    @main_icon ||= message.user.icon.load_pixbuf(width: icon_width, height: icon_height){|pixbuf|
       @main_icon = pixbuf
       on_modify
     }
