@@ -554,7 +554,7 @@ module Plugin::Worldon
         else
           emoji_score = Enumerator.new{|y|
             dictate_emoji(note.description, y)
-          }.to_a
+          }.first.to_a
           if emoji_score.size > 0
             emoji_score
           else
