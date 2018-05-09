@@ -563,6 +563,9 @@ module Plugin::Worldon
         end
       end
 
+      score.unshift(EmptyNote.new({}))
+      score.push(EmptyNote.new({}))
+
       @description = score.inject('') { |desc, note| desc + note.description }
       @score = score
     end
