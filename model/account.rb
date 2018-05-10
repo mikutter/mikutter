@@ -75,6 +75,8 @@ module Plugin::Worldon
       # activity対策
       hash[:idname] = hash[:acct]
 
+      hash[:name] = hash[:display_name]
+
       super hash
 
       @@account_storage[hash[:acct]] = self

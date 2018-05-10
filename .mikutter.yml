@@ -1,7 +1,7 @@
 ---
 slug: :worldon
 depends:
-  mikutter: 3.6.1
+  mikutter: 3.7.0
   plugin:
     - world
     - spell
@@ -11,6 +11,7 @@ depends:
     - settings
     - command
     - extract
+    - score
 version: '1.0'
 author: 
 name: Worldon

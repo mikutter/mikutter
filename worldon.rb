@@ -18,6 +18,7 @@ require_relative 'extractcondition'
 require_relative 'sse_client'
 require_relative 'sse_stream'
 require_relative 'rest'
+require_relative 'score'
 
 Plugin.create(:worldon) do
   pm = Plugin::Worldon
@@ -181,26 +182,34 @@ Plugin.create(:worldon) do
       puts instance.authorize_url # ブラウザで開けない時のため
       $stdout.flush
       input '認証コード', :authorization_code
+      if error_msg.is_a? String
+        input 'アクセストークンがあれば入力してください', :access_token
+      end
       result = await_input
 
-      if result[:authorization_code].nil? || result[:authorization_code].empty?
+      if ((result[:authorization_code].nil? || result[:authorization_code].empty?) && (result[:access_token].nil? || result[:access_token].empty?))
         error_msg = "認証コードを入力してください"
         next
       end
 
       break
     end
-    resp = pm::API.call(:post, domain, '/oauth/token',
-                                     client_id: instance.client_key,
-                                     client_secret: instance.client_secret,
-                                     grant_type: 'authorization_code',
-                                     redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                                     code: result[:authorization_code]
-                                    )
-    if resp.nil? || resp.value.has_key?(:error)
-      Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+
+    if result[:authorization_code]
+      resp = pm::API.call(:post, domain, '/oauth/token',
+                                       client_id: instance.client_key,
+                                       client_secret: instance.client_secret,
+                                       grant_type: 'authorization_code',
+                                       redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+                                       code: result[:authorization_code]
+                                      )
+      if resp.nil? || resp.has_key?(:error)
+        Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+      end
+      token = resp[:access_token]
+    else
+      token = result[:access_token]
     end
-    token = resp[:access_token]
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
