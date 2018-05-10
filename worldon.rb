@@ -203,7 +203,7 @@ Plugin.create(:worldon) do
                                        redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
                                        code: result[:authorization_code]
                                       )
-      if resp.nil? || resp.has_key?(:error)
+      if resp.nil? || resp.value.has_key?(:error)
         Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
       end
       token = resp[:access_token]
