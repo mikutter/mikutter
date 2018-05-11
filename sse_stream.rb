@@ -263,10 +263,7 @@ Plugin.create(:worldon) do
         error "Worldon: ブーストStatusの取得に失敗"
         return
       end
-      if user_statuses.is_a?(Hash) && user_statuses[:array].is_a?(Array)
-        user_statuses = user_statuses[:array]
-      end
-      idx = user_statuses.index do |hash|
+      idx = user_statuses.value.index do |hash|
         hash[:reblog] && hash[:reblog][:uri] == payload[:status][:uri]
       end
       if idx.nil?

@@ -404,14 +404,16 @@ module Plugin::Worldon
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
       descendants = Status.build(domain, resp[:descendants])
-      ancestors + [self] + descendants
+      @ancestors = ancestors.reverse
+      @descendants = descendants
+      @around = ancestors + [self] + descendants
     end
 
     def ancestors(force_retrieve=false)
       resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
-      [self] + ancestors.reverse
+      @ancestors = [self] + ancestors.reverse
     end
 
     # 返信表示用
