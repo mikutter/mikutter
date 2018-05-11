@@ -5,12 +5,12 @@ module Plugin::Worldon
 
     field.string :id, required: true
     field.string :slug, required: true
-    alias_method :name, :slug
+    alias :name :slug
     field.string :domain, required: true
     field.string :access_token, required: true
     field.has :account, Account, required: true
 
-    alias_method :user_obj, :account
+    alias :user_obj :account
 
     def inspect
       "worldon-world(#{account.acct})"

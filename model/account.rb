@@ -32,11 +32,11 @@ module Plugin::Worldon
     field.has :moved, Account
     field.has :source, AccountSource
 
-    alias_method :perma_link, :url
-    alias_method :uri, :url
-    alias_method :idname, :acct
-    alias_method :name, :display_name
-    alias_method :description, :note
+    alias :perma_link :url
+    alias :uri :url
+    alias :idname :acct
+    alias :name :display_name
+    alias :description :note
 
     @@account_storage = WeakStorage.new(String, Account)
 
