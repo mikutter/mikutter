@@ -44,12 +44,12 @@ module Plugin::Worldon
     attr_accessor :description
     attr_accessor :score
 
-    alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
-    alias_method :perma_link, :url
-    alias_method :muted?, :muted
-    alias_method :pinned?, :pinned
-    alias_method :retweet_ancestor, :reblog
-    alias_method :sensitive?, :sensitive # NSFW系プラグイン用
+    alias :uri :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
+    alias :perma_link :url
+    alias :muted? :muted
+    alias :pinned? :pinned
+    alias :retweet_ancestor :reblog
+    alias :sensitive? :sensitive # NSFW系プラグイン用
 
     @mute_mutex = Thread::Mutex.new
 
@@ -265,7 +265,7 @@ module Plugin::Worldon
       end
     end
 
-    alias_method :retweeted?, :shared?
+    alias :retweeted? :shared?
 
     def favorited_by
       @favorite_accts.map{|acct| Account.findbyacct(acct) }.compact.uniq
@@ -389,7 +389,7 @@ module Plugin::Worldon
       reblog_status_uris.map{|pair| @@status_storage[pair[:uri]] }.compact
     end
 
-    alias_method :retweeted_sources, :retweeted_statuses
+    alias :retweeted_sources :retweeted_statuses
 
     # Message#.introducer
     # 本当はreblogがあればreblogをreblogした最後のStatusを返す
