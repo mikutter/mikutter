@@ -291,8 +291,9 @@ module Plugin::Worldon
 
     def dehtmlize(text)
       result = text
-        .gsub(/<span class="ellipsis">([^<]*)<\/span>/) {|s| $1 + "..." }
-        .gsub(/^<p>|<\/p>|<span class="invisible">[^<]*<\/span>|<\/?span[^>]*>/, '')
+        .gsub(%r!</p><p>!) { "\n\n" }
+        .gsub(%r!<span class="ellipsis">([^<]*)</span>!) {|s| $1 + "..." }
+        .gsub(%r!^<p>|</p>|<span class="invisible">[^<]*</span>|</?span[^>]*>!, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
         .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
