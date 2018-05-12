@@ -507,12 +507,7 @@ module Plugin::Worldon
         desc = dehtmlize(msg.spoiler_text) + "\n----\n" + desc
       end
 
-      # トップレベルのscore_by_scoreで汎用Score系プラグインに勝つための小細工
-      # 本文中に1箇所置き換えがある候補（Note数3）には確実に勝つ
-      # Unicode絵文字始まりでリンクを含む以下のような内容とtwemojiプラグインの組合せには負けるので根本解決にはならない
-      # 🐘🐘🐘🐘 https:// google.com
-      empty = EmptyNote.new({})
-      score = [empty, empty, empty]
+      score = []
 
       # リンク処理
       # TODO: user_detail_viewを作ったらacctをAccount Modelにする
