@@ -94,7 +94,7 @@ Plugin.create(:worldon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: path)
+          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
           if hash
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
@@ -163,7 +163,7 @@ Plugin.create(:worldon) do
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
       tmp_path = media_tmp_dir / tmp_name
       file_put_contents(tmp_path, photo.blob)
-      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: tmp_path.to_s)
+      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s)
       if hash
         media_id = hash[:id]
         compose(world, body: body, media_ids: [media_id], **opts)
