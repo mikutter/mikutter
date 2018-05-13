@@ -82,10 +82,10 @@ Plugin.create(:worldon) do
         !str.empty?
       }.to_a
 
-      fileselect "添付メディア1", :media1, shortcuts: dirs
-      fileselect "添付メディア2", :media2, shortcuts: dirs
-      fileselect "添付メディア3", :media3, shortcuts: dirs
-      fileselect "添付メディア4", :media4, shortcuts: dirs
+      fileselect "添付メディア1", :media1, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア2", :media2, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア3", :media3, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア4", :media4, shortcuts: dirs, use_preview: true
     end.next do |result|
       # 投稿
       # まず画像をアップロード

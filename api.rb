@@ -50,7 +50,7 @@ module Plugin::Worldon
 
         # valueの種類に応じてhttpclientに渡すものを変える
         files = []
-        to_multipart = params.find {|key, value| value === Pathname || value === Plugin::Photo::Photo }
+        to_multipart = params.any? {|key, value| value.is_a?(Pathname) || value.is_a?(Plugin::Photo::Photo) }
 
         if to_multipart
           headers << ["Content-Type", "multipart/form-data"]
@@ -113,13 +113,13 @@ module Plugin::Worldon
           begin
             query, headers, files = build_query(params, headers)
 
-            notice "Worldon::API.call #{method.to_s} #{uri} #{query.to_s}"
-
-            body = {}
+            body = nil
             if method != :get  # :post, :patch
               body = query
-              query = {}
+              query = nil
             end
+
+            notice "Worldon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
 
             client = HTTPClient.new
             resp = client.request(method, uri.to_s, query, body, headers)
