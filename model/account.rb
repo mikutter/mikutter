@@ -40,6 +40,19 @@ module Plugin::Worldon
 
     @@account_storage = WeakStorage.new(String, Account)
 
+    ACCOUNT_URI_RE = %r!\Ahttps://(?<domain>[^/]+)/@(?<acct>\w{1,30})\z!
+
+    handle ACCOUNT_URI_RE do |uri|
+      m = ACCOUNT_URI_RE.match(uri.to_s)
+      acct = "#{m["acct"]}@#{m["domain"]}"
+      account = Account.findbyacct(acct)
+      next account if account
+
+      Thread.new {
+        Account.fetch(acct)
+      }
+    end
+
     def self.regularize_acct_by_domain(domain, acct)
       if acct.index('@').nil?
         acct = acct + '@' + domain
@@ -60,6 +73,15 @@ module Plugin::Worldon
 
     def self.findbyacct(acct)
       @@account_storage[acct]
+    end
+
+    def self.fetch(acct)
+      world, = Plugin.filtering(:worldon_current, nil)
+      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true)
+      hash = resp[:accounts].select{|account| account[:acct] === acct }.first
+      if hash
+        Account.new hash
+      end
     end
 
     def domain
@@ -98,6 +120,11 @@ module Plugin::Worldon
       }.lazy.map{|photo|
         Plugin.filtering(:miracle_icon_filter, photo)[0]
       }.first
+    end
+
+    def me?
+      world = Plugin.filtering(:world_current, nil).first
+      world.class.slug == :worldon && world.account.acct == acct
     end
   end
 end
