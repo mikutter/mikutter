@@ -18,6 +18,7 @@ module Plugin::Worldon
     field.has :reblog, Status
     field.string :content, required: true
     field.time :created_at, required: true
+    field.time :modified
     field.time :created
     field.int :reblogs_count
     field.int :favourites_count
@@ -166,6 +167,7 @@ module Plugin::Worldon
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       # cairo_sub_parts_message_base用
       hash[:created] = hash[:created_at]
+      hash[:modified] = hash[:created_at]
 
       # mikutterはuriをURI型であるとみなす
       hash[:original_uri] = hash[:uri]
