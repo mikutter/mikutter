@@ -8,6 +8,15 @@ module Plugin::Worldon
     field.string :note
   end
 
+  class AccountField < Diva::Model
+    field.string :name
+    field.string :value
+
+    def inspect
+      "#{name}: #{value}"
+    end
+  end
+
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   class Account < Diva::Model
     include Diva::Model::UserMixin
@@ -19,6 +28,7 @@ module Plugin::Worldon
     field.string :acct, required: true
     field.string :display_name, required: true
     field.bool :locked, required: true
+    field.bool :bot
     field.time :created_at, required: true
     field.int :followers_count, required: true
     field.int :following_count, required: true
@@ -31,6 +41,7 @@ module Plugin::Worldon
     field.uri :header_static, required: true
     field.has :moved, Account
     field.has :source, AccountSource
+    field.has :fields, [AccountField]
 
     alias :perma_link :url
     alias :uri :url
