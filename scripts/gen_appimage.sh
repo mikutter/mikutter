@@ -1,4 +1,5 @@
 #!/bin/bash
+set -Ceu
 
 ########################################################################
 # Package the binaries built as an AppImage
@@ -6,8 +7,25 @@
 # For more information, see http://appimage.org/
 ########################################################################
 
+# AppImage generator script for Ubuntu Trusty 16.04
+# maintained by Yuto Tokunaga <yuntan.sub1@gmail.com>
+
+sudo apt update
+sudo apt install -y git
+sudo apt install -y libssl-dev libreadline6-dev libgdbm3 libgdbm-dev # for ruby
+sudo apt install -y zlib1g-dev # for `gem install`
+sudo apt install -y libidn11-dev # for idn-ruby
+
+git clone git://toshia.dip.jp/mikutter.git repo
+cd repo
+set +u
+[[ -n "$REVISION" ]] && git checkout "$REVISION"
+set -u
+
 # env vars used by generate_type2_appimage.
+set +u
 [[ -z "$ARCH" ]] && export ARCH="$(arch)"
+set -u
 APP=mikutter
 VERSION=$(git describe --tags)
 
@@ -15,7 +33,7 @@ ROOT_DIR="$PWD"
 APP_DIR="$PWD/$APP.AppDir"
 
 echo "--> get ruby source"
-wget https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.6.tar.gz
+wget -q https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.6.tar.gz
 tar xf ruby-2.3.6.tar.gz
 
 pushd ruby-2.3.6
@@ -23,7 +41,7 @@ echo "--> patching Ruby"
 # patching Ruby not to use SSLv3_method
 # this fix is for systems which disable SSLv3 support e.g. Arch Linux
 # see https://github.com/rbenv/ruby-build/wiki#openssl-sslv3_method-undeclared-error
-patch -u -p0 < $ROOT_DIR/scripts/no-sslv3-patch.diff
+patch -u -p0 < ~/no-sslv3-patch.diff
 
 echo "--> compile Ruby and install it into AppDir"
 # use relative load paths at run time
@@ -48,7 +66,7 @@ rm -rf "$APP_DIR/usr/share"
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
-cp -v scripts/mikutter $APP_DIR/usr/bin/mikutter
+cp -v ~/mikutter $APP_DIR/usr/bin/mikutter
 chmod a+x $APP_DIR/usr/bin/mikutter
 
 echo "--> get helper functions"
@@ -63,21 +81,25 @@ echo "--> get AppRun"
 # use darealshinji/AppImageKit-checkrt's AppRun to exec xdg-open placed
 # outside of the AppImage
 # see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
-wget -O $APP_DIR/AppRun https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
+wget -q -O $APP_DIR/AppRun https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
 chmod a+x $APP_DIR/AppRun
 mkdir -p $APP_DIR/usr/optional || true
-wget -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
+wget -q -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 
 echo "--> get desktop file and icon"
-cp $ROOT_DIR/$APP.desktop .
+# TODO mikutter.desktopを適当な場所に移動する
+# cp -v $ROOT_DIR/$APP.desktop .
+cp -v ~/mikutter.desktop .
 # icon should be placed in two place
 # see https://github.com/AppImage/AppImageKit/issues/402
-cp $ROOT_DIR/core/skin/data/icon.png $APP.png
+cp -v $ROOT_DIR/core/skin/data/icon.png $APP.png
 mkdir -p $APP_DIR/usr/share/icons/hicolor/256x256/apps || true
-cp $ROOT_DIR/core/skin/data/icon.png $APP_DIR/usr/share/icons/hicolor/256x256/apps/$APP.png
+cp -v $ROOT_DIR/core/skin/data/icon.png $APP_DIR/usr/share/icons/hicolor/256x256/apps/$APP.png
 
 echo "--> get desktop integration"
+set +u
 get_desktopintegration $APP
+set -u
 
 echo "--> copy dependencies"
 copy_deps
@@ -93,7 +115,9 @@ echo "--> move the libraries to usr/lib"
 move_lib
 
 echo "--> delete stuff that should not go into the AppImage."
+set +u
 delete_blacklisted
+set -u
 
 # remove libssl and libcrypto
 # see https://github.com/AppImage/AppImageKit/wiki/Desktop-Linux-Platform-Issues#openssl
@@ -118,9 +142,11 @@ echo "--> generate AppImage"
 #   - Expects: $ARCH, $APP, $VERSION env vars
 #   - Expects: ./$APP.AppDir/ directory
 #   - Produces: ../out/$APP-$VERSION.glibc$GLIBC_NEEDED-$ARCH.AppImage
+set +u
 generate_type2_appimage
+set -u
 
 echo "--> generated $(ls ../out)"
-mv ../out/*.AppImage* "$TRAVIS_BUILD_DIR/"
+mv ../out/*.AppImage* /vagrant
 
 echo '==> finished'
