@@ -110,9 +110,12 @@ module Plugin::Worldon
         else
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
-
           status.reblog_status_uris << { uri: boost_uri, acct: boost_record[:account][:acct] }
           status.reblog_status_uris.uniq!
+
+          # ageなどの対応
+          world, = Plugin.filtering(:world_current, nil)
+          status.set_modified(boost.modified) if world and world.class.slug == :worldon and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != boost.user))
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
