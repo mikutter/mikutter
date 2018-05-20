@@ -615,5 +615,18 @@ module Plugin::Worldon
       @emoji_score[text] = score
     end
 
+    # 最終更新日時を取得する
+    def modified
+      @value[:modified] ||= [created, *(@retweets || []).map{ |x| x.modified }].compact.max
+    end
+    # 最終更新日時を更新する
+    def set_modified(time)
+      if modified < time
+        self[:modified] = time
+        Plugin::call(:message_modified, self)
+      end
+      self
+    end
+
   end
 end
