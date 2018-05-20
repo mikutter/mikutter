@@ -9,13 +9,13 @@ export GI_TYPELIB_PATH=$PWD/lib/girepository-1.0
 export GEM_PATH=$PWD/lib/ruby/gems/2.3.0
 
 # install additional dependencies of mikutter plugins
-mkdir -p ~/.mikutter/plugin || true
-for d in ~/.mikutter/plugin/*; do
-  if [ ! -f "$d/Gemfile" ]; then
-    continue
-  fi
-  bin/ruby bin/bundle install "--gemfile=$d/Gemfile" --path=vendor/bundler
-  export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
-done
+# mkdir -p ~/.mikutter/plugin || true
+# for d in ~/.mikutter/plugin/*; do
+#   if [ ! -f "$d/Gemfile" ]; then
+#     continue
+#   fi
+#   bin/ruby bin/bundle install "--gemfile=$d/Gemfile" --path=vendor/bundler
+#   export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
+# done
 
 exec bin/ruby share/mikutter/mikutter.rb "$@"
