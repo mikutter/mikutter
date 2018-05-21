@@ -1,5 +1,6 @@
 #!/bin/bash
 set -Ceu
+shopt -s globstar
 
 ########################################################################
 # Package the binaries built as an AppImage
@@ -45,7 +46,7 @@ patch -u -p0 < ~/no-sslv3-patch.diff
 
 echo "--> compile Ruby and install it into AppDir"
 # use relative load paths at run time
-./configure --enable-load-relative --prefix=/usr
+./configure --enable-load-relative --prefix=/usr --disable-install-doc
 make -j2
 make "DESTDIR=$APP_DIR" install
 # copy license related files
@@ -60,8 +61,9 @@ GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem i
 # NOTE option `--without=test` is persistent by .bundle/config
 GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without=test
 
-echo "--> remove doc, man, ri"
-rm -rf "$APP_DIR/usr/share"
+echo "--> remove unused files"
+rm -vrf $APP_DIR/usr/share $APP_DIR/usr/include $APP_DIR/usr/lib/{pkgconfig,debug}
+rm -v $APP_DIR/**/*.a
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
@@ -121,7 +123,8 @@ set -u
 
 # remove libssl and libcrypto
 # see https://github.com/AppImage/AppImageKit/wiki/Desktop-Linux-Platform-Issues#openssl
-blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+# blacklist="libssl.so.1 libssl.so.1.0.0 libcrypto.so.1 libcrypto.so.1.0.0"
+blacklist=
 # remove libharfbuzz and it's dependencies,
 # see https://github.com/AppImage/AppImageKit/issues/454
 blacklist=$blacklist" libharfbuzz.so.0 libfreetype.so.6"
