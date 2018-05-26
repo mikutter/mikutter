@@ -1,4 +1,3 @@
-require_relative 'empty_note'
 require_relative 'application'
 require_relative 'emoji'
 require_relative 'attachment'
