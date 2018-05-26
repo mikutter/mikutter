@@ -225,4 +225,28 @@ Plugin.create :photo_support do
     img = URI.join("http://haruicon.com", path)
     open(img)
   end
+
+  # xkcd.com
+  defimageopener('xkcd', %r<\Ahttps?://xkcd\.com/[0-9]+>) do |display_url|
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    result = doc.css('#comic > img').first
+    src = result.attribute('src').to_s
+    if src.start_with?('//')
+      src = Diva::URI.new(display_url).scheme + ':' + src
+    end
+    open(src)
+  end
+
+  # imgur.com
+  defimageopener('imgur', %r<\Ahttps?://imgur\.com/[a-zA-Z0-9]+>) do |display_url|
+    connection = HTTPClient.new
+    page = connection.get_content(display_url)
+    next nil if page.empty?
+    doc = Nokogiri::HTML(page)
+    result = doc.css('link[rel="image_src"]').first
+    open(result.attribute('href').to_s)
+  end
 end
