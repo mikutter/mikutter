@@ -128,15 +128,13 @@ Plugin.create :photo_support do
   end
 
   # imgur
-  defimageopener('imgur', %r<http://imgur\.com(/gallery)?/\w+>) do |display_url|
+  defimageopener('imgur', %r<\Ahttps?://imgur\.com(?:/gallery)?/[a-zA-Z0-9]+>) do |display_url|
     connection = HTTPClient.new
     page = connection.get_content(display_url)
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
-    result = doc.css('img').lazy.find_all{ |dom|
-      'image_src' == dom.attribute('rel')
-    }.first
-    open(result.attribute('href'))
+    result = doc.css('link[rel="image_src"]').first
+    open(result.attribute('href').to_s)
   end
 
   # Fotolog
@@ -238,15 +236,5 @@ Plugin.create :photo_support do
       src = Diva::URI.new(display_url).scheme + ':' + src
     end
     open(src)
-  end
-
-  # imgur.com
-  defimageopener('imgur', %r<\Ahttps?://imgur\.com/[a-zA-Z0-9]+>) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    result = doc.css('link[rel="image_src"]').first
-    open(result.attribute('href').to_s)
   end
 end
