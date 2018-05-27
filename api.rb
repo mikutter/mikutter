@@ -107,7 +107,7 @@ module Plugin::Worldon
           end
 
           if access_token && !access_token.empty?
-            headers << ["Authorization", "Bearer " + access_token]
+            headers = headers + [["Authorization", "Bearer " + access_token]]
           end
 
           begin
@@ -172,6 +172,12 @@ module Plugin::Worldon
         resp[:statuses]
       end
 
+      def account_by_url(domain, access_token, url)
+        resp = call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true)
+        return nil if resp.nil?
+        resp[:accounts]
+      end
+
       def get_local_status_id(world, status)
         return status.id if world.domain == status.domain
 
@@ -183,6 +189,55 @@ module Plugin::Worldon
           statuses[0][:id]
         end
       end
+
+      def get_local_account_id(world, account)
+        return account.id if world.domain == account.domain
+
+        # 別インスタンス起源のaccountなので検索する
+        accounts = account_by_url(world.domain, world.access_token, account.url)
+        if accounts.nil? || accounts[0].nil? || accounts[0][:id].nil?
+          nil
+        else
+          accounts[0][:id]
+        end
+      end
+
+      # Link headerがあるAPIを連続的に叩いて1要素ずつyieldする
+      # ==== Args
+      # [method] HTTPメソッド
+      # [domain] 対象ドメイン
+      # [path] APIパス
+      # [access_token] トークン
+      # [opts] オプション
+      #   [:direction] :next or :prev
+      #   [:wait] APIコール間にsleepで待機する秒数
+      # [headers] 追加ヘッダ
+      # [params] GET/POSTパラメータ
+      def all(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
+        opts[:direction] ||= :next
+        opts[:wait] ||= 1
+
+        while true
+          list = API.call(method, domain, path, access_token, opts, headers, **params)
+
+          if list && list.value.is_a?(Array)
+            list.value.each { |hash| yield hash }
+          end
+
+          break unless list.header.has_key?(opts[:direction])
+
+          url = list.header[opts[:direction]]
+          params = URI.decode_www_form(url.query).to_h.symbolize
+
+          sleep opts[:wait]
+        end
+      end
+
+      def all_with_world(world, method, path = nil, opts = {}, headers = [], **params, &block)
+        all(method, world.domain, path, world.access_token, opts, headers, **params, &block)
+      end
+
     end
   end
+
 end

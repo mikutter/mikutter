@@ -127,7 +127,7 @@ module Plugin::Worldon
       promise
     end
 
-    def followings(**args)
+    def get_accounts!(type)
       promise = Delayer::Deferred.new(true)
       Thread.new do
         begin
@@ -135,32 +135,33 @@ module Plugin::Worldon
           params = {
             limit: 80
           }
-          while true
-            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, **params)
-            if list && list.value.is_a?(Array)
-              accounts.concat(list.value)
-              break
-            elsif list.header
-              accounts.concat(list.value)
-
-              if list.header.has_key?(:next)
-                url = list.header[:next]
-                params = URI.decode_www_form(url.query).to_h.symbolize
-                next
-              else
-                break
-              end
-            end
-            sleep 1
+          API.all_with_world(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
+            accounts << hash
           end
           promise.call(accounts.map {|hash| Account.new hash })
         rescue Exception => e
           pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
-          promise.call('failed to get followings')
+          promise.fail('failed to get followings')
         end
       end
       promise
+    end
+
+    def followings(cache: true, **opts)
+      return @followings if cache && @followings
+      get_accounts!('following').next do |accounts|
+        @followings = accounts
+      end
+      @followings || []
+    end
+
+    def followers(cache: true, **opts)
+      return @followers if cache && @followers
+      get_accounts!('followers').next do |accounts|
+        @followers = accounts
+      end
+      @followers || []
     end
 
     def update_account
