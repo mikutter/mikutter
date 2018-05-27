@@ -149,19 +149,25 @@ module Plugin::Worldon
     end
 
     def followings(cache: true, **opts)
-      return @followings if cache && @followings
-      get_accounts!('following').next do |accounts|
-        @followings = accounts
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        next promise.call(@followings) if cache && @followings
+        get_accounts!('following').next do |accounts|
+          @followings = accounts
+        end
       end
-      @followings || []
+      promise
     end
 
     def followers(cache: true, **opts)
-      return @followers if cache && @followers
-      get_accounts!('followers').next do |accounts|
-        @followers = accounts
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        next promise.call(@followers) if cache && @followers
+        get_accounts!('followers').next do |accounts|
+          @followers = accounts
+        end
       end
-      @followers || []
+      promise
     end
 
     def update_account

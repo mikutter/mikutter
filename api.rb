@@ -107,7 +107,7 @@ module Plugin::Worldon
           end
 
           if access_token && !access_token.empty?
-            headers = headers + [["Authorization", "Bearer " + access_token]]
+            headers += [["Authorization", "Bearer " + access_token]]
           end
 
           begin
