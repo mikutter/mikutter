@@ -145,7 +145,7 @@ module Plugin::Worldon
           id = m[2]
           resp = Plugin::Worldon::API.status(domain_name, id)
           return nil if resp.nil?
-          Status.build(domain_name, [resp]).first
+          Status.build(domain_name, [resp.value]).first
         end
       end
     end
@@ -444,7 +444,7 @@ module Plugin::Worldon
       end
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
-      Status.build(domain, [resp]).first
+      Status.build(domain, [resp.value]).first
     end
 
     # 返信表示用
