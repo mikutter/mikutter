@@ -163,13 +163,10 @@ module Gtk
     def post_it
       if postable?
         return unless before_post
-        text = widget_post.buffer.text
-        text += UserConfig[:footer] if use_blind_footer?
         @posting = Plugin[:gtk].compose(
           current_world,
           to_display_only? ? nil : @to.first,
-          body: text,
-          visibility: @visibility
+          **compose_options
         ).next{
           destroy
         }.trap{ |err|
@@ -326,7 +323,7 @@ module Gtk
     def remain_charcount
       if not widget_post.destroyed?
         current_world, = Plugin.filtering(:world_current, nil)
-        Plugin[:gtk].spell(:remain_charcount, current_world, text: widget_post.buffer.text + UserConfig[:footer])
+        Plugin[:gtk].spell(:remain_charcount, current_world, **compose_options)
       end
     end
 
@@ -373,6 +370,18 @@ module Gtk
         to_display_only: to_display_only?,
         visibility: @visibility,
         **@options } end
+
+    # compose Spellを呼び出す際のオプションを返す
+    # ==== Return
+    # Hash
+    def compose_options
+      text = widget_post.buffer.text
+      text += UserConfig[:footer] if use_blind_footer?
+      {
+        body: text,
+        visibility: @visibility
+      }
+    end
 
     # 真を返すなら、 @to の要素はPostBoxの下に表示するのみで、投稿時にリプライにしない
     # ==== Return

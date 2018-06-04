@@ -239,16 +239,16 @@ Plugin.create(:twitter) do
     }
   end
 
-  defspell(:remain_charcount, :twitter) do |twitter, text:|
-    text = trim_hidden_regions(text)
-    Twitter::TwitterText::Extractor.extract_urls(text).map{|url|
+  defspell(:remain_charcount, :twitter) do |twitter, body:|
+    body = trim_hidden_regions(body)
+    Twitter::TwitterText::Extractor.extract_urls(body).map{|url|
       posted_url_length = Plugin.filtering(:tco_url_length, url, 0).last
       if url.length < posted_url_length
         -(posted_url_length - url.length)
       else
         url.length - posted_url_length
       end
-    }.inject(140 - text.size, &:+)
+    }.inject(140 - body.size, &:+)
   end
 
   def trim_hidden_regions(text)
