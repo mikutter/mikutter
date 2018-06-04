@@ -242,10 +242,11 @@ Plugin.create(:twitter) do
   defspell(:remain_charcount, :twitter) do |twitter, text:|
     text = trim_hidden_regions(text)
     Twitter::TwitterText::Extractor.extract_urls(text).map{|url|
-      if url.length < posted_url_length(url)
-        -(posted_url_length(url) - url.length)
+      posted_url_length = Plugin.filtering(:tco_url_length, url, 0).last
+      if url.length < posted_url_length
+        -(posted_url_length - url.length)
       else
-        url.length - posted_url_length(url)
+        url.length - posted_url_length
       end
     }.inject(140 - text.size, &:+)
   end
@@ -283,15 +284,6 @@ Plugin.create(:twitter) do
     else
       text
     end
-  end
-
-  # URL _url_ がTwitterに投稿された時に何文字としてカウントされるかを返す
-  # ==== Args
-  # [url] String URL
-  # ==== Return
-  # Fixnum URLの長さ
-  def posted_url_length(url)
-    Plugin.filtering(:tco_url_length, url, 0).last
   end
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する
