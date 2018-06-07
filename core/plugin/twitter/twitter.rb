@@ -435,9 +435,15 @@ Plugin.create(:twitter) do
 
   def entity_urls(tweet, urls)
     entities_to_notes(urls) do |url_entity|
-      Diva::Model(:score_hyperlink).new(
-        description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url],
-        uri: url_entity[:expanded_url] || url_entity[:url])
+      begin
+        uri = Diva::URI.new(url_entity[:expanded_url] || url_entity[:url])
+        uri.freeze
+        Diva::Model(:score_hyperlink).new(
+          description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url],
+          uri: uri)
+      rescue Addressable::URI::InvalidURIError => e
+        text_note(description: url_entity[:display_url] || url_entity[:expanded_url] || url_entity[:url])
+      end
     end
   end
 
