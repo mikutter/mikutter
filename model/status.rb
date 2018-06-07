@@ -44,14 +44,14 @@ module Plugin::Worldon
     attr_accessor :description
     attr_accessor :score
 
-    alias_method :uri, :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
-    alias_method :perma_link, :url
-    alias_method :muted?, :muted
-    alias_method :pinned?, :pinned
-    alias_method :retweet_ancestor, :reblog
-    alias_method :sensitive?, :sensitive # NSFW系プラグイン用
+    alias :uri :url # mikutter側の都合で、URI.parse可能である必要がある（API仕様上のuriフィールドとは異なる）。
+    alias :perma_link :url
+    alias :muted? :muted
+    alias :pinned? :pinned
+    alias :retweet_ancestor :reblog
+    alias :sensitive? :sensitive # NSFW系プラグイン用
 
-    @mute_mutex = Thread::Mutex.new
+    @@mute_mutex = Thread::Mutex.new
 
     @@status_storage = WeakStorage.new(String, Status)
 
@@ -63,14 +63,13 @@ module Plugin::Worldon
 
     class << self
       def add_mutes(account_hashes)
-        @mute_mutex.synchronize {
-          @mutes ||= []
-          @mutes += account_hashes.map do |hash|
+        @@mute_mutex.synchronize {
+          @@mutes ||= []
+          @@mutes += account_hashes.map do |hash|
             hash = Account.regularize_acct hash
             hash[:acct]
           end
-          @mutes = @mutes.uniq
-          #pp @mutes
+          @@mutes = @@mutes.uniq
         }
       end
 
@@ -145,16 +144,16 @@ module Plugin::Worldon
           id = m[2]
           resp = Plugin::Worldon::API.status(domain_name, id)
           return nil if resp.nil?
-          Status.build(domain_name, [resp]).first
+          Status.build(domain_name, [resp.value]).first
         end
       end
     end
 
     def initialize(hash)
-      @mutes ||= []
+      @@mutes ||= []
       if hash[:account] && hash[:account][:acct]
         account_hash = Account.regularize_acct(hash[:account])
-        if @mutes.index(account_hash[:acct])
+        if @@mutes.index(account_hash[:acct])
           return nil
         end
       end
@@ -265,7 +264,7 @@ module Plugin::Worldon
       end
     end
 
-    alias_method :retweeted?, :shared?
+    alias :retweeted? :shared?
 
     def favorited_by
       @favorite_accts.map{|acct| Account.findbyacct(acct) }.compact.uniq
@@ -390,7 +389,7 @@ module Plugin::Worldon
       reblog_status_uris.map{|pair| @@status_storage[pair[:uri]] }.compact
     end
 
-    alias_method :retweeted_sources, :retweeted_statuses
+    alias :retweeted_sources :retweeted_statuses
 
     # Message#.introducer
     # 本当はreblogがあればreblogをreblogした最後のStatusを返す
@@ -405,14 +404,16 @@ module Plugin::Worldon
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
       descendants = Status.build(domain, resp[:descendants])
-      ancestors + [self] + descendants
+      @ancestors = ancestors.reverse
+      @descendants = descendants
+      @around = ancestors + [self] + descendants
     end
 
     def ancestors(force_retrieve=false)
       resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
-      [self] + ancestors.reverse
+      @ancestors = [self] + ancestors.reverse
     end
 
     # 返信表示用
@@ -442,7 +443,7 @@ module Plugin::Worldon
       end
       resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
-      Status.build(domain, [resp]).first
+      Status.build(domain, [resp.value]).first
     end
 
     # 返信表示用

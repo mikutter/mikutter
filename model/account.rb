@@ -8,6 +8,15 @@ module Plugin::Worldon
     field.string :note
   end
 
+  class AccountField < Diva::Model
+    field.string :name
+    field.string :value
+
+    def inspect
+      "#{name}: #{value}"
+    end
+  end
+
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   class Account < Diva::Model
     include Diva::Model::UserMixin
@@ -19,6 +28,7 @@ module Plugin::Worldon
     field.string :acct, required: true
     field.string :display_name, required: true
     field.bool :locked, required: true
+    field.bool :bot
     field.time :created_at, required: true
     field.int :followers_count, required: true
     field.int :following_count, required: true
@@ -31,14 +41,28 @@ module Plugin::Worldon
     field.uri :header_static, required: true
     field.has :moved, Account
     field.has :source, AccountSource
+    field.has :fields, [AccountField]
 
-    alias_method :perma_link, :url
-    alias_method :uri, :url
-    alias_method :idname, :acct
-    alias_method :name, :display_name
-    alias_method :description, :note
+    alias :perma_link :url
+    alias :uri :url
+    alias :idname :acct
+    alias :name :display_name
+    alias :description :note
 
     @@account_storage = WeakStorage.new(String, Account)
+
+    ACCOUNT_URI_RE = %r!\Ahttps://(?<domain>[^/]+)/@(?<acct>\w{1,30})\z!
+
+    handle ACCOUNT_URI_RE do |uri|
+      m = ACCOUNT_URI_RE.match(uri.to_s)
+      acct = "#{m["acct"]}@#{m["domain"]}"
+      account = Account.findbyacct(acct)
+      next account if account
+
+      Thread.new {
+        Account.fetch(acct)
+      }
+    end
 
     def self.regularize_acct_by_domain(domain, acct)
       if acct.index('@').nil?
@@ -60,6 +84,15 @@ module Plugin::Worldon
 
     def self.findbyacct(acct)
       @@account_storage[acct]
+    end
+
+    def self.fetch(acct)
+      world, = Plugin.filtering(:worldon_current, nil)
+      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true)
+      hash = resp[:accounts].select{|account| account[:acct] === acct }.first
+      if hash
+        Account.new hash
+      end
     end
 
     def domain
@@ -98,6 +131,11 @@ module Plugin::Worldon
       }.lazy.map{|photo|
         Plugin.filtering(:miracle_icon_filter, photo)[0]
       }.first
+    end
+
+    def me?
+      world = Plugin.filtering(:world_current, nil).first
+      world.class.slug == :worldon && world.account.acct == acct
     end
   end
 end

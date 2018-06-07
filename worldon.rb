@@ -42,6 +42,7 @@ Plugin.create(:worldon) do
   Delayer.new {
     Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
       world.update_account
+      world.followings(cache: false)
       Plugin.call(:world_modify, world)
     end
     Plugin.call(:worldon_restart_all_stream)
@@ -182,35 +183,43 @@ Plugin.create(:worldon) do
       puts instance.authorize_url # ブラウザで開けない時のため
       $stdout.flush
       input '認証コード', :authorization_code
+      if error_msg.is_a? String
+        input 'アクセストークンがあれば入力してください', :access_token
+      end
       result = await_input
 
-      if result[:authorization_code].nil? || result[:authorization_code].empty?
+      if ((result[:authorization_code].nil? || result[:authorization_code].empty?) && (result[:access_token].nil? || result[:access_token].empty?))
         error_msg = "認証コードを入力してください"
         next
       end
 
       break
     end
-    resp = pm::API.call(:post, domain, '/oauth/token',
-                                     client_id: instance.client_key,
-                                     client_secret: instance.client_secret,
-                                     grant_type: 'authorization_code',
-                                     redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                                     code: result[:authorization_code]
-                                    )
-    if resp.nil? || resp.has_key?(:error)
-      Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+
+    if result[:authorization_code]
+      resp = pm::API.call(:post, domain, '/oauth/token',
+                                       client_id: instance.client_key,
+                                       client_secret: instance.client_secret,
+                                       grant_type: 'authorization_code',
+                                       redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+                                       code: result[:authorization_code]
+                                      )
+      if resp.nil? || resp.value.has_key?(:error)
+        Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+      end
+      token = resp[:access_token]
+    else
+      token = result[:access_token]
     end
-    token = resp[:access_token]
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
-    if resp.nil? || resp.has_key?(:error)
+    if resp.nil? || resp.value.has_key?(:error)
       Deferred.fail(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
     end
 
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
-    account = pm::Account.new(resp)
+    account = pm::Account.new(resp.value)
     world = pm::World.new(
       id: screen_name,
       slug: :"worldon:#{screen_name}",

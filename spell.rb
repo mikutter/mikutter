@@ -82,10 +82,10 @@ Plugin.create(:worldon) do
         !str.empty?
       }.to_a
 
-      fileselect "添付メディア1", :media1, shortcuts: dirs
-      fileselect "添付メディア2", :media2, shortcuts: dirs
-      fileselect "添付メディア3", :media3, shortcuts: dirs
-      fileselect "添付メディア4", :media4, shortcuts: dirs
+      fileselect "添付メディア1", :media1, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア2", :media2, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア3", :media3, shortcuts: dirs, use_preview: true
+      fileselect "添付メディア4", :media4, shortcuts: dirs, use_preview: true
     end.next do |result|
       # 投稿
       # まず画像をアップロード
@@ -94,9 +94,11 @@ Plugin.create(:worldon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: path)
-          media_ids << hash[:id].to_i
-          media_urls << hash[:text_url]
+          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
+          if hash
+            media_ids << hash[:id].to_i
+            media_urls << hash[:text_url]
+          end
         end
       end
       # 画像がアップロードできたらcompose spellを起動
@@ -136,14 +138,13 @@ Plugin.create(:worldon) do
       opts[:sensitive] = false;
     end
 
-    hash = world.post(body, opts)
-    if hash.nil?
+    result = world.post(body, opts)
+    if result.nil?
       warn "投稿に失敗したかもしれません"
-      pp hash if Mopt.error_level >= 2
       $stdout.flush
       nil
     else
-      new_status = pm::Status.build(world.domain, [hash]).first
+      new_status = pm::Status.build(world.domain, [result.value]).first
       Plugin.call(:posted, world, [new_status])
       Plugin.call(:update, world, [new_status])
       new_status
@@ -162,7 +163,7 @@ Plugin.create(:worldon) do
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
       tmp_path = media_tmp_dir / tmp_name
       file_put_contents(tmp_path, photo.blob)
-      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, [:file], file: tmp_path.to_s)
+      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s)
       if hash
         media_id = hash[:id]
         compose(world, body: body, media_ids: [media_id], **opts)
@@ -189,14 +190,13 @@ Plugin.create(:worldon) do
     if _status_id
       status_id = _status_id
       opts[:in_reply_to_id] = status_id
-      hash = world.post(body, opts)
-      if hash.nil?
+      result = world.post(body, opts)
+      if result.nil?
         warn "投稿に失敗したかもしれません"
-        pp hash if Mopt.error_level >= 2
         $stdout.flush
         nil
       else
-        new_status = pm::Status.build(world.domain, [hash]).first
+        new_status = pm::Status.build(world.domain, [result.value]).first
         Plugin.call(:posted, world, [new_status])
         Plugin.call(:update, world, [new_status])
         new_status

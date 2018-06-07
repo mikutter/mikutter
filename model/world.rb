@@ -5,12 +5,14 @@ module Plugin::Worldon
 
     field.string :id, required: true
     field.string :slug, required: true
-    alias_method :name, :slug
+    alias :name :slug
     field.string :domain, required: true
     field.string :access_token, required: true
     field.has :account, Account, required: true
 
-    alias_method :user_obj, :account
+    alias :user_obj :account
+
+    attr_reader :lists
 
     def inspect
       "worldon-world(#{account.acct})"
@@ -41,41 +43,29 @@ module Plugin::Worldon
       return @lists if @lists
 
       lists = API.call(:get, domain, '/api/v1/lists', access_token)
-      if lists.is_a? Array
-        @lists = lists
-      else
-        if lists.nil?
-          warn "[worldon] failed to get lists"
-        elsif lists.is_a?(Hash) && lists['error']
-          warn "[worldon] failed to get lists: #{lists['error'].to_s}"
-        end
-        @lists = []
+      if lists.nil?
+        warn "[worldon] failed to get lists"
+      elsif lists.value.is_a? Array
+        @lists = lists.value
+      elsif lists.value.is_a?(Hash) && lists['error']
+        warn "[worldon] failed to get lists: #{lists['error'].to_s}"
       end
     end
 
-    def lists
-      @lists
-    end
-
     def update_mutes!
-      mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, limit: 80)
+      params = { limit: 80 }
       since_id = nil
-      while mutes.is_a? Hash
-        arr = mutes
-        if mutes.is_a? Hash
-          arr = mutes[:array]
-        end
-        Status.add_mutes(arr)
-        if mutes.is_a? Array || mutes[:__Link__].nil? || mutes[:__Link__][:prev].nil?
+      while mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
+        Status.add_mutes(mutes.value)
+        if mutes.header.nil? || mutes.header[:prev].nil?
           return
         end
-        url = mutes[:__Link__][:prev]
+        url = mutes.header[:prev]
         params = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
         return if params[:since_id].to_i == since_id
         since_id = params[:since_id].to_i
 
         sleep 1
-        mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
       end
     end
 
@@ -98,14 +88,14 @@ module Plugin::Worldon
       end
 
       new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
-      if new_status_hash.nil? || new_status_hash.has_key?(:error)
+      if new_status_hash.nil? || new_status_hash.value.has_key?(:error)
         error 'failed reblog request'
         pp new_status_hash if Mopt.error_level >= 1
         $stdout.flush
         return nil
       end
 
-      new_status = PM::Status.build(domain, [new_status_hash]).first
+      new_status = PM::Status.build(domain, [new_status_hash.value]).first
 
       status.actual_status.reblogged = true
       status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }
@@ -137,7 +127,7 @@ module Plugin::Worldon
       promise
     end
 
-    def followings(**args)
+    def get_accounts!(type)
       promise = Delayer::Deferred.new(true)
       Thread.new do
         begin
@@ -145,29 +135,36 @@ module Plugin::Worldon
           params = {
             limit: 80
           }
-          while true
-            list = API.call(:get, domain, "/api/v1/accounts/#{account.id}/following", access_token, **params)
-            if list.is_a? Array
-              accounts.concat(list)
-              break
-            elsif list[:__Link__]
-              accounts.concat(list[:array])
-
-              if list[:__Link__].has_key?(:next)
-                url = list[:__Link__][:next]
-                params = URI.decode_www_form(url.query).to_h.symbolize
-                next
-              else
-                break
-              end
-            end
-            sleep 1
+          API.all_with_world(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
+            accounts << hash
           end
           promise.call(accounts.map {|hash| Account.new hash })
         rescue Exception => e
           pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
-          promise.call('failed to get followings')
+          promise.fail('failed to get followings')
+        end
+      end
+      promise
+    end
+
+    def followings(cache: true, **opts)
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        next promise.call(@followings) if cache && @followings
+        get_accounts!('following').next do |accounts|
+          @followings = accounts
+        end
+      end
+      promise
+    end
+
+    def followers(cache: true, **opts)
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        next promise.call(@followers) if cache && @followers
+        get_accounts!('followers').next do |accounts|
+          @followers = accounts
         end
       end
       promise
@@ -175,13 +172,13 @@ module Plugin::Worldon
 
     def update_account
       resp = PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token)
-      if resp.nil? || resp.has_key?(:error)
+      if resp.nil? || resp.value.has_key?(:error)
         warn(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
         return
       end
 
       resp[:acct] = resp[:acct] + '@' + domain
-      self.account = PM::Account.new(resp)
+      self.account = PM::Account.new(resp.value)
     end
 
     def update_profile(**opts)
@@ -213,8 +210,10 @@ module Plugin::Worldon
           file_keys << key
         end
         new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, file_keys, **params)
-        self.account = PM::Account.new(new_account)
-        Plugin.call(:world_modify, self)
+        if new_account
+          self.account = PM::Account.new(new_account.value)
+          Plugin.call(:world_modify, self)
+        end
       }
     end
   end
