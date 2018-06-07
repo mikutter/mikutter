@@ -51,7 +51,7 @@ module Plugin::Worldon
     alias :retweet_ancestor :reblog
     alias :sensitive? :sensitive # NSFW系プラグイン用
 
-    @mute_mutex = Thread::Mutex.new
+    @@mute_mutex = Thread::Mutex.new
 
     @@status_storage = WeakStorage.new(String, Status)
 
@@ -63,14 +63,13 @@ module Plugin::Worldon
 
     class << self
       def add_mutes(account_hashes)
-        @mute_mutex.synchronize {
-          @mutes ||= []
-          @mutes += account_hashes.map do |hash|
+        @@mute_mutex.synchronize {
+          @@mutes ||= []
+          @@mutes += account_hashes.map do |hash|
             hash = Account.regularize_acct hash
             hash[:acct]
           end
-          @mutes = @mutes.uniq
-          #pp @mutes
+          @@mutes = @@mutes.uniq
         }
       end
 
@@ -151,10 +150,10 @@ module Plugin::Worldon
     end
 
     def initialize(hash)
-      @mutes ||= []
+      @@mutes ||= []
       if hash[:account] && hash[:account][:acct]
         account_hash = Account.regularize_acct(hash[:account])
-        if @mutes.index(account_hash[:acct])
+        if @@mutes.index(account_hash[:acct])
           return nil
         end
       end
