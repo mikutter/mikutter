@@ -43,6 +43,10 @@ Plugin::create(:set_view) do
     [message, color || UserConfig[:"#{message.class.slug}_basic_right_color"] || UserConfig[:mumble_basic_right_color]] end
 
   settings(_("表示")) do
+    settings _('カスタム絵文字') do
+      boolean(_('カスタム絵文字を表示する'), :miraclepainter_expand_custom_emoji).
+        tooltip(_("本文にカスタム絵文字(Emoji Note)が含まれていれば、その画像を取得して表示します。\n無効にすれば、画像のダウンロードは発生せず代替テキストが表示されるので、そのぶん通信トラフィックを抑えることができます。"))
+    end
     settings _('選択中') do
       color _('背景色'), :mumble_selected_bg
     end

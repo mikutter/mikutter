@@ -33,7 +33,7 @@ module Gdk::MarkupGenerator
   def description_attr_list(attr_list=Pango::AttrList.new, emoji_height: 24)
     Plugin[:gtk].score_of(message).inject(0){|start_index, note|
       end_index = start_index + note.description.bytesize
-      if note.respond_to?(:inline_photo)
+      if UserConfig[:miraclepainter_expand_custom_emoji] && note.respond_to?(:inline_photo)
         end_index += -note.description.bytesize + 1
         rect = Pango::Rectangle.new(0, 0, emoji_height * Pango::SCALE, emoji_height * Pango::SCALE)
         shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
@@ -63,14 +63,20 @@ module Gdk::MarkupGenerator
 
   # Entityを適用したあとのプレーンテキストを返す。
   # Pangoの都合上、絵文字は1文字で表現する
-  memoize def plain_description
-    score.map{|note|
-      if note.respond_to?(:inline_photo)
-        '.'
-      else
-        note.description
-      end
-    }.to_a.join
+  def plain_description
+    _plain_description[UserConfig[:miraclepainter_expand_custom_emoji]]
+  end
+
+  private memoize def _plain_description
+    Hash.new do |h, expand_emoji|
+      h[expand_emoji] = score.map{|note|
+        if expand_emoji && note.respond_to?(:inline_photo)
+          '.'
+        else
+          note.description
+        end
+      }.to_a.join
+    end
   end
 
 end
