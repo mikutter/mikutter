@@ -165,7 +165,7 @@ Plugin.create :command do
           condition: Plugin::Command[:HasOneMessage, :HasParmaLinkAll],
           visible: true,
           role: :timeline) do |opt|
-    Plugin.call(:open, Plugin::Web::Web.new(perma_link: opt.messages.first.perma_link)) end
+    Plugin.call(:open, Diva::Model(:web)&.new(perma_link: opt.messages.first.perma_link)) end
 
   command(:open_link,
           name: _('リンクを開く'),
