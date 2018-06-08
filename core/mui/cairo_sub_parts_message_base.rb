@@ -454,7 +454,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   def description_attr_list(message, attr_list=Pango::AttrList.new)
     score(message).inject(0){|start_index, note|
       end_index = start_index + note.description.bytesize
-      if note.respond_to?(:inline_photo)
+      if UserConfig[:miraclepainter_expand_custom_emoji] && note.respond_to?(:inline_photo)
         end_index += -note.description.bytesize + 1
         rect = Pango::Rectangle.new(0, 0, emoji_height * Pango::SCALE, emoji_height * Pango::SCALE)
         shape = Pango::AttrShape.new(rect, rect, note.inline_photo)
@@ -469,14 +469,20 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   # Entityを適用したあとのプレーンテキストを返す。
   # Pangoの都合上、絵文字は1文字で表現する
-  memoize def plain_description(message)
-    score(message).map{|note|
-      if note.respond_to?(:inline_photo)
-        '.'
-      else
-        note.description
-      end
-    }.to_a.join
+  def plain_description(message)
+    _plain_description[[message, UserConfig[:miraclepainter_expand_custom_emoji]]]
   end
 
+  private memoize def _plain_description
+    Hash.new do |h, k|
+      message, expand_emoji = k
+      h[k] = score(message).map{|note|
+        if expand_emoji && note.respond_to?(:inline_photo)
+          '.'
+        else
+          note.description
+        end
+      }.to_a.join
+    end
+  end
 end
