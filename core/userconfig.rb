@@ -153,6 +153,8 @@ class UserConfig
 
     :postbox_visibility => :auto,
     :world_shifter_visibility => :auto,
+
+    :miraclepainter_expand_custom_emoji => true,
   }
 
   @@watcher = Hash.new{ [] }
