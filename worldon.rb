@@ -148,7 +148,7 @@ Plugin.create(:worldon) do
   end
 
   # world作成
-  world_setting(:worldon, _('Mastodonアカウント(Worldon)')) do
+  world_setting(:worldon, _('Mastodon(Worldon)')) do
     error_msg = nil
     while true
       if error_msg.is_a? String
