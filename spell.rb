@@ -316,4 +316,49 @@ Plugin.create(:worldon) do
   defspell(:update_profile_header, :worldon, :photo) do |world, photo|
     update_profile_block.call(world, header: photo)
   end
+
+  command(
+    :worldon_update_profile,
+    name: 'プロフィール変更',
+    condition: -> (opt) {
+      world = Plugin.filtering(:world_current, nil).first
+      world.class.slug == :worldon
+    },
+    visible: true,
+    role: :postbox
+  ) do |opt|
+    world = Plugin.filtering(:world_current, nil).first
+
+    profiles = Hash.new
+    profiles[:name] = world.account.display_name
+    profiles[:biography] = world.account.source.note
+    profiles[:locked] = world.account.locked
+    profiles[:bot] = world.account.bot
+
+    dialog "プロフィール変更" do
+      self[:name] = profiles[:name]
+      self[:biography] = profiles[:biography]
+      self[:locked] = profiles[:locked]
+      self[:bot] = profiles[:bot]
+
+      input '表示名', :name
+      multitext 'プロフィール', :biography
+      photoselect 'アイコン', :icon
+      photoselect 'ヘッダー', :header
+      boolean '承認制アカウントにする', :locked
+      boolean 'これは BOT アカウントです', :bot
+    end.next do |result|
+      diff = Hash.new
+      diff[:name] = result[:name] if (result[:name] && result[:name].size > 0 && profiles[:name] != result[:name])
+      diff[:biography] = result[:biography] if (result[:biography] && result[:biography].size > 0 && profiles[:biography] != result[:biography])
+      diff[:locked] = result[:locked] if profiles[:locked] != result[:locked]
+      diff[:bot] = result[:bot] if profiles[:bot] != result[:bot]
+      diff[:icon] = Pathname(result[:icon]) if result[:icon]
+      diff[:header] = Pathname(result[:header]) if result[:header]
+      next if diff.empty?
+
+      world.update_profile(**diff)
+    end
+  end
+
 end
