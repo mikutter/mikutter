@@ -75,7 +75,7 @@ Plugin.create(:worldon) do
   end
 
   on_userconfig_modify do |key, value|
-    if key == :worldon_enable_streaming
+    if [:worldon_enable_streaming, :extract_tabs].include?(key)
       Plugin.call(:worldon_restart_all_stream)
     end
   end

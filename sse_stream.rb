@@ -6,6 +6,15 @@ Plugin.create(:worldon) do
   # ストリーム開始＆直近取得イベント
   defevent :worldon_start_stream, prototype: [String, String, String, pm::World, Integer]
 
+  def datasource_used?(slug)
+    return false if UserConfig[:extract_tabs].nil?
+    UserConfig[:extract_tabs].any? do |setting|
+      setting[:sources].any? do |ds|
+        ds == slug
+      end
+    end
+  end
+
   on_worldon_start_stream do |domain, type, slug, world, list_id|
     next if !UserConfig[:worldon_enable_streaming]
 
@@ -87,8 +96,8 @@ Plugin.create(:worldon) do
       ltl_slug = pm::Instance.datasource_slug(domain, :local)
 
       # ストリーム開始
-      Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug)
-      Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
     }
   end
 
@@ -113,13 +122,17 @@ Plugin.create(:worldon) do
       end
 
       # ストリーム開始
-      Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
+      if datasource_used?(world.datasource_slug(:home))
+        Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
+      end
 
       if lists.is_a? Array
         lists.each do |l|
           id = l[:id].to_i
           slug = world.datasource_slug(:list, id)
-          Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
+          if datasource_used?(world.datasource_slug(:list, id))
+            Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
+          end
         end
       end
     }
