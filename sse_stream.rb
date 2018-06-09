@@ -33,8 +33,14 @@ Plugin.create(:worldon) do
         uri = Diva::URI.new(base_url + 'user')
       when 'public'
         uri = Diva::URI.new(base_url + 'public')
+      when 'public:media'
+        uri = Diva::URI.new(base_url + 'public')
+        params[:only_media] = true
       when 'public:local'
         uri = Diva::URI.new(base_url + 'public/local')
+      when 'public:local:media'
+        uri = Diva::URI.new(base_url + 'public/local')
+        params[:only_media] = true
       when 'list'
         uri = Diva::URI.new(base_url + 'list')
         params[:list] = list_id
@@ -93,11 +99,15 @@ Plugin.create(:worldon) do
       pm::Instance.add_datasources(domain)
 
       ftl_slug = pm::Instance.datasource_slug(domain, :federated)
+      ftl_media_slug = pm::Instance.datasource_slug(domain, :federated_media)
       ltl_slug = pm::Instance.datasource_slug(domain, :local)
+      ltl_media_slug = pm::Instance.datasource_slug(domain, :local_media)
 
       # ストリーム開始
       Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
       Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
+      Plugin.call(:worldon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
     }
   end
 
