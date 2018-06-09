@@ -1,6 +1,9 @@
 Plugin.create(:worldon) do
   cl = Plugin::Worldon::Status
 
+  defextractcondition(:worldon_status, name: "Worldonで受信したトゥート", operator: false, args: 0) do |message: raise|
+    message.is_a?(cl)
+  end
   defextractcondition(:worldon_domain, name: "ドメイン(Worldon)", operator: true, args: 1, sexp: MIKU.parse("`(,compare (host (uri message)) ,(car args))"))
   defextractcondition(:worldon_spoiler_text, name: "CWテキスト(Worldon)", operator: true, args: 1) do |arg, message: raise, operator: raise, &compare|
     message.is_a?(cl) && compare.(message.spoiler_text, arg)
