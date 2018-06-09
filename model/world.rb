@@ -185,32 +185,32 @@ module Plugin::Worldon
       params = {}
       params[:display_name] = opts[:name] if opts[:name]
       params[:note] = opts[:biography] if opts[:biography]
+      params[:locked] = opts[:locked] if !opts[:locked].nil?
+      params[:bot] = opts[:bot] if !opts[:bot].nil?
       ds = []
       if opts[:icon]
-        ds << opts[:icon].download.next{|photo| [:avatar, photo] }
+        if opts[:icon].is_a?(Plugin::Photo::Photo)
+          ds << opts[:icon].download.next{|photo| [:avatar, photo] }
+        else
+          params[:avatar] = opts[:icon]
+        end
       end
       if opts[:header]
-        ds << opts[:header].download.next{|photo| [:header, photo] }
+        if opts[:header].is_a?(Plugin::Photo::Photo)
+          ds << opts[:header].download.next{|photo| [:header, photo] }
+        else
+          params[:header] = opts[:header]
+        end
       end
-      if ds.size == 0
+      if ds.empty?
         ds << Delayer::Deferred.new.next{ [:none, nil] }
       end
       Delayer::Deferred.when(ds).next{|vs|
-        file_keys = []
-        vs.each do |pair|
-          next unless pair[1].is_a?(Plugin::Photo::Photo)
-
-          photo = pair[1]
-          ext = photo.uri.path.split('.').last || 'png'
-          tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
-          tmp_path = Plugin[:worldon].media_tmp_dir / tmp_name
-          file_put_contents(tmp_path, photo.blob)
-          key = pair[0]
-          params[key] = tmp_path.to_s
-          file_keys << key
+        vs.each do |key, val|
+          params[key] = val
         end
-        new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, file_keys, **params)
-        if new_account
+        new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
+        if new_account.value
           self.account = PM::Account.new(new_account.value)
           Plugin.call(:world_modify, self)
         end
