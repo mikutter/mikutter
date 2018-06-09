@@ -13,9 +13,15 @@ module Plugin::Worldon
         when :local
           # ローカルTL
           "worldon-#{domain}-local".to_sym
+        when :local_media
+          # ローカルメディアTL
+          "worldon-#{domain}-local-media".to_sym
         when :federated
           # 連合TL
           "worldon-#{domain}-federated".to_sym
+        when :federated_media
+          # 連合メディアTL
+          "worldon-#{domain}-federated-media".to_sym
         end
       end
 
@@ -23,7 +29,9 @@ module Plugin::Worldon
         Plugin[:worldon].filter_extract_datasources do |dss|
           datasources = {
             datasource_slug(domain, :local) => "Mastodon公開タイムライン(Worldon)/#{domain} ローカル",
+            datasource_slug(domain, :local_media) => "Mastodon公開タイムライン(Worldon)/#{domain} ローカル（メディア）",
             datasource_slug(domain, :federated) => "Mastodon公開タイムライン(Worldon)/#{domain} 連合",
+            datasource_slug(domain, :federated_media) => "Mastodon公開タイムライン(Worldon)/#{domain} 連合（メディア）",
           }
           [datasources.merge(dss)]
         end
@@ -32,7 +40,9 @@ module Plugin::Worldon
       def remove_datasources(domain)
         Plugin[:worldon].filter_extract_datasources do |datasources|
           datasources.delete datasource_slug(domain, :local)
+          datasources.delete datasource_slug(domain, :local_media)
           datasources.delete datasource_slug(domain, :federated)
+          datasources.delete datasource_slug(domain, :federated_media)
           [datasources]
         end
       end

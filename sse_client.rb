@@ -95,7 +95,7 @@ Plugin.create(:sse_client) do
   connections = {}
   mutex = Thread::Mutex.new
 
-  on_sse_create do |slug, method, uri, params = {}, headers = {}, **opts|
+  on_sse_create do |slug, method, uri, headers = {}, params = {}, **opts|
     begin
       conv = []
       params.each do |key, val|
@@ -199,6 +199,6 @@ Plugin.create(:sse_client) do
   end
 
   filter_sse_connection_all do |_|
-    [connections[slug]]
+    [connections]
   end
 end

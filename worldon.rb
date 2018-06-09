@@ -75,7 +75,7 @@ Plugin.create(:worldon) do
   end
 
   on_userconfig_modify do |key, value|
-    if key == :worldon_enable_streaming
+    if [:worldon_enable_streaming, :extract_tabs].include?(key)
       Plugin.call(:worldon_restart_all_stream)
     end
   end
@@ -148,7 +148,7 @@ Plugin.create(:worldon) do
   end
 
   # world作成
-  world_setting(:worldon, _('Mastodonアカウント(Worldon)')) do
+  world_setting(:worldon, _('Mastodon(Worldon)')) do
     error_msg = nil
     while true
       if error_msg.is_a? String
