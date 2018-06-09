@@ -95,9 +95,12 @@ Plugin.create(:worldon) do
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
           hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
-          if hash
+          if hash.value && hash[:error].nil?
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
+          else
+            Deferred.fail(hash[:error] ? hash[:error] : 'メディアのアップロードに失敗しました')
+            next
           end
         end
       end
