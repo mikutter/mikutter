@@ -199,6 +199,6 @@ Plugin.create(:sse_client) do
   end
 
   filter_sse_connection_all do |_|
-    [connections[slug]]
+    [connections]
   end
 end
