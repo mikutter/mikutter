@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'json'
+require 'twitter-text'
 
 module Plugin::Twitter; end
 
@@ -236,6 +237,53 @@ Plugin.create(:twitter) do
     photo.download.next{ |downloaded|
       (twitter/'account/update_profile_image').user(image: Base64.encode64(downloaded.blob))
     }
+  end
+
+  defspell(:remain_charcount, :twitter) do |twitter, body:|
+    body = trim_hidden_regions(body)
+    Twitter::TwitterText::Extractor.extract_urls(body).map{|url|
+      posted_url_length = Plugin.filtering(:tco_url_length, url, 0).last
+      if url.length < posted_url_length
+        -(posted_url_length - url.length)
+      else
+        url.length - posted_url_length
+      end
+    }.inject(140 - body.size, &:+)
+  end
+
+  def trim_hidden_regions(text)
+    trim_hidden_header(trim_hidden_footer(text))
+  end
+
+  # 文字列からhidden headerを除いた文字列を返す。
+  # hidden headerが含まれていない場合は、 _text_ を返す。
+  def trim_hidden_header(text)
+    return text unless UserConfig[:auto_populate_reply_metadata]
+    mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
+    forecast_receivers_sn = Set.new
+    if reply?
+      @to.first.each_ancestor.each do |m|
+        forecast_receivers_sn << m.user.idname
+        forecast_receivers_sn.merge(m.receive_user_screen_names)
+      end
+    end
+    if mentions
+      specific_screen_names = Set.new(mentions[1].split(/\s+/).map{|s|s[1, s.size]})
+      [*(specific_screen_names - forecast_receivers_sn).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
+    else
+      text
+    end
+  end
+
+  # 文字列からhidden footerを除いた文字列を返す。
+  # hidden footerが含まれていない場合は、 _text_ を返す。
+  def trim_hidden_footer(text)
+    attachment_url = text.match(%r[\A(.*?)\s+(https?://twitter.com/(?:#!/)?(?:[a-zA-Z0-9_]+)/status(?:es)?/(?:\d+)(?:\?.*)?)\Z]m)
+    if attachment_url
+      attachment_url[1]
+    else
+      text
+    end
   end
 
   # リツイートを削除した時、ちゃんとリツイートリストからそれを削除する

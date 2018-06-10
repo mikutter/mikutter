@@ -6,7 +6,6 @@
 
 require 'gtk2'
 require 'thread'
-require 'twitter-text'
 miquire :mui, 'miracle_painter'
 miquire :mui, 'intelligent_textview'
 
@@ -95,11 +94,22 @@ module Gtk
     def widget_remain
       return @remain if defined?(@remain)
       @remain = Gtk::Label.new('---')
+      tag = Plugin[:gtk].handler_tag
+      @remain.ssc_atonce(:expose_event) {
+        Plugin[:gtk].on_world_change_current(tags: tag) { |world|
+          update_remain_charcount
+        }
+        false
+      }
+      @remain.ssc(:destroy) {
+        Plugin[:gtk].detach(tag)
+      }
       Delayer.new{
-        if not @remain.destroyed?
-          @remain.set_text(remain_charcount.to_s) end }
+        update_remain_charcount
+      }
       widget_post.buffer.ssc(:changed){ |textview, event|
-        @remain.set_text(remain_charcount.to_s) }
+        update_remain_charcount
+      }
       @remain end
 
     def widget_send
@@ -153,13 +163,10 @@ module Gtk
     def post_it
       if postable?
         return unless before_post
-        text = widget_post.buffer.text
-        text += UserConfig[:footer] if use_blind_footer?
         @posting = Plugin[:gtk].compose(
           current_world,
           to_display_only? ? nil : @to.first,
-          body: text,
-          visibility: @visibility
+          **compose_options
         ).next{
           destroy
         }.trap{ |err|
@@ -305,59 +312,20 @@ module Gtk
     def use_blind_footer?
       @use_blind_footer end
 
+    def update_remain_charcount
+      remain_charcount.next{ |count|
+        @remain.set_text((count || '---').to_s) if not @remain.destroyed?
+      }.trap {
+        @remain.set_text('---') if not @remain.destroyed?
+      }
+    end
+
     def remain_charcount
       if not widget_post.destroyed?
-        text = trim_hidden_regions(widget_post.buffer.text + UserConfig[:footer])
-        Twitter::TwitterText::Extractor.extract_urls(text).map{|url|
-          if url.length < posted_url_length(url)
-            -(posted_url_length(url) - url.length)
-          else
-            url.length - posted_url_length(url) end
-        }.inject(140 - text.size, &:+)
-      end end
-
-    def trim_hidden_regions(text)
-      trim_hidden_header(trim_hidden_footer(text))
-    end
-
-    # 文字列からhidden headerを除いた文字列を返す。
-    # hidden headerが含まれていない場合は、 _text_ を返す。
-    def trim_hidden_header(text)
-      return text unless UserConfig[:auto_populate_reply_metadata]
-      mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])
-      forecast_receivers_sn = Set.new
-      if reply?
-        @to.first.each_ancestor.each do |m|
-          forecast_receivers_sn << m.user.idname
-          forecast_receivers_sn.merge(m.receive_user_screen_names)
-        end
-      end
-      if mentions
-        specific_screen_names = Set.new(mentions[1].split(/\s+/).map{|s|s[1, s.size]})
-        [*(specific_screen_names - forecast_receivers_sn).map{|s|"@#{s}"}, text[mentions.end(0),text.size]].join(' '.freeze)
-      else
-        text
+        current_world, = Plugin.filtering(:world_current, nil)
+        Plugin[:gtk].spell(:remain_charcount, current_world, **compose_options)
       end
     end
-
-    # 文字列からhidden footerを除いた文字列を返す。
-    # hidden footerが含まれていない場合は、 _text_ を返す。
-    def trim_hidden_footer(text)
-      attachment_url = text.match(%r[\A(.*?)\s+(https?://twitter.com/(?:#!/)?(?:[a-zA-Z0-9_]+)/status(?:es)?/(?:\d+)(?:\?.*)?)\Z]m)
-      if attachment_url
-        attachment_url[1]
-      else
-        text
-      end
-    end
-
-    # URL _url_ がTwitterに投稿された時に何文字としてカウントされるかを返す
-    # ==== Args
-    # [url] String URL
-    # ==== Return
-    # Fixnum URLの長さ
-    def posted_url_length(url)
-      Plugin.filtering(:tco_url_length, url, 0).last end
 
     def focus_out_event(widget, event=nil)
       options = @options
@@ -402,6 +370,18 @@ module Gtk
         to_display_only: to_display_only?,
         visibility: @visibility,
         **@options } end
+
+    # compose Spellを呼び出す際のオプションを返す
+    # ==== Return
+    # Hash
+    def compose_options
+      text = widget_post.buffer.text
+      text += UserConfig[:footer] if use_blind_footer?
+      {
+        body: text,
+        visibility: @visibility
+      }
+    end
 
     # 真を返すなら、 @to の要素はPostBoxの下に表示するのみで、投稿時にリプライにしない
     # ==== Return
