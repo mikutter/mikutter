@@ -306,6 +306,7 @@ Plugin.create(:worldon) do
       status = pm::Status.build(domain, [payload[:status]]).first
       status.favorite_accts << user.acct
       world = status.from_me_world
+      status.set_modified(Time.now.localtime) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or world.user_obj != user)
       if user && status && world
         Plugin.call(:favorite, world, user, status)
       end

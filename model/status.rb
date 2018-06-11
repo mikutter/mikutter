@@ -18,6 +18,7 @@ module Plugin::Worldon
     field.has :reblog, Status
     field.string :content, required: true
     field.time :created_at, required: true
+    field.time :modified
     field.time :created
     field.int :reblogs_count
     field.int :favourites_count
@@ -108,9 +109,12 @@ module Plugin::Worldon
         else
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
-
           status.reblog_status_uris << { uri: boost_uri, acct: boost_record[:account][:acct] }
           status.reblog_status_uris.uniq!
+
+          # ageなどの対応
+          world, = Plugin.filtering(:world_current, nil)
+          status.set_modified(boost.modified) if world and world.class.slug == :worldon and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != boost.user))
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
@@ -165,6 +169,7 @@ module Plugin::Worldon
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       # cairo_sub_parts_message_base用
       hash[:created] = hash[:created_at]
+      hash[:modified] = hash[:created_at]
 
       # mikutterはuriをURI型であるとみなす
       hash[:original_uri] = hash[:uri]
@@ -608,6 +613,19 @@ module Plugin::Worldon
         yielder << score
       end
       @emoji_score[text] = score
+    end
+
+    # 最終更新日時を取得する
+    def modified
+      @value[:modified] ||= [created, *(@retweets || []).map{ |x| x.modified }].compact.max
+    end
+    # 最終更新日時を更新する
+    def set_modified(time)
+      if modified < time
+        self[:modified] = time
+        Plugin::call(:message_modified, self)
+      end
+      self
     end
 
   end
