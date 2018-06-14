@@ -14,6 +14,10 @@ module Plugin::Worldon
 
     attr_reader :lists
 
+    def path
+      "/#{account.acct}/#{access_token}"
+    end
+
     def inspect
       "worldon-world(#{account.acct})"
     end
