@@ -53,6 +53,10 @@ module Plugin::Twitter
                          profile_image_url: user_obj.icon.perma_link.to_s})
     end
 
+    def path
+      "/#{slug}"
+    end
+
     # サービスにクエリ _kind_ を投げる。
     # レスポンスを受け取るまでブロッキングする。
     # レスポンスを返す。失敗した場合は、apifailイベントを発生させてnilを返す。
