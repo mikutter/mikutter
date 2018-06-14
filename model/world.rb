@@ -1,6 +1,8 @@
 # coding: utf-8
 module Plugin::Worldon
   class World < Diva::Model
+    extend Memoist
+
     register :worldon, name: "Mastodon(Worldon)"
 
     field.string :id, required: true
@@ -14,8 +16,8 @@ module Plugin::Worldon
 
     attr_reader :lists
 
-    def path
-      "/#{account.acct}/#{access_token}"
+    memoize def path
+      "/#{account.acct.split('@').reverse.join('/')}/#{access_token}"
     end
 
     def inspect
