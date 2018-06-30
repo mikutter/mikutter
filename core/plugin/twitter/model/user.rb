@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 miquire :core, 'skin'
-miquire :system, 'system'
 miquire :lib, 'typed-array', 'weakstorage'
 
 class Plugin::Twitter::User < Diva::Model
