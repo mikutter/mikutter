@@ -38,12 +38,10 @@ Plugin.create(:worldon) do
         pp tl.select{|status| status.domain.nil? }
         $stdout.flush
       end
-      Plugin.call :extract_receive_message, slug, tl
+      Plugin.call :extract_receive_message, slug, tl if !tl.empty?
 
       reblogs = tl.select{|status| status.reblog? }
-      if !reblogs.empty?
-        Plugin.call(:retweet, reblogs)
-      end
+      Plugin.call(:retweet, reblogs) if !reblogs.empty?
     }
   end
 

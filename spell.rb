@@ -148,8 +148,8 @@ Plugin.create(:worldon) do
       nil
     else
       new_status = pm::Status.build(world.domain, [result.value]).first
-      Plugin.call(:posted, world, [new_status])
-      Plugin.call(:update, world, [new_status])
+      Plugin.call(:posted, world, [new_status]) if new_status
+      Plugin.call(:update, world, [new_status]) if new_status
       new_status
     end
   end
@@ -200,8 +200,8 @@ Plugin.create(:worldon) do
         nil
       else
         new_status = pm::Status.build(world.domain, [result.value]).first
-        Plugin.call(:posted, world, [new_status])
-        Plugin.call(:update, world, [new_status])
+        Plugin.call(:posted, world, [new_status]) if new_status
+        Plugin.call(:update, world, [new_status]) if new_status
         new_status
       end
     else

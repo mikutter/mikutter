@@ -101,6 +101,7 @@ module Plugin::Worldon
         uri = record[:url] # quoting_messages等のために@@status_storageには:urlで入れておく
 
         status = merge_or_create(domain_name, uri, record)
+        return nil if status.nil?
 
         # ブーストの処理
         if !is_boost
@@ -109,6 +110,7 @@ module Plugin::Worldon
         else
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
           boost = merge_or_create(domain_name, boost_uri, boost_record)
+          return nil if boost.nil?
           status.reblog_status_uris << { uri: boost_uri, acct: boost_record[:account][:acct] }
           status.reblog_status_uris.uniq!
 
@@ -132,6 +134,14 @@ module Plugin::Worldon
       end
 
       def merge_or_create(domain_name, uri, new_hash)
+        @@mutes ||= []
+        if new_hash[:account] && new_hash[:account][:acct]
+          account_hash = Account.regularize_acct(new_hash[:account])
+          if @@mutes.index(account_hash[:acct])
+            return nil
+          end
+        end
+
         status = @@status_storage[uri]
         if status
           status = status.merge(domain_name, new_hash)
@@ -154,14 +164,6 @@ module Plugin::Worldon
     end
 
     def initialize(hash)
-      @@mutes ||= []
-      if hash[:account] && hash[:account][:acct]
-        account_hash = Account.regularize_acct(hash[:account])
-        if @@mutes.index(account_hash[:acct])
-          return nil
-        end
-      end
-
       @reblog_status_uris = []
       @favorite_accts = []
 

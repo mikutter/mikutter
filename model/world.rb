@@ -102,6 +102,7 @@ module Plugin::Worldon
       end
 
       new_status = PM::Status.build(domain, [new_status_hash.value]).first
+      return if new_status.nil?
 
       status.actual_status.reblogged = true
       status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }

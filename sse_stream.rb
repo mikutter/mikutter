@@ -252,6 +252,8 @@ Plugin.create(:worldon) do
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
     status = pm::Status.build(domain, [payload]).first
+    return if status.nil?
+
     Plugin.call(:extract_receive_message, datasource_slug, [status])
     world = stream_world(domain, access_token)
     Plugin.call(:update, world, [status])
@@ -274,6 +276,7 @@ Plugin.create(:worldon) do
     case payload[:type]
     when 'mention'
       status = pm::Status.build(domain, [payload[:status]]).first
+      return if status.nil?
       world = status.to_me_world
       if !world.nil?
         Plugin.call(:mention, world, [status])
@@ -295,6 +298,7 @@ Plugin.create(:worldon) do
       end
 
       status = pm::Status.build(domain, [user_statuses[idx]]).first
+      return if status.nil?
       Plugin.call(:retweet, [status])
       world = status.to_me_world
       if world
@@ -304,6 +308,7 @@ Plugin.create(:worldon) do
     when 'favourite'
       user = pm::Account.new(payload[:account])
       status = pm::Status.build(domain, [payload[:status]]).first
+      return if status.nil?
       status.favorite_accts << user.acct
       world = status.from_me_world
       status.set_modified(Time.now.localtime) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or world.user_obj != user)
