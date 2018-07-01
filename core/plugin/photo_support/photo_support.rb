@@ -39,16 +39,6 @@ Plugin.create :photo_support do
     open(result.attribute('src'))
   end
 
-  # twipple photo
-  defimageopener('twipple photo', %r<^http://p\.twipple\.jp/[a-zA-Z0-9]+>) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    result = doc.css('#post_image').first
-    open(result.attribute('src'))
-  end
-
   # moby picture
   defimageopener('moby picture', %r<^http://moby.to/[a-zA-Z0-9]+>) do |display_url|
     connection = HTTPClient.new
@@ -101,11 +91,6 @@ Plugin.create :photo_support do
     doc = Nokogiri::HTML(page)
     result = doc.css('#the-image').first
     open(result.attribute('src'))
-  end
-
-  # twitgoo
-  defimageopener('twitgoo', %r<^http://twitgoo\.com/[a-zA-Z0-9]+>) do |display_url|
-    open(display_url)
   end
 
   # jigokuno.com
@@ -212,16 +197,6 @@ Plugin.create :photo_support do
     doc = Nokogiri::HTML(page)
     result = doc.css('meta[property="twitter:image:src"]')
     open(result.attribute('content').value)
-  end
-
-  defimageopener('彩の庭', %r{\Ahttp://haruicon\.com/ayanoniwa?\Z}) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    path = doc.css('img').attribute('src').value
-    img = URI.join("http://haruicon.com", path)
-    open(img)
   end
 
   # xkcd.com
