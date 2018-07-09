@@ -428,6 +428,7 @@ module Gtk::FormDSL
   end
 
   def fs_photo_packing_widgets(container:, image:, image_container:, button:, **kwrest)
+    image_container.visible_window = false
     image_container.add(image)
     container.pack_start(image_container, false)
     container.pack_start(button, false)
