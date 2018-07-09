@@ -39,6 +39,7 @@ miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
 miquire :core, 'environment'
 Dir.chdir(Environment::CONFROOT)
 miquire :lib, 'diva_hacks'
+miquire :system, 'system'
 miquire :boot, 'load_plugin'
 
 notice "fire boot event"
