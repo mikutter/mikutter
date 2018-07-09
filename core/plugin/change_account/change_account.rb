@@ -67,8 +67,8 @@ Plugin.create :change_account do
     pack_start(Gtk::HBox.new(false, 4).
                  add(listview).
                  closeup(Gtk::VBox.new.
-                           add(btn_add).
-                           add(btn_delete)))
+                           closeup(btn_add).
+                           closeup(btn_delete)))
   end
 
   on_request_world_add do
