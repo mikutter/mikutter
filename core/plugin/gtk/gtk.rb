@@ -142,6 +142,7 @@ Plugin.create :gtk do
   # Tab(Gtk::EventBox)
   def create_tab(i_tab)
     tab = ::Gtk::EventBox.new.tooltip(i_tab.name)
+    tab.visible_window = false
     @slug_dictionary.add(i_tab, tab)
     tab_update_icon(i_tab)
     tab.ssc(:focus_in_event) {
