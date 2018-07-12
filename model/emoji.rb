@@ -2,6 +2,7 @@
 module Plugin::Worldon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#emoji
   class Emoji < Diva::Model
+    extend Memoist
     #register :worldon_emoji, name: "Mastodon絵文字(Worldon)"
 
     field.string :shortcode, required: true
