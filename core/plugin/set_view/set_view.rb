@@ -168,7 +168,7 @@ Plugin::create(:set_view) do
     select(_('URLを開く方法'), :url_open_specified_command) do
       option false, _("デフォルトブラウザを使う")
       option true do
-        input _("次のコマンドを使う"), :url_open_command
+        fileselect _("次のコマンドを使う"), :url_open_command
       end
     end
 
