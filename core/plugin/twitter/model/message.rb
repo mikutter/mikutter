@@ -14,7 +14,7 @@ class Plugin::Twitter::Message < Diva::Model
   extend Memoist
 
   PermalinkMatcher = Regexp.union(
-    %r[\Ahttps?://twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
+    %r[\Ahttps?://(?:mobile\.)?twitter.com/(?:#!/)?(?<screen_name>[a-zA-Z0-9_]+)/status(?:es)?/(?<id>\d+)(?:\?.*)?\Z], # Twitter
     %r[\Ahttp://favstar\.fm/users/(?<screen_name>[a-zA-Z0-9_]+)/status/(?<id>\d+)], # Hey, Favstar. Ban stop me premiamu!
     %r[\Ahttp://aclog\.koba789\.com/i/(?<id>\d+)] # Hey, Twitter. Please BAN me rhenium!
   ).freeze
