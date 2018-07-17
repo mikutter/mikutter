@@ -437,7 +437,12 @@ class Gdk::MiraclePainter < Gtk::Object
   # pixbufを組み立てる
   def gen_pixbuf
     @pixmap = gen_pixmap
-    GdkPixbuf::Pixbuf.from_drawable(nil, @pixmap, 0, 0, width, height)
+    # self.heightを使用すると
+    # エラーメッセージ
+    # Gdk-CRITICAL **: IA__gdk_pixbuf_get_from_drawable: assertion 'src_x + width <= src_width && src_y + height <= src_height' failed
+    # が表示されるので`@pixmap.size`のheightを使用する
+    src_width, src_height = @pixmap.size
+    GdkPixbuf::Pixbuf.from_drawable(nil, @pixmap, 0, 0, src_width, src_height)
   end
 
   # アイコンのpixbufを返す
