@@ -9,6 +9,15 @@ module Plugin::PhotoSupport
   class << self
     extend Memoist
 
+    def via_xpath(display_url, xpath)
+      connection = HTTPClient.new
+      page = connection.get_content(display_url)
+      unless page.empty?
+        doc = Nokogiri::HTML(page)
+        doc.xpath(xpath).first
+      end
+    end
+
     # Twitter cardsのURLを画像のURLに置き換える。
     # HTMLを頻繁にリクエストしないように、このメソッドを通すことでメモ化している。
     # ==== Args
@@ -16,12 +25,21 @@ module Plugin::PhotoSupport
     # ==== Return
     # String 画像URL(http://d250g2.com/d250g2.jpg)
     def d250g2(display_url)
-      connection = HTTPClient.new
-      page = connection.get_content(display_url)
-      unless page.empty?
-        doc = Nokogiri::HTML(page)
-        doc.css('meta[name="twitter:image:src"]').first.attribute('content') end end
+      r = via_xpath(display_url, "//meta[@name='twitter:image']/@content")
+      return r if r
+      via_xpath(display_url, "//meta[@name='twitter:image:src']/@content")
+    end
     memoize :d250g2
+
+    # OpenGraphProtocol対応のURLを画像のURLに置き換える。
+    # HTMLを頻繁にリクエストしないように、このメソッドを通すことでメモ化している。
+    # ==== Args
+    # [display_url] https://www.instagram.com/p/Bj4XIgNHacT/
+    # ==== Return
+    # String 画像URL(https://scontent-nrt1-1.cdninstagram.com/vp/867c287aac67e555f873458042d25c70/5BC16C10/t51.2885-15/e35/33958857_788214964721700_3554146954256580608_n.jpg)
+    def インスタ映え(display_url)
+      via_xpath(display_url, "//meta[@property='og:image']/@content") end
+    memoize :"インスタ映え"
   end
 end
 
@@ -138,15 +156,9 @@ Plugin.create :photo_support do
   end
 
   # Fotolog
-  defimageopener('Fotolog', %r<http://(?:www\.)fotolog\.com/\w+/\d+/?>) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    result = doc.css('meta').lazy.find_all{ |dom|
-      'og:image' == dom.attribute('property').to_s
-    }.first
-    open(result.attribute('content'))
+  defimageopener('Fotolog', %r<\Ahttps?://(?:www\.)?fotolog\.com/\w+/\d+/?>) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
   end
 
   # フォト蔵
@@ -160,13 +172,8 @@ Plugin.create :photo_support do
 
   # instagram
   defimageopener('instagram', Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
-    notice display_url
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    result = doc.xpath("//meta[@property='og:image']/@content").first
-    open(result)
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
   end
 
   # d250g2
@@ -236,5 +243,17 @@ Plugin.create :photo_support do
       src = Diva::URI.new(display_url).scheme + ':' + src
     end
     open(src)
+  end
+
+  # マシュマロ
+  defimageopener('marshmallow-qa', %r<\Ahttps?://marshmallow-qa\.com/messages/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}>) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
+
+  # peing
+  defimageopener('peing', %r<\Ahttps?://peing\.net/\w+/(?:qs/\d+|q/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>) do |display_url|
+    img = Plugin::PhotoSupport.d250g2(display_url)
+    open(img) if img
   end
 end
