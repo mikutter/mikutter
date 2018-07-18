@@ -79,12 +79,8 @@ Plugin.create :photo_support do
 
   # gyazo
   defimageopener('gyazo', %r<\Ahttps?://gyazo.com/[a-zA-Z0-9]+>) do |display_url|
-    connection = HTTPClient.new
-    page = connection.get_content(display_url)
-    next nil if page.empty?
-    doc = Nokogiri::HTML(page)
-    result = doc.css('.image').first
-    open(result.attribute('src'))
+    img = Plugin::PhotoSupport.d250g2(display_url)
+    open(img) if img
   end
 
   # 携帯百景
