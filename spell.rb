@@ -364,4 +364,21 @@ Plugin.create(:worldon) do
     end
   end
 
+  # 検索
+  defspell(:search, :worldon) do |world, **opts|
+    count = [opts[:count], 40].min
+    q = opts[:q]
+    if q.start_with? '#'
+      q = URI.encode_www_form_component(q[1..-1])
+      resp = Plugin::Worldon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count)
+      return nil if resp.nil?
+      resp = resp.to_a
+    else
+      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q)
+      return nil if resp.nil?
+      resp = resp[:statuses]
+    end
+    Plugin::Worldon::Status.build(world.domain, resp)
+  end
+
 end
