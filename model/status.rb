@@ -517,7 +517,6 @@ module Plugin::Worldon
 
       # リンク処理
       # TODO: user_detail_viewを作ったらacctをAccount Modelにする
-      # TODO: search spellを作ったらハッシュタグをなんかそれっぽいModelにする
       pos = 0
       anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
       urls = []
@@ -527,11 +526,15 @@ module Plugin::Worldon
         if pos < anchor_begin
           score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
-        url = CGI.unescapeHTML(m["url"])
-        score << Plugin::Score::HyperLinkNote.new(
-          description: CGI.unescapeHTML(m["text"]),
-          uri: url,
-        )
+        url = Diva::URI.new(CGI.unescapeHTML(m["url"]))
+        if url.path.start_with? "/tags/"
+          score << Tag.new(name: CGI.unescapeHTML(m["text"])[1..-1])
+        else
+          score << Plugin::Score::HyperLinkNote.new(
+            description: CGI.unescapeHTML(m["text"]),
+            uri: url,
+          )
+        end
         urls << url
         pos = anchor_end
       end

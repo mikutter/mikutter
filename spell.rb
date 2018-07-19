@@ -365,6 +365,10 @@ Plugin.create(:worldon) do
   end
 
   # 検索
+  intent :worldon_tag do |token|
+    Plugin.call(:search_start, "##{token.model.name}")
+  end
+
   defspell(:search, :worldon) do |world, **opts|
     count = [opts[:count], 40].min
     q = opts[:q]
