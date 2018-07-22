@@ -54,14 +54,19 @@ module Gdk::Coordinate
   end
 
   def reset_height
-    if(@height and defined?(@minpart_height) and tree)
-      sid = ssc(:modified, tree){
+    if !@sid_modified && tree
+      @sid_modified ||= ssc_atonce(:modified, tree) do
         tree.get_column(0).queue_resize
-        signal_handler_disconnect(sid) if signal_handler_is_connected?(sid)
-        false }
-      @height = @minpart_height = nil
-      on_modify end
-    self end
+        signal_handler_disconnect(@sid_modified) if signal_handler_is_connected?(@sid_modified)
+        @sid_modified = nil
+        false
+      end
+      @height&.clear
+      @minpart_height&.clear
+      on_modify
+    end
+    self
+  end
 
   def width=(new)
     if(@width != new)
