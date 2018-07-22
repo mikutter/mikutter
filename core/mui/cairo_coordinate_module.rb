@@ -49,8 +49,8 @@ module Gdk::Coordinate
   end
 
   def mainpart_height
-    @minpart_height ||= Hash.new
-    @minpart_height[width] ||= height - subparts_height - icon_margin
+    @mainpart_height ||= Hash.new
+    @mainpart_height[width] ||= height - subparts_height - icon_margin
   end
 
   def reset_height
@@ -62,7 +62,7 @@ module Gdk::Coordinate
         false
       end
       @height&.clear
-      @minpart_height&.clear
+      @mainpart_height&.clear
       on_modify
     end
     self
