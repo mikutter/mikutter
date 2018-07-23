@@ -66,6 +66,8 @@ module Gdk::Coordinate
       on_modify
     end
     self
+  rescue Gdk::MiraclePainter::DestroyedError
+    self
   end
 
   def width=(new)
