@@ -209,7 +209,9 @@ Plugin.create(:worldon) do
                                        code: result[:authorization_code]
                                       )
       if resp.nil? || resp.value.has_key?(:error)
-        Deferred.fail(resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+        label "認証に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
+        await_input
+        raise (resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
       end
       token = resp[:access_token]
     else
@@ -218,7 +220,8 @@ Plugin.create(:worldon) do
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
-      Deferred.fail(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
+      label "アカウント情報の取得に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
+      raise (resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
     end
 
     screen_name = resp[:acct] + '@' + domain
