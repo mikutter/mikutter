@@ -1,6 +1,4 @@
 # coding: utf-8
-require 'securerandom'
-
 module Plugin::Worldon
   class World < Diva::Model
     extend Memoist
@@ -13,21 +11,13 @@ module Plugin::Worldon
     field.string :domain, required: true
     field.string :access_token, required: true
     field.has :account, Account, required: true
-    field.string :uuid, required: true
 
     alias :user_obj :account
 
     attr_reader :lists
 
-    def initialize(hash)
-      unless hash[:uuid]
-        hash[:uuid] = SecureRandom.uuid
-      end
-      super(hash)
-    end
-
     memoize def path
-      "/#{account.acct.split('@').reverse.join('/')}/#{uuid}"
+      "/#{account.acct.split('@').reverse.join('/')}"
     end
 
     def inspect
