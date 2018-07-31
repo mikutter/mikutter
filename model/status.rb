@@ -575,7 +575,10 @@ module Plugin::Worldon
         end
       end
 
-      @description = score.inject('') { |desc, note| desc + note.description }
+      @description = score.inject('') do |acc, note|
+        desc = note.is_a?(Plugin::Score::HyperLinkNote) ? note.uri.to_s : note.description
+        acc + desc
+      end
       @score = score
     end
 
