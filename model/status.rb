@@ -302,7 +302,6 @@ module Plugin::Worldon
         .gsub(%r!^<p>|</p>|<span class="invisible">[^<]*</span>|</?span[^>]*>!, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
-        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
       result
     end
 
@@ -518,7 +517,7 @@ module Plugin::Worldon
       # リンク処理
       # TODO: user_detail_viewを作ったらacctをAccount Modelにする
       pos = 0
-      anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
+      anchor_re = %r|<a href="(?<url>[^"]*)"(?: class="(?<class>[^"]*)")?(?: rel="(?<rel>[^"]*)")?[^>]*>(?<text>[^<]*)</a>|
       urls = []
       while m = anchor_re.match(desc, pos)
         anchor_begin = m.begin(0)
@@ -527,13 +526,17 @@ module Plugin::Worldon
           score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
         url = Diva::URI.new(CGI.unescapeHTML(m["url"]))
-        if url.path.start_with? "/tags/"
+        if m["rel"] && m["rel"].split(' ').include?('tag')
           score << Tag.new(name: CGI.unescapeHTML(m["text"])[1..-1])
         else
-          score << Plugin::Score::HyperLinkNote.new(
+          link_hash = {
             description: CGI.unescapeHTML(m["text"]),
             uri: url,
-          )
+            worldon_link_attr: Hash.new,
+          }
+          link_hash[:worldon_link_attr][:class] = m["class"].split(' ') if m["class"]
+          link_hash[:worldon_link_attr][:rel] = m["rel"].split(' ') if m["rel"]
+          score << Plugin::Score::HyperLinkNote.new(link_hash)
         end
         urls << url
         pos = anchor_end
@@ -576,7 +579,18 @@ module Plugin::Worldon
       end
 
       @description = score.inject('') do |acc, note|
-        desc = note.is_a?(Plugin::Score::HyperLinkNote) ? note.uri.to_s : note.description
+        desc = note.description
+        if note.is_a?(Plugin::Score::HyperLinkNote)
+          attr = note[:worldon_link_attr]
+          if attr
+            cls = note[:worldon_link_attr][:class]
+            if cls.nil? || !cls.include?('mention')
+              desc = note.uri.to_s
+            elsif cls.include?('u-url')
+              desc = "#{desc}@#{note.uri.host}"
+            end
+          end
+        end
         acc + desc
       end
       @score = score
