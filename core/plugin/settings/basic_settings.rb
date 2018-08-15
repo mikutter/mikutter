@@ -41,8 +41,6 @@ Plugin::create(:basic_settings) do
     end
 
     settings _('リアルタイム更新') do
-      boolean(_('ホームタイムライン(UserStream)'), :realtime_rewind).
-        tooltip _('Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります')
       boolean(_('リスト(Streaming API)'), :filter_realtime_rewind).
         tooltip _('Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります')
     end

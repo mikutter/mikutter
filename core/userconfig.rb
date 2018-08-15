@@ -38,8 +38,7 @@ class UserConfig
     :follow_queue_delay => 100,
     :direct_message_queue_delay => 100,
 
-    # User Stream
-    :realtime_rewind => true,
+    # Streaming API(Twitter)
     :filter_realtime_rewind => true,
 
     # デフォルトのフッダ
