@@ -49,7 +49,6 @@ Plugin.create(:worldon) do
       world.followings(cache: false)
       Plugin.call(:world_modify, world)
     end
-    Plugin.call(:worldon_restart_all_stream)
   }
 
 
@@ -80,7 +79,7 @@ Plugin.create(:worldon) do
 
   on_userconfig_modify do |key, value|
     if [:worldon_enable_streaming, :extract_tabs].include?(key)
-      Plugin.call(:worldon_restart_all_stream)
+      Plugin.call(:worldon_restart_all_streams)
     end
   end
 

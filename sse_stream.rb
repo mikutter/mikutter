@@ -59,9 +59,36 @@ Plugin.create(:worldon) do
     Plugin.call(:sse_kill_connection, slug)
   end
 
-  on_worldon_restart_all_stream do
-    Plugin.call(:sse_kil_all)
+  # mikutterにとって自明に60秒以上過去となる任意の日時
+  @last_all_restarted = Time.new(2007, 8, 31, 0, 0, 0, "+09:00")
+  @waiting = false
 
+  restarter = Proc.new do
+    if @waiting
+      Plugin.call(:sse_kill_all, :worldon_start_all_streams)
+      atomic {
+        @last_all_restarted = Time.new
+        @waiting = false
+      }
+    end
+    atomic {
+      @waiting = false
+    }
+
+    Reserver.new(60, &restarter)
+  end
+
+  on_worldon_restart_all_streams do
+    now = Time.new
+    atomic {
+      @waiting = true
+    }
+    if (now - @last_all_restarted) >= 60
+      restarter.call
+    end
+  end
+
+  on_worldon_start_all_streams do
     worlds, = Plugin.filtering(:worldon_worlds, nil)
 
     worlds.each do |world|
