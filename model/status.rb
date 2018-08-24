@@ -116,8 +116,7 @@ module Plugin::Worldon
           status.reblog_status_uris.uniq!
 
           # ageなどの対応
-          world, = Plugin.filtering(:world_current, nil)
-          status.set_modified(boost.modified) if world and world.class.slug == :worldon and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != boost.user))
+          status.set_modified(boost.modified) if UserConfig[:retweeted_by_anyone_age] and (UserConfig[:retweeted_by_myself_age] or !boost.account.me?)
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている

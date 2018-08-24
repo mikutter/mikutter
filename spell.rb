@@ -325,7 +325,7 @@ Plugin.create(:worldon) do
     name: 'プロフィール変更',
     condition: -> (opt) {
       world = Plugin.filtering(:world_current, nil).first
-      world.class.slug == :worldon
+      [:worldon, :portal].include?(world.class.slug)
     },
     visible: true,
     role: :postbox

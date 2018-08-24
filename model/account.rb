@@ -135,7 +135,7 @@ module Plugin::Worldon
 
     def me?
       world = Plugin.filtering(:world_current, nil).first
-      world.class.slug == :worldon && world.account.acct == acct
+      world.respond_to?(:account) && world.account.respond_to?(:acct) && world.account.acct == acct
     end
   end
 end
