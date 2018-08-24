@@ -369,6 +369,46 @@ Plugin.create(:worldon) do
     Plugin.call(:search_start, "##{token.model.name}")
   end
 
+  # アカウント
+  intent :worldon_account do |token|
+    Plugin.call(:worldon_account_timeline, token.model)
+  end
+
+  on_worldon_account_timeline do |account|
+    acct, domain = account.acct.split('@')
+    tl_slug = :"worldon-account-timeline_#{acct}@#{domain}"
+    tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
+      set_icon account.icon
+      set_deletable true
+      timeline(tl_slug)
+    end
+    timeline(tl_slug).active!
+
+    Thread.new do
+      headers = {
+        'Accept' => 'application/activity+json'
+      }
+      res = pm::API.call(:get, domain, "/users/#{acct}/outbox?page=true", nil, {}, headers)
+      next unless res[:orderedItems]
+
+      res[:orderedItems].map do |record|
+        case record[:type]
+        when "Create"
+          # トゥート
+          record[:object][:url]
+        when "Announce"
+          # ブースト
+          pm::Status::TOOT_ACTIVITY_URI_RE.match(record[:atomUri]) do |m|
+            "https://#{m[:domain]}/@#{m[:acct]}/#{m[:status_id]}"
+          end
+        end
+      end.compact.each do |url|
+        status = pm::Status.findbyurl(url) || pm::Status.fetch(url)
+        timeline(tl_slug) << status if status
+      end
+    end
+  end
+
   defspell(:search, :worldon) do |world, **opts|
     count = [opts[:count], 40].min
     q = opts[:q]

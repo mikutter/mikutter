@@ -56,7 +56,8 @@ module Plugin::Worldon
 
     @@status_storage = WeakStorage.new(String, Status)
 
-    TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!
+    TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!.freeze
+    TOOT_ACTIVITY_URI_RE = %r!\Ahttps://(?<domain>[^/]*)/users/(?<acct>[^/]*)/statuses/(?<status_id>[^/]*)/activity\z!.freeze
 
     handle TOOT_URI_RE do |uri|
       Status.findbyurl(uri) || Thread.new { Status.fetch(uri) }
