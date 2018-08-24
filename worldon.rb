@@ -129,7 +129,6 @@ Plugin.create(:worldon) do
     if world.class.slug == :worldon
       Delayer.new {
         Plugin.call(:worldon_create_or_update_instance, world.domain, true)
-        Plugin.call(:worldon_init_auth_stream, world)
       }
     end
   end
