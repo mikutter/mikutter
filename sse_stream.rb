@@ -304,6 +304,7 @@ Plugin.create(:worldon) do
     when 'mention'
       status = pm::Status.build(domain, [payload[:status]]).first
       return if status.nil?
+      Plugin.call(:extract_receive_message, datasource_slug, [status])
       world = status.to_me_world
       if !world.nil?
         Plugin.call(:mention, world, [status])
