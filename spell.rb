@@ -126,6 +126,50 @@ Plugin.create(:worldon) do
     end
   end
 
+  command(:worldon_report_status, name: '通報する', condition: lambda { |opt| Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
+    world, = Plugin.filtering(:worldon_current, nil)
+    next unless world
+    dialog "通報する" do
+      error_msg = nil
+      while true
+        label "以下のトゥートを #{world.domain} インスタンスの管理者に通報しますか？"
+        opt.messages.each { |message|
+          link message
+        }
+        multitext "コメント（1000文字以内） ※必須", :comment
+        label error_msg if error_msg
+
+        result = await_input
+        error_msg = "コメントを入力してください。" if (result[:comment].nil? || result[:comment].empty?)
+        error_msg = "コメントが長すぎます（#{result[:comment].size}文字）" if result[:comment].size > 1000
+        break unless error_msg
+      end
+
+      label "しばらくお待ち下さい..."
+
+      results = opt.messages.select { |message|
+        message.class.slug == :worldon_status
+      }.map { |message|
+        message.reblog ? message.reblog : message
+      }.sort_by { |message|
+        message.account.acct
+      }.chunk { |message|
+        message.account.acct
+      }.map { |acct, messages|
+        account_id = pm::API.get_local_account_id(world, messages[0].account)
+        params = {
+          account_id: account_id,
+          status_ids: messages.map { |message| pm::API.get_local_status_id(world, message) },
+          comment: result[:comment]
+        }
+        pp params
+        $stdout.flush
+        pm::API.call(:post, world.domain, "/api/v1/reports", world.access_token, **params)
+      }
+
+      label "完了しました。"
+    end
+  end
 
   # spell系
 
