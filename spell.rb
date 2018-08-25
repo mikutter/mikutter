@@ -380,11 +380,33 @@ Plugin.create(:worldon) do
     tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
       set_icon account.icon
       set_deletable true
-      timeline(tl_slug)
+      timeline(tl_slug).order do |message|
+        message.modified.to_i
+      end
     end
     timeline(tl_slug).active!
 
     Thread.new do
+      world, = Plugin.filtering(:world_current, nil)
+      if [:worldon, :portal].include? world.class.slug
+        account_id = pm::API.get_local_account_id(world, account)
+
+        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
+        if res.value
+          timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
+            #record[:modified] = Time.at(Float::MAX)
+            record
+          })
+        end
+
+        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token)
+        if res.value
+          timeline(tl_slug) << pm::Status.build(world.domain, res.value)
+        end
+
+        next if domain == world.domain
+      end
+
       headers = {
         'Accept' => 'application/activity+json'
       }

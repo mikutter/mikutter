@@ -171,7 +171,7 @@ module Plugin::Worldon
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       # cairo_sub_parts_message_base用
       hash[:created] = hash[:created_at]
-      hash[:modified] = hash[:created_at]
+      hash[:modified] = hash[:created_at] unless hash[:modified]
 
       # mikutterはuriをURI型であるとみなす
       hash[:original_uri] = hash[:uri]
