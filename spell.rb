@@ -126,7 +126,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_report_status, name: '通報する', condition: lambda { |opt| Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
+  command(:worldon_report_status, name: '通報する', condition: lambda { |opt| opt.messages.any? { |m| m.class.slug == :worldon_status } && Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
     world, = Plugin.filtering(:worldon_current, nil)
     next unless world
     dialog "通報する" do
