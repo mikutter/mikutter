@@ -42,13 +42,19 @@ Plugin.create(:worldon) do
     Plugin.call(:extract_receive_message, :worldon_appear_toots, statuses)
   end
 
-  # 起動時
-  Delayer.new {
+  followings_updater = Proc.new do
     Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
       world.update_account
       world.followings(cache: false)
       Plugin.call(:world_modify, world)
     end
+
+    Reserver.new(10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
+  end
+
+  # 起動時
+  Delayer.new {
+    followings_updater.call
   }
 
 
