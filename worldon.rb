@@ -217,7 +217,7 @@ Plugin.create(:worldon) do
                                        client_secret: instance.client_secret,
                                        grant_type: 'authorization_code',
                                        redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                                       code: result[:authorization_code].strip
+                                       code: result[:authorization_code]
                                       )
       if resp.nil? || resp.value.has_key?(:error)
         label "認証に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
@@ -226,7 +226,7 @@ Plugin.create(:worldon) do
       end
       token = resp[:access_token]
     else
-      token = result[:access_token].strip
+      token = result[:access_token]
     end
 
     resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
