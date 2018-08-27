@@ -126,6 +126,51 @@ Plugin.create(:worldon) do
     end
   end
 
+  command(:worldon_mute_user, name: 'ミュートする', condition: lambda { |opt| opt.messages.any? { |m| m.respond_to?(:account) && m.account.class.slug == :worldon_account } && Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
+    world, = Plugin.filtering(:worldon_current, nil)
+    next unless world
+    dialog "ミュートする" do
+      label "以下のユーザーをミュートしますか？"
+      opt.messages.each { |message|
+        link message.account
+      }
+    end
+
+    opt.messages.map { |m|
+      m.account
+    }.select { |account|
+      account.class.slug == :worldon_account
+    }.uniq { |account|
+      account.acct
+    }.map { |account|
+      account_id = pm::API.get_local_account_id(world, account)
+      pm::API.call(:post, world.domain, "/api/v1/accounts/#{account_id}/mute", world.access_token)
+    }
+    world.update_mutes!
+  end
+
+  command(:worldon_block_user, name: 'ブロックする', condition: lambda { |opt| opt.messages.any? { |m| m.respond_to?(:account) && m.account.class.slug == :worldon_account } && Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
+    world, = Plugin.filtering(:worldon_current, nil)
+    next unless world
+    dialog "ブロックする" do
+      label "以下のユーザーをブロックしますか？"
+      opt.messages.each { |message|
+        link message.account
+      }
+    end
+
+    results = opt.messages.map { |m|
+      m.account
+    }.select { |account|
+      account.class.slug == :worldon_account
+    }.uniq { |account|
+      account.acct
+    }.map { |account|
+      account_id = pm::API.get_local_account_id(world, account)
+      pm::API.call(:post, world.domain, "/api/v1/accounts/#{account_id}/block", world.access_token)
+    }
+  end
+
   command(:worldon_report_status, name: '通報する', condition: lambda { |opt| opt.messages.any? { |m| m.class.slug == :worldon_status } && Plugin.filtering(:worldon_current, nil)&.first }, visible: true, role: :timeline) do |opt|
     world, = Plugin.filtering(:worldon_current, nil)
     next unless world
@@ -162,8 +207,6 @@ Plugin.create(:worldon) do
           status_ids: messages.map { |message| pm::API.get_local_status_id(world, message) },
           comment: result[:comment]
         }
-        pp params
-        $stdout.flush
         pm::API.call(:post, world.domain, "/api/v1/reports", world.access_token, **params)
       }
 
