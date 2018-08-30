@@ -75,6 +75,18 @@ module Plugin::Worldon
         }
       end
 
+      def clear_mutes
+        @@mute_mutex.synchronize {
+          @@mutes = []
+        }
+      end
+
+      def muted?(acct)
+        @@mute_mutex.synchronize {
+          @@mutes.any? { |a| a == acct }
+        }
+      end
+
       def build(domain_name, json)
         return [] if json.nil?
         return build(domain_name, [json]) if json.is_a? Hash
@@ -224,6 +236,7 @@ module Plugin::Worldon
       end
       reblogs_count = new_hash[:reblogs_count]
       favourites_count = new_hash[:favourites_count]
+      pinned = new_hash[:pinned]
       self
     end
 

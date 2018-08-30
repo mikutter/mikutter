@@ -46,6 +46,7 @@ Plugin.create(:worldon) do
     Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
       world.update_account
       world.followings(cache: false)
+      world.blocks!
       Plugin.call(:world_modify, world)
     end
 
@@ -76,7 +77,7 @@ Plugin.create(:worldon) do
   # world_currentがworldonならそれを、そうでなければ適当に探す。
   filter_worldon_current do
     world, = Plugin.filtering(:world_current, nil)
-    if world.class.slug != :worldon
+    unless [:worldon, :portal].include?(world.class.slug)
       worlds, = Plugin.filtering(:worldon_worlds, nil)
       world = worlds.first
     end
