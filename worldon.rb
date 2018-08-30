@@ -187,6 +187,12 @@ Plugin.create(:worldon) do
         input 'アクセストークンがあれば入力してください', :access_token
       end
       result = await_input
+      if result[:authorization_code]
+        result[:authorization_code].strip!
+      end
+      if result[:access_token]
+        result[:access_token].strip!
+      end
 
       if ((result[:authorization_code].nil? || result[:authorization_code].empty?) && (result[:access_token].nil? || result[:access_token].empty?))
         error_msg = "認証コードを入力してください"
