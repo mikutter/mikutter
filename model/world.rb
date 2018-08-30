@@ -61,6 +61,7 @@ module Plugin::Worldon
     def update_mutes!
       params = { limit: 80 }
       since_id = nil
+      Status.clear_mutes
       while mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
         Status.add_mutes(mutes.value)
         if mutes.header.nil? || mutes.header[:prev].nil?
@@ -149,10 +150,15 @@ module Plugin::Worldon
         rescue Exception => e
           pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
-          promise.fail('failed to get followings')
+          promise.fail("failed to get #{type}")
         end
       end
       promise
+    end
+
+    def following?(acct)
+      acct = acct.acct if acct.is_a?(Account)
+      @followings&.any? { |account| account.acct == acct }
     end
 
     def followings(cache: true, **opts)
@@ -175,6 +181,108 @@ module Plugin::Worldon
         end
       end
       promise
+    end
+
+    def blocks
+      @blocks ||= []
+    end
+
+    def blocks!
+      promise = Delayer::Deferred.new(true)
+      Thread.new do
+        begin
+          accounts = []
+          params = {
+            limit: 80
+          }
+          API.all_with_world(self, :get, "/api/v1/blocks", **params) do |hash|
+            accounts << hash
+          end
+          @blocks = accounts.map { |hash| Account.new hash }
+          promise.call(@blocks)
+        rescue Exception => e
+          pp e if Mopt.error_level >= 2 # warn
+          $stdout.flush
+          promise.fail('failed to get blocks')
+        end
+      end
+      promise
+    end
+
+    def block?(acct)
+      @blocks.any? { |acc| acc.acct == acct }
+    end
+
+    def account_action(account, type)
+      account_id = PM::API.get_local_account_id(self, account)
+      PM::API.call(:post, domain, "/api/v1/accounts/#{account_id}/#{type}", access_token)
+    end
+
+    def follow(account)
+      ret = account_action(account, "follow")
+
+      if ret
+        @followings << account
+        followings(cache: false)
+      end
+
+      ret
+    end
+
+    def unfollow(account)
+      ret = account_action(account, "unfollow")
+
+      if ret
+        @followings.delete_if do |acc|
+          acc.acct == account.acct
+        end
+
+        followings(cache: false)
+      end
+
+      ret
+    end
+
+    def mute(account)
+      account_action(account, "mute")
+      update_mutes!
+    end
+
+    def unmute(account)
+      account_action(account, "unmute")
+      update_mutes!
+    end
+
+    def block(account)
+      account_action(account, "block")
+      blocks!
+    end
+
+    def unblock(account)
+      account_action(account, "unblock")
+      blocks!
+    end
+
+    def pin(status)
+      status_id = PM::API.get_local_status_id(self, status)
+      PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/pin", access_token)
+      status.pinned = true
+    end
+
+    def unpin(status)
+      status_id = PM::API.get_local_status_id(self, status)
+      PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/unpin", access_token)
+      status.pinned = false
+    end
+
+    def report_for_spam(statuses, comment)
+      account_id = PM::API.get_local_account_id(self, statuses.first.account)
+      params = {
+        account_id: account_id,
+        status_ids: statuses.map { |status| PM::API.get_local_status_id(self, status) },
+        comment: comment,
+      }
+      PM::API.call(:post, domain, "/api/v1/reports", access_token, **params)
     end
 
     def update_account

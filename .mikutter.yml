@@ -12,6 +12,7 @@ depends:
     - command
     - extract
     - score
+    - search
 version: '1.0'
 author: 
 name: Worldon

@@ -97,6 +97,15 @@ Plugin.create(:sse_client) do
 
   on_sse_create do |slug, method, uri, headers = {}, params = {}, **opts|
     begin
+      mutex.synchronize {
+        if connections.has_key? slug
+          warn "\n!!!! sse_client streaming duplicate !!!!\n"
+          thread = connections[slug][:thread]
+          connections.delete(slug)
+          thread.kill
+        end
+      }
+
       conv = []
       params.each do |key, val|
         if val.is_a? Array
@@ -181,7 +190,7 @@ Plugin.create(:sse_client) do
     end
   end
 
-  on_sse_kill_all do
+  on_sse_kill_all do |event_sym|
     threads = []
     mutex.synchronize {
       connections.each do |slug, hash|
@@ -192,6 +201,8 @@ Plugin.create(:sse_client) do
     threads.each do |thread|
       thread.kill
     end
+
+    Plugin.call(event_sym) if event_sym
   end
 
   filter_sse_connection do |slug|

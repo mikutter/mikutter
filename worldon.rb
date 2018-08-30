@@ -23,7 +23,11 @@ require_relative 'score'
 Plugin.create(:worldon) do
   pm = Plugin::Worldon
 
-  defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+\Z>) do |url|
+  defimageopener('Mastodon添付画像（短縮）', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+(?:\?\d+)?\Z>) do |url|
+    open(url)
+  end
+
+  defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
     open(url)
   end
 
@@ -38,14 +42,20 @@ Plugin.create(:worldon) do
     Plugin.call(:extract_receive_message, :worldon_appear_toots, statuses)
   end
 
-  # 起動時
-  Delayer.new {
+  followings_updater = Proc.new do
     Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
       world.update_account
       world.followings(cache: false)
+      world.blocks!
       Plugin.call(:world_modify, world)
     end
-    Plugin.call(:worldon_restart_all_stream)
+
+    Reserver.new(10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
+  end
+
+  # 起動時
+  Delayer.new {
+    followings_updater.call
   }
 
 
@@ -67,7 +77,7 @@ Plugin.create(:worldon) do
   # world_currentがworldonならそれを、そうでなければ適当に探す。
   filter_worldon_current do
     world, = Plugin.filtering(:world_current, nil)
-    if world.class.slug != :worldon
+    unless [:worldon, :portal].include?(world.class.slug)
       worlds, = Plugin.filtering(:worldon_worlds, nil)
       world = worlds.first
     end
@@ -76,7 +86,7 @@ Plugin.create(:worldon) do
 
   on_userconfig_modify do |key, value|
     if [:worldon_enable_streaming, :extract_tabs].include?(key)
-      Plugin.call(:worldon_restart_all_stream)
+      Plugin.call(:worldon_restart_all_streams)
     end
   end
 
@@ -126,7 +136,6 @@ Plugin.create(:worldon) do
     if world.class.slug == :worldon
       Delayer.new {
         Plugin.call(:worldon_create_or_update_instance, world.domain, true)
-        Plugin.call(:worldon_init_auth_stream, world)
       }
     end
   end

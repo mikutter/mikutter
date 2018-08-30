@@ -56,7 +56,8 @@ module Plugin::Worldon
 
     @@status_storage = WeakStorage.new(String, Status)
 
-    TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!
+    TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!.freeze
+    TOOT_ACTIVITY_URI_RE = %r!\Ahttps://(?<domain>[^/]*)/users/(?<acct>[^/]*)/statuses/(?<status_id>[^/]*)/activity\z!.freeze
 
     handle TOOT_URI_RE do |uri|
       Status.findbyurl(uri) || Thread.new { Status.fetch(uri) }
@@ -71,6 +72,18 @@ module Plugin::Worldon
             hash[:acct]
           end
           @@mutes = @@mutes.uniq
+        }
+      end
+
+      def clear_mutes
+        @@mute_mutex.synchronize {
+          @@mutes = []
+        }
+      end
+
+      def muted?(acct)
+        @@mute_mutex.synchronize {
+          @@mutes.any? { |a| a == acct }
         }
       end
 
@@ -115,8 +128,7 @@ module Plugin::Worldon
           status.reblog_status_uris.uniq!
 
           # ageなどの対応
-          world, = Plugin.filtering(:world_current, nil)
-          status.set_modified(boost.modified) if world and world.class.slug == :worldon and UserConfig[:retweeted_by_anyone_age] and ((UserConfig[:retweeted_by_myself_age] or world.user_obj != boost.user))
+          status.set_modified(boost.modified) if UserConfig[:retweeted_by_anyone_age] and (UserConfig[:retweeted_by_myself_age] or !boost.account.me?)
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
@@ -171,7 +183,7 @@ module Plugin::Worldon
       hash[:created_at] = Time.parse(hash[:created_at]).localtime
       # cairo_sub_parts_message_base用
       hash[:created] = hash[:created_at]
-      hash[:modified] = hash[:created_at]
+      hash[:modified] = hash[:created_at] unless hash[:modified]
 
       # mikutterはuriをURI型であるとみなす
       hash[:original_uri] = hash[:uri]
@@ -224,6 +236,7 @@ module Plugin::Worldon
       end
       reblogs_count = new_hash[:reblogs_count]
       favourites_count = new_hash[:favourites_count]
+      pinned = new_hash[:pinned]
       self
     end
 
@@ -302,7 +315,6 @@ module Plugin::Worldon
         .gsub(%r!^<p>|</p>|<span class="invisible">[^<]*</span>|</?span[^>]*>!, '')
         .gsub(/<br[^>]*>|<p>/) { "\n" }
         .gsub(/&apos;/) { "'" }
-        .gsub(/(<a[^>]*)(?: rel="[^>"]*"| target="[^>"]*")/) { $1 }
       result
     end
 
@@ -517,9 +529,8 @@ module Plugin::Worldon
 
       # リンク処理
       # TODO: user_detail_viewを作ったらacctをAccount Modelにする
-      # TODO: search spellを作ったらハッシュタグをなんかそれっぽいModelにする
       pos = 0
-      anchor_re = %r|<a [^>]*href="(?<url>[^"]*)"[^>]*>(?<text>[^<]*)</a>|
+      anchor_re = %r|<a href="(?<url>[^"]*)"(?: class="(?<class>[^"]*)")?(?: rel="(?<rel>[^"]*)")?[^>]*>(?<text>[^<]*)</a>|
       urls = []
       while m = anchor_re.match(desc, pos)
         anchor_begin = m.begin(0)
@@ -527,11 +538,19 @@ module Plugin::Worldon
         if pos < anchor_begin
           score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
         end
-        url = CGI.unescapeHTML(m["url"])
-        score << Plugin::Score::HyperLinkNote.new(
-          description: CGI.unescapeHTML(m["text"]),
-          uri: url,
-        )
+        url = Diva::URI.new(CGI.unescapeHTML(m["url"]))
+        if m["rel"] && m["rel"].split(' ').include?('tag')
+          score << Tag.new(name: CGI.unescapeHTML(m["text"])[1..-1])
+        else
+          link_hash = {
+            description: CGI.unescapeHTML(m["text"]),
+            uri: url,
+            worldon_link_attr: Hash.new,
+          }
+          link_hash[:worldon_link_attr][:class] = m["class"].split(' ') if m["class"]
+          link_hash[:worldon_link_attr][:rel] = m["rel"].split(' ') if m["rel"]
+          score << Plugin::Score::HyperLinkNote.new(link_hash)
+        end
         urls << url
         pos = anchor_end
       end
@@ -572,7 +591,21 @@ module Plugin::Worldon
         end
       end
 
-      @description = score.inject('') { |desc, note| desc + note.description }
+      @description = score.inject('') do |acc, note|
+        desc = note.description
+        if note.is_a?(Plugin::Score::HyperLinkNote)
+          attr = note[:worldon_link_attr]
+          if attr
+            cls = note[:worldon_link_attr][:class]
+            if cls.nil? || !cls.include?('mention')
+              desc = note.uri.to_s
+            elsif cls.include?('u-url')
+              desc = "#{desc}@#{note.uri.host}"
+            end
+          end
+        end
+        acc + desc
+      end
       @score = score
     end
 

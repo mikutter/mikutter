@@ -126,6 +126,151 @@ Plugin.create(:worldon) do
     end
   end
 
+  command(:worldon_follow_user, name: 'フォローする', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m|
+              follow?(world, m.user)
+            }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    opt.messages.map { |m|
+      m.user
+    }.each { |user|
+      follow(world, user)
+    }
+  end
+
+  command(:worldon_unfollow_user, name: 'フォロー解除', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m|
+              unfollow?(world, m.user)
+            }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    opt.messages.map { |m|
+      m.user
+    }.each { |user|
+      unfollow(world, user)
+    }
+  end
+
+  command(:worldon_mute_user, name: 'ミュートする', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m| mute_user?(world, m.user) }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+    users = opt.messages.map { |m| m.user }.uniq
+    dialog "ミュートする" do
+      label "以下のユーザーをミュートしますか？"
+      users.each { |user|
+        link user
+      }
+    end.next do
+      users.each { |user|
+        mute_user(world, user)
+      }
+    end
+  end
+
+  command(:worldon_block_user, name: 'ブロックする', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m| block_user?(world, m.user) }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+    users = opt.messages.map { |m| m.user }.uniq
+    dialog "ブロックする" do
+      label "以下のユーザーをブロックしますか？"
+      users.each { |user|
+        link user
+      }
+    end.next do
+      users.each { |user|
+        block_user(world, user)
+      }
+    end
+  end
+
+  command(:worldon_report_status, name: '通報する', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m| report_for_spam?(world, m) }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+    dialog "通報する" do
+      error_msg = nil
+      while true
+        label "以下のトゥートを #{world.domain} インスタンスの管理者に通報しますか？"
+        opt.messages.each { |message|
+          link message
+        }
+        multitext "コメント（1000文字以内） ※必須", :comment
+        label error_msg if error_msg
+
+        result = await_input
+        error_msg = "コメントを入力してください。" if (result[:comment].nil? || result[:comment].empty?)
+        error_msg = "コメントが長すぎます（#{result[:comment].size}文字）" if result[:comment].size > 1000
+        break unless error_msg
+      end
+
+      label "しばらくお待ち下さい..."
+
+      results = opt.messages.select { |message|
+        message.class.slug == :worldon_status
+      }.map { |message|
+        message.reblog ? message.reblog : message
+      }.sort_by { |message|
+        message.account.acct
+      }.chunk { |message|
+        message.account.acct
+      }.each { |acct, messages|
+        world.report_for_spam(messages, result[:comment])
+      }
+
+      label "完了しました。"
+    end
+  end
+
+  command(:worldon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m| pin_message?(world, m) }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    opt.messages.select{ |m|
+      pin_message?(world, m)
+    }.each { |status|
+      world.pin(status)
+    }
+  end
+
+  command(:worldon_unpin_message, name: 'ピン留めを解除する', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            opt.messages.any? { |m| unpin_message?(world, m) }
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    opt.messages.select{ |m|
+      unpin_message?(world, m)
+    }.each { |status|
+      world.unpin(status)
+    }
+  end
+
 
   # spell系
 
@@ -325,7 +470,7 @@ Plugin.create(:worldon) do
     name: 'プロフィール変更',
     condition: -> (opt) {
       world = Plugin.filtering(:world_current, nil).first
-      world.class.slug == :worldon
+      [:worldon, :portal].include?(world.class.slug)
     },
     visible: true,
     role: :postbox
@@ -362,6 +507,157 @@ Plugin.create(:worldon) do
 
       world.update_profile(**diff)
     end
+  end
+
+  # 検索
+  intent :worldon_tag do |token|
+    Plugin.call(:search_start, "##{token.model.name}")
+  end
+
+  # アカウント
+  intent :worldon_account do |token|
+    Plugin.call(:worldon_account_timeline, token.model)
+  end
+
+  on_worldon_account_timeline do |account|
+    acct, domain = account.acct.split('@')
+    tl_slug = :"worldon-account-timeline_#{acct}@#{domain}"
+    tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
+      set_icon account.icon
+      set_deletable true
+      timeline(tl_slug).order do |message|
+        message.modified.to_i
+      end
+    end
+    timeline(tl_slug).active!
+
+    Thread.new do
+      world, = Plugin.filtering(:world_current, nil)
+      if [:worldon, :portal].include? world.class.slug
+        account_id = pm::API.get_local_account_id(world, account)
+
+        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
+        if res.value
+          timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
+            #record[:modified] = Time.at(Float::MAX)
+            record
+          })
+        end
+
+        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token)
+        if res.value
+          timeline(tl_slug) << pm::Status.build(world.domain, res.value)
+        end
+
+        next if domain == world.domain
+      end
+
+      headers = {
+        'Accept' => 'application/activity+json'
+      }
+      res = pm::API.call(:get, domain, "/users/#{acct}/outbox?page=true", nil, {}, headers)
+      next unless res[:orderedItems]
+
+      res[:orderedItems].map do |record|
+        case record[:type]
+        when "Create"
+          # トゥート
+          record[:object][:url]
+        when "Announce"
+          # ブースト
+          pm::Status::TOOT_ACTIVITY_URI_RE.match(record[:atomUri]) do |m|
+            "https://#{m[:domain]}/@#{m[:acct]}/#{m[:status_id]}"
+          end
+        end
+      end.compact.each do |url|
+        status = pm::Status.findbyurl(url) || pm::Status.fetch(url)
+        timeline(tl_slug) << status if status
+      end
+    end
+  end
+
+  defspell(:search, :worldon) do |world, **opts|
+    count = [opts[:count], 40].min
+    q = opts[:q]
+    if q.start_with? '#'
+      q = URI.encode_www_form_component(q[1..-1])
+      resp = Plugin::Worldon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count)
+      return nil if resp.nil?
+      resp = resp.to_a
+    else
+      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q)
+      return nil if resp.nil?
+      resp = resp[:statuses]
+    end
+    Plugin::Worldon::Status.build(world.domain, resp)
+  end
+
+  defspell(:follow, :worldon, :worldon_account,
+           condition: -> (world, account) { !world.following?(account.acct) }
+          ) do |world, account|
+    world.follow(account)
+  end
+
+  defspell(:unfollow, :worldon, :worldon_account,
+           condition: -> (world, account) { world.following?(account.acct) }
+          ) do |world, account|
+    world.unfollow(account)
+  end
+
+  defspell(:following, :worldon, :worldon_account,
+           condition: -> (world, account) { true }
+          ) do |world, account|
+    world.following?(account)
+  end
+
+  defspell(:mute_user, :worldon, :worldon_account,
+           condition: -> (world, account) { !Plugin::Worldon::Status.muted?(account.acct) }
+          ) do |world, account|
+    world.mute(account)
+  end
+
+  defspell(:unmute_user, :worldon, :worldon_account,
+           condition: -> (world, account) { Plugin::Worldon::Status.muted?(account.acct) }
+          ) do |world, account|
+    world.unmute(account)
+  end
+
+  defspell(:block_user, :worldon, :worldon_account,
+           condition: -> (world, account) { !world.block?(account.acct) }
+          ) do |world, account|
+    world.block(account)
+  end
+
+  defspell(:unblock_user, :worldon, :worldon_account,
+           condition: -> (world, account) { world.block?(account.acct) }
+          ) do |world, account|
+    world.unblock(account)
+  end
+
+  defspell(:report_for_spam, :worldon, :worldon_status) do |world, status, comment: raise|
+    world.report_for_spam([status], comment)
+  end
+
+  defspell(:report_for_spam, :worldon) do |world, messages:, comment: raise|
+    world.report_for_spam(messages, comment)
+  end
+
+  defspell(:pin_message, :worldon, :worldon_status,
+           condition: -> (world, status) {
+            world.account.acct == status.account.acct && !status.pinned?
+            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他インスタンスから取得されることはまずないと仮定している
+           }
+          ) do |world, status|
+    world.pin(status)
+  end
+
+  defspell(:unpin_message, :worldon, :worldon_status,
+           condition: -> (world, status) {
+            world.account.acct == status.account.acct && status.pinned?
+            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他インスタンスから取得されることはまずないと仮定している
+           }
+          ) do |world, status|
+    world.unpin(status)
   end
 
 end
