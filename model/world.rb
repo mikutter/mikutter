@@ -199,7 +199,7 @@ module Plugin::Worldon
             accounts << hash
           end
           @blocks = accounts.map { |hash| Account.new hash }
-          promise.call(@blocks)
+          promise.call(blocks)
         rescue Exception => e
           pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
@@ -210,7 +210,7 @@ module Plugin::Worldon
     end
 
     def block?(acct)
-      @blocks.any? { |acc| acc.acct == acct }
+      blocks.any? { |acc| acc.acct == acct }
     end
 
     def account_action(account, type)
