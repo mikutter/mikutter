@@ -525,8 +525,10 @@ Plugin.create(:worldon) do
     tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
       set_icon account.icon
       set_deletable true
-      timeline(tl_slug).order do |message|
-        message.modified.to_i
+      timeline(tl_slug) do
+        order do |message|
+          message.modified.to_i + (message.respond_to?(:pinned?) && message.pinned? ? 5000000000000000 : 0)
+        end
       end
     end
     timeline(tl_slug).active!
