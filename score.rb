@@ -8,9 +8,5 @@ Plugin.create(:worldon) do
     end
     [model, note, yielder]
   end
-
-  # TODO: 添付画像を付加するscore_filter
-  # TODO: Toot URLを引用tootにするscore_filter
-  # TODO: acctをPlugin::Worldon::AccountとしてopenできるNoteにするscore_filter
 end
 
