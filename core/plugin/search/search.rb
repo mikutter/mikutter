@@ -24,7 +24,7 @@ Plugin.create :search do
   end
 
   def refresh_tab
-    if Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|w| w.class.slug == :twitter }
+    if Enumerator.new{|y| Plugin.filtering(:worlds, y) }.any?{|w| search?(w, q: "") }
       present_tab
     else
       absent_tab
