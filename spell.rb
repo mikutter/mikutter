@@ -525,13 +525,20 @@ Plugin.create(:worldon) do
     tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
       set_icon account.icon
       set_deletable true
+      temporary_tab
       timeline(tl_slug) do
         order do |message|
-          message.modified.to_i + (message.respond_to?(:pinned?) && message.pinned? ? 5000000000000000 : 0)
+          ord = message.modified.to_i
+          if message.respond_to?(:pinned?) && message.pinned?
+            ord += 66200000000000
+          end
+          ord
         end
       end
     end
     timeline(tl_slug).active!
+    profile = pm::AccountProfile.new(account: account)
+    timeline(tl_slug) << profile
 
     Thread.new do
       world, = Plugin.filtering(:world_current, nil)

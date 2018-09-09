@@ -9,6 +9,7 @@ end
 
 require_relative 'util'
 require_relative 'api'
+require_relative 'parser'
 require_relative 'model/model'
 require_relative 'patch'
 require_relative 'spell'
