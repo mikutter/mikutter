@@ -167,6 +167,7 @@ module Plugin::Worldon
         next promise.call(@followings) if cache && @followings
         get_accounts!('following').next do |accounts|
           @followings = accounts
+          promise.call(@followings)
         end
       end
       promise
