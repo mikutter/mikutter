@@ -548,7 +548,7 @@ Plugin.create(:worldon) do
         res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
         if res.value
           timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
-            #record[:modified] = Time.at(Float::MAX)
+            record[:pinned] = true
             record
           })
         end
