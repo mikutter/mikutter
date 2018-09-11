@@ -151,7 +151,7 @@ Plugin.create(:worldon) do
       filter_extract_datasources do |dss|
         instance = pm::Instance.load(world.domain)
         datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
-        lists.each do |l|
+        lists.to_a.each do |l|
           slug = world.datasource_slug(:list, l[:id])
           datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
         end
@@ -163,13 +163,11 @@ Plugin.create(:worldon) do
         Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
       end
 
-      if lists.is_a? Array
-        lists.each do |l|
-          id = l[:id].to_i
-          slug = world.datasource_slug(:list, id)
-          if datasource_used?(world.datasource_slug(:list, id))
-            Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
-          end
+      lists.to_a.each do |l|
+        id = l[:id].to_i
+        slug = world.datasource_slug(:list, id)
+        if datasource_used?(world.datasource_slug(:list, id))
+          Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
       end
     }
@@ -180,11 +178,9 @@ Plugin.create(:worldon) do
     slugs.push world.datasource_slug(:home)
 
     lists = world.get_lists!
-    if lists.is_a? Array
-      lists.each do |l|
-        id = l[:id].to_i
-        slugs.push world.datasource_slug(:list, id)
-      end
+    lists.to_a.each do |l|
+      id = l[:id].to_i
+      slugs.push world.datasource_slug(:list, id)
     end
 
     slugs.each do |slug|
