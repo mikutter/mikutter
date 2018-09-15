@@ -11,7 +11,7 @@ module Plugin::Worldon::Parser
     result
   end
 
-  def self.dictate_score(html, emojis: [], media_attachments: [])
+  def self.dictate_score(html, mentions: [], emojis: [], media_attachments: [])
     desc = dehtmlize(html)
 
     score = []
@@ -28,17 +28,27 @@ module Plugin::Worldon::Parser
         score << Plugin::Score::TextNote.new(description: CGI.unescapeHTML(desc[pos...anchor_begin]))
       end
       url = Diva::URI.new(CGI.unescapeHTML(m["url"]))
-      if m["rel"] && m["rel"].split(' ').include?('tag')
-        score << Plugin::Worldon::Tag.new(name: CGI.unescapeHTML(m["text"])[1..-1])
+      if m["text"][0] == '#' || (score.last.to_s[-1] == '#')
+        score << Plugin::Worldon::Tag.new(name: CGI.unescapeHTML(m["text"]).sub(/\A#/, ''))
       else
-        link_hash = {
-          description: CGI.unescapeHTML(m["text"]),
-          uri: url,
-          worldon_link_attr: Hash.new,
-        }
-        link_hash[:worldon_link_attr][:class] = m["class"].split(' ') if m["class"]
-        link_hash[:worldon_link_attr][:rel] = m["rel"].split(' ') if m["rel"]
-        score << Plugin::Score::HyperLinkNote.new(link_hash)
+        account = nil
+        if mentions.any? { |mention| mention.url == url }
+          mention = mentions.lazy.select { |mention| mention.url == url }.first
+          acct = Plugin::Worldon::Account.regularize_acct_by_domain(mention.url.host, mention.acct)
+          account = Plugin::Worldon::Account.findbyacct(acct)
+        end
+        if account
+          score << account
+        else
+          link_hash = {
+            description: CGI.unescapeHTML(m["text"]),
+            uri: url,
+            worldon_link_attr: Hash.new,
+          }
+          link_hash[:worldon_link_attr][:class] = m["class"].split(' ') if m["class"]
+          link_hash[:worldon_link_attr][:rel] = m["rel"].split(' ') if m["rel"]
+          score << Plugin::Score::HyperLinkNote.new(link_hash)
+        end
       end
       urls << url
       pos = anchor_end
@@ -81,19 +91,7 @@ module Plugin::Worldon::Parser
     end
 
     description = score.inject('') do |acc, note|
-      desc = note.description
-      if note.is_a?(Plugin::Score::HyperLinkNote)
-        attr = note[:worldon_link_attr]
-        if attr
-          cls = note[:worldon_link_attr][:class]
-          if cls.nil? || !cls.include?('mention')
-            desc = note.uri.to_s
-          elsif cls.include?('u-url')
-            desc = "#{desc}@#{note.uri.host}"
-          end
-        end
-      end
-      acc + desc
+      acc + note.description
     end
 
     [description, score]

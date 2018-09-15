@@ -48,7 +48,6 @@ module Plugin::Worldon
     alias :uri :url
     alias :idname :acct
     alias :name :display_name
-    alias :description :note
 
     @@account_storage = WeakStorage.new(String, Account)
 
@@ -124,6 +123,10 @@ module Plugin::Worldon
 
     def title
       "#{acct}(#{display_name})"
+    end
+
+    def description
+      "@#{acct}"
     end
 
     def icon
