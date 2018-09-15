@@ -271,6 +271,58 @@ Plugin.create(:worldon) do
     }
   end
 
+  command(:worldon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            [:worldon, :portal].include?(world.class.slug)
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    user = opt.messages.first&.user
+    next unless user
+
+    lists = world.get_lists!.inject(Hash.new) do |h, l|
+      key = l[:id].to_sym
+      val = l[:title]
+      h[key] = val
+      h
+    end
+
+    user_id = pm::API.get_local_account_id(world, user)
+    result = pm::API.call(:get, world.domain, "/api/v1/accounts/#{user_id}/lists", world.access_token)
+    membership = result.value.to_a.inject(Hash.new) do |h, l|
+      key = l[:id].to_sym
+      val = l[:title]
+      h[key] = val
+      h
+    end
+
+
+    dialog "リストへの追加・削除" do
+      self[:lists] = membership.keys
+      multiselect "所属させるリストを選択してください", :lists do
+        lists.keys.each do |k|
+          option(k, lists[k])
+        end
+      end
+    end.next do |result|
+      selected_ids = result[:lists]
+      selected_ids.each do |list_id|
+        unless membership[list_id]
+          # 追加
+          pm::API.call(:post, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+        end
+      end
+      membership.keys.each do |list_id|
+        unless selected_ids.include?(list_id)
+          # 削除
+          pm::API.call(:delete, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+        end
+      end
+    end
+  end
+
 
   # spell系
 
