@@ -53,7 +53,6 @@ Plugin.create(:worldon) do
       world.update_account
       world.blocks!
       world.followings(cache: false).next do |followings|
-        notice followings.inspect
         activity(:system, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
       end
       Plugin.call(:world_modify, world)
