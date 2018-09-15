@@ -528,8 +528,10 @@ Plugin.create(:worldon) do
       temporary_tab
       timeline(tl_slug) do
         order do |message|
-          ord = message.modified.to_i
-          if message.respond_to?(:pinned?) && message.pinned?
+          ord = message.created.to_i
+          if message.is_a? pm::AccountProfile
+            ord = message.modified.to_i
+          elsif message.respond_to?(:pinned?) && message.pinned?
             ord += 66200000000000
           end
           ord
