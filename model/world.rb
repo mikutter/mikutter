@@ -55,10 +55,11 @@ module Plugin::Worldon
       if lists.nil?
         warn "[worldon] failed to get lists"
       elsif lists.value.is_a? Array
-        @@lists[uri] = lists.value
+        @@lists[uri.to_s] = lists.value
       elsif lists.value.is_a?(Hash) && lists['error']
         warn "[worldon] failed to get lists: #{lists['error'].to_s}"
       end
+      @@lists[uri.to_s]
     end
 
     def update_mutes!
