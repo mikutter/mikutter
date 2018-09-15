@@ -36,16 +36,13 @@ Worldが追加されると、ストリーム受信が始まり、データソー
 - [sub_parts_client](https://github.com/toshia/mikutter-sub-parts-client) によるクライアント表示
 - [mikutter_subparts_nsfw](https://github.com/cobodo/mikutter_subparts_nsfw) によるNSFW表示
 - カスタム絵文字の表示
+- フォロー・フォロー解除・ブロック・ミュート・通報
 
 ### まだできない🙅
 - リストの作成・リネーム・削除
   - リストへのメンバーの追加・削除
-- 検索
 
 ### 現状ではできないもの
 - mikutter本体のScore機能の拡充が必要
   - CW時の本文隠し＆表示機構
-- twitterプラグインにおけるuser_detail_viewプラグイン相当のものの実装が必要
-  - ユーザーのプロフィール表示
-    - リストへの追加・削除
 
