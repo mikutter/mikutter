@@ -45,15 +45,4 @@ Plugin::create(:proxy) do
       option nil, _("プロキシを使わない")
     end
   end
-
-  on_userconfig_modify do |key, val|
-    next if key != :proxy_enabled
-    if UserConfig[:realtime_rewind]
-      Thread.new {
-        UserConfig[:realtime_rewind] = false
-        sleep(3)
-        UserConfig[:realtime_rewind] = true
-      }
-    end
-  end
 end

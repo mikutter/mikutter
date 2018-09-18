@@ -4,6 +4,7 @@ require_relative "basic"
 require 'addressable/uri'
 
 module MikuTwitter::APIShortcuts
+  extend Gem::Deprecate
 
   RELATIONAL_DEFAULT = {count: 5000}.freeze
 
@@ -211,7 +212,10 @@ module MikuTwitter::APIShortcuts
   #
 
   def userstream(params={}, &chunk)
-    stream("https://userstream.twitter.com/1.1/user.json", params, &chunk) end
+    stream("https://userstream.twitter.com/1.1/user.json", params, &chunk)
+  end
+  deprecate :userstream, "Account Activity API(see: https://developer.twitter.com/en/products/accounts-and-users/account-activity-api.html)", 2018, 8
+
 
   def filter_stream(params={}, &chunk)
     stream("https://stream.twitter.com/1.1/statuses/filter.json", params, &chunk) end
