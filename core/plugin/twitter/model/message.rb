@@ -764,7 +764,7 @@ class Plugin::Twitter::Message < Diva::Model
           }.find{|world|
             world.class.slug == :twitter
           }
-          result = twitter.scan(:status_show, id: id)
+          result = twitter.scan(:status_show, id: id) if twitter
           result
         end
       end
