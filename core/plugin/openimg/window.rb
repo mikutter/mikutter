@@ -10,6 +10,9 @@ module Plugin::Openimg
       @image_surface = loading_surface
       @next_opener = next_opener
       window_settings
+      ssc :key_release_event do |_, ev|
+        destroy if ::Gtk::keyname([ev.keyval, ev.state]) == 'Escape'
+      end
       ssc(:destroy, &:destroy)
     end
 
