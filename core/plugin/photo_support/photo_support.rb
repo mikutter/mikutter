@@ -227,4 +227,19 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.d250g2(display_url)
     open(img) if img
   end
+
+  # ニコニコ静画
+  defimageopener('NicoSeiga', %r<\Ahttps?://seiga\.nicovideo\.jp/seiga/im\d+>) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
+
+  # ニコニコ静画 (nico.ms経由)
+  defimageopener('NicoSeiga via nico.ms', %r<\Ahttps?://nico\.ms/im\d+>) do |display_url|
+    connection = HTTPClient.new
+    location = connection.get(display_url).header['Location'].first
+    next nil if location.nil?
+    img = Plugin::PhotoSupport.インスタ映え(location)
+    open(img) if img
+  end
 end
