@@ -1,4 +1,4 @@
-class Gdk::SubPartsWorldonVisibility < Gdk::SubParts
+class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
   register
 
   def get_photo(filename)
