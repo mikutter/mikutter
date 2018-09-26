@@ -14,7 +14,10 @@ module Plugin::Worldon
 
     alias :user_obj :account
 
-    attr_reader :lists
+    @@lists = Hash.new
+    @@followings = Hash.new
+    @@followers = Hash.new
+    @@blocks = Hash.new
 
     memoize def path
       "/#{account.acct.split('@').reverse.join('/')}"
@@ -46,16 +49,17 @@ module Plugin::Worldon
     end
 
     def get_lists!
-      return @lists if @lists
+      return @@lists[uri.to_s] if @@lists[uri.to_s]
 
       lists = API.call(:get, domain, '/api/v1/lists', access_token)
       if lists.nil?
         warn "[worldon] failed to get lists"
       elsif lists.value.is_a? Array
-        @lists = lists.value
+        @@lists[uri.to_s] = lists.value
       elsif lists.value.is_a?(Hash) && lists['error']
         warn "[worldon] failed to get lists: #{lists['error'].to_s}"
       end
+      @@lists[uri.to_s]
     end
 
     def update_mutes!
@@ -158,15 +162,16 @@ module Plugin::Worldon
 
     def following?(acct)
       acct = acct.acct if acct.is_a?(Account)
-      @followings&.any? { |account| account.acct == acct }
+      @@followings[uri.to_s].to_a.any? { |account| account.acct == acct }
     end
 
     def followings(cache: true, **opts)
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        next promise.call(@followings) if cache && @followings
+        next promise.call(@@followings[uri.to_s]) if cache && @@followings[uri.to_s]
         get_accounts!('following').next do |accounts|
-          @followings = accounts
+          @@followings[uri.to_s] = accounts
+          promise.call(accounts)
         end
       end
       promise
@@ -175,16 +180,13 @@ module Plugin::Worldon
     def followers(cache: true, **opts)
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        next promise.call(@followers) if cache && @followers
+        next promise.call(@@followers[uri.to_s]) if cache && @@followers[uri.to_s]
         get_accounts!('followers').next do |accounts|
-          @followers = accounts
+          @@followers[uri.to_s] = accounts
+          promise.call(accounts)
         end
       end
       promise
-    end
-
-    def blocks
-      @blocks ||= []
     end
 
     def blocks!
@@ -198,8 +200,8 @@ module Plugin::Worldon
           API.all_with_world(self, :get, "/api/v1/blocks", **params) do |hash|
             accounts << hash
           end
-          @blocks = accounts.map { |hash| Account.new hash }
-          promise.call(blocks)
+          @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
+          promise.call(@@blocks[uri.to_s])
         rescue Exception => e
           pp e if Mopt.error_level >= 2 # warn
           $stdout.flush
@@ -210,7 +212,7 @@ module Plugin::Worldon
     end
 
     def block?(acct)
-      blocks.any? { |acc| acc.acct == acct }
+      @@blocks[uri.to_s].to_a.any? { |acc| acc.acct == acct }
     end
 
     def account_action(account, type)
@@ -222,7 +224,8 @@ module Plugin::Worldon
       ret = account_action(account, "follow")
 
       if ret
-        @followings << account
+        @@followings[uri.to_s] = Array() unless @@followings[uri.to_s]
+        @@followings[uri.to_s] << account
         followings(cache: false)
       end
 
@@ -232,8 +235,8 @@ module Plugin::Worldon
     def unfollow(account)
       ret = account_action(account, "unfollow")
 
-      if ret
-        @followings.delete_if do |acc|
+      if ret && @@followings[uri.to_s]
+        @@followings[uri.to_s].delete_if do |acc|
           acc.acct == account.acct
         end
 

@@ -271,6 +271,58 @@ Plugin.create(:worldon) do
     }
   end
 
+  command(:worldon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            world, = Plugin.filtering(:world_current, nil)
+            [:worldon, :portal].include?(world.class.slug)
+          }) do |opt|
+    world, = Plugin.filtering(:world_current, nil)
+    next unless world
+
+    user = opt.messages.first&.user
+    next unless user
+
+    lists = world.get_lists!.inject(Hash.new) do |h, l|
+      key = l[:id].to_sym
+      val = l[:title]
+      h[key] = val
+      h
+    end
+
+    user_id = pm::API.get_local_account_id(world, user)
+    result = pm::API.call(:get, world.domain, "/api/v1/accounts/#{user_id}/lists", world.access_token)
+    membership = result.value.to_a.inject(Hash.new) do |h, l|
+      key = l[:id].to_sym
+      val = l[:title]
+      h[key] = val
+      h
+    end
+
+
+    dialog "リストへの追加・削除" do
+      self[:lists] = membership.keys
+      multiselect "所属させるリストを選択してください", :lists do
+        lists.keys.each do |k|
+          option(k, lists[k])
+        end
+      end
+    end.next do |result|
+      selected_ids = result[:lists]
+      selected_ids.each do |list_id|
+        unless membership[list_id]
+          # 追加
+          pm::API.call(:post, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+        end
+      end
+      membership.keys.each do |list_id|
+        unless selected_ids.include?(list_id)
+          # 削除
+          pm::API.call(:delete, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+        end
+      end
+    end
+  end
+
 
   # spell系
 
@@ -525,13 +577,22 @@ Plugin.create(:worldon) do
     tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
       set_icon account.icon
       set_deletable true
+      temporary_tab
       timeline(tl_slug) do
         order do |message|
-          message.modified.to_i + (message.respond_to?(:pinned?) && message.pinned? ? 5000000000000000 : 0)
+          ord = message.created.to_i
+          if message.is_a? pm::AccountProfile
+            ord = message.modified.to_i
+          elsif message.respond_to?(:pinned?) && message.pinned?
+            ord += 66200000000000
+          end
+          ord
         end
       end
     end
     timeline(tl_slug).active!
+    profile = pm::AccountProfile.new(account: account)
+    timeline(tl_slug) << profile
 
     Thread.new do
       world, = Plugin.filtering(:world_current, nil)
@@ -541,7 +602,7 @@ Plugin.create(:worldon) do
         res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
         if res.value
           timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
-            #record[:modified] = Time.at(Float::MAX)
+            record[:pinned] = true
             record
           })
         end

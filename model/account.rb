@@ -28,7 +28,6 @@ module Plugin::Worldon
     field.string :acct, required: true
     field.string :display_name, required: true
     field.bool :locked, required: true
-    field.bool :bot
     field.time :created_at, required: true
     field.int :followers_count, required: true
     field.int :following_count, required: true
@@ -39,15 +38,16 @@ module Plugin::Worldon
     field.uri :avatar_static, required: true
     field.uri :header, required: true
     field.uri :header_static, required: true
+    field.has :emojis, [Emoji]
     field.has :moved, Account
-    field.has :source, AccountSource
     field.has :fields, [AccountField]
+    field.bool :bot
+    field.has :source, AccountSource
 
     alias :perma_link :url
     alias :uri :url
     alias :idname :acct
     alias :name :display_name
-    alias :description :note
 
     @@account_storage = WeakStorage.new(String, Account)
 
@@ -123,6 +123,10 @@ module Plugin::Worldon
 
     def title
       "#{acct}(#{display_name})"
+    end
+
+    def description
+      "@#{acct}"
     end
 
     def icon

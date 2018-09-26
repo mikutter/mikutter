@@ -9,6 +9,7 @@ end
 
 require_relative 'util'
 require_relative 'api'
+require_relative 'parser'
 require_relative 'model/model'
 require_relative 'patch'
 require_relative 'spell'
@@ -47,10 +48,13 @@ Plugin.create(:worldon) do
   end
 
   followings_updater = Proc.new do
+    activity(:system, "自分のプロフィールやフォロー関係を取得しています...")
     Plugin.filtering(:worldon_worlds, nil).first.to_a.each do |world|
       world.update_account
-      world.followings(cache: false)
       world.blocks!
+      world.followings(cache: false).next do |followings|
+        activity(:system, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
+      end
       Plugin.call(:world_modify, world)
     end
 
