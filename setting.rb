@@ -8,6 +8,7 @@ Plugin.create(:worldon) do
     worldon_enable_streaming: true,
     worldon_rest_interval: UserConfig[:retrieve_interval_friendtl],
     worldon_show_subparts_visibility: true,
+    worldon_show_subparts_bot: true,
     worldon_instances: Hash.new,
   }
   defaults.each do |key, value|
@@ -80,6 +81,7 @@ Plugin.create(:worldon) do
   # 設定
   settings "Worldon" do
     settings "表示" do
+      boolean 'botアカウントにアイコンを表示する', :worldon_show_subparts_bot
       boolean 'トゥートに公開範囲を表示する', :worldon_show_subparts_visibility
     end
 

@@ -29,9 +29,9 @@ class Gdk::SubPartsWorldonVisibility < Gdk::SubParts
   end
 
   def show_icon?
+    return true if UserConfig[:worldon_show_subparts_bot]
     return false if (!UserConfig[:worldon_show_subparts_visibility] || !helper.message.respond_to?(:visibility))
-    fn = filename(helper.message.visibility)
-    !fn.nil?
+    !!filename(helper.message.visibility)
   end
 
   def visibility_text(visibility)
@@ -55,23 +55,42 @@ class Gdk::SubPartsWorldonVisibility < Gdk::SubParts
   end
 
   def render(context)
-    if (helper.visible? && show_icon?)
-      pixbuf = icon_pixbuf
-      if pixbuf.nil?
-        error "SubPartsWorldonVisibility: pixbuf.nil? detected! visibility = #{helper.message.visibility}"
-        return
+    if helper.visible? && show_icon?
+      if helper.message.user.respond_to?(:bot) && helper.message.user.bot
+        bot_pixbuf = get_photo('bot.png')&.pixbuf(width: @icon_size, height: @icon_size)
       end
+      visibility_pixbuf = icon_pixbuf
       context.save do
-        context.translate(@margin, @margin)
-        context.set_source_pixbuf(pixbuf)
-        context.paint
+        context.translate(0, @margin)
 
-        context.translate(@icon_size + @margin, 0)
-        context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
-        layout = context.create_pango_layout
-        layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
-        layout.text = visibility_text(helper.message.visibility)
-        context.show_pango_layout(layout)
+        if UserConfig[:worldon_show_subparts_bot] && bot_pixbuf
+          context.translate(@margin, 0)
+          context.set_source_pixbuf(bot_pixbuf)
+          context.paint
+
+          context.translate(@icon_size + @margin, 0)
+          layout = context.create_pango_layout
+          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.text = "bot"
+          bot_text_width = layout.extents[1].width / Pango::SCALE
+          context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
+          context.show_pango_layout(layout)
+          context.translate(bot_text_width, 0)
+        end
+
+        if UserConfig[:worldon_show_subparts_visibility] && visibility_pixbuf
+          context.translate(@margin, 0)
+
+          context.set_source_pixbuf(visibility_pixbuf)
+          context.paint
+
+          context.translate(@icon_size + @margin, 0)
+          layout = context.create_pango_layout
+          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.text = visibility_text(helper.message.visibility)
+          context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
+          context.show_pango_layout(layout)
+        end
       end
     end
   end
