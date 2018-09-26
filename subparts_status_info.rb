@@ -29,9 +29,9 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
   end
 
   def show_icon?
-    return true if UserConfig[:worldon_show_subparts_bot]
-    return false if (!UserConfig[:worldon_show_subparts_visibility] || !helper.message.respond_to?(:visibility))
-    !!filename(helper.message.visibility)
+    return true if (UserConfig[:worldon_show_subparts_bot] && helper.message.user.respond_to?(:bot) && helper.message.user.bot)
+    return true if (UserConfig[:worldon_show_subparts_visibility] && helper.message.respond_to?(:visibility) && filename(helper.message.visibility))
+    false
   end
 
   def visibility_text(visibility)
