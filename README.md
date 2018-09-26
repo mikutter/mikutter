@@ -46,3 +46,7 @@ Worldが追加されると、ストリーム受信が始まり、データソー
 - mikutter本体のScore機能の拡充が必要
   - CW時の本文隠し＆表示機構
 
+## アイコンについて
+公開範囲の表示に関して、MITライセンスに基づき、[LibreICONS](https://github.com/DiemenDesign/LibreICONS)を利用しています。
+ライセンス原文： https://github.com/DiemenDesign/LibreICONS/blob/master/LICENSE
+
