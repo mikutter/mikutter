@@ -520,7 +520,6 @@ Plugin.create(:twitter) do
     score << text_note(description: lead)
     if !(target.empty? || trail.empty?)
       trim = target[1, target.size]
-      puts({trim: trim, target: target})
       score << Diva::Model(:score_hyperlink).new(
         description: target,
         uri: uri_generator.(trim),
