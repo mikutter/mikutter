@@ -245,7 +245,7 @@ module Plugin::Twitter
       else
         chi_fatal_alert "起動に必要なデータをTwitterが返してくれませんでした。電車が止まってるから会社行けないみたいなかんじで起動できません。ヽ('ω')ﾉ三ヽ('ω')ﾉもうしわけねぇもうしわけねぇ\n"+
                         "Twitterサーバの情況を調べる→ https://dev.twitter.com/status\n"+
-                        "Twitterサーバの情況を調べたくない→ http://www.nicovideo.jp/vocaloid\n\n--\n\n" +
+                        "Twitterサーバの情況を調べたくない→ http://ex.nicovideo.jp/vocaloid\n\n--\n\n" +
                         "#{res.code} #{res.body}"
       end
     end
