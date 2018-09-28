@@ -9,6 +9,7 @@ Plugin.create(:worldon) do
     worldon_rest_interval: UserConfig[:retrieve_interval_friendtl],
     worldon_show_subparts_visibility: true,
     worldon_show_subparts_bot: true,
+    worldon_show_subparts_pin: true,
     worldon_instances: Hash.new,
   }
   defaults.each do |key, value|
@@ -82,6 +83,7 @@ Plugin.create(:worldon) do
   settings "Worldon" do
     settings "表示" do
       boolean 'botアカウントにアイコンを表示する', :worldon_show_subparts_bot
+      boolean 'ピン留めトゥートにアイコンを表示する', :worldon_show_subparts_pin
       boolean 'トゥートに公開範囲を表示する', :worldon_show_subparts_visibility
     end
 

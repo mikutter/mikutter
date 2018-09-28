@@ -30,6 +30,7 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
 
   def show_icon?
     return true if (UserConfig[:worldon_show_subparts_bot] && helper.message.user.respond_to?(:bot) && helper.message.user.bot)
+    return true if (UserConfig[:worldon_show_subparts_pin] && helper.message.respond_to?(:pinned?) && helper.message.pinned?)
     return true if (UserConfig[:worldon_show_subparts_visibility] && helper.message.respond_to?(:visibility) && filename(helper.message.visibility))
     false
   end
@@ -59,6 +60,9 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
       if helper.message.user.respond_to?(:bot) && helper.message.user.bot
         bot_pixbuf = get_photo('bot.png')&.pixbuf(width: @icon_size, height: @icon_size)
       end
+      if helper.message.respond_to?(:pinned?) && helper.message.pinned?
+        pin_pixbuf = get_photo('pin.png')&.pixbuf(width: @icon_size, height: @icon_size)
+      end
       visibility_pixbuf = icon_pixbuf
       context.save do
         context.translate(0, @margin)
@@ -76,6 +80,21 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
           context.show_pango_layout(layout)
           context.translate(bot_text_width, 0)
+        end
+
+        if UserConfig[:worldon_show_subparts_pin] && pin_pixbuf
+          context.translate(@margin, 0)
+          context.set_source_pixbuf(pin_pixbuf)
+          context.paint
+
+          context.translate(@icon_size + @margin, 0)
+          layout = context.create_pango_layout
+          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.text = "ピン留め"
+          pin_text_width = layout.extents[1].width / Pango::SCALE
+          context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
+          context.show_pango_layout(layout)
+          context.translate(pin_text_width, 0)
         end
 
         if UserConfig[:worldon_show_subparts_visibility] && visibility_pixbuf
