@@ -562,12 +562,12 @@ Plugin.create(:worldon) do
   end
 
   # 検索
-  intent :worldon_tag do |token|
+  intent :worldon_tag, label: "Mastodonハッシュタグ(Worldon)" do |token|
     Plugin.call(:search_start, "##{token.model.name}")
   end
 
   # アカウント
-  intent :worldon_account do |token|
+  intent :worldon_account, label: "Mastodonアカウント(Worldon)" do |token|
     Plugin.call(:worldon_account_timeline, token.model)
   end
 
