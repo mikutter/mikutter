@@ -1,0 +1,10 @@
+---
+slug: :api_request_file_cache
+depends:
+  mikutter: '3.8'
+  plugin:
+  - twitter
+version: '1.0'
+author: toshi_a
+name: 毎時間ファイルキャッシュを監視して削除する
+description: 毎時間ファイルキャッシュを監視して削除する
