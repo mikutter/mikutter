@@ -2,6 +2,7 @@
 require 'nokogiri'
 require 'httpclient'
 require 'totoridipjp'
+require 'json'
 
 module Plugin::PhotoSupport
   INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
@@ -69,8 +70,15 @@ Plugin.create :photo_support do
 
   # gyazo
   defimageopener('gyazo', %r<\Ahttps?://gyazo.com/[a-zA-Z0-9]+>) do |display_url|
-    img = Plugin::PhotoSupport.d250g2(display_url)
-    open(img) if img
+    begin
+      connection = HTTPClient.new
+      json = connection.get_content("https://api.gyazo.com/api/oembed", url: display_url)
+      hash = JSON.parse(json, symbolize_names: true)
+      open(hash[:url]) if hash[:url]
+    rescue => e
+      error e.to_s
+      nil
+    end
   end
 
   # 携帯百景
