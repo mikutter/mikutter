@@ -2,6 +2,7 @@
 # 通知管理プラグイン
 
 miquire :mui, 'tree_view_pretty_scroll'
+miquire :lib, 'typed-array'
 
 require_relative 'model/activity'
 require_relative 'model_selector'
