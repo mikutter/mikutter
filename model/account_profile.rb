@@ -58,10 +58,6 @@ module Plugin::Worldon
       account.url
     end
 
-    def score
-      [Plugin::Score::TextNote.new(description: description)]
-    end
-
     def from_me_world
       world = Plugin.filtering(:world_current, nil).first
       return nil if (!world.respond_to?(:account) || !world.account.respond_to?(:acct))
