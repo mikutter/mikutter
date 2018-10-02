@@ -87,13 +87,13 @@ Plugin.create :console do
     buffer.create_tag("prompt",
                       foreground_gdk: Gdk::Color.new(0, 0x6666, 0))
     buffer.create_tag("echo",
-                      weight: Pango::FontDescription::WEIGHT_BOLD)
+                      weight: Pango::Weight::BOLD)
     buffer.create_tag("result",
                       foreground_gdk: Gdk::Color.new(0, 0, 0x6666))
     buffer.create_tag("errorclass",
                       foreground_gdk: Gdk::Color.new(0x6666, 0, 0))
     buffer.create_tag("error",
-                      weight: Pango::FontDescription::WEIGHT_BOLD,
+                      weight: Pango::Weight::BOLD,
                       foreground_gdk: Gdk::Color.new(0x9999, 0, 0))
     buffer.create_tag("backtrace",
                       foreground_gdk: Gdk::Color.new(0x3333, 0, 0))
