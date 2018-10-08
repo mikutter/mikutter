@@ -132,21 +132,6 @@ Plugin.create :user_detail_view do
       timeline_storage.delete(widget.slug)
       UserConfig[:profile_opened_tabs] = timeline_storage.values.map(&:id) end end
 
-  command(:aboutuser,
-          name: lambda { |opt|
-            if defined? opt.messages.first and opt.messages.first.user.is_a?(User)
-              u = opt.messages.first.user
-              (_("%{screen_name}(%{name})について") % {
-               screen_name: u[:idname],
-               name: u[:name] }).gsub(/_/, '__')
-            else
-              _("ユーザについて") end },
-          condition: Plugin::Command::CanReplyAll,
-          visible: true,
-          icon: lambda{ |opt| opt && opt.messages.first.user.icon },
-          role: :timeline) do |opt|
-    Plugin.call(:open, opt.messages.first.user) end
-
   def mutebutton(user)
     changer = lambda{ |new, widget|
       if new === nil

@@ -130,6 +130,16 @@ Plugin.create :command do
     }
   end
 
+  command(:aboutuser,
+          name: lambda { |opt|
+            (_("%{title}について") % { title: opt.messages.first.user.title }).gsub(/_/, '__')
+          },
+          condition: Plugin::Command[:CanReplyAll],
+          visible: true,
+          icon: lambda{ |opt| opt && opt.messages.first.user.icon },
+          role: :timeline) do |opt|
+    Plugin.call(:open, opt.messages.first.user) end
+
   command(:select_prev,
           name: _('一つ上のメッセージを選択'),
           condition: ret_nth,
