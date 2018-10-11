@@ -91,7 +91,8 @@ module Plugin::Worldon::Parser
     end
 
     description = score.inject('') do |acc, note|
-      acc + note.description
+      desc = note.is_a?(Plugin::Score::HyperLinkNote) ? note.uri.to_s : note.description
+      acc + desc
     end
 
     [description, score]
