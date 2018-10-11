@@ -14,6 +14,6 @@ depends:
     - score
     - search
 version: '1.0'
-author: 
+author: cobodo
 name: Worldon
 description: mikutterでMastodonへ接続するworldプラグインです。
