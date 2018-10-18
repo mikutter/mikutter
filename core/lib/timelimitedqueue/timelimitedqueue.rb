@@ -23,7 +23,7 @@ class TimeLimitedQueue < Queue
   # コールバックに渡すためのクラスを取得設定する。
   # 通常Arrayだが、Setにすれば同じ値が同時に二つ入らない代わりに、高速に処理される。
   # メソッド _push_ を実装しているクラスを指定する。
-  attr_accessor :strage_class
+  attr_accessor :storage_class
 
   attr_reader :thread # :nodoc:
 
