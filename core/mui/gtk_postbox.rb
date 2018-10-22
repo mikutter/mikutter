@@ -32,7 +32,7 @@ module Gtk
     # [visibility] Symbol|nil compose Spellに渡すvisibilityオプションの値
     # [kwrest] Hash 以下の値から成る連想配列
     #   - delegated_by :: Gtk::PostBox 投稿処理をこのPostBoxに移譲したPostBox
-    #   - postboxstrage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
+    #   - postboxstorage :: Gtk::Container PostBoxの親で、複数のPostBoxを持つことができるコンテナ
     #   - delegate_other :: true|false|Proc 投稿時、このPostBoxを使わないで、新しいPostBoxで投稿する。そのPostBoxにはdelegated_byに _self_ が設定される。Procを指定した場合、新しいPostBoxを作る処理として、その無名関数を使う
     #   - before_post_hook :: Proc 投稿前に、 _self_ を引数に呼び出される
     def initialize(postable = nil,
