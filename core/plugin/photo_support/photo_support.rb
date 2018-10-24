@@ -4,7 +4,9 @@ require 'httpclient'
 require 'totoridipjp'
 
 module Plugin::PhotoSupport
+  SUPPORTED_IMAGE_FORMATS = GdkPixbuf::Pixbuf.formats.flat_map{|f| f.extensions }.freeze
   INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
+  GITHUB_IMAGE_PATTERN = %r<\Ahttps://github\.com/(\w+/\w+)/blob/(.*\.(?:#{SUPPORTED_IMAGE_FORMATS.join('|')}))\z>
 
   class << self
     extend Memoist
@@ -241,5 +243,13 @@ Plugin.create :photo_support do
     next nil if location.nil?
     img = Plugin::PhotoSupport.インスタ映え(location)
     open(img) if img
+  end
+
+  # GitHub
+  defimageopener('github', Plugin::PhotoSupport::GITHUB_IMAGE_PATTERN) do |display_url|
+    url = Plugin::PhotoSupport::GITHUB_IMAGE_PATTERN.match(display_url) do |m|
+      "https://raw.githubusercontent.com/#{m[1]}/#{m[2]}"
+    end
+    open(url) if url
   end
 end
