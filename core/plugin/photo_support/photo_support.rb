@@ -4,8 +4,9 @@ require 'httpclient'
 require 'totoridipjp'
 
 module Plugin::PhotoSupport
+  SUPPORTED_IMAGE_FORMATS = GdkPixbuf::Pixbuf.formats.flat_map{|f| f.extensions }.freeze
   INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
-  GITHUB_IMAGE_PATTERN = %r<\Ahttps://github\.com/(\w+/\w+)/blob/(.*\.(?:#{GdkPixbuf::Pixbuf.formats.flat_map do |f| f.extensions end.join '|'}))\z>
+  GITHUB_IMAGE_PATTERN = %r<\Ahttps://github\.com/(\w+/\w+)/blob/(.*\.(?:#{SUPPORTED_IMAGE_FORMATS.join('|')}))\z>
 
   class << self
     extend Memoist
