@@ -7,6 +7,7 @@ depends:
     - spell
     - gui
     - gtk
+    - photo
     - openimg
     - settings
     - command
