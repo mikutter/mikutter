@@ -9,5 +9,6 @@ depends:
   - spell
   - score
   - twitter_api_keys
+  - photo
 version: '1.0'
 author: toshi_a
