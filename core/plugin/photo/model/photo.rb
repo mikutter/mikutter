@@ -19,6 +19,7 @@ module Plugin::Photo
     # URIからPhoto Modelを得る。
     # _uri_ がDiva::Modelだった場合はそれを返すので、PhotoかURIかわからないものをPhotoに変換するのに使える。
     # サードパーティプラグインはこれを呼ばず、以下のページを参考にすること。
+    # https://reference.mikutter.hachune.net/model/2016/11/30/photo-model.html
     def self.[](uri)
       case uri
       when Diva::Model
