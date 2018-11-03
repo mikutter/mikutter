@@ -80,22 +80,24 @@ class Plugin::Twitter::User < Diva::Model
   def icon
     @icon ||=
       begin
-        photo = Diva::Model(:photo)
-        photo.generate([{policy: :original,
-                         photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '\1')},
-                        {name: :mini,
-                         width: 24, height: 24,
-                         policy: :fit,
-                         photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '_mini\1')},
-                        {name: :normal,
-                         width: 48, height: 48,
-                         policy: :fit,
-                         photo: profile_image_url},
-                        {name: :bigger,
-                         width: 73, height: 73,
-                         policy: :fit,
-                         photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '_bigger\1')} ],
-                       perma_link: profile_image_url)
+        photo = Diva::Model(:photo)&.
+                  generate(
+                    [{ policy: :original,
+                       photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '\1')},
+                     { name: :mini,
+                       width: 24, height: 24,
+                       policy: :fit,
+                       photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '_mini\1')},
+                     { name: :normal,
+                       width: 48, height: 48,
+                       policy: :fit,
+                       photo: profile_image_url},
+                     { name: :bigger,
+                       width: 73, height: 73,
+                       policy: :fit,
+                       photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '_bigger\1')} ],
+                    perma_link: profile_image_url)
+        photo || Enumerator.new{|y| Plugin.filtering(:photo_filter, profile_image_url, y) }.first
       end
   end
   alias_method :icon_large, :icon
