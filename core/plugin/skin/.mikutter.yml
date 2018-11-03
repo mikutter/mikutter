@@ -2,8 +2,7 @@
 slug: :skin
 depends:
   mikutter: '3.5'
-  plugin:
-    - photo
+  plugin: []
 version: '1.0'
 author: toshi_a
 name: Skin
