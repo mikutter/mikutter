@@ -2,7 +2,8 @@
 slug: :intent
 depends:
   mikutter: "3.5"
-  plugin: []
+  plugin:
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: intent
