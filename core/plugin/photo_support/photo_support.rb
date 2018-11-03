@@ -244,9 +244,9 @@ Plugin.create :photo_support do
   end
 
   # Amazon
-  amazon_json_regex1 = %r!'colorImages': { 'initial': (\[.*MAIN.*\])!.freeze
-  amazon_json_regex2 = %r! data-a-dynamic-image="([^"]*)"!.freeze
-  defimageopener('Amazon', %r<\Ahttps?://www\.amazon\.(?:co\.jp|com)/(?:.*/)?(?:dp/|gp/product/)[0-9A-Za-z_]+>) do |url|
+  amazon_json_regex1 = %r!'colorImages': { 'initial': (\[.*MAIN.*\])!
+  amazon_json_regex2 = %r! data-a-dynamic-image="([^"]*)"!
+  defimageopener('Amazon', %r<\Ahttps?://(?:www\.amazon\.(?:co\.jp|com)/(?:.*/)?(?:dp/|gp/product/)|amzn.asia/d/)[0-9A-Za-z_]+>) do |url|
     html = HTTPClient.new.get_content(url, [], [['User-Agent', 'mikutter']])
     m = amazon_json_regex1.match(html)
     via_data_attr = false
