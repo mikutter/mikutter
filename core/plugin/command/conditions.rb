@@ -101,7 +101,7 @@ module ::Plugin::Command
   # 選択しているのが全て自分のツイートの時
   IsMyMessageAll = Condition.new{ |opt|
     current_world, = Plugin.filtering(:world_current, nil)
-    not opt.messages.empty? and opt.messages.all?{|m| m | current_world =~ :from_me? }
+    not opt.messages.empty? and opt.messages.all?{|m| m.from_me?(current_world) }
   }
 
   # TL上のテキストが一文字でも選択されている

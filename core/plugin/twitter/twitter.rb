@@ -405,11 +405,18 @@ Plugin.create(:twitter) do
       result = extended_entities.map{ |media|
         case media[:type]
         when 'photo'
-          photo = Diva::Model(:photo).generate(photo_variant_seeds(media), perma_link: media[:media_url_https])
-          Diva::Model(:score_hyperlink).new(
-            description: photo.uri,
-            uri: photo.uri,
-            reference: photo)
+          photo = Diva::Model(:photo)&.generate(photo_variant_seeds(media), perma_link: media[:media_url_https])
+          photo ||= Enumerator.new{|y| Plugin.filtering(:photo_filter, media[:media_url_https], y) }.first
+          if photo
+            Diva::Model(:score_hyperlink).new(
+              description: photo.uri,
+              uri: photo.uri,
+              reference: photo)
+          else
+            Diva::Model(:score_hyperlink).new(
+              description: media[:media_url_https],
+              uri: media[:media_url_https])
+          end
         when 'video'
           variant = Array(media[:video_info][:variants])
                       .select{|v|v[:content_type] == "video/mp4"}

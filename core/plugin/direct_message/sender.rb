@@ -2,8 +2,6 @@
 
 module Plugin::DirectMessage
   class Sender
-    include Diva::Combinable
-
     def self.slug
       :twitter_directmessage_posting
     end

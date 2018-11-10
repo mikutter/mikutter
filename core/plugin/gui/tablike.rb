@@ -77,8 +77,9 @@ module Plugin::GUI::TabLike
     icon_model = case icon
     when Diva::Model
       icon
-    when String
-      Diva::Model(:photo)[icon]
+    when String, URI, Addressable::URI, Diva::URI
+      _, photos = Plugin.filtering(:photo_filter, icon, [])
+      photos.first || Skin['notfound.png']
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end

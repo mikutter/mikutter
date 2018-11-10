@@ -35,8 +35,9 @@ class Plugin::GUI::Window
     case icon
     when Diva::Model
       @icon = icon
-    when String
-      @icon = Diva::Model(:photo)[icon]
+    when String, URI, Addressable::URI, Diva::URI
+      _, photos = Plugin.filtering(:photo_filter, icon, [])
+      @icon = photos.first || Skin['notfound.png']
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end
