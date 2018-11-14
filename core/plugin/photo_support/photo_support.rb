@@ -1,3 +1,4 @@
+
 # coding: utf-8
 require 'nokogiri'
 require 'httpclient'
@@ -289,6 +290,12 @@ Plugin.create :photo_support do
 
   #reddit
   defimageopener('reddit', %r|^https?://www\.reddit\.com/r/(?:[^/]*)/comments/(?:[^/]*)/(?:[^/]*)|) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
+
+  # pixiv
+  defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/member_illust\.php\?(?:.*)&?illust_id=\d+(?:&.*)?$>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
     open(img) if img
   end
