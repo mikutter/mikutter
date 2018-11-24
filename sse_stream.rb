@@ -216,8 +216,14 @@ Plugin.create(:worldon) do
   on_sse_connection_failure do |slug, response|
     error "SSE: connection failure for #{slug.to_s}"
     pp response if Mopt.error_level >= 1
+    $stdout.flush
 
-    Plugin.call(:worldon_restart_sse_stream, slug)
+    if (response.status / 100) == 4
+      # 4xx系レスポンスはリトライせず終了する
+      Plugin.call(:sse_kill_connection, slug)
+    else
+      Plugin.call(:worldon_restart_sse_stream, slug)
+    end
   end
 
   on_sse_connection_closed do |slug|
