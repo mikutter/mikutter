@@ -582,9 +582,10 @@ Plugin.create(:worldon) do
         order do |message|
           ord = message.created.to_i
           if message.is_a? pm::AccountProfile
-            ord = message.modified.to_i
+            ord = [5000000000000000, GLib::MAXLONG].min
           elsif message.respond_to?(:pinned?) && message.pinned?
-            ord += 66200000000000
+            bias = 66200000000000
+            ord = [ord + bias, GLib::MAXLONG - 1].min
           end
           ord
         end

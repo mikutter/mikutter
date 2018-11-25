@@ -24,10 +24,6 @@ module Plugin::Worldon
       account.created_at
     end
 
-    memoize def modified
-      Time.at(5000000000000000)
-    end
-
     def title
       account.display_name
     end
