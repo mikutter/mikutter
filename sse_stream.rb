@@ -44,6 +44,8 @@ Plugin.create(:worldon) do
       when 'list'
         uri = Diva::URI.new(base_url + 'list')
         params[:list] = list_id
+      when 'direct'
+        uri = Diva::URI.new(base_url + 'direct')
       end
 
       headers = {}
@@ -150,7 +152,10 @@ Plugin.create(:worldon) do
 
       filter_extract_datasources do |dss|
         instance = pm::Instance.load(world.domain)
-        datasources = { world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}" }
+        datasources = {
+          world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}",
+          world.datasource_slug(:direct) => "Mastodon DM(Worldon)/#{world.account.acct}",
+        }
         lists.to_a.each do |l|
           slug = world.datasource_slug(:list, l[:id])
           datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
@@ -161,6 +166,9 @@ Plugin.create(:worldon) do
       # ストリーム開始
       if datasource_used?(world.datasource_slug(:home), true)
         Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
+      end
+      if datasource_used?(world.datasource_slug(:direct), true)
+        Plugin.call(:worldon_start_stream, world.domain, 'direct', world.datasource_slug(:direct), world)
       end
 
       lists.to_a.each do |l|
@@ -176,6 +184,7 @@ Plugin.create(:worldon) do
   on_worldon_remove_auth_stream do |world|
     slugs = []
     slugs.push world.datasource_slug(:home)
+    slugs.push world.datasource_slug(:direct)
 
     lists = world.get_lists!
     lists.to_a.each do |l|

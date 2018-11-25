@@ -40,6 +40,9 @@ module Plugin::Worldon
       when :home
         # ホームTL
         "worldon-#{account.acct}-home".to_sym
+      when :direct
+        # DM TL
+        "worldon-#{account.acct}-direct".to_sym
       when :list
         # リストTL
         "worldon-#{account.acct}-list-#{n}".to_sym
