@@ -252,4 +252,30 @@ Plugin.create :photo_support do
     end
     open(url) if url
   end
+
+  # Amazon
+  amazon_json_regex1 = %r!'colorImages': { 'initial': (\[.*MAIN.*\])!
+  amazon_json_regex2 = %r! data-a-dynamic-image="([^"]*)"!
+  defimageopener('Amazon', %r<\Ahttps?://(?:www\.amazon\.(?:co\.jp|com)/(?:.*/)?(?:dp/|gp/product/)|amzn.asia/d/)[0-9A-Za-z_]+>) do |url|
+    html = HTTPClient.new.get_content(url, [], [['User-Agent', 'mikutter']])
+    m = amazon_json_regex1.match(html)
+    via_data_attr = false
+    if m.nil?
+      m = amazon_json_regex2.match(html)
+      via_data_attr = true
+    end
+    next nil unless m
+    json = m[1]
+    unless via_data_attr
+      arr = JSON.parse(json, symbolize_names: true)
+      main = arr.find {|v| v[:variant] == "MAIN" }
+      image_url = main[:large]
+    else
+      json = CGI.unescapeHTML(json)
+      hash = JSON.parse(json)
+      max = hash.to_a.max {|v| v[1][0] }
+      image_url = max[0]
+    end
+    open(image_url)
+  end
 end
