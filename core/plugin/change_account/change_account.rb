@@ -9,9 +9,8 @@ Plugin.create :change_account do
           condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    current_world, = Plugin.filtering(:world_current, nil)
     worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
-    index = worlds.index(current_world)
+    index = worlds.index(opt.world)
     Plugin.call(:world_change_current, worlds[index - 1]) if index
   end
 
@@ -20,9 +19,8 @@ Plugin.create :change_account do
           condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    current_world, = Plugin.filtering(:world_current, nil)
     worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
-    index = worlds.index(current_world)
+    index = worlds.index(opt.world)
     Plugin.call(:world_change_current, worlds[(index + 1) % worlds.size]) if index
   end
 

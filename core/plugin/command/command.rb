@@ -63,14 +63,13 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    target = opt.messages.select{|m| share?(m, world) }.reject{|m| shared?(m, world) }.map(&:introducer)
-    if target.any?{|message| message.from_me?([world]) }
+    target = opt.messages.select{|m| share?(m, opt.world) }.reject{|m| shared?(m, opt.world) }.map(&:introducer)
+    if target.any?{|message| message.from_me?([opt.world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each{|m| share(m, world) }
+        target.each{|m| share(m, opt.world) }
       end
     else
-      target.each{|m| share(m, world) }
+      target.each{|m| share(m, opt.world) }
     end
   end
 
@@ -80,9 +79,8 @@ Plugin.create :command do
           visible: true,
           icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
-    current_world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
-      opt.messages.map{|m| destroy_share(current_world, m) }
+      opt.messages.map{|m| destroy_share(opt.world, m) }
     ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
   end
 
@@ -92,12 +90,11 @@ Plugin.create :command do
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
       opt.messages.select{|m|
-        favorite?(world, m) && !favorited?(world, m)
+        favorite?(opt.world, m) && !favorited?(opt.world, m)
       }.map{|m|
-        favorite(world, m)
+        favorite(opt.world, m)
       }
     ).terminate(_('ふぁぼふぁぼしている途中でエラーが発生しました'))
   end
@@ -108,9 +105,8 @@ Plugin.create :command do
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
-      opt.messages.map{|m| unfavorite(world, m) }
+      opt.messages.map{|m| unfavorite(opt.world, m) }
     ).terminate(_('あんふぁぼしている途中でエラーが発生しました'))
   end
 
