@@ -8,7 +8,13 @@ Plugin.create :shortcutkey do
     keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
     commands = lazy{ Plugin.filtering(:command, Hash.new).first }
     timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
-    event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : [])
+    current_world, = Plugin.filtering(:world_current, nil)
+    event = Plugin::GUI::Event.new(
+      event: :contextmenu,
+      widget: widget,
+      messages: timeline ? timeline.selected_messages : [],
+      world: current_world
+    )
     keybinds.values.each{ |behavior|
       if behavior[:key] == key
         cmd = commands[behavior[:slug]]
