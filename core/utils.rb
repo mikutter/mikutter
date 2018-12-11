@@ -111,7 +111,7 @@ def notice(msg)
 end
 
 # 警告メッセージを表示する。
-def warn(msg)
+def warn(msg, uplevel: nil)
   log "warning", msg if Mopt.error_level >= 2
 end
 
