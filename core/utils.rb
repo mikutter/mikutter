@@ -110,9 +110,28 @@ def notice(msg)
   log "notice", msg if Mopt.error_level >= 3
 end
 
-# 警告メッセージを表示する。
-def warn(msg, uplevel: nil)
-  log "warning", msg if Mopt.error_level >= 2
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+  alias __mikutter_original_warn warn
+  # 警告メッセージを表示する。
+  def warn(*msg, uplevel: nil)
+    case
+    when uplevel
+      __mikutter_original_warn(*msg, uplevel: uplevel)
+    when Mopt.error_level >= 2
+      msg.each do |m|
+        log "warning", m
+      end
+    end
+  end
+else
+  # 警告メッセージを表示する。
+  def warn(*msg)
+    if Mopt.error_level >= 2
+      msg.each do |m|
+        log "warning", m
+      end
+    end
+  end
 end
 
 # エラーメッセージを表示する。
