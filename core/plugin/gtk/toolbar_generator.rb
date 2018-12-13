@@ -23,7 +23,11 @@ module Plugin::Gtk
           toolitem.tooltip(name)
           toolitem.relief = ::Gtk::RELIEF_NONE
           toolitem.ssc(:clicked){
-            command[:exec].call(event) }
+            current_world, = Plugin.filtering(:world_current, nil)
+            event.world = current_world
+            command[:exec].call(event)
+            true
+          }
           container.closeup(toolitem) }
         #container.ssc(:realize, &:queue_resize)
         container.show_all if not commands.empty?
