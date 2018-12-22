@@ -11,19 +11,20 @@ Plugin.create :shortcutkey do
     current_world, = Plugin.filtering(:world_current, nil)
     keybinds.values.lazy.select{|keyconf|
       keyconf[:key] == key
+    }.select{|keyconf|
+      role = commands.dig(keyconf[:slug], :role)
+      role && widget.class.find_role_ancestor(role)
     }.map{|keyconf|
       [ commands[keyconf[:slug]],
         Plugin::GUI::Event.new(
           event: :contextmenu,
           widget: widget,
           messages: timeline ? timeline.selected_messages : [],
-          world: keyconf[:world] || current_world
+          world: world_by_uri(keyconf[:world]) || current_world
         )
       ]
     }.select{|command, event|
-      command &&
-        widget.class.find_role_ancestor(command[:role]) &&
-        command[:condition] === event
+      command[:condition] === event
     }.each do |command, event|
       executed = true
       command[:exec].(event)
@@ -43,6 +44,10 @@ Plugin.create :shortcutkey do
                add(Gtk::HBox.new(false, 4).
                    add(listview).
                    closeup(listview.buttons(Gtk::VBox))))
+  end
+
+  def world_by_uri(uri)
+    Enumerator.new{|y| Plugin.filtering(:worlds, y) }.find{|w| w.uri.to_s == uri }
   end
 
 end

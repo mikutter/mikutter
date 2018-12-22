@@ -7,8 +7,9 @@ module Plugin::Shortcutkey
     COLUMN_COMMAND_ICON = 1
     COLUMN_COMMAND = 2
     COLUMN_SLUG = 3
-    COLUMN_WORLD = 4
-    COLUMN_ID = 5
+    COLUMN_WORLD_FACE = 4
+    COLUMN_WORLD = 5
+    COLUMN_ID = 6
 
     attr_accessor :filter_entry
 
@@ -20,17 +21,18 @@ module Plugin::Shortcutkey
       model.set_visible_func do |model, iter|
         if defined?(@filter_entry) and @filter_entry
           query = @filter_entry.text
-          [ iter[COLUMN_KEYBIND],
-            iter[COLUMN_COMMAND],
-            iter[COLUMN_SLUG],
-            iter[COLUMN_WORLD].uri,
-            iter[COLUMN_WORLD].title,
-          ].any?{|x| x.to_s.include?(query) }
+          Enumerator.new{|y|
+            y << iter[COLUMN_KEYBIND] << iter[COLUMN_COMMAND] << iter[COLUMN_SLUG]
+            iter[COLUMN_WORLD].yield_self do |w|
+              y << w.uri << w.title if w.is_a? Diva::Model
+            end
+          }.any?{|x| x.to_s.include?(query) }
         else
           true
         end
       end
       commands = Plugin.filtering(:command, Hash.new).first
+      worlds = world_selections(key: ->k{ k.uri.to_s })
       shortcutkeys.each do |id, behavior|
         slug = behavior[:slug]
         iter = model.model.append
@@ -38,7 +40,9 @@ module Plugin::Shortcutkey
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
         iter[COLUMN_SLUG] = slug
-        iter[COLUMN_WORLD] = behavior[:world]
+        world = worlds[behavior[:world]]
+        iter[COLUMN_WORLD_FACE] = world&.title || @plugin._('カレントアカウント')
+        iter[COLUMN_WORLD] = world
         commands.dig(slug, :icon)&.yield_self{|icon|
           icon.is_a?(Proc) ? icon.call(nil) : icon
         }&.yield_self{|icon|
@@ -71,10 +75,13 @@ module Plugin::Shortcutkey
           args:   command_dict_slug_to_name,
           type:   Symbol
         },
-        { kind:   :text,
-          widget: :chooseone,
-          args:   worlds_dict_slug_to_name,
-          type:   Object        # World Model or nil
+        { kind:     :text,
+          label:    @plugin._('アカウント'),
+          type:     String
+        },
+        { widget:   :chooseone,
+          args:     worlds_dict_slug_to_name,
+          type:     Object        # World Model or :current
         },
         { type: Integer
         },
@@ -110,9 +117,11 @@ module Plugin::Shortcutkey
       name = name.call(nil) if name.is_a? Proc
       iter[COLUMN_ID] = new_serial
       bind[iter[COLUMN_ID]] = {
-        :key => iter[COLUMN_KEYBIND].to_s,
-        :name => name,
-        :slug => iter[COLUMN_SLUG].to_sym }
+        key: iter[COLUMN_KEYBIND].to_s,
+        name: name,
+        slug: iter[COLUMN_SLUG].to_sym,
+        world: iter[COLUMN_WORLD]&.uri&.to_s
+      }
       iter[COLUMN_COMMAND] = name
       UserConfig[:shortcutkey_keybinds] = bind
     end
@@ -121,10 +130,13 @@ module Plugin::Shortcutkey
       bind = shortcutkeys
       name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
       name = name.call(nil) if name.is_a? Proc
+      world = iter[COLUMN_WORLD].respond_to?(:uri) && iter[COLUMN_WORLD].uri.to_s
       bind[iter[COLUMN_ID].to_i] = {
-        :key => iter[COLUMN_KEYBIND].to_s,
-        :name => name,
-        :slug => iter[COLUMN_SLUG].to_sym }
+        key: iter[COLUMN_KEYBIND].to_s,
+        name: name,
+        slug: iter[COLUMN_SLUG].to_sym,
+        world: world
+      }
       iter[COLUMN_COMMAND] = name
       UserConfig[:shortcutkey_keybinds] = bind
     end
@@ -184,19 +196,22 @@ module Plugin::Shortcutkey
       container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(button), true, true, 0) end
 
     def world_box(results)
-      selections = [[nil, @plugin._('カレントアカウント')],
-                    *Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map { |w|
-                      [w, w.title]
-                    }]
+      faces = world_selections(value: :title)
       Mtk.chooseone(
         ->new{
-          unless new === nil
+          case new
+          when :current
+            results[COLUMN_WORLD_FACE] = @plugin._('カレントアカウント')
+            results[COLUMN_WORLD] = nil
+          when nil
+            results[COLUMN_WORLD]
+          else
+            results[COLUMN_WORLD_FACE] = faces[new]
             results[COLUMN_WORLD] = new
           end
-          results[COLUMN_WORLD]
         },
         @plugin._('アカウント'),
-        Hash[selections]
+        faces
       )
     end
 
@@ -213,6 +228,13 @@ module Plugin::Shortcutkey
         .add(::Gtk::HBox.new(false, 0).
                add(treeview).
                closeup(scrollbar))
+    end
+
+    def world_selections(key: :itself, value: :itself)
+      Hash[[[:current, @plugin._('カレントアカウント')],
+            *Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map { |w|
+              [key.to_proc.(w), value.to_proc.(w)]
+            }]]
     end
 
     class KeyConfigWindow < ::Gtk::Window
@@ -240,7 +262,9 @@ module Plugin::Shortcutkey
           if defined?(@filter_entry) and @filter_entry
             iter_match(iter, @filter_entry.text)
           else
-            true end }
+            true
+          end
+        }
         append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
         append_column ::Gtk::TreeViewColumn.new(@plugin._("コマンド名"), ::Gtk::CellRendererText.new, text: COL_NAME)
         append_column ::Gtk::TreeViewColumn.new(@plugin._("スラッグ"), ::Gtk::CellRendererText.new, text: COL_SLUG)
@@ -276,7 +300,8 @@ module Plugin::Shortcutkey
         end
         selected = selection.selected
         if selected
-          scroll_to_cell(selected.path, nil, false, 0.5, 0) end
+          scroll_to_cell(selected.path, nil, false, 0.5, 0)
+        end
       end
 
       private
