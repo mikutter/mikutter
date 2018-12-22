@@ -9,20 +9,27 @@ Plugin.create :shortcutkey do
     commands = lazy{ Plugin.filtering(:command, Hash.new).first }
     timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
     current_world, = Plugin.filtering(:world_current, nil)
-    event = Plugin::GUI::Event.new(
-      event: :contextmenu,
-      widget: widget,
-      messages: timeline ? timeline.selected_messages : [],
-      world: current_world
-    )
-    keybinds.values.each{ |behavior|
-      if behavior[:key] == key
-        cmd = commands[behavior[:slug]]
-        if cmd and widget.class.find_role_ancestor(cmd[:role])
-          if cmd[:condition] === event
-            executed = true
-            cmd[:exec].call(event) end end end }
-    [key, widget, executed] end
+    keybinds.values.lazy.select{|keyconf|
+      keyconf[:key] == key
+    }.map{|keyconf|
+      [ commands[keyconf[:slug]],
+        Plugin::GUI::Event.new(
+          event: :contextmenu,
+          widget: widget,
+          messages: timeline ? timeline.selected_messages : [],
+          world: keyconf[:world] || current_world
+        )
+      ]
+    }.select{|command, event|
+      command &&
+        widget.class.find_role_ancestor(command[:role]) &&
+        command[:condition] === event
+    }.each do |command, event|
+      executed = true
+      command[:exec].(event)
+    end
+    [key, widget, executed]
+  end
 
   settings _("ショートカットキー") do
     listview = Plugin::Shortcutkey::ShortcutKeyListView.new(Plugin[:shortcutkey])
