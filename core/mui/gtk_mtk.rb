@@ -23,6 +23,7 @@ module Mtk
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
   end
 
+  # [values] {値 => ラベル(String)} のようなHash
   def self.chooseone(key, label, values)
     values.freeze
     if key.respond_to?(:call)

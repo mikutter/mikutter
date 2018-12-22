@@ -7,7 +7,8 @@ module Plugin::Shortcutkey
     COLUMN_COMMAND_ICON = 1
     COLUMN_COMMAND = 2
     COLUMN_SLUG = 3
-    COLUMN_ID = 4
+    COLUMN_WORLD = 4
+    COLUMN_ID = 5
 
     attr_accessor :filter_entry
 
@@ -16,38 +17,84 @@ module Plugin::Shortcutkey
       @plugin = plugin
       super()
       set_model(Gtk::TreeModelFilter.new(model))
-      model.set_visible_func{ |model, iter|
+      model.set_visible_func do |model, iter|
         if defined?(@filter_entry) and @filter_entry
-          [COLUMN_KEYBIND, COLUMN_COMMAND, COLUMN_SLUG].any?{ |column| iter[column].to_s.include?(@filter_entry.text) }
+          query = @filter_entry.text
+          [ iter[COLUMN_KEYBIND],
+            iter[COLUMN_COMMAND],
+            iter[COLUMN_SLUG],
+            iter[COLUMN_WORLD].uri,
+            iter[COLUMN_WORLD].title,
+          ].any?{|x| x.to_s.include?(query) }
         else
-          true end }
+          true
+        end
+      end
       commands = Plugin.filtering(:command, Hash.new).first
-      shortcutkeys.each{ |id, behavior|
+      shortcutkeys.each do |id, behavior|
         slug = behavior[:slug]
         iter = model.model.append
         iter[COLUMN_ID] = id
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
         iter[COLUMN_SLUG] = slug
-        if commands[slug]
-          icon = commands[slug][:icon]
-          icon = icon.call(nil) if icon.is_a? Proc
-          icon = Diva::Model(:photo)[icon] if icon
-          if icon
-            iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16, height: 16){ |pixbuf|
-              if not destroyed?
-                iter[COLUMN_COMMAND_ICON] = pixbuf end } end end } end
+        iter[COLUMN_WORLD] = behavior[:world]
+        commands.dig(slug, :icon)&.yield_self{|icon|
+          icon.is_a?(Proc) ? icon.call(nil) : icon
+        }&.yield_self{|icon|
+          Diva::Model(:photo)[icon]
+        }&.yield_self do |icon|
+          iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16, height: 16) do |pixbuf|
+            iter[COLUMN_COMMAND_ICON] = pixbuf if not destroyed?
+          end
+        end
+      end
+    end
 
     def column_schemer
-      [{:kind => :text, :widget => :keyconfig, :type => String, :label => @plugin._('キーバインド')},
-       [{:kind => :pixbuf, :type => GdkPixbuf::Pixbuf, :label => @plugin._('機能名')},
-        {:kind => :text, :type => String, :expand => true}],
-       {:kind => :text, :widget => :chooseone, :args => [Hash[Plugin.filtering(:command, Hash.new).first.values.map{ |x|
-                                                            [x[:slug], x[:name]]
-                                                          }].freeze],
-         :type => Symbol},
-       {:type => Integer},
+      [ { kind:   :text,
+          widget: :keyconfig,
+          type:   String,
+          label:  @plugin._('キーバインド')
+        },
+        [ { kind:  :pixbuf,
+            type:  GdkPixbuf::Pixbuf,
+            label: @plugin._('機能名')
+          },
+          { kind:   :text,
+            type:   String,
+            expand: true
+          }
+        ],
+        { kind:   :text,
+          widget: :chooseone,
+          args:   command_dict_slug_to_name,
+          type:   Symbol
+        },
+        { kind:   :text,
+          widget: :chooseone,
+          args:   worlds_dict_slug_to_name,
+          type:   Object        # World Model or nil
+        },
+        { type: Integer
+        },
       ].freeze
+    end
+
+    def command_dict_slug_to_name
+      Hash[
+        Plugin.filtering(:command, Hash.new)
+          .first
+          .values
+          .map{|x| [x[:slug], x[:name]] }
+      ]
+    end
+
+    def worlds_dict_slug_to_name
+      Hash[
+        Enumerator.new{|y| Plugin.filtering(:worlds, y) }
+          .map{|x| [x.uri, x.title] }
+      ]
     end
 
     def shortcutkeys
@@ -100,12 +147,13 @@ module Plugin::Shortcutkey
       btn_cancel = ::Gtk::Button.new(@plugin._("キャンセル"))
       window.
         add(::Gtk::VBox.new(false, 16).
-            add(::Gtk::HBox.new(false, 16).
-                add(key_box(values)).
-                add(command_box(values))).
-            closeup(::Gtk::HButtonBox.new.set_layout_style(::Gtk::ButtonBox::END).
-                    add(btn_cancel).
-                    add(btn_ok)))
+              add(::Gtk::VBox.new(false, 16).
+                    closeup(key_box(values)).
+                    closeup(world_box(values)).
+                    add(command_box(values))).
+              closeup(::Gtk::HButtonBox.new.set_layout_style(::Gtk::ButtonBox::END).
+                        add(btn_cancel).
+                        add(btn_ok)))
       window.show_all
 
       window.ssc(:destroy){ ::Gtk::main_quit }
@@ -128,12 +176,29 @@ module Plugin::Shortcutkey
       result end
 
     def key_box(results)
-      container = ::Gtk::VBox.new(false, 16)
+      container = ::Gtk::HBox.new(false, 0)
       button = ::Gtk::KeyConfig.new(@plugin._('キーバインド'), results[COLUMN_KEYBIND])
+      button.width_request = HYDE
       button.change_hook = lambda { |new| results[COLUMN_KEYBIND] = new }
-      container.
-        closeup(::Gtk::Label.new(@plugin._('キーバインド'))).
-        closeup(button) end
+      container.pack_start(::Gtk::Label.new(@plugin._('キーバインド')), false, true, 0)
+      container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(button), true, true, 0) end
+
+    def world_box(results)
+      selections = [[nil, @plugin._('カレントアカウント')],
+                    *Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map { |w|
+                      [w, w.title]
+                    }]
+      Mtk.chooseone(
+        ->new{
+          unless new === nil
+            results[COLUMN_WORLD] = new
+          end
+          results[COLUMN_WORLD]
+        },
+        @plugin._('アカウント'),
+        Hash[selections]
+      )
+    end
 
     def command_box(results)
       treeview = CommandList.new(@plugin, results)
@@ -144,17 +209,17 @@ module Plugin::Shortcutkey
         treeview.model.refilter
         false }
       return ::Gtk::VBox.new(false, 0)
-      .closeup(filter_entry)
-      .add(::Gtk::HBox.new(false, 0).
-           add(treeview).
-           closeup(scrollbar))
+        .closeup(filter_entry)
+        .add(::Gtk::HBox.new(false, 0).
+               add(treeview).
+               closeup(scrollbar))
     end
 
     class KeyConfigWindow < ::Gtk::Window
       def initialize(*args)
         super
         set_size_request(640, 480)
-        window_position = ::Gtk::Window::POS_CENTER
+        self.window_position = ::Gtk::Window::POS_CENTER
       end
     end
 
@@ -231,8 +296,9 @@ module Plugin::Shortcutkey
         [COL_NAME, COL_SLUG].any?{ |column|
           iter[column].to_s.include?(text)
         } or if iter.has_child?
-               iter.n_children.times.any?{ |i| iter_match(iter.nth_child(i), text) } end end
+        iter.n_children.times.any?{ |i| iter_match(iter.nth_child(i), text) }
+      end
     end
-
   end
+end
 end
