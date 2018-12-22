@@ -201,13 +201,14 @@ module Plugin::Shortcutkey
             selection.select_iter(iter)
           end
         }
-        signal_connect("cursor-changed"){
+        ssc(:cursor_changed) do
           iter = selection.selected
           if iter
             results[Plugin::Shortcutkey::ShortcutKeyListView::COLUMN_COMMAND] = iter[COL_NAME]
             results[Plugin::Shortcutkey::ShortcutKeyListView::COLUMN_SLUG] = iter[COL_SLUG]
           end
-          false }
+          false
+        end
         selected = selection.selected
         if selected
           scroll_to_cell(selected.path, nil, false, 0.5, 0) end

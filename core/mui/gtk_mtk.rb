@@ -16,7 +16,7 @@ module Mtk
     adj = Gtk::Adjustment.new((UserConfig[config] or min), min*1.0, max*1.0, 1.0, 5.0, 0.0)
     spinner = Gtk::SpinButton.new(adj, 0, 0)
     spinner.wrap = true
-    adj.signal_connect('value-changed'){ |widget, e|
+    adj.ssc(:value_changed){ |widget, e|
       UserConfig[config] = widget.value.to_i
       false
     }
@@ -40,7 +40,7 @@ module Mtk
       input.append_text(values[x].respond_to?(:call) ? values[x].call(nil) : values[x])
     }
     input.active = (sorted.index{ |i| i.to_s == proc.call(*[nil, input][0, proc.arity]).to_s } or 0)
-    input.signal_connect('changed'){ |widget|
+    input.ssc(:changed){ |widget|
       proc.call(*[sorted[widget.active], widget][0, proc.arity])
       nil
     }
@@ -79,7 +79,7 @@ module Mtk
           UserConfig[key] = new end } end
     input = Gtk::CheckButton.new(label)
     input.active = proc.call(*[nil, input][0, proc.arity])
-    input.signal_connect('toggled'){ |widget|
+    input.ssc(:toggled){ |widget|
       proc.call(*[widget.active?, widget][0, proc.arity]) }
     return input
   end
@@ -95,7 +95,7 @@ module Mtk
           UserConfig[key] = new.freeze end } end
     input = Gtk::MessagePicker.new(proc.call(*[nil, input][0, proc.arity])){
         proc.call(*[ input.to_a, input][0, proc.arity]) }
-    input.signal_connect(:destroy){
+    input.ssc(:destroy){
       proc.call(*[ input.to_a, input][0, proc.arity]) }
     return input
   end
@@ -106,15 +106,15 @@ module Mtk
     input = Gtk::Entry.new
     input.text = UserConfig[:url_open_command] if UserConfig[:url_open_command].is_a?(String)
     default.active = !(input.sensitive = custom.active = UserConfig[key])
-    default.signal_connect('toggled'){ |widget|
+    default.ssc(:toggled){ |widget|
       UserConfig[key] = nil
       input.sensitive = !widget.active?
     }
-    custom.signal_connect('toggled'){ |widget|
+    custom.ssc(:toggled){ |widget|
       UserConfig[key] = input.text
       input.sensitive = widget.active?
     }
-    input.signal_connect('changed'){ |widget|
+    input.ssc(:changed){ |widget|
       UserConfig[key] = widget.text
     }
     self.group(title, default, Gtk::HBox.new(false, 0).add(custom).add(input))
@@ -135,7 +135,7 @@ module Mtk
     input.visibility = visibility
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-    input.signal_connect('changed'){ |widget|
+    input.ssc(:changed){ |widget|
       proc.call(widget.text) }
     callback.call(container, input) if block_given?
     return container
@@ -190,7 +190,7 @@ module Mtk
       input = i }
     button = Gtk::Button.new('参照')
     container.pack_start(button, false)
-    button.signal_connect('clicked'){ |widget|
+    button.ssc(:clicked){ |widget|
       dialog = Gtk::FileChooserDialog.new("Open File",
                                           widget.get_ancestor(Gtk::Window),
                                           Gtk::FileChooser::ACTION_OPEN,
@@ -211,14 +211,14 @@ module Mtk
     color = UserConfig[key]
     button = Gtk::ColorButton.new((color and Gdk::Color.new(*color)))
     button.title = label
-    button.signal_connect('color-set'){ |w|
+    button.ssc(:color_set){ |w|
       UserConfig[key] = w.color.to_a }
     button end
 
   def self._fontselect(key, label)
     button = Gtk::FontButton.new(UserConfig[key])
     button.title = label
-    button.signal_connect('font-set'){ |w|
+    button.ssc(:font_set){ |w|
       UserConfig[key] = w.font_name }
     button end
 
@@ -236,7 +236,7 @@ module Mtk
 
   def self.accountdialog_button(label, kuser, lvuser,  kpasswd, lvpasswd, &validator)
     btn = Gtk::Button.new(label)
-    btn.signal_connect('clicked'){
+    btn.ssc(:clicked){
       self.account_dialog(label, kuser, lvuser,  kpasswd, lvpasswd, &validator) }
     btn
   end
@@ -281,7 +281,7 @@ module Mtk
       else
         Gtk.main_quit
       end }
-    dialog.signal_connect("response"){ |widget, response|
+    dialog.ssc(:response){ |widget, response|
       if response == Gtk::Dialog::RESPONSE_OK
         if validator.call(iuser.text, ipass.text)
           UserConfig[kuser] = iuser.text
@@ -294,7 +294,7 @@ module Mtk
           response == Gtk::Dialog::RESPONSE_DELETE_EVENT
         quit.call
       end }
-    dialog.signal_connect("destroy") {
+    dialog.ssc(:destroy) {
       false
     }
     container.show
@@ -319,7 +319,7 @@ module Mtk
 
   def self.dialog_button(label, callback = Proc.new)
     btn = Gtk::Button.new(label)
-    btn.signal_connect('clicked'){
+    btn.ssc(:clicked){
       params = callback.call
       self.dialog(label, params[:container], &params[:success]) }
     btn
@@ -341,7 +341,7 @@ module Mtk
     dialog.vbox.pack_start(container, expand, true, 30)
     dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if block_given?
-    dialog.signal_connect('response'){ |widget, response|
+    dialog.ssc(:response){ |widget, response|
       if block and response == Gtk::Dialog::RESPONSE_OK
         begin
           result = block.call(*[response, dialog][0,block.arity])
@@ -353,7 +353,7 @@ module Mtk
           alert.vbox.add(Gtk::Label.new(e.to_s))
           alert.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
           alert.show_all
-          alert.signal_connect('response'){
+          alert.ssc(:response){
             dialog.sensitive = true
             alert.hide_all.destroy }
           next
