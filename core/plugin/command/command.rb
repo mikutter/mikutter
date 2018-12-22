@@ -132,7 +132,7 @@ Plugin.create :command do
 
   command(:aboutuser,
           name: lambda { |opt|
-            (_("%{title}について") % { title: opt.messages.first.user.title }).gsub(/_/, '__')
+            (_("%{title}について") % { title: opt&.messages&.first&.user&.title || _('投稿者') }).gsub(/_/, '__')
           },
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
