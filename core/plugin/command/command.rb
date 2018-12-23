@@ -156,7 +156,8 @@ Plugin.create :command do
           visible: true,
           icon: Skin['post.png'],
           role: :postbox) do |opt|
-    opt.widget.post_it! end
+    opt.widget.post_it!(world: opt.world)
+  end
 
   command(:google_search,
           name: _('ggrks'),
