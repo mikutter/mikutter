@@ -4,7 +4,7 @@ exec ruby -x "$0" "$@"
 #!ruby
 =begin rdoc
 = mikutter - the moest twitter client
-Copyright (C) 2009-2018 Toshiaki Asai
+Copyright (C) 2009-2019 Toshiaki Asai
 
 This software is released under the MIT License.
 
