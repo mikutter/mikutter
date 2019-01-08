@@ -86,7 +86,7 @@ Plugin.create :command do
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
-          condition: ->opt{ opt.messages.any?{|m| favorite?(opt.world, m) && favorited?(opt.world, m) } },
+          condition: ->opt{ opt.messages.any?{|m| favorite?(opt.world, m) && !favorited?(opt.world, m) } },
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
@@ -101,7 +101,7 @@ Plugin.create :command do
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),
-          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| Plugin[:command].unfavorite?(opt.world, m) } },
+          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| unfavorite?(opt.world, m) } },
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
