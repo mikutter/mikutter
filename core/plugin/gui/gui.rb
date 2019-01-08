@@ -2,6 +2,7 @@
 # mikutterにGUIをつけるプラグイン
 
 require_relative 'dsl'
+require_relative 'event'
 require_relative 'window'
 require_relative 'pane'
 require_relative 'tab'

@@ -10,7 +10,7 @@ Plugin.create :command do
 
   command(:copy_selected_region,
           name: _('コピー'),
-          condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
+          condition: ->opt{ opt.messages.size == 1 && opt.widget&.selected_text(opt.messages.first)},
           visible: true,
           icon: Skin['copy.png'],
           role: :timeline) do |opt|
@@ -18,7 +18,7 @@ Plugin.create :command do
 
   command(:copy_description,
           name: _('本文をコピー'),
-          condition: Plugin::Command[:HasOneMessage],
+          condition: ->opt{ opt.messages.size == 1 },
           visible: true,
           icon: Skin['copy_all.png'],
           role: :timeline) do |opt|
@@ -26,7 +26,7 @@ Plugin.create :command do
 
   command(:reply,
           name: _('返信'),
-          condition: Plugin::Command[:CanReplyAll],
+          condition: ->opt{ !opt.messages.empty? && compose?(opt.world, to: opt.messages) },
           visible: true,
           icon: Skin['reply.png'],
           role: :timeline) do |opt|
@@ -37,7 +37,7 @@ Plugin.create :command do
 
   command(:reply_all,
           name: _('全員に返信'),
-          condition: Plugin::Command[:CanReplyAll],
+          condition: ->opt{ !opt.messages.empty? && compose?(opt.world, to: opt.messages) },
           visible: true,
           icon: Skin['reply.png'],
           role: :timeline) do |opt|
@@ -48,7 +48,7 @@ Plugin.create :command do
 
   command(:legacy_retweet,
           name: _('引用'),
-          condition: Plugin::Command[:HasOneMessage, :CanReplyAll],
+          condition: ->opt{ opt.messages.size == 1 && compose?(opt.world, to: opt.messages) },
           visible: true,
           role: :timeline) do |opt|
     m = opt.messages.first
@@ -59,64 +59,60 @@ Plugin.create :command do
 
   command(:retweet,
           name: _('リツイート'),
-          condition: Plugin::Command[:CanReTweetAny],
+          condition: ->opt{ opt.messages.any?{|m| share?(opt.world, m) && !shared?(opt.world, m) } },
           visible: true,
           icon: Skin['retweet.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    target = opt.messages.select{|m| share?(m, world) }.reject{|m| shared?(m, world) }.map(&:introducer)
-    if target.any?{|message| message.from_me?([world]) }
+    target = opt.messages.select{|m| share?(m, opt.world) }.reject{|m| shared?(m, opt.world) }.map(&:introducer)
+    if target.any?{|message| message.from_me?([opt.world]) }
       if ::Gtk::Dialog.confirm(_('過去の栄光にすがりますか？'))
-        target.each{|m| share(m, world) }
+        target.each{|m| share(m, opt.world) }
       end
     else
-      target.each{|m| share(m, world) }
+      target.each{|m| share(m, opt.world) }
     end
   end
 
   command(:delete_retweet,
           name: _('リツイートをキャンセル'),
-          condition: Plugin::Command[:IsReTweetedAll],
+          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| destroy_share?(opt.world, m) } },
           visible: true,
           icon: Skin['retweet_cancel.png'],
           role: :timeline) do |opt|
-    current_world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
-      opt.messages.map{|m| destroy_share(current_world, m) }
+      opt.messages.map{|m| destroy_share(opt.world, m) }
     ).terminate(_('リツイートをキャンセルしている途中でエラーが発生しました'))
   end
 
   command(:favorite,
           name: _('ふぁぼふぁぼする'),
-          condition: Plugin::Command[:CanFavoriteAny],
+          condition: ->opt{ opt.messages.any?{|m| favorite?(opt.world, m) && !favorited?(opt.world, m) } },
           visible: true,
           icon: Skin['unfav.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
       opt.messages.select{|m|
-        favorite?(world, m) && !favorited?(world, m)
+        favorite?(opt.world, m) && !favorited?(opt.world, m)
       }.map{|m|
-        favorite(world, m)
+        favorite(opt.world, m)
       }
     ).terminate(_('ふぁぼふぁぼしている途中でエラーが発生しました'))
   end
 
   command(:delete_favorite,
           name: _('あんふぁぼ'),
-          condition: Plugin::Command[:IsFavoritedAll],
+          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| unfavorite?(opt.world, m) } },
           visible: true,
           icon: Skin['fav.png'],
           role: :timeline) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
-      opt.messages.map{|m| unfavorite(world, m) }
+      opt.messages.map{|m| unfavorite(opt.world, m) }
     ).terminate(_('あんふぁぼしている途中でエラーが発生しました'))
   end
 
   command(:delete,
           name: _('削除'),
-          condition: Plugin::Command[:IsMyMessageAll],
+          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| m.from_me?(opt.world) } },
           visible: true,
           icon: Skin['close.png'],
           role: :timeline) do |opt|
@@ -134,7 +130,7 @@ Plugin.create :command do
           name: lambda { |opt|
             (_("%{title}について") % { title: opt&.messages&.first&.user&.title || _('投稿者') }).gsub(/_/, '__')
           },
-          condition: Plugin::Command[:CanReplyAll],
+          condition: ->opt{ !opt.messages.empty? && compose?(opt.world, to: opt.messages) },
           visible: true,
           icon: lambda{ |opt| opt && opt.messages.first.user.icon },
           role: :timeline) do |opt|
@@ -142,29 +138,30 @@ Plugin.create :command do
 
   command(:select_prev,
           name: _('一つ上のメッセージを選択'),
-          condition: ret_nth,
+          condition: :itself.to_proc,
           visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :prev) end
 
   command(:select_next,
           name: _('一つ下のメッセージを選択'),
-          condition: ret_nth,
+          condition: :itself.to_proc,
           visible: false,
           role: :timeline) do |opt|
     Plugin.call(:gui_timeline_move_cursor_to, opt.widget, :next) end
 
   command(:post_it,
           name: _('投稿する'),
-          condition: Plugin::Command[:Editable],
+          condition: ->opt{ opt.widget&.editable? },
           visible: true,
           icon: Skin['post.png'],
           role: :postbox) do |opt|
-    opt.widget.post_it! end
+    opt.widget.post_it!(world: opt.world)
+  end
 
   command(:google_search,
           name: _('ggrks'),
-          condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
+          condition: ->opt{ opt.messages.size == 1 && opt.widget.selected_text(opt.messages.first) },
           visible: true,
           icon: "https://www.google.co.jp/images/google_favicon_128.png",
           role: :timeline) do |opt|
@@ -172,15 +169,17 @@ Plugin.create :command do
 
   command(:open_in_browser,
           name: _('ブラウザで開く'),
-          condition: Plugin::Command[:HasOneMessage, :HasParmaLinkAll],
+          condition: ->opt{ opt.messages.size == 1 && opt.messages.first.perma_link },
           visible: true,
           role: :timeline) do |opt|
     Plugin.call(:open, Diva::Model(:web)&.new(perma_link: opt.messages.first.perma_link)) end
 
   command(:open_link,
           name: _('リンクを開く'),
-          condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
-            opt.messages[0].entity.to_a.any? {|u| [:urls, :media].include?(u[:slug]) } },
+          condition: ->opt{
+            opt.messages.size == 1 &&
+              opt.messages[0].entity.to_a.any? {|u| [:urls, :media].include?(u[:slug]) }
+          },
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
@@ -195,8 +194,10 @@ Plugin.create :command do
 
   command(:copy_link,
           name: _('リンクをコピー'),
-          condition: Plugin::Command[:HasOneMessage] & lambda{ |opt|
-            opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls } },
+          condition: ->opt{
+            opt.messages.size == 1 &&
+              opt.messages[0].entity.to_a.any? {|u| u[:slug] == :urls }
+          },
           visible: true,
           role: :timeline) do |opt|
     opt.messages[0].entity.to_a.each {|u|
@@ -204,9 +205,10 @@ Plugin.create :command do
 
   command(:new_pane,
           name: _('新規ペインに移動'),
-          condition: lambda{ |opt|
+          condition: ->opt{
             pane = opt.widget.parent
-            pane.is_a?(Plugin::GUI::Pane) and pane.children.size != 1 },
+            pane.is_a?(Plugin::GUI::Pane) && pane.children.size != 1
+          },
           visible: true,
           role: :tab) do |opt|
     tab = opt.widget.is_a?(Plugin::GUI::Tab) ? opt.widget : opt.widget.ancestor_of(Plugin::GUI::Tab)
@@ -222,8 +224,9 @@ Plugin.create :command do
 
   command(:close,
           name: _('タブを閉じる'),
-          condition: lambda{ |opt|
-            opt.widget.deletable },
+          condition: ->opt{
+            opt.widget.deletable
+          },
           visible: true,
           icon: Skin['close.png'],
           role: :tab) do |opt|
@@ -232,7 +235,7 @@ Plugin.create :command do
 
   command(:focus_right_tab,
           name: _('次のタブを選択'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :tab) do |opt|
     focus_move_widget(opt.widget, 1)
@@ -240,7 +243,7 @@ Plugin.create :command do
 
   command(:focus_left_tab,
           name: _('前のタブを選択'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :tab) do |opt|
     focus_move_widget(opt.widget, -1)
@@ -248,7 +251,7 @@ Plugin.create :command do
 
   command(:focus_right_pane,
           name: _('右のペインを選択'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :pane) do |opt|
     focus_move_widget(opt.widget, -1)
@@ -256,7 +259,7 @@ Plugin.create :command do
 
   command(:focus_left_pane,
           name: _('左のペインを選択'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :pane) do |opt|
     focus_move_widget(opt.widget, 1)
@@ -264,11 +267,12 @@ Plugin.create :command do
 
   command(:focus_to_postbox,
           name: _('投稿ボックスにフォーカス'),
-          condition: lambda{ |opt|
+          condition: ->opt{
             if opt.widget.respond_to? :active_chain
               not opt.widget.active_chain.last.is_a? Plugin::GUI::Postbox
             else
-              opt.widget.is_a? Plugin::GUI::Postbox end },
+              opt.widget.is_a? Plugin::GUI::Postbox end
+          },
           visible: false,
           role: :window) do |opt|
     focus_move_to_nearest_postbox(opt.widget.active_chain.last)
@@ -276,7 +280,7 @@ Plugin.create :command do
 
   command(:focus_to_tab,
           name: _('タブにフォーカス'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :postbox) do |opt|
     focus_move_to_latest_widget(opt.widget)
@@ -284,7 +288,7 @@ Plugin.create :command do
 
   command(:timeline_scroll_to_top,
           name: _('タイムラインの一番上にジャーンプ！'),
-          condition: lambda{ |opt| true },
+          condition: :itself.to_proc,
           visible: false,
           role: :timeline) do |opt|
     opt.widget.scroll_to_top end

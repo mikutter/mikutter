@@ -73,9 +73,18 @@ class Gtk::MikutterWindow < Gtk::Window
   # ==== Return
   # container
   def status_button(container)
-    Plugin::Gtk::ToolbarGenerator.generate(container,
-                                           Plugin::GUI::Event.new(:window_toolbar, @imaginally, []),
-                                           :window) end
+    current_world, = Plugin.filtering(:world_current, nil)
+    Plugin::Gtk::ToolbarGenerator.generate(
+      container,
+      Plugin::GUI::Event.new(
+        event: :window_toolbar,
+        widget: @imaginally,
+        messages: [],
+        world: current_world
+      ),
+      :window
+    )
+  end
 
   def visible?
     case UserConfig[:postbox_visibility]

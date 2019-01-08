@@ -66,7 +66,9 @@ Plugin.create :display_requirements do
 
   command(:like,
           name: _('いいねいいねする'),
-          condition: Plugin::Command[:CanFavoriteAny],
+          condition: ->opt{
+            opt.messages.any?{|m| favorite?(opt.world, m) && favorited?(opt.world, m) }
+          },
           visible: true,
           icon: Skin['dont_like.png'],
           role: :timeline) do |opt|
@@ -74,7 +76,9 @@ Plugin.create :display_requirements do
 
   command(:delete_like,
           name: _('あんいいね'),
-          condition: Plugin::Command[:IsFavoritedAll],
+          condition: ->opt{
+            !opt.messages.empty? && opt.messages.all?{|m| Plugin[:command].unfavorite?(opt.world, m) }
+          },
           visible: true,
           icon: Skin['like.png'],
           role: :timeline) do |opt|

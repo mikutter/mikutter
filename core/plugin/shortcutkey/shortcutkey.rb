@@ -8,15 +8,29 @@ Plugin.create :shortcutkey do
     keybinds = (UserConfig[:shortcutkey_keybinds] || Hash.new)
     commands = lazy{ Plugin.filtering(:command, Hash.new).first }
     timeline = widget.is_a?(Plugin::GUI::Timeline) ? widget : widget.active_class_of(Plugin::GUI::Timeline)
-    event = Plugin::GUI::Event.new(:contextmenu, widget, timeline ? timeline.selected_messages : [])
-    keybinds.values.each{ |behavior|
-      if behavior[:key] == key
-        cmd = commands[behavior[:slug]]
-        if cmd and widget.class.find_role_ancestor(cmd[:role])
-          if cmd[:condition] === event
-            executed = true
-            cmd[:exec].call(event) end end end }
-    [key, widget, executed] end
+    current_world, = Plugin.filtering(:world_current, nil)
+    keybinds.values.lazy.select{|keyconf|
+      keyconf[:key] == key
+    }.select{|keyconf|
+      role = commands.dig(keyconf[:slug], :role)
+      role && widget.class.find_role_ancestor(role)
+    }.map{|keyconf|
+      [ commands[keyconf[:slug]],
+        Plugin::GUI::Event.new(
+          event: :contextmenu,
+          widget: widget,
+          messages: timeline ? timeline.selected_messages : [],
+          world: world_by_uri(keyconf[:world]) || current_world
+        )
+      ]
+    }.select{|command, event|
+      command[:condition] === event
+    }.each do |command, event|
+      executed = true
+      command[:exec].(event)
+    end
+    [key, widget, executed]
+  end
 
   settings _("ショートカットキー") do
     listview = Plugin::Shortcutkey::ShortcutKeyListView.new(Plugin[:shortcutkey])
@@ -30,6 +44,10 @@ Plugin.create :shortcutkey do
                add(Gtk::HBox.new(false, 4).
                    add(listview).
                    closeup(listview.buttons(Gtk::VBox))))
+  end
+
+  def world_by_uri(uri)
+    Enumerator.new{|y| Plugin.filtering(:worlds, y) }.find{|w| w.uri.to_s == uri }
   end
 
 end

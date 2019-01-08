@@ -40,11 +40,14 @@ class Plugin::GUI::Postbox
     Plugin.call(:postbox_created, self) end
 
   # このPostboxの内容を投稿する
+  # ==== Args
+  # [world:] 投稿先のWorld。nilを与えた場合は自動選択。
   # ==== Return
   # self
-  def post_it!
-    Plugin.call(:gui_postbox_post, self)
-    self end
+  def post_it!(world: nil)
+    Plugin.call(:gui_postbox_post, self, {world: world})
+    self
+  end
 
   # このPostboxがユーザの入力を受け付けているなら真。
   # 偽を返すPostboxは、投稿処理中か、投稿が完了して破棄されたもの

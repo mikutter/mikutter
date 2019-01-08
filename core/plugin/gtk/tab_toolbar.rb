@@ -13,8 +13,15 @@ class Gtk::TabToolbar < Gtk::HBox
 
   def set_button
     self.children.each(&method(:remove))
-    Plugin::Gtk::ToolbarGenerator.generate(self,
-                                           Plugin::GUI::Event.new(:tab_toolbar, @imaginally.parent, []),
-                                           :tab)
+    current_world, = Plugin.filtering(:world_current, nil)
+    Plugin::Gtk::ToolbarGenerator.generate(
+      self,
+      Plugin::GUI::Event.new(
+        event: :tab_toolbar,
+        widget: @imaginally.parent,
+        messages: [],
+        world: current_world
+      ),
+      :tab)
   end
 end

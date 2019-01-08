@@ -2,7 +2,6 @@
 # GUI定義用のDSLを宣言する
 
 module Plugin::GUI
-  Event = Struct.new(:event, :widget, :messages)
   class << self
     def ui_setting
       UserConfig[:ui_tab_order] || {

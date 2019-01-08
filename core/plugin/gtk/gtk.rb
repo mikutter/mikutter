@@ -351,10 +351,9 @@ Plugin.create :gtk do
     end
   end
 
-  on_gui_postbox_post do |i_postbox|
-    postbox = widgetof(i_postbox)
-    if postbox
-      postbox.post_it end end
+  on_gui_postbox_post do |i_postbox, options|
+    widgetof(i_postbox)&.post_it(world: options[:world])
+  end
 
   # i_widget.destroyされた時に呼ばれる。
   # 必要ならば、ウィジェットの実体もあわせて削除する。
