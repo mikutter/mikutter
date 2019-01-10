@@ -49,14 +49,14 @@ Plugin.create(:notify) do
   on_followers_created do |post, users|
     if not(users.empty?)
       if(UserConfig[:notify_followed])
-        self.notify(users.first, _('%{users} にフォローされました。') % {users: users.map{|u| "@#{u[:idname]}" }.join(' ')}) end
+        self.notify(users.first, _('%{users} にフォローされました。') % {users: users.map{|u| u && "@#{u[:idname]}" }.join(' ')}) end
       if(UserConfig[:notify_sound_followed])
         self.notify_sound(UserConfig[:notify_sound_followed]) end end end
 
   on_followers_destroy do |post, users|
     if not(users.empty?)
       if(UserConfig[:notify_removed])
-        self.notify(users.first, _('%{users} にリムーブされました。') % {users: users.map{|u| "@#{u[:idname]}" }.join(' ')}) end
+        self.notify(users.first, _('%{users} にリムーブされました。') % {users: users.map{|u| u && "@#{u[:idname]}" }.join(' ')}) end
       if(UserConfig[:notify_sound_removed])
         self.notify_sound(UserConfig[:notify_sound_removed]) end end end
 
