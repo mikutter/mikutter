@@ -12,7 +12,7 @@ Plugin.create :command do
           name: _('コピー'),
           condition: Plugin::Command[:HasOneMessage, :TimelineTextSelected],
           visible: true,
-          icon: Skin['copy.png'],
+          icon: Skin[:copy],
           role: :timeline) do |opt|
     ::Gtk::Clipboard.copy(opt.widget.selected_text(opt.messages.first)) end
 
@@ -20,7 +20,7 @@ Plugin.create :command do
           name: _('本文をコピー'),
           condition: Plugin::Command[:HasOneMessage],
           visible: true,
-          icon: Skin['copy_all.png'],
+          icon: Skin[:copy_all],
           role: :timeline) do |opt|
     ::Gtk::Clipboard.copy(opt.messages.first.description) end
 
@@ -28,7 +28,7 @@ Plugin.create :command do
           name: _('返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
-          icon: Skin['reply.png'],
+          icon: Skin[:reply],
           role: :timeline) do |opt|
     messages = opt.messages
     opt.widget.create_postbox(to: messages,
@@ -39,7 +39,7 @@ Plugin.create :command do
           name: _('全員に返信'),
           condition: Plugin::Command[:CanReplyAll],
           visible: true,
-          icon: Skin['reply.png'],
+          icon: Skin[:reply],
           role: :timeline) do |opt|
     messages = opt.messages.map{ |m| m.ancestors.to_a }.flatten
     opt.widget.create_postbox(to: messages,
@@ -61,7 +61,7 @@ Plugin.create :command do
           name: _('リツイート'),
           condition: Plugin::Command[:CanReTweetAny],
           visible: true,
-          icon: Skin['retweet.png'],
+          icon: Skin[:retweet],
           role: :timeline) do |opt|
     world, = Plugin.filtering(:world_current, nil)
     target = opt.messages.select{|m| share?(m, world) }.reject{|m| shared?(m, world) }.map(&:introducer)
@@ -78,7 +78,7 @@ Plugin.create :command do
           name: _('リツイートをキャンセル'),
           condition: Plugin::Command[:IsReTweetedAll],
           visible: true,
-          icon: Skin['retweet_cancel.png'],
+          icon: Skin[:retweet_cancel],
           role: :timeline) do |opt|
     current_world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
@@ -90,7 +90,7 @@ Plugin.create :command do
           name: _('ふぁぼふぁぼする'),
           condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
-          icon: Skin['unfav.png'],
+          icon: Skin[:unfav],
           role: :timeline) do |opt|
     world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
@@ -106,7 +106,7 @@ Plugin.create :command do
           name: _('あんふぁぼ'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
-          icon: Skin['fav.png'],
+          icon: Skin[:fav],
           role: :timeline) do |opt|
     world, = Plugin.filtering(:world_current, nil)
     Delayer::Deferred.when(
@@ -118,7 +118,7 @@ Plugin.create :command do
           name: _('削除'),
           condition: Plugin::Command[:IsMyMessageAll],
           visible: true,
-          icon: Skin['close.png'],
+          icon: Skin[:close],
           role: :timeline) do |opt|
     opt.messages.deach { |m|
       +dialog(_('削除')) {
@@ -148,7 +148,7 @@ Plugin.create :command do
           name: _('投稿する'),
           condition: Plugin::Command[:Editable],
           visible: true,
-          icon: Skin['post.png'],
+          icon: Skin[:post],
           role: :postbox) do |opt|
     opt.widget.post_it! end
 
@@ -215,7 +215,7 @@ Plugin.create :command do
           condition: lambda{ |opt|
             opt.widget.deletable },
           visible: true,
-          icon: Skin['close.png'],
+          icon: Skin[:close],
           role: :tab) do |opt|
     opt.widget.destroy
   end

@@ -68,7 +68,7 @@ Plugin.create :display_requirements do
           name: _('いいねいいねする'),
           condition: Plugin::Command[:CanFavoriteAny],
           visible: true,
-          icon: Skin['dont_like.png'],
+          icon: Skin[:dont_like],
           role: :timeline) do |opt|
     opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
 
@@ -76,7 +76,7 @@ Plugin.create :display_requirements do
           name: _('あんいいね'),
           condition: Plugin::Command[:IsFavoritedAll],
           visible: true,
-          icon: Skin['like.png'],
+          icon: Skin[:like],
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 

@@ -79,7 +79,7 @@ module Plugin::GUI::TabLike
       icon
     when String, URI, Addressable::URI, Diva::URI
       _, photos = Plugin.filtering(:photo_filter, icon, [])
-      photos.first || Skin['notfound.png']
+      photos.first || Skin[:notfound]
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end

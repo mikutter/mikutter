@@ -136,7 +136,7 @@ module Plugin::Openimg
 
     def w_browser
       @w_browser ||= ::Gtk::ToolButton.new(
-        Gtk::Image.new(Skin['forward.png'].pixbuf(width: 24, height: 24))
+        Gtk::Image.new(Skin[:forward].pixbuf(width: 24, height: 24))
       ).tap{|w|
         w.ssc(:clicked, &gen_browser_clicked)
       }

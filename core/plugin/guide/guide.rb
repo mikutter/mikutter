@@ -23,7 +23,7 @@ Plugin.create :guide do
 
   def guide_start(ach)
     tab :guide, _('World ガイド') do
-      set_icon Skin['icon.png']
+      set_icon Skin[:icon]
       timeline(:guide)
     end
 
@@ -157,7 +157,7 @@ Plugin.create :guide do
   defachievement(:tutorial,
                  description: _("mikutterのチュートリアルを見た"),
                  hint: _('← こんなアイコンのタブが右にあると思うので、クリックしてください'),
-                 icon: Skin['icon.png']
+                 icon: Skin[:icon]
                 ) do |ach|
     if Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(1).to_a.empty?
       guide_start(ach)

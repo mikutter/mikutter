@@ -32,7 +32,7 @@ module Gdk::WebImageLoader
     end
   rescue => err
     warn err
-    Skin['notfound.png'].pixbuf(width: width, height: height)
+    Skin[:notfound].pixbuf(width: width, height: height)
   end
   deprecate :pixbuf, "Diva::Model::PhotoMixin#load_pixbuf", 2018, 1 if Environment::VERSION >= [3, 6]
 
@@ -92,12 +92,12 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   Skin['loading.png'].pixbuf(width: width, height: height)
+  #   Skin[:loading].pixbuf(width: width, height: height)
   def loading_pixbuf(rect, height = nil)
     if height
-      Skin['loading.png'].pixbuf(width: rect, height: height)
+      Skin[:loading].pixbuf(width: rect, height: height)
     else
-      Skin['loading.png'].pixbuf(width: rect.width, height: rect.height)
+      Skin[:loading].pixbuf(width: rect.width, height: rect.height)
     end
   end
   deprecate :loading_pixbuf, 'Skin[\'loading.png\'].pixbuf(width: width, height: height)', 2018, 1 if Environment::VERSION >= [3, 6]
@@ -105,12 +105,12 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   Skin['notfound.png'].pixbuf(width: width, height: height)
+  #   Skin[:notfound].pixbuf(width: width, height: height)
   def notfound_pixbuf(rect, height = nil)
     if height
-      Skin['notfound.png'].pixbuf(width: rect, height: height)
+      Skin[:notfound].pixbuf(width: rect, height: height)
     else
-      Skin['notfound.png'].pixbuf(width: rect.width, height: rect.height)
+      Skin[:notfound].pixbuf(width: rect.width, height: rect.height)
     end
   end
   deprecate :notfound_pixbuf, 'Skin[\'notfound.png\'].pixbuf(width: width, height: height)', 2018, 1 if Environment::VERSION >= [3, 6]

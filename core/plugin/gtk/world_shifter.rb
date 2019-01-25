@@ -38,7 +38,7 @@ class Gtk::WorldShifter < Gtk::EventBox
       end
       menu.append Gtk::SeparatorMenuItem.new
       item = Gtk::ImageMenuItem.new(Plugin[:gtk]._('Worldを追加'), false)
-      item.set_image Gtk::WebIcon.new(Skin['add.png'], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
+      item.set_image Gtk::WebIcon.new(Skin[:add], UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
       item.ssc(:activate) { |w|
         Plugin.call(:request_world_add)
         false }
@@ -100,13 +100,13 @@ class Gtk::WorldShifter < Gtk::EventBox
         if transaction == @world_transaction
           @face.pixbuf = pixbuf
         end
-      end || Skin['add.png'].pixbuf(**rect)
+      end || Skin[:add].pixbuf(**rect)
     end
   end
 
   def add_face_widget_ifn
     if not @face
-      @face = Gtk::Image.new(Skin['loading.png'].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
+      @face = Gtk::Image.new(Skin[:loading].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
       self.add(@face).show_all
     end
     world, = Plugin.filtering(:world_current, nil)

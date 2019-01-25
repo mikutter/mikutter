@@ -21,7 +21,7 @@ Plugin.create :shortcutkey do
   settings _("ショートカットキー") do
     listview = Plugin::Shortcutkey::ShortcutKeyListView.new(Plugin[:shortcutkey])
     filter_entry = listview.filter_entry = Gtk::Entry.new
-    filter_entry.primary_icon_pixbuf = Skin['search.png'].pixbuf(width: 24, height: 24)
+    filter_entry.primary_icon_pixbuf = Skin[:search].pixbuf(width: 24, height: 24)
     filter_entry.ssc(:changed){
       listview.model.refilter
     }

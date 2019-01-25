@@ -27,7 +27,7 @@ Plugin.create :mentions do
   def present_tab
     @tag ||= handler_tag do
       tab :mentions, _("Replies") do
-        set_icon Skin['reply.png']
+        set_icon Skin[:reply]
         timeline :mentions
       end
 

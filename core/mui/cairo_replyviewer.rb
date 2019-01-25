@@ -41,7 +41,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     @edge end
 
   def badge(_message)
-    Skin['reply.png'].pixbuf(width: badge_radius*2, height: badge_radius*2)
+    Skin[:reply].pixbuf(width: badge_radius*2, height: badge_radius*2)
   end
 
   def background_color(message)

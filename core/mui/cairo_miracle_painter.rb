@@ -130,7 +130,7 @@ class Gdk::MiraclePainter < Gtk::Object
       @pixbuf
     else
       @last_modify_height = height
-      Skin['loading.png'].pixbuf(width: @last_modify_height, height: @last_modify_height)
+      Skin[:loading].pixbuf(width: @last_modify_height, height: @last_modify_height)
     end
   end
 

@@ -50,7 +50,7 @@ Plugin.create :saved_search do
   def add_tab(saved_search)
     type_strict saved_search => Plugin::SavedSearch::SavedSearch
     tab(saved_search.slug, saved_search.name) do
-      set_icon Skin['savedsearch.png']
+      set_icon Skin[:savedsearch]
       timeline saved_search.slug end
     register_cache(saved_search)
     timelines[saved_search.id] = saved_search end

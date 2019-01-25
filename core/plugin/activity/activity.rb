@@ -165,7 +165,7 @@ Plugin.create(:activity) do
     closeup(activity_status.right)
 
   tab(:activity, _("アクティビティ")) do
-    set_icon Skin['activity.png']
+    set_icon Skin[:activity]
     nativewidget ::Gtk::EventBox.new.add(activity_container)
   end
 
