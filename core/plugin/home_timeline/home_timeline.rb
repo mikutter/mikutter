@@ -24,7 +24,7 @@ Plugin.create :home_timeline do
   def present_tab
     @tag ||= handler_tag do
       tab :home_timeline, _("Home Timeline") do
-        set_icon Skin['timeline.png']
+        set_icon Skin[:timeline]
         timeline :home_timeline end
 
       on_update do |s, ms|

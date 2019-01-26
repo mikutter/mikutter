@@ -5,7 +5,7 @@ Plugin::create(:libnotify) do
   on_popup_notify do |user, text, &stop|
     icon_path(user.icon).trap{|err|
       warn err
-      icon_path(Skin['notfound.png'])
+      icon_path(Skin[:notfound])
     }.next{|icon_file_name|
       command = ["notify-send"]
       if(text.is_a? Message)

@@ -11,7 +11,7 @@ Plugin.create(:settings) do
           name: _('設定'),
           condition: lambda{ |opt| true },
           visible: true,
-          icon: Skin['settings.png'],
+          icon: Skin[:settings],
           role: :window) do |opt|
     Plugin.call(:open_setting)
   end

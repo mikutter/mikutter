@@ -33,7 +33,7 @@ module Plugin::DirectMessage
       @tag ||= handler_tag do
         userlist = UserList.new
         tab(:directmessage, _("DM")) do
-          set_icon Skin['directmessage.png']
+          set_icon Skin[:directmessage]
           expand
           nativewidget userlist
         end
@@ -78,7 +78,7 @@ module Plugin::DirectMessage
     end
 
     user_fragment(:directmessage, _("DM")) do
-      set_icon Skin['directmessage.png']
+      set_icon Skin[:directmessage]
       u = model
       timeline timeline_name_for(u) do
         postbox(to: u, delegate_other: true, visibility: :direct)

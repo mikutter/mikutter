@@ -127,12 +127,12 @@ module Gtk
       if record and record.message
         return render_message(record.message)
       else
-        self.pixbuf = Skin['notfound.png'].pixbuf(width: 64, height: 64) end
+        self.pixbuf = Skin[:notfound].pixbuf(width: 64, height: 64) end
     rescue Exception => err
       error "#{err.class} by uri: #{uri} model: #{record ? record.message.inspect : nil}"
       raise if Mopt.debug
       error err
-      self.pixbuf = Skin['notfound.png'].pixbuf(width: 64, height: 64) end
+      self.pixbuf = Skin[:notfound].pixbuf(width: 64, height: 64) end
 
     private
 

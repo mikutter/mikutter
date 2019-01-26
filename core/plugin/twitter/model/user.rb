@@ -98,7 +98,7 @@ class Plugin::Twitter::User < Diva::Model
                        photo: profile_image_url.gsub(/_normal(.[a-zA-Z0-9]+)\Z/, '_bigger\1')} ],
                     perma_link: profile_image_url)
         photo ||= Enumerator.new{|y| Plugin.filtering(:photo_filter, profile_image_url, y) }.first
-        photo || Skin['notfound.png']
+        photo || Skin[:notfound]
       end
   end
   alias_method :icon_large, :icon

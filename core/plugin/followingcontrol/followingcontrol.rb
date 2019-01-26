@@ -51,7 +51,7 @@ Plugin.create :followingcontrol do
       [service, source, messages] end end
 
   user_fragment(:followings, _('フォローしている')) do
-    set_icon Skin['followings.png']
+    set_icon Skin[:followings]
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
@@ -73,7 +73,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
+        loading_image = Gtk::Image.new(Skin[:loading].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Enumerator.new{|y|
           Plugin.filtering(:worlds, y)
@@ -85,13 +85,13 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(users.reverse)
         }.trap{
-          loading_image.pixbuf = Skin['notfound.png'].pixbuf(width: 128, height: 128)
+          loading_image.pixbuf = Skin[:notfound].pixbuf(width: 128, height: 128)
         } end
     end
   end
 
   user_fragment(:followers, _('フォローされている')) do
-    set_icon Skin['followers.png']
+    set_icon Skin[:followers]
     container = Gtk::EventBox.new
     userlist = Gtk::UserList.new
     nativewidget container
@@ -113,7 +113,7 @@ Plugin.create :followingcontrol do
       container.add(userlist).show_all
     else
       container.ssc_atonce :expose_event do
-        loading_image = Gtk::Image.new(Skin['loading.png'].pixbuf(width: 128, height: 128))
+        loading_image = Gtk::Image.new(Skin[:loading].pixbuf(width: 128, height: 128))
         container.add(loading_image.show_all)
         Enumerator.new{|y|
           Plugin.filtering(:worlds, y)
@@ -125,7 +125,7 @@ Plugin.create :followingcontrol do
           container.add(userlist.show_all)
           userlist.add_user(users.reverse)
         }.trap{
-          loading_image.pixbuf = Skin['loading.png'].pixbuf(width: 128, height: 128)
+          loading_image.pixbuf = Skin[:loading].pixbuf(width: 128, height: 128)
         } end
     end
   end

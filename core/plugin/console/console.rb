@@ -7,7 +7,7 @@ Plugin.create :console do
           name: _('コンソールを開く'),
           condition: lambda{ |opt| true },
           visible: true,
-          icon: Skin['console.png'],
+          icon: Skin[:console],
           role: :pane) do |opt|
     if Plugin::GUI::Tab.cuscaded.has_key?(:console)
       Plugin::GUI::Tab.instance(:console).active!
@@ -49,7 +49,7 @@ Plugin.create :console do
         false end }
 
     tab(:console, _("コンソール")) do
-      set_icon Skin['console.png']
+      set_icon Skin[:console]
       set_deletable true
       temporary_tab
       nativewidget Plugin::Console::ConsoleControl.new().

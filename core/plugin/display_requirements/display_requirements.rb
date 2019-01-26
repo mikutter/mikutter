@@ -70,7 +70,7 @@ Plugin.create :display_requirements do
             opt.messages.any?{|m| favorite?(opt.world, m) && favorited?(opt.world, m) }
           },
           visible: true,
-          icon: Skin['dont_like.png'],
+          icon: Skin[:dont_like],
           role: :timeline) do |opt|
     opt.messages.select(&:favoritable?).reject{ |m| m.favorited_by_me? Service.primary }.each(&:favorite) end
 
@@ -80,7 +80,7 @@ Plugin.create :display_requirements do
             !opt.messages.empty? && opt.messages.all?{|m| Plugin[:command].unfavorite?(opt.world, m) }
           },
           visible: true,
-          icon: Skin['like.png'],
+          icon: Skin[:like],
           role: :timeline) do |opt|
     opt.messages.each(&:unfavorite) end
 

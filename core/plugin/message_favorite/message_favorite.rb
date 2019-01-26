@@ -2,7 +2,7 @@
 Plugin.create :message_favorite do
   message_fragment :favorited, "Favorite" do
     message = model
-    set_icon Skin['unfav.png']
+    set_icon Skin[:unfav]
     user_list = Gtk::UserList.new
     begin
       user_list.add_user model.favorited_by

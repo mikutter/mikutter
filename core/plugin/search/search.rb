@@ -31,7 +31,7 @@ Plugin.create :search do
     query_box = Plugin::Search::QueryBox.new(self)
     @tag ||= handler_tag do
       tab(:search, _("検索")) do
-        set_icon Skin['search.png']
+        set_icon Skin[:search]
         shrink
         nativewidget query_box
         expand

@@ -130,7 +130,7 @@ Plugin.create :gui do
   # window,pane,tab設置
   Plugin::GUI.ui_setting.each { |window_slug, panes|
     window = Plugin::GUI::Window.instance(window_slug,  Environment::NAME)
-    window.set_icon Skin['icon.png']
+    window.set_icon Skin[:icon]
     window << Plugin::GUI::Postbox.instance
     if panes.empty?
       panes = { default: [] } end

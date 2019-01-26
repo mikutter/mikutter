@@ -219,7 +219,7 @@ module Plugin::Shortcutkey
       treeview = CommandList.new(@plugin, results)
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
       filter_entry = treeview.filter_entry = Gtk::Entry.new
-      filter_entry.primary_icon_pixbuf = Skin['search.png'].pixbuf(width: 24, height: 24)
+      filter_entry.primary_icon_pixbuf = Skin[:search].pixbuf(width: 24, height: 24)
       filter_entry.ssc(:changed){
         treeview.model.refilter
         false }

@@ -30,7 +30,7 @@ module Diva::Model::PhotoInterface
   # [&complete_callback] このメソッドによって画像のダウンロードが行われた場合、ダウンロード完了時に呼ばれる
   # ==== Return
   # [GdkPixbuf::Pixbuf] pixbuf
-  def load_pixbuf(width:, height:, ifnone: Skin['notfound.png'].pixbuf(width: width, height: height), &complete_callback)
+  def load_pixbuf(width:, height:, ifnone: Skin[:notfound].pixbuf(width: width, height: height), &complete_callback)
     result = pixbuf(width: width, height: height) rescue ifnone
     if result
       result
@@ -38,7 +38,7 @@ module Diva::Model::PhotoInterface
       download_pixbuf(width: width, height: height).next(&complete_callback).trap{
         complete_callback.(ifnone)
       }
-      Skin['loading.png'].pixbuf(width: width, height: height)
+      Skin[:loading].pixbuf(width: width, height: height)
     end
   end
 

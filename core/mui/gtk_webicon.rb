@@ -33,7 +33,7 @@ module Gtk
         photo = Enumerator.new{|y|
           Plugin.filtering(:photo_filter, url, y)
         }.first
-        super(load_model(photo || Skin['notfound.png'], rect))
+        super(load_model(photo || Skin[:notfound], rect))
       end
     end
 
