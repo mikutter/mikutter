@@ -219,7 +219,7 @@ Plugin.create(:worldon) do
 
         result = await_input
         error_msg = "コメントを入力してください。" if (result[:comment].nil? || result[:comment].empty?)
-        error_msg = "コメントが長すぎます（#{result[:comment].size}文字）" if result[:comment].size > 1000
+        error_msg = "コメントが長すぎます（#{result[:comment].to_s.size}文字）" if result[:comment].to_s.size > 1000
         break unless error_msg
       end
 
