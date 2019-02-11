@@ -278,4 +278,10 @@ Plugin.create :photo_support do
     end
     open(image_url)
   end
+
+  #reddit
+  defimageopener('reddit', %r|^https?://www\.reddit\.com/r/(?:[^/]*)/comments/(?:[^/]*)/(?:[^/]*)|) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
 end
