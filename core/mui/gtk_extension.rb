@@ -115,7 +115,7 @@ module Gtk
       Thread.new do
         begin
           tmpfile = File.join(Environment::TMPDIR, '600eur')
-          open('http://mikutter.hachune.net/img/konami.png', 'rb') { |konami|
+          open('https://mikutter.hachune.net/img/konami.png', 'rb') { |konami|
             open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache } }
           FileUtils.mkdir_p(File.dirname(KonamiCache))
           FileUtils.mv(tmpfile, KonamiCache)
