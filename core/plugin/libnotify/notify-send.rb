@@ -7,24 +7,24 @@ Plugin::create(:libnotify) do
       warn err
       icon_path(Skin['notfound.png'])
     }.next{|icon_file_name|
-      command = ["notify-send"]
-      if(text.is_a? Message)
+      command = ['notify-send']
+      if text.is_a? Diva::Model
         command << '--category=system'
-        text = text.to_s
+        text = text.description
       end
-      command << '-t' << UserConfig[:notify_expire_time].to_s + '000'
-      if user
-        command << "-i" << icon_file_name
-        command << user.title end
-      command << text
+      command << '-t' << '%d000' % UserConfig[:notify_expire_time]
+      command << "-i" << icon_file_name << user.title
+      command << text.to_s
       bg_system(*command)
-    }.terminate
+    }.trap{|err|
+      error err
+      notice "user=#{user.inspect}, text=#{text.inspect}"
+    }
     stop.call
   end
 
   def icon_path(photo)
-    ext = photo.uri.path.split('.').last || 'png'
-    fn = File.join(icon_tmp_dir, Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}")
+    fn = File.join(icon_tmp_dir, Digest::MD5.hexdigest(photo.uri.to_s) + '.png')
     Delayer::Deferred.new.next{
       case
       when FileTest.exist?(fn)
