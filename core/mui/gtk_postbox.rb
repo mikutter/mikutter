@@ -313,9 +313,9 @@ module Gtk
       @use_blind_footer end
 
     def update_remain_charcount
-      remain_charcount.next{ |count|
+      remain_charcount&.next{ |count|
         @remain.set_text((count || '---').to_s) if not @remain.destroyed?
-      }.trap {
+      }&.trap {
         @remain.set_text('---') if not @remain.destroyed?
       }
     end
