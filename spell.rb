@@ -338,7 +338,7 @@ Plugin.create(:worldon) do
       opts[:sensitive] = false;
     end
 
-    result = world.post(body, opts)
+    result = world.post(message: body, **opts)
     if result.nil?
       warn "投稿に失敗したかもしれません"
       $stdout.flush
@@ -385,25 +385,16 @@ Plugin.create(:worldon) do
       opts[:sensitive] = false;
     end
 
-    status_id = status.id
-    _status_id = pm::API.get_local_status_id(world, status)
-    if _status_id
-      status_id = _status_id
-      opts[:in_reply_to_id] = status_id
-      result = world.post(body, opts)
-      if result.nil?
-        warn "投稿に失敗したかもしれません"
-        $stdout.flush
-        nil
-      else
-        new_status = pm::Status.build(world.domain, [result.value]).first
-        Plugin.call(:posted, world, [new_status]) if new_status
-        Plugin.call(:update, world, [new_status]) if new_status
-        new_status
-      end
-    else
-      warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
+    result = world.post(to: status, message: body, **opts)
+    if result.nil?
+      warn "投稿に失敗したかもしれません"
+      $stdout.flush
       nil
+    else
+      new_status = pm::Status.build(world.domain, [result.value]).first
+      Plugin.call(:posted, world, [new_status]) if new_status
+      Plugin.call(:update, world, [new_status]) if new_status
+      new_status
     end
   end
 
