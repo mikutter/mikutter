@@ -105,7 +105,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  # インスタンスストリームを必要に応じて再起動
+  # サーバーを必要に応じて再起動
   on_worldon_restart_instance_stream do |domain, retrieve = true|
     Thread.new {
       instance = pm::Instance.load(domain)

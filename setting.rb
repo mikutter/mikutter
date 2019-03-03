@@ -27,13 +27,13 @@ Plugin.create(:worldon) do
 
   # 追加
   on_worldon_instances_open_create_dialog do
-    dialog "インスタンス設定の追加" do
+    dialog "サーバー設定の追加" do
       error_msg = nil
       while true
         if error_msg
           label error_msg
         end
-        input "インスタンスのドメイン", :domain
+        input "サーバーのドメイン", :domain
         result = await_input
         if result[:domain].empty?
           error_msg = "ドメイン名を入力してください。"
@@ -52,7 +52,7 @@ Plugin.create(:worldon) do
         break
       end
       domain = result[:domain]
-      label "#{domain} インスタンスを追加しました"
+      label "#{domain} サーバーを追加しました"
       Plugin.call(:worldon_restart_instance_stream, domain)
       Plugin.call(:worldon_instance_created, domain)
     end
@@ -62,8 +62,8 @@ Plugin.create(:worldon) do
   on_worldon_instances_open_edit_dialog do |domain|
     config = UserConfig[:worldon_instances][domain]
 
-    dialog "インスタンス設定の編集" do
-      label "インスタンスのドメイン： #{domain}"
+    dialog "サーバー設定の編集" do
+      label "サーバーのドメイン： #{domain}"
     end.next do |result|
       Plugin.call(:worldon_update_instance, result.domain)
     end
@@ -72,8 +72,8 @@ Plugin.create(:worldon) do
   # 削除
   on_worldon_instances_delete_with_confirm do |domain|
     next if UserConfig[:worldon_instances][domain].nil?
-    dialog "インスタンス設定の削除" do
-      label "インスタンス #{domain} を削除しますか？"
+    dialog "サーバー設定の削除" do
+      label "サーバー #{domain} を削除しますか？"
     end.next {
       Plugin.call(:worldon_delete_instance, domain)
     }

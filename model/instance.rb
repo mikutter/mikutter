@@ -1,6 +1,6 @@
 module Plugin::Worldon
   class Instance < Diva::Model
-    register :worldon_instance, name: "Mastodonインスタンス(Worldon)"
+    register :worldon_instance, name: "Mastodonサーバー(Worldon)"
 
     field.string :domain, required: true
     field.string :client_key, required: true

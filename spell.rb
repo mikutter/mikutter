@@ -210,7 +210,7 @@ Plugin.create(:worldon) do
     dialog "通報する" do
       error_msg = nil
       while true
-        label "以下のトゥートを #{world.domain} インスタンスの管理者に通報しますか？"
+        label "以下のトゥートを #{world.domain} サーバーの管理者に通報しますか？"
         opt.messages.each { |message|
           link message
         }
@@ -700,7 +700,7 @@ Plugin.create(:worldon) do
   defspell(:pin_message, :worldon, :worldon_status,
            condition: -> (world, status) {
             world.account.acct == status.account.acct && !status.pinned?
-            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他インスタンスから取得されることはまずないと仮定している
+            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他サーバーから取得されることはまずないと仮定している
            }
           ) do |world, status|
     world.pin(status)
@@ -709,7 +709,7 @@ Plugin.create(:worldon) do
   defspell(:unpin_message, :worldon, :worldon_status,
            condition: -> (world, status) {
             world.account.acct == status.account.acct && status.pinned?
-            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他インスタンスから取得されることはまずないと仮定している
+            # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他サーバーから取得されることはまずないと仮定している
            }
           ) do |world, status|
     world.unpin(status)

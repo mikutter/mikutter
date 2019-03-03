@@ -227,7 +227,7 @@ module Plugin::Worldon
     end
 
     def merge(domain_name, new_hash)
-      # 取得元が発言者の所属インスタンスであれば優先する
+      # 取得元が発言者の所属サーバーであれば優先する
       account_domain = account&.domain
       account_domain2 = Account.domain(new_hash[:account][:url])
       if domain.nil? || domain != account_domain && domain_name == account_domain2

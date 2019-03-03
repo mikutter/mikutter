@@ -181,7 +181,7 @@ module Plugin::Worldon
       def get_local_status_id(world, status)
         return status.id if world.domain == status.domain
 
-        # 別インスタンス起源のstatusなので検索する
+        # 別サーバー起源のstatusなので検索する
         statuses = status_by_url(world.domain, world.access_token, status.url)
         if statuses.nil? || statuses[0].nil? || statuses[0][:id].nil?
           nil
@@ -193,7 +193,7 @@ module Plugin::Worldon
       def get_local_account_id(world, account)
         return account.id if world.domain == account.domain
 
-        # 別インスタンス起源のaccountなので検索する
+        # 別サーバー起源のaccountなので検索する
         accounts = account_by_url(world.domain, world.access_token, account.url)
         if accounts.nil? || accounts[0].nil? || accounts[0][:id].nil?
           nil
