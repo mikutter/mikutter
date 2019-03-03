@@ -401,7 +401,7 @@ Plugin.create(:twitter) do
   def extended_entity_media(tweet)
     extended_entities = (tweet[:extended_entities][:media] rescue nil)
     if extended_entities
-      space = text_note(description: ' ')
+      newline = text_note(description: "\n")
       result = extended_entities.map{ |media|
         case media[:type]
         when 'photo'
@@ -434,8 +434,7 @@ Plugin.create(:twitter) do
             description: "#{media[:display_url]} (GIF)",
             uri: variant[:url])
         end
-      }.flat_map{|media| [media, space] }
-      result.pop
+      }.flat_map{|media| [newline, media] }
       result
     else
       []
