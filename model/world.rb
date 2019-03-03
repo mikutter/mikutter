@@ -40,6 +40,9 @@ module Plugin::Worldon
       when :home
         # ホームTL
         "worldon-#{account.acct}-home".to_sym
+      when :direct
+        # DM TL
+        "worldon-#{account.acct}-direct".to_sym
       when :list
         # リストTL
         "worldon-#{account.acct}-list-#{n}".to_sym
@@ -86,8 +89,17 @@ module Plugin::Worldon
     # opts[:sensitive] True | False NSFWフラグの明示的な指定
     # opts[:spoiler_text] String ContentWarning用のコメント
     # opts[:visibility] String 公開範囲。 "direct", "private", "unlisted", "public" のいずれか。
-    def post(content, **params)
-      params[:status] = content
+    def post(to: nil, message:, **params)
+      params[:status] = message
+      if to
+        status_id = API.get_local_status_id(self, to)
+        if status_id
+          params[:in_reply_to_id] = status_id
+        else
+          warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
+          return nil
+        end
+      end
       API.call(:post, domain, '/api/v1/statuses', access_token, **params)
     end
 

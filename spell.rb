@@ -219,7 +219,7 @@ Plugin.create(:worldon) do
 
         result = await_input
         error_msg = "コメントを入力してください。" if (result[:comment].nil? || result[:comment].empty?)
-        error_msg = "コメントが長すぎます（#{result[:comment].size}文字）" if result[:comment].size > 1000
+        error_msg = "コメントが長すぎます（#{result[:comment].to_s.size}文字）" if result[:comment].to_s.size > 1000
         break unless error_msg
       end
 
@@ -338,7 +338,7 @@ Plugin.create(:worldon) do
       opts[:sensitive] = false;
     end
 
-    result = world.post(body, opts)
+    result = world.post(message: body, **opts)
     if result.nil?
       warn "投稿に失敗したかもしれません"
       $stdout.flush
@@ -385,25 +385,16 @@ Plugin.create(:worldon) do
       opts[:sensitive] = false;
     end
 
-    status_id = status.id
-    _status_id = pm::API.get_local_status_id(world, status)
-    if _status_id
-      status_id = _status_id
-      opts[:in_reply_to_id] = status_id
-      result = world.post(body, opts)
-      if result.nil?
-        warn "投稿に失敗したかもしれません"
-        $stdout.flush
-        nil
-      else
-        new_status = pm::Status.build(world.domain, [result.value]).first
-        Plugin.call(:posted, world, [new_status]) if new_status
-        Plugin.call(:update, world, [new_status]) if new_status
-        new_status
-      end
-    else
-      warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
+    result = world.post(to: status, message: body, **opts)
+    if result.nil?
+      warn "投稿に失敗したかもしれません"
+      $stdout.flush
       nil
+    else
+      new_status = pm::Status.build(world.domain, [result.value]).first
+      Plugin.call(:posted, world, [new_status]) if new_status
+      Plugin.call(:update, world, [new_status]) if new_status
+      new_status
     end
   end
 
@@ -562,12 +553,12 @@ Plugin.create(:worldon) do
   end
 
   # 検索
-  intent :worldon_tag do |token|
+  intent :worldon_tag, label: "Mastodonハッシュタグ(Worldon)" do |token|
     Plugin.call(:search_start, "##{token.model.name}")
   end
 
   # アカウント
-  intent :worldon_account do |token|
+  intent :worldon_account, label: "Mastodonアカウント(Worldon)" do |token|
     Plugin.call(:worldon_account_timeline, token.model)
   end
 
@@ -582,9 +573,10 @@ Plugin.create(:worldon) do
         order do |message|
           ord = message.created.to_i
           if message.is_a? pm::AccountProfile
-            ord = message.modified.to_i
+            ord = [5000000000000000, GLib::MAXLONG].min
           elsif message.respond_to?(:pinned?) && message.pinned?
-            ord += 66200000000000
+            bias = 66200000000000
+            ord = [ord + bias, GLib::MAXLONG - 1].min
           end
           ord
         end

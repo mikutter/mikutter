@@ -74,11 +74,20 @@ Plugin.create(:worldon) do
         path = path_base + 'home'
       when 'public'
         path = path_base + 'public'
+      when 'public:media'
+        path = path_base + 'public'
+        params[:only_media] = 1
       when 'public:local'
         path = path_base + 'public'
         params[:local] = 1
+      when 'public:local:media'
+        path = path_base + 'public'
+        params[:local] = 1
+        params[:only_media] = 1
       when 'list'
         path = path_base + 'list/' + list_id.to_s
+      when 'direct'
+        path = path_base + 'direct'
       end
 
       Plugin.call(:worldon_init_polling, slug, domain, path, token, params)
