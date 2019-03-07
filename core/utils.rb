@@ -335,17 +335,32 @@ end
 class Object
   # freezeできるならtrueを返す
   def freezable?
-    true end
+    true
+  end
 
   # freezeできる場合はfreezeする。selfを返す
   def freeze_ifn
     freeze if freezable?
-    self end
+    self
+  end
 
   # freezeされていない同じ内容のオブジェクトを作って返す。
   # メルト　溶けてしまいそう　（実装が）dupだなんて　絶対に　言えない
   def melt
-    if frozen? then dup else self end end end
+    if frozen? then dup else self end
+  end
+
+  # Ruby 2.5以前に Object#yield_self をバックポート
+  unless public_methods.include?(:yield_self)
+    def yield_self
+      if block_given?
+        yield(self)
+      else
+        Enumerator.new{|y| y << self }
+      end
+    end
+  end
+end
 
 #
 # Numeric
