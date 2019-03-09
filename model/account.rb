@@ -1,13 +1,5 @@
 # coding: utf-8
 module Plugin::Worldon
-  class AccountSource < Diva::Model
-    #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
-
-    field.string :privacy
-    field.bool :sensitive
-    field.string :note
-  end
-
   class AccountField < Diva::Model
     field.string :name
     field.string :value
@@ -15,6 +7,16 @@ module Plugin::Worldon
     def inspect
       "#{name}: #{value}"
     end
+  end
+
+  class AccountSource < Diva::Model
+    #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
+
+    field.string :privacy
+    field.bool :sensitive
+    field.string :language
+    field.string :note
+    field.has :fields, [AccountField]
   end
 
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status

@@ -563,12 +563,25 @@ Plugin.create(:worldon) do
     profiles[:biography] = world.account.source.note
     profiles[:locked] = world.account.locked
     profiles[:bot] = world.account.bot
+    profiles[:source] = {
+      privacy: world.account.source.privacy,
+      sensitive: world.account.source.sensitive,
+      language: world.account.source.language,
+      fields: world.account.source.fields.map{|f| { name: f.name, value: f.value } }
+    }
 
     dialog "プロフィール変更" do
       self[:name] = profiles[:name]
       self[:biography] = profiles[:biography]
       self[:locked] = profiles[:locked]
       self[:bot] = profiles[:bot]
+      self[:source_privacy] = visibility2select(profiles[:source][:privacy])
+      self[:source_sensitive] = profiles[:source][:sensitive]
+      (1..4).each do |i|
+        next unless profiles[:source][:fields][i - 1]
+        self[:"field_name#{i}"] = profiles[:source][:fields][i - 1][:name]
+        self[:"field_value#{i}"] = profiles[:source][:fields][i - 1][:value]
+      end
 
       input '表示名', :name
       multitext 'プロフィール', :biography
@@ -576,6 +589,23 @@ Plugin.create(:worldon) do
       photoselect 'ヘッダー', :header
       boolean '承認制アカウントにする', :locked
       boolean 'これは BOT アカウントです', :bot
+      select "デフォルトの公開範囲", :source_privacy do
+        option :"1public", "公開"
+        option :"2unlisted", "未収載"
+        option :"3private", "非公開"
+        option :"4direct", "ダイレクト"
+      end
+      boolean 'メディアを常に閲覧注意としてマークする', :source_sensitive
+      settings "プロフィール補足情報" do
+        input 'ラベル1', :field_name1
+        input '内容1', :field_value1
+        input 'ラベル2', :field_name2
+        input '内容2', :field_value2
+        input 'ラベル3', :field_name3
+        input '内容3', :field_value3
+        input 'ラベル4', :field_name4
+        input '内容4', :field_value4
+      end
     end.next do |result|
       diff = Hash.new
       diff[:name] = result[:name] if (result[:name] && result[:name].size > 0 && profiles[:name] != result[:name])
@@ -584,6 +614,20 @@ Plugin.create(:worldon) do
       diff[:bot] = result[:bot] if profiles[:bot] != result[:bot]
       diff[:icon] = Pathname(result[:icon]) if result[:icon]
       diff[:header] = Pathname(result[:header]) if result[:header]
+      diff[:source] = Hash.new
+      diff[:source][:privacy] = select2visibility(result[:source_privacy]) if profiles[:source][:privacy] != select2visibility(result[:source_privacy])
+      diff[:source][:sensitive] = result[:source_sensitive] if profiles[:source][:sensitive] != result[:source_sensitive]
+      diff.delete(:source) if diff[:source].empty?
+      if (1..4).any?{|i| result[:"field_name#{i}"] && result[:"field_value#{i}"] }
+        (1..4).each do |i|
+          name = result[:"field_name#{i}"]
+          next unless name
+          value = result[:"field_value#{i}"]
+          next unless value
+          diff[:"field_name#{i}"] = name
+          diff[:"field_value#{i}"] = value
+        end
+      end
       next if diff.empty?
 
       world.update_profile(**diff)

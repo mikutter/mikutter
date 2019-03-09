@@ -313,10 +313,38 @@ module Plugin::Worldon
 
     def update_profile(**opts)
       params = {}
+
+      # 以下の2つはupdate_profile*系spellのAPIとしてのパラメータ名とMastodon APIのパラメータ名に違いがある
+
+      # 表示名
       params[:display_name] = opts[:name] if opts[:name]
+      # bio
       params[:note] = opts[:biography] if opts[:biography]
+
+      # フォロー承認制
       params[:locked] = opts[:locked] if !opts[:locked].nil?
+      # botアカウントであることの表明
       params[:bot] = opts[:bot] if !opts[:bot].nil?
+      if [:privacy, :sensitive, :language].any?{|key| opts[:source] && opts[:source][key] }
+        params[:source] = Hash.new
+        # デフォルト公開範囲
+        params[:source][:privacy] = opts[:source_privacy] if opts[:source_privacy]
+        # デフォルトでNSFW
+        params[:source][:sensitive] = opts[:source_sensitive] if opts[:source_sensitive]
+        # 投稿する言語設定（ISO639-1形式（ex: "ja"） or nil（自動検出））
+        params[:source][:language] = opts[:source_language] if opts[:source_language]
+      end
+      # プロフィール補足情報
+      if (1..4).any?{|i| opts[:"field_name#{i}"] && opts[:"field_value#{i}"] }
+        params[:fields_attributes] = Array.new
+        (1..4).each do |i|
+          name = opts[:"field_name#{i}"]
+          next unless name
+          value = opts[:"field_value#{i}"]
+          next unless value
+          params[:fields_attributes] << { name: name, value: value }
+        end
+      end
       ds = []
       if opts[:icon]
         if opts[:icon].is_a?(Plugin::Photo::Photo)
