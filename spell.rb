@@ -75,17 +75,35 @@ Plugin.create(:worldon) do
         option :"4direct", "ダイレクト"
       end
 
-      # mikutter-uwm-hommageの設定を勝手に持ってくる
-      dirs = 10.times.map { |i|
-        UserConfig["galary_dir#{i + 1}".to_sym]
-      }.compact.select { |str|
-        !str.empty?
-      }.to_a
+      settings "添付メディア" do
+        # mikutter-uwm-hommageの設定を勝手に持ってくる
+        dirs = 10.times.map { |i|
+          UserConfig["galary_dir#{i + 1}".to_sym]
+        }.compact.select { |str|
+          !str.empty?
+        }.to_a
 
-      fileselect "添付メディア1", :media1, shortcuts: dirs, use_preview: true
-      fileselect "添付メディア2", :media2, shortcuts: dirs, use_preview: true
-      fileselect "添付メディア3", :media3, shortcuts: dirs, use_preview: true
-      fileselect "添付メディア4", :media4, shortcuts: dirs, use_preview: true
+        fileselect "", :media1, shortcuts: dirs, use_preview: true
+        fileselect "", :media2, shortcuts: dirs, use_preview: true
+        fileselect "", :media3, shortcuts: dirs, use_preview: true
+        fileselect "", :media4, shortcuts: dirs, use_preview: true
+      end
+
+      settings "投票を受付ける" do
+        input "1", :poll_options1
+        input "2", :poll_options2
+        input "3", :poll_options3
+        input "4", :poll_options4
+        select "投票受付期間", :poll_expires_in do
+          option :min5, "5分"
+          option :hour, "1時間"
+          option :day, "1日"
+          option :week, "1週間"
+          option :month, "1ヶ月"
+        end
+        boolean "複数選択可にする", :poll_multiple
+        boolean "終了するまで結果を表示しない", :poll_hide_totals
+      end
     end.next do |result|
       # 投稿
       # まず画像をアップロード
@@ -116,6 +134,26 @@ Plugin.create(:worldon) do
       end
       opts[:sensitive] = result[:sensitive]
       opts[:visibility] = select2visibility(result[:visibility])
+
+      if (1..4).any?{|i| result[:"poll_options#{i}"] }
+        opts[:poll] = Hash.new
+        opts[:poll][:expires_in] = case result[:poll_expires_in]
+                                   when :min5
+                                     5 * 60 + 1 # validation error回避のための+1
+                                   when :hour
+                                     60 * 60
+                                   when :day
+                                     24 * 60 * 60
+                                   when :week
+                                     7 * 24 * 60 * 60
+                                   when :month
+                                     (Date.today.next_month - Date.today).to_i * 24 * 60 * 60 - 1 # validation error回避のための-1
+                                   end
+        opts[:poll][:multiple] = !!result[:poll_multiple]
+        opts[:poll][:hide_totals] = !!result[:poll_hide_totals]
+        opts[:poll][:options] = (1..4).map{|i| result[:"poll_options#{i}"] }.compact
+      end
+
       compose(world, reply_to, **opts)
 
       if Gtk::PostBox.list[0] != postbox
