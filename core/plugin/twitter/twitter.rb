@@ -335,7 +335,7 @@ Plugin.create(:twitter) do
   # Twitter Entity情報を元にScoreをあれする
   filter_score_filter do |message, note, yielder|
     if message == note && %i<twitter_tweet twitter_direct_message>.include?(message.class.slug)
-      score = score_by_entity(message) + extended_entity_media(message)
+      score = score_by_entity(message) + quoted_status_permalink(message) + extended_entity_media(message)
       if !score.all?{|n| n.class.slug == :score_text }
         yielder << score
       end
@@ -394,6 +394,40 @@ Plugin.create(:twitter) do
     if cur != text.size
       score << text_note(
         description: text[cur...text.size])
+    end
+    score
+  end
+
+  # filterstream では引用RTの URLが本文に付与されないので quoted_status_permalink から取り出す
+  def quoted_status_permalink(tweet)
+    score = Array.new
+    permalink = (tweet[:quoted_status_permalink] rescue nil)
+    if permalink
+      uri = Diva::URI.new(permalink[:expanded] || permalink[:url])
+      uri.freeze
+      result = Diva::Model(:score_hyperlink).new(
+          description: permalink[:display] || permalink[:expanded] || permalink[:url],
+          uri: uri)
+      # filterstream で流れてくる tweet は以下のようになっているっぽい refs #1285
+      # 1. ツイート本文が US-ASCII かつ 140文字以下で filterstream 受信した場合
+      #  * text あり full_text なし text は引用RTのURLを 含まない
+      #  * entities の urls に引用RTのURLを 含まない (urls は空)
+      # 2. ツイート本文が UTF-8 もしくは 140文字超で filterstream 受信した場合
+      #  * text なし full_text あり full_text は引用RTのURLを 含まない
+      #  * entities の urls に引用RTのURLを 含まない (urls は空)
+      #  ……と思っていたら次のような例外が発覚したので個別に対処
+      # 3. ツイート本文が UTF-8 かつ 140文字以下で filterstream 受信した場合で
+      #    投稿クライアントが Janetter Pro for Android の場合 
+      #  * text あり full_text なし text は引用RTのURLを 含む
+      #  * entities の urls に引用RTのURLを 含む
+      text = (tweet[:text] rescue nil)
+      text_url = text && text.include?(permalink[:url])
+      full_text = (tweet[:full_text] rescue nil)
+      full_text_url = full_text && full_text.include?(permalink[:url])
+      if !text_url && !full_text_url
+        score << text_note(description: ' ')
+        score << result
+      end
     end
     score
   end
