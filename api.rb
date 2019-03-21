@@ -45,6 +45,9 @@ module Plugin::Worldon
           end
         else
           key = "#{prefix}".sub('[', '').sub(']', '')
+          /^(.*)\[\d+\]$/.match(key) do |m|
+            key = "#{m[1]}[]"
+          end
           value = params
           if value.is_a?(Pathname) || value.is_a?(Plugin::Photo::Photo)
             to_multipart = true
