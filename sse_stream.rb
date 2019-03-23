@@ -224,8 +224,7 @@ Plugin.create(:worldon) do
 
   on_sse_connection_failure do |slug, response|
     error "SSE: connection failure for #{slug.to_s}"
-    pp response if Mopt.error_level >= 1
-    $stdout.flush
+    Util.ppf response if Mopt.error_level >= 1
 
     if (response.status / 100) == 4
       # 4xx系レスポンスはリトライせず終了する
@@ -365,8 +364,7 @@ Plugin.create(:worldon) do
     else
       # 未知の通知
       warn 'unknown notification'
-      pp data if Mopt.error_level >= 2
-      $stdout.flush
+      pm::Util.ppf payload if Mopt.error_level >= 2
     end
   end
 end
