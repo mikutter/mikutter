@@ -361,6 +361,50 @@ Plugin.create(:worldon) do
     end
   end
 
+  command(:worldon_vote, name: '投票する', visible: true, role: :timeline,
+          condition: lambda { |opt|
+            m = opt.messages.first
+            (m.is_a?(Plugin::Worldon::Status) &&
+              m.poll &&
+              [:worldon, :portal].include?(opt.world.class.slug))
+          }) do |opt|
+    m = opt.messages.first
+
+    # poll idはサーバーごとに異なる。worldが所属するサーバーでの値を取得する。
+    statuses = pm::API.status_by_url(opt.world.domain, opt.world.access_token, m.uri)
+    next unless statuses
+    next unless statuses[0]
+    next unless statuses[0][:poll]
+    poll = pm::Poll.new(statuses[0][:poll])
+    next unless poll.expires_at >= Time.now
+
+    dialog "投票" do
+      if poll.multiple
+        multiselect "投票先を選択してください", :vote do
+          poll.options.each_index do |i|
+            vopt = poll.options[i]
+            option(i.to_s.to_sym, vopt.title)
+          end
+        end
+      else
+        select "投票先を選択してください", :vote do
+          poll.options.each_index do |i|
+            vopt = poll.options[i]
+            option(i.to_s.to_sym, vopt.title) { } # ラジオボタン化のために空blockを渡す
+          end
+        end
+      end
+    end.next do |result|
+      vote = result[:vote]
+      unless [Array, Set].include? vote.class
+        vote = [vote]
+      end
+      pm::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: vote)
+    end.trap do |err|
+      pm::Util.ppf(err)
+    end
+  end
+
 
   # spell系
 

@@ -37,6 +37,8 @@ module Plugin::Worldon
     field.has :media_attachments, [Attachment]
     field.has :mentions, [Mention]
     field.has :tags, [Tag]
+    field.has :card, Card
+    field.has :poll, Poll
 
     attr_accessor :reblog_status_uris # :: [String] APIには無い追加フィールド
       # ブーストしたStatusのuri（これらはreblogフィールドの値としてこのオブジェクトを持つ）と、acctを保持する。
@@ -217,7 +219,7 @@ module Plugin::Worldon
       unless spoiler_text.empty?
         content = spoiler_text + "<br>----<br>" + content
       end
-      @description, @score = PM::Parser.dictate_score(content, mentions: mentions, emojis: emojis, media_attachments: media_attachments)
+      @description, @score = PM::Parser.dictate_score(content, mentions: mentions, emojis: emojis, media_attachments: media_attachments, poll: poll)
 
       self
     end

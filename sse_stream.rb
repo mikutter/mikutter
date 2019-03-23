@@ -361,6 +361,11 @@ Plugin.create(:worldon) do
         Plugin.call(:followers_created, world, [user])
       end
 
+    when 'poll'
+      status = pm::Status.build(domain, [payload[:status]]).first
+      return unless status
+      activity(:poll, '投票が終了しました', description: "#{status.uri}")
+
     else
       # 未知の通知
       warn 'unknown notification'

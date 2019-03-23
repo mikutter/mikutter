@@ -11,7 +11,7 @@ module Plugin::Worldon::Parser
     result
   end
 
-  def self.dictate_score(html, mentions: [], emojis: [], media_attachments: [])
+  def self.dictate_score(html, mentions: [], emojis: [], media_attachments: [], poll: nil)
     desc = dehtmlize(html)
 
     score = []
@@ -84,6 +84,10 @@ module Plugin::Worldon::Parser
           end
           score << Plugin::Score::HyperLinkNote.new(description: description, uri: attachment.url)
         }
+    end
+
+    if poll
+      score << Plugin::Score::TextNote.new(description: "#{poll.options.map{|opt| "\n○ #{opt.title}"}.join('')}\n#{poll.votes_count}票#{poll.expires_at ? " #{poll.expires_at.strftime("%Y-%m-%d %H:%M:%S")}に終了" : ''}")
     end
 
     score = score.flat_map do |note|
