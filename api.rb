@@ -43,6 +43,8 @@ module Plugin::Worldon
             inner_prefix = "#{prefix}[#{i}]"
             results, files, to_multipart = build_query_recurse(params[i], results, files, inner_prefix, to_multipart)
           end
+        elsif params.is_a? Set
+          results, files, to_multipart = build_query_recurse(params.to_a, results, files, prefix, to_multipart)
         else
           key = "#{prefix}".sub('[', '').sub(']', '')
           /^(.*)\[\d+\]$/.match(key) do |m|
