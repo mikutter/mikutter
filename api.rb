@@ -118,7 +118,7 @@ module Plugin::Worldon
 
           begin
             query, headers, files = build_query(params, headers)
-            Util.ppf query if Mopt.error_level >= 2
+            PM::Util.ppf query if Mopt.error_level >= 2
 
             body = nil
             if method != :get  # :post, :patch
@@ -142,13 +142,13 @@ module Plugin::Worldon
             parse_Link(resp, hash)
           else
             warn "API.call did'nt return 200 Success"
-            Util.ppf [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
+            PM::Util.ppf [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
             Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri.to_s}\nparameters: #{params.to_s}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}")
             nil
           end
         rescue => e
           error "API.call raise exception"
-          Util.ppf e if Mopt.error_level >= 1
+          PM::Util.ppf e if Mopt.error_level >= 1
           nil
         end
       end

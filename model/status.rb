@@ -106,7 +106,7 @@ module Plugin::Worldon
         if record[:reblog]
           is_boost = true
 
-          boost_record = Util.deep_dup(record)
+          boost_record = PM::Util.deep_dup(record)
           boost_record[:reblog] = nil
 
           record = record[:reblog]

@@ -113,7 +113,7 @@ module Plugin::Worldon
       new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
       if new_status_hash.nil? || new_status_hash.value.has_key?(:error)
         error 'failed reblog request'
-        Util.ppf new_status_hash if Mopt.error_level >= 1
+        PM::Util.ppf new_status_hash if Mopt.error_level >= 1
         return nil
       end
 
@@ -142,7 +142,7 @@ module Plugin::Worldon
             promise.fail(new_status)
           end
         rescue Exception => e
-          Util.ppf e if Mopt.error_level >= 2 # warn
+          PM::Util.ppf e if Mopt.error_level >= 2 # warn
           promise.fail(e)
         end
       end
@@ -162,7 +162,7 @@ module Plugin::Worldon
           end
           promise.call(accounts.map {|hash| Account.new hash })
         rescue Exception => e
-          Util.ppf e if Mopt.error_level >= 2 # warn
+          PM::Util.ppf e if Mopt.error_level >= 2 # warn
           promise.fail("failed to get #{type}")
         end
       end
@@ -212,7 +212,7 @@ module Plugin::Worldon
           @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
           promise.call(@@blocks[uri.to_s])
         rescue Exception => e
-          Util.ppf e if Mopt.error_level >= 2 # warn
+          PM::Util.ppf e if Mopt.error_level >= 2 # warn
           promise.fail('failed to get blocks')
         end
       end

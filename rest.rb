@@ -35,7 +35,7 @@ Plugin.create(:worldon) do
       end while (!settings[slug][:last_id].nil? && ids.size == 20)
       if domain.nil? && Mopt.error_level >= 2 # warn
         puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
-        Util.ppf tl.select{|status| status.domain.nil? }
+        pm::Util.ppf tl.select{|status| status.domain.nil? }
       end
       Plugin.call :extract_receive_message, slug, tl if !tl.empty?
 

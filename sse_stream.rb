@@ -224,7 +224,7 @@ Plugin.create(:worldon) do
 
   on_sse_connection_failure do |slug, response|
     error "SSE: connection failure for #{slug.to_s}"
-    Util.ppf response if Mopt.error_level >= 1
+    pm::Util.ppf response if Mopt.error_level >= 1
 
     if (response.status / 100) == 4
       # 4xx系レスポンスはリトライせず終了する
