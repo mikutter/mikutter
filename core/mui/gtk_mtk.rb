@@ -36,13 +36,13 @@ module Mtk
           UserConfig[key] = new end } end
     container = Gtk::HBox.new(false, 0)
     input = Gtk::ComboBox.new(true)
-    sorted = values.keys.sort_by(&:to_s).freeze
-    sorted.each{ |x|
+    sorted_keys = values.keys.freeze
+    sorted_keys.each{ |x|
       input.append_text(values[x].respond_to?(:call) ? values[x].call(nil) : values[x])
     }
-    input.active = (sorted.index{ |i| i.to_s == proc.call(*[nil, input][0, proc.arity]).to_s } or 0)
+    input.active = (sorted_keys.index{ |i| i.to_s == proc.call(*[nil, input][0, proc.arity]).to_s } or 0)
     input.ssc(:changed){ |widget|
-      proc.call(*[sorted[widget.active], widget][0, proc.arity])
+      proc.call(*[sorted_keys[widget.active], widget][0, proc.arity])
       nil
     }
     container.pack_start(Gtk::Label.new(label), false, true, 0) if label
