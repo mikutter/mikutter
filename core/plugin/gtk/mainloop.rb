@@ -2,16 +2,18 @@
 
 module Mainloop
 
-  def before_mainloop
-    Gtk.init_add{ Gtk.quit_add(Gtk.main_level){ SerialThreadGroup.force_exit! } }
-  end
-
   def mainloop
-    Gtk.main
+    loop do
+      Gtk.main
+      break if Plugin.filtering(:before_mainloop_exit)
+      error "Mainloop exited but it's cancelled by filter `:before_mainloop_exit'."
+    end
   rescue Interrupt,SystemExit,SignalException => exception
     raise exception
   rescue Exception => exception
     Gtk.exception = exception
+  ensure
+    SerialThreadGroup.force_exit!
   end
 
   def exception_filter(e)

@@ -491,6 +491,14 @@ Plugin.create :gtk do
     Plugin::Gtk::DialogWindow.open(plugin: plugin, title: title, default: default, promise: promise, &proc)
   end
 
+  filter_before_mainloop_exit do
+    if !@slug_dictionary.widgets(Plugin::GUI::Window).all?(&:destroyed?)
+      error "Filter before_mainloop_exit was canceled because window already exists."
+      Plugin.filter_cancel!
+    end
+    []
+  end
+
   # タブ _tab_ に _widget_ を入れる
   # ==== Args
   # [i_tab] タブ
