@@ -64,6 +64,15 @@ module Plugin::Gtk
       else
         @widget_of_gtk[klass_or_i_widget][slug] end end
 
+    # _klass_ クラスのウィジェットを列挙する
+    # ==== Args
+    # [klass] クラス(Plugin::GUI::Postboxなど)
+    # ==== Return
+    # [Enumerable] そのクラスのインスタンスのうち、このSlugDictionaryが管理しているものを列挙するEnumerable
+    def widgets(klass)
+      @widget_of_gtk[klass].values
+    end
+
     # _gtk_widget_ に対応する内部表現のウィジェットをかえす。逆引きなので非効率、あまり使わないこと。
     # ==== Args
     # [gtk_widget] Gtkウィジェットのインスタンス
