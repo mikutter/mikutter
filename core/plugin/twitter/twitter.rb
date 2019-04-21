@@ -417,7 +417,7 @@ Plugin.create(:twitter) do
       #  * entities の urls に引用RTのURLを 含まない (urls は空)
       #  ……と思っていたら次のような例外が発覚したので個別に対処
       # 3. ツイート本文が UTF-8 かつ 140文字以下で filterstream 受信した場合で
-      #    投稿クライアントが Janetter Pro for Android の場合 
+      #    投稿クライアントが Janetter Pro for Android の場合
       #  * text あり full_text なし text は引用RTのURLを 含む
       #  * entities の urls に引用RTのURLを 含む
       text = (tweet[:text] rescue nil)
