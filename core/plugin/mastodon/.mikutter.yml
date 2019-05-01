@@ -1,5 +1,5 @@
 ---
-slug: :worldon
+slug: :mastodon
 depends:
   mikutter: 3.7.0
   plugin:
@@ -16,5 +16,5 @@ depends:
     - search
 version: '1.0'
 author: cobodo
-name: Worldon
+name: Mastodon
 description: mikutterでMastodonへ接続するworldプラグインです。

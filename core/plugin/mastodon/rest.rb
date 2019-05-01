@@ -1,10 +1,10 @@
-Plugin.create(:worldon) do
-  pm = Plugin::Worldon
+Plugin.create(:mastodon) do
+  pm = Plugin::Mastodon
   settings = {}
 
-  on_worldon_request_rest do |slug|
+  on_mastodon_request_rest do |slug|
     Thread.new {
-      notice "Worldon: rest request for #{slug}"
+      notice "Mastodon: rest request for #{slug}"
       domain = settings[slug][:domain]
       path = settings[slug][:path]
       token = settings[slug][:token]
@@ -24,17 +24,17 @@ Plugin.create(:worldon) do
         ids = arr.map{|hash| hash[:id].to_i }
         tl = pm::Status.build(domain, arr).concat(tl)
 
-        notice "Worldon: REST取得数： #{ids.size} for #{slug}"
+        notice "Mastodon: REST取得数： #{ids.size} for #{slug}"
         if ids.size > 0
           settings[slug][:last_id] = params[:since_id] = ids.max
           # 2回目以降、limit=20いっぱいまで取れてしまった場合は続きの取得を行なう。
           if (!settings[slug][:last_id].nil? && ids.size == 20)
-            notice "Worldon: 継ぎ足しREST #{slug}"
+            notice "Mastodon: 継ぎ足しREST #{slug}"
           end
         end
       end while (!settings[slug][:last_id].nil? && ids.size == 20)
       if domain.nil? && Mopt.error_level >= 2 # warn
-        puts "on_worldon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
+        puts "on_mastodon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
         pm::Util.ppf tl.select{|status| status.domain.nil? }
       end
       Plugin.call :extract_receive_message, slug, tl if !tl.empty?
@@ -44,7 +44,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  on_worldon_init_polling do |slug, domain, path, token, params|
+  on_mastodon_init_polling do |slug, domain, path, token, params|
     settings[slug] = {
       last_time: 0,
       last_id: nil,
@@ -54,10 +54,10 @@ Plugin.create(:worldon) do
       params: params,
     }
 
-    Plugin.call(:worldon_request_rest, slug)
+    Plugin.call(:mastodon_request_rest, slug)
   end
 
-  on_worldon_start_stream do |domain, type, slug, world, list_id|
+  on_mastodon_start_stream do |domain, type, slug, world, list_id|
     Thread.new {
       sleep(rand(10))
 
@@ -89,16 +89,16 @@ Plugin.create(:worldon) do
         path = path_base + 'direct'
       end
 
-      Plugin.call(:worldon_init_polling, slug, domain, path, token, params)
+      Plugin.call(:mastodon_init_polling, slug, domain, path, token, params)
     }
   end
 
   pinger = Proc.new do
-    if !UserConfig[:worldon_enable_streaming]
+    if !UserConfig[:mastodon_enable_streaming]
       now = Time.now.to_i
       settings.each do |slug, setting|
-        if (now - settings[slug][:last_time]) >= 60 * UserConfig[:worldon_rest_interval]
-          Plugin.call(:worldon_request_rest, slug)
+        if (now - settings[slug][:last_time]) >= 60 * UserConfig[:mastodon_rest_interval]
+          Plugin.call(:mastodon_request_rest, slug)
         end
       end
     end

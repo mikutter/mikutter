@@ -1,6 +1,6 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   class AttachmentMeta < Diva::Model
-    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報(Worldon)"
+    #register :mastodon_attachment_meta, name: "Mastodon添付メディア メタ情報(Mastodon)"
 
     field.int :width
     field.int :height
@@ -9,7 +9,7 @@ module Plugin::Worldon
   end
 
   class AttachmentMetaSet < Diva::Model
-    #register :worldon_attachment_meta, name: "Mastodon添付メディア メタ情報セット(Worldon)"
+    #register :mastodon_attachment_meta, name: "Mastodon添付メディア メタ情報セット(Mastodon)"
 
     field.has :original, AttachmentMeta
     field.has :small, AttachmentMeta
@@ -17,7 +17,7 @@ module Plugin::Worldon
 
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#attachment
   class Attachment < Diva::Model
-    #register :worldon_attachment, name: "Mastodon添付メディア(Worldon)"
+    #register :mastodon_attachment, name: "Mastodon添付メディア(Mastodon)"
 
     field.string :id, required: true
     field.string :type, required: true
@@ -30,7 +30,7 @@ module Plugin::Worldon
     field.has :meta, AttachmentMetaSet
 
     def inspect
-      "worldon-attachment(#{remote_url})"
+      "mastodon-attachment(#{remote_url})"
     end
   end
 end

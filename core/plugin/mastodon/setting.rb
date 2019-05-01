@@ -1,16 +1,16 @@
 require_relative 'instance_setting_list'
 
-Plugin.create(:worldon) do
-  pm = Plugin::Worldon
+Plugin.create(:mastodon) do
+  pm = Plugin::Mastodon
 
   # 設定の初期化
   defaults = {
-    worldon_enable_streaming: true,
-    worldon_rest_interval: UserConfig[:retrieve_interval_friendtl],
-    worldon_show_subparts_visibility: true,
-    worldon_show_subparts_bot: true,
-    worldon_show_subparts_pin: true,
-    worldon_instances: Hash.new,
+    mastodon_enable_streaming: true,
+    mastodon_rest_interval: UserConfig[:retrieve_interval_friendtl],
+    mastodon_show_subparts_visibility: true,
+    mastodon_show_subparts_bot: true,
+    mastodon_show_subparts_pin: true,
+    mastodon_instances: Hash.new,
   }
   defaults.each do |key, value|
     if UserConfig[key].nil?
@@ -20,13 +20,13 @@ Plugin.create(:worldon) do
 
   instance_config = at(:instances)
   if instance_config
-    UserConfig[:worldon_instances] = instance_config.merge(UserConfig[:worldon_instances])
+    UserConfig[:mastodon_instances] = instance_config.merge(UserConfig[:mastodon_instances])
     store(:instances, nil)
   end
 
 
   # 追加
-  on_worldon_instances_open_create_dialog do
+  on_mastodon_instances_open_create_dialog do
     dialog "サーバー設定の追加" do
       error_msg = nil
       while true
@@ -39,11 +39,11 @@ Plugin.create(:worldon) do
           error_msg = "ドメイン名を入力してください。"
           next
         end
-        if UserConfig[:worldon_instances].has_key?(result[:domain])
+        if UserConfig[:mastodon_instances].has_key?(result[:domain])
           error_msg = "既に登録済みのドメインです。入力し直してください。"
           next
         end
-        instance, = Plugin.filtering(:worldon_add_instance, result[:domain])
+        instance, = Plugin.filtering(:mastodon_add_instance, result[:domain])
         if instance.nil?
           error_msg = "接続に失敗しました。もう一度確認してください。"
           next
@@ -53,57 +53,57 @@ Plugin.create(:worldon) do
       end
       domain = result[:domain]
       label "#{domain} サーバーを追加しました"
-      Plugin.call(:worldon_restart_instance_stream, domain)
-      Plugin.call(:worldon_instance_created, domain)
+      Plugin.call(:mastodon_restart_instance_stream, domain)
+      Plugin.call(:mastodon_instance_created, domain)
     end
   end
 
   # 編集
-  on_worldon_instances_open_edit_dialog do |domain|
-    config = UserConfig[:worldon_instances][domain]
+  on_mastodon_instances_open_edit_dialog do |domain|
+    config = UserConfig[:mastodon_instances][domain]
 
     dialog "サーバー設定の編集" do
       label "サーバーのドメイン： #{domain}"
     end.next do |result|
-      Plugin.call(:worldon_update_instance, result.domain)
+      Plugin.call(:mastodon_update_instance, result.domain)
     end
   end
 
   # 削除
-  on_worldon_instances_delete_with_confirm do |domain|
-    next if UserConfig[:worldon_instances][domain].nil?
+  on_mastodon_instances_delete_with_confirm do |domain|
+    next if UserConfig[:mastodon_instances][domain].nil?
     dialog "サーバー設定の削除" do
       label "サーバー #{domain} を削除しますか？"
     end.next {
-      Plugin.call(:worldon_delete_instance, domain)
+      Plugin.call(:mastodon_delete_instance, domain)
     }
   end
 
   # 設定
-  settings "Worldon" do
+  settings "Mastodon" do
     settings "表示" do
-      boolean 'botアカウントにアイコンを表示する', :worldon_show_subparts_bot
-      boolean 'ピン留めトゥートにアイコンを表示する', :worldon_show_subparts_pin
-      boolean 'トゥートに公開範囲を表示する', :worldon_show_subparts_visibility
+      boolean 'botアカウントにアイコンを表示する', :mastodon_show_subparts_bot
+      boolean 'ピン留めトゥートにアイコンを表示する', :mastodon_show_subparts_pin
+      boolean 'トゥートに公開範囲を表示する', :mastodon_show_subparts_visibility
     end
 
     settings "接続" do
-      boolean 'ストリーミング接続する', :worldon_enable_streaming
-      adjustment '接続間隔（分）', :worldon_rest_interval, 1, 60*24
+      boolean 'ストリーミング接続する', :mastodon_enable_streaming
+      adjustment '接続間隔（分）', :mastodon_rest_interval, 1, 60*24
     end
 
     settings "公開タイムライン" do
-      treeview = Plugin::Worldon::InstanceSettingList.new
+      treeview = Plugin::Mastodon::InstanceSettingList.new
       btn_add = Gtk::Button.new(Gtk::Stock::ADD)
       btn_delete = Gtk::Button.new(Gtk::Stock::DELETE)
       btn_add.ssc(:clicked) do
-        Plugin.call(:worldon_instances_open_create_dialog)
+        Plugin.call(:mastodon_instances_open_create_dialog)
         true
       end
       btn_delete.ssc(:clicked) do
         domain = treeview.selected_domain
         if domain
-          Plugin.call(:worldon_instances_delete_with_confirm, domain) end
+          Plugin.call(:mastodon_instances_delete_with_confirm, domain) end
         true
       end
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
@@ -115,11 +115,11 @@ Plugin.create(:worldon) do
           Gtk::VBox.new.
           closeup(btn_add).
           closeup(btn_delete)))
-      Plugin.create :worldon do
-        pm = Plugin::Worldon
+      Plugin.create :mastodon do
+        pm = Plugin::Mastodon
 
-        add_tab_observer = on_worldon_instance_created(&treeview.method(:add_record))
-        delete_tab_observer = on_worldon_delete_instance(&treeview.method(:remove_record))
+        add_tab_observer = on_mastodon_instance_created(&treeview.method(:add_record))
+        delete_tab_observer = on_mastodon_delete_instance(&treeview.method(:remove_record))
         treeview.ssc(:destroy) do
           detach add_tab_observer
           detach delete_tab_observer

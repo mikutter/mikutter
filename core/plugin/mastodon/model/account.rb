@@ -1,5 +1,5 @@
 # coding: utf-8
-module Plugin::Worldon
+module Plugin::Mastodon
   class AccountField < Diva::Model
     field.string :name
     field.string :value
@@ -10,7 +10,7 @@ module Plugin::Worldon
   end
 
   class AccountSource < Diva::Model
-    #register :worldon_account_source, name: "Mastodonアカウント追加情報(Worldon)"
+    #register :mastodon_account_source, name: "Mastodonアカウント追加情報(Mastodon)"
 
     field.string :privacy
     field.bool :sensitive
@@ -23,7 +23,7 @@ module Plugin::Worldon
   class Account < Diva::Model
     include Diva::Model::UserMixin
 
-    register :worldon_account, name: "Mastodonアカウント(Worldon)"
+    register :mastodon_account, name: "Mastodonアカウント"
 
     field.string :id, required: true
     field.string :username, required: true
@@ -89,8 +89,8 @@ module Plugin::Worldon
     end
 
     def self.fetch(acct)
-      world, = Plugin.filtering(:worldon_current, nil)
-      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true)
+      world, = Plugin.filtering(:mastodon_current, nil)
+      resp = Plugin::Mastodon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true)
       hash = resp[:accounts].select{|account| account[:acct] === acct }.first
       if hash
         Account.new hash
@@ -120,7 +120,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-account(#{acct})"
+      "mastodon-account(#{acct})"
     end
 
     def title

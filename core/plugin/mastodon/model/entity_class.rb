@@ -9,7 +9,7 @@ module Diva::Entity
   })
 end
 
-module Plugin::Worldon
+module Plugin::Mastodon
   # TODO: タグとかacctとかをいい感じにする
   MastodonEntity = Diva::Entity::AnchorLinkEntity
 end

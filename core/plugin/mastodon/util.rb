@@ -1,4 +1,4 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   class Util
     class << self
       def deep_dup(obj)

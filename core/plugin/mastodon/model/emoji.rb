@@ -1,9 +1,9 @@
 # coding: utf-8
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#emoji
   class Emoji < Diva::Model
     extend Memoist
-    #register :worldon_emoji, name: "Mastodon絵文字(Worldon)"
+    #register :mastodon_emoji, name: "Mastodon絵文字(Mastodon)"
 
     field.string :shortcode, required: true
     field.uri :static_url, required: true
@@ -22,7 +22,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-emoji(:#{shortcode}:)"
+      "mastodon-emoji(:#{shortcode}:)"
     end
   end
 end

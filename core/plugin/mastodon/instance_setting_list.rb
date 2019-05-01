@@ -1,4 +1,4 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   class InstanceSettingList < ::Gtk::TreeView
     include Gtk::TreeViewPrettyScroll
     COL_DOMAIN = 0

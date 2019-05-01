@@ -1,6 +1,6 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   class Instance < Diva::Model
-    register :worldon_instance, name: "Mastodonサーバー(Worldon)"
+    register :mastodon_instance, name: "Mastodonサーバー"
 
     field.string :domain, required: true
     field.string :client_key, required: true
@@ -12,33 +12,33 @@ module Plugin::Worldon
         case type
         when :local
           # ローカルTL
-          "worldon-#{domain}-local".to_sym
+          "mastodon-#{domain}-local".to_sym
         when :local_media
           # ローカルメディアTL
-          "worldon-#{domain}-local-media".to_sym
+          "mastodon-#{domain}-local-media".to_sym
         when :federated
           # 連合TL
-          "worldon-#{domain}-federated".to_sym
+          "mastodon-#{domain}-federated".to_sym
         when :federated_media
           # 連合メディアTL
-          "worldon-#{domain}-federated-media".to_sym
+          "mastodon-#{domain}-federated-media".to_sym
         end
       end
 
       def add_datasources(domain)
-        Plugin[:worldon].filter_extract_datasources do |dss|
+        Plugin[:mastodon].filter_extract_datasources do |dss|
           datasources = {
-            datasource_slug(domain, :local) => "Mastodon公開タイムライン(Worldon)/#{domain} ローカル",
-            datasource_slug(domain, :local_media) => "Mastodon公開タイムライン(Worldon)/#{domain} ローカル（メディア）",
-            datasource_slug(domain, :federated) => "Mastodon公開タイムライン(Worldon)/#{domain} 連合",
-            datasource_slug(domain, :federated_media) => "Mastodon公開タイムライン(Worldon)/#{domain} 連合（メディア）",
+            datasource_slug(domain, :local) => "Mastodon公開タイムライン/#{domain} ローカル",
+            datasource_slug(domain, :local_media) => "Mastodon公開タイムライン/#{domain} ローカル（メディア）",
+            datasource_slug(domain, :federated) => "Mastodon公開タイムライン/#{domain} 連合",
+            datasource_slug(domain, :federated_media) => "Mastodon公開タイムライン/#{domain} 連合（メディア）",
           }
           [datasources.merge(dss)]
         end
       end
 
       def remove_datasources(domain)
-        Plugin[:worldon].filter_extract_datasources do |datasources|
+        Plugin[:mastodon].filter_extract_datasources do |datasources|
           datasources.delete datasource_slug(domain, :local)
           datasources.delete datasource_slug(domain, :local_media)
           datasources.delete datasource_slug(domain, :federated)
@@ -48,13 +48,13 @@ module Plugin::Worldon
       end
 
       def add(domain, retrieve = true)
-        return nil if UserConfig[:worldon_instances].has_key?(domain)
+        return nil if UserConfig[:mastodon_instances].has_key?(domain)
 
-        resp = Plugin::Worldon::API.call(:post, domain, '/api/v1/apps',
-                                         client_name: Plugin::Worldon::CLIENT_NAME,
+        resp = Plugin::Mastodon::API.call(:post, domain, '/api/v1/apps',
+                                         client_name: Plugin::Mastodon::CLIENT_NAME,
                                          redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
                                          scopes: 'read write follow',
-                                         website: Plugin::Worldon::WEB_SITE
+                                         website: Plugin::Mastodon::WEB_SITE
                                         )
         return nil if resp.nil?
         add_datasources(domain)
@@ -68,38 +68,38 @@ module Plugin::Worldon
       end
 
       def load(domain)
-        if UserConfig[:worldon_instances][domain].nil?
+        if UserConfig[:mastodon_instances][domain].nil?
           nil
         else
           self.new(
             domain: domain,
-            client_key: UserConfig[:worldon_instances][domain][:client_key],
-            client_secret: UserConfig[:worldon_instances][domain][:client_secret],
-            retrieve: UserConfig[:worldon_instances][domain][:retrieve],
+            client_key: UserConfig[:mastodon_instances][domain][:client_key],
+            client_secret: UserConfig[:mastodon_instances][domain][:client_secret],
+            retrieve: UserConfig[:mastodon_instances][domain][:retrieve],
           )
         end
       end
 
       def remove(domain)
         remove_datasources(domain)
-        UserConfig[:worldon_instances].delete(domain)
+        UserConfig[:mastodon_instances].delete(domain)
       end
 
       def domains
-        UserConfig[:worldon_instances].keys.dup
+        UserConfig[:mastodon_instances].keys.dup
       end
 
       def settings
-        UserConfig[:worldon_instances].map do |domain, value|
+        UserConfig[:mastodon_instances].map do |domain, value|
           { domain: domain, retrieve: value[:retrieve] }
         end
       end
     end # class instance
 
     def store
-      configs = UserConfig[:worldon_instances].dup
+      configs = UserConfig[:mastodon_instances].dup
       configs[domain] = { client_key: client_key, client_secret: client_secret, retrieve: retrieve }
-      UserConfig[:worldon_instances] = configs
+      UserConfig[:mastodon_instances] = configs
       self
     end
 
@@ -114,7 +114,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-instance(#{domain})"
+      "mastodon-instance(#{domain})"
     end
 
   end

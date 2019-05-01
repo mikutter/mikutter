@@ -1,5 +1,5 @@
-Plugin.create(:worldon) do
-  pm = Plugin::Worldon
+Plugin.create(:mastodon) do
+  pm = Plugin::Mastodon
 
   # model#scoreを持っている場合のscore_filter
   filter_score_filter do |model, note, yielder|

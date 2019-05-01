@@ -1,7 +1,7 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#tag
   class Tag < Diva::Model
-    register :worldon_tag, name: "Mastodonタグ(Worldon)"
+    register :mastodon_tag, name: "Mastodonタグ"
 
     field.string :name, required: true
     field.uri :url, required: true
@@ -15,7 +15,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-tag(#{name})"
+      "mastodon-tag(#{name})"
     end
   end
 end

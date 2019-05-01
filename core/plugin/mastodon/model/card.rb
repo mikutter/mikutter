@@ -1,7 +1,7 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://docs.joinmastodon.org/api/entities/#card
   class Card < Diva::Model
-    register :worldon_card, name: "Mastodonカード(Worldon)"
+    register :mastodon_card, name: "Mastodonカード"
 
     field.uri :url, required: true
     field.string :title, required: true
@@ -21,7 +21,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-card(#{name})"
+      "mastodon-card(#{name})"
     end
   end
 end

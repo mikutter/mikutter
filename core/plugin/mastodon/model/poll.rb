@@ -1,7 +1,7 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://docs.joinmastodon.org/api/entities/#poll-option
   class PollOption < Diva::Model
-    register :worldon_poll_option, name: "Mastodon投票候補(Worldon)"
+    register :mastodon_poll_option, name: "Mastodon投票候補"
 
     field.string :title, required: true
     field.int :votes_count
@@ -11,13 +11,13 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-poll-option(#{title}, #{votes_count})"
+      "mastodon-poll-option(#{title}, #{votes_count})"
     end
   end
 
   # https://docs.joinmastodon.org/api/entities/#poll
   class Poll < Diva::Model
-    register :worldon_poll, name: "Mastodon投票(Worldon)"
+    register :mastodon_poll, name: "Mastodon投票(Mastodon)"
 
     field.string :id, required: true
     field.time :expires_at
@@ -40,7 +40,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-poll(#{id})"
+      "mastodon-poll(#{id})"
     end
   end
 end

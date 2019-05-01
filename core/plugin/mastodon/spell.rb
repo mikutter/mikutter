@@ -1,12 +1,12 @@
 # coding: utf-8
 
-Plugin.create(:worldon) do
-  pm = Plugin::Worldon
+Plugin.create(:mastodon) do
+  pm = Plugin::Mastodon
 
   # command
   custom_postable = Proc.new do |opt|
     world, = Plugin.filtering(:world_current, nil)
-    [:worldon, :portal].include?(world.class.slug) && opt.widget.editable?
+    [:mastodon, :portal].include?(world.class.slug) && opt.widget.editable?
   end
 
   def visibility2select(s)
@@ -40,7 +40,7 @@ Plugin.create(:worldon) do
   end
 
   command(
-    :worldon_custom_post,
+    :mastodon_custom_post,
     name: 'カスタム投稿',
     condition: custom_postable,
     visible: true,
@@ -52,7 +52,7 @@ Plugin.create(:worldon) do
     i_postbox = opt.widget
     postbox, = Plugin.filtering(:gui_get_gtk_widget, i_postbox)
     body = postbox.widget_post.buffer.text
-    reply_to = postbox.worldon_get_reply_to
+    reply_to = postbox.mastodon_get_reply_to
 
     dialog "カスタム投稿" do
       # オプションを並べる
@@ -164,7 +164,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_follow_user, name: 'フォローする', visible: true, role: :timeline,
+  command(:mastodon_follow_user, name: 'フォローする', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m|
@@ -181,7 +181,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  command(:worldon_unfollow_user, name: 'フォロー解除', visible: true, role: :timeline,
+  command(:mastodon_unfollow_user, name: 'フォロー解除', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m|
@@ -198,7 +198,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  command(:worldon_mute_user, name: 'ミュートする', visible: true, role: :timeline,
+  command(:mastodon_mute_user, name: 'ミュートする', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m| mute_user?(world, m.user) }
@@ -218,7 +218,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_block_user, name: 'ブロックする', visible: true, role: :timeline,
+  command(:mastodon_block_user, name: 'ブロックする', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m| block_user?(world, m.user) }
@@ -238,7 +238,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_report_status, name: '通報する', visible: true, role: :timeline,
+  command(:mastodon_report_status, name: '通報する', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m| report_for_spam?(world, m) }
@@ -264,7 +264,7 @@ Plugin.create(:worldon) do
       label "しばらくお待ち下さい..."
 
       results = opt.messages.select { |message|
-        message.class.slug == :worldon_status
+        message.class.slug == :mastodon_status
       }.map { |message|
         message.reblog ? message.reblog : message
       }.sort_by { |message|
@@ -279,7 +279,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
+  command(:mastodon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m| pin_message?(world, m) }
@@ -294,7 +294,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  command(:worldon_unpin_message, name: 'ピン留めを解除する', visible: true, role: :timeline,
+  command(:mastodon_unpin_message, name: 'ピン留めを解除する', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m| unpin_message?(world, m) }
@@ -309,10 +309,10 @@ Plugin.create(:worldon) do
     }
   end
 
-  command(:worldon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
+  command(:mastodon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
           condition: lambda { |opt|
             world, = Plugin.filtering(:world_current, nil)
-            [:worldon, :portal].include?(world.class.slug)
+            [:mastodon, :portal].include?(world.class.slug)
           }) do |opt|
     world, = Plugin.filtering(:world_current, nil)
     next unless world
@@ -361,12 +361,12 @@ Plugin.create(:worldon) do
     end
   end
 
-  command(:worldon_vote, name: '投票する', visible: true, role: :timeline,
+  command(:mastodon_vote, name: '投票する', visible: true, role: :timeline,
           condition: lambda { |opt|
             m = opt.messages.first
-            (m.is_a?(Plugin::Worldon::Status) &&
+            (m.is_a?(Plugin::Mastodon::Status) &&
               m.poll &&
-              [:worldon, :portal].include?(opt.world.class.slug))
+              [:mastodon, :portal].include?(opt.world.class.slug))
           }) do |opt|
     m = opt.messages.first
 
@@ -409,7 +409,7 @@ Plugin.create(:worldon) do
   # spell系
 
   # 投稿
-  defspell(:compose, :worldon) do |world, body:, **opts|
+  defspell(:compose, :mastodon) do |world, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
     else
@@ -434,12 +434,12 @@ Plugin.create(:worldon) do
   end
 
   memoize def media_tmp_dir
-    path = Pathname(Environment::TMPDIR) / 'worldon' / 'media'
+    path = Pathname(Environment::TMPDIR) / 'mastodon' / 'media'
     FileUtils.mkdir_p(path.to_s)
     path
   end
 
-  defspell(:compose, :worldon, :photo) do |world, photo, body:, **opts|
+  defspell(:compose, :mastodon, :photo) do |world, photo, body:, **opts|
     photo.download.next{|photo|
       ext = photo.uri.path.split('.').last || 'png'
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
@@ -453,7 +453,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:compose, :worldon, :worldon_status) do |world, status, body:, **opts|
+  defspell(:compose, :mastodon, :mastodon_status) do |world, status, body:, **opts|
     if opts[:visibility].nil?
       opts.delete :visibility
       if status.visibility == "direct"
@@ -480,7 +480,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  defspell(:destroy, :worldon, :worldon_status, condition: -> (world, status) {
+  defspell(:destroy, :mastodon, :mastodon_status, condition: -> (world, status) {
     world.account.acct == status.actual_status.account.acct
   }) do |world, status|
     status_id = pm::API.get_local_status_id(world, status.actual_status)
@@ -492,7 +492,7 @@ Plugin.create(:worldon) do
   end
 
   # ふぁぼ
-  defspell(:favorite, :worldon, :worldon_status,
+  defspell(:favorite, :mastodon, :mastodon_status,
            condition: -> (world, status) { !status.actual_status.favorite?(world) }
           ) do |world, status|
     Thread.new {
@@ -511,7 +511,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:favorited, :worldon, :worldon_status,
+  defspell(:favorited, :mastodon, :mastodon_status,
            condition: -> (world, status) { status.actual_status.favorite?(world) }
           ) do |world, status|
     Delayer::Deferred.new.next {
@@ -519,13 +519,13 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:unfavorite, :worldon, :worldon_status, condition: -> (world, status) { status.favorite?(world) }) do |world, status|
+  defspell(:unfavorite, :mastodon, :mastodon_status, condition: -> (world, status) { status.favorite?(world) }) do |world, status|
     Thread.new {
       status_id = pm::API.get_local_status_id(world, status.actual_status)
       if status_id
         ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
         if ret.nil? || ret[:error]
-          warn "[worldon] failed to unfavourite: #{ret}"
+          warn "[mastodon] failed to unfavourite: #{ret}"
         else
           status.actual_status.favourited = false
           status.actual_status.favorite_accts.delete(world.account.acct)
@@ -537,7 +537,7 @@ Plugin.create(:worldon) do
   end
 
   # ブースト
-  defspell(:share, :worldon, :worldon_status,
+  defspell(:share, :mastodon, :mastodon_status,
            condition: -> (world, status) { status.actual_status.rebloggable?(world) }
           ) do |world, status|
     world.reblog(status.actual_status).next{|shared|
@@ -546,7 +546,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:shared, :worldon, :worldon_status,
+  defspell(:shared, :mastodon, :mastodon_status,
            condition: -> (world, status) { status.actual_status.shared?(world) }
           ) do |world, status|
     Delayer::Deferred.new.next {
@@ -554,14 +554,14 @@ Plugin.create(:worldon) do
     }
   end
 
-  defspell(:destroy_share, :worldon, :worldon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
+  defspell(:destroy_share, :mastodon, :mastodon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
     Thread.new {
       status_id = pm::API.get_local_status_id(world, status.actual_status)
       if status_id
         ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
         reblog = nil
         if ret.nil? || ret[:error]
-          warn "[worldon] failed to unreblog: #{ret}"
+          warn "[mastodon] failed to unreblog: #{ret}"
         else
           status.actual_status.reblogged = false
           reblog = status.actual_status.retweeted_statuses.select{|s| s.account.acct == world.user_obj.acct }.first
@@ -580,22 +580,22 @@ Plugin.create(:worldon) do
     world.update_profile(**opts)
   end
 
-  defspell(:update_profile, :worldon, &update_profile_block)
-  defspell(:update_profile_name, :worldon, &update_profile_block)
-  defspell(:update_profile_biography, :worldon, &update_profile_block)
-  defspell(:update_profile_icon, :worldon, :photo) do |world, photo|
+  defspell(:update_profile, :mastodon, &update_profile_block)
+  defspell(:update_profile_name, :mastodon, &update_profile_block)
+  defspell(:update_profile_biography, :mastodon, &update_profile_block)
+  defspell(:update_profile_icon, :mastodon, :photo) do |world, photo|
     update_profile_block.call(world, icon: photo)
   end
-  defspell(:update_profile_header, :worldon, :photo) do |world, photo|
+  defspell(:update_profile_header, :mastodon, :photo) do |world, photo|
     update_profile_block.call(world, header: photo)
   end
 
   command(
-    :worldon_update_profile,
+    :mastodon_update_profile,
     name: 'プロフィール変更',
     condition: -> (opt) {
       world = Plugin.filtering(:world_current, nil).first
-      [:worldon, :portal].include?(world.class.slug)
+      [:mastodon, :portal].include?(world.class.slug)
     },
     visible: true,
     role: :postbox
@@ -679,19 +679,19 @@ Plugin.create(:worldon) do
   end
 
   # 検索
-  intent :worldon_tag, label: "Mastodonハッシュタグ(Worldon)" do |token|
+  intent :mastodon_tag, label: "Mastodonハッシュタグ(Mastodon)" do |token|
     Plugin.call(:search_start, "##{token.model.name}")
   end
 
   # アカウント
-  intent :worldon_account, label: "Mastodonアカウント(Worldon)" do |token|
-    Plugin.call(:worldon_account_timeline, token.model)
+  intent :mastodon_account, label: "Mastodonアカウント(Mastodon)" do |token|
+    Plugin.call(:mastodon_account_timeline, token.model)
   end
 
-  on_worldon_account_timeline do |account|
+  on_mastodon_account_timeline do |account|
     acct, domain = account.acct.split('@')
-    tl_slug = :"worldon-account-timeline_#{acct}@#{domain}"
-    tab :"worldon-account-tab_#{acct}@#{domain}" do |i_tab|
+    tl_slug = :"mastodon-account-timeline_#{acct}@#{domain}"
+    tab :"mastodon-account-tab_#{acct}@#{domain}" do |i_tab|
       set_icon account.icon
       set_deletable true
       temporary_tab
@@ -714,7 +714,7 @@ Plugin.create(:worldon) do
 
     Thread.new do
       world, = Plugin.filtering(:world_current, nil)
-      if [:worldon, :portal].include? world.class.slug
+      if [:mastodon, :portal].include? world.class.slug
         account_id = pm::API.get_local_account_id(world, account)
 
         res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
@@ -757,73 +757,73 @@ Plugin.create(:worldon) do
     end
   end
 
-  defspell(:search, :worldon) do |world, **opts|
+  defspell(:search, :mastodon) do |world, **opts|
     count = [opts[:count], 40].min
     q = opts[:q]
     if q.start_with? '#'
       q = URI.encode_www_form_component(q[1..-1])
-      resp = Plugin::Worldon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count)
+      resp = Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count)
       return nil if resp.nil?
       resp = resp.to_a
     else
-      resp = Plugin::Worldon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q)
+      resp = Plugin::Mastodon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q)
       return nil if resp.nil?
       resp = resp[:statuses]
     end
-    Plugin::Worldon::Status.build(world.domain, resp)
+    Plugin::Mastodon::Status.build(world.domain, resp)
   end
 
-  defspell(:follow, :worldon, :worldon_account,
+  defspell(:follow, :mastodon, :mastodon_account,
            condition: -> (world, account) { !world.following?(account.acct) }
           ) do |world, account|
     world.follow(account)
   end
 
-  defspell(:unfollow, :worldon, :worldon_account,
+  defspell(:unfollow, :mastodon, :mastodon_account,
            condition: -> (world, account) { world.following?(account.acct) }
           ) do |world, account|
     world.unfollow(account)
   end
 
-  defspell(:following, :worldon, :worldon_account,
+  defspell(:following, :mastodon, :mastodon_account,
            condition: -> (world, account) { true }
           ) do |world, account|
     world.following?(account)
   end
 
-  defspell(:mute_user, :worldon, :worldon_account,
-           condition: -> (world, account) { !Plugin::Worldon::Status.muted?(account.acct) }
+  defspell(:mute_user, :mastodon, :mastodon_account,
+           condition: -> (world, account) { !Plugin::Mastodon::Status.muted?(account.acct) }
           ) do |world, account|
     world.mute(account)
   end
 
-  defspell(:unmute_user, :worldon, :worldon_account,
-           condition: -> (world, account) { Plugin::Worldon::Status.muted?(account.acct) }
+  defspell(:unmute_user, :mastodon, :mastodon_account,
+           condition: -> (world, account) { Plugin::Mastodon::Status.muted?(account.acct) }
           ) do |world, account|
     world.unmute(account)
   end
 
-  defspell(:block_user, :worldon, :worldon_account,
+  defspell(:block_user, :mastodon, :mastodon_account,
            condition: -> (world, account) { !world.block?(account.acct) }
           ) do |world, account|
     world.block(account)
   end
 
-  defspell(:unblock_user, :worldon, :worldon_account,
+  defspell(:unblock_user, :mastodon, :mastodon_account,
            condition: -> (world, account) { world.block?(account.acct) }
           ) do |world, account|
     world.unblock(account)
   end
 
-  defspell(:report_for_spam, :worldon, :worldon_status) do |world, status, comment: raise|
+  defspell(:report_for_spam, :mastodon, :mastodon_status) do |world, status, comment: raise|
     world.report_for_spam([status], comment)
   end
 
-  defspell(:report_for_spam, :worldon) do |world, messages:, comment: raise|
+  defspell(:report_for_spam, :mastodon) do |world, messages:, comment: raise|
     world.report_for_spam(messages, comment)
   end
 
-  defspell(:pin_message, :worldon, :worldon_status,
+  defspell(:pin_message, :mastodon, :mastodon_status,
            condition: -> (world, status) {
             world.account.acct == status.account.acct && !status.pinned?
             # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他サーバーから取得されることはまずないと仮定している
@@ -832,7 +832,7 @@ Plugin.create(:worldon) do
     world.pin(status)
   end
 
-  defspell(:unpin_message, :worldon, :worldon_status,
+  defspell(:unpin_message, :mastodon, :mastodon_status,
            condition: -> (world, status) {
             world.account.acct == status.account.acct && status.pinned?
             # 自分のStatusが（ピン留め状態が不正確になりうるタイミングで）他サーバーから取得されることはまずないと仮定している

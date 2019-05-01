@@ -1,22 +1,22 @@
 require_relative 'sse_client'
 
-Plugin.create(:worldon) do
-  pm = Plugin::Worldon
+Plugin.create(:mastodon) do
+  pm = Plugin::Mastodon
 
   # ストリーム開始＆直近取得イベント
-  defevent :worldon_start_stream, prototype: [String, String, String, pm::World, Integer]
+  defevent :mastodon_start_stream, prototype: [String, String, String, pm::World, Integer]
 
   def datasource_used?(slug, include_all = false)
     return false if UserConfig[:extract_tabs].nil?
     UserConfig[:extract_tabs].any? do |setting|
       setting[:sources].any? do |ds|
-        ds == slug || include_all && ds == :worldon_appear_toots
+        ds == slug || include_all && ds == :mastodon_appear_toots
       end
     end
   end
 
-  on_worldon_start_stream do |domain, type, slug, world, list_id|
-    next if !UserConfig[:worldon_enable_streaming]
+  on_mastodon_start_stream do |domain, type, slug, world, list_id|
+    next if !UserConfig[:mastodon_enable_streaming]
 
     Thread.new {
       sleep(rand(10))
@@ -57,7 +57,7 @@ Plugin.create(:worldon) do
     }
   end
 
-  on_worldon_stop_stream do |slug|
+  on_mastodon_stop_stream do |slug|
     Plugin.call(:sse_kill_connection, slug)
   end
 
@@ -67,7 +67,7 @@ Plugin.create(:worldon) do
 
   restarter = Proc.new do
     if @waiting
-      Plugin.call(:sse_kill_all, :worldon_start_all_streams)
+      Plugin.call(:sse_kill_all, :mastodon_start_all_streams)
       atomic {
         @last_all_restarted = Time.new
         @waiting = false
@@ -80,7 +80,7 @@ Plugin.create(:worldon) do
     Reserver.new(60, &restarter)
   end
 
-  on_worldon_restart_all_streams do
+  on_mastodon_restart_all_streams do
     now = Time.new
     atomic {
       @waiting = true
@@ -90,23 +90,23 @@ Plugin.create(:worldon) do
     end
   end
 
-  on_worldon_start_all_streams do
-    worlds, = Plugin.filtering(:worldon_worlds, nil)
+  on_mastodon_start_all_streams do
+    worlds, = Plugin.filtering(:mastodon_worlds, nil)
 
     worlds.each do |world|
       Thread.new {
         world.update_mutes!
-        Plugin.call(:worldon_init_auth_stream, world)
+        Plugin.call(:mastodon_init_auth_stream, world)
       }
     end
 
-    UserConfig[:worldon_instances].map do |domain, setting|
-      Plugin.call(:worldon_init_instance_stream, domain)
+    UserConfig[:mastodon_instances].map do |domain, setting|
+      Plugin.call(:mastodon_init_instance_stream, domain)
     end
   end
 
   # サーバーを必要に応じて再起動
-  on_worldon_restart_instance_stream do |domain, retrieve = true|
+  on_mastodon_restart_instance_stream do |domain, retrieve = true|
     Thread.new {
       instance = pm::Instance.load(domain)
       if instance.retrieve != retrieve
@@ -114,14 +114,14 @@ Plugin.create(:worldon) do
         instance.store
       end
 
-      Plugin.call(:worldon_remove_instance_stream, domain)
+      Plugin.call(:mastodon_remove_instance_stream, domain)
       if retrieve
-        Plugin.call(:worldon_init_instance_stream, domain)
+        Plugin.call(:mastodon_init_instance_stream, domain)
       end
     }
   end
 
-  on_worldon_init_instance_stream do |domain|
+  on_mastodon_init_instance_stream do |domain|
     Thread.new {
       instance = pm::Instance.load(domain)
 
@@ -133,55 +133,55 @@ Plugin.create(:worldon) do
       ltl_media_slug = pm::Instance.datasource_slug(domain, :local_media)
 
       # ストリーム開始
-      Plugin.call(:worldon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug, true)
-      Plugin.call(:worldon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
-      Plugin.call(:worldon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
-      Plugin.call(:worldon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
+      Plugin.call(:mastodon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug, true)
+      Plugin.call(:mastodon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
+      Plugin.call(:mastodon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
+      Plugin.call(:mastodon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
     }
   end
 
-  on_worldon_remove_instance_stream do |domain|
-    Plugin.call(:worldon_stop_stream, pm::Instance.datasource_slug(domain, :federated))
-    Plugin.call(:worldon_stop_stream, pm::Instance.datasource_slug(domain, :local))
+  on_mastodon_remove_instance_stream do |domain|
+    Plugin.call(:mastodon_stop_stream, pm::Instance.datasource_slug(domain, :federated))
+    Plugin.call(:mastodon_stop_stream, pm::Instance.datasource_slug(domain, :local))
     pm::Instance.remove_datasources(domain)
   end
 
-  on_worldon_init_auth_stream do |world|
+  on_mastodon_init_auth_stream do |world|
     Thread.new {
       lists = world.get_lists!
 
       filter_extract_datasources do |dss|
         instance = pm::Instance.load(world.domain)
         datasources = {
-          world.datasource_slug(:home) => "Mastodonホームタイムライン(Worldon)/#{world.account.acct}",
-          world.datasource_slug(:direct) => "Mastodon DM(Worldon)/#{world.account.acct}",
+          world.datasource_slug(:home) => "Mastodonホームタイムライン(Mastodon)/#{world.account.acct}",
+          world.datasource_slug(:direct) => "Mastodon DM(Mastodon)/#{world.account.acct}",
         }
         lists.to_a.each do |l|
           slug = world.datasource_slug(:list, l[:id])
-          datasources[slug] = "Mastodonリスト(Worldon)/#{world.account.acct}/#{l[:title]}"
+          datasources[slug] = "Mastodonリスト(Mastodon)/#{world.account.acct}/#{l[:title]}"
         end
         [datasources.merge(dss)]
       end
 
       # ストリーム開始
       if datasource_used?(world.datasource_slug(:home), true)
-        Plugin.call(:worldon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
+        Plugin.call(:mastodon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
       end
       if datasource_used?(world.datasource_slug(:direct), true)
-        Plugin.call(:worldon_start_stream, world.domain, 'direct', world.datasource_slug(:direct), world)
+        Plugin.call(:mastodon_start_stream, world.domain, 'direct', world.datasource_slug(:direct), world)
       end
 
       lists.to_a.each do |l|
         id = l[:id].to_i
         slug = world.datasource_slug(:list, id)
         if datasource_used?(world.datasource_slug(:list, id))
-          Plugin.call(:worldon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
+          Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
       end
     }
   end
 
-  on_worldon_remove_auth_stream do |world|
+  on_mastodon_remove_auth_stream do |world|
     slugs = []
     slugs.push world.datasource_slug(:home)
     slugs.push world.datasource_slug(:direct)
@@ -193,7 +193,7 @@ Plugin.create(:worldon) do
     end
 
     slugs.each do |slug|
-      Plugin.call(:worldon_stop_stream, slug)
+      Plugin.call(:mastodon_stop_stream, slug)
     end
 
     filter_extract_datasources do |datasources|
@@ -204,7 +204,7 @@ Plugin.create(:worldon) do
     end
   end
 
-  on_worldon_restart_sse_stream do |slug|
+  on_mastodon_restart_sse_stream do |slug|
     Thread.new {
       connection, = Plugin.filtering(:sse_connection, slug)
       if connection.nil?
@@ -230,21 +230,21 @@ Plugin.create(:worldon) do
       # 4xx系レスポンスはリトライせず終了する
       Plugin.call(:sse_kill_connection, slug)
     else
-      Plugin.call(:worldon_restart_sse_stream, slug)
+      Plugin.call(:mastodon_restart_sse_stream, slug)
     end
   end
 
   on_sse_connection_closed do |slug|
     warn "SSE: connection closed for #{slug.to_s}"
 
-    Plugin.call(:worldon_restart_sse_stream, slug)
+    Plugin.call(:mastodon_restart_sse_stream, slug)
   end
 
   on_sse_connection_error do |slug, e|
     error "SSE: connection error for #{slug.to_s}"
     pp e if Mopt.error_level >= 1
 
-    Plugin.call(:worldon_restart_sse_stream, slug)
+    Plugin.call(:mastodon_restart_sse_stream, slug)
   end
 
   on_sse_on_update do |slug, json|
@@ -276,14 +276,14 @@ Plugin.create(:worldon) do
 
   def stream_world(domain, access_token)
     Enumerator.new{|y|
-      Plugin.filtering(:worldon_worlds, nil).first
+      Plugin.filtering(:mastodon_worlds, nil).first
     }.lazy.select{|world|
       world.domain == domain && world.access_token == access_token
     }.first
   end
 
   def update_handler(datasource_slug, payload)
-    pm = Plugin::Worldon
+    pm = Plugin::Mastodon
 
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
     domain = connection[:opts][:domain]
@@ -304,7 +304,7 @@ Plugin.create(:worldon) do
   end
 
   def notification_handler(datasource_slug, payload)
-    pm = Plugin::Worldon
+    pm = Plugin::Mastodon
 
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
     domain = connection[:opts][:domain]
@@ -324,14 +324,14 @@ Plugin.create(:worldon) do
       user_id = payload[:account][:id]
       user_statuses = pm::API.call(:get, domain, "/api/v1/accounts/#{user_id}/statuses", access_token)
       if user_statuses.nil?
-        error "Worldon: ブーストStatusの取得に失敗"
+        error "Mastodon: ブーストStatusの取得に失敗"
         return
       end
       idx = user_statuses.value.index do |hash|
         hash[:reblog] && hash[:reblog][:uri] == payload[:status][:uri]
       end
       if idx.nil?
-        error "Worldon: ブーストStatusの取得に失敗（流れ速すぎ？）"
+        error "Mastodon: ブーストStatusの取得に失敗（流れ速すぎ？）"
         return
       end
 

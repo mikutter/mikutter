@@ -1,6 +1,6 @@
 require 'cgi' # unescapeHTML
 
-module Plugin::Worldon::Parser
+module Plugin::Mastodon::Parser
   def self.dehtmlize(html)
     result = html
       .gsub(%r!</p><p>!) { "\n\n" }
@@ -29,13 +29,13 @@ module Plugin::Worldon::Parser
       end
       url = Diva::URI.new(CGI.unescapeHTML(m["url"]))
       if m["text"][0] == '#' || (score.last.to_s[-1] == '#')
-        score << Plugin::Worldon::Tag.new(name: CGI.unescapeHTML(m["text"]).sub(/\A#/, ''))
+        score << Plugin::Mastodon::Tag.new(name: CGI.unescapeHTML(m["text"]).sub(/\A#/, ''))
       else
         account = nil
         if mentions.any? { |mention| mention.url == url }
           mention = mentions.lazy.select { |mention| mention.url == url }.first
-          acct = Plugin::Worldon::Account.regularize_acct_by_domain(mention.url.host, mention.acct)
-          account = Plugin::Worldon::Account.findbyacct(acct)
+          acct = Plugin::Mastodon::Account.regularize_acct_by_domain(mention.url.host, mention.acct)
+          account = Plugin::Mastodon::Account.findbyacct(acct)
         end
         if account
           score << account
@@ -43,7 +43,7 @@ module Plugin::Worldon::Parser
           link_hash = {
             description: CGI.unescapeHTML(m["text"]),
             uri: url,
-            worldon_link_attr: Hash.new,
+            mastodon_link_attr: Hash.new,
           }
           attrs = m["attr1"] + m["attr2"]
           attr_pos = 0
@@ -52,9 +52,9 @@ module Plugin::Worldon::Parser
             attr_name = m2["name"].to_sym
             attr_value = m2["value"]
             if [:class, :rel].include? attr_name
-              link_hash[:worldon_link_attr][attr_name] = attr_value.split(' ')
+              link_hash[:mastodon_link_attr][attr_name] = attr_value.split(' ')
             else
-              link_hash[:worldon_link_attr][attr_name] = attr_value
+              link_hash[:mastodon_link_attr][attr_name] = attr_value
             end
             attr_pos = m2.end(0)
           end

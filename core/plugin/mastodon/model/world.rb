@@ -1,9 +1,9 @@
 # coding: utf-8
-module Plugin::Worldon
+module Plugin::Mastodon
   class World < Diva::Model
     extend Memoist
 
-    register :worldon, name: "Mastodon(Worldon)"
+    register :mastodon, name: "Mastodon"
 
     field.string :id, required: true
     field.string :slug, required: true
@@ -24,7 +24,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-world(#{account.acct})"
+      "mastodon-world(#{account.acct})"
     end
 
     def icon
@@ -39,15 +39,15 @@ module Plugin::Worldon
       case type
       when :home
         # ホームTL
-        "worldon-#{account.acct}-home".to_sym
+        "mastodon-#{account.acct}-home".to_sym
       when :direct
         # DM TL
-        "worldon-#{account.acct}-direct".to_sym
+        "mastodon-#{account.acct}-direct".to_sym
       when :list
         # リストTL
-        "worldon-#{account.acct}-list-#{n}".to_sym
+        "mastodon-#{account.acct}-list-#{n}".to_sym
       else
-        "worldon-#{account.acct}-#{type.to_s}".to_sym
+        "mastodon-#{account.acct}-#{type.to_s}".to_sym
       end
     end
 
@@ -56,11 +56,11 @@ module Plugin::Worldon
 
       lists = API.call(:get, domain, '/api/v1/lists', access_token)
       if lists.nil?
-        warn "[worldon] failed to get lists"
+        warn "[mastodon] failed to get lists"
       elsif lists.value.is_a? Array
         @@lists[uri.to_s] = lists.value
       elsif lists.value.is_a?(Hash) && lists['error']
-        warn "[worldon] failed to get lists: #{lists['error'].to_s}"
+        warn "[mastodon] failed to get lists: #{lists['error'].to_s}"
       end
       @@lists[uri.to_s]
     end

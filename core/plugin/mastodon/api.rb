@@ -2,7 +2,7 @@ require 'httpclient'
 require 'json'
 require 'stringio'
 
-module Plugin::Worldon
+module Plugin::Mastodon
   class APIResult
     attr_reader :value
     attr_reader :header
@@ -126,7 +126,7 @@ module Plugin::Worldon
               query = nil
             end
 
-            notice "Worldon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
+            notice "Mastodon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
 
             client = HTTPClient.new
             resp = client.request(method, uri.to_s, query, body, headers)

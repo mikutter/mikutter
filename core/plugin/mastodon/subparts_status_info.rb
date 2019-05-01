@@ -1,4 +1,4 @@
-class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
+class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
   register
 
   def get_photo(filename)
@@ -29,9 +29,9 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
   end
 
   def show_icon?
-    return true if (UserConfig[:worldon_show_subparts_bot] && helper.message.user.respond_to?(:bot) && helper.message.user.bot)
-    return true if (UserConfig[:worldon_show_subparts_pin] && helper.message.respond_to?(:pinned?) && helper.message.pinned?)
-    return true if (UserConfig[:worldon_show_subparts_visibility] && helper.message.respond_to?(:visibility) && filename(helper.message.visibility))
+    return true if (UserConfig[:mastodon_show_subparts_bot] && helper.message.user.respond_to?(:bot) && helper.message.user.bot)
+    return true if (UserConfig[:mastodon_show_subparts_pin] && helper.message.respond_to?(:pinned?) && helper.message.pinned?)
+    return true if (UserConfig[:mastodon_show_subparts_visibility] && helper.message.respond_to?(:visibility) && filename(helper.message.visibility))
     false
   end
 
@@ -67,7 +67,7 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
       context.save do
         context.translate(0, @margin)
 
-        if UserConfig[:worldon_show_subparts_bot] && bot_pixbuf
+        if UserConfig[:mastodon_show_subparts_bot] && bot_pixbuf
           context.translate(@margin, 0)
           context.set_source_pixbuf(bot_pixbuf)
           context.paint
@@ -82,7 +82,7 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
           context.translate(bot_text_width, 0)
         end
 
-        if UserConfig[:worldon_show_subparts_pin] && pin_pixbuf
+        if UserConfig[:mastodon_show_subparts_pin] && pin_pixbuf
           context.translate(@margin, 0)
           context.set_source_pixbuf(pin_pixbuf)
           context.paint
@@ -97,7 +97,7 @@ class Gdk::SubPartsWorldonStatusInfo < Gdk::SubParts
           context.translate(pin_text_width, 0)
         end
 
-        if UserConfig[:worldon_show_subparts_visibility] && visibility_pixbuf
+        if UserConfig[:mastodon_show_subparts_visibility] && visibility_pixbuf
           context.translate(@margin, 0)
 
           context.set_source_pixbuf(visibility_pixbuf)

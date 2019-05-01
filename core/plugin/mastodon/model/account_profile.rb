@@ -1,12 +1,12 @@
 # coding: utf-8
 require 'cgi'
 
-module Plugin::Worldon
+module Plugin::Mastodon
   class AccountProfile < Diva::Model
     extend Memoist
     include Diva::Model::MessageMixin
 
-    register :worldon_account_profile, name: "Mastodonアカウントプロフィール(Worldon)", timeline: true, myself: true
+    register :mastodon_account_profile, name: "Mastodonアカウントプロフィール", timeline: true, myself: true
 
     field.has :account, Account, required: true
     alias :user :account
@@ -63,7 +63,7 @@ module Plugin::Worldon
 
     def from_me?(world = nil)
       if world
-        if world.is_a? Plugin::Worldon::World
+        if world.is_a? Plugin::Mastodon::World
           return account.acct == world.account.acct
         else
           return false

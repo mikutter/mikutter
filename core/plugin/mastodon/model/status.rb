@@ -1,12 +1,12 @@
 # coding: utf-8
 
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   # 必ずStatus.buildメソッドを通して生成すること
   class Status < Diva::Model
     include Diva::Model::MessageMixin
 
-    register :worldon_status, name: "Mastodonステータス(Worldon)", timeline: true, reply: true, myself: true
+    register :mastodon_status, name: "Mastodonステータス", timeline: true, reply: true, myself: true
 
     field.string :id, required: true
     field.string :original_uri, required: true # APIから取得するfediverse uniqueなURI文字列
@@ -95,7 +95,7 @@ module Plugin::Worldon
         json.map do |record|
           json2status(domain_name, record)
         end.compact.tap do |statuses|
-          Plugin.call(:worldon_appear_toots, statuses)
+          Plugin.call(:mastodon_appear_toots, statuses)
         end
       end
 
@@ -169,7 +169,7 @@ module Plugin::Worldon
         if m = TOOT_URI_RE.match(uri.to_s)
           domain_name = m[1]
           id = m[2]
-          resp = Plugin::Worldon::API.status(domain_name, id)
+          resp = Plugin::Mastodon::API.status(domain_name, id)
           return nil if resp.nil?
           Status.build(domain_name, [resp.value]).first
         end
@@ -225,7 +225,7 @@ module Plugin::Worldon
     end
 
     def inspect
-      "worldon-status(#{description})"
+      "mastodon-status(#{description})"
     end
 
     def merge(domain_name, new_hash)
@@ -344,7 +344,7 @@ module Plugin::Worldon
     # register myself:true用API
     def from_me?(world = nil)
       if world
-        if world.is_a? Plugin::Worldon::World
+        if world.is_a? Plugin::Mastodon::World
           return account.acct == world.account.acct
         else
           return false
@@ -376,7 +376,7 @@ module Plugin::Worldon
     # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
     def to_me?(world = nil)
       if !world.nil?
-        if world.is_a? Plugin::Worldon::World
+        if world.is_a? Plugin::Mastodon::World
           return mention_to_me?(world) || reblog_to_me?(world)
         else
           return false
@@ -394,9 +394,9 @@ module Plugin::Worldon
     def favorite(do_fav)
       world, = Plugin.filtering(:world_current, nil)
       if do_fav
-        Plugin[:worldon].favorite(world, self)
+        Plugin[:mastodon].favorite(world, self)
       else
-        Plugin[:worldon].unfavorite(world, self)
+        Plugin[:mastodon].unfavorite(world, self)
       end
     end
 
@@ -415,7 +415,7 @@ module Plugin::Worldon
 
     # 返信スレッド用
     def around(force_retrieve=false)
-      resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
+      resp = Plugin::Mastodon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
       descendants = Status.build(domain, resp[:descendants])
@@ -425,7 +425,7 @@ module Plugin::Worldon
     end
 
     def ancestors(force_retrieve=false)
-      resp = Plugin::Worldon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
+      resp = Plugin::Mastodon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
       return [self] if resp.nil?
       ancestors = Status.build(domain, resp[:ancestors])
       @ancestors = [self] + ancestors.reverse
@@ -440,10 +440,10 @@ module Plugin::Worldon
     def replyto_source(force_retrieve=false)
       if domain.nil?
         # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
-        world, = Plugin.filtering(:worldon_current, nil)
+        world, = Plugin.filtering(:mastodon_current, nil)
         if world
           # 見つかったworldでstatusを取得し、id, domain, in_reply_to_idを上書きする。
-          status = Plugin::Worldon::API.status_by_url(world.domain, world.access_token, url)
+          status = Plugin::Mastodon::API.status_by_url(world.domain, world.access_token, url)
           if status
             self[:id] = status[:id]
             self[:domain] = world.domain
@@ -456,7 +456,7 @@ module Plugin::Worldon
           end
         end
       end
-      resp = Plugin::Worldon::API.status(domain, in_reply_to_id)
+      resp = Plugin::Mastodon::API.status(domain, in_reply_to_id)
       return nil if resp.nil?
       Status.build(domain, [resp.value]).first
     end

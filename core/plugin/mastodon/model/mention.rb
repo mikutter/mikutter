@@ -1,7 +1,7 @@
-module Plugin::Worldon
+module Plugin::Mastodon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#mention
   class Mention < Diva::Model
-    #register :worldon_mention, name: "Mastodonメンション(Worldon)"
+    #register :mastodon_mention, name: "Mastodonメンション(Mastodon)"
 
     field.uri :url, required: true
     field.string :username, required: true
@@ -9,7 +9,7 @@ module Plugin::Worldon
     field.string :id, required: true
 
     def inspect
-      "worldon-mention(#{acct})"
+      "mastodon-mention(#{acct})"
     end
   end
 end
