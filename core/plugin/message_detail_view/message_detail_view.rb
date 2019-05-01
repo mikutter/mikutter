@@ -59,7 +59,7 @@ Plugin.create(:message_detail_view) do
   message_fragment :body, "body" do
     set_icon Skin['message.png']
     container = Gtk::HBox.new
-    textview = Gtk::IntelligentTextview.new(model.to_s, 'font' => :mumble_basic_font, style: style)
+    textview = Gtk::IntelligentTextview.new(model.description, 'font' => :mumble_basic_font, style: style)
     vscrollbar = Gtk::VScrollbar.new
     textview.set_scroll_adjustment(nil, vscrollbar.adjustment)
     container.add textview
