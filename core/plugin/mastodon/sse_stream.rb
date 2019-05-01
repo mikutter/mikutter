@@ -286,6 +286,7 @@ Plugin.create(:mastodon) do
     pm = Plugin::Mastodon
 
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
+    return unless connection
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
     status = pm::Status.build(domain, [payload]).first
@@ -307,6 +308,7 @@ Plugin.create(:mastodon) do
     pm = Plugin::Mastodon
 
     connection, = Plugin.filtering(:sse_connection, datasource_slug)
+    return unless connection
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
 
