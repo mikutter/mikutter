@@ -85,7 +85,7 @@ Plugin.create(:mastodon) do
   # world_currentがmastodonならそれを、そうでなければ適当に探す。
   filter_mastodon_current do
     world, = Plugin.filtering(:world_current, nil)
-    unless [:mastodon, :portal].include?(world.class.slug)
+    unless mastodon?(world)
       worlds, = Plugin.filtering(:mastodon_worlds, nil)
       world = worlds.first
     end

@@ -3,12 +3,6 @@
 Plugin.create(:mastodon) do
   pm = Plugin::Mastodon
 
-  # command
-  custom_postable = Proc.new do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    [:mastodon, :portal].include?(world.class.slug) && opt.widget.editable?
-  end
-
   def visibility2select(s)
     case s
     when "public"
@@ -42,13 +36,13 @@ Plugin.create(:mastodon) do
   command(
     :mastodon_custom_post,
     name: 'カスタム投稿',
-    condition: custom_postable,
+    condition: ->(opt) do
+      mastodon?(opt.world) && opt.widget.editable?
+    end,
     visible: true,
     icon: Skin['post.png'],
     role: :postbox
   ) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-
     i_postbox = opt.widget
     postbox, = Plugin.filtering(:gui_get_gtk_widget, i_postbox)
     body = postbox.widget_post.buffer.text
@@ -59,10 +53,10 @@ Plugin.create(:mastodon) do
       multitext "CW警告文", :spoiler_text
       self[:body] = body
       multitext "本文", :body
-      self[:sensitive] = world.account.source.sensitive
+      self[:sensitive] = opt.world.account.source.sensitive
       boolean "閲覧注意", :sensitive
 
-      visibility_default = world.account.source.privacy
+      visibility_default = opt.world.account.source.privacy
       if reply_to.is_a?(pm::Status) && reply_to.visibility == "direct"
         # 返信先がDMの場合はデフォルトでDMにする。但し編集はできるようにするため、この時点でデフォルト値を代入するのみ。
         visibility_default = "direct"
@@ -112,7 +106,7 @@ Plugin.create(:mastodon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: path)
+          hash = pm::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
           if hash.value && hash[:error].nil?
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
@@ -154,7 +148,7 @@ Plugin.create(:mastodon) do
         opts[:poll][:options] = (1..4).map{|i| result[:"poll_options#{i}"] }.compact
       end
 
-      compose(world, reply_to, **opts)
+      compose(opt.world, reply_to, **opts)
 
       if Gtk::PostBox.list[0] != postbox
         postbox.destroy
@@ -166,45 +160,34 @@ Plugin.create(:mastodon) do
 
   command(:mastodon_follow_user, name: 'フォローする', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m|
-              follow?(world, m.user)
+              follow?(opt.world, m.user)
             }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
-
     opt.messages.map { |m|
       m.user
     }.each { |user|
-      follow(world, user)
+      follow(opt.world, user)
     }
   end
 
   command(:mastodon_unfollow_user, name: 'フォロー解除', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
             opt.messages.any? { |m|
-              unfollow?(world, m.user)
+              unfollow?(opt.world, m.user)
             }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
-
     opt.messages.map { |m|
       m.user
     }.each { |user|
-      unfollow(world, user)
+      unfollow(opt.world, user)
     }
   end
 
   command(:mastodon_mute_user, name: 'ミュートする', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            opt.messages.any? { |m| mute_user?(world, m.user) }
+            opt.messages.any? { |m| mute_user?(opt.world, m.user) }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
     users = opt.messages.map { |m| m.user }.uniq
     dialog "ミュートする" do
       label "以下のユーザーをミュートしますか？"
@@ -213,18 +196,15 @@ Plugin.create(:mastodon) do
       }
     end.next do
       users.each { |user|
-        mute_user(world, user)
+        mute_user(opt.world, user)
       }
     end
   end
 
   command(:mastodon_block_user, name: 'ブロックする', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            opt.messages.any? { |m| block_user?(world, m.user) }
+            opt.messages.any? { |m| block_user?(opt.world, m.user) }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
     users = opt.messages.map { |m| m.user }.uniq
     dialog "ブロックする" do
       label "以下のユーザーをブロックしますか？"
@@ -233,22 +213,19 @@ Plugin.create(:mastodon) do
       }
     end.next do
       users.each { |user|
-        block_user(world, user)
+        block_user(opt.world, user)
       }
     end
   end
 
   command(:mastodon_report_status, name: '通報する', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            opt.messages.any? { |m| report_for_spam?(world, m) }
+            opt.messages.any? { |m| report_for_spam?(opt.world, m) }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
     dialog "通報する" do
       error_msg = nil
       while true
-        label "以下のトゥートを #{world.domain} サーバーの管理者に通報しますか？"
+        label "以下のトゥートを #{opt.world.domain} サーバーの管理者に通報しますか？"
         opt.messages.each { |message|
           link message
         }
@@ -263,7 +240,7 @@ Plugin.create(:mastodon) do
 
       label "しばらくお待ち下さい..."
 
-      results = opt.messages.select { |message|
+      opt.messages.select { |message|
         message.class.slug == :mastodon_status
       }.map { |message|
         message.reblog ? message.reblog : message
@@ -272,7 +249,7 @@ Plugin.create(:mastodon) do
       }.chunk { |message|
         message.account.acct
       }.each { |acct, messages|
-        world.report_for_spam(messages, result[:comment])
+        opt.world.report_for_spam(messages, result[:comment])
       }
 
       label "完了しました。"
@@ -281,54 +258,42 @@ Plugin.create(:mastodon) do
 
   command(:mastodon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            opt.messages.any? { |m| pin_message?(world, m) }
+            opt.messages.any? { |m| pin_message?(opt.world, m) }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
-
     opt.messages.select{ |m|
-      pin_message?(world, m)
+      pin_message?(opt.world, m)
     }.each { |status|
-      world.pin(status)
+      opt.world.pin(status)
     }
   end
 
   command(:mastodon_unpin_message, name: 'ピン留めを解除する', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            opt.messages.any? { |m| unpin_message?(world, m) }
+            opt.messages.any? { |m| unpin_message?(opt.world, m) }
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
-
     opt.messages.select{ |m|
-      unpin_message?(world, m)
+      unpin_message?(opt.world, m)
     }.each { |status|
-      world.unpin(status)
+      opt.world.unpin(status)
     }
   end
 
   command(:mastodon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
           condition: lambda { |opt|
-            world, = Plugin.filtering(:world_current, nil)
-            [:mastodon, :portal].include?(world.class.slug)
+            mastodon?(opt.world)
           }) do |opt|
-    world, = Plugin.filtering(:world_current, nil)
-    next unless world
-
     user = opt.messages.first&.user
     next unless user
 
-    lists = world.get_lists!.inject(Hash.new) do |h, l|
+    lists = opt.world.get_lists!.inject(Hash.new) do |h, l|
       key = l[:id].to_sym
       val = l[:title]
       h[key] = val
       h
     end
 
-    user_id = pm::API.get_local_account_id(world, user)
-    result = pm::API.call(:get, world.domain, "/api/v1/accounts/#{user_id}/lists", world.access_token)
+    user_id = pm::API.get_local_account_id(opt.world, user)
+    result = pm::API.call(:get, opt.world.domain, "/api/v1/accounts/#{user_id}/lists", opt.world.access_token)
     membership = result.value.to_a.inject(Hash.new) do |h, l|
       key = l[:id].to_sym
       val = l[:title]
@@ -349,24 +314,22 @@ Plugin.create(:mastodon) do
       selected_ids.each do |list_id|
         unless membership[list_id]
           # 追加
-          pm::API.call(:post, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+          pm::API.call(:post, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
         end
       end
       membership.keys.each do |list_id|
         unless selected_ids.include?(list_id)
           # 削除
-          pm::API.call(:delete, world.domain, "/api/v1/lists/#{list_id}/accounts", world.access_token, account_ids: [user_id])
+          pm::API.call(:delete, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
         end
       end
     end
   end
 
   command(:mastodon_vote, name: '投票する', visible: true, role: :timeline,
-          condition: lambda { |opt|
+          condition: ->(opt) {
             m = opt.messages.first
-            (m.is_a?(Plugin::Mastodon::Status) &&
-              m.poll &&
-              [:mastodon, :portal].include?(opt.world.class.slug))
+            (m.is_a?(Plugin::Mastodon::Status) && m.poll && mastodon?(opt.world))
           }) do |opt|
     m = opt.messages.first
 
@@ -594,24 +557,21 @@ Plugin.create(:mastodon) do
     :mastodon_update_profile,
     name: 'プロフィール変更',
     condition: -> (opt) {
-      world = Plugin.filtering(:world_current, nil).first
-      [:mastodon, :portal].include?(world.class.slug)
+      mastodon?(opt.world)
     },
     visible: true,
     role: :postbox
   ) do |opt|
-    world = Plugin.filtering(:world_current, nil).first
-
     profiles = Hash.new
-    profiles[:name] = world.account.display_name
-    profiles[:biography] = world.account.source.note
-    profiles[:locked] = world.account.locked
-    profiles[:bot] = world.account.bot
+    profiles[:name] = opt.world.account.display_name
+    profiles[:biography] = opt.world.account.source.note
+    profiles[:locked] = opt.world.account.locked
+    profiles[:bot] = opt.world.account.bot
     profiles[:source] = {
-      privacy: world.account.source.privacy,
-      sensitive: world.account.source.sensitive,
-      language: world.account.source.language,
-      fields: world.account.source.fields.map{|f| { name: f.name, value: f.value } }
+      privacy: opt.world.account.source.privacy,
+      sensitive: opt.world.account.source.sensitive,
+      language: opt.world.account.source.language,
+      fields: opt.world.account.source.fields.map{|f| { name: f.name, value: f.value } }
     }
 
     dialog "プロフィール変更" do
@@ -674,7 +634,7 @@ Plugin.create(:mastodon) do
       end
       next if diff.empty?
 
-      world.update_profile(**diff)
+      opt.world.update_profile(**diff)
     end
   end
 
@@ -714,7 +674,7 @@ Plugin.create(:mastodon) do
 
     Thread.new do
       world, = Plugin.filtering(:world_current, nil)
-      if [:mastodon, :portal].include? world.class.slug
+      if mastodon?(world)
         account_id = pm::API.get_local_account_id(world, account)
 
         res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
@@ -785,8 +745,7 @@ Plugin.create(:mastodon) do
     world.unfollow(account)
   end
 
-  defspell(:following, :mastodon, :mastodon_account,
-           condition: -> (world, account) { true }
+  defspell(:following, :mastodon, :mastodon_account
           ) do |world, account|
     world.following?(account)
   end
@@ -841,4 +800,7 @@ Plugin.create(:mastodon) do
     world.unpin(status)
   end
 
+  defspell(:mastodon, :mastodon) do |mastodon|
+    true
+  end
 end
