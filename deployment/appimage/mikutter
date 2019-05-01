@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $PWD is $APP_DIR/usr
+appdir=$(readlink -f ${APPDIR:-$(dirname "$0")})
 
 export DISABLE_BUNDLER_SETUP=1
 # NOTE GI_TYPELIB_PATH must be a absolute path
@@ -18,4 +18,4 @@ export GEM_PATH=$PWD/lib/ruby/gems/2.3.0
 #   export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
 # done
 
-exec bin/ruby share/mikutter/mikutter.rb "$@"
+exec $appdir/usr/bin/ruby $appdir/usr/share/mikutter/mikutter.rb "$@"
