@@ -3,13 +3,10 @@ set -Ceu
 shopt -s globstar
 
 ########################################################################
-# Package the binaries built as an AppImage
-# By Simon Peter 2016
-# For more information, see http://appimage.org/
-########################################################################
-
 # AppImage generator script for Ubuntu Trusty 16.04
 # maintained by Yuto Tokunaga <yuntan.sub1@gmail.com>
+# For more information, see http://appimage.org/
+########################################################################
 
 sudo apt update
 sudo apt install -y git
