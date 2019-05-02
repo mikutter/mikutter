@@ -67,56 +67,19 @@ echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
 
-# echo "--> get helper functions"
-# PKG2AICOMMIT=23dd041c0e31f4c63f6e479baf14143cb159b395
-# wget -q https://github.com/AppImage/AppImages/raw/${PKG2AICOMMIT}/functions.sh -O ./functions.sh
-# . ./functions.sh
-
-# pushd "$APP_DIR"
-
-# echo "--> get AppRun"
-# get_apprun
-# use darealshinji/AppImageKit-checkrt's AppRun to exec xdg-open placed
+echo "--> get exec.so"
+# use darealshinji/AppImageKit-checkrt's exec.so to exec xdg-open placed
 # outside of the AppImage
 # see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
-# wget -q -O $APP_DIR/AppRun https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
-# chmod a+x $APP_DIR/AppRun
 mkdir -p $APP_DIR/usr/optional || true
 wget -q -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 
-# echo "--> get desktop file and icon"
-# TODO mikutter.desktopを適当な場所に移動する
-# cp -v $ROOT_DIR/$APP.desktop .
-# cp -v ~/mikutter.desktop .
-# icon should be placed in two place
-# see https://github.com/AppImage/AppImageKit/issues/402
-# cp -v $ROOT_DIR/core/skin/data/icon.png $APP.png
-# mkdir -p $APP_DIR/usr/share/icons/hicolor/256x256/apps || true
-# cp -v $ROOT_DIR/core/skin/data/icon.png $APP_DIR/usr/share/icons/hicolor/256x256/apps/$APP.png
-
-# echo "--> get desktop integration"
-# set +u
-# get_desktopintegration $APP
-# set -u
-
-echo "--> copy dependencies"
-# copy_deps
-
-# copy Typelibs for gobject-introspection gem
-# cp -av /usr/lib/girepository-* usr/lib
+echo "--> copy Typelibs for gobject-introspection gem"
 cp -av /usr/lib/girepository-* $APP_DIR/usr/lib
 
 # echo "--> patch away absolute paths"
 # for gobject-introspection gem
 # find usr/lib -name libgirepository-1.0.so.1 -exec sed -i -e 's|/usr/lib/girepository-1.0|.////lib/girepository-1.0|g' {} \;
-
-# echo "--> move the libraries to usr/lib"
-# move_lib
-
-# echo "--> delete stuff that should not go into the AppImage."
-# set +u
-# delete_blacklisted
-# set -u
 
 # remove libssl and libcrypto
 # see https://github.com/AppImage/AppImageKit/wiki/Desktop-Linux-Platform-Issues#openssl
@@ -132,28 +95,13 @@ cp -av /usr/lib/girepository-* $APP_DIR/usr/lib
 #   done
 # done
 
-# popd
-
-# echo "--> enable fuse"
-# sudo modprobe fuse
-# sudo usermod -a -G fuse $(whoami)
-
-# echo "--> generate AppImage"
-#   - Expects: $ARCH, $APP, $VERSION env vars
-#   - Expects: ./$APP.AppDir/ directory
-#   - Produces: ../out/$APP-$VERSION.glibc$GLIBC_NEEDED-$ARCH.AppImage
-# set +u
-# generate_type2_appimage
-# set -u
-
+# prepare files for linuxdeploy
 cp $ROOT_DIR/core/skin/data/icon.png ~/mikutter.png
 chmod +x ~/AppRun
 
 echo "--> get linuxdeploy"
 wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 chmod +x linuxdeploy-x86_64.AppImage
-# wget -q https://github.com/TheAssassin/linuxdeploy-plugin-checkrt/releases/download/continuous/linuxdeploy-plugin-checkrt-x86_64.sh
-# chmod +x linuxdeploy-plugin-checkrt-x86_64.sh
 
 export OUTPUT=$APP-$VERSION-$ARCH.AppImage
 
