@@ -6,8 +6,8 @@ Vagrant.configure('2') do |config|
     vb.memory = 2048 # MB
   end
   config.vm.provision 'file',
-                      source: 'mikutter',
-                      destination: 'mikutter'
+                      source: 'AppRun',
+                      destination: 'AppRun'
   # TODO: mikutter.desktopを適当な場所に移動する
   config.vm.provision 'file',
                       source: 'mikutter.desktop',

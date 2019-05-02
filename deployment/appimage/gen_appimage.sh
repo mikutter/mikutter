@@ -65,8 +65,6 @@ rm -v $APP_DIR/**/*.{a,o}
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
 cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
-cp -v ~/mikutter $APP_DIR/usr/bin/mikutter
-chmod a+x $APP_DIR/usr/bin/mikutter
 
 # echo "--> get helper functions"
 # PKG2AICOMMIT=23dd041c0e31f4c63f6e479baf14143cb159b395
@@ -82,8 +80,8 @@ chmod a+x $APP_DIR/usr/bin/mikutter
 # see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
 # wget -q -O $APP_DIR/AppRun https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
 # chmod a+x $APP_DIR/AppRun
-# mkdir -p $APP_DIR/usr/optional || true
-# wget -q -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
+mkdir -p $APP_DIR/usr/optional || true
+wget -q -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 
 # echo "--> get desktop file and icon"
 # TODO mikutter.desktopを適当な場所に移動する
@@ -148,6 +146,7 @@ cp -av /usr/lib/girepository-* $APP_DIR/usr/lib
 # set -u
 
 cp $ROOT_DIR/core/skin/data/icon.png ~/mikutter.png
+chmod +x ~/AppRun
 
 echo "--> get linuxdeploy"
 wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
@@ -155,16 +154,16 @@ chmod +x linuxdeploy-x86_64.AppImage
 # wget -q https://github.com/TheAssassin/linuxdeploy-plugin-checkrt/releases/download/continuous/linuxdeploy-plugin-checkrt-x86_64.sh
 # chmod +x linuxdeploy-plugin-checkrt-x86_64.sh
 
+export OUTPUT=$APP-$VERSION-$ARCH.AppImage
+
 ./linuxdeploy-x86_64.AppImage \
   --appdir $APP_DIR \
   --icon-file ~/mikutter.png \
   --desktop-file ~/mikutter.desktop \
+  --custom-apprun ~/AppRun \
   --output appimage
 
-# echo "--> generated $(ls ../out)"
-# mv ../out/*.AppImage* /vagrant
-
-echo "--> generated $(ls mikutter*.AppImage)"
-mv mikutter*.AppImage /vagrant
+echo "--> generated $OUTPUT"
+mv $OUTPUT /vagrant
 
 echo '==> finished'

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ -z $APPDIR ]; then APPDIR=$(readlink -f $(dirname "$0")); fi
+
+export LD_LIBRARY_PATH="$APPDIR"/usr/lib
+export LD_PRELOAD="$APPDIR"/usr/optional/exec.so:"$LD_PRELOAD"
+
+export DISABLE_BUNDLER_SETUP=1
+# NOTE GI_TYPELIB_PATH must be a absolute path
+export GI_TYPELIB_PATH="$APPDIR"/usr/lib/girepository-1.0
+# set GEM_PATH not to load host's gems
+export GEM_PATH="$APPDIR"/usr/lib/ruby/gems/2.3.0
+
+# workaround for following error
+# "SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed"
+# copied from https://github.com/Pext/Pext/blob/f8e422b2d10f2cdee609fae8d7866fc34ceb7226/travis/build-appimage.sh#L38
+for path in \
+  /etc/ssl/ca-bundle.pem \
+  /etc/ssl/certs/ca-certificates.crt \
+  /etc/ssl/cert.pem \
+  /etc/pki/tls/certs/ca-bundle.crt \
+  /etc/pki/tls/cert.pem /etc/pki/tls/cacert.pem \
+  /usr/local/share/certs/ca-root-nss.crt; do
+  if [ -f "$path" ]; then
+    export SSL_CERT_FILE="$path"
+    break
+  fi
+done
+
+# install additional dependencies of mikutter plugins
+# mkdir -p ~/.mikutter/plugin || true
+# for d in ~/.mikutter/plugin/*; do
+#   if [ ! -f "$d/Gemfile" ]; then
+#     continue
+#   fi
+#   bin/ruby bin/bundle install "--gemfile=$d/Gemfile" --path=vendor/bundler
+#   export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
+# done
+
+exec "$APPDIR"/usr/bin/ruby "$APPDIR"/usr/share/mikutter/mikutter.rb "$@"
