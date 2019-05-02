@@ -14,21 +14,20 @@ sudo apt install -y libssl-dev libreadline6-dev libgdbm3 libgdbm-dev # for ruby
 sudo apt install -y zlib1g-dev # for `gem install`
 sudo apt install -y libidn11-dev # for idn-ruby
 
-git clone git://toshia.dip.jp/mikutter.git repo
-cd repo
+git clone git://toshia.dip.jp/mikutter.git
+
+REPO="$PWD"/mikutter
+APPDIR="$PWD"/AppDir
+
 set +u
-[[ -n "$REVISION" ]] && git checkout "$REVISION"
+[[ -n "$REVISION" ]] && git -C "$REPO" checkout "$REVISION"
 set -u
 
-# env vars used by generate_type2_appimage.
 set +u
 [[ -z "$ARCH" ]] && export ARCH="$(arch)"
 set -u
 APP=mikutter
-VERSION=$(git describe --tags)
-
-ROOT_DIR="$PWD"
-APP_DIR="$PWD/$APP.AppDir"
+VERSION=$(git -C "$REPO" describe --tags)
 
 echo "--> get ruby source"
 wget -q https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.6.tar.gz
@@ -39,43 +38,45 @@ echo "--> patching Ruby"
 # patching Ruby not to use SSLv3_method
 # this fix is for systems which disable SSLv3 support e.g. Arch Linux
 # see https://github.com/rbenv/ruby-build/wiki#openssl-sslv3_method-undeclared-error
-patch -u -p0 < ~/no-sslv3-patch.diff
+patch -u -p0 < ../no-sslv3-patch.diff
 
 echo "--> compile Ruby and install it into AppDir"
 # use relative load paths at run time
 ./configure --enable-load-relative --prefix=/usr --disable-install-doc
 make -j2
-make "DESTDIR=$APP_DIR" install
+make "DESTDIR=$APPDIR" install
 # copy license related files
-cp -v BSDL COPYING* GPL LEGAL README* $APP_DIR/usr/lib/ruby
+cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
 popd
 
 echo "--> install gems"
+pushd "$REPO"
 # for Travis CI, disable RVM
-GEM_DIR=$APP_DIR/usr/lib/ruby/gems/2.3.0
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/gem install bundler
+GEM_DIR=$APPDIR/usr/lib/ruby/gems/2.3.0
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APPDIR/usr/bin/ruby $APPDIR/usr/bin/gem install bundler
 # do not install test group
 # NOTE option `--without=test` is persistent by .bundle/config
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundle install --without=test
+GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APPDIR/usr/bin/ruby $APPDIR/usr/bin/bundle install --without=test
+popd
 
 echo "--> remove unused files"
-rm -vrf $APP_DIR/usr/share $APP_DIR/usr/include $APP_DIR/usr/lib/{pkgconfig,debug}
-rm -v $APP_DIR/**/*.{a,o}
+rm -vrf $APPDIR/usr/share $APPDIR/usr/include $APPDIR/usr/lib/{pkgconfig,debug}
+rm -v $APPDIR/**/*.{a,o}
 rm -vrf $GEM_DIR/cache
 
 echo "--> copy mikutter"
-mkdir -p $APP_DIR/usr/share/mikutter
-cp -av .bundle core mikutter.rb Gemfile LICENSE README $APP_DIR/usr/share/mikutter
+mkdir -p $APPDIR/usr/share/mikutter
+cp -av "$REPO"/{.bundle,core,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
 
 echo "--> get exec.so"
 # use darealshinji/AppImageKit-checkrt's exec.so to exec xdg-open placed
 # outside of the AppImage
 # see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
-mkdir -p $APP_DIR/usr/optional || true
-wget -q -O $APP_DIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
+mkdir -p $APPDIR/usr/optional || true
+wget -q -O $APPDIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 
 echo "--> copy Typelibs for gobject-introspection gem"
-cp -av /usr/lib/girepository-* $APP_DIR/usr/lib
+cp -av /usr/lib/girepository-* $APPDIR/usr/lib
 
 # echo "--> patch away absolute paths"
 # for gobject-introspection gem
@@ -96,8 +97,8 @@ cp -av /usr/lib/girepository-* $APP_DIR/usr/lib
 # done
 
 # prepare files for linuxdeploy
-cp $ROOT_DIR/core/skin/data/icon.png ~/mikutter.png
-chmod +x ~/AppRun
+cp "$REPO"/core/skin/data/icon.png mikutter.png
+chmod +x AppRun
 
 echo "--> get linuxdeploy"
 wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
@@ -106,10 +107,10 @@ chmod +x linuxdeploy-x86_64.AppImage
 export OUTPUT=$APP-$VERSION-$ARCH.AppImage
 
 ./linuxdeploy-x86_64.AppImage \
-  --appdir $APP_DIR \
-  --icon-file ~/mikutter.png \
-  --desktop-file ~/mikutter.desktop \
-  --custom-apprun ~/AppRun \
+  --appdir $APPDIR \
+  --icon-file mikutter.png \
+  --desktop-file mikutter.desktop \
+  --custom-apprun AppRun \
   --output appimage
 
 echo "--> generated $OUTPUT"
