@@ -61,6 +61,7 @@ GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APP_DIR/usr/bin/ruby $APP_DIR/usr/bin/bundl
 echo "--> remove unused files"
 rm -vrf $APP_DIR/usr/share $APP_DIR/usr/include $APP_DIR/usr/lib/{pkgconfig,debug}
 rm -v $APP_DIR/**/*.{a,o}
+rm -vrf $GEM_DIR/cache
 
 echo "--> copy mikutter"
 mkdir -p $APP_DIR/usr/share/mikutter
