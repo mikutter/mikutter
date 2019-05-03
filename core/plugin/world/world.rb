@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require_relative 'error'
 require_relative 'keep'
-require_relative 'model/zombie'
+require_relative 'model/lost_world'
 require_relative 'service'
 
 miquire :core, 'environment', 'configloader', 'userconfig'
@@ -100,7 +100,7 @@ Plugin.create(:world) do
         else
           activity :system, _('アカウント「%{world}」のためのプラグインが読み込めなかったため、このアカウントの登録をmikutterから解除しました。') % {world: id},
                    description: _('アカウント「%{world}」に必要な%{plugin}プラグインが見つからなかったため、このアカウントの登録をmikutterから解除しました。') % {plugin: serialized[:provider], world: id}
-          Plugin.call(:world_destroy, Plugin::World::Zombie.new(slug: id))
+          Plugin.call(:world_destroy, Plugin::World::LostWorld.new(slug: id))
           nil
         end
       end
