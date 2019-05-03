@@ -8,12 +8,14 @@ shopt -s globstar
 # For more information, see http://appimage.org/
 ########################################################################
 
+echo "--> install dependencies"
 sudo apt update
 sudo apt install -y git
 sudo apt install -y libssl-dev libreadline6-dev libgdbm3 libgdbm-dev # for ruby
 sudo apt install -y zlib1g-dev # for `gem install`
 sudo apt install -y libidn11-dev # for idn-ruby
 
+echo "--> get mikutter source"
 git clone git://toshia.dip.jp/mikutter.git
 
 REPO="$PWD"/mikutter
@@ -29,17 +31,27 @@ set -u
 APP=mikutter
 VERSION=$(git -C "$REPO" describe --tags)
 
+echo "--> get jemalloc source"
+wget -q https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2
+tar -xf jemalloc-5.2.0.tar.bz2
+
+echo "--> build jemalloc"
+pushd jemalloc-5.2.0
+./configure --prefix=/usr
+make -j2
+sudo make install
+make "DESTDIR=$APPDIR" install
+popd
+
 echo "--> get ruby source"
 ruby_version=2.6.3
 wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz
 tar xf ruby-$ruby_version.tar.gz
 
-pushd ruby-$ruby_version
-echo "--> patching Ruby"
-
 echo "--> compile Ruby and install it into AppDir"
+pushd ruby-$ruby_version
 # use relative load paths at run time
-./configure --enable-load-relative --prefix=/usr --disable-install-doc
+./configure --enable-load-relative --with-jemalloc --prefix=/usr --disable-install-doc
 make -j2
 make "DESTDIR=$APPDIR" install
 # copy license related files
