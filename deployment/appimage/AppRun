@@ -17,7 +17,7 @@ export LD_PRELOAD="$APPDIR"/usr/optional/exec.so:"$LD_PRELOAD"
 # env vars for Ruby Gems
 export DISABLE_BUNDLER_SETUP=1
 # set GEM_PATH not to load host's gems
-export GEM_PATH="$APPDIR"/usr/lib/ruby/gems/2.3.0
+export GEM_PATH="$APPDIR"/usr/lib/ruby/gems/2.6.0
 
 # workaround for following error
 # "SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed"

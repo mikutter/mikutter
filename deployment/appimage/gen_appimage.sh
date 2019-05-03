@@ -30,15 +30,12 @@ APP=mikutter
 VERSION=$(git -C "$REPO" describe --tags)
 
 echo "--> get ruby source"
-wget -q https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.6.tar.gz
-tar xf ruby-2.3.6.tar.gz
+ruby_version=2.6.3
+wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz
+tar xf ruby-$ruby_version.tar.gz
 
-pushd ruby-2.3.6
+pushd ruby-$ruby_version
 echo "--> patching Ruby"
-# patching Ruby not to use SSLv3_method
-# this fix is for systems which disable SSLv3 support e.g. Arch Linux
-# see https://github.com/rbenv/ruby-build/wiki#openssl-sslv3_method-undeclared-error
-patch -u -p0 < ../no-sslv3-patch.diff
 
 echo "--> compile Ruby and install it into AppDir"
 # use relative load paths at run time
@@ -52,17 +49,16 @@ popd
 echo "--> install gems"
 pushd "$REPO"
 # for Travis CI, disable RVM
-GEM_DIR=$APPDIR/usr/lib/ruby/gems/2.3.0
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APPDIR/usr/bin/ruby $APPDIR/usr/bin/gem install bundler
+gems=$APPDIR/usr/lib/ruby/gems/2.6.0
 # do not install test group
 # NOTE option `--without=test` is persistent by .bundle/config
-GEM_HOME=$GEM_DIR GEM_PATH=$GEM_DIR $APPDIR/usr/bin/ruby $APPDIR/usr/bin/bundle install --without=test
+GEM_HOME=$gems GEM_PATH=$gems $APPDIR/usr/bin/ruby $APPDIR/usr/bin/bundle install --without=test
 popd
 
 echo "--> remove unused files"
 rm -vrf $APPDIR/usr/share $APPDIR/usr/include $APPDIR/usr/lib/{pkgconfig,debug}
 rm -v $APPDIR/**/*.{a,o}
-rm -vrf $GEM_DIR/cache
+rm -vrf $gems/cache
 
 echo "--> copy mikutter"
 mkdir -p $APPDIR/usr/share/mikutter
