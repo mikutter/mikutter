@@ -2,12 +2,20 @@
 
 if [ -z $APPDIR ]; then APPDIR=$(readlink -f $(dirname "$0")); fi
 
+# env vars for GTK
+if [ -z $GTK_IM_MODULE_FILE ]; then
+  libdir=$(pkg-config --variable=libdir gtk+-2.0)
+  gtk_binary_version=$(pkg-config --variable=gtk_binary_version gtk+-2.0)
+  export GTK_IM_MODULE_FILE=$libdir/gtk-2.0/$gtk_binary_version/immodules.cache
+fi
+# NOTE GI_TYPELIB_PATH must be a absolute path
+export GI_TYPELIB_PATH="$APPDIR"/usr/lib/girepository-1.0
+
 export LD_LIBRARY_PATH="$APPDIR"/usr/lib
 export LD_PRELOAD="$APPDIR"/usr/optional/exec.so:"$LD_PRELOAD"
 
+# env vars for Ruby Gems
 export DISABLE_BUNDLER_SETUP=1
-# NOTE GI_TYPELIB_PATH must be a absolute path
-export GI_TYPELIB_PATH="$APPDIR"/usr/lib/girepository-1.0
 # set GEM_PATH not to load host's gems
 export GEM_PATH="$APPDIR"/usr/lib/ruby/gems/2.3.0
 
