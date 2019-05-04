@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 require_relative 'error'
 require_relative 'keep'
-require_relative 'model/zombie'
+require_relative 'model/lost_world'
 require_relative 'service'
 
 miquire :core, 'environment', 'configloader', 'userconfig'
@@ -61,6 +61,7 @@ Plugin.create(:world) do
   # ==== Args
   # [new] 追加するアカウント(Diva::Model)
   def register_world(new)
+    return if target.is_a?(Plugin::World::LostWorld)
     Plugin::World::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
     @worlds = nil
     Plugin.call(:world_after_created, new)
@@ -75,6 +76,7 @@ Plugin.create(:world) do
   end
 
   def modify_world(target)
+    return if target.is_a?(Plugin::World::LostWorld)
     if Plugin::World::Keep.accounts.has_key?(target.slug.to_sym)
       Plugin::World::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
       @worlds = nil
@@ -98,10 +100,9 @@ Plugin.create(:world) do
         if provider
           provider.new(serialized)
         else
-          activity :system, _('アカウント「%{world}」のためのプラグインが読み込めなかったため、このアカウントの登録をmikutterから解除しました。') % {world: id},
-                   description: _('アカウント「%{world}」に必要な%{plugin}プラグインが見つからなかったため、このアカウントの登録をmikutterから解除しました。') % {plugin: serialized[:provider], world: id}
-          Plugin.call(:world_destroy, Plugin::World::Zombie.new(slug: id))
-          nil
+          activity :system, _('アカウント「%{world}」のためのプラグインが読み込めなかったため、このアカウントは現在利用できません。') % {world: id},
+                   description: _('アカウント「%{world}」に必要な%{plugin}プラグインが見つからなかったため、このアカウントは一時的に利用できません。%{plugin}プラグインを意図的に消したのであれば、このアカウントの登録を解除してください。') % {plugin: serialized[:provider], world: id}
+          Plugin::World::LostWorld.new(serialized)
         end
       end
     }.compact.freeze.tap(&method(:check_world_uri))
