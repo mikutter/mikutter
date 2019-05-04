@@ -100,6 +100,7 @@ class Plugin::Twitter::User < Diva::Model
         photo ||= Enumerator.new{|y| Plugin.filtering(:photo_filter, profile_image_url, y) }.first
         photo || Skin[:notfound]
       end
+    Plugin.filtering(:miracle_icon_filter, @icon)[0]
   end
   alias_method :icon_large, :icon
 
