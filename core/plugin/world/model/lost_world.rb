@@ -13,7 +13,7 @@ module Plugin::World
     end
 
     def icon
-      Skin['underconstruction.png']
+      Skin[:underconstruction]
     end
 
     def title
