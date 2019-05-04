@@ -1,6 +1,6 @@
-require_relative 'sse_client'
+require_relative 'client'
 
-Plugin.create(:mastodon) do
+Plugin.create(:mastodon_sse_streaming) do
   pm = Plugin::Mastodon
 
   # ストリーム開始＆直近取得イベント
@@ -53,12 +53,12 @@ Plugin.create(:mastodon) do
         headers["Authorization"] = "Bearer " + token
       end
 
-      Plugin.call(:sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
+      Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
     }
   end
 
   on_mastodon_stop_stream do |slug|
-    Plugin.call(:sse_kill_connection, slug)
+    Plugin.call(:mastodon_sse_kill_connection, slug)
   end
 
   # mikutterにとって自明に60秒以上過去となる任意の日時
@@ -67,7 +67,7 @@ Plugin.create(:mastodon) do
 
   restarter = Proc.new do
     if @waiting
-      Plugin.call(:sse_kill_all, :mastodon_start_all_streams)
+      Plugin.call(:mastodon_sse_kill_all, :mastodon_start_all_streams)
       atomic {
         @last_all_restarted = Time.new
         @waiting = false
@@ -123,8 +123,6 @@ Plugin.create(:mastodon) do
 
   on_mastodon_init_instance_stream do |domain|
     Thread.new {
-      instance = pm::Instance.load(domain)
-
       pm::Instance.add_datasources(domain)
 
       ftl_slug = pm::Instance.datasource_slug(domain, :federated)
@@ -151,7 +149,6 @@ Plugin.create(:mastodon) do
       lists = world.get_lists!
 
       filter_extract_datasources do |dss|
-        instance = pm::Instance.load(world.domain)
         datasources = {
           world.datasource_slug(:home) => "Mastodonホームタイムライン(Mastodon)/#{world.account.acct}",
           world.datasource_slug(:direct) => "Mastodon DM(Mastodon)/#{world.account.acct}",
@@ -173,7 +170,6 @@ Plugin.create(:mastodon) do
 
       lists.to_a.each do |l|
         id = l[:id].to_i
-        slug = world.datasource_slug(:list, id)
         if datasource_used?(world.datasource_slug(:list, id))
           Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
@@ -206,62 +202,62 @@ Plugin.create(:mastodon) do
 
   on_mastodon_restart_sse_stream do |slug|
     Thread.new {
-      connection, = Plugin.filtering(:sse_connection, slug)
+      connection, = Plugin.filtering(:mastodon_sse_connection, slug)
       if connection.nil?
         # 終了済み
         next
       end
-      Plugin.call(:sse_kill_connection, slug)
+      Plugin.call(:mastodon_sse_kill_connection, slug)
 
       sleep(rand(3..10))
-      Plugin.call(:sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
+      Plugin.call(:mastodon_sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
     }
   end
 
-  on_sse_connection_opening do |slug|
+  on_mastodon_sse_connection_opening do |slug|
     notice "SSE: connection open for #{slug.to_s}"
   end
 
-  on_sse_connection_failure do |slug, response|
+  on_mastodon_sse_connection_failure do |slug, response|
     error "SSE: connection failure for #{slug.to_s}"
     pm::Util.ppf response if Mopt.error_level >= 1
 
     if (response.status / 100) == 4
       # 4xx系レスポンスはリトライせず終了する
-      Plugin.call(:sse_kill_connection, slug)
+      Plugin.call(:mastodon_sse_kill_connection, slug)
     else
       Plugin.call(:mastodon_restart_sse_stream, slug)
     end
   end
 
-  on_sse_connection_closed do |slug|
+  on_mastodon_sse_connection_closed do |slug|
     warn "SSE: connection closed for #{slug.to_s}"
 
     Plugin.call(:mastodon_restart_sse_stream, slug)
   end
 
-  on_sse_connection_error do |slug, e|
+  on_mastodon_sse_connection_error do |slug, e|
     error "SSE: connection error for #{slug.to_s}"
     pp e if Mopt.error_level >= 1
 
     Plugin.call(:mastodon_restart_sse_stream, slug)
   end
 
-  on_sse_on_update do |slug, json|
+  on_mastodon_sse_on_update do |slug, json|
     Thread.new {
       data = JSON.parse(json, symbolize_names: true)
       update_handler(slug, data)
     }
   end
 
-  on_sse_on_notification do |slug, json|
+  on_mastodon_sse_on_notification do |slug, json|
     Thread.new {
       data = JSON.parse(json, symbolize_names: true)
       notification_handler(slug, data)
     }
   end
 
-  on_sse_on_delete do |slug, id|
+  on_mastodon_sse_on_delete do |slug, id|
     # 消す必要ある？
     # pawooは一定時間後（1分～7日後）に自動消滅するtootができる拡張をしている。
     # また、手動で即座に消す人もいる。
@@ -271,7 +267,7 @@ Plugin.create(:mastodon) do
   end
 
   on_unload do
-    Plugin.call(:sse_kill_all)
+    Plugin.call(:mastodon_sse_kill_all)
   end
 
   def stream_world(domain, access_token)
@@ -285,7 +281,7 @@ Plugin.create(:mastodon) do
   def update_handler(datasource_slug, payload)
     pm = Plugin::Mastodon
 
-    connection, = Plugin.filtering(:sse_connection, datasource_slug)
+    connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
@@ -307,7 +303,7 @@ Plugin.create(:mastodon) do
   def notification_handler(datasource_slug, payload)
     pm = Plugin::Mastodon
 
-    connection, = Plugin.filtering(:sse_connection, datasource_slug)
+    connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]

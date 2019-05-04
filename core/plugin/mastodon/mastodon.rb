@@ -16,8 +16,6 @@ require_relative 'spell'
 require_relative 'setting'
 require_relative 'subparts_status_info'
 require_relative 'extractcondition'
-require_relative 'sse_client'
-require_relative 'sse_stream'
 require_relative 'rest'
 require_relative 'score'
 

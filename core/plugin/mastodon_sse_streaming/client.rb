@@ -1,6 +1,6 @@
 require 'httpclient'
 
-module Plugin::SseClient
+module Plugin::MastodonSseStreaming
   class Parser
     attr_reader :buffer
 
@@ -89,9 +89,7 @@ module Plugin::SseClient
   end
 end
 
-Plugin.create(:sse_client) do
-  pm = Plugin::Mastodon
-
+Plugin.create(:mastodon_sse_client) do
   connections = {}
   mutex = Thread::Mutex.new
 
@@ -127,12 +125,12 @@ Plugin.create(:sse_client) do
         body = conv
       end
 
-      Plugin.call(:sse_connection_opening, slug)
+      Plugin.call(:mastodon_sse_connection_opening, slug)
       client = HTTPClient.new
 
       thread = Thread.new {
         begin
-          parser = Plugin::SseClient::Parser.new(self, slug)
+          parser = Plugin::MastodonSseStreaming::Parser.new(self, slug)
           response = client.request(method, uri.to_s, query, body, headers) do |fragment|
             parser << fragment
           end
@@ -140,17 +138,17 @@ Plugin.create(:sse_client) do
           case response.status
           when 200
           else
-            Plugin.call(:sse_connection_failure, slug, response)
+            Plugin.call(:mastodon_sse_connection_failure, slug, response)
             error "ServerSentEvents connection failure"
             pp response if Mopt.error_level >= 1
             $stdout.flush
             next
           end
 
-          Plugin.call(:sse_connection_closed, slug)
+          Plugin.call(:mastodon_sse_connection_closed, slug)
 
         rescue => e
-          Plugin.call(:sse_connection_error, slug, e)
+          Plugin.call(:mastodon_sse_connection_error, slug, e)
           error "ServerSentEvents connection error"
           pp e if Mopt.error_level >= 1
           $stdout.flush
@@ -169,7 +167,7 @@ Plugin.create(:sse_client) do
       }
 
     rescue => e
-      Plugin.call(:sse_connection_error, slug, e)
+      Plugin.call(:mastodon_sse_connection_error, slug, e)
       error "ServerSentEvents connection error"
       pp e if Mopt.error_level >= 1
       $stdout.flush
@@ -177,7 +175,7 @@ Plugin.create(:sse_client) do
     end
   end
 
-  on_sse_kill_connection do |slug|
+  on_mastodon_sse_kill_connection do |slug|
     thread = nil
     mutex.synchronize {
       if connections.has_key? slug
@@ -190,7 +188,7 @@ Plugin.create(:sse_client) do
     end
   end
 
-  on_sse_kill_all do |event_sym|
+  on_mastodon_sse_kill_all do |event_sym|
     threads = []
     mutex.synchronize {
       connections.each do |slug, hash|
@@ -205,11 +203,11 @@ Plugin.create(:sse_client) do
     Plugin.call(event_sym) if event_sym
   end
 
-  filter_sse_connection do |slug|
+  filter_mastodon_sse_connection do |slug|
     [connections[slug]]
   end
 
-  filter_sse_connection_all do |_|
+  filter_mastodon_sse_connection_all do |_|
     [connections]
   end
 end
