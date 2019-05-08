@@ -1,5 +1,4 @@
 Plugin.create(:mastodon) do
-  pm = Plugin::Mastodon
   settings = {}
 
   on_mastodon_request_rest do |slug|
@@ -17,12 +16,12 @@ Plugin.create(:mastodon) do
 
       tl = []
       begin
-        hashes = pm::API.call(:get, domain, path, token, **params)
+        hashes = Plugin::Mastodon::API.call(:get, domain, path, token, **params)
         settings[slug][:last_time] = Time.now.to_i
         next if hashes.nil?
         arr = hashes.value
         ids = arr.map{|hash| hash[:id].to_i }
-        tl = pm::Status.build(domain, arr).concat(tl)
+        tl = Plugin::Mastodon::Status.build(domain, arr).concat(tl)
 
         notice "Mastodon: REST取得数： #{ids.size} for #{slug}"
         if ids.size > 0
@@ -35,7 +34,7 @@ Plugin.create(:mastodon) do
       end while (!settings[slug][:last_id].nil? && ids.size == 20)
       if domain.nil? && Mopt.error_level >= 2 # warn
         puts "on_mastodon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
-        pm::Util.ppf tl.select{|status| status.domain.nil? }
+        Plugin::Mastodon::Util.ppf tl.select{|status| status.domain.nil? }
       end
       Plugin.call :extract_receive_message, slug, tl if !tl.empty?
 
@@ -63,7 +62,7 @@ Plugin.create(:mastodon) do
 
       # 直近の分を取得
       token = nil
-      if world.is_a? pm::World
+      if mastodon?(world)
         token = world.access_token
       end
       params = { limit: 40 }
@@ -94,12 +93,10 @@ Plugin.create(:mastodon) do
   end
 
   pinger = Proc.new do
-    if !UserConfig[:mastodon_enable_streaming]
-      now = Time.now.to_i
-      settings.each do |slug, setting|
-        if (now - settings[slug][:last_time]) >= 60 * UserConfig[:mastodon_rest_interval]
-          Plugin.call(:mastodon_request_rest, slug)
-        end
+    now = Time.now.to_i
+    settings.each do |slug, setting|
+      if (now - settings[slug][:last_time]) >= 60 * UserConfig[:mastodon_rest_interval]
+        Plugin.call(:mastodon_request_rest, slug)
       end
     end
     Reserver.new(60, thread: SerialThread, &pinger)
