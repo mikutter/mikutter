@@ -12,6 +12,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
     Thread.new {
       sleep(rand(10))
+    }.next {
 
       token = nil
       if mastodon?(world)
@@ -60,23 +61,17 @@ Plugin.create(:mastodon_sse_streaming) do
   restarter = Proc.new do
     if @waiting
       Plugin.call(:mastodon_sse_kill_all, :mastodon_start_all_streams)
-      atomic {
-        @last_all_restarted = Time.new
-        @waiting = false
-      }
-    end
-    atomic {
+      @last_all_restarted = Time.new
       @waiting = false
-    }
+    end
+    @waiting = false
 
-    Reserver.new(60, &restarter)
+    Reserver.new(60, thread: Delayer, &restarter)
   end
 
   on_mastodon_restart_all_streams do
     now = Time.new
-    atomic {
-      @waiting = true
-    }
+    @waiting = true
     if (now - @last_all_restarted) >= 60
       restarter.call
     end
@@ -88,46 +83,43 @@ Plugin.create(:mastodon_sse_streaming) do
     worlds.each do |world|
       Thread.new {
         world.update_mutes!
+      }.next {
         Plugin.call(:mastodon_init_auth_stream, world)
       }
     end
 
-    UserConfig[:mastodon_instances].map do |domain, setting|
+    UserConfig[:mastodon_instances].each do |domain, setting|
       Plugin.call(:mastodon_init_instance_stream, domain)
     end
   end
 
   # サーバーを必要に応じて再起動
   on_mastodon_restart_instance_stream do |domain, retrieve = true|
-    Thread.new {
-      instance = Plugin::Mastodon::Instance.load(domain)
-      if instance.retrieve != retrieve
-        instance.retrieve = retrieve
-        instance.store
-      end
+    instance = Plugin::Mastodon::Instance.load(domain)
+    if instance.retrieve != retrieve
+      instance.retrieve = retrieve
+      instance.store
+    end
 
-      Plugin.call(:mastodon_remove_instance_stream, domain)
-      if retrieve
-        Plugin.call(:mastodon_init_instance_stream, domain)
-      end
-    }
+    Plugin.call(:mastodon_remove_instance_stream, domain)
+    if retrieve
+      Plugin.call(:mastodon_init_instance_stream, domain)
+    end
   end
 
   on_mastodon_init_instance_stream do |domain|
-    Thread.new {
-      Plugin::Mastodon::Instance.add_datasources(domain)
+    Plugin::Mastodon::Instance.add_datasources(domain)
 
-      ftl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated)
-      ftl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated_media)
-      ltl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local)
-      ltl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local_media)
+    ftl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated)
+    ftl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated_media)
+    ltl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local)
+    ltl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local_media)
 
-      # ストリーム開始
-      Plugin.call(:mastodon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug, true)
-      Plugin.call(:mastodon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
-      Plugin.call(:mastodon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
-      Plugin.call(:mastodon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
-    }
+    # ストリーム開始
+    Plugin.call(:mastodon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug, true)
+    Plugin.call(:mastodon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
+    Plugin.call(:mastodon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
+    Plugin.call(:mastodon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
   end
 
   on_mastodon_remove_instance_stream do |domain|
