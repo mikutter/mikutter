@@ -163,7 +163,7 @@ Plugin.create(:mastodon) do
   end
 
   # world作成
-  world_setting(:mastodon, _('Mastodon(Mastodon)')) do
+  world_setting(:mastodon, _('Mastodon')) do
     error_msg = nil
     while true
       if error_msg.is_a? String
