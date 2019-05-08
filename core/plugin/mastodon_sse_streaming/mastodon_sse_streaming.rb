@@ -47,7 +47,7 @@ Plugin.create(:mastodon_sse_streaming) do
       end
 
       Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
-    }
+    }.terminate('Mastodon: SSE接続開始時にエラーが発生しました')
   end
 
   on_mastodon_stop_stream do |slug|
@@ -85,7 +85,7 @@ Plugin.create(:mastodon_sse_streaming) do
         world.update_mutes!
       }.next {
         Plugin.call(:mastodon_init_auth_stream, world)
-      }
+      }.terminate('Mastodon: SSEコネクション確立前にエラーが発生しました')
     end
 
     UserConfig[:mastodon_instances].each do |domain, setting|
@@ -156,7 +156,7 @@ Plugin.create(:mastodon_sse_streaming) do
           Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
       end
-    }
+    }.terminate('Mastodon: SSEコネクション確立時にエラーが発生しました')
   end
 
   on_mastodon_remove_auth_stream do |world|
