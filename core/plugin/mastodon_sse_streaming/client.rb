@@ -44,7 +44,7 @@ module Plugin::MastodonSseStreaming
             @event = ''
           end
           Plugin.call(:sse_message_type_event, @slug, @event, @data)
-          Plugin.call(:"sse_on_#{@event}", @slug, @data)  # 利便性のため
+          Plugin.call(:"mastodon_sse_on_#{@event}", @slug, @data)  # 利便性のため
           @event = @data = nil  # 一応リセット
         end
 
