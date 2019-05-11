@@ -3,7 +3,7 @@ require 'pp'
 
 module Plugin::Mastodon
   PM = Plugin::Mastodon
-  CLIENT_NAME = 'mikutter Mastodon'
+  CLIENT_NAME = Environment::NAME
   WEB_SITE = 'https://mikutter.hachune.net/'
 end
 
