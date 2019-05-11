@@ -102,70 +102,65 @@ module Plugin::Mastodon
 
       # APIアクセスを行うhttpclientのラッパメソッド
       def call(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
-        begin
-          if domain.is_a? Diva::URI
-            uri = domain
-            domain = uri.host
-            path = uri.path
-          else
-            url = 'https://' + domain + path
-            uri = Diva::URI.new(url)
-          end
+        uri = domain_path_to_uri(domain, path)
 
-          if access_token && !access_token.empty?
-            headers += [["Authorization", "Bearer " + access_token]]
-          end
+        if access_token && !access_token.empty?
+          headers += [["Authorization", "Bearer " + access_token]]
+        end
 
-          begin
-            query, headers, files = build_query(params, headers)
-            PM::Util.ppf query if Mopt.error_level >= 2
+        resp = call!(method, params, headers, uri)
 
-            body = nil
-            if method != :get  # :post, :patch
-              body = query
-              query = nil
-            end
-
-            notice "Mastodon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
-
-            client = HTTPClient.new
-            resp = client.request(method, uri.to_s, query, body, headers)
-          ensure
-            files.each do |f|
-              f.close
-            end
-          end
-
-          case resp.status
-          when 200
-            hash = JSON.parse(resp.content, symbolize_names: true)
-            parse_Link(resp, hash)
-          else
-            warn "API.call did'nt return 200 Success"
-            PM::Util.ppf [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
-            Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri.to_s}\nparameters: #{params.to_s}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}")
-            nil
-          end
-        rescue => e
-          error "API.call raise exception"
-          PM::Util.ppf e if Mopt.error_level >= 1
+        case resp.status
+        when 200
+          hash = JSON.parse(resp.content, symbolize_names: true)
+          parse_link(resp, hash)
+        else
+          warn "API.call did'nt return 200 Success"
+          PM::Util.ppf [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
+          Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri}\nparameters: #{params}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}")
           nil
+        end
+      rescue => e
+        error "API.call raise exception"
+        PM::Util.ppf e if Mopt.error_level >= 1
+        nil
+      end
+
+      private def domain_path_to_uri(domain, path)
+        if domain.is_a? Diva::URI
+          domain
+        else
+          Diva::URI.new('https://' + domain + path)
         end
       end
 
-      def parse_Link(resp, hash)
+      private def call!(method, params, headers, uri)
+        query, headers, files = build_query(params, headers)
+        PM::Util.ppf query if Mopt.error_level >= 2
+        body = nil
+        if method != :get  # :post, :patch
+          body = query
+          query = nil
+        end
+        notice "Mastodon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
+        HTTPClient.new.request(method, uri.to_s, query, body, headers)
+      ensure
+        files&.each(&:close)
+      end
+
+      def parse_link(resp, hash)
         link = resp.header['Link'].first
         return APIResult.new(hash) if ((!hash.is_a? Array) || link.nil?)
         header =
           link
-          .split(', ')
-          .map do |line|
-            /^<(.*)>; rel="(.*)"$/.match(line) do |m|
-              [$2.to_sym, Diva::URI.new($1)]
-            end
+            .split(', ')
+            .map do |line|
+          /^<(.*)>; rel="(.*)"$/.match(line) do |m|
+            [$2.to_sym, Diva::URI.new($1)]
           end
+        end
             .to_h
-          APIResult.new(hash, header)
+        APIResult.new(hash, header)
       end
 
       def status(domain, id)
