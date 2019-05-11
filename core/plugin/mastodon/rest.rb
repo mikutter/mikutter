@@ -2,43 +2,20 @@ Plugin.create(:mastodon) do
   settings = {}
 
   on_mastodon_request_rest do |slug|
-    Thread.new {
-      notice "Mastodon: rest request for #{slug}"
-      domain = settings[slug][:domain]
-      path = settings[slug][:path]
-      token = settings[slug][:token]
-      params = settings[slug][:params]
+    domain = settings[slug][:domain]
+    path = settings[slug][:path]
+    token = settings[slug][:token]
+    params = settings[slug][:params]
 
-      if !settings[slug][:last_id].nil?
-        params[:since_id] = settings[slug][:last_id]
-        params.delete(:limit)
-      end
+    if !settings[slug][:last_id].nil?
+      params[:since_id] = settings[slug][:last_id]
+      params.delete(:limit)
+    end
 
-      tl = []
-      begin
-        hashes = Plugin::Mastodon::API.call(:get, domain, path, token, **params)
-        settings[slug][:last_time] = Time.now.to_i
-        next if hashes.nil?
-        arr = hashes.value
-        ids = arr.map{|hash| hash[:id].to_i }
-        tl = Plugin::Mastodon::Status.build(domain, arr).concat(tl)
-
-        notice "Mastodon: REST取得数： #{ids.size} for #{slug}"
-        if ids.size > 0
-          settings[slug][:last_id] = params[:since_id] = ids.max
-          # 2回目以降、limit=20いっぱいまで取れてしまった場合は続きの取得を行なう。
-          if (!settings[slug][:last_id].nil? && ids.size == 20)
-            notice "Mastodon: 継ぎ足しREST #{slug}"
-          end
-        end
-      end while (!settings[slug][:last_id].nil? && ids.size == 20)
-      if domain.nil? && Mopt.error_level >= 2 # warn
-        puts "on_mastodon_start_stream domain is null #{type} #{slug} #{token.to_s} #{list_id.to_s}"
-        Plugin::Mastodon::Util.ppf tl.select{|status| status.domain.nil? }
-      end
+    request_statuses_since_previous_received(domain, path, token, params, settings[slug]).next{ |tl|
       Plugin.call :extract_receive_message, slug, tl if !tl.empty?
 
-      reblogs = tl.select{|status| status.reblog? }
+      reblogs = tl.select(&:reblog?)
       Plugin.call(:retweet, reblogs) if !reblogs.empty?
     }
   end
@@ -90,6 +67,25 @@ Plugin.create(:mastodon) do
 
       Plugin.call(:mastodon_init_polling, slug, domain, path, token, params)
     }
+  end
+
+  def request_statuses_since_previous_received(domain, path, token, params, settings_slug)
+    Plugin::Mastodon::API.call(:get, domain, path, token, **params).next do |hashes|
+      settings_slug[:last_time] = Time.now.to_i
+      next if hashes.nil?
+      statuses = Plugin::Mastodon::Status.build(domain, hashes.value)
+      if statuses.size > 0
+        settings_slug[:last_id] = statuses.map(&:id).max
+      end
+      # 2回目以降、limit=20いっぱいまで取れてしまった場合は続きの取得を行なう。
+      if (!settings_slug[:last_id].nil? && statuses.size == 20)
+        request_statuses_since_previous_received(domain, path, token, {**params, since_id: settings_slug[:last_id]}, settings_slug).next{ |tail|
+          [*statuses, *tail]
+        }
+      else
+        statuses
+      end
+    end
   end
 
   pinger = Proc.new do

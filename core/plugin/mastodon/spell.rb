@@ -106,7 +106,7 @@ Plugin.create(:mastodon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = pm::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
+          hash = +pm::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
           if hash.value && hash[:error].nil?
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
@@ -249,11 +249,11 @@ Plugin.create(:mastodon) do
       }.chunk { |message|
         message.account.acct
       }.each { |acct, messages|
-        opt.world.report_for_spam(messages, result[:comment])
+        await opt.world.report_for_spam(messages, result[:comment])
       }
 
       label "完了しました。"
-    end
+    end.terminate('通報中にエラーが発生しました')
   end
 
   command(:mastodon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
@@ -292,38 +292,39 @@ Plugin.create(:mastodon) do
       h
     end
 
-    user_id = pm::API.get_local_account_id(opt.world, user)
-    result = pm::API.call(:get, opt.world.domain, "/api/v1/accounts/#{user_id}/lists", opt.world.access_token)
-    membership = result.value.to_a.inject(Hash.new) do |h, l|
-      key = l[:id].to_sym
-      val = l[:title]
-      h[key] = val
-      h
-    end
+    pm::API.get_local_account_id(opt.world, user).next{ |user_id|
+      result = +pm::API.call(:get, opt.world.domain, "/api/v1/accounts/#{user_id}/lists", opt.world.access_token)
+      membership = result.value.to_a.inject(Hash.new) do |h, l|
+        key = l[:id].to_sym
+        val = l[:title]
+        h[key] = val
+        h
+      end
 
 
-    dialog "リストへの追加・削除" do
-      self[:lists] = membership.keys
-      multiselect "所属させるリストを選択してください", :lists do
-        lists.keys.each do |k|
-          option(k, lists[k])
+      dialog "リストへの追加・削除" do
+        self[:lists] = membership.keys
+        multiselect "所属させるリストを選択してください", :lists do
+          lists.keys.each do |k|
+            option(k, lists[k])
+          end
+        end
+      end.next do |result|
+        selected_ids = result[:lists]
+        selected_ids.each do |list_id|
+          unless membership[list_id]
+            # 追加
+            pm::API.call(:post, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id]).terminate
+          end
+        end
+        membership.keys.each do |list_id|
+          unless selected_ids.include?(list_id)
+            # 削除
+            pm::API.call(:delete, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id]).terminate
+          end
         end
       end
-    end.next do |result|
-      selected_ids = result[:lists]
-      selected_ids.each do |list_id|
-        unless membership[list_id]
-          # 追加
-          pm::API.call(:post, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
-        end
-      end
-      membership.keys.each do |list_id|
-        unless selected_ids.include?(list_id)
-          # 削除
-          pm::API.call(:delete, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
-        end
-      end
-    end
+    }.terminate
   end
 
   command(:mastodon_vote, name: '投票する', visible: true, role: :timeline,
@@ -334,38 +335,29 @@ Plugin.create(:mastodon) do
     m = opt.messages.first
 
     # poll idはサーバーごとに異なる。worldが所属するサーバーでの値を取得する。
-    statuses = pm::API.status_by_url(opt.world.domain, opt.world.access_token, m.uri)
-    next unless statuses
-    next unless statuses[0]
-    next unless statuses[0][:poll]
-    poll = pm::Poll.new(statuses[0][:poll])
-    next unless poll.expires_at >= Time.now
+    pm::API.status_by_url(opt.world.domain, opt.world.access_token, m.uri).next{ |statuses|
+      pm::Poll.new(statuses.dig(0, :poll))
+    }.next{ |poll|
+      Delayer::Deferred.fail("The poll already expired.") unless poll.expires_at >= Time.now
 
-    dialog "投票" do
-      if poll.multiple
-        multiselect "投票先を選択してください", :vote do
-          poll.options.each_index do |i|
-            vopt = poll.options[i]
-            option(i.to_s.to_sym, vopt.title)
+      dialog _("投票") do
+        if poll.multiple
+          multiselect _("投票先を選択してください"), :vote do
+            poll.options.each_with_index do |vopt, i|
+              option(i.to_s.to_sym, vopt.title)
+            end
+          end
+        else
+          select _("投票先を選択してください"), :vote do
+            poll.options.each_with_index do |vopt, i|
+              option(i.to_s.to_sym, vopt.title) { } # ラジオボタン化のために空blockを渡す
+            end
           end
         end
-      else
-        select "投票先を選択してください", :vote do
-          poll.options.each_index do |i|
-            vopt = poll.options[i]
-            option(i.to_s.to_sym, vopt.title) { } # ラジオボタン化のために空blockを渡す
-          end
-        end
-      end
-    end.next do |result|
-      vote = result[:vote]
-      unless [Array, Set].include? vote.class
-        vote = [vote]
-      end
-      pm::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: vote)
-    end.trap do |err|
-      pm::Util.ppf(err)
-    end
+      end.next { |result|
+        pm::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: Array(result[:vote]))
+      }
+    }.terminate(_("投票中にエラーが発生しました"))
   end
 
 
@@ -383,17 +375,12 @@ Plugin.create(:mastodon) do
       opts[:sensitive] = false;
     end
 
-    result = world.post(message: body, **opts)
-    if result.nil?
-      warn "投稿に失敗したかもしれません"
-      $stdout.flush
-      nil
-    else
+    world.post(message: body, **opts).next{ |result|
       new_status = pm::Status.build(world.domain, [result.value]).first
-      Plugin.call(:posted, world, [new_status]) if new_status
-      Plugin.call(:update, world, [new_status]) if new_status
+      Plugin.call(:posted, world, [new_status])
+      Plugin.call(:update, world, [new_status])
       new_status
-    end
+    }
   end
 
   memoize def media_tmp_dir
@@ -408,11 +395,10 @@ Plugin.create(:mastodon) do
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
       tmp_path = media_tmp_dir / tmp_name
       file_put_contents(tmp_path, photo.blob)
-      hash = pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s)
-      if hash
+      pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s).next{ |hash|
         media_id = hash[:id]
         compose(world, body: body, media_ids: [media_id], **opts)
-      end
+      }
     }
   end
 
@@ -430,47 +416,39 @@ Plugin.create(:mastodon) do
       opts[:sensitive] = false;
     end
 
-    result = world.post(to: status, message: body, **opts)
-    if result.nil?
-      warn "投稿に失敗したかもしれません"
-      $stdout.flush
-      nil
-    else
+    world.post(to: status, message: body, **opts).next{ |result|
       new_status = pm::Status.build(world.domain, [result.value]).first
       Plugin.call(:posted, world, [new_status]) if new_status
       Plugin.call(:update, world, [new_status]) if new_status
       new_status
-    end
+    }
   end
 
   defspell(:destroy, :mastodon, :mastodon_status, condition: -> (world, status) {
-    world.account.acct == status.actual_status.account.acct
-  }) do |world, status|
-    status_id = pm::API.get_local_status_id(world, status.actual_status)
-    if status_id
-      ret = pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
+             world.account.acct == status.actual_status.account.acct
+           }) do |world, status|
+    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
+    }.next{
       Plugin.call(:destroyed, status.actual_status)
       status.actual_status
-    end
+    }
   end
 
   # ふぁぼ
   defspell(:favorite, :mastodon, :mastodon_status,
            condition: -> (world, status) { !status.actual_status.favorite?(world) }
           ) do |world, status|
-    Thread.new {
-      status_id = pm::API.get_local_status_id(world, status.actual_status)
-      if status_id
-        Plugin.call(:before_favorite, world, world.account, status)
-        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
-        if ret.nil? || ret[:error]
-          Plugin.call(:fail_favorite, world, world.account, status)
-        else
-          status.actual_status.favourited = true
-          status.actual_status.favorite_accts << world.account.acct
-          Plugin.call(:favorite, world, world.account, status)
-        end
-      end
+    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      Plugin.call(:before_favorite, world, world.account, status)
+      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+    }.next{ |ret|
+      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      status.actual_status.favourited = true
+      status.actual_status.favorite_accts << world.account.acct
+      Plugin.call(:favorite, world, world.account, status)
+    }.trap {
+      Plugin.call(:fail_favorite, world, world.account, status)
     }
   end
 
@@ -483,19 +461,14 @@ Plugin.create(:mastodon) do
   end
 
   defspell(:unfavorite, :mastodon, :mastodon_status, condition: -> (world, status) { status.favorite?(world) }) do |world, status|
-    Thread.new {
-      status_id = pm::API.get_local_status_id(world, status.actual_status)
-      if status_id
-        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
-        if ret.nil? || ret[:error]
-          warn "[mastodon] failed to unfavourite: #{ret}"
-        else
-          status.actual_status.favourited = false
-          status.actual_status.favorite_accts.delete(world.account.acct)
-          Plugin.call(:favorite, world, world.account, status)
-        end
-        status.actual_status
-      end
+    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
+    }.next{ |ret|
+      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      status.actual_status.favourited = false
+      status.actual_status.favorite_accts.delete(world.account.acct)
+      Plugin.call(:favorite, world, world.account, status)
+      status.actual_status
     }
   end
 
@@ -518,23 +491,17 @@ Plugin.create(:mastodon) do
   end
 
   defspell(:destroy_share, :mastodon, :mastodon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
-    Thread.new {
-      status_id = pm::API.get_local_status_id(world, status.actual_status)
-      if status_id
-        ret = pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
-        reblog = nil
-        if ret.nil? || ret[:error]
-          warn "[mastodon] failed to unreblog: #{ret}"
-        else
-          status.actual_status.reblogged = false
-          reblog = status.actual_status.retweeted_statuses.select{|s| s.account.acct == world.user_obj.acct }.first
-          status.actual_status.reblog_status_uris.delete_if {|pair| pair[:acct] == world.user_obj.acct }
-          if reblog
-            Plugin.call(:destroyed, [reblog])
-          end
-        end
-        reblog
-      end
+    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
+    }.next{ |ret|
+      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      status.actual_status.reblogged = false
+      reblog = status.actual_status.retweeted_statuses.find{|s|
+        s.account.acct == world.user_obj.acct
+      }
+      status.actual_status.reblog_status_uris.delete_if {|pair| pair[:acct] == world.user_obj.acct }
+      Plugin.call(:destroyed, [reblog]) if reblog
+      reblog
     }
   end
 
@@ -672,34 +639,34 @@ Plugin.create(:mastodon) do
     profile = pm::AccountProfile.new(account: account)
     timeline(tl_slug) << profile
 
-    Thread.new do
-      world, = Plugin.filtering(:world_current, nil)
-      if mastodon?(world)
-        account_id = pm::API.get_local_account_id(world, account)
+    world, = Plugin.filtering(:world_current, nil)
+    if mastodon?(world)
+      pm::API.get_local_account_id(world, account).next{ |account_id|
+        pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token).next{ |res|
+          if res.value
+            timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
+                                                    record[:pinned] = true
+                                                    record
+                                                  })
+          end
+        }.terminate
+        pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token).next{ |res|
+          if res.value
+            timeline(tl_slug) << pm::Status.build(world.domain, res.value)
+          end
+        }.terminate
+        nil
+      }.terminate
+      next if domain == world.domain
+    end
 
-        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses?pinned=true", world.access_token)
-        if res.value
-          timeline(tl_slug) << pm::Status.build(world.domain, res.value.map{|record|
-            record[:pinned] = true
-            record
-          })
-        end
-
-        res = pm::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token)
-        if res.value
-          timeline(tl_slug) << pm::Status.build(world.domain, res.value)
-        end
-
-        next if domain == world.domain
-      end
-
-      headers = {
-        'Accept' => 'application/activity+json'
-      }
-      res = pm::API.call(:get, domain, "/users/#{acct}/outbox?page=true", nil, {}, headers)
+    headers = {
+      'Accept' => 'application/activity+json'
+    }
+    pm::API.call(:get, domain, "/users/#{acct}/outbox?page=true", nil, {}, headers).next{ |res|
       next unless res[:orderedItems]
 
-      res[:orderedItems].map do |record|
+      res[:orderedItems].map{|record|
         case record[:type]
         when "Create"
           # トゥート
@@ -710,11 +677,11 @@ Plugin.create(:mastodon) do
             "https://#{m[:domain]}/@#{m[:acct]}/#{m[:status_id]}"
           end
         end
-      end.compact.each do |url|
-        status = pm::Status.findbyurl(url) || pm::Status.fetch(url)
+      }.compact.each do |url|
+        status = pm::Status.findbyurl(url) || +pm::Status.fetch(url)
         timeline(tl_slug) << status if status
       end
-    end
+    }.terminate
   end
 
   defspell(:search, :mastodon) do |world, **opts|
@@ -722,15 +689,14 @@ Plugin.create(:mastodon) do
     q = opts[:q]
     if q.start_with? '#'
       q = URI.encode_www_form_component(q[1..-1])
-      resp = Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count)
-      return nil if resp.nil?
-      resp = resp.to_a
+      resp = Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count).next(&:to_a)
     else
-      resp = Plugin::Mastodon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q)
-      return nil if resp.nil?
-      resp = resp[:statuses]
-    end
-    Plugin::Mastodon::Status.build(world.domain, resp)
+      Plugin::Mastodon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q).next{ |resp|
+        resp[:statuses]
+      }
+    end.next{|resp|
+      Plugin::Mastodon::Status.build(world.domain, resp)
+    }
   end
 
   defspell(:follow, :mastodon, :mastodon_account,

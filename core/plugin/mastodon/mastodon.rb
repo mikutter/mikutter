@@ -48,12 +48,14 @@ Plugin.create(:mastodon) do
   followings_updater = Proc.new do
     activity(:system, "自分のプロフィールやフォロー関係を取得しています...")
     Plugin.filtering(:mastodon_worlds, nil).first.to_a.each do |world|
-      world.update_account
-      world.blocks!
-      world.followings(cache: false).next do |followings|
+      Delayer::Deferred.when(
+        world.update_account,
+        world.blocks,
+        world.followings(cache: false)
+      ).next{
         activity(:system, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
-      end
-      Plugin.call(:world_modify, world)
+        Plugin.call(:world_modify, world)
+      }.terminate("自分のプロフィールやフォロー関係が取得できませんでした(#{world.account.acct})")
     end
 
     Reserver.new(10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
@@ -96,14 +98,6 @@ Plugin.create(:mastodon) do
     end
   end
 
-  # 別プラグインからサーバーを追加してストリームを開始する例
-  # domain = 'friends.nico'
-  # instance, = Plugin.filtering(:mastodon_add_instance, domain)
-  # Plugin.call(:mastodon_restart_instance_stream, instance.domain) if instance
-  filter_mastodon_add_instance do |domain|
-    [pm::Instance.add(domain)]
-  end
-
   # サーバー編集
   on_mastodon_update_instance do |domain|
     Thread.new {
@@ -126,15 +120,9 @@ Plugin.create(:mastodon) do
 
   # world追加時用
   on_mastodon_create_or_update_instance do |domain|
-    Thread.new {
-      instance = pm::Instance.load(domain)
-      if instance.nil?
-        instance, = Plugin.filtering(:mastodon_add_instance, domain)
-      end
-      next if instance.nil? # 既存にない＆接続失敗
-
+    pm::Instance.add_ifn(domain).next do
       Plugin.call(:mastodon_restart_instance_stream, domain)
-    }
+    end
   end
 
   # world追加
@@ -174,15 +162,10 @@ Plugin.create(:mastodon) do
       result = await_input
       domain = result[:domain]
 
-      instance = pm::Instance.load(domain)
+      instance = await pm::Instance.add_ifn(domain).trap{ nil }
       if instance.nil?
-        # 既存にないので追加
-        instance, = Plugin.filtering(:mastodon_add_instance, domain)
-        if instance.nil?
-          # 追加失敗
-          error_msg = "#{domain} サーバーへの接続に失敗しました。やり直してください。"
-          next
-        end
+        error_msg = "#{domain} サーバーへの接続に失敗しました。やり直してください。"
+        next
       end
 
       break
@@ -195,8 +178,6 @@ Plugin.create(:mastodon) do
       end
       label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
       link instance.authorize_url
-      puts instance.authorize_url # ブラウザで開けない時のため
-      $stdout.flush
       input '認証コード', :authorization_code
       if error_msg.is_a? String
         input 'アクセストークンがあれば入力してください', :access_token
@@ -218,15 +199,15 @@ Plugin.create(:mastodon) do
     end
 
     if result[:authorization_code]
-      resp = pm::API.call(:post, domain, '/oauth/token',
-                                       client_id: instance.client_key,
-                                       client_secret: instance.client_secret,
-                                       grant_type: 'authorization_code',
-                                       redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                                       code: result[:authorization_code]
-                                      )
+      resp = pm::API.call!(:post, domain, '/oauth/token',
+                           client_id: instance.client_key,
+                           client_secret: instance.client_secret,
+                           grant_type: 'authorization_code',
+                           redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+                           code: result[:authorization_code]
+                          )
       if resp.nil? || resp.value.has_key?(:error)
-        label "認証に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
+        label "認証に失敗しました" + (resp && resp[:error] ? "：#{resp[:error]}" : '')
         await_input
         raise (resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
       end
@@ -235,7 +216,7 @@ Plugin.create(:mastodon) do
       token = result[:access_token]
     end
 
-    resp = pm::API.call(:get, domain, '/api/v1/accounts/verify_credentials', token)
+    resp = pm::API.call!(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
       label "アカウント情報の取得に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
       raise (resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])

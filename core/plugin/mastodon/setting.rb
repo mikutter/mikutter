@@ -43,7 +43,7 @@ Plugin.create(:mastodon) do
           error_msg = "既に登録済みのドメインです。入力し直してください。"
           next
         end
-        instance, = Plugin.filtering(:mastodon_add_instance, result[:domain])
+        instance = await pm::Instance.add(domain).trap{ nil }
         if instance.nil?
           error_msg = "接続に失敗しました。もう一度確認してください。"
           next

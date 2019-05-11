@@ -108,21 +108,30 @@ module Plugin::Mastodon
 
       # APIアクセスを行うhttpclientのラッパメソッド
       def call(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
+        Thread.new do
+          call!(method, domain, path, access_token, opts, headers, **params)
+        end
+      end
+
+      def call!(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
         uri = domain_path_to_uri(domain, path)
-        if access_token && !access_token.empty?
-          headers += [["Authorization", "Bearer " + access_token]]
-        end
-        resp = query_timer(method, uri, params, headers) do
-          call!(method, params, headers, uri)
-        end
+        resp = raw_response!(method, uri, access_token, headers, **params)
         case resp&.status
         when 200
-          hash = JSON.parse(resp.content, symbolize_names: true)
-          parse_link(resp, hash)
+          parse_link(resp, JSON.parse(resp.content, symbolize_names: true))
         else
           warn "API.call did'nt return 200 Success"
           Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri}\nparameters: #{params}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}") rescue nil
           nil
+        end
+      end
+
+      def raw_response!(method, uri, access_token, headers, **params)
+        if access_token && !access_token.empty?
+          headers += [["Authorization", "Bearer " + access_token]]
+        end
+        query_timer(method, uri, params, headers) do
+          send_request(method, params, headers, uri)
         end
       end
 
@@ -166,7 +175,7 @@ module Plugin::Mastodon
         raise
       end
 
-      private def call!(method, params, headers, uri)
+      private def send_request(method, params, headers, uri)
         query, headers, files = build_query(params, headers)
         body = nil
         if method != :get  # :post, :patch
@@ -198,39 +207,63 @@ module Plugin::Mastodon
         call(:get, domain, '/api/v1/statuses/' + id.to_s)
       end
 
+      def status!(domain, id)
+        call!(:get, domain, '/api/v1/statuses/' + id.to_s)
+      end
+
       def status_by_url(domain, access_token, url)
-        resp = call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true)
-        return nil if resp.nil?
-        resp[:statuses]
+        call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true).next{ |resp|
+          resp[:statuses]
+        }
+      end
+
+      def status_by_url!(domain, access_token, url)
+        call!(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true).next{ |resp|
+          resp[:statuses]
+        }
       end
 
       def account_by_url(domain, access_token, url)
-        resp = call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true)
-        return nil if resp.nil?
-        resp[:accounts]
+        call(:get, domain, '/api/v1/search', access_token, q: url.to_s, resolve: true).next{ |resp|
+          resp[:accounts]
+        }
       end
 
+      # _world_ における、 _status_ のIDを検索して返す。
+      # _status_ が _world_ の所属するのと同じサーバに投稿されたものなら、 _status_ のID。
+      # 異なるサーバの _status_ なら、 _world_ のサーバに問い合わせて、そのIDを返すDeferredをリクエストする。
+      # ==== Args
+      # [world] World Model
+      # [status] トゥート
+      # ==== Return
+      # [Delayer::Deferred] _status_ のローカルにおけるID
       def get_local_status_id(world, status)
-        return status.id if world.domain == status.domain
-
-        # 別サーバー起源のstatusなので検索する
-        statuses = status_by_url(world.domain, world.access_token, status.url)
-        if statuses.nil? || statuses[0].nil? || statuses[0][:id].nil?
-          nil
+        if world.domain == status.domain
+          Delayer::Deferred.new{ status.id }
         else
-          statuses[0][:id]
+          status_by_url(world.domain, world.access_token, status.url).next{ |statuses|
+            statuses.dig(0, :id).tap do |id|
+              raise 'Status id does not found.' unless id
+            end
+          }
         end
       end
 
+      # _world_ における、 _account_ のIDを検索して返す。
+      # _account_ が _world_ の所属するのと同じサーバに投稿されたものなら、 _account_ のID。
+      # 異なるサーバの _account_ なら、 _world_ のサーバに問い合わせて、そのIDを返すDeferredをリクエストする。
+      # ==== Args
+      # [world] World Model
+      # [account] アカウント (Plugin::Mastodon::Account)
+      # ==== Return
+      # [Delayer::Deferred] _account_ のローカルにおけるID
       def get_local_account_id(world, account)
-        return account.id if world.domain == account.domain
-
-        # 別サーバー起源のaccountなので検索する
-        accounts = account_by_url(world.domain, world.access_token, account.url)
-        if accounts.nil? || accounts[0].nil? || accounts[0][:id].nil?
-          nil
+        if world.domain == account.domain
+          Delayer::Deferred.new{ account.id }
         else
-          accounts[0][:id]
+          account_by_url(world.domain, world.access_token, account.url).next{ |accounts|
+            accounts&.dig(0, :id)
+          }
         end
       end
 
@@ -245,12 +278,12 @@ module Plugin::Mastodon
       #   [:wait] APIコール間にsleepで待機する秒数
       # [headers] 追加ヘッダ
       # [params] GET/POSTパラメータ
-      def all(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
+      def all!(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
         opts[:direction] ||= :next
         opts[:wait] ||= 1
 
         while true
-          list = API.call(method, domain, path, access_token, opts, headers, **params)
+          list = API.call!(method, domain, path, access_token, opts, headers, **params)
 
           if list && list.value.is_a?(Array)
             list.value.each { |hash| yield hash }
@@ -265,7 +298,7 @@ module Plugin::Mastodon
         end
       end
 
-      def all_with_world(world, method, path = nil, opts = {}, headers = [], **params, &block)
+      def all_with_world!(world, method, path = nil, opts = {}, headers = [], **params, &block)
         all(method, world.domain, path, world.access_token, opts, headers, **params, &block)
       end
 

@@ -61,9 +61,7 @@ module Plugin::Mastodon
       account = Account.findbyacct(acct)
       next account if account
 
-      Thread.new {
-        Account.fetch(acct)
-      }
+      Account.fetch(acct)
     end
 
     def self.regularize_acct_by_domain(domain, acct)
@@ -90,11 +88,9 @@ module Plugin::Mastodon
 
     def self.fetch(acct)
       world, = Plugin.filtering(:mastodon_current, nil)
-      resp = Plugin::Mastodon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true)
-      hash = resp[:accounts].select{|account| account[:acct] === acct }.first
-      if hash
-        Account.new hash
-      end
+      Plugin::Mastodon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true).next{ |resp|
+        resp[:accounts].select{|account| account[:acct] === acct }.first&.yield_self(&Account.method(:new))
+      }
     end
 
     def domain

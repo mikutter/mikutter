@@ -48,23 +48,32 @@ module Plugin::Mastodon
       end
 
       def add(domain, retrieve = true)
-        return nil if UserConfig[:mastodon_instances].has_key?(domain)
+        Delayer::Deferred.new.next {
+          return nil if UserConfig[:mastodon_instances].has_key?(domain)
 
-        resp = Plugin::Mastodon::API.call(:post, domain, '/api/v1/apps',
-                                         client_name: Plugin::Mastodon::CLIENT_NAME,
-                                         redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
-                                         scopes: 'read write follow',
-                                         website: Plugin::Mastodon::WEB_SITE
-                                        )
-        return nil if resp.nil?
-        add_datasources(domain)
+          Plugin::Mastodon::API.call(
+            :post, domain, '/api/v1/apps',
+            client_name: Plugin::Mastodon::CLIENT_NAME,
+            redirect_uris: 'urn:ietf:wg:oauth:2.0:oob',
+            scopes: 'read write follow',
+            website: Plugin::Mastodon::WEB_SITE
+          )
+        }.next{ |resp|
+          add_datasources(domain)
 
-        self.new(
-          domain: domain,
-          client_key: resp[:client_id],
-          client_secret: resp[:client_secret],
-          retrieve: retrieve,
-        ).store
+          self.new(
+            domain: domain,
+            client_key: resp[:client_id],
+            client_secret: resp[:client_secret],
+            retrieve: retrieve,
+          ).store
+        }
+      end
+
+      def add_ifn(domain, retrieve = true)
+        Delayer::Deferred.new.next do
+          self.load(domain) || +self.add(domain, retrieve)
+        end
       end
 
       def load(domain)

@@ -54,7 +54,7 @@ module Plugin::Mastodon
     def get_lists!
       return @@lists[uri.to_s] if @@lists[uri.to_s]
 
-      lists = API.call(:get, domain, '/api/v1/lists', access_token)
+      lists = API.call!(:get, domain, '/api/v1/lists', access_token)
       if lists.nil?
         warn "[mastodon] failed to get lists"
       elsif lists.value.is_a? Array
@@ -69,7 +69,7 @@ module Plugin::Mastodon
       params = { limit: 80 }
       since_id = nil
       Status.clear_mutes
-      while mutes = PM::API.call(:get, domain, '/api/v1/mutes', access_token, **params)
+      while mutes = PM::API.call!(:get, domain, '/api/v1/mutes', access_token, **params)
         Status.add_mutes(mutes.value)
         if mutes.header.nil? || mutes.header[:prev].nil?
           return
@@ -92,61 +92,40 @@ module Plugin::Mastodon
     def post(to: nil, message:, **params)
       params[:status] = message
       if to
-        status_id = API.get_local_status_id(self, to)
-        if status_id
-          params[:in_reply_to_id] = status_id
-        else
-          warn "返信先Statusが#{world.domain}内に見つかりませんでした：#{status.url}"
+        API.get_local_status_id(self, to).next{ |status_id|
+          API.call(:post, domain, '/api/v1/statuses', access_token, in_reply_to_id: status_id, **params)
+        }.terminate("返信先Statusが#{domain}内に見つかりませんでした：#{to.url}")
+      else
+        API.call(:post, domain, '/api/v1/statuses', access_token, **params)
+      end
+    end
+
+    # _status_ をboostする。
+    # ==== Args
+    # [status] boostするtoot
+    # ==== Return
+    # [Delayer::Deferred] boost完了したら、新たに作られたstatusを返すDeferred
+    def reblog(status)
+      PM::API.get_local_status_id(self, status.actual_status).next{ |status_id|
+        new_status_hash = +PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
+        if new_status_hash.nil? || new_status_hash.value.has_key?(:error)
+          error 'failed reblog request'
+          PM::Util.ppf new_status_hash if Mopt.error_level >= 1
           return nil
         end
-      end
-      API.call(:post, domain, '/api/v1/statuses', access_token, **params)
-    end
 
-    def do_reblog(status)
-      status_id = PM::API.get_local_status_id(self, status.actual_status)
-      if status_id.nil?
-        error 'cannot get local status id'
-        return nil
-      end
+        new_status = PM::Status.build(domain, [new_status_hash.value]).first
 
-      new_status_hash = PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
-      if new_status_hash.nil? || new_status_hash.value.has_key?(:error)
-        error 'failed reblog request'
-        PM::Util.ppf new_status_hash if Mopt.error_level >= 1
-        return nil
-      end
-
-      new_status = PM::Status.build(domain, [new_status_hash.value]).first
-      return if new_status.nil?
-
-      status.actual_status.reblogged = true
-      status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }
-      status.reblog_status_uris.uniq!
-      Plugin.call(:retweet, [new_status])
-
-      status_world = status.from_me_world
-      if status_world
-        Plugin.call(:mention, status_world, [new_status])
-      end
-    end
-
-    def reblog(status)
-      promise = Delayer::Deferred.new(true)
-      Thread.new do
-        begin
-          new_status = do_reblog(status)
-          if new_status.is_a? Status
-            promise.call(new_status)
-          else
-            promise.fail(new_status)
-          end
-        rescue Exception => e
-          PM::Util.ppf e if Mopt.error_level >= 2 # warn
-          promise.fail(e)
+        status.actual_status.reblogged = true
+        status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }
+        status.reblog_status_uris.uniq!
+        Plugin.call(:retweet, [new_status])
+        status_world = status.from_me_world
+        if status_world
+          Plugin.call(:mention, status_world, [new_status])
         end
-      end
-      promise
+        new_status
+      }
     end
 
     def get_accounts!(type)
@@ -157,7 +136,7 @@ module Plugin::Mastodon
           params = {
             limit: 80
           }
-          API.all_with_world(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
+          API.all_with_world!(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
             accounts << hash
           end
           promise.call(accounts.map {|hash| Account.new hash })
@@ -198,7 +177,7 @@ module Plugin::Mastodon
       promise
     end
 
-    def blocks!
+    def blocks
       promise = Delayer::Deferred.new(true)
       Thread.new do
         begin
@@ -206,7 +185,7 @@ module Plugin::Mastodon
           params = {
             limit: 80
           }
-          API.all_with_world(self, :get, "/api/v1/blocks", **params) do |hash|
+          API.all_with_world!(self, :get, "/api/v1/blocks", **params) do |hash|
             accounts << hash
           end
           @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
@@ -224,87 +203,80 @@ module Plugin::Mastodon
     end
 
     def account_action(account, type)
-      account_id = PM::API.get_local_account_id(self, account)
-      PM::API.call(:post, domain, "/api/v1/accounts/#{account_id}/#{type}", access_token)
+      PM::API.get_local_account_id(self, account).next{ |account_id|
+        PM::API.call(:post, domain, "/api/v1/accounts/#{account_id}/#{type}", access_token)
+      }
     end
 
     def follow(account)
-      ret = account_action(account, "follow")
-
-      if ret
-        @@followings[uri.to_s] = Array() unless @@followings[uri.to_s]
-        @@followings[uri.to_s] << account
+      account_action(account, "follow").next{ |ret|
+        @@followings[uri.to_s] = [*@@followings[uri.to_s], account]
         followings(cache: false)
-      end
-
-      ret
+        ret
+      }
     end
 
     def unfollow(account)
-      ret = account_action(account, "unfollow")
-
-      if ret && @@followings[uri.to_s]
-        @@followings[uri.to_s].delete_if do |acc|
-          acc.acct == account.acct
+      account_action(account, "unfollow").next{ |ret|
+        if @@followings[uri.to_s]
+          @@followings[uri.to_s].delete_if do |acc|
+            acc.acct == account.acct
+          end
+          followings(cache: false)
         end
-
-        followings(cache: false)
-      end
-
-      ret
+        ret
+      }
     end
 
     def mute(account)
-      account_action(account, "mute")
-      update_mutes!
+      account_action(account, "mute").next{ update_mutes! }
     end
 
     def unmute(account)
-      account_action(account, "unmute")
-      update_mutes!
+      account_action(account, "unmute").next{ update_mutes! }
     end
 
     def block(account)
-      account_action(account, "block")
-      blocks!
+      account_action(account, "block").next{ blocks }
     end
 
     def unblock(account)
-      account_action(account, "unblock")
-      blocks!
+      account_action(account, "unblock").next{ blocks }
     end
 
     def pin(status)
-      status_id = PM::API.get_local_status_id(self, status)
-      PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/pin", access_token)
-      status.pinned = true
+      PM::API.get_local_status_id(self, status).next{ |status_id|
+        PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/pin", access_token)
+      }.next{
+        status.pinned = true
+      }
     end
 
     def unpin(status)
-      status_id = PM::API.get_local_status_id(self, status)
-      PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/unpin", access_token)
-      status.pinned = false
+      PM::API.get_local_status_id(self, status).next{ |status_id|
+        PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/unpin", access_token)
+      }.next{
+        status.pinned = false
+      }
     end
 
     def report_for_spam(statuses, comment)
-      account_id = PM::API.get_local_account_id(self, statuses.first.account)
-      params = {
-        account_id: account_id,
-        status_ids: statuses.map { |status| PM::API.get_local_status_id(self, status) },
-        comment: comment,
+      Deferred.when(
+        PM::API.get_local_account_id(self, statuses.first.account),
+        Deferred.when(statuses.map { |status| PM::API.get_local_status_id(self, status) })
+      ).next{ |account_id, spam_ids|
+        PM::API.call(:post, domain, "/api/v1/reports", access_token,
+                     account_id: account_id,
+                     status_ids: spam_ids,
+                     comment: comment)
       }
-      PM::API.call(:post, domain, "/api/v1/reports", access_token, **params)
     end
 
     def update_account
-      resp = PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token)
-      if resp.nil? || resp.value.has_key?(:error)
-        warn(resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
-        return
-      end
-
-      resp[:acct] = resp[:acct] + '@' + domain
-      self.account = PM::Account.new(resp.value)
+      PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token).next{ |resp|
+        resp[:acct] = resp[:acct] + '@' + domain
+        self.account = PM::Account.new(resp.value)
+      }
     end
 
     def update_profile(**opts)
@@ -363,7 +335,7 @@ module Plugin::Mastodon
         vs.each do |key, val|
           params[key] = val
         end
-        new_account = PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
+        new_account = +PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
         if new_account.value
           self.account = PM::Account.new(new_account.value)
           Plugin.call(:world_modify, self)

@@ -61,7 +61,7 @@ module Plugin::Mastodon
     TOOT_ACTIVITY_URI_RE = %r!\Ahttps://(?<domain>[^/]*)/users/(?<acct>[^/]*)/statuses/(?<status_id>[^/]*)/activity\z!.freeze
 
     handle TOOT_URI_RE do |uri|
-      Status.findbyurl(uri) || Thread.new { Status.fetch(uri) }
+      Status.findbyurl(uri) || Status.fetch(uri)
     end
 
     class << self
@@ -169,9 +169,11 @@ module Plugin::Mastodon
         if m = TOOT_URI_RE.match(uri.to_s)
           domain_name = m[1]
           id = m[2]
-          resp = Plugin::Mastodon::API.status(domain_name, id)
-          return nil if resp.nil?
-          Status.build(domain_name, [resp.value]).first
+          Plugin::Mastodon::API.status(domain_name, id).next{ |resp|
+            Status.build(domain_name, [resp.value]).first
+          }
+        else
+          Delayer::Deferred.new(true).tap{|d| d.fail(nil) }
         end
       end
     end
@@ -415,20 +417,28 @@ module Plugin::Mastodon
 
     # 返信スレッド用
     def around(force_retrieve=false)
-      resp = Plugin::Mastodon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
-      return [self] if resp.nil?
-      ancestors = Status.build(domain, resp[:ancestors])
-      descendants = Status.build(domain, resp[:descendants])
-      @ancestors = ancestors.reverse
-      @descendants = descendants
-      @around = ancestors + [self] + descendants
+      if force_retrieve
+        resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
+        return [self] if resp.nil?
+        ancestors = Status.build(domain, resp[:ancestors])
+        descendants = Status.build(domain, resp[:descendants])
+        @ancestors = ancestors.reverse
+        @descendants = descendants
+        @around = [*ancestors, self, *descendants]
+      else
+        @around || [self]
+      end
     end
 
     def ancestors(force_retrieve=false)
-      resp = Plugin::Mastodon::API.call(:get, domain, '/api/v1/statuses/' + id + '/context')
-      return [self] if resp.nil?
-      ancestors = Status.build(domain, resp[:ancestors])
-      @ancestors = [self] + ancestors.reverse
+      if force_retrieve
+        resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
+        return [self] if resp.nil?
+        ancestors = Status.build(domain, resp[:ancestors])
+        @ancestors = [self, *ancestors.reverse]
+      else
+        @ancestors || [self]
+      end
     end
 
     # 返信表示用
@@ -438,12 +448,18 @@ module Plugin::Mastodon
 
     # 返信表示用
     def replyto_source(force_retrieve=false)
+      # TODO: サーバ+IDでStatusを保存するWeakStoreを使ってキャッシュしたいわね
+      @replyto_source ||=
+        force_retrieve ? replyto_source_force : nil
+    end
+
+    private def replyto_source_force
       if domain.nil?
         # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
         world, = Plugin.filtering(:mastodon_current, nil)
         if world
           # 見つかったworldでstatusを取得し、id, domain, in_reply_to_idを上書きする。
-          status = Plugin::Mastodon::API.status_by_url(world.domain, world.access_token, url)
+          status = Plugin::Mastodon::API.status_by_url!(world.domain, world.access_token, url)
           if status
             self[:id] = status[:id]
             self[:domain] = world.domain
@@ -456,7 +472,7 @@ module Plugin::Mastodon
           end
         end
       end
-      resp = Plugin::Mastodon::API.status(domain, in_reply_to_id)
+      resp = Plugin::Mastodon::API.status!(domain, in_reply_to_id)
       return nil if resp.nil?
       Status.build(domain, [resp.value]).first
     end
@@ -483,7 +499,7 @@ module Plugin::Mastodon
       reblog
     end
 
-    def retweet_source_d
+    def retweet_source_d(force_retrieve=false)
       promise = Delayer::Deferred.new(true)
       Thread.new do
         begin
