@@ -30,6 +30,12 @@ module Plugin::Mastodon
   end
 
   class API
+    ExceptionResponse = Struct.new(:body) do
+      def code
+        0
+      end
+    end
+
     class << self
       def build_query_recurse(params, results = [], files = [], prefix = '', to_multipart = false)
         if params.is_a? Hash
@@ -103,27 +109,21 @@ module Plugin::Mastodon
       # APIアクセスを行うhttpclientのラッパメソッド
       def call(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
         uri = domain_path_to_uri(domain, path)
-
         if access_token && !access_token.empty?
           headers += [["Authorization", "Bearer " + access_token]]
         end
-
-        resp = call!(method, params, headers, uri)
-
-        case resp.status
+        resp = query_timer(method, uri, params, headers) do
+          call!(method, params, headers, uri)
+        end
+        case resp&.status
         when 200
           hash = JSON.parse(resp.content, symbolize_names: true)
           parse_link(resp, hash)
         else
           warn "API.call did'nt return 200 Success"
-          PM::Util.ppf [uri.to_s, query, body, headers, resp] if Mopt.error_level >= 2
-          Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri}\nparameters: #{params}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}")
+          Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri}\nparameters: #{params}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}") rescue nil
           nil
         end
-      rescue => e
-        error "API.call raise exception"
-        PM::Util.ppf e if Mopt.error_level >= 1
-        nil
       end
 
       private def domain_path_to_uri(domain, path)
@@ -134,9 +134,40 @@ module Plugin::Mastodon
         end
       end
 
+      private def query_timer(method, uri, params, headers, &block)
+        start_time = Time.new.freeze
+        serial = uri.to_s.hash ^ params.freeze.hash
+        Plugin.call(:query_start,
+                    serial:     serial,
+                    method:     method,
+                    path:       uri,
+                    options:    params,
+                    headers:    headers,
+                    start_time: start_time)
+        result = block.call
+        Plugin.call(:query_end,
+                    serial:     serial,
+                    method:     method,
+                    path:       uri,
+                    options:    params,
+                    start_time: start_time,
+                    end_time:   Time.new.freeze,
+                    res:        result)
+        result
+      rescue => exc
+        Plugin.call(:query_end,
+                    serial:     serial,
+                    method:     method,
+                    path:       uri,
+                    options:    params,
+                    start_time: start_time,
+                    end_time:   Time.new.freeze,
+                    res:        ExceptionResponse.new("#{exc.message}\n" + exc.backtrace.join("\n")))
+        raise
+      end
+
       private def call!(method, params, headers, uri)
         query, headers, files = build_query(params, headers)
-        PM::Util.ppf query if Mopt.error_level >= 2
         body = nil
         if method != :get  # :post, :patch
           body = query
