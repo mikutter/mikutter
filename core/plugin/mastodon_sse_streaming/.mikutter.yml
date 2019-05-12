@@ -1,0 +1,10 @@
+---
+slug: mastodon_sse_streaming
+depends:
+  mikutter: 3.8.0
+  plugin:
+    - mastodon
+version: '1.0'
+author: [cobodo, toshi_a]
+name: Mastodon SSE Streaming
+description: Server-Sent Eventsを使って、Mastodonのイベントをリアルタイム更新する
