@@ -4,8 +4,9 @@ depends:
   mikutter: '0.2'
   plugin:
   - gui
-  - uitranslator
   - skin
+  - spell
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 会話

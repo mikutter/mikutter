@@ -699,6 +699,12 @@ Plugin.create(:mastodon) do
     }
   end
 
+  defspell(:around_message, :mastodon_status) do |status|
+    Thread.new do
+      status.around(true)
+    end
+  end
+
   defspell(:follow, :mastodon, :mastodon_account,
            condition: -> (world, account) { !world.following?(account.acct) }
           ) do |world, account|

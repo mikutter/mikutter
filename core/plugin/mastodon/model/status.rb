@@ -446,6 +446,10 @@ module Plugin::Mastodon
       !in_reply_to_id.nil?
     end
 
+    def repliable?(counterpart=nil)
+      true
+    end
+
     # 返信表示用
     def replyto_source(force_retrieve=false)
       # TODO: サーバ+IDでStatusを保存するWeakStoreを使ってキャッシュしたいわね
