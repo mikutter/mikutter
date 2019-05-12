@@ -152,15 +152,23 @@ Plugin.create(:mastodon) do
 
   # world作成
   world_setting(:mastodon, _('Mastodon')) do
+    set_value domain_selection: 'social.mikutter.hachune.net'
     error_msg = nil
     while true
       if error_msg.is_a? String
         label error_msg
       end
-      input 'サーバーのドメイン', :domain
+      select(_('サーバー'), :domain_selection,
+             'social.mikutter.hachune.net' => _('mikutter'),
+             'mstdn.maud.io' => _('末代'),
+             'mstdn.nere9.help' => _('nere9')) do
+        option(:other, _('その他')) do
+          input _('ドメイン'), :domain
+        end
+      end
 
       result = await_input
-      domain = result[:domain]
+      domain = result[:domain_selection] == :other ? result[:domain] : result[:domain_selection]
 
       instance = await pm::Instance.add_ifn(domain).trap{ nil }
       if instance.nil?
