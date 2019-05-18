@@ -636,7 +636,10 @@ class Plugin::Twitter::Message < Diva::Model
   def body
     self[:message].to_s.freeze
   end
-  alias_method :description, :body
+
+  def description
+    self[:message].to_s.gsub(Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_REGEXP, &Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_RULE)
+  end
 
   # Message#body と同じだが、投稿制限文字数を超えていた場合には、収まるように末尾を捨てる。
   def to_s
