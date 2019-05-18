@@ -17,7 +17,7 @@ module Plugin::Twitter
     field.bool   :exact                                     # true if complete data
     field.time   :created                                   # posted time
 
-    alias_method :description, :text
+    alias_method :body, :text
 
     def self.memory
       @memory ||= DirectMessageMemory.new end
@@ -28,6 +28,10 @@ module Plugin::Twitter
 
     def to_show
       @to_show ||= self[:text].gsub(/&(gt|lt|quot|amp);/){|m| {'gt' => '>', 'lt' => '<', 'quot' => '"', 'amp' => '&'}[$1] }.freeze
+    end
+
+    def description
+      self[:text].to_s.gsub(Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_REGEXP, &Plugin::Twitter::Message::DESCRIPTION_UNESCAPE_RULE)
     end
 
     def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
