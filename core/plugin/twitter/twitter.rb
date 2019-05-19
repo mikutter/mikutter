@@ -364,7 +364,7 @@ Plugin.create(:twitter) do
   def score_by_entity(tweet)
     score = Array.new
     cur = 0
-    text = tweet.description
+    text = tweet.body
     tweet[:entities].flat_map{|kind, entities|
       case kind
       when :hashtags
@@ -507,7 +507,7 @@ Plugin.create(:twitter) do
           uri: user.uri,
           reference: user)
       else
-        screen_name = user_entity[:screen_name] || tweet.description[Range.new(*user_entity[:indices])]
+        screen_name = user_entity[:screen_name] || tweet.body[Range.new(*user_entity[:indices])]
         Diva::Model(:score_hyperlink).new(
           description: "@#{screen_name}",
           uri: "https://twitter.com/#{screen_name}")
