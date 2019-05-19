@@ -5,7 +5,7 @@ module Mainloop
   def mainloop
     loop do
       Gtk.main
-      break if Plugin.filtering(:before_mainloop_exit)
+      break if Gtk.exception || Plugin.filtering(:before_mainloop_exit)
       error "Mainloop exited but it's cancelled by filter `:before_mainloop_exit'."
     end
   rescue Interrupt,SystemExit,SignalException => exception
