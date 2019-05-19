@@ -420,24 +420,34 @@ module Plugin::Mastodon
       if force_retrieve
         resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
         return [self] if resp.nil?
-        ancestors = Status.build(domain, resp[:ancestors])
-        descendants = Status.build(domain, resp[:descendants])
-        @ancestors = ancestors.reverse
-        @descendants = descendants
-        @around = [*ancestors, self, *descendants]
+        @around = [*Status.build(domain, resp[:ancestors]),
+                   self,
+                   *Status.build(domain, resp[:descendants])]
       else
         @around || [self]
       end
     end
 
+    # tootのリプライ先を再帰的に遡って、見つかった順に列挙する。
+    # 最初に列挙する要素は常に _self_ で、ある要素は次の要素へのリプライとなっている。
+    # ==== Args
+    # [force_retrieve] サーバへの問い合わせを許可するフラグ
+    # ==== Return
+    # Enumerator :: リプライツリーを祖先方向に辿って列挙する (Plugin::Mastodon::Status)
     def ancestors(force_retrieve=false)
       if force_retrieve
-        resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
-        return [self] if resp.nil?
-        ancestors = Status.build(domain, resp[:ancestors])
-        @ancestors = [self, *ancestors.reverse]
+        @ancestors ||= ancestors_force.to_a.freeze
       else
-        @ancestors || [self]
+        [self, *replyto_source&.ancestors].freeze
+      end
+    end
+
+    private def ancestors_force
+      resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
+      if resp
+        [self, *Status.build(domain, resp[:ancestors]).reverse]
+      else
+        [self]
       end
     end
 
