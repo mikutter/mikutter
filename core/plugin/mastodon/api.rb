@@ -299,7 +299,7 @@ module Plugin::Mastodon
       end
 
       def all_with_world!(world, method, path = nil, opts = {}, headers = [], **params, &block)
-        all(method, world.domain, path, world.access_token, opts, headers, **params, &block)
+        all!(method, world.domain, path, world.access_token, opts, headers, **params, &block)
       end
 
     end
