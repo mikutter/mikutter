@@ -171,15 +171,23 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
     helper.font_description(UserConfig[:reply_text_font])
   end
 
-  attr_reader :margin
+  def margin
+    @margin * helper.scale
+  end
 
-  attr_reader :edge
+  def edge
+    @edge * helper.scale
+  end
 
   # Fixnum 枠線の太さ(px)
-  attr_reader :border_weight
+  def border_weight
+    @border_weight * helper.scale
+  end
 
   # Fixnum バッジの半径(px)
-  attr_reader :badge_radius
+  def badge_radius
+    @badge_radius * helper.scale
+  end
 
   # :nodoc:
   def initialize(*args)

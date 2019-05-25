@@ -91,7 +91,7 @@ module Gdk::Coordinate
 
   # 寸法の初期化
   def coordinator(width)
-    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, DEPTH, 48, 48, 2
+    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, DEPTH, 48*scale, 48*scale, 2*scale
   end
 
   # 座標系を構造体にまとめて返す

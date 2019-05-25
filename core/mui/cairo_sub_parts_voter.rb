@@ -7,7 +7,7 @@ require 'cairo'
 
 class ::Gdk::SubPartsVoter < Gdk::SubParts
 
-  attr_reader :votes, :icon_width, :icon_height, :margin
+  attr_reader :votes
 
   def initialize(*args)
     super
@@ -59,6 +59,18 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
       usertip.disable
       false
     }
+  end
+
+  def icon_width
+    @icon_width * helper.scale
+  end
+
+  def icon_height
+    @icon_height * helper.scale
+  end
+
+  def margin
+    @margin * helper.scale
   end
 
   def get_user_by_point(x)
@@ -115,7 +127,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   # このSubPartsのアイコンのPixbufを返す。
   # title_icon_model メソッドをオーバライドしない場合、こちらを必ずオーバライドしなければならない
   def title_icon
-    title_icon_model.pixbuf(width: @icon_width, height: @icon_height)
+    title_icon_model.pixbuf(width: icon_width, height: icon_height)
   end
 
   # このSubPartsのアイコンをあらわすModelを返す。
