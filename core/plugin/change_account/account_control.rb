@@ -17,6 +17,7 @@ module ::Plugin::ChangeAccount
       append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
       append_column ::Gtk::TreeViewColumn.new("name", ::Gtk::CellRendererText.new, text: COL_NAME)
       append_column ::Gtk::TreeViewColumn.new("provider", ::Gtk::CellRendererText.new, text: COL_WORLD_NAME)
+      self.set_reorderable(true)
       content_initialize
       register_signal_handlers
       event_listener_initialize
@@ -75,6 +76,11 @@ module ::Plugin::ChangeAccount
           menu_pop(self, event)
           true
         end
+      end
+
+      model.ssc(:row_deleted) do
+        Plugin.call(:world_reorder, model.to_enum.map{|_m, _p, iter| iter[COL_WORLD] }.select(&:itself))
+        false
       end
     end
 
