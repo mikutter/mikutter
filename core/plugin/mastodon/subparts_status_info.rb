@@ -74,7 +74,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
 
           context.translate(@icon_size + @margin, 0)
           layout = context.create_pango_layout
-          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = "bot"
           bot_text_width = layout.extents[1].width / Pango::SCALE
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
@@ -89,7 +89,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
 
           context.translate(@icon_size + @margin, 0)
           layout = context.create_pango_layout
-          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = "ピン留め"
           pin_text_width = layout.extents[1].width / Pango::SCALE
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
@@ -105,7 +105,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
 
           context.translate(@icon_size + @margin, 0)
           layout = context.create_pango_layout
-          layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+          layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = visibility_text(helper.message.visibility)
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
           context.show_pango_layout(layout)

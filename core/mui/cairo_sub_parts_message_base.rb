@@ -168,7 +168,8 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   # :nodoc:
   memoize def default_font
-    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
+    helper.font_description(UserConfig[:reply_text_font])
+  end
 
   attr_reader :margin
 

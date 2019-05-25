@@ -50,6 +50,14 @@ Plugin::create(:set_view) do
     settings _('選択中') do
       color _('背景色'), :mumble_selected_bg
     end
+    settings _('共通') do
+      select _('UIの拡大率'), :ui_scale do
+        option 1, _('等倍')
+        option 1.5, _('1.5倍')
+        option 2, _('2倍')
+        option :auto, _('自動（%<scale>.2f倍）') % {scale: Gdk::Visual.system.screen.resolution / 100}
+      end
+    end
     Plugin.filtering(:retrievers, []).first.select(&:timeline).each do |modelspec|
       slug = modelspec[:slug]
       settings(_(modelspec[:name])) do

@@ -79,7 +79,8 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
       super end end
 
   def main_text_font(message)
-    Pango::FontDescription.new(UserConfig[:quote_text_font]) end
+    helper.font_description(UserConfig[:quote_text_font])
+  end
 
   def header_left_content(*args)
     if show_header?

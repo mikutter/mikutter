@@ -154,6 +154,7 @@ class UserConfig
     :world_shifter_visibility => :auto,
 
     :miraclepainter_expand_custom_emoji => true,
+    :ui_scale => :auto
   }
 
   @@watcher = Hash.new{ [] }

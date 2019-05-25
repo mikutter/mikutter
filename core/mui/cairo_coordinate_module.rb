@@ -9,6 +9,7 @@ module Gdk::Coordinate
   CoordinateStruct = Struct.new(:main_icon, :main_text, :header_text, :reply)
 
   DEPTH = Gdk::Visual.system.depth
+  SCALE = Gdk::Visual.system.screen.resolution / 100
 
   class Region
     extend Memoist
@@ -75,6 +76,15 @@ module Gdk::Coordinate
       @width = [new, 1].max
       on_modify(true) end
     new
+  end
+
+  def scale
+    case UserConfig[:ui_scale]
+    when :auto
+      SCALE
+    else
+      UserConfig[:ui_scale]
+    end
   end
 
   protected

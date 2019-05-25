@@ -55,7 +55,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     UserConfig[:reply_text_color].map{ |c| c.to_f / 65536 } end
 
   def main_text_font(message)
-    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
+    helper.font_description(UserConfig[:reply_text_font]) end
 
   def header_left_content(*args)
     if show_header?

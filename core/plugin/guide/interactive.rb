@@ -94,7 +94,7 @@ module Plugin::Guide
       ofst = OutsideOffset + ButtonMargin
       message[:confirm].map{ |label, value|
         layout = context.create_pango_layout
-        layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+        layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
         layout.text = label
         width = layout.size[0]/Pango::SCALE + ButtonLeft + ButtonRight
         x = ofst

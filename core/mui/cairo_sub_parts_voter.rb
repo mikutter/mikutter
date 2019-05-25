@@ -171,7 +171,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
   def pl_count(context = dummy_context)
     layout = context.create_pango_layout
     layout.wrap = Pango::WrapMode::CHAR
-    layout.font_description = Pango::FontDescription.new(UserConfig[:mumble_basic_font])
+    layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
     layout.text = "#{get_vote_count}"
     layout
   end
