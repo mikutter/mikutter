@@ -227,7 +227,7 @@ module Plugin::Mastodon
     end
 
     def inspect
-      "mastodon-status(#{description})"
+      "mastodon-status(#{uri} #{description})"
     end
 
     def merge(domain_name, new_hash)

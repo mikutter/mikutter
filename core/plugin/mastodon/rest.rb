@@ -15,8 +15,9 @@ Plugin.create(:mastodon) do
     request_statuses_since_previous_received(domain, path, token, params, settings[slug]).next{ |tl|
       Plugin.call :extract_receive_message, slug, tl if !tl.empty?
 
-      reblogs = tl.select(&:reblog?)
-      Plugin.call(:retweet, reblogs) if !reblogs.empty?
+      tl.select(&:reblog?).each do |message|
+        Plugin.call(:share, message.user, message.reblog)
+      end
     }
   end
 
