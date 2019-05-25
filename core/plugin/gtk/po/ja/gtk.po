@@ -18,4 +18,4 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "Statusbar default message"
-msgstr "mikutter 3.8　未来をその手に。"
+msgstr "クライアントは自分で選ぶもの mikutterで自由を手に"
