@@ -7,6 +7,8 @@ require_relative 'service'
 miquire :core, 'environment', 'configloader', 'userconfig'
 miquire :lib, 'diva_hacks'
 
+require 'digest/sha1'
+
 Plugin.create(:world) do
 
   world_struct = Struct.new(:slug, :name, :proc)
@@ -37,6 +39,15 @@ Plugin.create(:world) do
     modify_world(target)
   end
 
+  # Worldのリストを、 _worlds_ の順番に並び替える。
+  on_world_reorder do |new_order|
+    store(:world_order, new_order.map(&method(:world_order_hash)))
+    atomic do
+      @worlds = worlds_sort(worlds)
+      Plugin.call(:world_reordered, @worlds)
+    end
+  end
+
   # アカウント _target_ を削除する
   on_world_destroy do |target|
     destroy_world(target)
@@ -52,9 +63,13 @@ Plugin.create(:world) do
       @worlds
     else
       atomic do
-        load_world_ifn
+        @worlds ||= worlds_sort(load_world)
       end
     end
+  end
+
+  def world_order
+    at(:world_order) || []
   end
 
   # 新たなアカウントを登録する。
@@ -89,8 +104,8 @@ Plugin.create(:world) do
     Plugin.call(:service_destroyed, target) # 互換性のため
   end
 
-  def load_world_ifn
-    @worlds ||= Plugin::World::Keep.accounts.map { |id, serialized|
+  def load_world
+    Plugin::World::Keep.accounts.map { |id, serialized|
       provider = Diva::Model(serialized[:provider])
       if provider
         provider.new(serialized)
@@ -108,6 +123,12 @@ Plugin.create(:world) do
     }.compact.freeze.tap(&method(:check_world_uri))
   end
 
+  def worlds_sort(world_list)
+    world_list.sort_by.with_index do |a, index|
+      [world_order.find_index(world_order_hash(a)) || Float::INFINITY, index]
+    end
+  end
+
   def check_world_uri(new_worlds)
     new_worlds.each do |w|
       if @world_slug_dict.key?(w.slug)
@@ -118,5 +139,9 @@ Plugin.create(:world) do
         @world_slug_dict[w.slug] = w.uri
       end
     end
+  end
+
+  def world_order_hash(world)
+    Digest::SHA1.hexdigest("#{world.slug}mikutter")
   end
 end

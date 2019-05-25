@@ -59,6 +59,9 @@ class Gtk::WorldShifter < Gtk::EventBox
       Plugin[:gtk].on_userconfig_modify do |key, newval|
         refresh if key == :world_shifter_visibility
       end
+      Plugin[:gtk].on_world_reordered do |_worlds|
+        refresh
+      end
       Plugin[:gtk].on_world_after_created do |world|
         refresh
       end
