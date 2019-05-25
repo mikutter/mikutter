@@ -289,13 +289,8 @@ Plugin.create(:twitter) do
           source.retweeted_sources.delete(message) end end } end
 
   onappear do |messages|
-    retweets = messages.select(&:retweet?).map do |message|
-      result = message.retweet_ancestors.to_a[-2]
-      fail "invalid retweet #{message.inspect}. ancestors: #{message.retweet_ancestors.to_a.inspect}" unless result.is_a?(Plugin::Twitter::Message)
-      result
-    end
-    if not retweets.empty?
-      Plugin.call(:retweet, retweets)
+    messages.select(&:retweet?).each do |message|
+      Plugin.call(:share, message.user, message.retweet_ancestor)
     end
   end
 

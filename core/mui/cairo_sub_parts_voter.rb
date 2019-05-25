@@ -83,27 +83,31 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
       icon_height end end
 
   def add(new)
-    if UserConfig[:"#{name}_by_anyone_show_timeline"]
-      if not @votes.include?(new)
-        before_height = height
-        @votes << new
-        if(before_height == height)
-          helper.on_modify
-        else
-          helper.reset_height end
-        self end end end
+    if not @votes.include?(new)
+      before_height = height
+      @votes << new
+      if(before_height == height)
+        helper.on_modify
+      else
+        helper.reset_height
+      end
+      self
+    end
+  end
   alias << add
 
   def delete(user)
-    if UserConfig[:"#{name}_by_anyone_show_timeline"]
-      if not @votes.include?(user)
-        before_height = height
-        @votes.delete(user)
-        if(before_height == height)
-          helper.on_modify
-        else
-          helper.reset_height end
-        self end end end
+    if not @votes.include?(user)
+      before_height = height
+      @votes.delete(user)
+      if(before_height == height)
+        helper.on_modify
+      else
+        helper.reset_height
+      end
+      self
+    end
+  end
 
   def name
     raise end

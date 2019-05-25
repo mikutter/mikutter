@@ -225,17 +225,13 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_sse_on_update do |slug, json|
-    Thread.new {
-      data = JSON.parse(json, symbolize_names: true)
-      update_handler(slug, data)
-    }
+    data = JSON.parse(json, symbolize_names: true)
+    update_handler(slug, data)
   end
 
   on_mastodon_sse_on_notification do |slug, json|
-    Thread.new {
-      data = JSON.parse(json, symbolize_names: true)
-      notification_handler(slug, data)
-    }
+    data = JSON.parse(json, symbolize_names: true)
+    notification_handler(slug, data)
   end
 
   on_mastodon_sse_on_delete do |slug, id|
@@ -391,8 +387,8 @@ Plugin.create(:mastodon_sse_streaming) do
     Plugin.call(:extract_receive_message, datasource_slug, [status])
     world = stream_world(domain, access_token)
     Plugin.call(:update, world, [status])
-    if (status&.reblog).is_a?(Plugin::Mastodon::Status)
-      Plugin.call(:retweet, [status])
+    if status.reblog?
+      Plugin.call(:share, status.user, status.reblog)
       world = status.to_me_world
       if !world.nil?
         Plugin.call(:mention, world, [status])
@@ -417,28 +413,9 @@ Plugin.create(:mastodon_sse_streaming) do
       end
 
     when 'reblog'
-      user_id = payload[:account][:id]
-      user_statuses = Plugin::Mastodon::API.call(:get, domain, "/api/v1/accounts/#{user_id}/statuses", access_token)
-      if user_statuses.nil?
-        error "Mastodon: ブーストStatusの取得に失敗"
-        return
-      end
-      idx = user_statuses.value.index do |hash|
-        hash[:reblog] && hash[:reblog][:uri] == payload[:status][:uri]
-      end
-      if idx.nil?
-        error "Mastodon: ブーストStatusの取得に失敗（流れ速すぎ？）"
-        return
-      end
-
-      status = Plugin::Mastodon::Status.build(domain, [user_statuses[idx]]).first
-      return if status.nil?
-      Plugin.call(:retweet, [status])
-      world = status.to_me_world
-      if world
-        Plugin.call(:mention, world, [status])
-      end
-
+      Plugin.call(:share,
+                  Plugin::Mastodon::Account.new(payload[:account]),
+                  Plugin::Mastodon::Status.build(domain, [payload[:status]]).first)
     when 'favourite'
       user = Plugin::Mastodon::Account.new(payload[:account])
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first

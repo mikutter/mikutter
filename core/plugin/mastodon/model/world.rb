@@ -115,15 +115,7 @@ module Plugin::Mastodon
         end
 
         new_status = PM::Status.build(domain, [new_status_hash.value]).first
-
-        status.actual_status.reblogged = true
-        status.reblog_status_uris << { uri: new_status.original_uri, acct: account.acct }
-        status.reblog_status_uris.uniq!
-        Plugin.call(:retweet, [new_status])
-        status_world = status.from_me_world
-        if status_world
-          Plugin.call(:mention, status_world, [new_status])
-        end
+        Plugin.call(:share, new_status.user, status)
         new_status
       }
     end
