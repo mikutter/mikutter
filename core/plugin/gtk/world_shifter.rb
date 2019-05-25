@@ -97,8 +97,8 @@ class Gtk::WorldShifter < Gtk::EventBox
     if @face
       world, = Plugin.filtering(:world_current, nil)
       transaction = @world_transaction = SecureRandom.uuid
-      rect = { width:  UserConfig[:gtk_accountbox_geometry],
-               height: UserConfig[:gtk_accountbox_geometry] }
+      rect = { width:  UserConfig[:gtk_accountbox_geometry]*scale,
+               height: UserConfig[:gtk_accountbox_geometry]*scale }
       @face.pixbuf = world&.icon&.load_pixbuf(**rect) do |pixbuf|
         if transaction == @world_transaction
           @face.pixbuf = pixbuf
@@ -109,7 +109,7 @@ class Gtk::WorldShifter < Gtk::EventBox
 
   def add_face_widget_ifn
     if not @face
-      @face = Gtk::Image.new(Skin[:loading].pixbuf(width: UserConfig[:gtk_accountbox_geometry], height: UserConfig[:gtk_accountbox_geometry]))
+      @face = Gtk::Image.new(Skin[:loading].pixbuf(width: UserConfig[:gtk_accountbox_geometry]*scale, height: UserConfig[:gtk_accountbox_geometry]*scale))
       self.add(@face).show_all
     end
     world, = Plugin.filtering(:world_current, nil)
@@ -123,6 +123,15 @@ class Gtk::WorldShifter < Gtk::EventBox
       self.remove(@face)
       @face.destroy
       @face = nil
+    end
+  end
+
+  def scale
+    case UserConfig[:ui_scale]
+    when :auto
+      Gdk::Visual.system.screen.resolution / 100
+    else
+      UserConfig[:ui_scale]
     end
   end
 end

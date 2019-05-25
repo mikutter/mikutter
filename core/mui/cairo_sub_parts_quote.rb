@@ -55,15 +55,19 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     if show_edge?
       unless @edge == EDGE_PRESENT_SIZE
         @edge = EDGE_PRESENT_SIZE
-        helper.reset_height end
+        helper.reset_height
+      end
     else
       unless @edge == EDGE_ABSENT_SIZE
         @edge = EDGE_ABSENT_SIZE
-        helper.reset_height end end
-    @edge end
+        helper.reset_height
+      end
+    end
+    @edge*helper.scale
+  end
 
   def badge(_message)
-    Skin[:quote].pixbuf(width: @badge_radius*2, height: @badge_radius*2) end
+    Skin[:quote].pixbuf(width: badge_radius*2, height: badge_radius*2) end
 
   def background_color(message)
     color = Plugin.filtering(:subparts_quote_background_color, message, UserConfig[:quote_background_color]).last
@@ -93,7 +97,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   def icon_size
     if show_icon?
       if UserConfig[:quote_icon_size]
-        Gdk::Rectangle.new(0, 0, UserConfig[:quote_icon_size], UserConfig[:quote_icon_size])
+        Gdk::Rectangle.new(0, 0, UserConfig[:quote_icon_size]*helper.scale, UserConfig[:quote_icon_size]*helper.scale)
       else
         super end end end
 

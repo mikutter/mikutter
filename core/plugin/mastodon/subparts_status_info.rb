@@ -1,4 +1,6 @@
 class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
+  DEFAULT_ICON_SIZE = 20
+
   register
 
   def get_photo(filename)
@@ -25,7 +27,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
   def icon_pixbuf
     return nil if !helper.message.respond_to?(:visibility)
     photo = get_photo(filename(helper.message.visibility))
-    photo&.pixbuf(width: @icon_size, height: @icon_size)
+    photo&.pixbuf(width: icon_size.width, height: icon_size.height)
   end
 
   def show_icon?
@@ -52,27 +54,26 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
     super
 
     @margin = 2
-    @icon_size = 20
   end
 
   def render(context)
     if helper.visible? && show_icon?
       if helper.message.user.respond_to?(:bot) && helper.message.user.bot
-        bot_pixbuf = get_photo('bot.png')&.pixbuf(width: @icon_size, height: @icon_size)
+        bot_pixbuf = get_photo('bot.png')&.pixbuf(width: icon_size.width, height: icon_size.height)
       end
       if helper.message.respond_to?(:pinned?) && helper.message.pinned?
-        pin_pixbuf = get_photo('pin.png')&.pixbuf(width: @icon_size, height: @icon_size)
+        pin_pixbuf = get_photo('pin.png')&.pixbuf(width: icon_size.width, height: icon_size.height)
       end
       visibility_pixbuf = icon_pixbuf
       context.save do
-        context.translate(0, @margin)
+        context.translate(0, margin)
 
         if UserConfig[:mastodon_show_subparts_bot] && bot_pixbuf
-          context.translate(@margin, 0)
+          context.translate(margin, 0)
           context.set_source_pixbuf(bot_pixbuf)
           context.paint
 
-          context.translate(@icon_size + @margin, 0)
+          context.translate(icon_size.width + margin, 0)
           layout = context.create_pango_layout
           layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = "bot"
@@ -83,11 +84,11 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
         end
 
         if UserConfig[:mastodon_show_subparts_pin] && pin_pixbuf
-          context.translate(@margin, 0)
+          context.translate(margin, 0)
           context.set_source_pixbuf(pin_pixbuf)
           context.paint
 
-          context.translate(@icon_size + @margin, 0)
+          context.translate(icon_size.width + margin, 0)
           layout = context.create_pango_layout
           layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = "ピン留め"
@@ -98,12 +99,12 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
         end
 
         if UserConfig[:mastodon_show_subparts_visibility] && visibility_pixbuf
-          context.translate(@margin, 0)
+          context.translate(margin, 0)
 
           context.set_source_pixbuf(visibility_pixbuf)
           context.paint
 
-          context.translate(@icon_size + @margin, 0)
+          context.translate(icon_size.width + margin, 0)
           layout = context.create_pango_layout
           layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
           layout.text = visibility_text(helper.message.visibility)
@@ -114,8 +115,16 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
     end
   end
 
+  def margin
+    @margin * helper.scale
+  end
+
+  def icon_size
+    @icon_size ||= Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE*helper.scale, DEFAULT_ICON_SIZE*helper.scale)
+  end
+
   def height
-    @height ||= show_icon? ? @icon_size + 2 * @margin : 0
+    @height ||= show_icon? ? icon_size.height + 2*margin : 0
   end
 end
 

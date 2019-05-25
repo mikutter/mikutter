@@ -40,7 +40,7 @@ module ::Plugin::ChangeAccount
     def add_column(world)
       iter = model.append
       if world.respond_to?(:icon) && world.icon
-        iter[COL_ICON] = world.icon.load_pixbuf(width: 16, height: 16) do |loaded|
+        iter[COL_ICON] = world.icon.load_pixbuf(width: 24*scale, height: 24*scale) do |loaded|
           iter[COL_ICON] = loaded unless destroyed?
         end
       end
@@ -92,6 +92,15 @@ module ::Plugin::ChangeAccount
     end
 
     def signal_do_delete_world(worlds)
+    end
+
+    def scale
+      case UserConfig[:ui_scale]
+      when :auto
+        Gdk::Visual.system.screen.resolution / 100
+      else
+        UserConfig[:ui_scale]
+      end
     end
 
   end

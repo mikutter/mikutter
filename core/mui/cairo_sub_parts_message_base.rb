@@ -139,7 +139,8 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [Gdk::Rectangle] サイズ(px)。xとyは無視され、widthとheightのみが利用される
   # [nil] アイコンを表示しない
   def icon_size
-    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE) end
+    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE*helper.scale, DEFAULT_ICON_SIZE*helper.scale)
+  end
 
   # _message_ の本文のテキスト色を返す
   # ==== Args
