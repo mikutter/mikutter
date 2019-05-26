@@ -33,12 +33,16 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     if show_edge?
       unless @edge == EDGE_PRESENT_SIZE
         @edge = EDGE_PRESENT_SIZE
-        helper.reset_height end
+        helper.reset_height
+      end
     else
       unless @edge == EDGE_ABSENT_SIZE
         @edge = EDGE_ABSENT_SIZE
-        helper.reset_height end end
-    @edge end
+        helper.reset_height
+      end
+    end
+    @edge * helper.scale
+  end
 
   def badge(_message)
     Skin[:reply].pixbuf(width: badge_radius*2, height: badge_radius*2)
@@ -55,7 +59,7 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
     UserConfig[:reply_text_color].map{ |c| c.to_f / 65536 } end
 
   def main_text_font(message)
-    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
+    helper.font_description(UserConfig[:reply_text_font]) end
 
   def header_left_content(*args)
     if show_header?
@@ -68,9 +72,12 @@ class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   def icon_size
     if show_icon?
       if UserConfig[:reply_icon_size]
-        Gdk::Rectangle.new(0, 0, UserConfig[:reply_icon_size], UserConfig[:reply_icon_size])
+        Gdk::Rectangle.new(0, 0, UserConfig[:reply_icon_size]*helper.scale, UserConfig[:reply_icon_size]*helper.scale)
       else
-        super end end end
+        super
+      end
+    end
+  end
 
   def text_max_line_count(message)
     UserConfig[:reply_text_max_line_count] || super end

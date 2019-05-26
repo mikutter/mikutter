@@ -21,18 +21,18 @@ module Plugin::Shortcutkey
       model.set_visible_func do |model, iter|
         if defined?(@filter_entry) and @filter_entry
           query = @filter_entry.text
-          Enumerator.new{|y|
+          Enumerator.new {|y|
             y << iter[COLUMN_KEYBIND] << iter[COLUMN_COMMAND] << iter[COLUMN_SLUG]
             iter[COLUMN_WORLD].yield_self do |w|
               y << w.uri << w.title if w.is_a? Diva::Model
             end
-          }.any?{|x| x.to_s.include?(query) }
+          }.any? {|x| x.to_s.include?(query) }
         else
           true
         end
       end
       commands = Plugin.filtering(:command, Hash.new).first
-      worlds = world_selections(key: ->k{ k.uri.to_s })
+      worlds = world_selections(key: ->(k) { k.uri.to_s })
       shortcutkeys.each do |id, behavior|
         slug = behavior[:slug]
         iter = model.model.append
@@ -43,12 +43,12 @@ module Plugin::Shortcutkey
         world = worlds[behavior[:world]]
         iter[COLUMN_WORLD_FACE] = world&.title || @plugin._('カレントアカウント')
         iter[COLUMN_WORLD] = world
-        commands.dig(slug, :icon)&.yield_self{|icon|
+        commands.dig(slug, :icon)&.yield_self {|icon|
           icon.is_a?(Proc) ? icon.call(nil) : icon
-        }&.yield_self{|icon|
+        }&.yield_self {|icon|
           Diva::Model(:photo)[icon]
         }&.yield_self do |icon|
-          iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16, height: 16) do |pixbuf|
+          iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16*scale, height: 16*scale) do |pixbuf|
             iter[COLUMN_COMMAND_ICON] = pixbuf if not destroyed?
           end
         end
@@ -56,35 +56,35 @@ module Plugin::Shortcutkey
     end
 
     def column_schemer
-      [ { kind:   :text,
-          widget: :keyconfig,
-          type:   String,
-          label:  @plugin._('キーバインド')
+      [{ kind:   :text,
+         widget: :keyconfig,
+         type:   String,
+         label:  @plugin._('キーバインド')
+       },
+       [{ kind:  :pixbuf,
+          type:  GdkPixbuf::Pixbuf,
+          label: @plugin._('機能名')
         },
-        [ { kind:  :pixbuf,
-            type:  GdkPixbuf::Pixbuf,
-            label: @plugin._('機能名')
-          },
-          { kind:   :text,
-            type:   String,
-            expand: true
-          }
-        ],
         { kind:   :text,
-          widget: :chooseone,
-          args:   command_dict_slug_to_name,
-          type:   Symbol
-        },
-        { kind:     :text,
-          label:    @plugin._('アカウント'),
-          type:     String
-        },
-        { widget:   :chooseone,
-          args:     worlds_dict_slug_to_name,
-          type:     Object        # World Model or :current
-        },
-        { type: Integer
-        },
+          type:   String,
+          expand: true
+        }
+       ],
+       { kind:   :text,
+         widget: :chooseone,
+         args:   command_dict_slug_to_name,
+         type:   Symbol
+       },
+       { kind:     :text,
+         label:    @plugin._('アカウント'),
+         type:     String
+       },
+       { widget:   :chooseone,
+         args:     worlds_dict_slug_to_name,
+         type:     Object        # World Model or :current
+       },
+       { type: Integer
+       },
       ].freeze
     end
 
@@ -93,14 +93,14 @@ module Plugin::Shortcutkey
         Plugin.filtering(:command, Hash.new)
           .first
           .values
-          .map{|x| [x[:slug], x[:name]] }
+          .map {|x| [x[:slug], x[:name]] }
       ]
     end
 
     def worlds_dict_slug_to_name
       Hash[
-        Enumerator.new{|y| Plugin.filtering(:worlds, y) }
-          .map{|x| [x.uri, x.title] }
+        Enumerator.new {|y| Plugin.filtering(:worlds, y) }
+          .map {|x| [x.uri, x.title] }
       ]
     end
 
@@ -168,9 +168,9 @@ module Plugin::Shortcutkey
                         add(btn_ok)))
       window.show_all
 
-      window.ssc(:destroy){ ::Gtk::main_quit }
-      btn_cancel.ssc(:clicked){ window.destroy }
-      btn_ok.ssc(:clicked){
+      window.ssc(:destroy) { ::Gtk::main_quit }
+      btn_cancel.ssc(:clicked) { window.destroy }
+      btn_ok.ssc(:clicked) {
         error = catch(:validate) {
           throw :validate, @plugin._("キーバインドを選択してください") unless (values[COLUMN_KEYBIND] && values[COLUMN_KEYBIND] != "")
           throw :validate, @plugin._("コマンドを選択してください") unless values[COLUMN_SLUG]
@@ -198,7 +198,7 @@ module Plugin::Shortcutkey
     def world_box(results)
       faces = world_selections(value: :title)
       Mtk.chooseone(
-        ->new{
+        ->(new) {
           case new
           when :current
             results[COLUMN_WORLD_FACE] = @plugin._('カレントアカウント')
@@ -220,7 +220,7 @@ module Plugin::Shortcutkey
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
       filter_entry = treeview.filter_entry = Gtk::Entry.new
       filter_entry.primary_icon_pixbuf = Skin[:search].pixbuf(width: 24, height: 24)
-      filter_entry.ssc(:changed){
+      filter_entry.ssc(:changed) {
         treeview.model.refilter
         false }
       return ::Gtk::VBox.new(false, 0)
@@ -232,8 +232,8 @@ module Plugin::Shortcutkey
 
     def world_selections(key: :itself, value: :itself)
       Hash[[[:current, @plugin._('カレントアカウント')],
-            *Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map { |w|
-              [key.to_proc.(w), value.to_proc.(w)]
+            *Enumerator.new {|y| Plugin.filtering(:worlds, y) }.map { |w|
+              [key.to_proc.call(w), value.to_proc.call(w)]
             }]]
     end
 
@@ -258,7 +258,7 @@ module Plugin::Shortcutkey
         type_strict plugin => Plugin
         @plugin = plugin
         super(::Gtk::TreeModelFilter.new(::Gtk::TreeStore.new(::GdkPixbuf::Pixbuf, String, Symbol)))
-        model.set_visible_func{ |model, iter|
+        model.set_visible_func { |model, iter|
           if defined?(@filter_entry) and @filter_entry
             iter_match(iter, @filter_entry.text)
           else
@@ -268,16 +268,16 @@ module Plugin::Shortcutkey
         append_column ::Gtk::TreeViewColumn.new("", ::Gtk::CellRendererPixbuf.new, pixbuf: COL_ICON)
         append_column ::Gtk::TreeViewColumn.new(@plugin._("コマンド名"), ::Gtk::CellRendererText.new, text: COL_NAME)
         append_column ::Gtk::TreeViewColumn.new(@plugin._("スラッグ"), ::Gtk::CellRendererText.new, text: COL_SLUG)
-        parents = Hash.new{ |h, k| # role => TreeIter
+        parents = Hash.new { |h, k| # role => TreeIter
           h[k] = iter = model.model.append(nil)
           iter[COL_NAME] = k.to_s
           iter
         }
-        Plugin.filtering(:command, Hash.new).first.map{ |slug, command|
+        Plugin.filtering(:command, Hash.new).first.map { |slug, command|
           iter = model.model.append(parents[command[:role]])
           icon = icon_model(command[:icon])
           if icon
-            iter[COL_ICON] = icon.load_pixbuf(width: 16, height: 16) do |pixbuf|
+            iter[COL_ICON] = icon.load_pixbuf(width: 16*scale, height: 16*scale) do |pixbuf|
               iter[COL_ICON] = pixbuf if not destroyed?
             end
           end
@@ -313,17 +313,26 @@ module Plugin::Shortcutkey
         when Diva::Model
           icon
         when String, URI, Addressable::URI, Diva::URI
-          Enumerator.new{|y| Plugin.filtering(:photo_filter, icon, y) }.first
+          Enumerator.new {|y| Plugin.filtering(:photo_filter, icon, y) }.first
         end
       end
 
       def iter_match(iter, text)
-        [COL_NAME, COL_SLUG].any?{ |column|
-          iter[column].to_s.include?(text)
-        } or if iter.has_child?
-        iter.n_children.times.any?{ |i| iter_match(iter.nth_child(i), text) }
+        if [COL_NAME, COL_SLUG].any? { |column| iter[column].to_s.include?(text) }
+          true
+        elsif iter.has_child?
+          iter.n_children.times.any? { |i| iter_match(iter.nth_child(i), text) }
+        end
+      end
+
+      def scale
+        case UserConfig[:ui_scale]
+        when :auto
+          Gdk::Visual.system.screen.resolution / 100
+        else
+          UserConfig[:ui_scale]
+        end
       end
     end
   end
-end
 end

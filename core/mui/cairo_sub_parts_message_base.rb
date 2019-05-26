@@ -139,7 +139,8 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [Gdk::Rectangle] サイズ(px)。xとyは無視され、widthとheightのみが利用される
   # [nil] アイコンを表示しない
   def icon_size
-    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE) end
+    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE*helper.scale, DEFAULT_ICON_SIZE*helper.scale)
+  end
 
   # _message_ の本文のテキスト色を返す
   # ==== Args
@@ -168,17 +169,26 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
 
   # :nodoc:
   memoize def default_font
-    Pango::FontDescription.new(UserConfig[:reply_text_font]) end
+    helper.font_description(UserConfig[:reply_text_font])
+  end
 
-  attr_reader :margin
+  def margin
+    @margin * helper.scale
+  end
 
-  attr_reader :edge
+  def edge
+    @edge * helper.scale
+  end
 
   # Fixnum 枠線の太さ(px)
-  attr_reader :border_weight
+  def border_weight
+    @border_weight * helper.scale
+  end
 
   # Fixnum バッジの半径(px)
-  attr_reader :badge_radius
+  def badge_radius
+    @badge_radius * helper.scale
+  end
 
   # :nodoc:
   def initialize(*args)
