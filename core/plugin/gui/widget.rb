@@ -60,14 +60,15 @@ module Plugin::GUI::Widget
   # その間、selfに対して呼ばれたメソッドで存在しないものは、 _delegate_ のものを呼ぶ。
   # ==== Args
   # [delegate] BasicObject 任意のオブジェクト
+  # [*rest] procに渡す引数
   # [&proc] 実行するブロック
   # ==== Return
   # ブロックの戻り値
-  def instance_eval_with_delegate(delegate, &proc)
+  def instance_eval_with_delegate(delegate, *rest, &proc)
     before_delegatee = @delegate
     begin
       @delegate = delegate
-      instance_eval(&proc)
+      instance_exec(*rest, &proc)
     ensure
       @delegate = before_delegatee
     end
