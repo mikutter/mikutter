@@ -2,7 +2,6 @@
 
 Plugin.create :modelviewer do
   defdsl :defmodelviewer do |model_class, &block|
-    notice 'pass!!!!'
     model_class = Diva::Model(model_class) unless model_class.is_a?(Class)
     notice model_class
     intent(model_class,
