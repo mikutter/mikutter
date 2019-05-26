@@ -16,6 +16,7 @@ Plugin.create :modelviewer do
         tab(tab_slug, _('%<model>sの詳細')) do
           set_icon model.icon if model.respond_to?(:icon)
           set_deletable true
+          temporary_tab true
           shrink
           nativewidget Plugin[:modelviewer].header(token, &block)
           expand
