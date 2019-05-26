@@ -150,6 +150,31 @@ Plugin.create(:mastodon) do
     end
   end
 
+  defmodelviewer(Plugin::Mastodon::Account) do |user|
+    [
+      [_('名前'), user.display_name],
+      ['acct', user.acct],
+      *user.fields&.map{|f| [f.name, f.value] },
+      [_('フォロー'), user.following_count],
+      [_('フォロワー'), user.followers_count],
+      [_('Toot'), user.statuses_count]
+    ]
+  end
+
+  deffragment(Plugin::Mastodon::Account, :bio, _("ユーザについて")) do |user|
+    set_icon user.icon
+    score = score_of(user.profile)
+    bio = ::Gtk::IntelligentTextview.new(score)
+    container = ::Gtk::VBox.new.
+                  closeup(bio)
+    scrolledwindow = ::Gtk::ScrolledWindow.new
+    scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
+    scrolledwindow.add_with_viewport(container)
+    scrolledwindow.style = container.style
+    wrapper = Gtk::EventBox.new
+    nativewidget wrapper.add(scrolledwindow)
+  end
+
   # world作成
   world_setting(:mastodon, _('Mastodon')) do
     set_value domain_selection: 'social.mikutter.hachune.net'

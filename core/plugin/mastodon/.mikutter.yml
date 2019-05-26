@@ -1,7 +1,7 @@
 ---
 slug: :mastodon
 depends:
-  mikutter: 3.7.0
+  mikutter: '3.9.0'
   plugin:
     - world
     - spell
@@ -14,6 +14,7 @@ depends:
     - extract
     - score
     - search
+    - modelviewer
 version: '1.0'
 author: cobodo
 name: Mastodon

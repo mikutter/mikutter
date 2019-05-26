@@ -139,5 +139,9 @@ module Plugin::Mastodon
       world = Plugin.filtering(:world_current, nil).first
       world.respond_to?(:account) && world.account.respond_to?(:acct) && world.account.acct == acct
     end
+
+    def profile
+      @profile ||= AccountProfile.new(account: self)
+    end
   end
 end

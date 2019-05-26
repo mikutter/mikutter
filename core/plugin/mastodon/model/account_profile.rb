@@ -17,7 +17,7 @@ module Plugin::Mastodon
     def initialize(hash)
       super hash
 
-      @description, @score = PM::Parser.dictate_score(description_html, emojis: account.emojis)
+      @description, @score = PM::Parser.dictate_score(account.note, emojis: account.emojis)
     end
 
     def created
@@ -26,24 +26,6 @@ module Plugin::Mastodon
 
     def title
       account.display_name
-    end
-
-    memoize def description_html
-      fields = ""
-      if account.fields.size > 0
-        fields = account.fields.map { |f|
-          "#{CGI.escapeHTML(f.name)}：#{f.value}"
-        }.join("<br>")
-        fields = "<p>#{fields}</p>"
-      end
-
-      paragraphs = [
-        "<p>#{CGI.escapeHTML(account.display_name)}<br>#{account.acct}#{account.bot ? "<br>Bot" : ""}</p>",
-        "#{account.note}"
-      ]
-      paragraphs.push fields unless fields.empty?
-      paragraphs.push "<p>#{account.statuses_count} トゥート<br>#{account.following_count} フォロー<br>#{account.followers_count} フォロワー</p>"
-      paragraphs.join('')
     end
 
     def perma_link
