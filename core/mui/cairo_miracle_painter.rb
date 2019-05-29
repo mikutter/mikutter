@@ -370,8 +370,8 @@ class Gdk::MiraclePainter < Gtk::Object
 
   @@font_description = Hash.new{|h,k| h[k] = {} } # {scale => {font => FontDescription}}
   def font_description(font)
-    @@font_description[scale][font] ||=
-      Pango::FontDescription.new(font).tap{|fd| fd.size *= scale }
+    @@font_description[scale(0xffff)][font] ||=
+      Pango::FontDescription.new(font).tap{|fd| fd.size = scale(fd.size) }
   end
 
   # 絵文字を描画する時の一辺の大きさを返す

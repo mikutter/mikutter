@@ -38,7 +38,7 @@ module Gtk
     end
 
     def load_model(photo, rect)
-      photo.load_pixbuf(width: rect.width*scale, height: rect.height*scale){|pb|
+      photo.load_pixbuf(width: Gdk.scale(rect.width), height: Gdk.scale(rect.height)){|pb|
         update_pixbuf(pb)
       }
     end
@@ -48,15 +48,6 @@ module Gtk
         self.pixbuf = pixbuf
         self.changed
         self.notify_observers
-      end
-    end
-
-    def scale
-      case UserConfig[:ui_scale]
-      when :auto
-        Gdk::Visual.system.screen.resolution / 100
-      else
-        UserConfig[:ui_scale]
       end
     end
   end

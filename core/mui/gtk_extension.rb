@@ -304,6 +304,19 @@ module Gtk
   end
 end
 
+module Gdk
+  class << self
+    def scale(val)
+      case UserConfig[:ui_scale]
+      when :auto
+        val * Gdk::Visual.system.screen.resolution / 96
+      else
+        UserConfig[:ui_scale]
+      end.to_i
+    end
+  end
+end
+
 unless Kernel.const_defined?(:GdkPixbuf)
   module GdkPixbuf
     Pixbuf = Gdk::Pixbuf

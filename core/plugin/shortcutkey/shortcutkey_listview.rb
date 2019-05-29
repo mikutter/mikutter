@@ -48,7 +48,7 @@ module Plugin::Shortcutkey
         }&.yield_self {|icon|
           Diva::Model(:photo)[icon]
         }&.yield_self do |icon|
-          iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: 16*scale, height: 16*scale) do |pixbuf|
+          iter[COLUMN_COMMAND_ICON] = icon.load_pixbuf(width: Gdk.scale(16), height: Gdk.scale(16)) do |pixbuf|
             iter[COLUMN_COMMAND_ICON] = pixbuf if not destroyed?
           end
         end
@@ -277,7 +277,7 @@ module Plugin::Shortcutkey
           iter = model.model.append(parents[command[:role]])
           icon = icon_model(command[:icon])
           if icon
-            iter[COL_ICON] = icon.load_pixbuf(width: 16*scale, height: 16*scale) do |pixbuf|
+            iter[COL_ICON] = icon.load_pixbuf(width: Gdk.scale(16), height: Gdk.scale(16)) do |pixbuf|
               iter[COL_ICON] = pixbuf if not destroyed?
             end
           end
@@ -322,15 +322,6 @@ module Plugin::Shortcutkey
           true
         elsif iter.has_child?
           iter.n_children.times.any? { |i| iter_match(iter.nth_child(i), text) }
-        end
-      end
-
-      def scale
-        case UserConfig[:ui_scale]
-        when :auto
-          Gdk::Visual.system.screen.resolution / 100
-        else
-          UserConfig[:ui_scale]
         end
       end
     end

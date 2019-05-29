@@ -63,7 +63,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
         helper.reset_height
       end
     end
-    @edge*helper.scale
+    helper.scale(@edge)
   end
 
   def badge(_message)
@@ -97,7 +97,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
   def icon_size
     if show_icon?
       if UserConfig[:quote_icon_size]
-        Gdk::Rectangle.new(0, 0, UserConfig[:quote_icon_size]*helper.scale, UserConfig[:quote_icon_size]*helper.scale)
+        Gdk::Rectangle.new(0, 0, helper.scale(UserConfig[:quote_icon_size]), helper.scale(UserConfig[:quote_icon_size]))
       else
         super end end end
 
