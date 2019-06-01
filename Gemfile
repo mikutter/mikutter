@@ -7,7 +7,7 @@ def source(url)
 
 source 'https://rubygems.org'
 
-ruby '>= 2.3.0'
+ruby '>= 2.4.0'
 
 group :default do
   gem 'addressable', '>= 2.6.0', '< 2.7'
