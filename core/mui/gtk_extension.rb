@@ -311,7 +311,7 @@ module Gdk
       when :auto
         val * Gdk::Visual.system.screen.resolution / 96
       else
-        UserConfig[:ui_scale]
+        val * UserConfig[:ui_scale]
       end.to_i
     end
   end
