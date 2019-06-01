@@ -101,7 +101,7 @@ class Gtk::IntelligentTextview < Gtk::TextView
       buffer.insert(buffer.start_iter, msg, 'shell')
       apply_links
       apply_inner_widget
-    when Enumerator # score
+    when Enumerable # score
       pos = buffer.end_iter
       msg.each_with_index do |note, index|
         if clickable?(note)

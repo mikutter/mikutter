@@ -68,7 +68,7 @@ Plugin.create :modelviewer do
             .closeup(icon_alignment.add(model_icon(model)))
             .add(
               ::Gtk::VBox.new
-                .closeup(user_name(model, intent_token))
+                .closeup(title_widget(model, intent_token))
                 .closeup(header_table(model, column_generator.(model)))
             )
         )
@@ -89,6 +89,22 @@ Plugin.create :modelviewer do
     icon
   end
 
+  # modelのtitleを表示する
+  # ==== Args
+  # [model] 表示するmodel
+  # [intent_token] ユーザを開くときに利用するIntent
+  # ==== Return
+  # ユーザの名前の部分のGtkコンテナ
+  def title_widget(model, intent_token)
+    score = [
+      Plugin::Score::HyperLinkNote.new(
+        description: model.title,
+        uri: model.uri
+      )
+    ]
+    ::Gtk::IntelligentTextview.new(score, style: style)
+  end
+
   def header_table(model, header_columns)
     ::Gtk::Table.new(2, header_columns.size).tap{|table|
       header_columns.each_with_index do |column, index|
@@ -100,6 +116,19 @@ Plugin.create :modelviewer do
     }.set_row_spacing(0, 4).
       set_row_spacing(1, 4).
       set_column_spacing(0, 16)
+  end
+
+  def style
+    -> do
+      Gtk::Style.new().tap do |bg_style|
+        color = UserConfig[:mumble_basic_bg]
+        bg_style.set_bg(Gtk::STATE_ACTIVE, *color)
+        bg_style.set_bg(Gtk::STATE_NORMAL, *color)
+        bg_style.set_bg(Gtk::STATE_SELECTED, *color)
+        bg_style.set_bg(Gtk::STATE_PRELIGHT, *color)
+        bg_style.set_bg(Gtk::STATE_INSENSITIVE, *color)
+      end
+    end
   end
 
   def background_color
