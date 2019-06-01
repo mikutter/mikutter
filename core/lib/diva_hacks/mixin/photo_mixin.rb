@@ -10,6 +10,7 @@ miquire :core, 'serialthread'
 =end
 module Diva::Model::PhotoMixin
   DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
+  PARTIAL_READ_BYTESIZE = 1024 ** 2
 
   include Diva::Model::PhotoInterface
 
@@ -20,6 +21,7 @@ module Diva::Model::PhotoMixin
   def initialize(*rest)
     super
     @read_count = 0
+    @forecast_buffer_size = PARTIAL_READ_BYTESIZE # ダウンロード前に予め確保しておくバッファサイズ
     @cached = false
     @forget = nil
   end
@@ -146,7 +148,7 @@ module Diva::Model::PhotoMixin
   def download_mainloop(input_stream)
     loop do
       Thread.pass
-      partial = input_stream.readpartial(1024**2).freeze
+      partial = input_stream.readpartial(PARTIAL_READ_BYTESIZE).freeze
       @buffer << partial
       atomic{ @partials.each{|c|c.(partial)} }
     end
@@ -154,7 +156,8 @@ module Diva::Model::PhotoMixin
 
   def initialize_download(&partial_callback)
     @state = :download
-    @buffer = String.new
+    notice "forecast buffer size: #{@forecast_buffer_size}"
+    @buffer = String.new(capacity: @forecast_buffer_size)
     register_partial_callback(partial_callback)
     register_promise
   end
@@ -162,6 +165,7 @@ module Diva::Model::PhotoMixin
   def finalize_download_as_success
     atomic do
       self.blob = @buffer.freeze
+      @forecast_buffer_size = @buffer.bytesize
       @state = :complete
       @promises.each{|p| p.call(self) }
       @buffer = @promises = @partials = nil
