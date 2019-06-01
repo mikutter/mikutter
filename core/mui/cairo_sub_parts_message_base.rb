@@ -139,7 +139,7 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   # [Gdk::Rectangle] サイズ(px)。xとyは無視され、widthとheightのみが利用される
   # [nil] アイコンを表示しない
   def icon_size
-    Gdk::Rectangle.new(0, 0, DEFAULT_ICON_SIZE*helper.scale, DEFAULT_ICON_SIZE*helper.scale)
+    Gdk::Rectangle.new(0, 0, helper.scale(DEFAULT_ICON_SIZE), helper.scale(DEFAULT_ICON_SIZE))
   end
 
   # _message_ の本文のテキスト色を返す
@@ -173,21 +173,21 @@ class Gdk::SubPartsMessageBase < Gdk::SubParts
   end
 
   def margin
-    @margin * helper.scale
+    helper.scale(@margin)
   end
 
   def edge
-    @edge * helper.scale
+    helper.scale(@edge)
   end
 
   # Fixnum 枠線の太さ(px)
   def border_weight
-    @border_weight * helper.scale
+    helper.scale(@border_weight)
   end
 
   # Fixnum バッジの半径(px)
   def badge_radius
-    @badge_radius * helper.scale
+    helper.scale(@badge_radius)
   end
 
   # :nodoc:

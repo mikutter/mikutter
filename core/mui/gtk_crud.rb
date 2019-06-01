@@ -129,15 +129,6 @@ class Gtk::CRUD < Gtk::TreeView
   end
   memoize :column_schemer
 
-  def scale
-    case UserConfig[:ui_scale]
-    when :auto
-      Gdk::Visual.system.screen.resolution / 100
-    else
-      UserConfig[:ui_scale]
-    end
-  end
-
   def force_record_create(record)
     iter = model.model.append
     record.each_with_index{ |item, index|

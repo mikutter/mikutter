@@ -31,6 +31,7 @@ module Plugin::Skin
       if result
         result.pixbuf
       else
+        width, height = width.to_i, height.to_i
         pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
       end
     end

@@ -78,20 +78,15 @@ module Gdk::Coordinate
     new
   end
 
-  def scale
-    case UserConfig[:ui_scale]
-    when :auto
-      SCALE
-    else
-      UserConfig[:ui_scale]
-    end
+  def scale(val)
+    Gdk.scale(val)
   end
 
   protected
 
   # 寸法の初期化
   def coordinator(width)
-    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, DEPTH, 48*scale, 48*scale, 2*scale
+    @width, @color, @icon_width, @icon_height, @icon_margin = [width, 1].max, DEPTH, scale(48), scale(48), scale(2)
   end
 
   # 座標系を構造体にまとめて返す
