@@ -88,7 +88,7 @@ module Plugin::Guide
 
     private
 
-    def generate_buttons(context = dummy_context)
+    def generate_buttons(context = Cairo::Context.dummy)
       if not message[:confirm]
         return nil end
       ofst = OutsideOffset + ButtonMargin

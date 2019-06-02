@@ -339,15 +339,17 @@ class Gdk::MiraclePainter < Gtk::Object
   private
 
   def dummy_context
-    Gdk::Pixmap.new(nil, 1, 1, color).create_cairo_context end
+    Cairo::Context.dummy
+  end
+  deprecate :dummy_context, "Cairo::Context.dummy", 2020, 6
 
   # 本文のための Pango::Layout のインスタンスを返す
-  def main_message(context = dummy_context)
+  def main_message(context = Cairo::Context.dummy)
     layout = context.create_pango_layout
     font = Plugin.filtering(:message_font, message, nil).last
     layout.font_description = font_description(font) if font
     layout.width = pos.main_text.width * Pango::SCALE
-    layout.attributes = textselector_attr_list(description_attr_list(emoji_height: emoji_height(layout.font_description)))
+    layout.attributes = textselector_attr_list(description_attr_list(emoji_height: layout.font_description.forecast_font_size))
     layout.wrap = Pango::WrapMode::CHAR
     color = Plugin.filtering(:message_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
@@ -379,15 +381,14 @@ class Gdk::MiraclePainter < Gtk::Object
   # [font] font description
   # ==== Return
   # [Integer] 高さ(px)
-  memoize def emoji_height(font)
-    layout = dummy_context.create_pango_layout
-    layout.font_description = font
-    layout.text = '.'
-    layout.pixel_size[1]
+  def emoji_height(font)
+    font.forecast_font_size
   end
+  deprecate :emoji_height, "Pango::FontDescription#forecast_font_size", 2020, 6
+
 
   # ヘッダ（左）のための Pango::Layout のインスタンスを返す
-  def header_left(context = dummy_context)
+  def header_left(context = Cairo::Context.dummy)
     attr_list, text = header_left_markup
     color = Plugin.filtering(:message_header_left_font_color, message, nil).last
     color = BLACK if not(color and color.is_a? Array and 3 == color.size)
@@ -409,7 +410,7 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   # ヘッダ（右）のための Pango::Layout のインスタンスを返す
-  def header_right(context = dummy_context)
+  def header_right(context = Cairo::Context.dummy)
     hms = timestamp_label
     attr_list, text = Pango.parse_markup(hms)
     layout = context.create_pango_layout

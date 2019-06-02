@@ -290,6 +290,34 @@ class Gtk::Notebook
     nil end
 end
 
+class Cairo::Context
+  class << self
+    memoize def dummy
+      Gdk::Pixmap.new(nil, 1, 1, Gdk::Visual.system.depth).create_cairo_context
+    end
+  end
+end
+
+class Pango::FontDescription
+  # 絵文字を描画する時の一辺の大きさを返す
+  # ==== Args
+  # [font] font description
+  # ==== Return
+  # [Integer] 高さ(px)
+  def forecast_font_size
+    Pango::FontDescription.forecast_font_size(self)
+  end
+
+  @forecast_font_description = Hash.new
+  def self.forecast_font_size(fd)
+    @forecast_font_description[fd.hash] ||= Cairo::Context.dummy.create_pango_layout.yield_self do |layout|
+      layout.font_description = fd
+      layout.text = '.'
+      layout.pixel_size[1]
+    end
+  end
+end
+
 class Gtk::ListStore
   def model
     self end

@@ -78,7 +78,6 @@ class Gtk::IntelligentTextview < Gtk::TextView
   # ==== Return
   # self
   def rewind(msg)
-    type_strict msg => String
     set_buffer(Gtk::TextBuffer.new)
     gen_body(msg)
   end
@@ -94,16 +93,47 @@ class Gtk::IntelligentTextview < Gtk::TextView
   end
 
   def gen_body(msg, fonts={})
-    type_strict msg => String, fonts => Hash
-    tags = fonts2tags(fonts)
     tag_shell = buffer.create_tag('shell', fonts2tags(fonts))
-    buffer.insert(buffer.start_iter, msg, 'shell')
-    apply_links
-    apply_inner_widget
+    case msg
+    when String
+      type_strict fonts => Hash
+      tags = fonts2tags(fonts)
+      buffer.insert(buffer.start_iter, msg, 'shell')
+      apply_links
+      apply_inner_widget
+    when Enumerable # score
+      pos = buffer.end_iter
+      msg.each_with_index do |note, index|
+        case
+        when UserConfig[:miraclepainter_expand_custom_emoji] && note.respond_to?(:inline_photo)
+          photo = note.inline_photo
+          font_size = tag_shell.font_desc.forecast_font_size
+          start = pos.offset
+          pixbuf = photo.load_pixbuf(width: font_size, height: font_size) do |loaded_pixbuf|
+            unless buffer.destroyed?
+              insertion_start = buffer.get_iter_at_offset(start)
+              buffer.delete(insertion_start, buffer.get_iter_at_offset(start+1))
+              buffer.insert(insertion_start, loaded_pixbuf)
+            end
+          end
+          buffer.insert(pos, pixbuf)
+        when clickable?(note)
+          tagname = "tag#{index}"
+          create_tag_ifnecessary(tagname, buffer,
+                                 ->(_tagname, _textview){
+                                   Plugin.call(:open, note)
+                                 }, nil)
+          start = pos.offset
+          buffer.insert(pos, note.description)
+          buffer.apply_tag(tagname, buffer.get_iter_at_offset(start), pos)
+        else
+          buffer.insert(pos, note.description, 'shell')
+        end
+      end
+    end
     set_events(tag_shell)
     self
   end
-
 
   def set_events(tag_shell)
     self.signal_connect('realize'){
@@ -163,4 +193,14 @@ class Gtk::IntelligentTextview < Gtk::TextView
         if widget
           self.add_child_at_anchor(widget, buffer.create_child_anchor(range[1]))
           offset += 1 end } } end
+
+  def clickable?(model)
+    has_model_intent = Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model.class.slug, y) }.first
+    return true if has_model_intent
+    Enumerator.new {|y|
+      Plugin.filtering(:model_of_uri, model.uri, y)
+    }.any?{|model_slug|
+      Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model_slug, y) }.first
+    }
+  end
 end

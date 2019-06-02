@@ -1,0 +1,13 @@
+---
+slug: :modelviewer
+depends:
+  mikutter: '3.9.0'
+  plugin:
+  - gui
+  - gtk
+  - intent
+version: '1.0'
+author: toshi_a
+name: Model Viewer
+description: >-
+  ユーザに表示するModelの詳細タブを定義するための汎用的なAPIを提供する。

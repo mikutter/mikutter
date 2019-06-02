@@ -3,9 +3,26 @@ module Plugin::Mastodon
   class AccountField < Diva::Model
     field.string :name
     field.string :value
+    field.has :emojis, [Emoji]
+
+    def description
+      d, _ = description_score
+      d
+    end
+
+    def score
+      _, s = description_score
+      s
+    end
 
     def inspect
       "#{name}: #{value}"
+    end
+
+    private
+
+    memoize def description_score
+      PM::Parser.dictate_score(value, emojis: emojis)
     end
   end
 
@@ -138,6 +155,10 @@ module Plugin::Mastodon
     def me?
       world = Plugin.filtering(:world_current, nil).first
       world.respond_to?(:account) && world.account.respond_to?(:acct) && world.account.acct == acct
+    end
+
+    def profile
+      @profile ||= AccountProfile.new(account: self)
     end
   end
 end

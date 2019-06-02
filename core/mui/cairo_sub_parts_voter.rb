@@ -180,7 +180,7 @@ class ::Gdk::SubPartsVoter < Gdk::SubParts
       @user_icon[user[:id]] = pixbuf
       helper.on_modify } end
 
-  def pl_count(context = dummy_context)
+  def pl_count(context = Cairo::Context.dummy)
     layout = context.create_pango_layout
     layout.wrap = Pango::WrapMode::CHAR
     layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
