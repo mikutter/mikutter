@@ -336,9 +336,18 @@ module Plugin::Mastodon
       text
     end
 
-    # register reply:true用API
+    # 自分が _self_ にリプライを返していればtrue
     def mentioned_by_me?
-      !mentions.empty? && from_me?
+      children.any?(&:from_me?)
+    end
+
+    # _self_ を宛先としたStatusのリストを返す
+    def children
+      @children ||= Set.new(retweeted_statuses)
+    end
+
+    protected def add_child(child)
+      children << child
     end
 
     # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
@@ -459,7 +468,7 @@ module Plugin::Mastodon
     end
 
     private def replyto_source_force
-      if domain.nil?
+      unless domain
         # 何故かreplyviewerに渡されたStatusからdomainが消失することがあるので復元を試みる
         world, = Plugin.filtering(:mastodon_current, nil)
         if world
@@ -477,9 +486,9 @@ module Plugin::Mastodon
           end
         end
       end
-      resp = Plugin::Mastodon::API.status!(domain, in_reply_to_id)
-      return nil if resp.nil?
-      Status.build(domain, [resp.value]).first
+      Plugin::Mastodon::API.status!(domain, in_reply_to_id)
+        &.yield_self { |r| Status.build(domain, r.value).first }
+        &.tap { |parent| parent.add_child(self) }
     end
 
     # 返信表示用
