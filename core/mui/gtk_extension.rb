@@ -304,11 +304,17 @@ class Pango::FontDescription
   # [font] font description
   # ==== Return
   # [Integer] 高さ(px)
-  memoize def forecast_font_size
-    layout = Cairo::Context.dummy.create_pango_layout
-    layout.font_description = self
-    layout.text = '.'
-    layout.pixel_size[1]
+  def forecast_font_size
+    Pango::FontDescription.forecast_font_size(self)
+  end
+
+  @forecast_font_description = Hash.new
+  def self.forecast_font_size(fd)
+    @forecast_font_description[fd.hash] ||= Cairo::Context.dummy.create_pango_layout.yield_self do |layout|
+      layout.font_description = fd
+      layout.text = '.'
+      layout.pixel_size[1]
+    end
   end
 end
 
