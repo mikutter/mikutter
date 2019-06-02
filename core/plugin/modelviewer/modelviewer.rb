@@ -13,7 +13,7 @@ Plugin.create :modelviewer do
       if Plugin::GUI::Tab.exist?(tab_slug)
         Plugin::GUI::Tab.instance(tab_slug).active!
       else
-        tab(tab_slug, _('%<model>sの詳細')) do
+        tab(tab_slug, _('%<title>sについて') % {title: model.title}) do
           set_icon model.icon if model.respond_to?(:icon)
           set_deletable true
           temporary_tab true
@@ -105,13 +105,31 @@ Plugin.create :modelviewer do
     ::Gtk::IntelligentTextview.new(score, style: style)
   end
 
+  # modelのtitleを表示する
+  # ==== Args
+  # [model] 表示するmodel
+  # [intent_token] ユーザを開くときに利用するIntent
+  # ==== Return
+  # ユーザの名前の部分のGtkコンテナ
+  def cell_widget(model_or_str)
+    case model_or_str
+    when Diva::Model
+      ::Gtk::IntelligentTextview.new(
+        Plugin[:modelviewer].score_of(model_or_str),
+        style: style
+      )
+    else
+      ::Gtk::IntelligentTextview.new(model_or_str.to_s, style: style)
+    end
+  end
+
   def header_table(model, header_columns)
     ::Gtk::Table.new(2, header_columns.size).tap{|table|
       header_columns.each_with_index do |column, index|
         key, value = column
         table.
           attach(::Gtk::Label.new(key.to_s).right, 0, 1, index, index+1).
-          attach(::Gtk::Label.new(value.to_s).left , 1, 2, index, index+1)
+          attach(cell_widget(value), 1, 2, index, index+1)
       end
     }.set_row_spacing(0, 4).
       set_row_spacing(1, 4).
