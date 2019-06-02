@@ -104,7 +104,20 @@ class Gtk::IntelligentTextview < Gtk::TextView
     when Enumerable # score
       pos = buffer.end_iter
       msg.each_with_index do |note, index|
-        if clickable?(note)
+        case
+        when UserConfig[:miraclepainter_expand_custom_emoji] && note.respond_to?(:inline_photo)
+          photo = note.inline_photo
+          font_size = tag_shell.font_desc.forecast_font_size
+          start = pos.offset
+          pixbuf = photo.load_pixbuf(width: font_size, height: font_size) do |loaded_pixbuf|
+            unless buffer.destroyed?
+              insertion_start = buffer.get_iter_at_offset(start)
+              buffer.delete(insertion_start, buffer.get_iter_at_offset(start+1))
+              buffer.insert(insertion_start, loaded_pixbuf)
+            end
+          end
+          buffer.insert(pos, pixbuf)
+        when clickable?(note)
           tagname = "tag#{index}"
           create_tag_ifnecessary(tagname, buffer,
                                  ->(_tagname, _textview){
