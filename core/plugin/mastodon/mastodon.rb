@@ -154,7 +154,10 @@ Plugin.create(:mastodon) do
     [
       [_('名前'), user.display_name],
       ['acct', user.acct],
-      *user.fields&.map{|f| [f.name, f.value] },
+      *user.fields&.map{|f|
+        f.emojis ||= user.emojis
+        [f.name, f]
+      },
       [_('フォロー'), user.following_count],
       [_('フォロワー'), user.followers_count],
       [_('Toot'), user.statuses_count]
