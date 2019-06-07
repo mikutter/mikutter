@@ -211,11 +211,13 @@ def tcor(*types)
 # type_checkと同じだが、チェックをパスしなかった場合にabortする
 # type_checkの戻り値を返す
 def type_strict(args, &proc)
-  result = type_check(args, &proc)
-  if not result
-    into_debug_mode(binding)
-    raise ArgumentError.new end
-  result end
+  args.each.with_index do |(value, constraint), index|
+    unless type_check(value => constraint, &proc)
+      raise TypeStrictError.new("The ##{index} value does not matched constraint `#{constraint}'", value: value)
+    end
+  end
+  true
+end
 
 # blockの評価結果がチェックをパスしなかった場合にabortする
 def result_strict(must, &block)
@@ -479,5 +481,17 @@ class Regexp
 
   def self.json_create(o)
     new(o['data'])
+  end
+end
+
+# type_strictが発生させる例外。
+# 値が制約に合致しない場合に投げられる。
+# valueメソッドを呼ぶと、原因となった値を得ることができる。
+class TypeStrictError < TypeError
+  attr_reader :value
+
+  def initialize(*args, value:)
+    super(*args)
+    @value = value
   end
 end
