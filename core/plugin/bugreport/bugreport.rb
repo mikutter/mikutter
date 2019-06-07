@@ -76,6 +76,10 @@ Plugin.create :bugreport do
           'platform' => RUBY_PLATFORM,
           'url' => 'exception',
           'version' => Environment::VERSION }
+        case exception
+        when TypeStrictError
+          param['causing_value'] = exception.value
+        end
         Net::HTTP.start('mikutter.hachune.net', 4567){ |http|
           console = mikutter_error
           param['stderr'] = console if console
