@@ -36,6 +36,8 @@ Plugin.create(:mastodon) do
 
   defevent :mastodon_appear_toots, prototype: [[pm::Status]]
 
+  defactivity :mastodon_followings_update, "プロフィール・フォロー関係の取得通知(Mastodon)"
+
   filter_extract_datasources do |dss|
     datasources = { mastodon_appear_toots: "受信したすべてのトゥート(Mastodon)" }
     [datasources.merge(dss)]
@@ -46,14 +48,14 @@ Plugin.create(:mastodon) do
   end
 
   followings_updater = Proc.new do
-    activity(:system, "自分のプロフィールやフォロー関係を取得しています...")
+    activity(:mastodon_followings_update, "自分のプロフィールやフォロー関係を取得しています...")
     Plugin.filtering(:mastodon_worlds, nil).first.to_a.each do |world|
       Delayer::Deferred.when(
         world.update_account,
         world.blocks,
         world.followings(cache: false)
       ).next{
-        activity(:system, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
+        activity(:mastodon_followings_update, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
         Plugin.call(:world_modify, world)
       }.terminate("自分のプロフィールやフォロー関係が取得できませんでした(#{world.account.acct})")
     end
