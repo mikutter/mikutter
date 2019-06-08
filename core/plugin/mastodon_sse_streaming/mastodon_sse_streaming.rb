@@ -220,7 +220,6 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_sse_connection_error do |slug, exception|
-    activity :error, "SSE: connection error for #{slug.to_s}", exception: exception
     Plugin.call(:mastodon_restart_sse_stream, slug)
   end
 
