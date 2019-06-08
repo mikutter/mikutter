@@ -5,30 +5,24 @@
 
 require 'set'
 require 'thread'
-
-END{
-  ObjectSpace.each_object(WeakStore){ |s|
-    s.exit = true
-  }
-}
+require 'weakref'
 
 class WeakStore
-  attr_accessor :exit
-
   def initialize
     @_storage = gen_storage
     @_mutex = Monitor.new
     @_tls_name = "weakstore_lock_#{@_mutex.object_id}".to_sym
-    @exit = false end
+  end
 
   def atomic(&proc)
-    if not exit
-      Thread.current[@_tls_name] ||= 0
-      Thread.current[@_tls_name] += 1
-      begin
-        @_mutex.synchronize(&proc)
-      ensure
-        Thread.current[@_tls_name] -= 1 end end end
+    Thread.current[@_tls_name] ||= 0
+    Thread.current[@_tls_name] += 1
+    begin
+      @_mutex.synchronize(&proc)
+    ensure
+      Thread.current[@_tls_name] -= 1
+    end
+  end
 
   protected
 
@@ -180,41 +174,58 @@ class WeakStorage < WeakStore
   end
 
   def [](key)
-    begin
-      result = atomic{
-        ObjectSpace._id2ref(storage[key]) if storage.has_key?(key) }
-      type_strict result => @val_class if result
-      result
-    rescue RangeError => e
-      error "#{key} was deleted"
-      nil end end
+    result = atomic do
+      storage[key]&.yield_self do |wr|
+        wr.__getobj__ if wr&.weakref_alive?
+      end
+    end
+    type_strict result => @val_class if result
+    result
+  rescue RangeError => e
+    storage.delete(key)
+    error "#{key} was deleted"
+    nil
+  end
   alias add []
 
   def []=(key, val)
     type_strict key => @key_class, val => @val_class
-    atomic{
-      ObjectSpace.define_finalizer(val, &method(:delete_by_object_id))
-      storage[key] = val.object_id } end
+    atomic do
+      storage[key] = WeakRef.new(val)
+      result = storage[key].__getobj__
+      unless result.eql?(val)
+        error 'object does not match!!!'
+        error "given value: #{val.inspect}"
+        error "stored value: #{result.inspect}"
+        abort
+      end
+    end
+  end
   alias store []=
 
   def has_key?(key)
-    atomic{
-      storage.has_key?(key) } end
+    atomic { storage[key]&.weakref_alive? }
+  end
 
   def inspect
-    atomic{ "#<WeakStorage(#{@key_class} => #{@val_class}): #{storage.size}>" }
+    atomic { "#<WeakStorage(#{@key_class} => #{@val_class}): #{storage.size}>" }
   end
 
   private
 
-  def delete_by_object_id(objid)
-    atomic do
-      @_storage.delete_if{ |key, val| val == objid }
+  def gen_deleter
+    @deleter ||= ->(objid) do
+      atomic do
+        notice "object id #{objid} was deleted!"
+        @_storage.delete_if { |key, val| val == objid }
+      end
     end
   end
 
   def gen_storage
-    Hash.new end end
+    Hash.new
+  end
+end
 
 class WeakSet < WeakStore
   include Enumerable
