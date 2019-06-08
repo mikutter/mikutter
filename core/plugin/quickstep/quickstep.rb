@@ -4,7 +4,8 @@ require_relative 'model/command'
 Plugin.create(:quickstep) do
   command(:quickstep,
           name: 'Quick Step',
-          condition: lambda{ |opt| true },
+          condition: lambda { |opt| true },
+          icon: Skin[:search],
           visible: true,
           role: :window) do |opt|
     dialog = Gtk::Dialog.new
