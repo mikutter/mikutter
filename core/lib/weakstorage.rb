@@ -176,8 +176,9 @@ class WeakStorage < WeakStore
 
   def [](key)
     result = atomic do
-      storage[key]&.yield_self do |wr|
-        if wr&.weakref_alive?
+      wr = storage[key]
+      if wr
+        if wr.weakref_alive?
           wr.__getobj__
         else
           count_before = storage.size
