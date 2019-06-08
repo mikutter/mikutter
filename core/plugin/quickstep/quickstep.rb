@@ -19,12 +19,12 @@ Plugin.create(:quickstep) do
     window = Plugin::GUI::Window.active
     command = intent_token.model
     event = Plugin::GUI::Event.new(:quickstep, window, [])
-    command[:exec].(event) if command[:condition] === event
+    command[:exec].call(event) if command[:condition] === event
   end
 
   # URLっぽい文字列なら、それに対してintentを発行する候補を出す
   filter_quickstep_query do |query, yielder|
-    if URI.regexp =~ query
+    if URI::DEFAULT_PARSER.make_regexp.match?(query)
       yielder << Retriever::URI!(query)
     end
     [query, yielder]
