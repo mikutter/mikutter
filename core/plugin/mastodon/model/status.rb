@@ -55,7 +55,7 @@ module Plugin::Mastodon
 
     @@mute_mutex = Thread::Mutex.new
 
-    @@status_storage = WeakStorage.new(String, Status)
+    @@status_storage = WeakStorage.new(String, Status, name: 'toot')
 
     TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!.freeze
     TOOT_ACTIVITY_URI_RE = %r!\Ahttps://(?<domain>[^/]*)/users/(?<acct>[^/]*)/statuses/(?<status_id>[^/]*)/activity\z!.freeze

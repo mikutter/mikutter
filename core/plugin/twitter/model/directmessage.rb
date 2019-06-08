@@ -60,6 +60,10 @@ module Plugin::Twitter
     end
   end
 
-  class DirectMessageMemory < Diva::Model::Memory; end
+  class DirectMessageMemory < Diva::Model::Memory
+    def initialize
+      super(Plugin::Twitter::DirectMessage)
+    end
+  end
 
 end

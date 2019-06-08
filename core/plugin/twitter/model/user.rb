@@ -172,7 +172,7 @@ class Plugin::Twitter::User < Diva::Model
 
   class UserMemory < Diva::Model::Memory
     def initialize
-      super
+      super(Plugin::Twitter::User)
       @idnames = {}             # idname => User
     end
 

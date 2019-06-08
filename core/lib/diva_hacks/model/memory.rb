@@ -3,7 +3,7 @@ class Diva::Model::Memory
   include Diva::DataSource
 
   def initialize(klass=Diva::Model)
-    @storage = WeakStorage.new(Integer, klass) end
+    @storage = WeakStorage.new(Integer, klass, name: "diva-model-memory(#{klass})") end
 
   def findbyid(id, policy)
     if id.is_a? Enumerable
