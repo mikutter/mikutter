@@ -102,7 +102,7 @@ Plugin.create :achievement do
   defactivity "achievement", _("実績")
 
   defachievement(:register_account,
-                 description: _("Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"),
+                 description: _("mikutterにアカウントを登録した"),
                  hidden: true
                  ) do |ach|
     on_world_after_created do |_|
@@ -117,15 +117,6 @@ Plugin.create :achievement do
                  ) do |ach|
     on_open_setting do ach.take! end
   end
-
-  defachievement(:display_requirements,
-                 description: _("ヾ(＠⌒ー⌒＠)ノ"),
-                 hint: _("https://github.com/toshia/display_requirements"),
-                 depends: [:open_setting]
-                 ) do |ach|
-    Delayer.new {
-      dr = Plugin.instance(:display_requirements)
-      ach.take! unless dr and defined? dr.rotten? } end
 
   defachievement(:multipane,
                  description: _("新規ペインを追加コマンドでペインを増やせます"),
