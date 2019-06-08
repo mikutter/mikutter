@@ -119,10 +119,6 @@ module Plugin::Mastodon
         case resp&.status
         when 200
           parse_link(resp, JSON.parse(resp.content, symbolize_names: true))
-        else
-          warn "API.call did'nt return 200 Success"
-          Plugin.activity(:system, "APIアクセス失敗", description: "URI: #{uri}\nparameters: #{params}\nHTTP status: #{resp.status}\nresponse:\n#{resp.body}") rescue nil
-          nil
         end
       end
 
