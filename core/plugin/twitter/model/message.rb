@@ -747,6 +747,10 @@ class Plugin::Twitter::Message < Diva::Model
     self end
 
   class DataSource < Diva::Model::Memory
+    def initialize
+      super(Plugin::Twitter::Message)
+    end
+
     def findbyid(id, policy)
       if id.is_a? Enumerable
         super.map do |v|

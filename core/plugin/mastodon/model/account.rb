@@ -68,7 +68,7 @@ module Plugin::Mastodon
     alias :idname :acct
     alias :name :display_name
 
-    @@account_storage = WeakStorage.new(String, Account)
+    @@account_storage = WeakStorage.new(String, Account, name: 'mastodon-account')
 
     ACCOUNT_URI_RE = %r!\Ahttps://(?<domain>[^/]+)/@(?<acct>\w{1,30})\z!
 

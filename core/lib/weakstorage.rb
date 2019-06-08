@@ -168,23 +168,30 @@ class SizeLimitedStorage < WeakStore
 
 class WeakStorage < WeakStore
 
-  def initialize(key_class, val_class)
+  def initialize(key_class, val_class, name: Kernel.caller(1).first)
     @key_class, @val_class = key_class, val_class
+    @name = -name
     super()
   end
 
   def [](key)
     result = atomic do
       storage[key]&.yield_self do |wr|
-        wr.__getobj__ if wr&.weakref_alive?
+        if wr&.weakref_alive?
+          wr.__getobj__
+        else
+          count_before = storage.size
+          storage.keep_if do |_, v|
+            v.weakref_alive?
+          end
+          count_after = storage.size
+          notice "#{@name}: #{count_before} -> #{count_after}, #{count_before - count_after} reference(s) was deleted."
+          nil
+        end
       end
     end
     type_strict result => @val_class if result
     result
-  rescue RangeError => e
-    storage.delete(key)
-    error "#{key} was deleted"
-    nil
   end
   alias add []
 
@@ -194,9 +201,9 @@ class WeakStorage < WeakStore
       storage[key] = WeakRef.new(val)
       result = storage[key].__getobj__
       unless result.eql?(val)
-        error 'object does not match!!!'
-        error "given value: #{val.inspect}"
-        error "stored value: #{result.inspect}"
+        error "#{@name}: object does not match!!!"
+        error "#{@name}: given value: #{val.inspect}"
+        error "#{@name}: stored value: #{result.inspect}"
         abort
       end
     end
@@ -208,19 +215,10 @@ class WeakStorage < WeakStore
   end
 
   def inspect
-    atomic { "#<WeakStorage(#{@key_class} => #{@val_class}): #{storage.size}>" }
+    atomic { "#<WeakStorage(#{@name}: #{@key_class} => #{@val_class}): #{storage.size}>" }
   end
 
   private
-
-  def gen_deleter
-    @deleter ||= ->(objid) do
-      atomic do
-        notice "object id #{objid} was deleted!"
-        @_storage.delete_if { |key, val| val == objid }
-      end
-    end
-  end
 
   def gen_storage
     Hash.new
