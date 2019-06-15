@@ -4,6 +4,7 @@ module Plugin::Mastodon
   # https://github.com/tootsuite/documentation/blob/master/Using-the-API/API.md#status
   # 必ずStatus.buildメソッドを通して生成すること
   class Status < Diva::Model
+    extend Gem::Deprecate
     include Diva::Model::MessageMixin
 
     register :mastodon_status, name: "Mastodonステータス", timeline: true, reply: true, myself: true
@@ -553,6 +554,12 @@ module Plugin::Mastodon
       end
       self
     end
+
+    def post(message:, **kwrest)
+      world, = Plugin.filtering(:world_current, nil)
+      Plugin[:mastodon].compose(self, world, body: message, **kwrest)
+    end
+    deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 
   end
 end
