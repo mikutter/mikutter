@@ -9,6 +9,7 @@ Plugin.create :libnotify do
       text = text.description
     end
     notify = Libnotify.new(
+      app_name: Environment::NAME,
       body: text,
       summary: user.title,
       timeout: UserConfig[:notify_expire_time].to_f
