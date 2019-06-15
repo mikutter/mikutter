@@ -91,7 +91,7 @@ module Plugin::Mastodon
     # opts[:visibility] String 公開範囲。 "direct", "private", "unlisted", "public" のいずれか。
     def post(to: nil, message:, **params)
       params[:status] = message
-      if to
+      if to ||= params[:replyto]
         API.get_local_status_id(self, to).next{ |status_id|
           API.call(:post, domain, '/api/v1/statuses', access_token, in_reply_to_id: status_id, **params)
         }.terminate("返信先Statusが#{domain}内に見つかりませんでした：#{to.url}")
