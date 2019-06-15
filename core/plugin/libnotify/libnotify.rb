@@ -14,6 +14,7 @@ Plugin::create(:libnotify) do
       end
       command << '-t' << '%d000' % UserConfig[:notify_expire_time]
       command << "-i" << icon_file_name << user.title
+      command << "-a" << Environment::NAME
       command << text.to_s
       bg_system(*command)
     }.trap{|err|
