@@ -25,6 +25,7 @@ Plugin.create :libnotify do
       notice "user=#{user.inspect}, text=#{text.inspect}"
     }
     stop.call
+    raise
   end
 
   def icon_path(photo)
@@ -47,4 +48,9 @@ Plugin.create :libnotify do
   memoize def icon_tmp_dir
     File.join(Environment::TMPDIR, 'libnotify', 'icon').freeze
   end
-end
+end if begin
+         FFI::DynamicLibrary.open('libnotify.so', FFI::DynamicLibrary::RTLD_LOCAL | FFI::DynamicLibrary::RTLD_LAZY)
+       rescue LoadError
+         notice 'libnotify disabled'
+         false
+       end
