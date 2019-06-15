@@ -25,7 +25,6 @@ Plugin.create :libnotify do
       notice "user=#{user.inspect}, text=#{text.inspect}"
     }
     stop.call
-    raise
   end
 
   def icon_path(photo)
