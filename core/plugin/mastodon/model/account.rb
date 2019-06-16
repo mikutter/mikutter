@@ -128,11 +128,13 @@ module Plugin::Mastodon
       super hash
 
       @@account_storage[hash[:acct]] = self
-
-      self
     end
 
     def inspect
+      "mastodon-account(#{acct})"
+    end
+
+    def to_s
       "mastodon-account(#{acct})"
     end
 
@@ -152,9 +154,13 @@ module Plugin::Mastodon
       }.first
     end
 
-    def me?
-      world = Plugin.filtering(:world_current, nil).first
-      world.respond_to?(:account) && world.account.respond_to?(:acct) && world.account.acct == acct
+    def me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+      case world
+      when Enumerable
+        world.any?(&method(:me?))
+      when Diva::Model
+        world.class.slug == :mastodon && self == world.account
+      end
     end
 
     def profile

@@ -337,21 +337,9 @@ module Plugin::Mastodon
       !mentions.empty? && from_me?
     end
 
-    def from_me_world
-      world = Plugin.filtering(:world_current, nil).first
-      return nil if (!world.respond_to?(:account) || !world.account.respond_to?(:acct))
-      return nil if account.acct != world.account.acct
-      world
-    end
-
     # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
     def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
-      case world
-      when Enumerable
-        world.any?(&method(:from_me?))
-      when Diva::Model
-        world.class.slug == :mastodon && world.account == self.account
-      end
+      account.me?(world)
     end
 
     # 通知用
