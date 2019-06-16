@@ -25,7 +25,7 @@ Plugin.create :gui do
   defdsl :tab do |slug, name=nil, &proc|
     if proc
       i_tab = Plugin::GUI::Tab.instance(slug, name, self.name)
-      result = i_tab.instance_eval(&proc)
+      result = i_tab.instance_eval_with_delegate(self, &proc)
       Plugin.call :gui_tab_change_icon, i_tab
       i_tab.tab_toolbar.rewind
       result
@@ -46,7 +46,7 @@ Plugin.create :gui do
   # Plugin::GUI::Timeline
   defdsl :timeline do |slug, &proc|
     tl = Plugin::GUI::Timeline.instance(slug)
-    tl.instance_eval(&proc) if proc
+    tl.instance_eval_with_delegate(self, &proc) if proc
     tl end
 
   # タイムラインが存在するか調べる。
