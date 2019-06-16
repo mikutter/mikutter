@@ -19,7 +19,11 @@ Plugin.create(:quickstep) do
   intent Plugin::Quickstep::Command, label: 'mikutterコマンド' do |intent_token|
     window = Plugin::GUI::Window.active
     command = intent_token.model
-    event = Plugin::GUI::Event.new(:quickstep, window, [])
+    world, = Plugin.filtering(:world_current, nil)
+    event = Plugin::GUI::Event.new(event: :quickstep,
+                                   widget: window,
+                                   world: world,
+                                   messages: [])
     command[:exec].call(event) if command[:condition] === event
   end
 
