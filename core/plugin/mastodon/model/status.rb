@@ -344,16 +344,14 @@ module Plugin::Mastodon
       world
     end
 
-    # register myself:true用API
-    def from_me?(world = nil)
-      if world
-        if world.is_a? Plugin::Mastodon::World
-          return account.acct == world.account.acct
-        else
-          return false
-        end
+    # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
+    def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+      case world
+      when Enumerable
+        world.any?(&method(:from_me?))
+      when Diva::Model
+        world.class.slug == :mastodon && world.account == self.account
       end
-      !!from_me_world
     end
 
     # 通知用
