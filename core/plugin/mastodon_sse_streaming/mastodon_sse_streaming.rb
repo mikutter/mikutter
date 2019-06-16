@@ -420,10 +420,10 @@ Plugin.create(:mastodon_sse_streaming) do
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first
       return if status.nil?
       status.favorite_accts << user.acct
-      world = status.from_me_world
-      status.set_modified(Time.now.localtime) if UserConfig[:favorited_by_anyone_age] and (UserConfig[:favorited_by_myself_age] or world.user_obj != user)
-      if user && status && world
-        Plugin.call(:favorite, world, user, status)
+      status.set_modified(Time.now.localtime) if favorite_age?(user)
+      if user && status
+        world, = Plugin.filtering(:mastodon_current, nil)
+        Plugin.call(:favorite, world, user, status) if world
       end
 
     when 'follow'
@@ -442,6 +442,14 @@ Plugin.create(:mastodon_sse_streaming) do
       # 未知の通知
       warn 'unknown notification'
       Plugin::Mastodon::Util.ppf payload if Mopt.error_level >= 2
+    end
+  end
+
+  def favorite_age?(user)
+    if user.me?
+      UserConfig[:favorited_by_myself_age]
+    else
+      UserConfig[:favorited_by_anyone_age]
     end
   end
 end
