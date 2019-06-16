@@ -8,15 +8,8 @@ shopt -s globstar
 # For more information, see http://appimage.org/
 ########################################################################
 
-echo "--> install dependencies"
-sudo apt update
-sudo apt install -y git
-sudo apt install -y libssl-dev libreadline6-dev libgdbm3 libgdbm-dev # for ruby
-sudo apt install -y zlib1g-dev # for `gem install`
-sudo apt install -y libidn11-dev # for idn-ruby
-
 echo "--> get mikutter source"
-git clone git://toshia.dip.jp/mikutter.git
+git clone --depth 1 git://toshia.dip.jp/mikutter.git
 
 REPO="$PWD"/mikutter
 APPDIR="$PWD"/AppDir
@@ -114,7 +107,13 @@ chmod +x linuxdeploy-x86_64.AppImage
 
 export OUTPUT=$APP-$VERSION-$ARCH.AppImage
 
-./linuxdeploy-x86_64.AppImage \
+linuxdeploy=./linuxdeploy-x86_64.AppImage
+if [[ $DOCKER ]]; then
+  ./linuxdeploy-x86_64.AppImage --appimage-extract
+  linuxdeploy=./squashfs-root/AppRun
+fi
+
+eval $linuxdeploy \
   --appdir $APPDIR \
   --icon-file mikutter.png \
   --desktop-file mikutter.desktop \
@@ -122,6 +121,6 @@ export OUTPUT=$APP-$VERSION-$ARCH.AppImage
   --output appimage
 
 echo "--> generated $OUTPUT"
-mv $OUTPUT /vagrant
+mv $OUTPUT $VOLUME
 
 echo '==> finished'
