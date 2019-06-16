@@ -14,6 +14,20 @@ module Plugin::Quickstep
     private
     def register_listeners(search_input)
       search_input.ssc(:changed, &method(:input_change_event))
+      search_input.ssc(:key_press_event){ |widget, event|
+        case ::Gtk::keyname([event.keyval ,event.state])
+        when 'Up', 'Control + n'
+          path = self.selection.selected.path
+          path.prev!
+          self.selection.select_path(path)
+          true
+        when 'Down', 'Control + p'
+          path = self.selection.selected.path
+          path.next!
+          self.selection.select_path(path)
+          true
+        end
+      }
     end
 
     def input_change_event(widget)
