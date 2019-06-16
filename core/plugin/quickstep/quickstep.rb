@@ -8,12 +8,15 @@ Plugin.create(:quickstep) do
           icon: Skin[:search],
           visible: true,
           role: :window) do |opt|
-    dialog = Gtk::Dialog.new
-    dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.title = "Quick Step"
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_ACCEPT)
-    register_listeners(dialog, put_widget(dialog.vbox))
-    dialog.show_all
+    tab(:quickstep, "QuickStep 検索") do
+      set_icon Skin[:search]
+      set_deletable true
+      temporary_tab true
+      box = Gtk::VBox.new
+      put_widget(box)
+      nativewidget box
+      active!
+    end
   end
 
   intent Plugin::Quickstep::Command, label: 'mikutterコマンド' do |intent_token|
@@ -50,28 +53,16 @@ Plugin.create(:quickstep) do
   def put_widget(box)
     search = Gtk::Entry.new
     complete = Plugin::Quickstep::Complete.new(search)
-    search.ssc(:activate, &gen_query_box_activated)
+    search.ssc(:activate) do
+      tab(:quickstep).destroy
+      selected = complete.selection.selected
+      Plugin.call(:open, selected[Plugin::Quickstep::Store::COL_MODEL]) if selected
+    end
+    search.ssc(:realize) do
+      search.get_ancestor(Gtk::Window).set_focus(search)
+      false
+    end
     box.closeup(search).add(complete)
     complete
-  end
-
-  def gen_query_box_activated
-    ->(search) do
-      dialog = search.get_ancestor(Gtk::Dialog)
-      dialog.signal_emit(:response, Gtk::Dialog::RESPONSE_ACCEPT) if dialog
-      false
-    end
-  end
-
-  def register_listeners(dialog, treeview)
-    dialog.ssc(:response) do |widget, response|
-      case response
-      when Gtk::Dialog::RESPONSE_ACCEPT
-        selected = treeview.selection.selected
-        Plugin.call(:open, selected[Plugin::Quickstep::Store::COL_MODEL]) if selected
-      end
-      widget.destroy
-      false
-    end
   end
 end
