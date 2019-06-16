@@ -50,9 +50,9 @@ module Plugin::Quickstep
 
     def add_model(model)
       case model
-      when Retriever::Model
+      when Diva::Model
         force_add_model(model)
-      when Retriever::URI, URI::Generic, Addressable::URI, String
+      when Diva::URI, URI::Generic, Addressable::URI, String
         add_uri_or_models(model)
       end
     end
@@ -73,7 +73,7 @@ module Plugin::Quickstep
       else
         model_slugs.each do |model_slug|
           Deferred.new{
-            Retriever.Model(model_slug).find_by_uri(uri)
+            Diva::Model(model_slug).find_by_uri(uri)
           }.next{|model|
             force_add_model(model) if model
           }.trap do |err|

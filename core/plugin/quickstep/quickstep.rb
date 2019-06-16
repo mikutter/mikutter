@@ -30,7 +30,7 @@ Plugin.create(:quickstep) do
   # URLっぽい文字列なら、それに対してintentを発行する候補を出す
   filter_quickstep_query do |query, yielder|
     if URI::DEFAULT_PARSER.make_regexp.match?(query)
-      yielder << Retriever::URI!(query)
+      yielder << Diva::URI!(query)
     end
     [query, yielder]
   end
