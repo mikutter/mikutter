@@ -216,7 +216,7 @@ Plugin.create(:mastodon) do
             end
           end
         }.compact.each do |url|
-          status = Plugin::Mastodon::Status.findbyurl(url) || +Plugin::Mastodon::Status.fetch(url)
+          status = Plugin::Mastodon::Status.findbyuri(url) || +Plugin::Mastodon::Status.fetch(url)
           tl << status if status
         end
       }.terminate

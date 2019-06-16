@@ -56,16 +56,27 @@ module Plugin::Mastodon
 
     @@mute_mutex = Thread::Mutex.new
 
-    @@status_storage = WeakStorage.new(String, Status, name: 'toot')
-
     TOOT_URI_RE = %r!\Ahttps://([^/]+)/@\w{1,30}/(\d+)\z!.freeze
     TOOT_ACTIVITY_URI_RE = %r!\Ahttps://(?<domain>[^/]*)/users/(?<acct>[^/]*)/statuses/(?<status_id>[^/]*)/activity\z!.freeze
 
     handle TOOT_URI_RE do |uri|
-      Status.findbyurl(uri) || Status.fetch(uri)
+      Status.findbyuri(uri) || Status.fetch(uri)
     end
 
     class << self
+      @@status_storage = WeakStorage.new(String, Status, name: 'toot')
+
+      def add_status_storage(toot)
+        @@status_storage["#{toot.domain}:#{toot.uri}"] = toot
+      end
+
+      # urlで検索する。
+      # 但しブーストの場合はfediverse uri
+      def findbyuri(uri, domain: nil)
+        domain ||= Diva::URI(uri).host
+        @@status_storage["#{domain}:#{uri}"]
+      end
+
       def add_mutes(account_hashes)
         @@mute_mutex.synchronize {
           @@mutes ||= []
@@ -134,17 +145,10 @@ module Plugin::Mastodon
 
           boost[:retweet] = boost.reblog = status
             # わかりづらいが「ブーストした」statusの'reblog'プロパティにブースト元のstatusを入れている
-          @@status_storage[boost_uri] = boost
           boost
             # 「ブーストした」statusを返す（appearしたのはそれに間違いないので。ブースト元はdon't care。
             # Gtk::TimeLine#block_addではmessage.retweet?ならmessage.retweet_sourceを取り出して追加する。
         end
-      end
-
-      # urlで検索する。
-      # 但しブーストの場合はfediverse uri
-      def findbyurl(url)
-        @@status_storage[url]
       end
 
       def merge_or_create(domain_name, uri, new_hash)
@@ -156,13 +160,13 @@ module Plugin::Mastodon
           end
         end
 
-        status = @@status_storage[uri]
+        status = findbyuri(uri, domain: domain_name)
         if status
           status = status.merge(domain_name, new_hash)
         else
           status = Status.new(new_hash)
         end
-        @@status_storage[uri] = status
+        add_status_storage(status)
         status
       end
 
@@ -404,7 +408,7 @@ module Plugin::Mastodon
     end
 
     def retweeted_statuses
-      reblog_status_uris.map{|pair| @@status_storage[pair[:uri]] }.compact
+      reblog_status_uris.map{|pair| self.class.findbyuri(pair[:uri]) }.compact
     end
 
     alias :retweeted_sources :retweeted_statuses
