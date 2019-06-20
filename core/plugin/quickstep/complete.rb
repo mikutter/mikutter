@@ -36,6 +36,12 @@ module Plugin::Quickstep
           true
         end
       }
+      ssc(:row_activated) do |this, path, _column|
+        iter = this.model.get_iter(path)
+        if iter
+          search_input.signal_emit(:activate)
+        end
+      end
     end
 
     def input_change_event(widget)
