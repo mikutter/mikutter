@@ -20,11 +20,20 @@ Plugin.create :message_retweet do
           user_list.add_user([retweet.user]) end end end
 
     user_list.ssc_atonce :expose_event do
-      Service.primary.retweeted_users(id: message.id).next{|users|
-        user_list.add_user(users)
-      }.terminate(error_message_get_retweeted_users).trap {|exception|
-        error exception }
-      false end
+      twitter = Enumerator.new { |y|
+        Plugin.filtering(:worlds, y)
+      }.select { |world|
+        world.class.slug == :twitter
+      }.first
+      if twitter
+        twitter.retweeted_users(id: message.id).next { |users|
+          user_list.add_user(users)
+        }.terminate(error_message_get_retweeted_users).trap do |exception|
+          error exception
+        end
+      end
+      false
+    end
   end
 
 end
