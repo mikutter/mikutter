@@ -35,24 +35,6 @@ module Plugin::Mastodon
     def uri
       account.url
     end
-
-    def from_me_world
-      world = Plugin.filtering(:world_current, nil).first
-      return nil if (!world.respond_to?(:account) || !world.account.respond_to?(:acct))
-      return nil if account.acct != world.account.acct
-      world
-    end
-
-    def from_me?(world = nil)
-      if world
-        if world.is_a? Plugin::Mastodon::World
-          return account.acct == world.account.acct
-        else
-          return false
-        end
-      end
-      !!from_me_world
-    end
   end
 end
 
