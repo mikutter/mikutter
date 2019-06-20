@@ -1,9 +1,9 @@
 ---
 slug: :libnotify
 depends:
-  mikutter: '0.2'
+  mikutter: '3.9'
   plugin: []
-version: '1.0'
+version: '1.1'
 author: toshi_a
 name: libnotify
 description: 通知をnotify-sendコマンドを使って行う。
