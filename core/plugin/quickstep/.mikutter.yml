@@ -1,0 +1,11 @@
+---
+slug: quickstep
+depends:
+  mikutter: 3.9.0
+  plugin:
+  - gtk
+version: '2.0'
+author: toshi_a
+name: Quick Step
+description: >-
+  様々なModelをインクリメンタルサーチして開くことができるウィンドウを追加します
