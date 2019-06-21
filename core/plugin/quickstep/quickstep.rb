@@ -53,16 +53,38 @@ Plugin.create(:quickstep) do
   def put_widget(box)
     search = Gtk::Entry.new
     complete = Plugin::Quickstep::Complete.new(search)
-    search.ssc(:activate) do
+    search.ssc(:activate, &gen_search_activate_callback(complete))
+    search.ssc(:realize, &gen_search_realize_callback)
+    search.ssc(:key_press_event, &gen_common_shortcutkey_callback)
+    complete.ssc(:key_press_event, &gen_common_shortcutkey_callback)
+    box.closeup(search).add(complete)
+    complete
+  end
+
+  private
+
+  def gen_search_activate_callback(complete)
+    -> do
       tab(:quickstep).destroy
       selected = complete.selection.selected
       Plugin.call(:open, selected[Plugin::Quickstep::Store::COL_MODEL]) if selected
     end
-    search.ssc(:realize) do
-      search.get_ancestor(Gtk::Window).set_focus(search)
+  end
+
+  def gen_search_realize_callback
+    ->(this) do
+      this.get_ancestor(Gtk::Window).set_focus(this)
       false
     end
-    box.closeup(search).add(complete)
-    complete
+  end
+
+  def gen_common_shortcutkey_callback
+    ->(widget, event) do
+      case ::Gtk::keyname([event.keyval ,event.state])
+      when 'Escape'
+        tab(:quickstep).destroy
+        true
+      end
+    end
   end
 end
