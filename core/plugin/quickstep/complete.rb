@@ -20,10 +20,11 @@ module Plugin::Quickstep
     end
 
     private
+
     def register_listeners(search_input)
       search_input.ssc(:changed, &method(:input_change_event))
-      search_input.ssc(:key_press_event){ |widget, event|
-        case ::Gtk::keyname([event.keyval ,event.state])
+      search_input.ssc(:key_press_event) { |widget, event|
+        case ::Gtk::keyname([event.keyval,event.state])
         when 'Up', 'Control + n'
           path = self.selection.selected.path
           path.prev!
@@ -47,11 +48,11 @@ module Plugin::Quickstep
     def input_change_event(widget)
       @col_kind.set_fixed_width(self.window.geometry[2] * 0.25)
       tree_model = self.model = gen_store
-      Enumerator.new{ |y|
+      Enumerator.new { |y|
         Plugin.filtering(:quickstep_query, widget.text.freeze, y)
-      }.deach{ |detected|
+      }.deach { |detected|
         tree_model.add_model(detected)
-      }.trap{ |err|
+      }.trap { |err|
         error err
       }
       false
@@ -103,9 +104,9 @@ module Plugin::Quickstep
         force_add_uri(uri)
       else
         model_slugs.each do |model_slug|
-          Deferred.new{
+          Deferred.new {
             Diva::Model(model_slug).find_by_uri(uri)
-          }.next{|model|
+          }.next {|model|
             force_add_model(model) if model
           }.trap do |err|
             error err

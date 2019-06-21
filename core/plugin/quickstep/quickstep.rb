@@ -80,7 +80,7 @@ Plugin.create(:quickstep) do
 
   def gen_common_shortcutkey_callback
     ->(widget, event) do
-      case ::Gtk::keyname([event.keyval ,event.state])
+      case ::Gtk::keyname([event.keyval, event.state])
       when 'Escape'
         tab(:quickstep).destroy
         true
