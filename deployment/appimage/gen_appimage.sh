@@ -31,7 +31,7 @@ tar -xf jemalloc-5.2.0.tar.bz2
 echo "--> build jemalloc"
 pushd jemalloc-5.2.0
 ./configure --prefix=/usr
-make -j2
+make -j8
 sudo make install
 make "DESTDIR=$APPDIR" install
 popd
@@ -45,7 +45,7 @@ echo "--> compile Ruby and install it into AppDir"
 pushd ruby-$ruby_version
 # use relative load paths at run time
 ./configure --enable-load-relative --with-jemalloc --prefix=/usr --disable-install-doc
-make -j2
+make -j8
 make "DESTDIR=$APPDIR" install
 # copy license related files
 cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
@@ -57,7 +57,7 @@ pushd "$REPO"
 gems=$APPDIR/usr/lib/ruby/gems/2.6.0
 # do not install test group
 # NOTE option `--without=test` is persistent by .bundle/config
-GEM_HOME=$gems GEM_PATH=$gems $APPDIR/usr/bin/ruby $APPDIR/usr/bin/bundle install --without=test
+GEM_HOME=$gems GEM_PATH=$gems $APPDIR/usr/bin/ruby $APPDIR/usr/bin/bundle install --without=test --jobs=8
 popd
 
 echo "--> remove unused files"
