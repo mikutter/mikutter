@@ -108,10 +108,8 @@ chmod +x linuxdeploy-x86_64.AppImage
 export OUTPUT=$APP-$VERSION-$ARCH.AppImage
 
 linuxdeploy=./linuxdeploy-x86_64.AppImage
-if [[ $DOCKER ]]; then
-  ./linuxdeploy-x86_64.AppImage --appimage-extract
-  linuxdeploy=./squashfs-root/AppRun
-fi
+./linuxdeploy-x86_64.AppImage --appimage-extract
+linuxdeploy=./squashfs-root/AppRun
 
 eval $linuxdeploy \
   --appdir $APPDIR \

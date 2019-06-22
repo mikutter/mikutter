@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
 
 COPY AppRun mikutter.desktop gen_appimage.sh /
 
-ENV DOCKER 1
 ENV VOLUME /volume
 
 ENTRYPOINT ["/gen_appimage.sh"]
