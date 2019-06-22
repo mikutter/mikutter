@@ -16,7 +16,7 @@ Plugin.create :quoted_message do
     ds end
 
   command(:copy_tweet_url,
-          name: ->(opt) { _('%{model_label}のURLをコピー') % {model_label: opt.messages.first&.class&.spec&.name} },
+          name: ->(opt) { _('%{model_label}のURLをコピー') % {model_label: opt&.messages&.first&.class&.spec&.name || _('この投稿') } },
           condition: Proc.new{ |opt|
             opt.messages.all?(&:perma_link)},
           visible: true,
