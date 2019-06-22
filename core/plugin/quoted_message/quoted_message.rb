@@ -16,9 +16,14 @@ Plugin.create :quoted_message do
     ds end
 
   command(:copy_tweet_url,
-          name: ->(opt) { _('%{model_label}のURLをコピー') % {model_label: opt&.messages&.first&.class&.spec&.name || _('この投稿') } },
-          condition: Proc.new{ |opt|
-            opt.messages.all?(&:perma_link)},
+          name: ->(opt) {
+            if opt
+              _('%{model_label}のURLをコピー') % {model_label: opt&.messages&.first&.class&.spec&.name }
+            else
+              _('この投稿のURLをコピー')
+            end
+          },
+          condition: ->(opt) { opt.messages.all?(&:perma_link) },
           visible: true,
           role: :timeline) do |opt|
     Gtk::Clipboard.copy(opt.messages.map(&:perma_link).join("\n".freeze))

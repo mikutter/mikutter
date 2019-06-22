@@ -127,12 +127,16 @@ Plugin.create :command do
   end
 
   command(:aboutuser,
-          name: lambda { |opt|
-            (_("%{title}について") % { title: opt&.messages&.first&.user&.title || _('投稿者') }).gsub(/_/, '__')
+          name: ->(opt) {
+            if opt
+              (_("%{title}について") % { title: opt.messages&.first&.user&.title }).gsub(/_/, '__')
+            else
+              _('投稿者について')
+            end
           },
-          condition: ->opt{ !opt.messages.empty? && compose?(opt.world, to: opt.messages) },
+          condition: ->(opt) { !opt.messages.empty? && compose?(opt.world, to: opt.messages) },
           visible: true,
-          icon: lambda{ |opt| opt && opt.messages.first.user.icon },
+          icon: ->(opt) { opt && opt.messages.first.user.icon },
           role: :timeline) do |opt|
     Plugin.call(:open, opt.messages.first.user) end
 
