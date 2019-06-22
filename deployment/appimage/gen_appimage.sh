@@ -9,7 +9,7 @@ shopt -s globstar
 ########################################################################
 
 echo "--> get mikutter source"
-git clone --depth 1 git://toshia.dip.jp/mikutter.git
+git clone git://toshia.dip.jp/mikutter.git
 
 REPO="$PWD"/mikutter
 APPDIR="$PWD"/AppDir
