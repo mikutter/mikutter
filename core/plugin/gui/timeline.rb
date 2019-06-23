@@ -13,6 +13,8 @@ class Plugin::GUI::Timeline
   include Plugin::GUI::HierarchyParent
   include Plugin::GUI::Widget
 
+  include Enumerable
+
   role :timeline
 
   set_parent_event :gui_timeline_join_tab
@@ -132,4 +134,29 @@ class Plugin::GUI::Timeline
     Plugin.call(:gui_timeline_set_order, self, block)
   end
 
+  # このタイムライン内の _message_ を繰り返し処理する
+  def each
+    enum = Enumerator.new do |y|
+      Plugin.filtering(:gui_timeline_each_messages, self, y)
+    end.lazy
+    return enum unless block_given?
+
+    enum.each do |m|
+      yield m
+    end
+  end
+
+  def size
+    to_a.size
+  end
+
+  # timeline_maxを取得する
+  def timeline_max
+    Plugin.filtering(:gui_timeline_get_timeline_max, self, nil)[1] || UserConfig[:timeline_max]
+  end
+
+  # timeline_maxを設定する
+  def timeline_max=(n)
+    Plugin.filtering(:gui_timeline_set_timeline_max, self, n)
+  end
 end

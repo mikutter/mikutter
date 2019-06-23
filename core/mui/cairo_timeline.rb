@@ -179,6 +179,7 @@ class Gtk::TimeLine
     # ==== Args
     # [iter] 削除するレコード(Gtk::TreeIter)
     def tl_model_remove(iter)
+      Plugin.call(:gui_timeline_message_removed, @tl.imaginary, iter[Gtk::TimeLine::InnerTL::MESSAGE])
       iter[InnerTL::MIRACLE_PAINTER].destroy
       @tl.model.remove(iter) end end
 

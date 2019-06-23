@@ -622,6 +622,26 @@ Plugin.create :gtk do
   # _widget_ に対応するウィジェットオブジェクトまたは偽
   def find_implement_widget_by_gtkwidget(widget)
     @slug_dictionary.imaginally_by_gtk(widget) end
+
+  # timeline_maxを取得するフィルタ
+  filter_gui_timeline_get_timeline_max do |i_tl, _|
+    [i_tl, widgetof(i_tl).timeline_max]
+  end
+
+  # timeline_maxを設定するフィルタ
+  filter_gui_timeline_set_timeline_max do |i_tl, n|
+    widgetof(i_tl).timeline_max = n
+    [i_tl, n]
+  end
+
+  # タイムラインのメッセージを順に処理するフィルタ
+  filter_gui_timeline_each_messages do |i_tl, y|
+    widgetof(i_tl).each do |m|
+      y << m
+    end
+    [i_tl, y]
+  end
+
 end
 
 module Plugin::Gtk
