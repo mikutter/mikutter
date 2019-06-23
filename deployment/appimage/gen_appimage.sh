@@ -24,33 +24,6 @@ set -u
 APP=mikutter
 VERSION=$(git -C "$REPO" describe --tags)
 
-echo "--> get jemalloc source"
-wget -q https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2
-tar -xf jemalloc-5.2.0.tar.bz2
-
-echo "--> build jemalloc"
-pushd jemalloc-5.2.0
-./configure --prefix=/usr
-make -j8
-sudo make install
-make "DESTDIR=$APPDIR" install
-popd
-
-echo "--> get ruby source"
-ruby_version=2.6.3
-wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz
-tar xf ruby-$ruby_version.tar.gz
-
-echo "--> compile Ruby and install it into AppDir"
-pushd ruby-$ruby_version
-# use relative load paths at run time
-./configure --enable-load-relative --with-jemalloc --prefix=/usr --disable-install-doc
-make -j8
-make "DESTDIR=$APPDIR" install
-# copy license related files
-cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
-popd
-
 echo "--> install gems"
 pushd "$REPO"
 # for Travis CI, disable RVM

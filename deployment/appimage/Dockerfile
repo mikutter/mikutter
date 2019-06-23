@@ -1,5 +1,8 @@
 FROM ubuntu:14.04
 
+ARG ruby_version=2.6.3
+ARG APPDIR=/AppDir
+
 RUN apt-get update && apt-get install -y \
     git \
     wget \
@@ -19,6 +22,22 @@ RUN apt-get update && apt-get install -y \
     libidn11-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2 && \
+        tar -xf jemalloc-5.2.0.tar.bz2 && \
+        cd /jemalloc-5.2.0 && \
+        ./configure --prefix=/usr && \
+        make -j8 && \
+        make install && \
+        make "DESTDIR=$APPDIR" install
+
+RUN wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz && \
+        tar xf ruby-$ruby_version.tar.gz && \
+        cd ruby-$ruby_version && \
+        ./configure --enable-load-relative --with-jemalloc --prefix=/usr --disable-install-doc && \
+        make -j8 && \
+        make "DESTDIR=$APPDIR" install && \
+        cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
 
 COPY AppRun mikutter.desktop gen_appimage.sh /
 
