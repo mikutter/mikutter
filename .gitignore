@@ -5,3 +5,5 @@
 *.pot
 *.mo
 core/plugin/*/po/ja/*.po
+*.AppImage
+deployment/appimage/.vagrant
