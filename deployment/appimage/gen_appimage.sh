@@ -9,15 +9,10 @@ shopt -s globstar
 ########################################################################
 
 echo "--> get mikutter source"
-git clone git://toshia.dip.jp/mikutter.git
+git clone --depth 1 --branch "$REVISION" git://toshia.dip.jp/mikutter.git
 
 REPO="$PWD"/mikutter
 APPDIR="$PWD"/AppDir
-
-set +u
-[[ -n "$REVISION" ]] && git -C "$REPO" checkout "$REVISION"
-set -u
-
 set +u
 [[ -z "$ARCH" ]] && export ARCH="$(arch)"
 set -u
