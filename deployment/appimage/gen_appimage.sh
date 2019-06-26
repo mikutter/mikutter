@@ -75,11 +75,9 @@ chmod +x linuxdeploy-x86_64.AppImage
 
 export OUTPUT=$APP-$VERSION-$ARCH.AppImage
 
-linuxdeploy=./linuxdeploy-x86_64.AppImage
 ./linuxdeploy-x86_64.AppImage --appimage-extract
-linuxdeploy=./squashfs-root/AppRun
 
-eval $linuxdeploy \
+./squashfs-root/AppRun \
   --appdir $APPDIR \
   --icon-file mikutter.png \
   --desktop-file mikutter.desktop \
