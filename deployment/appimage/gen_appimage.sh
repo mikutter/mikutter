@@ -8,19 +8,21 @@ shopt -s globstar
 # For more information, see http://appimage.org/
 ########################################################################
 
-echo "--> get mikutter source"
-git clone --depth 1 --branch "$REVISION" git://toshia.dip.jp/mikutter.git
+REPO=/mikutter-src
 
-REPO="$PWD"/mikutter
+echo "--> get mikutter source"
+git --git-dir=$REPO/.git/ archive --format=tar --prefix=mikutter/ HEAD | tar xf -
+
+BUILD_DIR="$PWD"/mikutter
 APPDIR="$PWD"/AppDir
 set +u
 [[ -z "$ARCH" ]] && export ARCH="$(arch)"
 set -u
 APP=mikutter
-VERSION=$(git -C "$REPO" describe --tags)
+VERSION=$(git -C "$REPO" describe --tags --abbrev=0)
 
 echo "--> install gems"
-pushd "$REPO"
+pushd "$BUILD_DIR"
 # for Travis CI, disable RVM
 gems=$APPDIR/usr/lib/ruby/gems/2.6.0
 # do not install test group
@@ -35,7 +37,7 @@ rm -vrf $gems/cache
 
 echo "--> copy mikutter"
 mkdir -p $APPDIR/usr/share/mikutter
-cp -av "$REPO"/{.bundle,core,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
+cp -av "$BUILD_DIR"/{.bundle,core,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
 
 echo "--> get exec.so"
 # use darealshinji/AppImageKit-checkrt's exec.so to exec xdg-open placed
@@ -66,7 +68,7 @@ cp -av /usr/lib/girepository-* $APPDIR/usr/lib
 # done
 
 # prepare files for linuxdeploy
-cp "$REPO"/core/skin/data/icon.png mikutter.png
+cp "$BUILD_DIR"/core/skin/data/icon.png mikutter.png
 chmod +x AppRun
 
 echo "--> get linuxdeploy"

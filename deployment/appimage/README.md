@@ -7,7 +7,7 @@ Docker
 
 ### USAGE
 ```bash
-docker build -t mikutter-build-appimage . && docker run --rm -e REVISION=$(git describe --tags --abbrev=0) -v $PWD/volume:/volume -it mikutter-build-appimage
+docker build -t mikutter-build-appimage . && docker run --rm -v $PWD/volume:/volume -v $(git rev-parse --show-toplevel):/mikutter-src:ro -it mikutter-build-appimage
 ```
 
 環境変数 `REVISION` にはGitのタグ名やブランチ名を入れる．
