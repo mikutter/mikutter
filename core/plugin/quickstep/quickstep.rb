@@ -64,7 +64,7 @@ Plugin.create(:quickstep) do
   private
 
   def gen_search_activate_callback(complete)
-    -> do
+    ->(_) do
       tab(:quickstep).destroy
       selected = complete.selection.selected
       Plugin.call(:open, selected[Plugin::Quickstep::Store::COL_MODEL]) if selected
