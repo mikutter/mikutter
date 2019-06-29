@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 ARG ruby_version=2.6.3
 ARG APPDIR=/AppDir
