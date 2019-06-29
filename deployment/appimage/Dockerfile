@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 ARG ruby_version=2.6.3
 ARG APPDIR=/AppDir
 
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     git \
     wget \
     build-essential \
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     libpango1.0-dev \
     libgtk2.0-dev \
     libidn11-dev \
-    && apt-get clean \
+    && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget -q https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2 && \
