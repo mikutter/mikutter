@@ -244,7 +244,7 @@ Plugin.create(:twitter) do
     280 - tweet[:weighted_length]
   end
 
-  defspelll(:around_message, :twitter_tweet) do |message|
+  defspell(:around_message, :twitter_tweet) do |message|
     Thread.new do
       message.around(true)
     end
