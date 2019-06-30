@@ -244,6 +244,12 @@ Plugin.create(:twitter) do
     280 - tweet[:weighted_length]
   end
 
+  defspelll(:around_message, :twitter_tweet) do |message|
+    Thread.new do
+      message.around(true)
+    end
+  end
+
   def trim_hidden_regions(text)
     trim_hidden_header(trim_hidden_footer(text))
   end
