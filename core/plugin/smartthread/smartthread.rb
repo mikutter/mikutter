@@ -72,17 +72,26 @@ Plugin.create :smartthread do
 
   on_gui_timeline_add_messages do |widget, messages|
     if widget.is_a?(Plugin::GUI::Timeline) && !@timeline_slugs.include?(widget.slug)
-      Delayer::Deferred.new {
-        graph = Hash.new{|h,k| h[k] = Set.new }
-        messages.select(&:has_receive_message?).each{|m| graph[+m.replyto_source_d(true)] << m }
+      Delayer::Deferred.when(
+        *messages.select(&:has_receive_message?).map do |m|
+          m.replyto_source_d(true).next do |parent|
+            [parent, m]
+          end.trap do |err|
+            Delayer::Deferred.fail(err) if err
+          end
+        end
+      ).next do |result|
+        graph = result.compact.group_by { |p, _| p }.transform_values! do |v|
+          v.map { |_, c| c }.freeze
+        end
         if !graph.empty?
-          @timeline_slugs.map{|s| timeline(s) }.each do |tl|
+          @timeline_slugs.map { |s| timeline(s) }.each do |tl|
             tl.in_message(graph.keys).each do |parent|
               tl << graph[parent]
             end
           end
         end
-      }.terminate('なんかへんなことになった')
+      end.terminate
     end
   end
 
