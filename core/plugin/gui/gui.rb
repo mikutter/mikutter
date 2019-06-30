@@ -153,4 +153,16 @@ Plugin.create :gui do
     [(set || {}).merge(Plugin::GUI::Tab.cuscaded)]
   end
 
+  # timeline_maxを取得するフィルタ
+  defevent :gui_timeline_get_timeline_max, prototype: [Plugin::GUI::Timeline, Integer]
+
+  # timeline_maxを設定するフィルタ
+  defevent :gui_timeline_set_timeline_max, prototype: [Plugin::GUI::Timeline, Integer]
+
+  # タイムラインのメッセージを順に処理するフィルタ
+  defevent :gui_timeline_each_messages, prototype: [Plugin::GUI::Timeline, :<<]
+
+  # タイムラインからメッセージが除去された際に発生させるイベント
+  defevent :gui_timeline_message_removed, prototype: [Plugin::GUI::Timeline, Diva::Model]
+
 end
