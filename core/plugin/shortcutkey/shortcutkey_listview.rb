@@ -105,44 +105,24 @@ module Plugin::Shortcutkey
     end
 
     def shortcutkeys
-      (UserConfig[:shortcutkey_keybinds] || Hash.new).dup end
+      UserConfig[:shortcutkey_keybinds] || {}.freeze
+    end
 
     def new_serial
       @new_serial ||= (shortcutkeys.keys.max || 0)
       @new_serial += 1 end
 
     def on_created(iter)
-      bind = shortcutkeys
-      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
-      name = name.call(nil) if name.is_a? Proc
       iter[COLUMN_ID] = new_serial
-      bind[iter[COLUMN_ID]] = {
-        key: iter[COLUMN_KEYBIND].to_s,
-        name: name,
-        slug: iter[COLUMN_SLUG].to_sym,
-        world: iter[COLUMN_WORLD]&.uri&.to_s
-      }
-      iter[COLUMN_COMMAND] = name
-      UserConfig[:shortcutkey_keybinds] = bind
+      merge_key_bind(iter)
     end
 
     def on_updated(iter)
-      bind = shortcutkeys
-      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
-      name = name.call(nil) if name.is_a? Proc
-      world = iter[COLUMN_WORLD].respond_to?(:uri) && iter[COLUMN_WORLD].uri.to_s
-      bind[iter[COLUMN_ID].to_i] = {
-        key: iter[COLUMN_KEYBIND].to_s,
-        name: name,
-        slug: iter[COLUMN_SLUG].to_sym,
-        world: world
-      }
-      iter[COLUMN_COMMAND] = name
-      UserConfig[:shortcutkey_keybinds] = bind
+      merge_key_bind(iter)
     end
 
     def on_deleted(iter)
-      bind = shortcutkeys
+      bind = shortcutkeys.dup
       bind.delete(iter[COLUMN_ID].to_i)
       UserConfig[:shortcutkey_keybinds] = bind
     end
@@ -186,6 +166,31 @@ module Plugin::Shortcutkey
           dialog.destroy end }
       ::Gtk::main
       result end
+
+    private
+
+    def merge_key_bind(iter)
+      bind = bind_of(iter)
+      UserConfig[:shortcutkey_keybinds] = shortcutkeys.merge(
+        iter[COLUMN_ID].to_i => bind
+      )
+      iter[COLUMN_COMMAND] = bind[:name]
+    end
+
+    def bind_of(iter)
+      {
+        key: -iter[COLUMN_KEYBIND].to_s,
+        name: name_of(iter),
+        slug: iter[COLUMN_SLUG].to_sym,
+        world: iter[COLUMN_WORLD].respond_to?(:uri) && iter[COLUMN_WORLD].uri.to_s
+      }
+    end
+
+    def name_of(iter)
+      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      name = name.call(nil) if name.is_a? Proc
+      name.freeze
+    end
 
     def key_box(results)
       container = ::Gtk::HBox.new(false, 0)
