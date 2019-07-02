@@ -40,9 +40,8 @@ module Plugin::Shortcutkey
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
         iter[COLUMN_SLUG] = slug
-        world = worlds[behavior[:world]]
-        iter[COLUMN_WORLD_FACE] = world&.title || @plugin._('カレントアカウント')
-        iter[COLUMN_WORLD] = world
+        iter[COLUMN_WORLD] = worlds[behavior[:world]]
+        update_iter(iter, force: false)
         commands.dig(slug, :icon)&.yield_self {|icon|
           icon.is_a?(Proc) ? icon.call(nil) : icon
         }&.yield_self {|icon|
@@ -169,27 +168,43 @@ module Plugin::Shortcutkey
 
     private
 
+    def update_iter(iter, force: false)
+      if force
+        iter[COLUMN_COMMAND] = name_of(iter)
+      else
+        iter[COLUMN_COMMAND] ||= name_of(iter)
+      end
+      iter[COLUMN_WORLD_FACE] =
+        if iter[COLUMN_WORLD]
+          iter[COLUMN_WORLD].title
+        else
+          @plugin._('カレントアカウント')
+        end
+    end
+
     def merge_key_bind(iter)
-      bind = bind_of(iter)
+      update_iter(iter, force: true)
       UserConfig[:shortcutkey_keybinds] = shortcutkeys.merge(
-        iter[COLUMN_ID].to_i => bind
+        iter[COLUMN_ID].to_i => bind_of(iter)
       )
-      iter[COLUMN_COMMAND] = bind[:name]
     end
 
     def bind_of(iter)
       {
         key: -iter[COLUMN_KEYBIND].to_s,
-        name: name_of(iter),
+        name: -iter[COLUMN_COMMAND].to_s,
         slug: iter[COLUMN_SLUG].to_sym,
-        world: iter[COLUMN_WORLD].respond_to?(:uri) && iter[COLUMN_WORLD].uri.to_s
+        world:
+          if iter[COLUMN_WORLD]
+            iter[COLUMN_WORLD].uri&.to_s
+          end
       }
     end
 
     def name_of(iter)
       name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
       name = name.call(nil) if name.is_a? Proc
-      name.freeze
+      name
     end
 
     def key_box(results)
