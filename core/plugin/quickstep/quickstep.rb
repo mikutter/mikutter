@@ -3,12 +3,12 @@ require_relative 'complete'
 require_relative 'model/command'
 Plugin.create(:quickstep) do
   command(:quickstep,
-          name: 'Quick Step',
+          name: _('Quick Step'),
           condition: lambda { |opt| true },
           icon: Skin[:search],
           visible: true,
           role: :window) do |opt|
-    tab(:quickstep, "QuickStep 検索") do
+    tab(:quickstep, _('QuickStep 検索')) do
       set_icon Skin[:search]
       set_deletable true
       temporary_tab true
@@ -19,7 +19,7 @@ Plugin.create(:quickstep) do
     end
   end
 
-  intent Plugin::Quickstep::Command, label: 'mikutterコマンド' do |intent_token|
+  intent Plugin::Quickstep::Command, label: _('mikutterコマンド') do |intent_token|
     window = Plugin::GUI::Window.active
     command = intent_token.model
     world, = Plugin.filtering(:world_current, nil)

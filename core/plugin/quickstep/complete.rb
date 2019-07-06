@@ -118,7 +118,7 @@ module Plugin::Quickstep
     def force_add_uri(uri)
       iter = append
       iter[COL_ICON] = nil
-      iter[COL_KIND] = 'URLを開く'
+      iter[COL_KIND] = Plugin[:quickstep]._('URLを開く')
       iter[COL_TITLE] = uri.to_s
       iter[COL_MODEL] = uri
     end
