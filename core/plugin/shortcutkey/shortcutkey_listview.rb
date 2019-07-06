@@ -40,9 +40,8 @@ module Plugin::Shortcutkey
         iter[COLUMN_KEYBIND] = behavior[:key]
         iter[COLUMN_COMMAND] = behavior[:name]
         iter[COLUMN_SLUG] = slug
-        world = worlds[behavior[:world]]
-        iter[COLUMN_WORLD_FACE] = world&.title || @plugin._('カレントアカウント')
-        iter[COLUMN_WORLD] = world
+        iter[COLUMN_WORLD] = worlds[behavior[:world]]
+        update_iter(iter, force: false)
         commands.dig(slug, :icon)&.yield_self {|icon|
           icon.is_a?(Proc) ? icon.call(nil) : icon
         }&.yield_self {|icon|
@@ -105,44 +104,24 @@ module Plugin::Shortcutkey
     end
 
     def shortcutkeys
-      (UserConfig[:shortcutkey_keybinds] || Hash.new).dup end
+      UserConfig[:shortcutkey_keybinds] || {}.freeze
+    end
 
     def new_serial
       @new_serial ||= (shortcutkeys.keys.max || 0)
       @new_serial += 1 end
 
     def on_created(iter)
-      bind = shortcutkeys
-      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
-      name = name.call(nil) if name.is_a? Proc
       iter[COLUMN_ID] = new_serial
-      bind[iter[COLUMN_ID]] = {
-        key: iter[COLUMN_KEYBIND].to_s,
-        name: name,
-        slug: iter[COLUMN_SLUG].to_sym,
-        world: iter[COLUMN_WORLD]&.uri&.to_s
-      }
-      iter[COLUMN_COMMAND] = name
-      UserConfig[:shortcutkey_keybinds] = bind
+      merge_key_bind(iter)
     end
 
     def on_updated(iter)
-      bind = shortcutkeys
-      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
-      name = name.call(nil) if name.is_a? Proc
-      world = iter[COLUMN_WORLD].respond_to?(:uri) && iter[COLUMN_WORLD].uri.to_s
-      bind[iter[COLUMN_ID].to_i] = {
-        key: iter[COLUMN_KEYBIND].to_s,
-        name: name,
-        slug: iter[COLUMN_SLUG].to_sym,
-        world: world
-      }
-      iter[COLUMN_COMMAND] = name
-      UserConfig[:shortcutkey_keybinds] = bind
+      merge_key_bind(iter)
     end
 
     def on_deleted(iter)
-      bind = shortcutkeys
+      bind = shortcutkeys.dup
       bind.delete(iter[COLUMN_ID].to_i)
       UserConfig[:shortcutkey_keybinds] = bind
     end
@@ -186,6 +165,47 @@ module Plugin::Shortcutkey
           dialog.destroy end }
       ::Gtk::main
       result end
+
+    private
+
+    def update_iter(iter, force: false)
+      if force
+        iter[COLUMN_COMMAND] = name_of(iter)
+      else
+        iter[COLUMN_COMMAND] ||= name_of(iter)
+      end
+      iter[COLUMN_WORLD_FACE] =
+        if iter[COLUMN_WORLD]
+          iter[COLUMN_WORLD].title
+        else
+          @plugin._('カレントアカウント')
+        end
+    end
+
+    def merge_key_bind(iter)
+      update_iter(iter, force: true)
+      UserConfig[:shortcutkey_keybinds] = shortcutkeys.merge(
+        iter[COLUMN_ID].to_i => bind_of(iter)
+      )
+    end
+
+    def bind_of(iter)
+      {
+        key: -iter[COLUMN_KEYBIND].to_s,
+        name: -iter[COLUMN_COMMAND].to_s,
+        slug: iter[COLUMN_SLUG].to_sym,
+        world:
+          if iter[COLUMN_WORLD]
+            iter[COLUMN_WORLD].uri&.to_s
+          end
+      }
+    end
+
+    def name_of(iter)
+      name = Plugin.filtering(:command, Hash.new).first[iter[COLUMN_SLUG].to_sym][:name]
+      name = name.call(nil) if name.is_a? Proc
+      name
+    end
 
     def key_box(results)
       container = ::Gtk::HBox.new(false, 0)
