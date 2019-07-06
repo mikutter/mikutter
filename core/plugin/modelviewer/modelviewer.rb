@@ -13,7 +13,7 @@ Plugin.create :modelviewer do
       if Plugin::GUI::Tab.exist?(tab_slug)
         Plugin::GUI::Tab.instance(tab_slug).active!
       else
-        tab(tab_slug, _('%<title>sについて') % {title: model.title}) do
+        tab(tab_slug, _('%{title}について') % {title: model.title}) do
           set_icon model.icon if model.respond_to?(:icon)
           set_deletable true
           temporary_tab true
