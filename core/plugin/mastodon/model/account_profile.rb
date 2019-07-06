@@ -6,7 +6,7 @@ module Plugin::Mastodon
     extend Memoist
     include Diva::Model::MessageMixin
 
-    register :mastodon_account_profile, name: "Mastodonアカウントプロフィール", timeline: true, myself: true
+    register :mastodon_account_profile, name: Plugin[:mastodon]._('Mastodonアカウントプロフィール'), timeline: true, myself: true
 
     field.has :account, Account, required: true
     alias :user :account

@@ -7,7 +7,7 @@ module Plugin::Mastodon
     extend Gem::Deprecate
     include Diva::Model::MessageMixin
 
-    register :mastodon_status, name: 'トゥート', timeline: true, reply: true, myself: true
+    register :mastodon_status, name: Plugin[:mastodon]._('トゥート'), timeline: true, reply: true, myself: true
 
     field.string :id, required: true
     field.string :original_uri, required: true # APIから取得するfediverse uniqueなURI文字列

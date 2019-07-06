@@ -22,24 +22,24 @@ require_relative 'score'
 Plugin.create(:mastodon) do
   pm = Plugin::Mastodon
 
-  defimageopener('Mastodon添付画像', %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
+  defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
     open(url)
   end
 
-  defimageopener('Mastodon添付画像（短縮）', %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+(?:\?\d+)?\Z>) do |url|
+  defimageopener(_('Mastodon添付画像（短縮）'), %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+(?:\?\d+)?\Z>) do |url|
     open(url)
   end
 
-  defimageopener('Mastodon添付画像(proxy)', %r<\Ahttps?://[^/]+/media_proxy/[0-9]+/(?:original|small)\z>) do |url|
+  defimageopener(_('Mastodon添付画像(proxy)'), %r<\Ahttps?://[^/]+/media_proxy/[0-9]+/(?:original|small)\z>) do |url|
     open(url)
   end
 
   defevent :mastodon_appear_toots, prototype: [[pm::Status]]
 
-  defactivity :mastodon_followings_update, "プロフィール・フォロー関係の取得通知(Mastodon)"
+  defactivity :mastodon_followings_update, _('プロフィール・フォロー関係の取得通知(Mastodon)')
 
   filter_extract_datasources do |dss|
-    datasources = { mastodon_appear_toots: "受信したすべてのトゥート(Mastodon)" }
+    datasources = { mastodon_appear_toots: _('受信したすべてのトゥート(Mastodon)') }
     [datasources.merge(dss)]
   end
 
@@ -48,16 +48,16 @@ Plugin.create(:mastodon) do
   end
 
   followings_updater = Proc.new do
-    activity(:mastodon_followings_update, "自分のプロフィールやフォロー関係を取得しています...")
+    activity(:mastodon_followings_update, _('自分のプロフィールやフォロー関係を取得しています...'))
     Plugin.filtering(:mastodon_worlds, nil).first.to_a.each do |world|
       Delayer::Deferred.when(
         world.update_account,
         world.blocks,
         world.followings(cache: false)
       ).next{
-        activity(:mastodon_followings_update, "自分のプロフィールやフォロー関係の取得が完了しました(#{world.account.acct})")
+        activity(:mastodon_followings_update, _('自分のプロフィールやフォロー関係の取得が完了しました(%{acct})') % {acct: world.account.acct})
         Plugin.call(:world_modify, world)
-      }.terminate("自分のプロフィールやフォロー関係が取得できませんでした(#{world.account.acct})")
+      }.terminate(_('自分のプロフィールやフォロー関係が取得できませんでした(%{acct})') % {acct: world.account.acct})
     end
 
     Reserver.new(10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
@@ -155,7 +155,7 @@ Plugin.create(:mastodon) do
   defmodelviewer(Plugin::Mastodon::Account) do |user|
     [
       [_('名前'), user.display_name],
-      ['acct', user.acct],
+      [_('acct'), user.acct],
       *user.fields&.map{|f|
         f.emojis ||= user.emojis
         [f.name, f]
@@ -245,7 +245,7 @@ Plugin.create(:mastodon) do
 
       instance = await pm::Instance.add_ifn(domain).trap{ nil }
       if instance.nil?
-        error_msg = "#{domain} サーバーへの接続に失敗しました。やり直してください。"
+        error_msg = _("%{domain} サーバーへの接続に失敗しました。やり直してください。") % {domain: domain}
         next
       end
 
@@ -257,11 +257,11 @@ Plugin.create(:mastodon) do
       if error_msg.is_a? String
         label error_msg
       end
-      label 'Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。'
+      label _('Webページにアクセスして表示された認証コードを入力して、次へボタンを押してください。')
       link instance.authorize_url
-      input '認証コード', :authorization_code
+      input _('認証コード'), :authorization_code
       if error_msg.is_a? String
-        input 'アクセストークンがあれば入力してください', :access_token
+        input _('アクセストークンがあれば入力してください'), :access_token
       end
       result = await_input
       if result[:authorization_code]
@@ -272,7 +272,7 @@ Plugin.create(:mastodon) do
       end
 
       if ((result[:authorization_code].nil? || result[:authorization_code].empty?) && (result[:access_token].nil? || result[:access_token].empty?))
-        error_msg = "認証コードを入力してください"
+        error_msg = _('認証コードを入力してください')
         next
       end
 
@@ -288,7 +288,7 @@ Plugin.create(:mastodon) do
                            code: result[:authorization_code]
                           )
       if resp.nil? || resp.value.has_key?(:error)
-        label "認証に失敗しました" + (resp && resp[:error] ? "：#{resp[:error]}" : '')
+        label _('認証に失敗しました。') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
         await_input
         raise (resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
       end
@@ -299,7 +299,7 @@ Plugin.create(:mastodon) do
 
     resp = pm::API.call!(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
-      label "アカウント情報の取得に失敗しました#{resp && resp[:error] ? "：#{resp[:error]}" : ''}"
+      label _('アカウント情報の取得に失敗しました') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
       raise (resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
     end
 
@@ -315,9 +315,9 @@ Plugin.create(:mastodon) do
     )
     world.update_mutes!
 
-    label '認証に成功しました。このアカウントを追加しますか？'
-    label('アカウント名：' + screen_name)
-    label('ユーザー名：' + resp[:display_name])
+    label _('認証に成功しました。このアカウントを追加しますか？')
+    label(_('アカウント名：%{screen_name}') % {screen_name: screen_name})
+    label(_('ユーザー名：%{display_name}') % {display_name: resp[:display_name]})
     world
   end
 end

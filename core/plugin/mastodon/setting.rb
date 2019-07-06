@@ -27,32 +27,32 @@ Plugin.create(:mastodon) do
 
   # 追加
   on_mastodon_instances_open_create_dialog do
-    dialog "サーバー設定の追加" do
+    dialog _('サーバー設定の追加') do
       error_msg = nil
       while true
         if error_msg
           label error_msg
         end
-        input "サーバーのドメイン", :domain
+        input _('サーバーのドメイン'), :domain
         result = await_input
         if result[:domain].empty?
-          error_msg = "ドメイン名を入力してください。"
+          error_msg = _('ドメイン名を入力してください。')
           next
         end
         if UserConfig[:mastodon_instances].has_key?(result[:domain])
-          error_msg = "既に登録済みのドメインです。入力し直してください。"
+          error_msg = _('既に登録済みのドメインです。入力し直してください。')
           next
         end
         instance = await pm::Instance.add(result[:domain]).trap{ nil }
         if instance.nil?
-          error_msg = "接続に失敗しました。もう一度確認してください。"
+          error_msg = _('接続に失敗しました。もう一度確認してください。')
           next
         end
 
         break
       end
       domain = result[:domain]
-      label "#{domain} サーバーを追加しました"
+      label _('%{domain} サーバーを追加しました') % {domain: domain}
       Plugin.call(:mastodon_restart_instance_stream, domain)
       Plugin.call(:mastodon_instance_created, domain)
     end
@@ -62,8 +62,8 @@ Plugin.create(:mastodon) do
   on_mastodon_instances_open_edit_dialog do |domain|
     config = UserConfig[:mastodon_instances][domain]
 
-    dialog "サーバー設定の編集" do
-      label "サーバーのドメイン： #{domain}"
+    dialog _('サーバー設定の編集') do
+      label _('サーバーのドメイン： %{domain}') % {domain: domain}
     end.next do |result|
       Plugin.call(:mastodon_update_instance, result.domain)
     end
@@ -72,27 +72,27 @@ Plugin.create(:mastodon) do
   # 削除
   on_mastodon_instances_delete_with_confirm do |domain|
     next if UserConfig[:mastodon_instances][domain].nil?
-    dialog "サーバー設定の削除" do
-      label "サーバー #{domain} を削除しますか？"
+    dialog _('サーバー設定の削除') do
+      label _('サーバー %{domain} を削除しますか？') % {domain: domain}
     end.next {
       Plugin.call(:mastodon_delete_instance, domain)
     }
   end
 
   # 設定
-  settings "Mastodon" do
-    settings "表示" do
-      boolean 'botアカウントにアイコンを表示する', :mastodon_show_subparts_bot
-      boolean 'ピン留めトゥートにアイコンを表示する', :mastodon_show_subparts_pin
-      boolean 'トゥートに公開範囲を表示する', :mastodon_show_subparts_visibility
+  settings _('Mastodon') do
+    settings _('表示') do
+      boolean _('botアカウントにアイコンを表示する'), :mastodon_show_subparts_bot
+      boolean _('ピン留めトゥートにアイコンを表示する'), :mastodon_show_subparts_pin
+      boolean _('トゥートに公開範囲を表示する'), :mastodon_show_subparts_visibility
     end
 
-    settings "接続" do
-      boolean 'ストリーミング接続する', :mastodon_enable_streaming
-      adjustment '接続間隔（分）', :mastodon_rest_interval, 1, 60*24
+    settings _('接続') do
+      boolean _('ストリーミング接続する'), :mastodon_enable_streaming
+      adjustment _('接続間隔（分）'), :mastodon_rest_interval, 1, 60*24
     end
 
-    settings "公開タイムライン" do
+    settings _('公開タイムライン') do
       treeview = Plugin::Mastodon::InstanceSettingList.new
       btn_add = Gtk::Button.new(Gtk::Stock::ADD)
       btn_delete = Gtk::Button.new(Gtk::Stock::DELETE)

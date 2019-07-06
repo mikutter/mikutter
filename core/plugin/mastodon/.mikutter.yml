@@ -3,19 +3,21 @@ slug: :mastodon
 depends:
   mikutter: '3.9.0'
   plugin:
-    - world
-    - spell
-    - gui
-    - gtk
-    - photo
-    - openimg
-    - settings
     - command
     - extract
+    - gtk
+    - gui
+    - modelviewer
+    - openimg
+    - photo
     - score
     - search
-    - modelviewer
+    - settings
+    - spell
+    - uitranslator
+    - world
 version: '1.0'
 author: cobodo
 name: Mastodon
 description: mikutterでMastodonへ接続するworldプラグインです。
+

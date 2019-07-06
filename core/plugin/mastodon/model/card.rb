@@ -1,7 +1,7 @@
 module Plugin::Mastodon
   # https://docs.joinmastodon.org/api/entities/#card
   class Card < Diva::Model
-    register :mastodon_card, name: "Mastodonカード"
+    register :mastodon_card, name: Plugin[:mastodon]._('Mastodonカード')
 
     field.uri :url, required: true
     field.string :title, required: true

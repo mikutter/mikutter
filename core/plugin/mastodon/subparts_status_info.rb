@@ -40,11 +40,11 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
   def visibility_text(visibility)
     case visibility
     when 'unlisted'
-      '未収載'
+      Plugin[:mastodon]._('未収載')
     when 'private'
-      '非公開'
+      Plugin[:mastodon]._('非公開')
     when 'direct'
-      'ダイレクト'
+      Plugin[:mastodon]._('ダイレクト')
     else
       ''
     end
@@ -76,7 +76,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
           context.translate(icon_size.width + margin, 0)
           layout = context.create_pango_layout
           layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
-          layout.text = "bot"
+          layout.text = Plugin[:mastodon]._('bot')
           bot_text_width = layout.extents[1].width / Pango::SCALE
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
           context.show_pango_layout(layout)
@@ -91,7 +91,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
           context.translate(icon_size.width + margin, 0)
           layout = context.create_pango_layout
           layout.font_description = helper.font_description(UserConfig[:mumble_basic_font])
-          layout.text = "ピン留め"
+          layout.text = Plugin[:mastodon]._('ピン留め')
           pin_text_width = layout.extents[1].width / Pango::SCALE
           context.set_source_rgb(*(UserConfig[:mumble_basic_color] || [0,0,0]).map{ |c| c.to_f / 65536 })
           context.show_pango_layout(layout)
