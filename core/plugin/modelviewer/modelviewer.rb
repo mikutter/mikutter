@@ -5,7 +5,7 @@ Plugin.create :modelviewer do
     model_class = Diva::Model(model_class) unless model_class.is_a?(Class)
     notice model_class
     intent(model_class,
-           label: _('%<model>sの詳細') % {model: model_class.name},
+           label: _('%{model}の詳細') % {model: model_class.spec&.name || model_class.name},
            slug: :"modelviewer:#{model_class.slug}"
           ) do |token|
       model = token.model
