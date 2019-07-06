@@ -1,0 +1,93 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# 
+# Translators:
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2017-09-19 18:30+0000\n"
+"Last-Translator: Jan-Peter Rühmann <jan-peter@ruehmann.name>\n"
+"Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../profile.rb:53
+msgid "%{user} のプロフィール"
+msgstr "Profil von %{user}"
+
+#: ../profile.rb:70
+msgid "最近のツイート"
+msgstr "jüngste Tweets"
+
+#: ../profile.rb:79
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr "Die jüngsten Tweets von @%{user} konnten nicht abgerufen werden."
+
+#: ../profile.rb:82 ../profile.rb:141
+msgid "ユーザについて"
+msgstr "Über Benutzer"
+
+#: ../profile.rb:106
+msgid "Web: %{url}"
+msgstr "Web: %{url}"
+
+#: ../profile.rb:109
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr "Twitter beigetreten: %{day}/%{month}/%{year} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)"
+
+#: ../profile.rb:137
+msgid "%{screen_name}(%{name})について"
+msgstr "Über %{screen_name} (%{name})"
+
+#: ../profile.rb:158
+msgid "ミュート"
+msgstr "Stumm"
+
+#: ../profile.rb:185
+msgid "関係を取得中"
+msgstr "Acquiring relationship"
+
+#: ../profile.rb:190
+msgid "それはあなたです！"
+msgstr "Das bist du!"
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしている"
+msgstr "Folgst du"
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしていない"
+msgstr "Folgst du nicht"
+
+#: ../profile.rb:216
+msgid "解除"
+msgstr "Entfernen"
+
+#: ../profile.rb:216
+msgid "ﾌｮﾛｰ"
+msgstr "Folgen"
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされている"
+msgstr "Gefolgt"
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされていない"
+msgstr "nicht gefolgt"
+
+#: ../profile.rb:251
+msgid "取得できませんでした"
+msgstr "Empfangsfehler"
+
+#: ../profile.rb:307
+msgid "ふぁぼが取得できませんでした"
+msgstr "konnte Favs nicht empfangen."

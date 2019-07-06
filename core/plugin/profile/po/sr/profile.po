@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2013-07-20 11:58+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Serbian (http://www.transifex.com/lindwurm/mikutter/language/sr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: sr\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../profile.rb:53
+msgid "%{user} のプロフィール"
+msgstr ""
+
+#: ../profile.rb:70
+msgid "最近のツイート"
+msgstr ""
+
+#: ../profile.rb:79
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr ""
+
+#: ../profile.rb:82 ../profile.rb:141
+msgid "ユーザについて"
+msgstr ""
+
+#: ../profile.rb:106
+msgid "Web: %{url}"
+msgstr ""
+
+#: ../profile.rb:109
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr ""
+
+#: ../profile.rb:137
+msgid "%{screen_name}(%{name})について"
+msgstr ""
+
+#: ../profile.rb:158
+msgid "ミュート"
+msgstr ""
+
+#: ../profile.rb:185
+msgid "関係を取得中"
+msgstr ""
+
+#: ../profile.rb:190
+msgid "それはあなたです！"
+msgstr ""
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしている"
+msgstr ""
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしていない"
+msgstr ""
+
+#: ../profile.rb:216
+msgid "解除"
+msgstr ""
+
+#: ../profile.rb:216
+msgid "ﾌｮﾛｰ"
+msgstr ""
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされている"
+msgstr ""
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされていない"
+msgstr ""
+
+#: ../profile.rb:251
+msgid "取得できませんでした"
+msgstr ""
+
+#: ../profile.rb:307
+msgid "ふぁぼが取得できませんでした"
+msgstr ""
