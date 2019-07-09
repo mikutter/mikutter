@@ -3,7 +3,10 @@
 Plugin.create :modelviewer do
   defdsl :defmodelviewer do |model_class, &block|
     model_class = Diva::Model(model_class) unless model_class.is_a?(Class)
-    notice model_class
+    filter_modelviewer_models do |models|
+      models << model_class.spec
+      [models]
+    end
     intent(model_class,
            label: _('%{model}の詳細') % {model: model_class.spec&.name || model_class.name},
            slug: :"modelviewer:#{model_class.slug}"
