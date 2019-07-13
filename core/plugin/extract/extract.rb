@@ -41,10 +41,9 @@ module Plugin::Extract
 
   class Calc
     def self.inherited(child)
-      Plugin.filtering(:extract_operator, Set.new).first
-
       child.class_eval do
-        this.operators.each { |operator|
+        operators = Plugin.filtering(:extract_operator, Set.new).first
+        operators.each { |operator|
           define_method(operator) do |other|
             self.__send__(other)
             @condition.(other, message: @message, operator: operator.slug, &operator)
@@ -58,15 +57,9 @@ module Plugin::Extract
       @message, @condition = message, condition
     end
 
-    def method_missing(method_name, *args)
-      operator = @operators.find{ |_| _.slug == method_name }
-      if operator
-        @condition.(*args, message: @message, operator: operator.slug, &operator)
-      else
-        super end end
-
     def call(*args)
-      @condition.(*args, message: @message) end
+      @condition.(*args, message: @message)
+    end
   end
 end
 
