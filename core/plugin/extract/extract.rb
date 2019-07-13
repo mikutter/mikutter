@@ -39,14 +39,23 @@ module Plugin::Extract
 
   Order = Struct.new(:slug, :name, :ordering)
 
-  class Calc < BasicObject
-    instance_methods.each { |method|
-      undef_method(method)
-    }
+  class Calc
+    def self.inherited(child)
+      Plugin.filtering(:extract_operator, Set.new).first
 
-    def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
+      child.class_eval do
+        this.operators.each { |operator|
+          define_method(operator) do |other|
+            self.__send__(other)
+            @condition.(other, message: @message, operator: operator.slug, &operator)
+          end
+        }
+      end
+    end
+
+    def initialize(message, condition)
       type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
-      @message, @condition, @operators = message, condition, operators
+      @message, @condition = message, condition
     end
 
     def method_missing(method_name, *args)
@@ -327,7 +336,7 @@ Plugin.create :extract do
       when Plugin::Extract::ExtensibleSexpCondition
         metamorphose_sexp(code: code, condition: condition)
       when Plugin::Extract::ExtensibleCondition
-        assign << "#{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])"
+        assign << "#{condition.slug} = Class.new(Plugin::Extract::Calc).new(message, extract_condition[:#{condition.slug}])"
         if condition.operator
           code
         else
