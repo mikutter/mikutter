@@ -39,7 +39,11 @@ module Plugin::Extract
 
   Order = Struct.new(:slug, :name, :ordering)
 
-  class Calc
+  class Calc < BasicObject
+    instance_methods.each { |method|
+      undef_method(method)
+    }
+
     def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
       type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
       @message, @condition, @operators = message, condition, operators
