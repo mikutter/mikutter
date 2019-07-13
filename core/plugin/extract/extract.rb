@@ -44,8 +44,7 @@ module Plugin::Extract
       child.class_eval do
         operators = Plugin.filtering(:extract_operator, Set.new).first
         operators.each { |operator|
-          define_method(operator) do |other|
-            self.__send__(other)
+          define_method(operator.slug) do |other|
             @condition.(other, message: @message, operator: operator.slug, &operator)
           end
         }
@@ -53,7 +52,7 @@ module Plugin::Extract
     end
 
     def initialize(message, condition)
-      type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
+      type_strict condition => Plugin::Extract::ExtensibleCondition
       @message, @condition = message, condition
     end
 
