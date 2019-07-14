@@ -139,7 +139,7 @@ module MikuTwitter::APIShortcuts
       if replyto
         replyto.each_ancestor.each do |m|
           forecast_receivers << m.user
-          forecast_receivers.merge(m.receive_user_screen_names.map{|sn| Plugin::Twitter::User.findbyidname(sn) }.compact)
+          forecast_receivers.merge(m.receive_user_idnames.map{|sn| Plugin::Twitter::User.findbyidname(sn) }.compact)
         end
       end
       mentions = text.match(%r[\A((?:@[a-zA-Z0-9_]+\s+)+)])

@@ -4,6 +4,8 @@
 Model用のmoduleで、これをincludeするとMessageに必要最低限のメソッドがロードされ、タイムラインなどに表示できるようになる。
 =end
 module Diva::Model::MessageMixin
+  extend Gem::Deprecate
+
   # この投稿がMentionで、自分が誰かに宛てたものであれば真
   # ==== Return
   # [true] 自分のMention
@@ -173,7 +175,9 @@ module Diva::Model::MessageMixin
     nil
   end
 
-  def receive_user_screen_names
+  def receive_user_idnames
     []
   end
+  alias :receive_user_screen_names :receive_user_idnames
+  deprecate :receive_user_screen_names, "receive_user_idnames", 2020, 7
 end

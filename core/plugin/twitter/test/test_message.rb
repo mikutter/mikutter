@@ -59,13 +59,13 @@ class TC_Message < Test::Unit::TestCase
     toshi = User.new(:id => 123456, :idname => 'toshi_a', :name => 'toshi')
     message = Message.new(:id => 11, :message => '@ha2ne39 @mikutter_bot hey, miku!', :user => toshi, :created => Time.now)
     assert_equal '@ha2ne39 @mikutter_bot hey, miku!', message[:message]
-    assert_equal ["ha2ne39", "mikutter_bot"], message.receive_user_screen_names
+    assert_equal ["ha2ne39", "mikutter_bot"], message.receive_user_idnames
   end
 
   must "receive user not detect" do
     toshi = User.new(:id => 123456, :idname => 'toshi_a', :name => 'toshi')
     message = Message.new(:id => 11, :message => 'nemui', :user => toshi, :created => Time.now)
-    assert message.receive_user_screen_names.empty?
+    assert message.receive_user_idnames.empty?
   end
 
   must "message to me" do

@@ -55,7 +55,7 @@ module Plugin::Twitter
       true
     end
 
-    def receive_user_screen_names
+    def receive_user_idnames
       [self[:recipient].idname]
     end
   end
