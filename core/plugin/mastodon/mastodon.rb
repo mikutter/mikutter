@@ -129,11 +129,14 @@ Plugin.create(:mastodon) do
 
   on_world_create do |world|
     if world.class.slug == :mastodon
+      slug = {id: Digest::SHA1.hexdigest(world.uri.to_s)}
+      name = {name: world.user_obj.acct}
       Plugin.call(:extract_tab_create, {
-                    name: _('ホームタイムライン (%{name})') % {name: world.user_obj.acct},
-                    slug: 'mastodon_htl_%{id}' % {id: Digest::SHA1.hexdigest(world.uri.to_s)},
+                    name: _('ホームタイムライン (%{name})') % name,
+                    slug: 'mastodon_htl_%{id}' % slug,
                     sources: [world.datasource_slug(:home)],
-                    icon: world.icon.uri,
+                    icon: Skin[:timeline].uri,
+                  })
                   })
     end
   end
