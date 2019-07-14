@@ -551,5 +551,8 @@ module Plugin::Mastodon
     end
     deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
 
+    def receive_user_idnames
+      mentions.map(&:acct).to_a
+    end
   end
 end
