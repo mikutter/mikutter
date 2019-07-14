@@ -105,12 +105,12 @@ Plugin.create :extract do
   command(:extract_edit,
           name: _('抽出条件を編集'),
           condition: lambda{ |opt|
-            opt.widget.slug.to_s =~ /\Aextract_(?:.+)\Z/
+            extract_tabs.values.any? { |es| es.slug == opt.widget.slug }
           },
           visible: true,
           role: :tab) do |opt|
-	extract_id = opt.widget.slug.to_s.match(/\Aextract_(.+)\Z/)[1].to_i
-    Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
+    extract = extract_tabs.values.find { |es| es.slug == opt.widget.slug }
+    Plugin.call(:extract_open_edit_dialog, extract.id) if extract
   end
 
   defdsl :defextractcondition do |slug, name: raise, operator: true, args: 0, sexp: nil, &block|

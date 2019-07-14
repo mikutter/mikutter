@@ -127,12 +127,21 @@ Plugin.create(:mastodon) do
     end
   end
 
+  on_world_create do |world|
+    if world.class.slug == :mastodon
+      Plugin.call(:extract_tab_create, {
+                    name: _('ホームタイムライン (%{name})') % {name: world.user_obj.acct},
+                    slug: 'mastodon_htl_%{id}' % {id: Digest::SHA1.hexdigest(world.uri.to_s)},
+                    sources: [world.datasource_slug(:home)],
+                    icon: world.icon.uri,
+                  })
+    end
+  end
+
   # world追加
   on_world_create do |world|
     if world.class.slug == :mastodon
-      Delayer.new {
-        Plugin.call(:mastodon_create_or_update_instance, world.domain, true)
-      }
+      Plugin.call(:mastodon_create_or_update_instance, world.domain, true)
     end
   end
 

@@ -10,6 +10,8 @@ module Plugin::Extract
   end
 
   class Setting < Diva::Model
+    register :extract_setting, name: '抽出タブ'
+
     field.string :name, required: true
     field.int :id, required: true
     field.string :slug, required: true
