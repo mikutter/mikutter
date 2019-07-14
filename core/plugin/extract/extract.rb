@@ -148,6 +148,12 @@ Plugin.create :extract do
 
   defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
+  defextractcondition(:receiver_idnames, name: _('宛先ユーザ名のいずれか一つ以上'), operator: true, args: 1) do |arg, message: raise, operator: raise, &compare|
+    message.receive_user_idnames.any? do |sn|
+      compare.(sn, arg)
+    end
+  end
+
   defextractorder(:created, name: _('投稿時刻')) do |model|
     model.created.to_i
   end
