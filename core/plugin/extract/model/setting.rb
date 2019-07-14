@@ -9,10 +9,7 @@ module Plugin::Extract
     end
   end
 
-  class Setting < Retriever::Model
-    include Retriever::Model::MessageMixin
-    include Retriever::Model::UserMixin
-
+  class Setting < Diva::Model
     field.string :name, required: true
     field.int :id, required: true
     field.string :slug, required: true
