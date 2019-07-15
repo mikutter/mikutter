@@ -137,6 +137,12 @@ Plugin.create(:mastodon) do
                     sources: [world.datasource_slug(:home)],
                     icon: Skin[:timeline].uri,
                   })
+      Plugin.call(:extract_tab_create, {
+                    name: _('メンション (%{name})') % name,
+                    slug: 'mastodon_mentions_%{id}' % slug,
+                    sources: [:mastodon_appear_toots],
+                    sexp: [:or, [:include?, :receiver_idnames, 'toshi_a']],
+                    icon: Skin[:reply].uri,
                   })
     end
   end
