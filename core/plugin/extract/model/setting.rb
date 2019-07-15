@@ -22,7 +22,7 @@ module Plugin::Extract
     field.uri :icon
 
     def initialize(hash)
-      hash[:id] ||= Time.now.to_i
+      hash[:id] ||= Time.now.to_i << 16 | rand(0..0xffff)
       hash[:slug] ||= "extract_#{hash[:id]}"
       hash[:sources] ||= []
       super(hash)
