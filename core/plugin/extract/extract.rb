@@ -224,6 +224,7 @@ Plugin.create :extract do
       prompt = dialog = nil } end
 
   on_extract_open_edit_dialog do |extract_slug|
+    extract_slug = extract_slug.to_sym
     window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_slug], self)
     event = on_extract_tab_update do |setting|
       if extract_slug == setting.slug && !window.destroyed?
