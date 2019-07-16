@@ -57,13 +57,8 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # ==== Return
   # レコードの配列
   def extract_tabs
-    UserConfig[:extract_tabs] || [] end
-
-  def gen_uniq_id(uniq_id = Time.now.to_i)
-    if extract_tabs.any?{ |x| x[:id] == uniq_id }
-      gen_uniq_id(uniq_id + 1)
-    else
-      uniq_id end end
+    Plugin.filtering(:extract_tabs_get, []).first
+  end
 
 # ==== buttons
 
