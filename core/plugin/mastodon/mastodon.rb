@@ -147,7 +147,7 @@ Plugin.create(:mastodon) do
                       name: _('メンション (%{name})') % name_param,
                       slug: mention_slug,
                       sources: [:mastodon_appear_toots],
-                      sexp: [:or, [:include?, :receiver_idnames, 'toshi_a']],
+                      sexp: [:or, [:include?, :receiver_idnames, world.user_obj.idname]],
                       icon: Skin[:reply].uri,
                     })
       end
