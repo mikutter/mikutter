@@ -129,21 +129,28 @@ Plugin.create(:mastodon) do
 
   on_world_create do |world|
     if world.class.slug == :mastodon
-      slug = {id: Digest::SHA1.hexdigest(world.uri.to_s)}
-      name = {name: world.user_obj.acct}
-      Plugin.call(:extract_tab_create, {
-                    name: _('ホームタイムライン (%{name})') % name,
-                    slug: 'mastodon_htl_%{id}' % slug,
-                    sources: [world.datasource_slug(:home)],
-                    icon: Skin[:timeline].uri,
-                  })
-      Plugin.call(:extract_tab_create, {
-                    name: _('メンション (%{name})') % name,
-                    slug: 'mastodon_mentions_%{id}' % slug,
-                    sources: [:mastodon_appear_toots],
-                    sexp: [:or, [:include?, :receiver_idnames, 'toshi_a']],
-                    icon: Skin[:reply].uri,
-                  })
+      slug_param = {id: Digest::SHA1.hexdigest(world.uri.to_s)}
+      name_param = {name: world.user_obj.acct}
+      htl_slug = ('mastodon_htl_%{id}' % slug_param).to_sym
+      mention_slug = ('mastodon_mentions_%{id}' % slug_param).to_sym
+      exists_slugs = Set.new(Plugin.filtering(:extract_tabs_get, []).first.map(&:slug))
+      if !exists_slugs.include?(htl_slug)
+        Plugin.call(:extract_tab_create, {
+                      name: _('ホームタイムライン (%{name})') % name_param,
+                      slug: htl_slug,
+                      sources: [world.datasource_slug(:home)],
+                      icon: Skin[:timeline].uri,
+                    })
+      end
+      if !exists_slugs.include?(mention_slug)
+        Plugin.call(:extract_tab_create, {
+                      name: _('メンション (%{name})') % name_param,
+                      slug: mention_slug,
+                      sources: [:mastodon_appear_toots],
+                      sexp: [:or, [:include?, :receiver_idnames, 'toshi_a']],
+                      icon: Skin[:reply].uri,
+                    })
+      end
     end
   end
 
