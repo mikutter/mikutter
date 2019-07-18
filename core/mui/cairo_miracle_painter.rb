@@ -36,6 +36,8 @@ class Gdk::MiraclePainter < Gtk::Object
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
   WHITE = ([0xffff]*3).freeze
   BLACK = [0, 0, 0].freeze
+  NUMERONYM_MATCHER = /[a-zA-Z]{4,}/.freeze
+  NUMERONYM_CONVERTER = ->(r) { "#{r[0]}#{r.size-2}#{r[-1]}" }
 
   attr_reader :message, :p_message, :tree, :selected
 
@@ -413,10 +415,7 @@ class Gdk::MiraclePainter < Gtk::Object
     return user.idname unless UserConfig[:idname_abbr]
     prefix, domain = user.idname.split('@', 2)
     if domain
-      [
-        prefix,
-        domain.gsub(/[a-zA-Z]{4,}/){|r| "#{r[0]}#{r.size-2}#{r[-1]}" }
-      ].join('@')
+      "#{prefix}@#{domain.gsub(NUMERONYM_MATCHER, &NUMERONYM_CONVERTER)}"
     else
       user.idname
     end
