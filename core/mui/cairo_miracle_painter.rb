@@ -403,9 +403,22 @@ class Gdk::MiraclePainter < Gtk::Object
   def header_left_markup
     user = message.user
     if user.respond_to?(:idname)
-      Pango.parse_markup("<b>#{Pango.escape(user.idname)}</b> #{Pango.escape(user.name || '')}")
+      Pango.parse_markup("<b>#{Pango.escape(rinsuki_abbr(user))}</b> #{Pango.escape(user.name || '')}")
     else
       Pango.parse_markup(Pango.escape(user.name || ''))
+    end
+  end
+
+  def rinsuki_abbr(user)
+    return user.idname unless UserConfig[:idname_abbr]
+    prefix, domain = user.idname.split('@', 2)
+    if domain
+      [
+        prefix,
+        domain.gsub(/[a-zA-Z]{4,}/){|r| "#{r[0]}#{r.size-2}#{r[-1]}" }
+      ].join('@')
+    else
+      user.idname
     end
   end
 

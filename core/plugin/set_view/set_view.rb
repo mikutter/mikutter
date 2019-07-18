@@ -57,7 +57,10 @@ Plugin::create(:set_view) do
         option 2, _('2倍')
         option :auto, _('自動（%<scale>.2f倍）') % {scale: Gdk::Visual.system.screen.resolution / 100}
       end
+
+      boolean(_('acctのドメイン名をりんすきにする'), :idname_abbr)
     end
+
     Plugin.filtering(:retrievers, []).first.select(&:timeline).each do |modelspec|
       slug = modelspec[:slug]
       settings(_(modelspec[:name])) do
