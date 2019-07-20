@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-21 15:47+0000\n"
-"Last-Translator: Vel <veloci85@gmail.com>\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -106,42 +106,34 @@ msgid "リアルタイム更新"
 msgstr "即時更新"
 
 #: ../basic_settings.rb:44
-msgid "ホームタイムライン(UserStream)"
-msgstr "主要時間軸 (UserStream)"
-
-#: ../basic_settings.rb:45
-msgid "Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります"
-msgstr "使用 Twitter 的 UserStream API，即時取得發推、關注等事件的更新"
-
-#: ../basic_settings.rb:46
 msgid "リスト(Streaming API)"
 msgstr "使用者列表 (串流 API)"
 
-#: ../basic_settings.rb:47
+#: ../basic_settings.rb:45
 msgid "Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります"
 msgstr "使用 Twitter 的串流 API，即時取得列表等資料的更新"
 
-#: ../basic_settings.rb:50
+#: ../basic_settings.rb:48
 msgid "リプライ元をサーバに問い合わせて取得する"
 msgstr "由伺服器取得被回覆的推文"
 
-#: ../basic_settings.rb:51
+#: ../basic_settings.rb:49
 msgid "つぶやきの取得漏れを防止する（遅延対策）"
 msgstr "預防漏推（延遲對策）"
 
-#: ../basic_settings.rb:52
+#: ../basic_settings.rb:50
 msgid "遅延に強くなりますが、ちょっと遅くなります。"
 msgstr "這個選項能防止推文取得的延遲，但會稍微變得慢一點"
 
-#: ../basic_settings.rb:54
+#: ../basic_settings.rb:52
 msgid "%s について"
 msgstr "關於 %s"
 
-#: ../basic_settings.rb:57
+#: ../basic_settings.rb:55
 msgid "2009-%s Toshiaki Asai"
 msgstr "2009-%s Toshiaki Asai"
 
-#: ../basic_settings.rb:58
+#: ../basic_settings.rb:56
 msgid ""
 "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n"
 "略して至高のTwitter Client。\n"
@@ -150,9 +142,9 @@ msgid ""
 "このソフトウェアは %{license} によって浄化されています。"
 msgstr "獻給所有 Miku 飯與推特成癮者，以頂級 Twitter Client 為目標的Twitter Client。\n簡稱頂級 Twitter Client。\n我們家 Miku 超可愛的有沒有\n\n本軟體已經由 %{license} 淨化完畢。"
 
-#: ../basic_settings.rb:60
+#: ../basic_settings.rb:58
 msgid "https://mikutter.hachune.net/"
-msgstr "https://mikutter.hachune.net/"
+msgstr ""
 
 #: ../settings.rb:11 ../settings.rb:24
 msgid "設定"

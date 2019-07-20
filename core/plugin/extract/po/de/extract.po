@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the extract package.
 # 
 # Translators:
-# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016
+# Jan-Peter Rühmann <jan-peter@ruehmann.name>, 2016,2018
 msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: German (http://www.transifex.com/lindwurm/mikutter/language/de/)\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../edit_window.rb:19 ../edit_window.rb:99
+#: ../edit_window.rb:19 ../edit_window.rb:107
 msgid "%{name} - 抽出タブ - %{application_name}"
 msgstr "%{name} - gefiltertes Tab - %{application_name}"
 
@@ -34,7 +34,7 @@ msgstr "Kriterium"
 msgid "オプション"
 msgstr "Optionen"
 
-#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:19
+#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:18
 msgid "名前"
 msgstr "Name"
 
@@ -50,15 +50,35 @@ msgstr "Benachrichtigung"
 msgid "サウンド"
 msgstr "Sound"
 
-#: ../edit_window.rb:87
+#: ../edit_window.rb:89
+msgid "非圧縮音声ファイル (*.wav, *.aiff)"
+msgstr ""
+
+#: ../edit_window.rb:90
+msgid "FLAC (*.flac, *.fla)"
+msgstr ""
+
+#: ../edit_window.rb:91
+msgid "MPEG-1/2 Audio Layer-3 (*.mp3)"
+msgstr ""
+
+#: ../edit_window.rb:92
+msgid "Ogg (*.ogg)"
+msgstr ""
+
+#: ../edit_window.rb:93
+msgid "全てのファイル"
+msgstr ""
+
+#: ../edit_window.rb:95
 msgid "ポップアップ"
 msgstr "Popup"
 
-#: ../edit_window.rb:89
+#: ../edit_window.rb:97
 msgid "並び順"
-msgstr ""
+msgstr "Sortieren nach"
 
-#: ../edit_window.rb:94
+#: ../edit_window.rb:102
 msgid "閉じる"
 msgstr "Schliessen"
 
@@ -100,11 +120,11 @@ msgstr "Twitter Client Name"
 
 #: ../extract.rb:146
 msgid "投稿時刻"
-msgstr ""
+msgstr "Erstellungszeitpunkt"
 
 #: ../extract.rb:150
 msgid "投稿時刻 (ふぁぼやリツイートでageる)"
-msgstr ""
+msgstr "Erstellungszeitpunkt (Fehler oder Retweet), Erstellungszeitpunkt (Alter in Fabo und Retweets)."
 
 #: ../extract.rb:187
 msgid "本当に抽出タブ「%{name}」を削除しますか？"

@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-21 15:43+0000\n"
-"Last-Translator: Vel <veloci85@gmail.com>\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,266 +23,304 @@ msgid "表示"
 msgstr "檢視"
 
 #: ../set_view.rb:46
+msgid "カスタム絵文字"
+msgstr ""
+
+#: ../set_view.rb:47
+msgid "カスタム絵文字を表示する"
+msgstr ""
+
+#: ../set_view.rb:48
+msgid ""
+"本文にカスタム絵文字(Emoji Note)が含まれていれば、その画像を取得して表示します。\n"
+"無効にすれば、画像のダウンロードは発生せず代替テキストが表示されるので、そのぶん通信トラフィックを抑えることができます。"
+msgstr ""
+
+#: ../set_view.rb:50
 msgid "選択中"
 msgstr "選取的推文"
 
-#: ../set_view.rb:47 ../set_view.rb:58 ../set_view.rb:63 ../set_view.rb:69
-#: ../set_view.rb:75 ../set_view.rb:82 ../set_view.rb:103
+#: ../set_view.rb:51 ../set_view.rb:70 ../set_view.rb:75 ../set_view.rb:81
+#: ../set_view.rb:87 ../set_view.rb:94 ../set_view.rb:115
 msgid "背景色"
 msgstr "背景色"
 
-#: ../set_view.rb:52
+#: ../set_view.rb:53
+msgid "共通"
+msgstr ""
+
+#: ../set_view.rb:54
+msgid "UIの拡大率"
+msgstr ""
+
+#: ../set_view.rb:55
+msgid "等倍"
+msgstr ""
+
+#: ../set_view.rb:56
+msgid "1.5倍"
+msgstr ""
+
+#: ../set_view.rb:57
+msgid "2倍"
+msgstr ""
+
+#: ../set_view.rb:58
+msgid "自動（%<scale>.2f倍）"
+msgstr ""
+
+#: ../set_view.rb:64
 msgid "デフォルト"
 msgstr "預設"
 
-#: ../set_view.rb:53 ../set_view.rb:81 ../set_view.rb:102
+#: ../set_view.rb:65 ../set_view.rb:93 ../set_view.rb:114
 msgid "フォント"
 msgstr "字型"
 
-#: ../set_view.rb:54
+#: ../set_view.rb:66
 msgid "本文"
 msgstr "本文"
 
-#: ../set_view.rb:55
+#: ../set_view.rb:67
 msgid "ヘッダ（左）"
 msgstr "標頭（左）"
 
-#: ../set_view.rb:56
+#: ../set_view.rb:68
 msgid "ヘッダ（右）"
 msgstr "標頭（右）"
 
-#: ../set_view.rb:62
+#: ../set_view.rb:74
 msgid "自分宛の%{retriever}"
 msgstr "收到的%{retriever}"
 
-#: ../set_view.rb:68
+#: ../set_view.rb:80
 msgid "自分の%{retriever}"
 msgstr "自己的%{retriever}"
 
-#: ../set_view.rb:76 ../set_view.rb:101
+#: ../set_view.rb:88 ../set_view.rb:113
 msgid "コメント付きリツイート"
 msgstr "帶評論的轉推"
 
-#: ../set_view.rb:77
+#: ../set_view.rb:89
 msgid "コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです"
 msgstr "評論加轉推的時候，推文下面不是有個框框會顯示原推嗎？就是那個東西"
 
-#: ../set_view.rb:80
+#: ../set_view.rb:92
 msgid "リプライ先"
 msgstr "回覆的原推"
 
-#: ../set_view.rb:84 ../set_view.rb:105
+#: ../set_view.rb:96 ../set_view.rb:117
 msgid "表示項目"
 msgstr "顯示項目"
 
-#: ../set_view.rb:85 ../set_view.rb:106
+#: ../set_view.rb:97 ../set_view.rb:118
 msgid "ヘッダを表示する"
 msgstr "顯示標頭"
 
-#: ../set_view.rb:86 ../set_view.rb:107
+#: ../set_view.rb:98 ../set_view.rb:119
 msgid "アイコンを表示する"
 msgstr "顯示圖示"
 
-#: ../set_view.rb:87 ../set_view.rb:108
+#: ../set_view.rb:99 ../set_view.rb:120
 msgid "アイコンのサイズ"
 msgstr "圖示大小"
 
-#: ../set_view.rb:90 ../set_view.rb:111
+#: ../set_view.rb:102 ../set_view.rb:123
 msgid "枠線を表示する"
 msgstr "顯示邊框"
 
-#: ../set_view.rb:91 ../set_view.rb:112
+#: ../set_view.rb:103 ../set_view.rb:124
 msgid "枠線の種類"
 msgstr "框線種類"
 
-#: ../set_view.rb:91 ../set_view.rb:112
+#: ../set_view.rb:103 ../set_view.rb:124
 msgid "影"
 msgstr "影"
 
-#: ../set_view.rb:91 ../set_view.rb:112
+#: ../set_view.rb:103 ../set_view.rb:124
 msgid "線"
 msgstr "線"
 
-#: ../set_view.rb:91 ../set_view.rb:112
+#: ../set_view.rb:103 ../set_view.rb:124
 msgid "枠線なし"
 msgstr "無框線"
 
-#: ../set_view.rb:93 ../set_view.rb:114
+#: ../set_view.rb:105 ../set_view.rb:126
 msgid "本文の最大行数"
 msgstr "本文最大行數"
 
-#: ../set_view.rb:95 ../set_view.rb:116
+#: ../set_view.rb:107 ../set_view.rb:128
 msgid "クリックされたときの挙動"
 msgstr "點擊時的動作"
 
-#: ../set_view.rb:96 ../set_view.rb:117
+#: ../set_view.rb:108 ../set_view.rb:129
 msgid "何もしない"
 msgstr "什麼都不做"
 
-#: ../set_view.rb:97 ../set_view.rb:118
+#: ../set_view.rb:109 ../set_view.rb:130
 msgid "開く"
 msgstr "開啟"
 
-#: ../set_view.rb:98 ../set_view.rb:119
+#: ../set_view.rb:110 ../set_view.rb:131
 msgid "会話スレッドを表示"
 msgstr "顯示對話串"
 
-#: ../set_view.rb:122
+#: ../set_view.rb:134
 msgid "Mentions"
 msgstr "提及"
 
-#: ../set_view.rb:123
+#: ../set_view.rb:135
 msgid "リプライを返したつぶやきにはアイコンを表示"
 msgstr "在已回覆的推文上顯示圖示"
 
-#: ../set_view.rb:124
+#: ../set_view.rb:136
 msgid "リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"
 msgstr "已回覆推文上的回覆按鈕會維持在顯示狀態"
 
-#: ../set_view.rb:127
+#: ../set_view.rb:139
 msgid "ふぁぼふぁぼ"
 msgstr "表示喜歡"
 
-#: ../set_view.rb:128
+#: ../set_view.rb:140
 msgid "ふぁぼられをリプライの受信として処理する"
 msgstr "將被喜歡的推文視為回覆"
 
-#: ../set_view.rb:129
+#: ../set_view.rb:141
 msgid "ふぁぼられたつぶやきが、リプライタブに現れるようになります。"
 msgstr "被人喜歡的推文會顯示在回覆頁籤"
 
-#: ../set_view.rb:130
+#: ../set_view.rb:142
 msgid "ふぁぼられたつぶやきをTL上でageる"
 msgstr "將被喜歡的推文拉到時間軸頂端"
 
-#: ../set_view.rb:131
+#: ../set_view.rb:143
 msgid "つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"
 msgstr "無視原推的發推時間，只要推文被喜歡就會出現在時間軸最上面"
 
-#: ../set_view.rb:132
+#: ../set_view.rb:144
 msgid "自分がふぁぼったつぶやきをTL上でageる"
 msgstr "將自己喜歡的推文拉到時間軸頂端"
 
-#: ../set_view.rb:133
+#: ../set_view.rb:145
 msgid "自分がふぁぼったつぶやきを、TLの一番上に上げます"
 msgstr "自己喜歡的推文也會出現在時間軸的最上方"
 
-#: ../set_view.rb:136
+#: ../set_view.rb:148
 msgid "Retweets"
 msgstr "轉推"
 
-#: ../set_view.rb:137
+#: ../set_view.rb:149
 msgid "リツイートされたつぶやきをTL上でageる"
 msgstr "將被轉推的推文拉到時間軸頂端"
 
-#: ../set_view.rb:138
+#: ../set_view.rb:150
 msgid "つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"
 msgstr "無視原推的發推時間，只要推文被轉推就會出現在時間軸最上面"
 
-#: ../set_view.rb:139
+#: ../set_view.rb:151
 msgid "自分がリツイートしたつぶやきをTL上でageる"
 msgstr "將自己轉推的推文拉到時間軸頂端"
 
-#: ../set_view.rb:140
+#: ../set_view.rb:152
 msgid "自分がリツイートしたつぶやきを、TLの一番上に上げます"
 msgstr "自己轉推的推文也會出現在時間軸最上面"
 
-#: ../set_view.rb:143
+#: ../set_view.rb:155
 msgid "非公開アカウント"
 msgstr "非公開帳號"
 
-#: ../set_view.rb:144
+#: ../set_view.rb:156
 msgid "非公開アカウントのつぶやきにはアイコンを表示"
 msgstr "在非公開帳號的推文上顯示圖示"
 
-#: ../set_view.rb:145
+#: ../set_view.rb:157
 msgid "非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"
 msgstr "在非公開帳號的推文上顯示無法轉推的圖示"
 
-#: ../set_view.rb:148
+#: ../set_view.rb:160
 msgid "承認済みアカウント"
 msgstr "已認證帳號"
 
-#: ../set_view.rb:149
+#: ../set_view.rb:161
 msgid "承認済みアカウントのつぶやきにはアイコンを表示"
 msgstr "在已認證帳號的推文上顯示圖示"
 
-#: ../set_view.rb:150
+#: ../set_view.rb:162
 msgid "Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"
 msgstr "在 Twitter 認證帳號所發布的推文上顯示標示已認證帳號的圖示。"
 
-#: ../set_view.rb:153
+#: ../set_view.rb:165
 msgid "短縮URL"
 msgstr "縮短網址"
 
-#: ../set_view.rb:154
+#: ../set_view.rb:166
 msgid "短縮URLを展開して表示"
 msgstr "將縮短的網址還原"
 
-#: ../set_view.rb:155
+#: ../set_view.rb:167
 msgid "受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"
 msgstr "取得的推文內含有縮短網址時，會改為顯示縮址前的原始網址"
 
-#: ../set_view.rb:158
+#: ../set_view.rb:170
 msgid "タブの位置"
 msgstr "頁籤位置"
 
-#: ../set_view.rb:158
+#: ../set_view.rb:170
 msgid "上"
 msgstr "上"
 
-#: ../set_view.rb:158
+#: ../set_view.rb:170
 msgid "下"
 msgstr "下"
 
-#: ../set_view.rb:158
+#: ../set_view.rb:170
 msgid "左"
 msgstr "左"
 
-#: ../set_view.rb:158
+#: ../set_view.rb:170
 msgid "右"
 msgstr "右"
 
-#: ../set_view.rb:160
+#: ../set_view.rb:172
 msgid "投稿ボックス"
 msgstr "發推欄位"
 
-#: ../set_view.rb:160 ../set_view.rb:162
+#: ../set_view.rb:172 ../set_view.rb:174
 msgid "常に表示する"
 msgstr "總是顯示"
 
-#: ../set_view.rb:160 ../set_view.rb:162
+#: ../set_view.rb:172 ../set_view.rb:174
 msgid "表示しない"
 msgstr "不顯示"
 
-#: ../set_view.rb:160
+#: ../set_view.rb:172
 msgid "1アカウント以上あれば表示"
 msgstr "有１個以上的帳號時顯示"
 
-#: ../set_view.rb:162
+#: ../set_view.rb:174
 msgid "アカウント切り替え"
 msgstr "切換帳號"
 
-#: ../set_view.rb:162
+#: ../set_view.rb:174
 msgid "2アカウント以上あれば表示"
 msgstr "有２個以上的帳號時顯示"
 
-#: ../set_view.rb:164
+#: ../set_view.rb:176
 msgid "URLを開く方法"
 msgstr "URL開啟方式"
 
-#: ../set_view.rb:165
+#: ../set_view.rb:177
 msgid "デフォルトブラウザを使う"
 msgstr "使用預設瀏覽器"
 
-#: ../set_view.rb:167
+#: ../set_view.rb:179
 msgid "次のコマンドを使う"
 msgstr "使用以下指令"
 
-#: ../set_view.rb:171
+#: ../set_view.rb:183
 msgid "タイムライン"
 msgstr "時間軸"
 
-#: ../set_view.rb:172
+#: ../set_view.rb:184
 msgid "最大表示件数"
 msgstr "推文顯示數量上限"

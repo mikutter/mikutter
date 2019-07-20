@@ -10,9 +10,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2017-09-19 18:29+0000\n"
-"Last-Translator: shinmili <rmsk.pl.ur.lpt@gmail.com>\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: English (http://www.transifex.com/lindwurm/mikutter/language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,45 +25,37 @@ msgid "実績"
 msgstr "Achievement"
 
 #: ../achievement.rb:105
-msgid "Twitterアカウントをmikutterに登録しました。これでTwitterが捗る"
-msgstr "Your twitter account has got connected to mikutter. This will be much helpful to your twitter life!"
+msgid "mikutterにアカウントを登録した"
+msgstr ""
 
-#: ../achievement.rb:112
+#: ../achievement.rb:114
 msgid "設定画面で、mikutterをカスタマイズしましょう。"
 msgstr "Let's customize mikutter from the settings window."
 
-#: ../achievement.rb:113
+#: ../achievement.rb:115
 msgid "画面右下にあるレンチのアイコンをクリックしよう"
 msgstr "Click the wrench icon at the bottom right corner of the window."
 
-#: ../achievement.rb:120
-msgid "ヾ(＠⌒ー⌒＠)ノ"
-msgstr "ヾ(＠⌒ー⌒＠)ノ"
-
-#: ../achievement.rb:121
-msgid "https://github.com/toshia/display_requirements"
-msgstr "https://github.com/toshia/display_requirements"
-
-#: ../achievement.rb:129
+#: ../achievement.rb:122
 msgid "新規ペインを追加コマンドでペインを増やせます"
 msgstr "You can create a new pane by clicking \"add a new pane.\""
 
-#: ../achievement.rb:130
+#: ../achievement.rb:123
 msgid "タブを右クリックして、「新規ペインに移動」をクリックしてみよう"
 msgstr "Right-click the tab and click \"Move to new pane.\""
 
-#: ../achievement.rb:138
+#: ../achievement.rb:131
 msgid "タブを別のペインにドラッグすれば、そのペインに移動できます"
 msgstr "You can move tab by dragging it from pane to pane."
 
-#: ../achievement.rb:139
+#: ../achievement.rb:132
 msgid "二つ以上ペインがある時に、タブを別のペインにドラッグ＆ドロップしてみましょう"
 msgstr "Try to drag and drop the tab between panes when there are two or more panes."
 
-#: ../achievement.rb:149
+#: ../achievement.rb:142
 msgid "クラッシュレポートの報告ありがとうございます"
 msgstr "Thank you for sending your crash report."
 
-#: ../achievement.rb:180
+#: ../achievement.rb:173
 msgid "実績 %s を達成しました！おめでとう♪"
 msgstr "Congratulations♪ You have attained achievement %s!"

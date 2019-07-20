@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2017-09-19 18:29+0000\n"
-"Last-Translator: Vergil Gefenbauer <sephiroth8719@gmail.com>\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
+"Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,50 +30,70 @@ msgstr "弹出窗口"
 msgid "サウンド"
 msgstr "声音"
 
-#: ../notify.rb:13
+#: ../notify.rb:14
+msgid "非圧縮音声ファイル (*.wav, *.aiff)"
+msgstr ""
+
+#: ../notify.rb:15
+msgid "FLAC (*.flac, *.fla)"
+msgstr ""
+
+#: ../notify.rb:16
+msgid "MPEG-1/2 Audio Layer-3 (*.mp3)"
+msgstr ""
+
+#: ../notify.rb:17
+msgid "Ogg (*.ogg)"
+msgstr ""
+
+#: ../notify.rb:18
+msgid "全てのファイル"
+msgstr ""
+
+#: ../notify.rb:21
 msgid "フレンドタイムライン"
 msgstr "好友时间线"
 
-#: ../notify.rb:14
+#: ../notify.rb:22
 msgid "リプライ"
 msgstr "回复"
 
-#: ../notify.rb:15
+#: ../notify.rb:23
 msgid "フォローされたとき"
 msgstr "被关注时"
 
-#: ../notify.rb:16
+#: ../notify.rb:24
 msgid "フォロー解除されたとき"
 msgstr "被解除关注时"
 
-#: ../notify.rb:17
+#: ../notify.rb:25
 msgid "リツイートされたとき"
 msgstr "被转推时"
 
-#: ../notify.rb:18
+#: ../notify.rb:26
 msgid "ふぁぼられたとき"
 msgstr "被加星时"
 
-#: ../notify.rb:19
+#: ../notify.rb:27
 msgid "ダイレクトメッセージ受信"
 msgstr "收到DM"
 
-#: ../notify.rb:20
+#: ../notify.rb:28
 msgid "通知を表示し続ける秒数"
 msgstr "显示通知时间（秒）"
 
-#: ../notify.rb:44
+#: ../notify.rb:52
 msgid "%{users} にフォローされました。"
 msgstr "被 %{user} 关注了。"
 
-#: ../notify.rb:51
+#: ../notify.rb:59
 msgid "%{users} にリムーブされました。"
 msgstr "被 %{user} 无视了。"
 
-#: ../notify.rb:58
+#: ../notify.rb:66
 msgid "fav by %{from_user} \"%{tweet}\""
 msgstr "被 %{from_user} 加星：\"%{tweet}\""
 
-#: ../notify.rb:69
+#: ../notify.rb:77
 msgid "ReTweet: %{tweet}"
 msgstr "被转推：%{tweet}"
