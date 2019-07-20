@@ -263,7 +263,7 @@ Plugin.create(:twitter) do
     if reply?
       @to.first.each_ancestor.each do |m|
         forecast_receivers_sn << m.user.idname
-        forecast_receivers_sn.merge(m.receive_user_screen_names)
+        forecast_receivers_sn.merge(m.receive_user_idnames)
       end
     end
     if mentions
