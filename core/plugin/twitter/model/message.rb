@@ -242,6 +242,8 @@ class Plugin::Twitter::Message < Diva::Model
   # 宛てられたユーザの idname(screen_name) の配列
   def receive_user_idnames
     self[:message].to_s.scan(MentionMatcher).map(&:first) end
+  alias :receive_user_screen_names :receive_user_idnames
+  deprecate :receive_user_screen_names, "receive_user_idnames", 2020, 7
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?
