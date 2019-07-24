@@ -95,12 +95,12 @@ Plugin.create :extract do
                                      Plugin.call(:extract_tab_delete_with_confirm, slug)
                                    end
                                    true } })))
-    Plugin.create :extract do
-      add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
-      delete_tab_observer = on_extract_tab_delete(&tablist.method(:remove_record))
-      tablist.ssc(:destroy) do
-        detach add_tab_observer
-        detach delete_tab_observer end end
+    add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
+    delete_tab_observer = on_extract_tab_delete(&tablist.method(:remove_record))
+    tablist.ssc(:destroy) do
+      detach add_tab_observer
+      detach delete_tab_observer
+    end
   end
 
   command(:extract_edit,
