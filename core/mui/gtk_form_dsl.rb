@@ -499,7 +499,7 @@ module Gtk::FormDSL
         end
       end
 
-      dialog.ssc_atonce(:response, &gen_fs_dialog_response_callback(config, &result_callback))
+      dialog.ssc_atonce(:response, self, &gen_fs_dialog_response_callback(config, &result_callback))
       dialog.show_all
       false
     end
