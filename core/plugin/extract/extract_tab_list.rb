@@ -33,8 +33,8 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # self
   def add_record(record)
     iter = model.append
-    iter[Plugin::Extract::ExtractTabList::ITER_NAME] = record.name
-    iter[Plugin::Extract::ExtractTabList::ITER_SLUG] = record.slug
+    iter[Plugin::Extract::ExtractTabList::ITER_NAME] = record[:name]
+    iter[Plugin::Extract::ExtractTabList::ITER_SLUG] = record[:slug]
     self
   end
 
