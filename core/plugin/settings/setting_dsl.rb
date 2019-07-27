@@ -44,4 +44,45 @@ class Plugin::Settings::SettingDSL < Gtk::VBox
     Plugin::Settings::Listener[key].set(value)
   end
 
+  def add_event(event_name, **kwrest, &callback)
+    kwrest[:tags] = [*kwrest[:tags], default_handler_tag]
+    Plugin[:settings].add_event(event_name, **kwrest, &callback)
+  end
+
+  def add_event_filter(event_name, **kwrest, &callback)
+    kwrest[:tags] = [*kwrest[:tags], default_handler_tag]
+    Plugin[:settings].add_event_filter(event_name, **kwrest, &callback)
+  end
+
+  # マジックメソッドを追加する。
+  # on_?name :: add_event(name)
+  # filter_?name :: add_event_filter(name)
+  def method_missing(method, *args, **kwrest, &proc)
+    method_name = method.to_s
+    case
+    when method_name.start_with?('on')
+      event_name = method_name[(method_name[2] == '_' ? 3 : 2)..method_name.size]
+      add_event(event_name.to_sym, *args, **kwrest, &proc)
+    when method_name.start_with?('filter')
+      event_name = method_name[(method_name[6] == '_' ? 7 : 6)..method_name.size]
+      add_event_filter(event_name.to_sym, **kwrest, &proc)
+    else
+      if kwrest.empty?
+        super(method, *args, &proc)
+      else
+        super(method, *args, **kwrest, &proc)
+      end
+    end
+  end
+
+  private
+
+  def default_handler_tag
+    @default_handler_tag ||= Plugin[:settings].handler_tag.tap do |tag|
+      ssc(:destroy) do
+        Plugin[:settings].detach(tag)
+        false
+      end
+    end
+  end
 end

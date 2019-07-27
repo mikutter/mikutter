@@ -109,21 +109,17 @@ Plugin.create(:mastodon) do
       scrollbar = ::Gtk::VScrollbar.new(treeview.vadjustment)
       pack_start(
         Gtk::HBox.new(false, 4).
-        add(treeview).
-        closeup(scrollbar).
-        closeup(
-          Gtk::VBox.new.
-          closeup(btn_add).
-          closeup(btn_delete)))
-      Plugin.create :mastodon do
-        pm = Plugin::Mastodon
-
-        add_tab_observer = on_mastodon_instance_created(&treeview.method(:add_record))
-        delete_tab_observer = on_mastodon_delete_instance(&treeview.method(:remove_record))
-        treeview.ssc(:destroy) do
-          detach add_tab_observer
-          detach delete_tab_observer
-        end
+          add(treeview).
+          closeup(scrollbar).
+          closeup(
+            Gtk::VBox.new.
+              closeup(btn_add).
+              closeup(btn_delete)))
+      add_tab_observer = on_mastodon_instance_created(&treeview.method(:add_record))
+      delete_tab_observer = on_mastodon_delete_instance(&treeview.method(:remove_record))
+      treeview.ssc(:destroy) do
+        detach add_tab_observer
+        detach delete_tab_observer
       end
     end
   end
