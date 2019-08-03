@@ -45,4 +45,4 @@ done
 #   export GEM_PATH="$GEM_PATH:$d/vendor/bundler/ruby/2.3.0"
 # done
 
-exec "$APPDIR"/usr/bin/ruby "$APPDIR"/usr/share/mikutter/mikutter.rb "$@"
+exec "$APPDIR"/usr/bin/ruby -x "$APPDIR"/usr/share/mikutter/mikutter.rb "$@"
