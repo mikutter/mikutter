@@ -145,7 +145,7 @@ Plugin.create :extract do
 
   defextractcondition(:user, name: _('ユーザ名'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (idname (user message)) ,(car args))"))
 
-  defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (to_s message) ,(car args))"))
+  defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (description message) ,(car args))"))
 
   defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
