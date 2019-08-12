@@ -181,9 +181,7 @@ Plugin.create :extract do
     extract_tabs[setting.slug] = setting
     tab(setting.slug).set_icon setting.icon.to_s if setting.icon?
     oo = setting.find_ordering_obj
-    if oo
-      timeline(setting.slug).order(&setting.find_ordering_obj.ordering)
-    end
+    timeline(setting.slug).order(&oo.ordering) if oo
     modify_extract_tabs end
 
   on_extract_tab_delete do |slug|
