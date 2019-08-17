@@ -4,9 +4,12 @@ module Mainloop
 
   def mainloop
     loop do
-      Gtk.main
-      break if Gtk.exception || Plugin.filtering(:before_mainloop_exit)
-      error "Mainloop exited but it's cancelled by filter `:before_mainloop_exit'."
+      end_flag = true
+      while Gtk.events_pending?
+        end_flag = Gtk.main_iteration
+      end
+      break if !end_flag || Gtk.exception
+      sleep 0.02
     end
   rescue Interrupt,SystemExit,SignalException => exception
     raise exception
