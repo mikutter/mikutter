@@ -234,14 +234,16 @@ class Plugin::Twitter::Message < Diva::Model
   # _other_ は、 User か_other_[:id]と_other_[:idname]が呼び出し可能なもの。
   def receive_to?(other)
     type_strict other => :[]
-    (self[:receiver] and other[:id] == self[:receiver].id) or receive_user_screen_names.include? other[:idname] end
+    (self[:receiver] and other[:id] == self[:receiver].id) or receive_user_idnames.include? other[:idname] end
 
   # このツイートが宛てられたユーザを可能な限り推測して、その idname(screen_name) を配列で返す。
   # 例えばツイート本文内に「@a @b @c」などと書かれていたら、["a", "b", "c"]を返す。
   # ==== Return
   # 宛てられたユーザの idname(screen_name) の配列
-  def receive_user_screen_names
+  def receive_user_idnames
     self[:message].to_s.scan(MentionMatcher).map(&:first) end
+  alias :receive_user_screen_names :receive_user_idnames
+  deprecate :receive_user_screen_names, "receive_user_idnames", 2020, 7
 
   # 自分がこのMessageにリプライを返していればtrue
   def mentioned_by_me?

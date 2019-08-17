@@ -1,0 +1,93 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the profile package.
+# 
+# Translators:
+# Vel <veloci85@gmail.com>, 2015-2016
+msgid ""
+msgstr ""
+"Project-Id-Version: mikutter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-22 23:59+0900\n"
+"PO-Revision-Date: 2017-09-19 18:41+0000\n"
+"Last-Translator: Vel <veloci85@gmail.com>\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.com/lindwurm/mikutter/language/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../profile.rb:53
+msgid "%{user} のプロフィール"
+msgstr "%{user} 的個人資料"
+
+#: ../profile.rb:70
+msgid "最近のツイート"
+msgstr "最新的推文"
+
+#: ../profile.rb:79
+msgid "@%{user} の最近のつぶやきが取得できませんでした。見るなってことですかね"
+msgstr "無法取得 @%{user} 的最新推文，他不想給人看的樣子"
+
+#: ../profile.rb:82 ../profile.rb:141
+msgid "ユーザについて"
+msgstr "關於使用者"
+
+#: ../profile.rb:106
+msgid "Web: %{url}"
+msgstr "Web: %{url}"
+
+#: ../profile.rb:109
+msgid ""
+"Twitter開始: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} "
+"(%{tweets_per_day}tweets/day)"
+msgstr "開始上推: %{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{tweets_per_day}tweets/day)"
+
+#: ../profile.rb:137
+msgid "%{screen_name}(%{name})について"
+msgstr "關於 %{screen_name}(%{name})"
+
+#: ../profile.rb:158
+msgid "ミュート"
+msgstr "消音"
+
+#: ../profile.rb:185
+msgid "関係を取得中"
+msgstr "關係取得中"
+
+#: ../profile.rb:190
+msgid "それはあなたです！"
+msgstr "這是你自己唷！"
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしている"
+msgstr "正在關注"
+
+#: ../profile.rb:215
+msgid "ﾌｮﾛｰしていない"
+msgstr "並未關注"
+
+#: ../profile.rb:216
+msgid "解除"
+msgstr "取消關注"
+
+#: ../profile.rb:216
+msgid "ﾌｮﾛｰ"
+msgstr "關注"
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされている"
+msgstr "已被關注"
+
+#: ../profile.rb:225
+msgid "ﾌｮﾛｰされていない"
+msgstr "未被關注"
+
+#: ../profile.rb:251
+msgid "取得できませんでした"
+msgstr "取得失敗"
+
+#: ../profile.rb:307
+msgid "ふぁぼが取得できませんでした"
+msgstr "收藏取得失敗"

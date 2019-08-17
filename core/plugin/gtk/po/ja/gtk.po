@@ -19,3 +19,6 @@ msgstr ""
 
 msgid "Statusbar default message"
 msgstr "クライアントは自分で選ぶもの mikutterで自由を手に"
+
+msgid "Worldを追加"
+msgstr ""

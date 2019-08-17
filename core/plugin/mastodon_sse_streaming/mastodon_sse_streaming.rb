@@ -47,7 +47,7 @@ Plugin.create(:mastodon_sse_streaming) do
       end
 
       Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
-    }.terminate('Mastodon: SSE接続開始時にエラーが発生しました')
+    }.terminate(_('Mastodon: SSE接続開始時にエラーが発生しました'))
   end
 
   on_mastodon_stop_stream do |slug|
@@ -85,7 +85,7 @@ Plugin.create(:mastodon_sse_streaming) do
         world.update_mutes!
       }.next {
         Plugin.call(:mastodon_init_auth_stream, world)
-      }.terminate('Mastodon: SSEコネクション確立前にエラーが発生しました')
+      }.terminate(_('Mastodon: SSEコネクション確立前にエラーが発生しました'))
     end
 
     UserConfig[:mastodon_instances].each do |domain, setting|
@@ -132,12 +132,12 @@ Plugin.create(:mastodon_sse_streaming) do
     Thread.new { world.get_lists! }.next { |lists|
       filter_extract_datasources do |dss|
         datasources = {
-          world.datasource_slug(:home) => "Mastodonホームタイムライン(Mastodon)/#{world.account.acct}",
-          world.datasource_slug(:direct) => "Mastodon DM(Mastodon)/#{world.account.acct}",
+          world.datasource_slug(:home) => _("Mastodonホームタイムライン(Mastodon)/%{acct}") % {acct: world.account.acct},
+          world.datasource_slug(:direct) => _("Mastodon DM(Mastodon)/%{acct}") % {acct: world.account.acct},
         }
         lists.to_a.each do |l|
           slug = world.datasource_slug(:list, l[:id])
-          datasources[slug] = "Mastodonリスト(Mastodon)/#{world.account.acct}/#{l[:title]}"
+          datasources[slug] = _("Mastodonリスト(Mastodon)/%{acct}/%{title}") % {acct: world.account.acct, title: l[:title]}
         end
         [datasources.merge(dss)]
       end
@@ -156,7 +156,7 @@ Plugin.create(:mastodon_sse_streaming) do
           Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
         end
       end
-    }.terminate('Mastodon: SSEコネクション確立時にエラーが発生しました')
+    }.terminate(_('Mastodon: SSEコネクション確立時にエラーが発生しました'))
   end
 
   on_mastodon_remove_auth_stream do |world|
@@ -436,7 +436,7 @@ Plugin.create(:mastodon_sse_streaming) do
     when 'poll'
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first
       return unless status
-      activity(:poll, '投票が終了しました', description: "#{status.uri}")
+      activity(:poll, _('投票が終了しました'), description: "#{status.uri}")
 
     else
       # 未知の通知

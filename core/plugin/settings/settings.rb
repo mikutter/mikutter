@@ -33,7 +33,10 @@ Plugin.create(:settings) do
         active_iter = menu.selection.selected
         if active_iter
           settings.hide
-          settings.children.each(&settings.method(:remove))
+          settings.children.each do |child|
+            settings.remove(child)
+            child.destroy
+          end
           settings.closeup(active_iter[Plugin::Settings::Menu::COL_RECORD].widget).show_all
         end
       end

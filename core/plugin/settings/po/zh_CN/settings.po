@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/lindwurm/mikutter/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -105,42 +105,34 @@ msgid "リアルタイム更新"
 msgstr "实时更新"
 
 #: ../basic_settings.rb:44
-msgid "ホームタイムライン(UserStream)"
-msgstr "Home时间线(Userstream)"
-
-#: ../basic_settings.rb:45
-msgid "Twitter の UserStream APIを用いて、リアルタイムにツイートやフォローなどのイベントを受け取ります"
-msgstr "使用Twitter的UserStream API实时接收发言和关注等事件"
-
-#: ../basic_settings.rb:46
 msgid "リスト(Streaming API)"
 msgstr "列表(Streaming API)"
 
-#: ../basic_settings.rb:47
+#: ../basic_settings.rb:45
 msgid "Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります"
 msgstr "使用Twitter的Streaming API来实时获取列表更新"
 
-#: ../basic_settings.rb:50
+#: ../basic_settings.rb:48
 msgid "リプライ元をサーバに問い合わせて取得する"
 msgstr "强制通过服务端获取回复来源"
 
-#: ../basic_settings.rb:51
+#: ../basic_settings.rb:49
 msgid "つぶやきの取得漏れを防止する（遅延対策）"
 msgstr "防止接收发言的遗漏 （通过延迟检查）"
 
-#: ../basic_settings.rb:52
+#: ../basic_settings.rb:50
 msgid "遅延に強くなりますが、ちょっと遅くなります。"
 msgstr "可增强准确度，但是速度会变慢"
 
-#: ../basic_settings.rb:54
+#: ../basic_settings.rb:52
 msgid "%s について"
 msgstr "关于 %s"
 
-#: ../basic_settings.rb:57
+#: ../basic_settings.rb:55
 msgid "2009-%s Toshiaki Asai"
 msgstr "2009-%s Toshiaki Asai"
 
-#: ../basic_settings.rb:58
+#: ../basic_settings.rb:56
 msgid ""
 "全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n"
 "略して至高のTwitter Client。\n"
@@ -149,9 +141,9 @@ msgid ""
 "このソフトウェアは %{license} によって浄化されています。"
 msgstr "赠送给全球所有的Miku厨和Twitter中毒者的，以至高无上的推特客户端为目标的推特客户端。\n简称“至高无上的推特客户端”。\n看看咱们的Miku是不是超级压倒性地可爱呢～\n\n这个客户端由%{license} 进行净化。"
 
-#: ../basic_settings.rb:60
+#: ../basic_settings.rb:58
 msgid "https://mikutter.hachune.net/"
-msgstr "https://mikutter.hachune.net/"
+msgstr ""
 
 #: ../settings.rb:11 ../settings.rb:24
 msgid "設定"

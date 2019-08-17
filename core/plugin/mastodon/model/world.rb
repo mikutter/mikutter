@@ -3,7 +3,7 @@ module Plugin::Mastodon
   class World < Diva::Model
     extend Memoist
 
-    register :mastodon, name: "Mastodon"
+    register :mastodon, name: Plugin[:mastodon]._('Mastodon')
 
     field.string :id, required: true
     field.string :slug, required: true
@@ -94,7 +94,7 @@ module Plugin::Mastodon
       if to ||= params[:replyto]
         API.get_local_status_id(self, to).next{ |status_id|
           API.call(:post, domain, '/api/v1/statuses', access_token, in_reply_to_id: status_id, **params)
-        }.terminate("返信先Statusが#{domain}内に見つかりませんでした：#{to.url}")
+        }.terminate(Plugin[:mastodon]._('返信先Statusが%{domain}内に見つかりませんでした：%{url}') % {domain: domain, url: to.url})
       else
         API.call(:post, domain, '/api/v1/statuses', access_token, **params)
       end

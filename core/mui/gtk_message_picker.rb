@@ -125,7 +125,7 @@ class Gtk::MessagePicker < Gtk::EventBox
                                      unless new === nil
                                        @subject = new.to_sym
                                        call end
-                                     sensitivity = extract_condition[@subject][:operator] && 0 != extract_condition[@subject][:args]
+                                     sensitivity = extract_condition.dig(@subject, :operator) && 0 != extract_condition.dig(@subject, :args)
                                      w_argument.set_sensitive(sensitivity)
                                      w_operator.set_sensitive(sensitivity)
                                      @subject.to_s },

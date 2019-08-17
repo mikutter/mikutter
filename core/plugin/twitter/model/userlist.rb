@@ -61,7 +61,7 @@ class Plugin::Twitter::UserList < Diva::Model
   # ==== Return
   # リスト内のMessageなら真
   def related?(message)
-    idnames = message.receive_user_screen_names
+    idnames = message.receive_user_idnames
     member?(message.user) && (idnames.empty? or member.any?{ |u| idnames.include?(u.idname) }) end
 
   def add_member(user)

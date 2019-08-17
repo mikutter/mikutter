@@ -1,6 +1,6 @@
 module Plugin::Mastodon
   class Instance < Diva::Model
-    register :mastodon_instance, name: "Mastodonサーバー"
+    register :mastodon_instance, name: Plugin[:mastodon]._('Mastodonサーバー')
 
     field.string :domain, required: true
     field.string :client_key, required: true
@@ -28,10 +28,10 @@ module Plugin::Mastodon
       def add_datasources(domain)
         Plugin[:mastodon].filter_extract_datasources do |dss|
           datasources = {
-            datasource_slug(domain, :local) => "Mastodon公開タイムライン/#{domain} ローカル",
-            datasource_slug(domain, :local_media) => "Mastodon公開タイムライン/#{domain} ローカル（メディア）",
-            datasource_slug(domain, :federated) => "Mastodon公開タイムライン/#{domain} 連合",
-            datasource_slug(domain, :federated_media) => "Mastodon公開タイムライン/#{domain} 連合（メディア）",
+            datasource_slug(domain, :local) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} ローカル') % {domain: domain},
+            datasource_slug(domain, :local_media) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} ローカル（メディア）') % {domain: domain},
+            datasource_slug(domain, :federated) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} 連合') % {domain: domain},
+            datasource_slug(domain, :federated_media) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} 連合（メディア）') % {domain: domain},
           }
           [datasources.merge(dss)]
         end

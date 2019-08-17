@@ -35,12 +35,12 @@ Plugin.create(:mastodon) do
 
   command(
     :mastodon_custom_post,
-    name: 'カスタム投稿',
+    name: _('カスタム投稿'),
     condition: ->(opt) do
       mastodon?(opt.world) && opt.widget.editable?
     end,
     visible: true,
-    icon: Skin['post.png'],
+    icon: Skin[:post],
     role: :postbox
   ) do |opt|
     i_postbox = opt.widget
@@ -48,13 +48,13 @@ Plugin.create(:mastodon) do
     body = postbox.widget_post.buffer.text
     reply_to = postbox.mastodon_get_reply_to
 
-    dialog "カスタム投稿" do
+    dialog _('カスタム投稿') do
       # オプションを並べる
-      multitext "CW警告文", :spoiler_text
+      multitext _('CW警告文'), :spoiler_text
       self[:body] = body
-      multitext "本文", :body
+      multitext _('本文'), :body
       self[:sensitive] = opt.world.account.source.sensitive
-      boolean "閲覧注意", :sensitive
+      boolean _('閲覧注意'), :sensitive
 
       visibility_default = opt.world.account.source.privacy
       if reply_to.is_a?(pm::Status) && reply_to.visibility == "direct"
@@ -62,14 +62,14 @@ Plugin.create(:mastodon) do
         visibility_default = "direct"
       end
       self[:visibility] = visibility2select(visibility_default)
-      select "公開範囲", :visibility do
-        option :"1public", "公開"
-        option :"2unlisted", "未収載"
-        option :"3private", "非公開"
-        option :"4direct", "ダイレクト"
+      select _('公開範囲'), :visibility do
+        option :"1public", _('公開')
+        option :"2unlisted", _('未収載')
+        option :"3private", _('非公開')
+        option :"4direct", _('ダイレクト')
       end
 
-      settings "添付メディア" do
+      settings _('添付メディア') do
         # mikutter-uwm-hommageの設定を勝手に持ってくる
         dirs = 10.times.map { |i|
           UserConfig["galary_dir#{i + 1}".to_sym]
@@ -83,20 +83,20 @@ Plugin.create(:mastodon) do
         fileselect "", :media4, shortcuts: dirs, use_preview: true
       end
 
-      settings "投票を受付ける" do
+      settings _('投票を受付ける') do
         input "1", :poll_options1
         input "2", :poll_options2
         input "3", :poll_options3
         input "4", :poll_options4
-        select "投票受付期間", :poll_expires_in do
-          option :min5, "5分"
-          option :hour, "1時間"
-          option :day, "1日"
-          option :week, "1週間"
-          option :month, "1ヶ月"
+        select _('投票受付期間'), :poll_expires_in do
+          option :min5, _('5分')
+          option :hour, _('1時間')
+          option :day, _('1日')
+          option :week, _('1週間')
+          option :month, _('1ヶ月')
         end
-        boolean "複数選択可にする", :poll_multiple
-        boolean "終了するまで結果を表示しない", :poll_hide_totals
+        boolean _('複数選択可にする'), :poll_multiple
+        boolean _('終了するまで結果を表示しない'), :poll_hide_totals
       end
     end.next do |result|
       # 投稿
@@ -111,7 +111,7 @@ Plugin.create(:mastodon) do
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
           else
-            Deferred.fail(hash[:error] ? hash[:error] : 'メディアのアップロードに失敗しました')
+            Deferred.fail(hash[:error] ? hash[:error] : _('メディアのアップロードに失敗しました'))
             next
           end
         end
@@ -158,7 +158,7 @@ Plugin.create(:mastodon) do
     end
   end
 
-  command(:mastodon_follow_user, name: 'フォローする', visible: true, role: :timeline,
+  command(:mastodon_follow_user, name: _('フォローする'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m|
               follow?(opt.world, m.user)
@@ -171,7 +171,7 @@ Plugin.create(:mastodon) do
     }
   end
 
-  command(:mastodon_unfollow_user, name: 'フォロー解除', visible: true, role: :timeline,
+  command(:mastodon_unfollow_user, name: _('フォロー解除'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m|
               unfollow?(opt.world, m.user)
@@ -184,13 +184,13 @@ Plugin.create(:mastodon) do
     }
   end
 
-  command(:mastodon_mute_user, name: 'ミュートする', visible: true, role: :timeline,
+  command(:mastodon_mute_user, name: _('ミュートする'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| mute_user?(opt.world, m.user) }
           }) do |opt|
     users = opt.messages.map { |m| m.user }.uniq
-    dialog "ミュートする" do
-      label "以下のユーザーをミュートしますか？"
+    dialog _('ミュートする') do
+      label _('以下のユーザーをミュートしますか？')
       users.each { |user|
         link user
       }
@@ -201,13 +201,13 @@ Plugin.create(:mastodon) do
     end
   end
 
-  command(:mastodon_block_user, name: 'ブロックする', visible: true, role: :timeline,
+  command(:mastodon_block_user, name: _('ブロックする'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| block_user?(opt.world, m.user) }
           }) do |opt|
     users = opt.messages.map { |m| m.user }.uniq
-    dialog "ブロックする" do
-      label "以下のユーザーをブロックしますか？"
+    dialog _('ブロックする') do
+      label _('以下のユーザーをブロックしますか？')
       users.each { |user|
         link user
       }
@@ -218,27 +218,27 @@ Plugin.create(:mastodon) do
     end
   end
 
-  command(:mastodon_report_status, name: '通報する', visible: true, role: :timeline,
+  command(:mastodon_report_status, name: _('通報する'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| report_for_spam?(opt.world, m) }
           }) do |opt|
-    dialog "通報する" do
+    dialog _('通報する') do
       error_msg = nil
       while true
-        label "以下のトゥートを #{opt.world.domain} サーバーの管理者に通報しますか？"
+        label _('以下のトゥートを %{domain} サーバーの管理者に通報しますか？') % {domain: opt.world.domain}
         opt.messages.each { |message|
           link message
         }
-        multitext "コメント（1000文字以内） ※必須", :comment
+        multitext _('コメント（1000文字以内） ※必須'), :comment
         label error_msg if error_msg
 
         result = await_input
-        error_msg = "コメントを入力してください。" if (result[:comment].nil? || result[:comment].empty?)
-        error_msg = "コメントが長すぎます（#{result[:comment].to_s.size}文字）" if result[:comment].to_s.size > 1000
+        error_msg = _('コメントを入力してください。') if (result[:comment].nil? || result[:comment].empty?)
+        error_msg = _('コメントが長すぎます（%{input_char_count}文字）') % {input_char_count: result[:comment].to_s.size} if result[:comment].to_s.size > 1000
         break unless error_msg
       end
 
-      label "しばらくお待ち下さい..."
+      label _('しばらくお待ち下さい...')
 
       opt.messages.select { |message|
         message.class.slug == :mastodon_status
@@ -252,11 +252,11 @@ Plugin.create(:mastodon) do
         await opt.world.report_for_spam(messages, result[:comment])
       }
 
-      label "完了しました。"
-    end.terminate('通報中にエラーが発生しました')
+      label _('完了しました。')
+    end.terminate(_('通報中にエラーが発生しました'))
   end
 
-  command(:mastodon_pin_message, name: 'ピン留めする', visible: true, role: :timeline,
+  command(:mastodon_pin_message, name: _('ピン留めする'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| pin_message?(opt.world, m) }
           }) do |opt|
@@ -267,7 +267,7 @@ Plugin.create(:mastodon) do
     }
   end
 
-  command(:mastodon_unpin_message, name: 'ピン留めを解除する', visible: true, role: :timeline,
+  command(:mastodon_unpin_message, name: _('ピン留めを解除する'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| unpin_message?(opt.world, m) }
           }) do |opt|
@@ -278,7 +278,7 @@ Plugin.create(:mastodon) do
     }
   end
 
-  command(:mastodon_edit_list_membership, name: 'リストへの追加・削除', visible: true, role: :timeline,
+  command(:mastodon_edit_list_membership, name: _('リストへの追加・削除'), visible: true, role: :timeline,
           condition: lambda { |opt|
             mastodon?(opt.world)
           }) do |opt|
@@ -302,9 +302,9 @@ Plugin.create(:mastodon) do
       end
 
 
-      dialog "リストへの追加・削除" do
+      dialog _('リストへの追加・削除') do
         self[:lists] = membership.keys
-        multiselect "所属させるリストを選択してください", :lists do
+        multiselect _('所属させるリストを選択してください'), :lists do
           lists.keys.each do |k|
             option(k, lists[k])
           end
@@ -327,7 +327,7 @@ Plugin.create(:mastodon) do
     }.terminate
   end
 
-  command(:mastodon_vote, name: '投票する', visible: true, role: :timeline,
+  command(:mastodon_vote, name: _('投票する'), visible: true, role: :timeline,
           condition: ->(opt) {
             m = opt.messages.first
             (m.is_a?(Plugin::Mastodon::Status) && m.poll && mastodon?(opt.world))
@@ -522,7 +522,7 @@ Plugin.create(:mastodon) do
 
   command(
     :mastodon_update_profile,
-    name: 'プロフィール変更',
+    name: _('プロフィール変更'),
     condition: -> (opt) {
       mastodon?(opt.world)
     },
@@ -541,7 +541,7 @@ Plugin.create(:mastodon) do
       fields: opt.world.account.source.fields.map{|f| { name: f.name, value: f.value } }
     }
 
-    dialog "プロフィール変更" do
+    dialog _('プロフィール変更') do
       self[:name] = profiles[:name]
       self[:biography] = profiles[:biography]
       self[:locked] = profiles[:locked]
@@ -554,28 +554,28 @@ Plugin.create(:mastodon) do
         self[:"field_value#{i}"] = profiles[:source][:fields][i - 1][:value]
       end
 
-      input '表示名', :name
-      multitext 'プロフィール', :biography
-      photoselect 'アイコン', :icon
-      photoselect 'ヘッダー', :header
-      boolean '承認制アカウントにする', :locked
-      boolean 'これは BOT アカウントです', :bot
-      select "デフォルトの公開範囲", :source_privacy do
-        option :"1public", "公開"
-        option :"2unlisted", "未収載"
-        option :"3private", "非公開"
-        option :"4direct", "ダイレクト"
+      input _('表示名'), :name
+      multitext _('プロフィール'), :biography
+      photoselect _('アイコン'), :icon
+      photoselect _('ヘッダー'), :header
+      boolean _('承認制アカウントにする'), :locked
+      boolean _('これは BOT アカウントです'), :bot
+      select _('デフォルトの公開範囲'), :source_privacy do
+        option :"1public", _('公開')
+        option :"2unlisted", _('未収載')
+        option :"3private", _('非公開')
+        option :"4direct", _('ダイレクト')
       end
-      boolean 'メディアを常に閲覧注意としてマークする', :source_sensitive
-      settings "プロフィール補足情報" do
-        input 'ラベル1', :field_name1
-        input '内容1', :field_value1
-        input 'ラベル2', :field_name2
-        input '内容2', :field_value2
-        input 'ラベル3', :field_name3
-        input '内容3', :field_value3
-        input 'ラベル4', :field_name4
-        input '内容4', :field_value4
+      boolean _('メディアを常に閲覧注意としてマークする'), :source_sensitive
+      settings _('プロフィール補足情報') do
+        input _('ラベル1'), :field_name1
+        input _('内容1'), :field_value1
+        input _('ラベル2'), :field_name2
+        input _('内容2'), :field_value2
+        input _('ラベル3'), :field_name3
+        input _('内容3'), :field_value3
+        input _('ラベル4'), :field_name4
+        input _('内容4'), :field_value4
       end
     end.next do |result|
       diff = Hash.new
@@ -606,7 +606,7 @@ Plugin.create(:mastodon) do
   end
 
   # 検索
-  intent :mastodon_tag, label: "Mastodonハッシュタグ(Mastodon)" do |token|
+  intent :mastodon_tag, label: _('Mastodonハッシュタグ(Mastodon)') do |token|
     Plugin.call(:search_start, "##{token.model.name}")
   end
 

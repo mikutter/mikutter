@@ -40,7 +40,7 @@ module Plugin::Mastodon
   class Account < Diva::Model
     include Diva::Model::UserMixin
 
-    register :mastodon_account, name: "Mastodonアカウント"
+    register :mastodon_account, name: Plugin[:mastodon]._('Mastodonアカウント')
 
     field.string :id, required: true
     field.string :username, required: true

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: Greek (http://www.transifex.com/lindwurm/mikutter/language/el/)\n"
 "MIME-Version: 1.0\n"
@@ -42,102 +42,110 @@ msgstr "Qoute"
 msgid "リツイート"
 msgstr "RT"
 
-#: ../command.rb:69
+#: ../command.rb:68
 msgid "過去の栄光にすがりますか？"
 msgstr ""
 
-#: ../command.rb:78
+#: ../command.rb:77
 msgid "リツイートをキャンセル"
 msgstr "Αναίρεση του RT"
 
-#: ../command.rb:86
+#: ../command.rb:84
 msgid "リツイートをキャンセルしている途中でエラーが発生しました"
 msgstr ""
 
-#: ../command.rb:90
+#: ../command.rb:88
 msgid "ふぁぼふぁぼする"
 msgstr "Fav"
 
-#: ../command.rb:102
+#: ../command.rb:99
 msgid "ふぁぼふぁぼしている途中でエラーが発生しました"
 msgstr ""
 
-#: ../command.rb:106
+#: ../command.rb:103
 msgid "あんふぁぼ"
 msgstr "Unfav"
 
-#: ../command.rb:114
+#: ../command.rb:110
 msgid "あんふぁぼしている途中でエラーが発生しました"
 msgstr ""
 
-#: ../command.rb:118 ../command.rb:124
+#: ../command.rb:114 ../command.rb:120
 msgid "削除"
 msgstr "Διαγραφή"
 
-#: ../command.rb:125
+#: ../command.rb:121
 msgid "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
 msgstr "Η διαγραφή αυτό το τιτίβισμα δεν πρόκειται να βοηθήσει να ανακτήσει κάθε ίχνος αξιοπιστίας που μπορεί να έχετε χάσει, ξέρεις. Εξακολουθείτε να θέλετε να το κάνετε;"
 
+#: ../command.rb:132
+msgid "%{title}について"
+msgstr ""
+
 #: ../command.rb:134
+msgid "投稿者について"
+msgstr ""
+
+#: ../command.rb:144
 msgid "一つ上のメッセージを選択"
 msgstr "Επιλογή προηγούμενο tweet"
 
-#: ../command.rb:141
+#: ../command.rb:151
 msgid "一つ下のメッセージを選択"
 msgstr "Επιλογή επόμενου μυνήματος"
 
-#: ../command.rb:148
+#: ../command.rb:158
 msgid "投稿する"
 msgstr "Post"
 
-#: ../command.rb:156
+#: ../command.rb:167
 msgid "ggrks"
 msgstr "RTFG"
 
-#: ../command.rb:164
+#: ../command.rb:175
 msgid "ブラウザで開く"
 msgstr ""
 
-#: ../command.rb:171
+#: ../command.rb:182
 msgid "リンクを開く"
 msgstr "Άνοιγμα αυτού του συνδέσμου"
 
-#: ../command.rb:187
+#: ../command.rb:200
 msgid "リンクをコピー"
 msgstr ""
 
-#: ../command.rb:196
+#: ../command.rb:211
 msgid "新規ペインに移動"
 msgstr "Μετακίνση στο επόμενο pane"
 
-#: ../command.rb:214
+#: ../command.rb:230
 msgid "タブを閉じる"
 msgstr ""
 
-#: ../command.rb:224
+#: ../command.rb:241
 msgid "次のタブを選択"
 msgstr ""
 
-#: ../command.rb:232
+#: ../command.rb:249
 msgid "前のタブを選択"
 msgstr ""
 
-#: ../command.rb:240
+#: ../command.rb:257
 msgid "右のペインを選択"
 msgstr ""
 
-#: ../command.rb:248
+#: ../command.rb:265
 msgid "左のペインを選択"
 msgstr ""
 
-#: ../command.rb:256
+#: ../command.rb:273
 msgid "投稿ボックスにフォーカス"
 msgstr ""
 
-#: ../command.rb:268
+#: ../command.rb:286
 msgid "タブにフォーカス"
 msgstr ""
 
-#: ../command.rb:276
+#: ../command.rb:294
 msgid "タイムラインの一番上にジャーンプ！"
 msgstr ""

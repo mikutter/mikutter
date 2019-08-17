@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mikutter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-14 03:49+0900\n"
-"PO-Revision-Date: 2018-01-14 11:24+0000\n"
+"POT-Creation-Date: 2019-07-06 23:20+0900\n"
+"PO-Revision-Date: 2019-07-06 14:25+0000\n"
 "Last-Translator: Toshiaki Asai <toshi.alternative@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/lindwurm/mikutter/language/fr/)\n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../edit_window.rb:19 ../edit_window.rb:99
+#: ../edit_window.rb:19 ../edit_window.rb:107
 msgid "%{name} - 抽出タブ - %{application_name}"
 msgstr ""
 
@@ -35,7 +35,7 @@ msgstr "Critère"
 msgid "オプション"
 msgstr "Options"
 
-#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:19
+#: ../edit_window.rb:83 ../extract.rb:205 ../extract_tab_list.rb:18
 msgid "名前"
 msgstr "Nom"
 
@@ -51,15 +51,35 @@ msgstr "Notification"
 msgid "サウンド"
 msgstr "Son"
 
-#: ../edit_window.rb:87
+#: ../edit_window.rb:89
+msgid "非圧縮音声ファイル (*.wav, *.aiff)"
+msgstr ""
+
+#: ../edit_window.rb:90
+msgid "FLAC (*.flac, *.fla)"
+msgstr ""
+
+#: ../edit_window.rb:91
+msgid "MPEG-1/2 Audio Layer-3 (*.mp3)"
+msgstr ""
+
+#: ../edit_window.rb:92
+msgid "Ogg (*.ogg)"
+msgstr ""
+
+#: ../edit_window.rb:93
+msgid "全てのファイル"
+msgstr ""
+
+#: ../edit_window.rb:95
 msgid "ポップアップ"
 msgstr "Popup"
 
-#: ../edit_window.rb:89
+#: ../edit_window.rb:97
 msgid "並び順"
 msgstr ""
 
-#: ../edit_window.rb:94
+#: ../edit_window.rb:102
 msgid "閉じる"
 msgstr "Fermer"
 

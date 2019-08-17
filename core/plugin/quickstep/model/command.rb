@@ -7,7 +7,7 @@ module Plugin::Quickstep
     field.string :role, required: true
     field.bool :visible
 
-    register :quickstep_command, name: "コマンド"
+    register :quickstep_command, name: Plugin[:quickstep]._('コマンド')
 
     def title
       name

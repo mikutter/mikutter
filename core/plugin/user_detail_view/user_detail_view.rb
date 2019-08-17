@@ -32,7 +32,7 @@ Plugin.create :user_detail_view do
     muted_users = UserConfig[:muted_users]
     if muted_users && !muted_users.empty?
       tweets, else_messages = messages.partition{|m| m.class.slug == :twitter_tweet }
-      [ tweets.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_screen_names & muted_users).empty? } + else_messages ]
+      [ tweets.select{ |m| !muted_users.include?(m.idname) && (m.receive_user_idnames & muted_users).empty? } + else_messages ]
     else
       [messages] end end
 

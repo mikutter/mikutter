@@ -1,7 +1,7 @@
 module Plugin::Mastodon
   # https://docs.joinmastodon.org/api/entities/#poll-option
   class PollOption < Diva::Model
-    register :mastodon_poll_option, name: "Mastodon投票候補"
+    register :mastodon_poll_option, name: Plugin[:mastodon]._('Mastodon投票候補')
 
     field.string :title, required: true
     field.int :votes_count
@@ -17,7 +17,7 @@ module Plugin::Mastodon
 
   # https://docs.joinmastodon.org/api/entities/#poll
   class Poll < Diva::Model
-    register :mastodon_poll, name: "Mastodon投票(Mastodon)"
+    register :mastodon_poll, name: Plugin[:mastodon]._('Mastodon投票')
 
     field.string :id, required: true
     field.time :expires_at

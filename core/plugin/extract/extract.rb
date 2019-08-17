@@ -40,31 +40,35 @@ module Plugin::Extract
   Order = Struct.new(:slug, :name, :ordering)
 
   class Calc
-    def initialize(message, condition, operators = Plugin.filtering(:extract_operator, Set.new).first)
-      type_strict condition => Plugin::Extract::ExtensibleCondition, operators => Enumerable
-      @message, @condition, @operators = message, condition, operators
+    def self.inherited(child)
+      child.class_eval do
+        operators = Plugin.filtering(:extract_operator, Set.new).first
+        operators.each { |operator|
+          define_method(operator.slug) do |other|
+            @condition.(other, message: @message, operator: operator.slug, &operator)
+          end
+        }
+      end
     end
 
-    def method_missing(method_name, *args)
-      operator = @operators.find{ |_| _.slug == method_name }
-      if operator
-        @condition.(*args, message: @message, operator: operator.slug, &operator)
-      else
-        super end end
+    def initialize(message, condition)
+      type_strict condition => Plugin::Extract::ExtensibleCondition
+      @message, @condition = message, condition
+    end
 
     def call(*args)
-      @condition.(*args, message: @message) end
+      @condition.(*args, message: @message)
+    end
   end
 end
 
 Plugin.create :extract do
 
-  # 抽出タブオブジェクト。各キーは抽出タブIDで、値は以下のようなオブジェクト
+  # 抽出タブオブジェクト。各キーは抽出タブslugで、値は以下のようなオブジェクト
   # name :: タブの名前
   # sexp :: 条件式（S式）
   # source :: どこのツイートを見るか（イベント名、配列で複数）
   # slug :: タイムラインとタブのスラッグ
-  # id :: 抽出タブのID
   def extract_tabs
     @extract_tabs ||= {} end
 
@@ -79,33 +83,35 @@ Plugin.create :extract do
                                    true } }).
                        closeup(Gtk::Button.new(Gtk::Stock::EDIT).tap{ |button|
                                  button.ssc(:clicked) {
-                                   id = tablist.selected_id
-                                   if id
-                                     Plugin.call(:extract_open_edit_dialog, id) end
+                                   slug = tablist.selected_slug
+                                   if slug
+                                     Plugin.call(:extract_open_edit_dialog, slug)
+                                   end
                                    true } }).
                        closeup(Gtk::Button.new(Gtk::Stock::DELETE).tap{ |button|
                                  button.ssc(:clicked) {
-                                   id = tablist.selected_id
-                                   if id
-                                     Plugin.call(:extract_tab_delete_with_confirm, id) end
+                                   slug = tablist.selected_slug
+                                   if slug
+                                     Plugin.call(:extract_tab_delete_with_confirm, slug)
+                                   end
                                    true } })))
-    Plugin.create :extract do
-      add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
-      delete_tab_observer = on_extract_tab_delete(&tablist.method(:remove_record))
-      tablist.ssc(:destroy) do
-        detach add_tab_observer
-        detach delete_tab_observer end end
+    add_tab_observer = on_extract_tab_create(&tablist.method(:add_record))
+    delete_tab_observer = on_extract_tab_delete(&tablist.method(:remove_record))
+    tablist.ssc(:destroy) do
+      detach add_tab_observer
+      detach delete_tab_observer
+    end
   end
 
   command(:extract_edit,
           name: _('抽出条件を編集'),
           condition: lambda{ |opt|
-            opt.widget.slug.to_s =~ /\Aextract_(?:.+)\Z/
+            extract_tabs.values.any? { |es| es.slug == opt.widget.slug }
           },
           visible: true,
           role: :tab) do |opt|
-	extract_id = opt.widget.slug.to_s.match(/\Aextract_(.+)\Z/)[1].to_i
-    Plugin.call(:extract_open_edit_dialog, extract_id) if extract_tabs[extract_id]
+    extract = extract_tabs.values.find { |es| es.slug == opt.widget.slug }
+    Plugin.call(:extract_open_edit_dialog, extract.slug) if extract
   end
 
   defdsl :defextractcondition do |slug, name: raise, operator: true, args: 0, sexp: nil, &block|
@@ -139,9 +145,15 @@ Plugin.create :extract do
 
   defextractcondition(:user, name: _('ユーザ名'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (idname (user message)) ,(car args))"))
 
-  defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (to_s message) ,(car args))"))
+  defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (description message) ,(car args))"))
 
   defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
+
+  defextractcondition(:receiver_idnames, name: _('宛先ユーザ名のいずれか一つ以上'), operator: true, args: 1) do |arg, message: raise, operator: raise, &compare|
+    message.receive_user_idnames.any? do |sn|
+      compare.(sn, arg)
+    end
+  end
 
   defextractorder(:created, name: _('投稿時刻')) do |model|
     model.created.to_i
@@ -155,7 +167,7 @@ Plugin.create :extract do
     if setting.is_a?(Hash)
       setting = Plugin::Extract::Setting.new(setting)
     end
-    extract_tabs[setting.id] = setting
+    extract_tabs[setting.slug] = setting
     tab(setting.slug, setting.name) do
       set_icon setting.icon.to_s if setting.icon?
       timeline setting.slug do
@@ -166,23 +178,21 @@ Plugin.create :extract do
     modify_extract_tabs end
 
   on_extract_tab_update do |setting|
-    extract_tabs[setting.id] = setting
+    extract_tabs[setting.slug] = setting
     tab(setting.slug).set_icon setting.icon.to_s if setting.icon?
     oo = setting.find_ordering_obj
-    if oo
-      timeline(setting.slug).order(&setting.find_ordering_obj.ordering)
-    end
+    timeline(setting.slug).order(&oo.ordering) if oo
     modify_extract_tabs end
 
-  on_extract_tab_delete do |id|
-    if extract_tabs.has_key? id
-      deleted_tab = extract_tabs[id]
+  on_extract_tab_delete do |slug|
+    if extract_tabs.has_key? slug
+      deleted_tab = extract_tabs[slug]
       tab(deleted_tab.slug).destroy
-      extract_tabs.delete(id)
+      extract_tabs.delete(slug)
       modify_extract_tabs end end
 
-  on_extract_tab_delete_with_confirm do |id|
-    extract = extract_tabs[id]
+  on_extract_tab_delete_with_confirm do |slug|
+    extract = extract_tabs[slug]
     if extract
       message = _("本当に抽出タブ「%{name}」を削除しますか？") % {name: extract.name}
       dialog = Gtk::MessageDialog.new(nil,
@@ -192,7 +202,7 @@ Plugin.create :extract do
                                       message)
       dialog.run{ |response|
         if Gtk::Dialog::RESPONSE_YES == response
-          Plugin.call :extract_tab_delete, id end
+          Plugin.call :extract_tab_delete, slug end
         dialog.close } end end
 
   on_extract_tab_open_create_dialog do
@@ -211,10 +221,11 @@ Plugin.create :extract do
       dialog.destroy
       prompt = dialog = nil } end
 
-  on_extract_open_edit_dialog do |extract_id|
-    window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_id], self)
+  on_extract_open_edit_dialog do |extract_slug|
+    extract_slug = extract_slug.to_sym
+    window = ::Plugin::Extract::EditWindow.new(extract_tabs[extract_slug], self)
     event = on_extract_tab_update do |setting|
-      if extract_id == setting.id && !window.destroyed?
+      if extract_slug == setting.slug && !window.destroyed?
         window.refresh_title
       end
     end
@@ -284,10 +295,10 @@ Plugin.create :extract do
         tab.sources
       }.inject(Set.new, &:merge).freeze end
 
-  def compile(tab_id, code)
+  def compile(tab_slug, code)
     atomic do
       @compiled ||= {}
-      @compiled[tab_id] ||=
+      @compiled[tab_slug] ||=
         if code.empty?
           ret_nth
         else
@@ -303,7 +314,7 @@ Plugin.create :extract do
                         kind: 'error'.freeze,
                         title: _("抽出タブ条件エラー"),
                         date: Time.new,
-                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_id].name, error_string: exception.to_s})
+                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_slug].name, error_string: exception.to_s})
             warn exception
             ret_nth end end end end
 
@@ -323,7 +334,7 @@ Plugin.create :extract do
       when Plugin::Extract::ExtensibleSexpCondition
         metamorphose_sexp(code: code, condition: condition)
       when Plugin::Extract::ExtensibleCondition
-        assign << "#{condition.slug} = Plugin::Extract::Calc.new(message, extract_condition[:#{condition.slug}])"
+        assign << "#{condition.slug} = Class.new(Plugin::Extract::Calc).new(message, extract_condition[:#{condition.slug}])"
         if condition.operator
           code
         else
@@ -358,7 +369,7 @@ Plugin.create :extract do
     return if tabs.empty?
     converted_messages = messages.map{ |message| message.retweet_source ? message.retweet_source : message }
     tabs.each{ |record|
-        filtered_messages = timeline(record.slug).not_in_message(converted_messages.select(&compile(record.id, record.sexp)))
+        filtered_messages = timeline(record.slug).not_in_message(converted_messages.select(&compile(record.slug, record.sexp)))
         timeline(record.slug) << filtered_messages
         notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
         if record.popup?

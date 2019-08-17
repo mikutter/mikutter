@@ -1,9 +1,10 @@
 ---
 slug: mastodon_sse_streaming
 depends:
-  mikutter: 3.8.0
+  mikutter: 3.9.0
   plugin:
     - mastodon
+    - uitranslator
 version: '1.0'
 author: [cobodo, toshi_a]
 name: Mastodon SSE Streaming
