@@ -475,7 +475,7 @@ Plugin.create :gtk do
     next [i_timeline, message, text] if not record
     range = record.miracle_painter.textselector_range
     next [i_timeline, message, text] if not range
-    [i_timeline, message, message.entity.to_s[range]]
+    [i_timeline, message, score_of(message).map(&:description).join[range]]
   end
 
   filter_gui_destroyed do |i_widget|
