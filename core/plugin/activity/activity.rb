@@ -26,7 +26,7 @@ UserConfig[:activity_max] ||= 1000
 
 Plugin.create(:activity) do
 
-  class ActivityView < ::Gtk::CRUD
+  class ActivityView < ::Gtk::CompatListView
     include ::Gtk::TreeViewPrettyScroll
 
     ICON = 0
@@ -40,7 +40,6 @@ Plugin.create(:activity) do
       type_strict plugin => Plugin
       @plugin = plugin
       super()
-      @creatable = @updatable = @deletable = false
     end
 
     def column_schemer
