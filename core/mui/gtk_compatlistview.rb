@@ -16,8 +16,6 @@ class Gtk::CompatListView < Gtk::TreeView
     super()
     initialize_model
     set_columns
-    handle_release_event
-    handle_row_activated
   end
 
   private
