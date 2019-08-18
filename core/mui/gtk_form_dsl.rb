@@ -268,6 +268,25 @@ module Gtk::FormDSL
     container
   end
 
+  # リストビューを表示する。
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  # [columns:]
+  #   配列の配列で、各要素は[カラムのタイトル(String), カラムの表示文字を返すProc]
+  # [reorder:]
+  #   _true_ なら、ドラッグ＆ドロップによる並び替えを許可する
+  # [&block] 内容
+  def listview(config, columns:, reorder: false, &generate)
+    listview = Gtk::FormDSL::ListView.new(self, columns, config)
+    pack_start(Gtk::VBox.new(false, 4).
+                 #closeup(listview.filter_entry).
+                 add(Gtk::HBox.new(false, 4).
+                       add(listview)
+                       #.closeup(listview.buttons(Gtk::VBox))
+                    ))
+  end
+
   # 要素を１つ選択させる
   # ==== Args
   # [label] ラベル
@@ -528,4 +547,4 @@ module Gtk::FormDSL
   end
 end
 
-miquire :mui, 'form_dsl_select', 'form_dsl_multi_select'
+miquire :mui, 'form_dsl_select', 'form_dsl_multi_select', 'form_dsl_listview'
