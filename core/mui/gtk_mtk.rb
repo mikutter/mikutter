@@ -10,7 +10,10 @@ miquire :mui, 'selectbox'
 require 'gtk2'
 
 module Mtk
-  def self.adjustment(name, config, min, max)
+  extend self
+  extend Gem::Deprecate
+
+  def adjustment(name, config, min, max)
     container = Gtk::HBox.new(false, 0)
     container.pack_start(Gtk::Label.new(name), false, true, 0)
     adj = Gtk::Adjustment.new((UserConfig[config] or min), min*1.0, max*1.0, 1.0, 5.0, 0.0)
@@ -22,9 +25,10 @@ module Mtk
     }
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(spinner), true, true, 0)
   end
+  deprecate :adjustment, :none, 2020, 8
 
   # [values] {値 => ラベル(String)} のようなHash
-  def self.chooseone(key, label, values)
+  def chooseone(key, label, values)
     values.freeze
     if key.respond_to?(:call)
       proc = key
@@ -49,7 +53,7 @@ module Mtk
     container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
   end
 
-  def self.choosemany(key, label, values)
+  def choosemany(key, label, values)
     values.freeze
     if key.respond_to?(:call)
       proc = key
@@ -68,8 +72,9 @@ module Mtk
         pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
     else
       input end end
+  deprecate :choosemany, :none, 2020, 8
 
-  def self.boolean(key, label)
+  def boolean(key, label)
     if key.respond_to?(:call)
       proc = key
     else
@@ -84,8 +89,9 @@ module Mtk
       proc.call(*[widget.active?, widget][0, proc.arity]) }
     return input
   end
+  deprecate :boolean, :none, 2020, 8
 
-  def self.message_picker(key)
+  def message_picker(key)
     if key.respond_to?(:call)
       proc = key
     else
@@ -100,8 +106,9 @@ module Mtk
       proc.call(*[ input.to_a, input][0, proc.arity]) }
     return input
   end
+  deprecate :message_picker, :none, 2020, 8
 
-  def self.default_or_custom(key, title, default_label, custom_label)
+  def default_or_custom(key, title, default_label, custom_label)
     group = default = Gtk::RadioButton.new(default_label)
     custom = Gtk::RadioButton.new(group, custom_label)
     input = Gtk::Entry.new
@@ -120,8 +127,9 @@ module Mtk
     }
     self.group(title, default, Gtk::HBox.new(false, 0).add(custom).add(input))
   end
+  deprecate :default_or_custom, :none, 2020, 8
 
-  def self.input(key, label, visibility=true, &callback)
+  def input(key, label, visibility=true, &callback)
     if key.respond_to?(:call)
       proc = key
     else
@@ -141,8 +149,9 @@ module Mtk
     callback.call(container, input) if block_given?
     return container
   end
+  deprecate :input, :none, 2020, 8
 
-  def self.keyconfig(key, title)
+  def keyconfig(key, title)
     if key.respond_to?(:call)
       proc = key
     else
@@ -158,8 +167,9 @@ module Mtk
     keyconfig.change_hook = proc
     return container
   end
+  deprecate :keyconfig, :none, 2020, 8
 
-  def self.group(title, *children)
+  def group(title, *children)
     group = Gtk::Frame.new.set_border_width(8)
     if(title.is_a?(Gtk::Widget))
       group.set_label_widget(title)
@@ -172,8 +182,9 @@ module Mtk
     }
     group
   end
+  deprecate :group, :none, 2020, 8
 
-  def self.expander(title, expanded, *children)
+  def expander(title, expanded, *children)
     group = Gtk::Expander.new(title).set_border_width(8)
     group.expanded = expanded
     box = Gtk::VBox.new(false, 0).set_border_width(4)
@@ -183,32 +194,14 @@ module Mtk
     }
     group
   end
+  deprecate :expander, :none, 2020, 8
 
-  def self.fileselect(key, label, current=Dir.pwd)
-    container = input = nil
-    self.input(key, label){ |c, i|
-      container = c
-      input = i }
-    button = Gtk::Button.new('参照')
-    container.pack_start(button, false)
-    button.ssc(:clicked){ |widget|
-      dialog = Gtk::FileChooserDialog.new("Open File",
-                                          widget.get_ancestor(Gtk::Window),
-                                          Gtk::FileChooser::ACTION_OPEN,
-                                          nil,
-                                          [Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL],
-                                          [Gtk::Stock::OPEN, Gtk::Dialog::RESPONSE_ACCEPT])
-      dialog.current_folder = File.expand_path(current)
-      if dialog.run == Gtk::Dialog::RESPONSE_ACCEPT
-        UserConfig[key] = dialog.filename
-        input.text = dialog.filename
-      end
-      dialog.destroy
-    }
-    container
+  def fileselect(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
   end
+  deprecate :fileselect, :none, 2020, 8
 
-  def self._colorselect(key, label)
+  def _colorselect(key, label)
     color = UserConfig[key]
     button = Gtk::ColorButton.new((color and Gdk::Color.new(*color)))
     button.title = label
@@ -216,159 +209,61 @@ module Mtk
       UserConfig[key] = w.color.to_a }
     button end
 
-  def self._fontselect(key, label)
+  def _fontselect(key, label)
     button = Gtk::FontButton.new(UserConfig[key])
     button.title = label
     button.ssc(:font_set){ |w|
       UserConfig[key] = w.font_name }
     button end
 
-  def self.fontselect(key, label)
+  def fontselect(key, label)
     Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(_fontselect(key, label))
   end
+  deprecate :fontselect, :none, 2020, 8
 
-  def self.colorselect(key, label)
+  def colorselect(key, label)
     Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(_colorselect(key, label))
   end
+  deprecate :colorselect, :none, 2020, 8
 
-  def self.fontcolorselect(font, color, label)
+  def fontcolorselect(font, color, label)
     self.fontselect(font, label).closeup(_colorselect(color, label))
   end
+  deprecate :fontcolorselect, :none, 2020, 8
 
-  def self.accountdialog_button(label, kuser, lvuser,  kpasswd, lvpasswd, &validator)
-    btn = Gtk::Button.new(label)
-    btn.ssc(:clicked){
-      self.account_dialog(label, kuser, lvuser,  kpasswd, lvpasswd, &validator) }
-    btn
+  def accountdialog_button(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+  end
+  deprecate :accountdialog_button, :none, 2020, 8
+
+  def account_dialog_inner(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
-  def self.account_dialog_inner(kuser, lvuser,  kpasswd, lvpasswd, cancel=true)
-    def entrybox(label, visibility=true, default="")
-      container = Gtk::HBox.new(false, 0)
-      input = Gtk::Entry.new
-      input.text = default
-      input.visibility = visibility
-      container.pack_start(Gtk::Label.new(label), false, true, 0)
-      container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
-      return container, input
-    end
-    box = Gtk::VBox.new(false, 8)
-    user, user_input = entrybox(lvuser, true, (UserConfig[kuser] or ""))
-    pass, pass_input = entrybox(lvpasswd, false)
-    return box.closeup(user).closeup(pass), user_input, pass_input
-  end
-
-  def self.adi(symbol, label)
+  def adi(symbol, label)
     input(lambda{ |new| UserConfig[symbol] }, label){ |c, i| yield(i) } end
 
-  def self.account_dialog(label, kuser, lvuser,  kpasswd, lvpasswd, cancel=true, &validator)
-    alert_thread = if(Thread.main != Thread.current) then Thread.current end
-    dialog = Gtk::Dialog.new(label)
-    dialog.window_position = Gtk::Window::POS_CENTER
-    iuser = ipass = nil
-    container = Gtk::VBox.new(false, 8).
-      closeup(adi(kuser, lvuser){ |i| iuser = i }).
-      closeup(adi(kpasswd, lvpasswd){ |i| ipass = i })
-    dialog.vbox.pack_start(container, true, true, 30)
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if cancel
-    dialog.default_response = Gtk::Dialog::RESPONSE_OK
-    quit = lambda{
-      dialog.hide_all.destroy
-      Gtk.main_iteration_do(false)
-      Gtk::Window.toplevels.first.show
-      if alert_thread
-        alert_thread.run
-      else
-        Gtk.main_quit
-      end }
-    dialog.ssc(:response){ |widget, response|
-      if response == Gtk::Dialog::RESPONSE_OK
-        if validator.call(iuser.text, ipass.text)
-          UserConfig[kuser] = iuser.text
-          UserConfig[kpasswd] = ipass.text
-          quit.call
-        else
-          alert("#{lvuser}か#{lvpasswd}が違います")
-        end
-      elsif (cancel and response == Gtk::Dialog::RESPONSE_CANCEL) or
-          response == Gtk::Dialog::RESPONSE_DELETE_EVENT
-        quit.call
-      end }
-    dialog.ssc(:destroy) {
-      false
-    }
-    container.show
-    dialog.show_all
-    Gtk::Window.toplevels.first.hide
-    if(alert_thread)
-      Thread.stop
-    else
-      Gtk::main
-    end
+  def account_dialog(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
-  def self.alert(message)
-    dialog = Gtk::MessageDialog.new(nil,
-                                    Gtk::Dialog::DESTROY_WITH_PARENT,
-                                    Gtk::MessageDialog::QUESTION,
-                                    Gtk::MessageDialog::BUTTONS_CLOSE,
-                                    message)
-    dialog.run
-    dialog.destroy
+  def alert(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
-  def self.dialog_button(label, callback = Proc.new)
-    btn = Gtk::Button.new(label)
-    btn.ssc(:clicked){
-      params = callback.call
-      self.dialog(label, params[:container], &params[:success]) }
-    btn
+  def dialog_button(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
-  def self.scrolled_dialog(title, container, parent=nil, expand=true, &block)
-    dialog(title,
-           Gtk::ScrolledWindow.new.
-           set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC).
-           add_with_viewport(container),
-           parent, expand, &block) end
+  def scrolled_dialog(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+  end
 
-  def self.dialog(title, container, parent=nil, expand=true, &block)
-    parent_window = parent and parent.toplevel.toplevel? and parent.toplevel
-    result = nil
-    dialog = Gtk::Dialog.new("#{title} - " + Environment::NAME)
-    dialog.set_size_request(640, 480)
-    dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.vbox.pack_start(container, expand, true, 30)
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL) if block_given?
-    dialog.ssc(:response){ |widget, response|
-      if block and response == Gtk::Dialog::RESPONSE_OK
-        begin
-          result = block.call(*[response, dialog][0,block.arity])
-        rescue Mtk::ValidateError => e
-          dialog.sensitive = false
-          alert = Gtk::Dialog.new("エラー - " + Environment::NAME)
-          alert.set_size_request(420, 90)
-          alert.window_position = Gtk::Window::POS_CENTER
-          alert.vbox.add(Gtk::Label.new(e.to_s))
-          alert.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-          alert.show_all
-          alert.ssc(:response){
-            dialog.sensitive = true
-            alert.hide_all.destroy }
-          next
-        end
-      end
-      parent_window.sensitive = true if parent_window
-      dialog.hide_all.destroy
-      Gtk::main_quit
-    }
-    parent_window.sensitive = false if parent_window
-    dialog.show_all
-    Gtk::main
-    result end
+  def dialog(*)
+    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+  end
 
   class Mtk::ValidateError < StandardError;  end
+  class Mtk::Read994Error < StandardError;  end
 
 end
