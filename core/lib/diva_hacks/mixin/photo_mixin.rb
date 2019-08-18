@@ -21,7 +21,6 @@ module Diva::Model::PhotoMixin
   def initialize(*rest)
     super
     @read_count = 0
-    @forecast_buffer_size = PARTIAL_READ_BYTESIZE # ダウンロード前に予め確保しておくバッファサイズ
     @cached = false
     @forget = nil
   end
@@ -123,7 +122,7 @@ module Diva::Model::PhotoMixin
   def cache_read_routine
     raw = Plugin.filtering(:image_cache, uri.to_s, nil)[1]
     if raw.is_a?(String)
-      @buffer << raw.freeze
+      @buffer = raw.freeze
       atomic{ @partials.each{|c|c.(raw)} }
       true
     end
@@ -148,16 +147,19 @@ module Diva::Model::PhotoMixin
   def download_mainloop(input_stream)
     loop do
       Thread.pass
-      partial = input_stream.readpartial(PARTIAL_READ_BYTESIZE).freeze
-      @buffer << partial
+      partial = input_stream.readpartial(PARTIAL_READ_BYTESIZE)
+      if @buffer
+        @buffer << partial
+      else
+        @buffer = +partial
+      end
       atomic{ @partials.each{|c|c.(partial)} }
     end
   end
 
   def initialize_download(&partial_callback)
     @state = :download
-    notice "forecast buffer size: #{@forecast_buffer_size}"
-    @buffer = String.new(capacity: @forecast_buffer_size)
+    @buffer = nil
     register_partial_callback(partial_callback)
     register_promise
   end
@@ -165,7 +167,6 @@ module Diva::Model::PhotoMixin
   def finalize_download_as_success
     atomic do
       self.blob = @buffer.freeze
-      @forecast_buffer_size = @buffer.bytesize
       @state = :complete
       @promises.each{|p| p.call(self) }
       @buffer = @promises = @partials = nil
