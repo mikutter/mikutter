@@ -61,10 +61,8 @@ class Plugin::Twitter::Message < Diva::Model
 
   handle PermalinkMatcher do |uri|
     match = PermalinkMatcher.match(uri.to_s)
-    notice match.inspect
     if match
       message = findbyid(match[:id].to_i, Diva::DataSource::USE_LOCAL_ONLY)
-      notice message.inspect
       if message
         message
       else
