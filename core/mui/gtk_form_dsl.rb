@@ -119,8 +119,12 @@ module Gtk::FormDSL
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.text = self[config] || ""
-    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    if label
+      container.pack_start(Gtk::Label.new(label), false, true, 0)
+      container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    else
+      container.pack_start(input, true, true, 0)
+    end
     input.signal_connect(:changed){ |widget|
       self[config] = widget.text
       false
@@ -272,8 +276,8 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def select(label, config, default = {})
-    builder = Gtk::FormDSL::Select.new(self, default)
+  def select(label, config, default = {}, mode: :auto)
+    builder = Gtk::FormDSL::Select.new(self, default, mode: mode)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container
@@ -287,8 +291,8 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def multiselect(label, config, default = {})
-    builder = Gtk::FormDSL::MultiSelect.new(self, default)
+  def multiselect(label, config, default = {}, mode: :auto)
+    builder = Gtk::FormDSL::MultiSelect.new(self, default, mode: mode)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container

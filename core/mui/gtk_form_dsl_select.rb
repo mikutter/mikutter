@@ -2,9 +2,19 @@
 miquire :mui, 'form_dsl'
 
 class Gtk::FormDSL::Select
-  def initialize(parent_dslobj, values = [])
+  def initialize(parent_dslobj, values = [], mode: :auto)
     @parent_dslobj = parent_dslobj
-    @options = values.to_a.freeze end
+    @options = values.to_a.freeze
+    @mode = mode
+  end
+
+  def mode
+    if @mode == :auto
+      has_widget? ? :radio : :combo
+    else
+      @mode
+    end
+  end
 
   # セレクトボックスに要素を追加する
   # ==== Args
@@ -37,12 +47,13 @@ class Gtk::FormDSL::Select
   # ==== Return
   # ウィジェット
   def build(label, config_key)
-    if has_widget?
+    case mode
+    when :radio
       group = Gtk::Frame.new.set_border_width(8)
       group.set_label(label)
       group.add(build_box(config_key))
       group
-    else
+    when :combo
       Gtk::HBox.new(false, 0).add(Gtk::Label.new(label).left).closeup(build_combobox(config_key))
     end
   end
