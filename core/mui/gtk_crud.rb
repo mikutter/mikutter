@@ -3,27 +3,23 @@ require 'gtk2'
 require_relative '../utils'
 miquire :mui, 'extension'
 miquire :mui, 'contextmenu'
+miquire :mui, 'compatlistview'
 
 # CRUDなリストビューを簡単に実現するためのクラス
-class Gtk::CRUD < Gtk::TreeView
-  extend Memoist
-
-  attr_accessor :creatable, :updatable, :deletable, :dialog_title
+class Gtk::CRUD < Gtk::CompatListView
+  attr_accessor :creatable, :updatable, :deletable
   type_register
 
   def initialize
     super()
-    initialize_model
     @creatable = @updatable = @deletable = true
-    set_columns
-    # self.set_enable_search(true).set_search_column(1).set_search_equal_func{ |model, column, key, iter|
-    #   not iter[column].include?(key) }
     handle_release_event
     handle_row_activated
   end
 
   def buttons(box_klass)
-    box_klass.new(false, 4).closeup(create_button).closeup(update_button).closeup(delete_button) end
+    box_klass.new(false, 4).closeup(create_button).closeup(update_button).closeup(delete_button)
+  end
 
   def create_button
     if not defined? @create_button
@@ -73,61 +69,21 @@ class Gtk::CRUD < Gtk::TreeView
 
   private
 
-  def initialize_model
-    set_model(Gtk::ListStore.new(*column_schemer.flatten.map{|x| x[:type]}))
-  end
-
-  def set_columns
-    column_schemer.inject(0){ |index, scheme|
-      if scheme.is_a? Array
-        col = Gtk::TreeViewColumn.new(scheme.first[:label])
-        col.resizable = scheme.first[:resizable]
-        scheme.each{ |cell|
-          if cell[:kind]
-            cell_renderer = get_render_by(cell, index)
-            col.pack_start(cell_renderer, cell[:expand])
-            col.add_attribute(cell_renderer, cell[:kind], index) end
-          index += 1 }
-        append_column(col)
-      else
-        if(scheme[:label] and scheme[:kind])
-          col = Gtk::TreeViewColumn.new(scheme[:label], get_render_by(scheme, index), scheme[:kind] => index)
-          col.resizable = scheme[:resizable]
-          append_column(col) end
-        index += 1 end
-      index }
-  end
-
   def get_render_by(scheme, index)
-    kind = scheme[:kind]
-    renderer = scheme[:renderer]
-    case
-    when renderer
-      if renderer.is_a?(Proc)
-        renderer.call(scheme, index)
-      else
-        renderer.new end
-    when kind == :text
-      Gtk::CellRendererText.new
-    when kind == :pixbuf
-      Gtk::CellRendererPixbuf.new
-    when kind == :active
+    result = super
+    if result
+      result
+    elsif scheme[:kind] == :active
       toggled = Gtk::CellRendererToggle.new
-      toggled.ssc(:toggled){ |toggled, path|
+      toggled.ssc(:toggled) do |toggled, path|
         iter = model.get_iter(path)
         iter[index] = !iter[index]
-        on_updated(iter) }
+        on_updated(iter)
+        false
+      end
       toggled
     end
   end
-
-  def column_schemer
-    [{:kind => :active, :widget => :boolean, :type => TrueClass, :label => '表示'},
-     {:kind => :text, :widget => :input, :type => String, :label => '名前'},
-     {:type => Object, :widget => :message_picker},
-    ].freeze
-  end
-  memoize :column_schemer
 
   def force_record_create(record)
     iter = model.model.append
