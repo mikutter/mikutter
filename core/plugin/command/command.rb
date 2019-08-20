@@ -112,7 +112,7 @@ Plugin.create :command do
 
   command(:delete,
           name: _('削除'),
-          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| m.from_me?(opt.world) } },
+          condition: ->opt{ !opt.messages.empty? && opt.messages.all?{|m| destroy?(opt.world, m) } },
           visible: true,
           icon: Skin[:close],
           role: :timeline) do |opt|
@@ -121,7 +121,7 @@ Plugin.create :command do
         label _('失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？')
         link m
       }.next {
-        m.destroy
+        destroy(opt.world, m)
       }
     }
   end
