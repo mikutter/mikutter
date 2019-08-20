@@ -57,7 +57,14 @@ Plugin::create(:basic_settings) do
       :license => (file_get_contents('../LICENSE') rescue nil),
       :website => _('https://mikutter.hachune.net/'),
       :logo => Skin.photo('icon.png'),
-      :authors => ['toshi_a', 'Phenomer', 'osa_k', 'katsyoshi', 'ahiru', 'cobodo'],
+      :authors => %w[
+        toshi_a
+        Phenomer
+        osa_k
+        katsyoshi
+        ahiru
+        cobodo
+      ],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],
       :documenters => ['toshi_a']
     }
