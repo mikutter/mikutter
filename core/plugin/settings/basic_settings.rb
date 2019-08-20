@@ -64,6 +64,7 @@ Plugin::create(:basic_settings) do
         katsyoshi
         ahiru
         cobodo
+        shibafu528
       ],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],
       :documenters => ['toshi_a']
