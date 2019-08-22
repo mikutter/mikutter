@@ -27,16 +27,21 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   def buttons(container_class)
     container = container_class.new
 
-    # create = Gtk::Button.new(Gtk::Stock::ADD)
-    # create.ssc(:clicked) do
-    #   Plugin[:gui].dialog('hogefuga の作成', &generate).next do |values|
-    #     result = @model_klass.new(values.to_h)
-    #     append(result)
-    #     rewind
-    #   end
-    #   true
-    # end
-    # container.add(create)
+    if @generate
+      create = Gtk::Button.new(Gtk::Stock::ADD)
+      create.ssc(:clicked) do
+        proc = @generate
+        Plugin[:gui].dialog('hogefuga の作成') do
+          instance_exec(nil, &proc)
+        end.next do |values|
+          append(@object_initializer.(values.to_h))
+          notice "create object: #{values.to_h.inspect}"
+          rewind
+        end.terminate('hoge')
+        true
+      end
+      container.add(create)
+    end
 
     if @generate
       edit = Gtk::Button.new(Gtk::Stock::EDIT)
