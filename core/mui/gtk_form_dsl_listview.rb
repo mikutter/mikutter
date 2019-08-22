@@ -18,10 +18,13 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     end
 
     set_model(store)
+    set_reorderable(true)
 
     @parent_dslobj[@config].each do |obj|
       append(obj)
     end
+
+    store.ssc(:row_deleted, &model_row_deleted_handler)
   end
 
   def buttons(container_class)
@@ -104,6 +107,13 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   private def rewind
     @parent_dslobj[@config] = self.model.to_enum(:each).map do |_, _, iter|
       iter[0]
+    end
+  end
+
+  private def model_row_deleted_handler
+    ->() do
+      rewind
+      false
     end
   end
 end
