@@ -63,6 +63,28 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
       container.add(edit)
     end
 
+    delete = Gtk::Button.new(Gtk::Stock::DELETE)
+    delete.ssc(:clicked) do
+      _, _, iter = selection.to_enum(:selected_each).first
+      target = iter[0]
+      columns = @columns.map(&:first)
+      Plugin[:gui].dialog('hogefuga の削除') do
+        label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
+        if target.is_a?(Diva::Model)
+          link target
+        else
+          columns.each_with_index do |title, index|
+            label '%{title}: %{value}' % {title: title, value: iter[index + 1]}
+          end
+        end
+      end.next do |values|
+        self.model.remove(iter)
+        rewind
+      end.terminate('hoge')
+      true
+    end
+    container.add(delete)
+
     container
   end
 
