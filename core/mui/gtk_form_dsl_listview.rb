@@ -41,7 +41,9 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     container.closeup(delete_button) if @deletable
   end
 
-  private def create_button
+  private
+
+  def create_button
     create = Gtk::Button.new(Gtk::Stock::ADD)
     create.ssc(:clicked) do
       record_create
@@ -50,7 +52,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     create
   end
 
-  private def update_button
+  def update_button
     edit = Gtk::Button.new(Gtk::Stock::EDIT)
     edit.ssc(:clicked) do
       record_update
@@ -59,7 +61,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     edit
   end
 
-  private def delete_button
+  def delete_button
     delete = Gtk::Button.new(Gtk::Stock::DELETE)
     delete.ssc(:clicked) do
       record_delete
@@ -68,7 +70,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     delete
   end
 
-  private def record_create
+  def record_create
     proc = @generate
     Plugin[:gui].dialog('hogefuga の作成') do
       instance_exec(nil, &proc)
@@ -79,7 +81,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     end.terminate('hoge')
   end
 
-  private def record_update
+  def record_update
     _, _, iter = selection.to_enum(:selected_each).first
     target = iter[0]
     proc = @generate
@@ -94,7 +96,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     end.terminate('hoge')
   end
 
-  private def record_delete
+  def record_delete
     _, _, iter = selection.to_enum(:selected_each).first
     target = iter[0]
     columns = @columns.map(&:first)
@@ -113,33 +115,33 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     end.terminate('hoge')
   end
 
-  private def append(obj)
+  def append(obj)
     iter = self.model.append
     iter[0] = obj
     update(iter)
   end
 
-  private def update(iter)
+  def update(iter)
     pp iter[0]
     @columns.each_with_index do |(_, converter), index|
       iter[index + 1] = converter.(iter[0]).to_s
     end
   end
 
-  private def rewind
+  def rewind
     @parent_dslobj[@config] = self.model.to_enum(:each).map do |_, _, iter|
       iter[0]
     end
   end
 
-  private def model_row_deleted_handler
+  def model_row_deleted_handler
     ->(_widget, _) do
       rewind
       false
     end
   end
 
-  private def view_button_release_event_handler
+  def view_button_release_event_handler
     ->(widget, event) do
       if event.button == 3
         Gtk::ContextMenu.new.tap do |cm|
