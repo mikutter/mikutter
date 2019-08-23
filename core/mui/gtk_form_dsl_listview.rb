@@ -29,6 +29,9 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     end
 
     store.ssc(:row_deleted, &model_row_deleted_handler)
+    if @creatable || @updatable || @deletable
+      ssc(:button_release_event, &view_button_release_event_handler)
+    end
   end
 
   def buttons(container_class)
@@ -41,14 +44,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   private def create_button
     create = Gtk::Button.new(Gtk::Stock::ADD)
     create.ssc(:clicked) do
-      proc = @generate
-      Plugin[:gui].dialog('hogefuga の作成') do
-        instance_exec(nil, &proc)
-      end.next do |values|
-        append(@object_initializer.(values.to_h))
-        notice "create object: #{values.to_h.inspect}"
-        rewind
-      end.terminate('hoge')
+      record_create
       true
     end
     create
@@ -57,18 +53,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   private def update_button
     edit = Gtk::Button.new(Gtk::Stock::EDIT)
     edit.ssc(:clicked) do
-      _, _, iter = selection.to_enum(:selected_each).first
-      target = iter[0]
-      proc = @generate
-      Plugin[:gui].dialog('hogefuga の編集') do
-        set_value target.to_hash
-        instance_exec(target, &proc)
-      end.next do |values|
-        iter[0] = @object_initializer.(values.to_h)
-        notice "update object: #{values.to_h.inspect}"
-        update(iter)
-        rewind
-      end.terminate('hoge')
+      record_update
       true
     end
     edit
@@ -77,25 +62,55 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   private def delete_button
     delete = Gtk::Button.new(Gtk::Stock::DELETE)
     delete.ssc(:clicked) do
-      _, _, iter = selection.to_enum(:selected_each).first
-      target = iter[0]
-      columns = @columns.map(&:first)
-      Plugin[:gui].dialog('hogefuga の削除') do
-        label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
-        if target.is_a?(Diva::Model)
-          link target
-        else
-          columns.each_with_index do |title, index|
-            label '%{title}: %{value}' % {title: title, value: iter[index + 1]}
-          end
-        end
-      end.next do |values|
-        self.model.remove(iter)
-        rewind
-      end.terminate('hoge')
+      record_delete
       true
     end
     delete
+  end
+
+  private def record_create
+    proc = @generate
+    Plugin[:gui].dialog('hogefuga の作成') do
+      instance_exec(nil, &proc)
+    end.next do |values|
+      append(@object_initializer.(values.to_h))
+      notice "create object: #{values.to_h.inspect}"
+      rewind
+    end.terminate('hoge')
+  end
+
+  private def record_update
+    _, _, iter = selection.to_enum(:selected_each).first
+    target = iter[0]
+    proc = @generate
+    Plugin[:gui].dialog('hogefuga の編集') do
+      set_value target.to_hash
+      instance_exec(target, &proc)
+    end.next do |values|
+      iter[0] = @object_initializer.(values.to_h)
+      notice "update object: #{values.to_h.inspect}"
+      update(iter)
+      rewind
+    end.terminate('hoge')
+  end
+
+  private def record_delete
+    _, _, iter = selection.to_enum(:selected_each).first
+    target = iter[0]
+    columns = @columns.map(&:first)
+    Plugin[:gui].dialog('hogefuga の削除') do
+      label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
+      if target.is_a?(Diva::Model)
+        link target
+      else
+        columns.each_with_index do |title, index|
+          label '%{title}: %{value}' % {title: title, value: iter[index + 1]}
+        end
+      end
+    end.next do |values|
+      self.model.remove(iter)
+      rewind
+    end.terminate('hoge')
   end
 
   private def append(obj)
@@ -121,6 +136,20 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     ->(_widget, _) do
       rewind
       false
+    end
+  end
+
+  private def view_button_release_event_handler
+    ->(widget, event) do
+      if event.button == 3
+        Gtk::ContextMenu.new.tap do |cm|
+          cm.register('新規作成') { record_create } if @creatable
+          cm.register('編集')     { record_update } if @updatable
+          cm.register('削除')     { record_delete } if @deletable
+          cm.popup(widget, widget)
+        end
+        true
+      end
     end
   end
 end
