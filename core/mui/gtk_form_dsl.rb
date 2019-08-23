@@ -277,8 +277,14 @@ module Gtk::FormDSL
   # [reorder:]
   #   _true_ なら、ドラッグ＆ドロップによる並び替えを許可する
   # [&block] 内容
-  def listview(config, columns:, reorder: false, object_initializer: :itself.to_proc, &generate)
-    listview = Gtk::FormDSL::ListView.new(self, columns, config, object_initializer, &generate)
+  def listview(config, columns:, edit: true, reorder: edit, object_initializer: :itself.to_proc, &generate)
+    listview = Gtk::FormDSL::ListView.new(
+      self, columns, config, object_initializer,
+      create: edit,
+      update: edit,
+      delete: edit,
+      reorder: reorder,
+      &generate)
     pack_start(Gtk::VBox.new(false, 4).
                  #closeup(listview.filter_entry).
                  add(Gtk::HBox.new(false, 4).
