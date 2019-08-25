@@ -39,6 +39,11 @@ RUN wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz &
         make "DESTDIR=$APPDIR" install && \
         cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
 
+# use exec.so to run commands placed outside of the AppImage
+# see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
+RUN mkdir $APPDIR/usr/optional \
+    && wget -q -O $APPDIR/usr/optional/exec.so https://github.com/mikutter/execso/releases/download/2019-08-20/exec-x86_64-gnu-linux.so
+
 COPY AppRun mikutter.desktop gen_appimage.sh /
 
 ENV VOLUME /volume

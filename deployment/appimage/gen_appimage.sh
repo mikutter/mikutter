@@ -39,13 +39,6 @@ echo "--> copy mikutter"
 mkdir -p $APPDIR/usr/share/mikutter
 cp -av "$BUILD_DIR"/{.bundle,core,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
 
-echo "--> get exec.so"
-# use darealshinji/AppImageKit-checkrt's exec.so to exec xdg-open placed
-# outside of the AppImage
-# see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
-mkdir -p $APPDIR/usr/optional || true
-wget -q -O $APPDIR/usr/optional/exec.so https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
-
 echo "--> copy Typelibs for gobject-introspection gem"
 cp -av /usr/lib/girepository-* $APPDIR/usr/lib
 
