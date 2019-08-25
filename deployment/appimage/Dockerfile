@@ -19,7 +19,6 @@ RUN apt update && apt install -y \
     libgdk-pixbuf2.0-dev \
     libpango1.0-dev \
     libgtk2.0-dev \
-    libidn11-dev \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -38,6 +37,11 @@ RUN wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz &
         make -j8 && \
         make "DESTDIR=$APPDIR" install && \
         cp -v BSDL COPYING* GPL LEGAL README* $APPDIR/usr/lib/ruby
+
+# use exec.so to run commands placed outside of the AppImage
+# see https://github.com/darealshinji/AppImageKit-checkrt/pull/11
+RUN mkdir $APPDIR/usr/optional \
+    && wget -q -O $APPDIR/usr/optional/exec.so https://github.com/mikutter/execso/releases/download/2019-08-20/exec-x86_64-gnu-linux.so
 
 COPY AppRun mikutter.desktop gen_appimage.sh /
 

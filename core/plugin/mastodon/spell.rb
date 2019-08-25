@@ -430,7 +430,7 @@ Plugin.create(:mastodon) do
     pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
     }.next{
-      Plugin.call(:destroyed, status.actual_status)
+      Plugin.call(:destroyed, [status.actual_status])
       status.actual_status
     }
   end
