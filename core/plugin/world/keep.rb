@@ -31,9 +31,9 @@ module Plugin::World
         @account_data
       else
         @@service_lock.synchronize do
-          @account_data ||= if FileTest.exist? ACCOUNT_FILE
-            File.open(ACCOUNT_FILE, 'rb'.freeze) do |file|
-              decrypted_string = decrypt(file.read)
+          @account_data ||=
+            if FileTest.exist? ACCOUNT_FILE
+              decrypted_string = decrypt(File.open(ACCOUNT_FILE, 'rb', &:read))
               begin
                 JSON.parse(decrypted_string, symbolize_names: true)
               rescue JSON::ParserError
@@ -43,10 +43,9 @@ module Plugin::World
                 notice 'Older account data was detected. It was converted newer format.'
                 d
               end
+            else
+              migrate_older_account_data
             end
-          else
-            migrate_older_account_data
-          end
         end
       end
     end
