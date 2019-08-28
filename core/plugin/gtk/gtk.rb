@@ -14,7 +14,6 @@ miquire :mui,
 require_relative 'mikutter_window'
 require_relative 'tab_container'
 require_relative 'tab_toolbar'
-require_relative 'delayer'
 require_relative 'slug_dictionary'
 require_relative 'mainloop'
 require_relative 'konami_watcher'

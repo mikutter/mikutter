@@ -3,13 +3,18 @@
 module Mainloop
 
   def mainloop
-    loop do
-      end_flag = true
-      while Gtk.events_pending?
-        end_flag = Gtk.main_iteration
+    catch(:__exit_mikutter) do
+      loop do
+        while Gtk.events_pending?
+          Gtk.main_iteration
+          throw :__exit_mikutter if Gtk.exception
+        end
+        while not Delayer.empty?
+          Delayer.run
+          Gtk.main_iteration if Gtk.events_pending?
+        end
+        sleep 0.02
       end
-      break if !end_flag || Gtk.exception
-      sleep 0.02
     end
   rescue Interrupt,SystemExit,SignalException => exception
     raise exception
