@@ -8,7 +8,7 @@ module Mainloop
       loop do
         gtk_tick
         while not Delayer.empty?
-          Delayer.run
+          Delayer.run_once
           gtk_tick
         end
         sleep 0.02
