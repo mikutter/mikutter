@@ -3,15 +3,13 @@
 module Mainloop
 
   def mainloop
+    @exit_flag = false
     catch(:__exit_mikutter) do
       loop do
-        while Gtk.events_pending?
-          Gtk.main_iteration
-          throw :__exit_mikutter if Gtk.exception
-        end
+        gtk_tick
         while not Delayer.empty?
           Delayer.run
-          Gtk.main_iteration if Gtk.events_pending?
+          gtk_tick
         end
         sleep 0.02
       end
@@ -25,6 +23,24 @@ module Mainloop
   end
 
   def exception_filter(e)
-    Gtk.exception ? Gtk.exception : e end
+    Gtk.exception ? Gtk.exception : e
+  end
+
+  def reserve_exit
+    @exit_flag = true
+  end
+
+  def exit!
+    throw(:__exit_mikutter)
+  end
+
+  private
+
+  def gtk_tick
+    while Gtk.events_pending?
+      Gtk.main_iteration
+      throw :__exit_mikutter if @exit_flag || Gtk.exception
+    end
+  end
 
 end

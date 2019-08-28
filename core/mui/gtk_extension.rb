@@ -37,7 +37,6 @@ class GLib::Instantiatable
             end
           rescue Exception => err
             Gtk.exception = err
-            Gtk.main_quit
           end
         end
       else
@@ -48,7 +47,6 @@ class GLib::Instantiatable
             end
           rescue Exception => err
             Gtk.exception = err
-            Gtk.main_quit
           end
         end
       end
@@ -87,7 +85,7 @@ end
 
 class Gtk::Object
   def self.main_quit
-    Gtk.main_quit end end
+    Mainloop.reserve_exit end end
 
 module Gtk
   NO_ACTION = '(割り当てなし)'.freeze
