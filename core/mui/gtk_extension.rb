@@ -335,7 +335,8 @@ module Gdk
     def scale(val)
       case UserConfig[:ui_scale]
       when :auto
-        val * Gdk::Visual.system.screen.resolution / 96
+        resolution = Gdk::Visual.system.screen.resolution < 0 ? 96 : Gdk::Visual.system.screen.resolution
+        val * resolution / 96
       else
         val * UserConfig[:ui_scale]
       end.to_i
