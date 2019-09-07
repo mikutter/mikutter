@@ -3,10 +3,16 @@
 module Mainloop
 
   def mainloop
-    loop do
-      Gtk.main
-      break if Gtk.exception || Plugin.filtering(:before_mainloop_exit)
-      error "Mainloop exited but it's cancelled by filter `:before_mainloop_exit'."
+    @exit_flag = false
+    catch(:__exit_mikutter) do
+      loop do
+        gtk_tick
+        while not Delayer.empty?
+          Delayer.run_once
+          gtk_tick
+        end
+        sleep 0.02
+      end
     end
   rescue Interrupt,SystemExit,SignalException => exception
     raise exception
@@ -17,6 +23,24 @@ module Mainloop
   end
 
   def exception_filter(e)
-    Gtk.exception ? Gtk.exception : e end
+    Gtk.exception ? Gtk.exception : e
+  end
+
+  def reserve_exit
+    @exit_flag = true
+  end
+
+  def exit!
+    throw(:__exit_mikutter)
+  end
+
+  private
+
+  def gtk_tick
+    while Gtk.events_pending?
+      Gtk.main_iteration
+      throw :__exit_mikutter if @exit_flag || Gtk.exception
+    end
+  end
 
 end

@@ -14,7 +14,6 @@ miquire :mui,
 require_relative 'mikutter_window'
 require_relative 'tab_container'
 require_relative 'tab_toolbar'
-require_relative 'delayer'
 require_relative 'slug_dictionary'
 require_relative 'mainloop'
 require_relative 'konami_watcher'
@@ -58,9 +57,9 @@ Plugin.create :gtk do
     window.ssc("destroy"){
       Delayer.freeze
       window.destroy
-      ::Gtk::Object.main_quit
-      # Gtk.main_quit
-      false }
+      Mainloop.reserve_exit
+      false
+    }
     window.ssc(:focus_in_event) {
       i_window.active!(true, true)
       false
