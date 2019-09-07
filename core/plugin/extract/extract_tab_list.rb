@@ -24,7 +24,7 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # 選択されている項目のID。何も選択されていない場合はnil
   def selected_slug
     selected_iter = selection.selected
-    selected_iter[ITER_SLUG] if selected_iter end
+    selected_iter[ITER_SLUG].to_sym if selected_iter end
 
   # レコードを追加する
   # ==== Args
@@ -45,7 +45,7 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # self
   def remove_record(record_slug)
     record_slug = record_slug.to_sym
-    remove_iter = model.to_enum(:each).map{|_,_,iter|iter}.find{|iter| record_slug == iter[ITER_SLUG] }
+    remove_iter = model.to_enum(:each).map{|_,_,iter|iter}.find{|iter| record_slug == iter[ITER_SLUG].to_sym }
     model.remove(remove_iter) if remove_iter
     self end
 
