@@ -2,16 +2,28 @@
 
 module Mainloop
 
+  TICK_MAX = 20
+  TICK_MIN = 2
+
   def mainloop
     @exit_flag = false
     catch(:__exit_mikutter) do
+      tick = TICK_MAX
       loop do
-        gtk_tick
-        while not Delayer.empty?
-          Delayer.run_once
-          gtk_tick
+        if tick > TICK_MIN
+          tick -= 1
         end
-        sleep 0.02
+        if Gtk.events_pending?
+          tick = TICK_MAX + 1
+          Gtk.main_iteration
+          throw :__exit_mikutter if @exit_flag || Gtk.exception
+        end
+        unless Delayer.empty?
+          tick = TICK_MAX + 1
+          Delayer.run_once
+          throw :__exit_mikutter if @exit_flag || Gtk.exception
+        end
+        sleep(1.0 / tick) if tick <= TICK_MAX
       end
     end
   rescue Interrupt,SystemExit,SignalException => exception
@@ -33,14 +45,4 @@ module Mainloop
   def exit!
     throw(:__exit_mikutter)
   end
-
-  private
-
-  def gtk_tick
-    while Gtk.events_pending?
-      Gtk.main_iteration
-      throw :__exit_mikutter if @exit_flag || Gtk.exception
-    end
-  end
-
 end
