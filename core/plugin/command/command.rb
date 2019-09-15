@@ -295,7 +295,24 @@ Plugin.create :command do
           condition: :itself.to_proc,
           visible: false,
           role: :timeline) do |opt|
-    opt.widget.scroll_to_top end
+    Plugin.call :gui_timeline_scroll, opt.widget, :top
+  end
+
+  command(:scroll_up,
+          name: _('上にスクロール'),
+          condition: :itself.to_proc,
+          visible: false,
+          role: :timeline) do |opt|
+    Plugin.call :gui_timeline_scroll, opt.widget, :up
+  end
+
+  command(:scroll_down,
+          name: _('下にスクロール'),
+          condition: :itself.to_proc,
+          visible: false,
+          role: :timeline) do |opt|
+    Plugin.call :gui_timeline_scroll, opt.widget, :down
+  end
 
   # フォーカスを _widget_ から _distance_ に移動する
   # ==== Args

@@ -305,10 +305,31 @@ Plugin.create :gtk do
     if timeline
       timeline.clear end end
 
-  on_gui_timeline_scroll_to_top do |i_timeline|
-    timeline = widgetof(i_timeline)
-    if timeline
-      timeline.set_cursor_to_display_top end end
+  on_gui_timeline_scroll do |i_timeline, msg|
+    tl = widgetof(i_timeline) or next
+
+    case msg
+    when :top
+      iter = tl.model.iter_first or next
+      tl.set_cursor iter.path, nil, false
+
+    when :up
+      rect = tl.visible_rect
+      x, y = tl.convert_tree_to_bin_window_coords rect.x, rect.y
+      path, _, _, _ = tl.get_path x, y
+      path or next
+      tl.set_cursor path, nil, false
+      tl.scroll_to_cell path, nil, true, 1, 0
+
+    when :down
+      rect = tl.visible_rect
+      x, y = tl.convert_tree_to_bin_window_coords rect.x, rect.y + rect.height
+      path, _, _, _ = tl.get_path x, y
+      path or next
+      tl.set_cursor path, nil, false
+      tl.scroll_to_cell path, nil, true, 0, 0
+    end
+  end
 
   on_gui_timeline_move_cursor_to do |i_timeline, message|
     tl = widgetof(i_timeline)
