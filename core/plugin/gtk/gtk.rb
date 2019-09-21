@@ -314,20 +314,10 @@ Plugin.create :gtk do
       tl.set_cursor iter.path, nil, false
 
     when :up
-      rect = tl.visible_rect
-      x, y = tl.convert_tree_to_bin_window_coords rect.x, rect.y
-      path, _, _, _ = tl.get_path x, y
-      path or next
-      tl.set_cursor path, nil, false
-      tl.scroll_to_cell path, nil, true, 1, 0
+      tl.move_cursor ::Gtk::MovementStep::PAGES, -1
 
     when :down
-      rect = tl.visible_rect
-      x, y = tl.convert_tree_to_bin_window_coords rect.x, rect.y + rect.height
-      path, _, _, _ = tl.get_path x, y
-      path or next
-      tl.set_cursor path, nil, false
-      tl.scroll_to_cell path, nil, true, 0, 0
+      tl.move_cursor ::Gtk::MovementStep::PAGES, 1
     end
   end
 
