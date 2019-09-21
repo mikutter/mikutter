@@ -14,12 +14,20 @@ Plugin.create(:intent_selector) do
   end
 
   settings(_('関連付け')) do
-    listview = Plugin::IntentSelector::IntentSelectorListView.new
-    pack_start(Gtk::VBox.new(false, 4).
-                 closeup(listview.filter_entry).
-                 add(Gtk::HBox.new(false, 4).
-                       add(listview).
-                       closeup(listview.buttons(Gtk::VBox))))
+    intents = Plugin.filtering(:intent_all, []).first.map{|i|[i.slug.to_s, i.label]}.to_h
+    models = Plugin.filtering(:retrievers, []).first.map{|s|[s[:slug].to_s,s[:name]]}.to_h.merge('' => _('（未定義）'))
+    listview(
+      :intent_selector_rules,
+      columns: [
+        [_('開く方法'), ->(record) { intents[record[:intent]] }],
+        [_('対象'),     ->(record) { models[record[:model]] }],
+        [_('条件'),     ->(record) { record[:str] }],
+      ],
+    ) do |_record|
+      select(_('開く方法'), :intent, intents)
+      select(_('対象'), :model, models)
+      input '条件', :str
+    end
   end
 
   # _model:_ または _uri:_ を開くintentを _intents_ の中から選び出し、その方法で開く。
