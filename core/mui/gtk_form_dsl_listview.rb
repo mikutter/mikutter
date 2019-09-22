@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 class Gtk::FormDSL::ListView < Gtk::TreeView
+  class StringField
+    def initialize(&cell_gen)
+      raise ArgumentError, 'no block given' unless cell_gen
+      @cell_generator = cell_gen
+    end
+
+    def cell(record)
+      @cell_generator.(record).to_s
+    end
+
+    def renderer
+      @renderer ||= Gtk::CellRendererText.new
+    end
+
+    def type
+      :text
+    end
+  end
 
   # _columns_ は、以下のような、少なくとも2要素を持ったArray。
   # [0] このカラムのラベル（String）
@@ -9,7 +27,10 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   def initialize(parent_dslobj, columns, config, object_initializer, reorder: true, update: true, create: true, delete: true, &generate)
     raise 'no block given' unless generate
     @parent_dslobj = parent_dslobj
-    @columns = columns
+    @columns = columns.map do |column_attr|
+      title, *fields = column_attr
+      [title, *gen_fields(fields)].freeze
+    end.to_a.freeze
     @config = config
     @object_initializer = object_initializer
     @generate = generate
@@ -18,15 +39,14 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     @deletable = delete
     @reordable = reorder
     super()
-    store = Gtk::ListStore.new(Object, *([String] * columns.map(&:cdr).flatten.size))
+    store = Gtk::ListStore.new(Object, *([String] * @columns.map(&:cdr).flatten.size))
 
     index = 1
-    columns.each do |label, *fields|
+    @columns.each do |label, *fields|
       col = Gtk::TreeViewColumn.new(label)
       fields.each do |field|
-        renderer = Gtk::CellRendererText.new
-        col.pack_start(renderer, false)
-        col.add_attribute(renderer, :text, index)
+        col.pack_start(field.renderer, false)
+        col.add_attribute(field.renderer, field.type, index)
         #col.resizable = scheme[:resizable]
         append_column(col)
         index += 1
@@ -54,6 +74,20 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   end
 
   private
+
+  def gen_fields(fields)
+    fields.map do |field|
+      case field
+      when Proc
+        StringField.new(&field)
+      when Hash
+        case field[:type]
+        when :string
+          StringField.new(&field[:cell])
+        end
+      end
+    end
+  end
 
   def create_button
     create = Gtk::Button.new(Gtk::Stock::ADD)
@@ -141,8 +175,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     index = 1
     @columns.each do |_, *fields|
       fields.each do |field|
-        converter = field
-        iter[index] = converter.(iter[0]).to_s
+        iter[index] = field.cell(iter[0]).to_s
         index += 1
       end
     end
