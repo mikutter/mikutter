@@ -323,6 +323,16 @@ module Gtk::FormDSL
     container
   end
 
+  def keybind(title, config)
+    keyconfig = Gtk::KeyConfig.new(title, self[config] || "")
+    container = Gtk::HBox.new(false, 0)
+    container.pack_start(Gtk::Label.new(title), false, true, 0)
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(keyconfig), true, true, 0)
+    keyconfig.change_hook = ->(modify) { self[config] = modify }
+    closeup(container)
+    container
+  end
+
   # 引数のテキストを表示する。
   def label(text)
     label = Gtk::Label.new(text, false)
