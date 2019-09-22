@@ -5,28 +5,19 @@ require 'gtk2'
 
 class Gtk::KeyConfig < Gtk::Button
 
-  attr_accessor :change_hook, :title
+  attr_accessor :change_hook, :title, :keycode
 
-  def initialize(title, default_key="", *args)
-    mainthread_only
+  def initialize(title, default_key='', *args)
     @title = title
-    if(default_key.respond_to?(:to_s))
-      self.keycode = default_key.to_s
-    else
-      self.keycode = '' end
+    self.keycode = default_key.to_s
     @change_hook = nil
     super(*args)
     self.add(buttonlabel)
-    self.signal_connect('clicked', &method(:clicked_event))
+    self.ssc(:clicked, &method(:clicked_event))
   end
 
   def buttonlabel
-    @buttonlabel ||= Gtk::Label.new(keycode) end
-
-  attr_reader :keycode
-  def keycode=(other)
-    type_strict other => String
-    @keycode = other
+    @buttonlabel ||= Gtk::Label.new(keycode)
   end
 
   private
@@ -47,22 +38,26 @@ class Gtk::KeyConfig < Gtk::Button
     dialog.vbox.add(box)
     dialog.show_all
     dialog.run
-    dialog.destroy end
+    dialog.destroy
+    true
+  end
 
   def key_set(label)
-    lambda{ |widget, event|
+    ->(widget, event) do
       self.keycode = Gtk.keyname([event.keyval, event.state])
       buttonlabel.text = label.text = keycode
       self.change_hook.call(keycode) if self.change_hook
-      true }
+      true
+    end
   end
 
   def button_set(label)
-    lambda{ |widget, event|
+    ->(widget, event) do
       self.keycode = Gtk.buttonname([event.event_type, event.button, event.state])
       buttonlabel.text = label.text = keycode
       self.change_hook.call(keycode) if self.change_hook
-      true }
+      true
+    end
   end
 
 end
