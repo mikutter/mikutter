@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 class Gtk::FormDSL::ListView < Gtk::TreeView
+
+  # _columns_ は、以下のような、少なくとも2要素を持ったArray。
+  # [0] このカラムのラベル（String）
+  # インデックス1以降には、以下の値を渡すことができる。
+  # [Proc] レコードを受け取り、そのカラムの値を取り出して返すProc。単純にテキストとして処理される。
   def initialize(parent_dslobj, columns, config, object_initializer, reorder: true, update: true, create: true, delete: true, &generate)
     raise 'no block given' unless generate
     @parent_dslobj = parent_dslobj
@@ -13,12 +18,19 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     @deletable = delete
     @reordable = reorder
     super()
-    store = Gtk::ListStore.new(Object, *([String] * columns.size))
+    store = Gtk::ListStore.new(Object, *([String] * columns.map(&:cdr).flatten.size))
 
-    columns.each_with_index do |(label, _), index|
-      col = Gtk::TreeViewColumn.new(label, Gtk::CellRendererText.new, text: index+1)
-      #col.resizable = scheme[:resizable]
-      append_column(col)
+    index = 1
+    columns.each do |label, *fields|
+      col = Gtk::TreeViewColumn.new(label)
+      fields.each do |field|
+        renderer = Gtk::CellRendererText.new
+        col.pack_start(renderer, false)
+        col.add_attribute(renderer, :text, index)
+        #col.resizable = scheme[:resizable]
+        append_column(col)
+        index += 1
+      end
     end
 
     set_model(store)
@@ -98,15 +110,19 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
 
   def record_delete
     _, _, iter = selection.to_enum(:selected_each).first
+    columns = @columns
     target = iter[0]
-    columns = @columns.map(&:first)
     Plugin[:gui].dialog('hogefuga の削除') do
       label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
       if target.is_a?(Diva::Model)
         link target
       else
-        columns.each_with_index do |title, index|
-          label '%{title}: %{value}' % {title: title, value: iter[index + 1]}
+        index = 1
+        columns.each do |title, *fields|
+          fields.each do
+            label '%{title}: %{value}' % {title: title, value: iter[index]}
+            index += 1
+          end
         end
       end
     end.next do |values|
@@ -122,9 +138,13 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   end
 
   def update(iter)
-    pp iter[0]
-    @columns.each_with_index do |(_, converter), index|
-      iter[index + 1] = converter.(iter[0]).to_s
+    index = 1
+    @columns.each do |_, *fields|
+      fields.each do |field|
+        converter = field
+        iter[index] = converter.(iter[0]).to_s
+        index += 1
+      end
     end
   end
 
