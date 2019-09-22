@@ -1,10 +1,77 @@
 # frozen_string_literal: true
 
 class Gtk::FormDSL::ListView < Gtk::TreeView
+
+  class StringField
+    def initialize(&cell_gen)
+      raise ArgumentError, 'no block given' unless cell_gen
+      @cell_generator = cell_gen
+    end
+
+    def rewind(iter, index)
+      iter[index] = cell(iter[0])
+    end
+
+    def cell(record)
+      @cell_generator.(record).to_s
+    end
+
+    def renderer
+      @renderer ||= Gtk::CellRendererText.new
+    end
+
+    def type
+      :text
+    end
+
+    def klass
+      String
+    end
+  end
+
+  class PhotoField
+    def initialize(&cell_gen)
+      raise ArgumentError, 'no block given' unless cell_gen
+      @cell_generator = cell_gen
+    end
+
+    def rewind(iter, index)
+      iter[index] = cell(iter[0]).load_pixbuf(width: Gdk.scale(16), height: Gdk.scale(16)) do |downloaded|
+        iter[index] = downloaded
+      end
+    end
+
+    def cell(record)
+      @cell_generator.(record)
+    end
+
+    def renderer
+      @renderer ||= Gtk::CellRendererPixbuf.new
+    end
+
+    def type
+      :pixbuf
+    end
+
+    def klass
+      GdkPixbuf::Pixbuf
+    end
+  end
+
+  # _columns_ は、以下のような、少なくとも2要素を持ったArray。
+  # [0] このカラムのラベル（String）
+  # インデックス1以降には、以下の値を渡すことができる。
+  # [Proc] レコードを受け取り、そのカラムの値を取り出して返すProc。単純にテキストとして処理される。
+  # [Hash] 以下のフィールドを持ったHash
+  #   - :type :: カラムに表示するデータの種類。 :string なら文字列、 :photo なら画像。
+  #   - :cell :: レコードを受け取り、そのカラムの値を取り出して返すProc。typeに :string を渡していれば文字列、 :photo を渡していれば Photo Modelを返すこと。
   def initialize(parent_dslobj, columns, config, object_initializer, reorder: true, update: true, create: true, delete: true, &generate)
     raise 'no block given' unless generate
     @parent_dslobj = parent_dslobj
-    @columns = columns
+    @columns = columns.map do |column_attr|
+      title, *fields = column_attr
+      [title, *gen_fields(fields)].freeze
+    end.to_a.freeze
     @config = config
     @object_initializer = object_initializer
     @generate = generate
@@ -13,12 +80,21 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
     @deletable = delete
     @reordable = reorder
     super()
-    store = Gtk::ListStore.new(Object, *([String] * columns.size))
+    store = Gtk::ListStore.new(
+      Object,
+      *@columns.flat_map { |c| c.drop(1) }.map(&:klass)
+    )
 
-    columns.each_with_index do |(label, _), index|
-      col = Gtk::TreeViewColumn.new(label, Gtk::CellRendererText.new, text: index+1)
-      #col.resizable = scheme[:resizable]
-      append_column(col)
+    index = 1
+    @columns.each do |label, *fields|
+      col = Gtk::TreeViewColumn.new(label)
+      fields.each do |field|
+        col.pack_start(field.renderer, false)
+        col.add_attribute(field.renderer, field.type, index)
+        #col.resizable = scheme[:resizable]
+        append_column(col)
+        index += 1
+      end
     end
 
     set_model(store)
@@ -42,6 +118,22 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   end
 
   private
+
+  def gen_fields(fields)
+    fields.map do |field|
+      case field
+      when Proc
+        StringField.new(&field)
+      when Hash
+        case field[:type]
+        when :string
+          StringField.new(&field[:cell])
+        when :photo
+          PhotoField.new(&field[:cell])
+        end
+      end
+    end
+  end
 
   def create_button
     create = Gtk::Button.new(Gtk::Stock::ADD)
@@ -98,15 +190,19 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
 
   def record_delete
     _, _, iter = selection.to_enum(:selected_each).first
+    columns = @columns
     target = iter[0]
-    columns = @columns.map(&:first)
     Plugin[:gui].dialog('hogefuga の削除') do
       label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
       if target.is_a?(Diva::Model)
         link target
       else
-        columns.each_with_index do |title, index|
-          label '%{title}: %{value}' % {title: title, value: iter[index + 1]}
+        index = 1
+        columns.each do |title, *fields|
+          fields.each do
+            label '%{title}: %{value}' % {title: title, value: iter[index]}
+            index += 1
+          end
         end
       end
     end.next do |values|
@@ -122,9 +218,12 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   end
 
   def update(iter)
-    pp iter[0]
-    @columns.each_with_index do |(_, converter), index|
-      iter[index + 1] = converter.(iter[0]).to_s
+    index = 1
+    @columns.each do |_, *fields|
+      fields.each do |field|
+        field.rewind(iter, index)
+        index += 1
+      end
     end
   end
 
