@@ -301,8 +301,8 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def select(label, config, default = {}, mode: :auto)
-    builder = Gtk::FormDSL::Select.new(self, default, mode: mode)
+  def select(label, config, default = {}, mode: :auto, **kwrest)
+    builder = Gtk::FormDSL::Select.new(self, default.merge(kwrest), mode: mode)
     builder.instance_eval(&Proc.new) if block_given?
     closeup container = builder.build(label, config)
     container
