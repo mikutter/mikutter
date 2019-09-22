@@ -111,10 +111,6 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
       options[:postboxstorage] = postbox end
     create_postbox(options) end
 
-  def set_cursor_to_display_top
-    iter = model.iter_first
-    set_cursor(iter.path, get_column(0), false) if iter end
-
   def get_active_messages
     get_active_iterators.map{ |iter| iter[1] } end
 

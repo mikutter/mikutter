@@ -305,10 +305,21 @@ Plugin.create :gtk do
     if timeline
       timeline.clear end end
 
-  on_gui_timeline_scroll_to_top do |i_timeline|
-    timeline = widgetof(i_timeline)
-    if timeline
-      timeline.set_cursor_to_display_top end end
+  on_gui_timeline_scroll do |i_timeline, msg|
+    tl = widgetof(i_timeline) or next
+
+    case msg
+    when :top
+      iter = tl.model.iter_first or next
+      tl.set_cursor iter.path, nil, false
+
+    when :up
+      tl.move_cursor ::Gtk::MovementStep::PAGES, -1
+
+    when :down
+      tl.move_cursor ::Gtk::MovementStep::PAGES, 1
+    end
+  end
 
   on_gui_timeline_move_cursor_to do |i_timeline, message|
     tl = widgetof(i_timeline)
