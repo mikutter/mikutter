@@ -291,4 +291,9 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.インスタ映え(display_url)
     open(img) if img
   end
+  # pixiv new
+  defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/artworks/\d+$>) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
 end
