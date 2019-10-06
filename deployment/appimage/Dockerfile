@@ -1,6 +1,5 @@
 FROM ubuntu:16.04
 
-ARG ruby_version=2.6.3
 ARG APPDIR=/AppDir
 
 RUN apt update && apt install -y \
@@ -22,13 +21,17 @@ RUN apt update && apt install -y \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2 && \
-        tar -xf jemalloc-5.2.0.tar.bz2 && \
-        cd /jemalloc-5.2.0 && \
+ARG jemalloc_version=5.2.1
+
+RUN wget -q https://github.com/jemalloc/jemalloc/releases/download/$jemalloc_version/jemalloc-$jemalloc_version.tar.bz2 && \
+        tar -xf jemalloc-$jemalloc_version.tar.bz2 && \
+        cd /jemalloc-$jemalloc_version && \
         ./configure --prefix=/usr && \
         make -j8 && \
         make install && \
         make "DESTDIR=$APPDIR" install
+
+ARG ruby_version=2.6.5
 
 RUN wget -q https://cache.ruby-lang.org/pub/ruby/2.6/ruby-$ruby_version.tar.gz && \
         tar xf ruby-$ruby_version.tar.gz && \

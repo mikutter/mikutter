@@ -58,13 +58,14 @@ Plugin::create(:basic_settings) do
       :website => _('https://mikutter.hachune.net/'),
       :logo => Skin.photo('icon.png'),
       :authors => %w[
-        toshi_a
+        @toshi_a@social.mikutter.hachune.net
         Phenomer
-        osa_k
+        @osa_k@social.mikutter.hachune.net
         katsyoshi
-        ahiru
-        cobodo
-        shibafu528
+        @ahiru@social.mikutter.hachune.net
+        @cobodo@mstdn.kanagu.info
+        @shibafu528@social.mikutter.hachune.net
+        @yuntan_t@mstdn.maud.io
       ],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],
       :documenters => ['toshi_a']
