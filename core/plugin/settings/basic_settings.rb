@@ -65,6 +65,7 @@ Plugin::create(:basic_settings) do
         ahiru
         cobodo
         shibafu528
+        @yuntan_t@mstdn.maud.io
       ],
       :artists => ['toshi_a', 'soramame_bscl', 'seibe2'],
       :documenters => ['toshi_a']
