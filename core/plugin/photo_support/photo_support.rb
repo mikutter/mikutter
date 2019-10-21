@@ -296,4 +296,10 @@ Plugin.create :photo_support do
     img = Plugin::PhotoSupport.インスタ映え(display_url)
     open(img) if img
   end
+
+  # ヨドバシドットコム
+  defimageopener('ヨドバシドットコム', %r<\Ahttps://www\.yodobashi\.com/product/\d+>) do |display_url|
+    img = Plugin::PhotoSupport.インスタ映え(display_url)
+    open(img) if img
+  end
 end
