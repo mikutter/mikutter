@@ -105,7 +105,7 @@ module Plugin::Mastodon
 
     def self.fetch(acct)
       world, = Plugin.filtering(:mastodon_current, nil)
-      Plugin::Mastodon::API.call(:get, world.domain, '/api/v1/search', world.access_token, q: acct, resolve: true).next{ |resp|
+      Plugin::Mastodon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: acct, resolve: true).next{ |resp|
         resp[:accounts].select{|account| account[:acct] === acct }.first&.yield_self(&Account.method(:new))
       }
     end
