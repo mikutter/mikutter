@@ -10,7 +10,7 @@ source 'https://rubygems.org'
 ruby '>= 2.4.0'
 
 group :default do
-  gem 'addressable', '>= 2.6.0', '< 2.7'
+  gem 'addressable', '>= 2.6.0', '< 2.8'
   gem 'delayer', '>= 1.0.0', '< 1.1'
   gem 'delayer-deferred', '>= 2.1.0', '< 2.2'
   gem 'diva', '>= 1.0.0', '< 1.1'
