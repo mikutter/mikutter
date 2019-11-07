@@ -13,9 +13,11 @@ Plugin::create(:libnotify) do
         text = text.description
       end
       command << '-t' << '%d000' % UserConfig[:notify_expire_time]
-      command << "-i" << icon_file_name << user.title
+      command << "-i" << icon_file_name
       command << "-a" << Environment::NAME
-      command << text.to_s
+      command << '-h' << "string:desktop-entry:#{Environment::NAME}"
+      command << user.title # summary
+      command << text.to_s # body
       bg_system(*command)
     }.trap{|err|
       error err
