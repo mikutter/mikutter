@@ -268,6 +268,7 @@ module Plugin::Mastodon
       PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token).next{ |resp|
         resp[:acct] = resp[:acct] + '@' + domain
         self.account = PM::Account.new(resp.value)
+        Plugin.call(:world_modify, self)
       }
     end
 
