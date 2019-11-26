@@ -268,7 +268,9 @@ Plugin.create(:mastodon) do
       select(_('サーバー'), :domain_selection,
              'social.mikutter.hachune.net' => _('mikutter'),
              'mstdn.maud.io' => _('末代'),
-             'mstdn.nere9.help' => _('nere9')) do
+             'mstdn.nere9.help' => _('nere9'),
+             'mstdn.y-zu.org' => _('Yづドン'),
+            ) do
         option(:other, _('その他')) do
           input _('ドメイン'), :domain
         end
