@@ -4,7 +4,7 @@
 require 'set'
 
 $LOAD_PATH.
-  unshift(File.expand_path(File.join(__dir__))).
+  unshift(File.expand_path(__dir__)).
   unshift(File.expand_path(File.join(__dir__, '../vendor/'))).
   unshift(File.expand_path(File.join(__dir__, 'lib')))
 

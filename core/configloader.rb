@@ -3,10 +3,10 @@
 # ruby config loader
 #
 
-miquire :core, 'environment'
-miquire :core, 'serialthread'
-miquire :miku, 'miku'
-miquire :lib, 'timelimitedqueue'
+require 'environment'
+require 'serialthread'
+require 'miku/miku'
+require 'lib/timelimitedqueue'
 
 require 'fileutils'
 require 'set'

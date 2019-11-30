@@ -5,7 +5,8 @@ Dir.chdir(File.expand_path(__dir__ + '/../core'))
 $LOAD_PATH.push '.'
 require 'utils'
 
-miquire :lib, 'test_unit_extensions', 'weakstorage'
+require 'lib/test_unit_extensions'
+require 'lib/weakstorage'
 
 class TC_WeakStorage < Test::Unit::TestCase
   def setup

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'sub_parts_voter'
+require 'mui/cairo_sub_parts_voter'
 
 require 'gtk2'
 require 'cairo'

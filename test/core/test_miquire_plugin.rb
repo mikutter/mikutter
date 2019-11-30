@@ -2,7 +2,7 @@
 
 require File.expand_path(__dir__+'/../helper')
 
-miquire :core, "miquire_plugin"
+require 'miquire_plugin'
 
 Miquire::Plugin.loadpath << File.join(__dir__, "miquire/plugin")
 

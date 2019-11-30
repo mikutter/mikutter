@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 require File.expand_path(__dir__+'/../helper')
-# require File.expand_path(__dir__ + '/../miquire')
-# require File.expand_path(__dir__ + '/../lib/test_unit_extensions')
 
 $debug = true
 $logfile = nil

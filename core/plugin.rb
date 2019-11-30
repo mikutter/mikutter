@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'pluggaloid'
-miquire :core, 'configloader'
+require 'configloader'
 
 Event = Pluggaloid::Event
 

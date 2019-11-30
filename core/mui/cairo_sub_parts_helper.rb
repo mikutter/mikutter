@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'uithreadonly'
-miquire :core, 'userconfig'
+require 'lib/uithreadonly'
+require 'userconfig'
 
 require 'gtk2'
 require 'cairo'

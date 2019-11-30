@@ -3,14 +3,5 @@
 module Mikutter
   module System; end end
 
-miquire :system, :user, :message
-
-
-
-
-
-
-
-
-
-
+require 'system/user'
+require 'system/message'

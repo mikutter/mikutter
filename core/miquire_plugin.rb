@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-miquire :core, "miquire", "plugin", "miquire_to_spec"
+require 'miquire'
+require 'plugin'
+require 'miquire_to_spec'
 
 # プラグインのロードに関すること
 module Miquire::Plugin

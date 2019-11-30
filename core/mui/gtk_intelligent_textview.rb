@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'extension', 'contextmenu'
-miquire :core, 'plugin'
-miquire :miku, 'miku'
+require 'mui/gtk_extension'
+require 'mui/gtk_contextmenu'
+require 'plugin'
+require 'miku/miku'
 
 require 'gtk2'
 require 'uri'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'sub_parts_message_base'
+require 'mui/cairo_sub_parts_message_base'
 
 class Gdk::ReplyViewer < Gdk::SubPartsMessageBase
   EDGE_ABSENT_SIZE = 2

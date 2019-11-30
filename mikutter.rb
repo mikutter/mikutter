@@ -33,14 +33,19 @@ require 'webrick'
 require 'thread'
 require 'fileutils'
 
+require_relative 'core/miquire'
 require_relative 'core/utils'
 
-miquire :boot, 'check_config_permission', 'mainloop', 'delayer'
-miquire :core, 'environment'
+require 'boot/check_config_permission'
+require 'boot/mainloop'
+require 'boot/delayer'
+require 'environment'
+
 Dir.chdir(Environment::CONFROOT)
-miquire :lib, 'diva_hacks'
-miquire :system, 'system'
-miquire :boot, 'load_plugin'
+
+require 'lib/diva_hacks'
+require 'system/system'
+require 'boot/load_plugin'
 
 notice "fire boot event"
 Plugin.call(:boot, Post.primary_service)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'miracle_painter'
+require 'mui/cairo_miracle_painter'
 
 require 'gtk2'
 

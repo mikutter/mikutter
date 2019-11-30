@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'skin'
-miquire :lib, 'diva_hacks'
+require 'skin'
+require 'lib/diva_hacks'
 
 class Mikutter::System::User < Diva::Model
   extend Memoist

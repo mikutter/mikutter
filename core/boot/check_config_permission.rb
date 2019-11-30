@@ -2,7 +2,7 @@
 # 設定ファイルなどの権限チェック
 
 require 'fileutils'
-miquire :core, 'environment'
+require 'environment'
 
 begin
   directories = [Environment::CONFROOT, Environment::LOGDIR, Environment::TMPDIR, Environment::SETTINGDIR]
