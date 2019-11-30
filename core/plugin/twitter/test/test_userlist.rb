@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-require File.expand_path(File.dirname(__FILE__) + '/../helper')
+require File.expand_path(__dir__ + '/../helper')
 miquire :lib, 'test_unit_extensions'
 miquire :core, 'userlist'
 
-Dir::chdir File.dirname(__FILE__) + '/../'
+Dir::chdir __dir__ + '/../'
 
 $debug = false
 # seterrorlevel(:notice)

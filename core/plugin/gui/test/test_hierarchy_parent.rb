@@ -4,10 +4,10 @@ class Plugin
   module GUI; end end
 
 require 'test/unit'
-require File.expand_path(File.dirname(__FILE__) + '/../../../lib/test_unit_extensions')
-require File.expand_path(File.dirname(__FILE__) + '/../hierarchy_parent')
-require File.expand_path(File.dirname(__FILE__) + '/../hierarchy_child')
-require File.expand_path(File.dirname(__FILE__) + '/../../../utils')
+require File.expand_path(__dir__ + '/../../../lib/test_unit_extensions')
+require File.expand_path(__dir__ + '/../hierarchy_parent')
+require File.expand_path(__dir__ + '/../hierarchy_child')
+require File.expand_path(__dir__ + '/../../../utils')
 
 class TC_PluginGUIHierarchyParent < Test::Unit::TestCase
 

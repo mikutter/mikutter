@@ -4,7 +4,7 @@
 if not defined? $loaded_miku
   $loaded_miku = true
 
-  Dir.chdir(File.dirname(__FILE__)){
+  Dir.chdir(__dir__){
     require_relative 'array'
     require_relative 'hash'
     require_relative 'symbol'

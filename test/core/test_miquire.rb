@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path(File.dirname(__FILE__)+'/../helper')
-# require File.expand_path(File.dirname(__FILE__) + '/../miquire')
-# require File.expand_path(File.dirname(__FILE__) + '/../lib/test_unit_extensions')
+require File.expand_path(__dir__+'/../helper')
+# require File.expand_path(__dir__ + '/../miquire')
+# require File.expand_path(__dir__ + '/../lib/test_unit_extensions')
 
 $debug = true
 $logfile = nil
 $daemon = false
 
-Dir::chdir File.dirname(__FILE__) + '/../core'
+Dir::chdir __dir__ + '/../core'
 
 class TC_Miquire < Test::Unit::TestCase
   def setup

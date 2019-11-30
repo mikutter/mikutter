@@ -18,11 +18,11 @@ HYDE = 156
 # Rubyのバージョンを配列で。あると便利。
 RUBY_VERSION_ARRAY = RUBY_VERSION.split('.').map{ |i| i.to_i }.freeze
 
-require File.join(File::dirname(__FILE__), 'miquire')
+require File.join(__dir__, 'miquire')
 
-[File::dirname(__FILE__),
- File.join(File::dirname(__FILE__), 'lib'),
- File.join(File::dirname(__FILE__), 'miku')].each{|path|
+[__dir__,
+ File.join(__dir__, 'lib'),
+ File.join(__dir__, 'miku')].each{|path|
   $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
 }
 
@@ -264,7 +264,7 @@ def log(prefix, object)
   end
 end
 
-FOLLOW_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+FOLLOW_DIR = File.expand_path(File.join(__dir__, '..'))
 def __write_stderr (msg)
   $stderr.write(msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}')+"\n")
 end

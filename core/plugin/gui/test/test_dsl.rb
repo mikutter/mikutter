@@ -4,11 +4,11 @@
 #   module GUI; end end
 
 require 'test/unit'
-Dir::chdir File.dirname(__FILE__) + '/../../../'
-require File.expand_path(File.dirname(__FILE__) + '/lib/test_unit_extensions')
-require File.expand_path(File.dirname(__FILE__) + '/utils')
-require File.expand_path(File.dirname(__FILE__) + '/plugin')
-require File.expand_path(File.dirname(__FILE__) + '/plugin/gui/gui')
+Dir::chdir __dir__ + '/../../../'
+require File.expand_path(__dir__ + '/lib/test_unit_extensions')
+require File.expand_path(__dir__ + '/utils')
+require File.expand_path(__dir__ + '/plugin')
+require File.expand_path(__dir__ + '/plugin/gui/gui')
 
 class TC_PluginGUIDSL < Test::Unit::TestCase
 

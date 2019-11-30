@@ -4,9 +4,9 @@ class Plugin
   module GUI; end end
 
 require 'test/unit'
-require File.expand_path(File.dirname(__FILE__) + '/../../../lib/test_unit_extensions')
-require File.expand_path(File.dirname(__FILE__) + '/../cuscadable')
-require File.expand_path(File.dirname(__FILE__) + '/../../../utils')
+require File.expand_path(__dir__ + '/../../../lib/test_unit_extensions')
+require File.expand_path(__dir__ + '/../cuscadable')
+require File.expand_path(__dir__ + '/../../../utils')
 
 class TC_PluginGUICuscadable < Test::Unit::TestCase
 

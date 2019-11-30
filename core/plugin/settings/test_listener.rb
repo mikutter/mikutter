@@ -4,8 +4,8 @@ require 'test/unit'
 require 'rubygems'
 require 'mocha/setup'
 require 'pp'
-listener = File.expand_path File.join(File.dirname(__FILE__), 'listener')
-require File.expand_path(File.dirname(__FILE__) + '/../../utils')
+listener = File.expand_path File.join(__dir__, 'listener')
+require File.expand_path(__dir__ + '/../../utils')
 miquire :lib, 'test_unit_extensions'
 
 class Plugin; end

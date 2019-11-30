@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-require File.expand_path(File.dirname(__FILE__) + '/../helper')
-#require File.expand_path(File.dirname(__FILE__) + '/../utils')
+require File.expand_path(__dir__ + '/../helper')
+#require File.expand_path(__dir__ + '/../utils')
 miquire :core, 'user'
 miquire :core, 'plugin'
 require 'benchmark'

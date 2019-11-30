@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-require File.expand_path(File.dirname(__FILE__)+'/../helper')
+require File.expand_path(__dir__+'/../helper')
 
 miquire :core, "miquire_plugin"
 
-Miquire::Plugin.loadpath << File.join(File.dirname(__FILE__), "miquire/plugin")
+Miquire::Plugin.loadpath << File.join(__dir__, "miquire/plugin")
 
 class TC_MiquirePlugin < Test::Unit::TestCase
   def setup
@@ -21,24 +21,24 @@ class TC_MiquirePlugin < Test::Unit::TestCase
   end
 
   must "get plugin slug by path (spec exist)" do
-    assert_equal(:standalone, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/standalone'))))
-    assert_equal(:parent_not_found, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/parent_not_found'))))
-    assert_equal(:tooold, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/tooold'))))
+    assert_equal(:standalone, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/standalone'))))
+    assert_equal(:parent_not_found, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/parent_not_found'))))
+    assert_equal(:tooold, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/tooold'))))
   end
 
   must "get plugin slug by plugin path" do
-    assert_equal(:standalone, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/standalone'))),
+    assert_equal(:standalone, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/standalone'))),
                  "spec がないとき slug が取得できる")
-    assert_equal(:not_exist, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/not_exist'))),
+    assert_equal(:not_exist, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/not_exist'))),
                  "plugin が存在しないとき slug が取得できる")
-    assert_equal(:display_requirements, Miquire::Plugin.get_slug(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/display_requirements.rb'))),
+    assert_equal(:display_requirements, Miquire::Plugin.get_slug(File.expand_path(File.join(__dir__, 'miquire/display_requirements.rb'))),
                  "plugin が一つの.rbファイルだけの時 slug が取得できる")
   end
 
   must "get spec by plugin path" do
-    standalone = Miquire::Plugin.get_spec(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/plugin/standalone')))
-    not_exist = Miquire::Plugin.get_spec(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/plugin/not_exist')))
-    display_requirements = Miquire::Plugin.get_spec(File.expand_path(File.join(File.dirname(__FILE__), 'miquire/plugin/display_requirements.rb')))
+    standalone = Miquire::Plugin.get_spec(File.expand_path(File.join(__dir__, 'miquire/plugin/standalone')))
+    not_exist = Miquire::Plugin.get_spec(File.expand_path(File.join(__dir__, 'miquire/plugin/not_exist')))
+    display_requirements = Miquire::Plugin.get_spec(File.expand_path(File.join(__dir__, 'miquire/plugin/display_requirements.rb')))
 
     assert_kind_of(Hash, standalone,
                    "spec file がないとき plugin があれば spec を取得できる")

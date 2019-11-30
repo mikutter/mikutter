@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require "#{File.dirname(__FILE__)}/extension"
+require "#{__dir__}/extension"
 
 require 'test/unit'
 require 'mocha/setup'

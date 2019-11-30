@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-require File.expand_path(File.dirname(__FILE__) + '/../helper')
+require File.expand_path(__dir__ + '/../helper')
 
-Dir.chdir(File.expand_path(File.dirname(__FILE__) + '/../core'))
+Dir.chdir(File.expand_path(__dir__ + '/../core'))
 $LOAD_PATH.push '.'
 require 'utils'
 

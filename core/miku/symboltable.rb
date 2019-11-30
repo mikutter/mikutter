@@ -4,7 +4,7 @@ require_relative 'error'
 module MIKU
   class SymbolTable < Hash
 
-    INITIALIZE_FILE = File.expand_path(File.join(File.dirname(__FILE__), 'init.miku'))
+    INITIALIZE_FILE = File.expand_path(File.join(__dir__, 'init.miku'))
 
     # :caller-file "呼び出し元ファイル名"
     # :caller-line 行

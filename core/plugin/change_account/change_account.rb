@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require File.join(File.dirname(__FILE__), "account_control")
+require File.join(__dir__, "account_control")
 
 Plugin.create :change_account do
   # アカウント変更用の便利なコマンド

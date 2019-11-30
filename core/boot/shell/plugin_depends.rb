@@ -5,7 +5,7 @@ miquire :core, 'miquire_plugin'
 
 using Miquire::ToSpec
 
-Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(File.dirname(__FILE__), "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
+Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(__dir__, "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
 
 writer = lambda do |spec|
   depends = Miquire::Plugin.depended_plugins(spec)

@@ -5,7 +5,7 @@ successed = []
 failed = []
 processes = {}
 
-Dir.glob(File.dirname(__FILE__) + '/test/core/**/test_*').each{ |f|
+Dir.glob(__dir__ + '/test/core/**/test_*').each{ |f|
   processes[fork { require File.expand_path(f) }] = f }
 
 Process.waitall.each{ |pid, stat|

@@ -68,7 +68,7 @@ module Mopt
       if exec_command and argv[0]
         require_relative '../utils'
         miquire :boot, 'check_config_permission'
-        file = File.join(File.dirname(__FILE__), "shell/#{argv[0]}.rb")
+        file = File.join(__dir__, "shell/#{argv[0]}.rb")
         if FileTest.exist?(file)
           require file
         else
