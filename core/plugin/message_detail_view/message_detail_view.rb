@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'retriever_header_widget'
+
+require 'mui/gtk_retriever_header_widget'
 
 Plugin.create(:message_detail_view) do
   intent :twitter_tweet, label: _('ツイートの詳細') do |intent_token|

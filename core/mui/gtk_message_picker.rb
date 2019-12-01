@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+
+require 'miku/miku'
+require 'mui/gtk_extension'
+require 'mui/gtk_mtk'
+require 'mui/gtk_webicon'
+require 'skin'
+
 require 'gtk2'
-require_relative '../utils'
-miquire :core, 'skin'
-miquire :mui, 'mtk'
-miquire :mui, 'extension'
-miquire :mui, 'webicon'
-miquire :miku, 'miku'
 
 class Gtk::MessagePicker < Gtk::EventBox
   DEFAULT_CONDITION = [:==, :user, ''.freeze].freeze

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+require_relative 'tab_toolbar'
+require_relative 'tab_container'
+
 module Plugin::Gtk
   class SlugDictionary
     class << self
@@ -23,7 +26,7 @@ module Plugin::Gtk
     register_widget Plugin::GUI::TabToolbar,     ::Gtk::TabToolbar
     register_widget Plugin::GUI::Timeline,       ::Gtk::TimeLine
     register_widget Plugin::GUI::Cluster,        ::Gtk::Notebook
-    register_widget Plugin::GUI::Fragment,     ::Gtk::EventBox
+    register_widget Plugin::GUI::Fragment,       ::Gtk::EventBox
     register_widget Plugin::GUI::TabChildWidget, ::Gtk::TabContainer
     register_widget Plugin::GUI::Postbox,        ::Gtk::PostBox
 

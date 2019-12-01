@@ -2,7 +2,7 @@
 # ユーザグループリスト用リストビュー
 #
 
-miquire :mui, 'extension'
+require 'mui/gtk_extension'
 
 class Gtk::ListList < Gtk::CRUD
 

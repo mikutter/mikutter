@@ -2,7 +2,7 @@
 
 require 'gtk2'
 require_relative '../utils'
-miquire :mui, 'crud'
+require 'mui/gtk_crud'
 
 =begin rdoc
   複数選択ウィジェットを作成する。

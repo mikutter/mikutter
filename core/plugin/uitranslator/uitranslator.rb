@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :lib, "gettext"
+require "gettext"
 
 module Plugin::UITranslate
   LocaleDirectory = File.join(CHIConfig::CACHE, "uitranslator", "locale").freeze

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'form_dsl'
+require 'mui/gtk_form_dsl'
 
 class Gtk::FormDSL::Select
   def initialize(parent_dslobj, values = [])

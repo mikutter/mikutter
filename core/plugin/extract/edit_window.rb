@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-require 'observer'
-miquire :mui, 'hierarchycal_selectbox'
+
+require 'mui/gtk_hierarchycal_selectbox'
+
 require_relative 'model/setting'
 require_relative 'option_widget'
+
+require 'observer'
 
 module Plugin::Extract
 end

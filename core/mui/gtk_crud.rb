@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'gtk2'
-require_relative '../utils'
-miquire :mui, 'extension'
-miquire :mui, 'contextmenu'
+
+require 'mui/gtk_extension'
+require 'mui/gtk_contextmenu'
 
 # CRUDなリストビューを簡単に実現するためのクラス
 class Gtk::CRUD < Gtk::TreeView

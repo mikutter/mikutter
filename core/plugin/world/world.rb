@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
+
 require_relative 'error'
 require_relative 'keep'
 require_relative 'model/lost_world'
 require_relative 'service'
-
-miquire :core, 'environment', 'configloader', 'userconfig'
-miquire :lib, 'diva_hacks'
 
 require 'digest/sha1'
 
