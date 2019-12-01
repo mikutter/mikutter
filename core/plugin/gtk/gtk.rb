@@ -546,7 +546,16 @@ Plugin.create :gtk do
     container.ssc(:key_press_event){ |w, event|
       Plugin::GUI.keypress(::Gtk::keyname([event.keyval ,event.state]), i_tab) }
     container.pack_start(widget, i_tab.pack_rule[container.children.size])
-    pane.append_page(container, tab)
+    pane.insert_page(
+      where_should_insert_it(
+        i_tab,
+        pane.each_pages.map{ |target_page|
+          find_implement_widget_by_gtkwidget(pane.get_tab_label(target_page))
+        },
+        i_tab.parent.children
+      ),
+      container, tab
+    )
     pane.set_tab_reorderable(container, true).set_tab_detachable(container, true)
     true end
 

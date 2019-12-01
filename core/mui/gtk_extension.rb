@@ -282,10 +282,23 @@ class Gtk::Notebook
   # ==== Return
   # インデックス(見つからない場合nil)
   def get_tab_pos_by_tab(label)
-    n_pages.times { |page_num|
+    n_pages.times do |page_num|
       if(get_tab_label(get_nth_page(page_num)) == label)
-        return page_num end }
-    nil end
+        return page_num
+      end
+    end
+    nil
+  end
+
+  # ページをindex0から順に走査し、 _&block_ を呼び出す。
+  # ブロックを渡さない場合、Enumeratorを返す。
+  def each_pages(&block)
+    if block
+      n_pages.times.map(&method(:get_nth_page)).each(&block)
+    else
+      to_enum(:each_pages)
+    end
+  end
 end
 
 class Cairo::Context
