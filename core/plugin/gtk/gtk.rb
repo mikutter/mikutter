@@ -129,7 +129,15 @@ Plugin.create :gtk do
       @tabs_promise.delete(i_tab.slug) end end
 
   on_cluster_created do |i_cluster|
-    create_pane(i_cluster) end
+    pane = create_pane(i_cluster)
+    pane.ssc(:page_reordered) do |this, tabcontainer, index|
+      tabcontainer.i_tab&.yield_self do |i_tab|
+        i_cluster.reorder_child(i_tab, index)
+        Plugin.call(:after_gui_tab_reordered, i_tab)
+      end
+      false
+    end
+  end
 
   on_fragment_created do |i_fragment|
     create_tab(i_fragment) end
