@@ -6,7 +6,7 @@ require 'mocha/setup'
 require 'pp'
 listener = File.expand_path File.join(__dir__, 'listener')
 require File.expand_path(__dir__ + '/../../utils')
-miquire :lib, 'test_unit_extensions'
+require 'lib/test_unit_extensions'
 
 class Plugin; end
 class Plugin::Settings; end

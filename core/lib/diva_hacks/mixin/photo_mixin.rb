@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'serialthread'
+require 'serialthread'
 
 =begin rdoc
 画像リソースを扱うModelのためのmix-in。

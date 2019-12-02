@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-require_relative "basic"
-require_relative "connect"
-require_relative "utils"
-require_relative "cache"
-require_relative "error"
 require "delayer/deferred"
-require "monitor"
+require "lib/weakstorage"
+require_relative "basic"
+require_relative "cache"
+require_relative "connect"
+require_relative "error"
+require_relative "utils"
 
-miquire :lib, "weakstorage"
+require "monitor"
 
 # TwitterAPIを叩く機能
 module MikuTwitter::Query

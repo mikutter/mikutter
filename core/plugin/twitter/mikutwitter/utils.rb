@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require_relative "basic"
-require "lazy"
+require "lib/lazy"
 require "cgi"
 
 module MikuTwitter::Utils

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'gtk2'
-miquire :lib, 'diva_hacks'
+require 'lib/diva_hacks'
 
 module Pango
   ESCAPE_RULE = {'&': '&amp;'.freeze ,'>': '&gt;'.freeze, '<': '&lt;'.freeze}.freeze

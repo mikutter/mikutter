@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'form_dsl_select', 'form_dsl'
+require 'mui/gtk_form_dsl_select'
+require 'mui/gtk_form_dsl'
 
 class Gtk::FormDSL::MultiSelect < Gtk::FormDSL::Select
 

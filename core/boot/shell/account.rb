@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-miquire :boot, 'delayer'
-miquire :lib, 'mikutwitter'
-miquire :core, 'plugin'
+require 'boot/delayer'
+require 'lib/mikutwitter'
+require 'plugin'
 
 puts "Register new account."
 

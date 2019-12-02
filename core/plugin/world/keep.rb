@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'environment'
+require 'environment'
 
 require 'fileutils'
 require 'openssl'

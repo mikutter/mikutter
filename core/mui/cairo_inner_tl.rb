@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
-miquire :mui, 'timeline', 'tree_view_pretty_scroll', 'dark_matter_prification'
-miquire :lib, 'uithreadonly'
+require 'lib/uithreadonly'
+require 'mui/cairo_timeline'
+require 'mui/gtk_dark_matter_prification'
+require 'mui/gtk_tree_view_pretty_scroll'
+
 require 'gtk2'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD

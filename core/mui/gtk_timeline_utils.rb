@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-miquire :lib, 'weakstorage'
-miquire :lib, 'uithreadonly'
+
+require 'lib/uithreadonly'
+require 'lib/weakstorage'
 
 require 'gtk2'
 

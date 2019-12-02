@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, "userconfig", "plugin"
-miquire :lib, 'weakstorage'
+require 'userconfig'
+require 'plugin'
+require 'lib/weakstorage'
 
 module Skin
   class SkinError < RuntimeError; end

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # 全プラグインにpot作成
 
-miquire :boot, 'delayer'
-miquire :core, "miquire_plugin"
+require 'boot/delayer'
+require "miquire_plugin"
+
 require 'gettext/tools/task'
 require 'rake'
 

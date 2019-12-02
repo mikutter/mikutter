@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'extension'
+require 'mui/gtk_extension'
 
 require 'gtk2'
 

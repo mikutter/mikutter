@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-miquire :core, 'userconfig'
+require 'userconfig'
 
 require 'gtk2'
 require 'monitor'

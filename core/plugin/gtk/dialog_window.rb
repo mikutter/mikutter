@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-miquire :mui, 'form_dsl', 'form_dsl_select', 'form_dsl_multi_select'
+
+require 'mui/gtk_form_dsl'
+require 'mui/gtk_form_dsl_multi_select'
+require 'mui/gtk_form_dsl_select'
 
 module Plugin::Gtk
   class DialogWindow < Gtk::Dialog

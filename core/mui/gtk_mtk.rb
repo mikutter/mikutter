@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 
-require_relative '../utils'
-miquire :mui, 'extension'
-miquire :mui, 'message_picker'
-miquire :mui, 'crud'
-miquire :mui, 'keyconfig'
-miquire :mui, 'selectbox'
+require 'mui/gtk_crud'
+require 'mui/gtk_extension'
+require 'mui/gtk_keyconfig'
+require 'mui/gtk_message_picker'
+require 'mui/gtk_selectbox'
 
 require 'gtk2'
 

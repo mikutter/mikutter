@@ -2,22 +2,43 @@
 
 # RubyGnome2を用いてUIを表示するプラグイン
 
-require "gtk2"
+require 'mui/cairo_cell_renderer_message'
+require 'mui/cairo_coordinate_module'
+require 'mui/cairo_icon_over_button'
+require 'mui/cairo_inner_tl'
+require 'mui/cairo_markup_generator'
+require 'mui/cairo_miracle_painter'
+require 'mui/cairo_replyviewer'
+require 'mui/cairo_sub_parts_favorite'
+require 'mui/cairo_sub_parts_helper'
+require 'mui/cairo_sub_parts_share'
+require 'mui/cairo_sub_parts_voter'
+require 'mui/cairo_textselector'
+require 'mui/cairo_timeline'
+require 'mui/gtk_contextmenu'
+require 'mui/gtk_crud'
+require 'mui/gtk_extension'
+require 'mui/gtk_intelligent_textview'
+require 'mui/gtk_keyconfig'
+require 'mui/gtk_listlist'
+require 'mui/gtk_message_picker'
+require 'mui/gtk_mtk'
+require 'mui/gtk_postbox'
+require 'mui/gtk_pseudo_signal_handler'
+require 'mui/gtk_selectbox'
+require 'mui/gtk_timeline_utils'
+require 'mui/gtk_userlist'
+require 'mui/gtk_webicon'
 
-miquire :mui,
-'cell_renderer_message', 'coordinate_module', 'icon_over_button', 'inner_tl', 'markup_generator',
-'miracle_painter', 'replyviewer', 'sub_parts_favorite', 'sub_parts_helper',
-'sub_parts_share', 'sub_parts_voter', 'textselector', 'timeline', 'contextmenu', 'crud',
-'extension', 'intelligent_textview', 'keyconfig', 'listlist', 'message_picker', 'mtk', 'postbox',
-'pseudo_signal_handler', 'selectbox', 'timeline_utils', 'userlist', 'webicon'
-
+require_relative 'dialog_window'
+require_relative 'konami_watcher'
+require_relative 'mainloop'
 require_relative 'mikutter_window'
+require_relative 'slug_dictionary'
 require_relative 'tab_container'
 require_relative 'tab_toolbar'
-require_relative 'slug_dictionary'
-require_relative 'mainloop'
-require_relative 'konami_watcher'
-require_relative 'dialog_window'
+
+require "gtk2"
 
 Plugin.create :gtk do
   @slug_dictionary = Plugin::Gtk::SlugDictionary.new # widget_type => {slug => Gtk}

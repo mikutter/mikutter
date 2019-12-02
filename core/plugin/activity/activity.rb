@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # 通知管理プラグイン
 
-miquire :mui, 'tree_view_pretty_scroll'
-miquire :lib, 'typed-array'
+require 'mui/gtk_tree_view_pretty_scroll'
 
 require_relative 'model/activity'
 require_relative 'model_selector'
+
 require "set"
+require 'typed-array'
 
 # アクティビティの設定の並び順
 UserConfig[:activity_kind_order] = nil unless UserConfig[:activity_kind_order].is_a? Array

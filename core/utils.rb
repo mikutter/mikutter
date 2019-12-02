@@ -26,10 +26,12 @@ require File.join(__dir__, 'miquire')
   $LOAD_PATH.push(File.expand_path(File.join(Dir.pwd, path)))
 }
 
-miquire :lib, 'lazy'
+require_relative 'miquire'
+
+require 'lib/lazy'
 
 # すべてのクラスにメモ化機能を
-miquire :lib, 'memoist'
+require 'memoist'
 
 # Environment::CONFROOT内のファイル名を得る。
 #   confroot(*path)
@@ -39,7 +41,7 @@ miquire :lib, 'memoist'
 def confroot(*path)
   File::expand_path(File.join(Environment::CONFROOT, *path))
 end
-miquire :core, 'environment'
+require 'environment'
 
 # _num_ 番目の引数をそのまま返す関数を返す
 def ret_nth(num=0)

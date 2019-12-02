@@ -524,4 +524,5 @@ module Gtk::FormDSL
   end
 end
 
-miquire :mui, 'form_dsl_select', 'form_dsl_multi_select'
+require 'mui/gtk_form_dsl_select'
+require 'mui/gtk_form_dsl_multi_select'

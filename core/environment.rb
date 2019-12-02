@@ -7,7 +7,7 @@
 # コアで変更されるもの
 # CHIの設定
 
-miquire :core, 'config'
+require 'config'
 
 module Environment
   # このアプリケーションの名前。

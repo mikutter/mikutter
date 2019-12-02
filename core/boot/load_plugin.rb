@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # プラグインを全てロードする
-miquire :core, "miquire_plugin"
+require 'miquire_plugin'
 
 Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(__dir__, "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
 

@@ -3,7 +3,7 @@
 require_relative "basic"
 require_relative "query"
 require "json"
-require "timelimitedqueue"
+require "lib/timelimitedqueue"
 
 module MikuTwitter::ApiCallSupport
   HTML_ATTR_UNESCAPE_HASH = {

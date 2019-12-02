@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift(File.join(__dir__, 'core'))
+
 ENV['BUNDLE_GEMFILE'] = File.expand_path(File.join(__dir__, "..", "Gemfile"))
 require 'rubygems'
 require 'bundler/setup'
@@ -18,7 +20,7 @@ $LOAD_PATH.unshift(__dir__)
 
 require 'utils'
 require 'miquire'
-require 'test_unit_extensions'
+require 'lib/test_unit_extensions'
 
-miquire :boot, 'delayer'
+require 'boot/delayer'
 

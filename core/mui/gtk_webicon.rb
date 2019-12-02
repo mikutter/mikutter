@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # ／(^o^)＼
 
-require_relative '../utils'
-miquire :core, 'environment', 'serialthread', 'skin'
-miquire :mui, 'web_image_loader'
+require 'environment'
+require 'mui/gtk_web_image_loader'
+require 'serialthread'
+require 'skin'
 
 require 'gtk2'
 require 'observer'

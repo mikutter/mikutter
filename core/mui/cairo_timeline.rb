@@ -6,10 +6,13 @@ require 'cairo'
 class Gtk::TimeLine < Gtk::VBox
 end
 
-miquire :mui, 'crud', 'cell_renderer_message', 'timeline_utils', 'postbox'
-miquire :mui, 'inner_tl', 'dark_matter_prification'
-
-miquire :lib, 'reserver'
+require 'mui/gtk_crud'
+require 'mui/cairo_cell_renderer_message'
+require 'mui/gtk_timeline_utils'
+require 'mui/gtk_postbox'
+require 'mui/cairo_inner_tl'
+require 'mui/gtk_dark_matter_prification'
+require 'lib/reserver'
 
 # タイムラインに表示するメッセージの数
 UserConfig[:timeline_max] ||= 200

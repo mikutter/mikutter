@@ -2,9 +2,11 @@
 
 module Plugin::Settings; end
 
-require_relative 'listener'
+require 'mui/gtk_form_dsl'
+require 'mui/gtk_form_dsl_multi_select'
+require 'mui/gtk_form_dsl_select'
 
-miquire :mui, 'form_dsl', 'form_dsl_select', 'form_dsl_multi_select'
+require_relative 'listener'
 
 require 'gtk2'
 
