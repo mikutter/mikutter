@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # 多くの人に最初に突っ込まれるメソッドが定義されておったのじゃ
 
-require 'set'
-
 $LOAD_PATH.
   unshift(File.expand_path(__dir__))
 
