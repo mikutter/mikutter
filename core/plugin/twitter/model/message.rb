@@ -1,10 +1,11 @@
 # -*- coding:utf-8 -*-
 
-require 'net/http'
-require 'delegate'
-miquire :lib, 'typed-array', 'timelimitedqueue'
-
+require 'lib/timelimitedqueue'
 require_relative 'user'
+
+require 'delegate'
+require 'net/http'
+require 'typed-array'
 
 =begin
 = Message

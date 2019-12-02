@@ -20,7 +20,7 @@ $LOAD_PATH.unshift(__dir__)
 
 require 'utils'
 require 'miquire'
-require 'test_unit_extensions'
+require 'lib/test_unit_extensions'
 
 require 'boot/delayer'
 

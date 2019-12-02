@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-require File.expand_path(__dir__ + '/../helper')
+require_relative '../helper'
 
-Dir.chdir(File.expand_path(__dir__ + '/../core'))
-$LOAD_PATH.push '.'
 require 'utils'
-
 require 'lib/test_unit_extensions'
 require 'lib/weakstorage'
 

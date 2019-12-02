@@ -32,7 +32,7 @@ class Plugin
         else
           true end
       }.each{|info|
-        miquire :lib, 'gettext/tools'.freeze
+        require 'gettext/tools'
         FileUtils.mkdir_p(File.dirname(info.mo))
         GetText::Tools::MsgFmt.run(info.po, '-o'.freeze, info.mo)
         notice "generated mo file #{info.po} => #{info.mo}"

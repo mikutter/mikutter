@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-miquire :core, 'skin'
-miquire :lib, 'typed-array', 'weakstorage'
+require 'lib/weakstorage'
+require 'skin'
+
+require 'typed-array'
 
 class Plugin::Twitter::User < Diva::Model
   extend Gem::Deprecate

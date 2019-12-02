@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-miquire :boot, 'delayer'
-miquire :core, 'miquire_plugin'
+require 'boot/delayer'
+require 'miquire_plugin'
 
 using Miquire::ToSpec
 

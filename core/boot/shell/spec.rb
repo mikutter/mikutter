@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # specファイル自動生成
 
+require "boot/delayer"
+require "userconfig"
+
 require "fileutils"
 require 'ripper'
-miquire :boot, "delayer"
-miquire :core, "userconfig"
 
 # イカサマ依存関係自動解決クラス。
 # あまり頼りにしないでくれ、Rubyのパース面倒なんだよ

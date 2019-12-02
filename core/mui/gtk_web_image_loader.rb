@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # 画像のURLを受け取って、Gtk::Pixbufを返す
 
-miquire :core, 'serialthread', 'skin'
-miquire :lib, 'addressable/uri'
-require 'net/http'
-require 'uri'
-require 'thread'
+require 'serialthread'
+require 'skin'
+
+require 'addressable/uri'
 require 'fileutils'
+require 'net/http'
+require 'thread'
+require 'uri'
 
 module Gdk::WebImageLoader
   extend Gdk::WebImageLoader
