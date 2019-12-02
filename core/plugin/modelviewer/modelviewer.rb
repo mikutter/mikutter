@@ -13,6 +13,7 @@ Plugin.create :modelviewer do
           ) do |token|
       model = token.model
       tab_slug = :"modelviewer:#{model_class.slug}:#{model.uri.hash}"
+      cluster_slug = :"modelviewer-cluster:#{model_class.slug}:#{model.uri.hash}"
       if Plugin::GUI::Tab.exist?(tab_slug)
         Plugin::GUI::Tab.instance(tab_slug).active!
       else
@@ -23,7 +24,7 @@ Plugin.create :modelviewer do
           shrink
           nativewidget Plugin[:modelviewer].header(token, &block)
           expand
-          Plugin[:modelviewer].cluster_initialize(model, cluster(nil))
+          Plugin[:modelviewer].cluster_initialize(model, cluster(cluster_slug))
           active!
         end
       end
@@ -37,20 +38,32 @@ Plugin.create :modelviewer do
   defdsl :deffragment do |model_class, slug, title=slug.to_s, &block|
     model_class = Diva::Model(model_class) unless model_class.is_a?(Class)
     add_event_filter(:"modelviewer_#{model_class.slug}_fragments") do |tabs, model|
-      i_fragment = Plugin::GUI::Fragment.instance(:"#{slug}:#{model.uri}", title)
+      i_fragment = Plugin::GUI::Fragment.instance(:"modelviewer-fragment:#{slug}:#{model.uri}", title)
       i_fragment.instance_eval_with_delegate(self, model, &block)
       tabs << i_fragment
       [tabs, model]
     end
   end
 
+  on_gui_child_reordered do |i_cluster, i_fragment, order|
+    kind, = i_fragment.slug.to_s.split(':', 2)
+    if kind == 'modelviewer-fragment'
+      _, cluster_kind, = i_cluster.slug.to_s.split(':', 3)
+      store("order-#{cluster_kind}", i_cluster.children.map { |f| f.slug.to_s.split(':', 3)[1] })
+    end
+  end
 
   def cluster_initialize(model, i_cluster)
-    Enumerator.new { |y|
+    _, cluster_kind, = i_cluster.slug.to_s.split(':', 3)
+    order = at("order-#{cluster_kind}", [])
+    fragments = Enumerator.new { |y|
       Plugin.filtering(:"modelviewer_#{model.class.slug}_fragments", y, model)
-    }.each{|tab|
-      i_cluster << tab
-    }
+    }.sort_by { |i_fragment|
+      _, fragment_kind, = i_fragment.slug.to_s.split(':', 3)
+      order.index(fragment_kind) || Float::INFINITY
+    }.to_a
+    fragments.each(&i_cluster.method(:add_child))
+    fragments.first&.active!
   end
 
   def header(intent_token, &column_generator)
