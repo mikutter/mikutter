@@ -8,6 +8,11 @@ Plugin.create(:quickstep) do
           icon: Skin[:search],
           visible: true,
           role: :window) do |opt|
+    if tab?(:quickstep)
+      Plugin::GUI::Tab.instance(:quickstep).active!
+      next
+    end
+
     tab(:quickstep, _('QuickStep 検索')) do
       set_icon Skin[:search]
       set_deletable true
