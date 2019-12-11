@@ -205,13 +205,117 @@ Plugin.create(:mastodon) do
     score = score_of(user.profile)
     bio = ::Gtk::IntelligentTextview.new(score)
     container = ::Gtk::VBox.new.
-                  closeup(bio)
+                  closeup(bio).
+                  closeup(relation_bar(user))
     scrolledwindow = ::Gtk::ScrolledWindow.new
     scrolledwindow.set_policy(::Gtk::POLICY_AUTOMATIC, ::Gtk::POLICY_AUTOMATIC)
     scrolledwindow.add_with_viewport(container)
     scrolledwindow.style = container.style
     wrapper = Gtk::EventBox.new
     nativewidget wrapper.add(scrolledwindow)
+  end
+
+  # フォロー関係の表示・操作用ウィジェット
+  def relation_bar(user)
+    icon_size = Gdk::Rectangle.new(0, 0, 32, 32)
+    arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
+    container = ::Gtk::VBox.new(false, 4)
+
+    Plugin.filtering(:mastodon_worlds, nil).first.each do |me|
+      following = followed = blocked = false
+
+      w_following_label = ::Gtk::Label.new(_("関係を取得中"))
+      w_followed_label = ::Gtk::Label.new("")
+      w_eventbox_image_following = ::Gtk::EventBox.new
+      w_eventbox_image_followed = ::Gtk::EventBox.new
+
+      w_following_relation = if me.account == user
+                               ::Gtk::Label.new(_("それはあなたです！"))
+                             else
+                               ::Gtk::HBox.new.
+                                 closeup(w_eventbox_image_following).
+                                 closeup(w_following_label)
+                             end
+
+      w_followed_relation = ::Gtk::HBox.new.
+                              closeup(w_eventbox_image_followed).
+                              closeup(w_followed_label)
+
+      relation_container = ::Gtk::HBox.new(false, icon_size.width/2)
+      relation_container.closeup(::Gtk::WebIcon.new(me.account.icon, icon_size).tooltip(me.title))
+      relation_container.closeup(::Gtk::VBox.new.
+                                 closeup(w_following_relation).
+                                 closeup(w_followed_relation))
+      relation_container.closeup(::Gtk::WebIcon.new(user.icon, icon_size).tooltip(user.title))
+
+      if me.account != user
+        # TODO: ブロック、ミュートもいい感じに配置して、状態に応じた表示とかしてあげる必要がある
+        followbutton = ::Gtk::Button.new
+        followbutton.sensitive = false
+
+        m_following_refresh = -> {
+          next if w_eventbox_image_following.destroyed?
+
+          if not w_eventbox_image_following.children.empty?
+            w_eventbox_image_following.remove(w_eventbox_image_following.children.first)
+          end
+
+          w_eventbox_image_following.style = w_eventbox_image_following.parent.style
+          w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin[following ? 'arrow_following.png' : 'arrow_notfollowing.png'], arrow_size).show_all)
+          w_following_label.text = following ? _("ﾌｮﾛｰしている") : _("ﾌｮﾛｰしていない")
+          followbutton.label = following ? _("解除") : _("ﾌｮﾛｰ")
+        }
+
+        m_followed_refresh = -> {
+          next if w_eventbox_image_followed.destroyed?
+
+          if not w_eventbox_image_followed.children.empty?
+            w_eventbox_image_followed.remove(w_eventbox_image_followed.children.first)
+          end
+
+          w_eventbox_image_followed.style = w_eventbox_image_followed.parent.style
+          w_eventbox_image_followed.add(::Gtk::WebIcon.new(Skin.get_path(followed ? "arrow_followed.png" : "arrow_notfollowed.png"), arrow_size).show_all)
+          w_followed_label.text = followed ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない")
+        }
+
+        Deferred.when(me.followings(cache: false), me.blocks).next { |followings, blocks|
+          following = followings.any? { |account| account.acct == user.acct }
+          blocked = blocks.any? { |account| account.acct == user.acct }
+
+          m_following_refresh.call
+
+          followbutton.ssc(:clicked) do
+            followbutton.sensitive = false
+            spell(following ? :unfollow : :follow, me, user).next {
+              following = !following
+              m_following_refresh.call
+              followbutton.sensitive = true unless followbutton.destroyed?
+            }.terminate.trap {
+              followbutton.sensitive = true unless followbutton.destroyed?
+            }
+          end
+
+          followbutton.sensitive = true
+          unless relation_container.destroyed?
+            relation_container.closeup(followbutton)
+            followbutton.show
+          end
+        }.terminate.trap {
+          w_following_label.text = _("取得できませんでした")
+        }
+
+        me.followers(cache: false).next { |followers|
+          followed = followers.any? { |account| account.acct == user.acct }
+          m_followed_refresh.call
+        }.terminate.trap {
+          w_followed_label.text = _("取得できませんでした")
+        }
+      end
+
+      container.closeup(relation_container)
+    end
+
+    container
   end
 
   deffragment(Plugin::Mastodon::Account, :user_timeline, _('ユーザタイムライン')) do |user|
