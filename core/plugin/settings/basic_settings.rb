@@ -40,11 +40,6 @@ Plugin::create(:basic_settings) do
       adjustment(_('ダイレクトメッセージ'), :direct_message_queue_delay, 100, 10000)
     end
 
-    settings _('リアルタイム更新') do
-      boolean(_('リスト(Streaming API)'), :filter_realtime_rewind).
-        tooltip _('Twitter の Streaming APIを用いて、リアルタイムにリストの更新等を受け取ります')
-    end
-
     boolean _('リプライ元をサーバに問い合わせて取得する'), :retrieve_force_mumbleparent
     boolean(_('つぶやきの取得漏れを防止する（遅延対策）'), :anti_retrieve_fail).
       tooltip _('遅延に強くなりますが、ちょっと遅くなります。')
@@ -53,7 +48,7 @@ Plugin::create(:basic_settings) do
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,
       :copyright => _('2009-%s Toshiaki Asai') % '2019',
-      :comments => _("全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。\n略して至高のTwitter Client。\n圧倒的なかわいさではないか我がミクは\n\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
+      :comments => _("全てのミク廃、そしてマイクロブログ中毒者へ贈る、至高のMastodonクライアントを目指すMastodonクライアント。\n略して至高のMastodonクライアント。\n圧倒的なかわいさではないか我がミクは\n\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
       :license => (file_get_contents('../LICENSE') rescue nil),
       :website => _('https://mikutter.hachune.net/'),
       :logo => Skin.photo('icon.png'),

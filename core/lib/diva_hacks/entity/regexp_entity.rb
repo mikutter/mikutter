@@ -11,7 +11,7 @@ module Diva::Entity
     class Sample < Diva::Model
       entity_class Diva::Entity::RegexpEntity.
         filter(/:(?:\w+):/, ->s{ s.merge(open: 'https://...') }). # :???: をクリックされたら対応する絵文字の画像(https://...)を開く
-        filter(/@(?:\w+)/, ->s{ s.merge(open: "https://twitter.com/#{s[:url]}") }) # @??? をクリックされたらTwitterでユーザページを開く
+        filter(/@(?:\w+)/, ->s{ s.merge(open: "https://social.mikutter.hachune.net/@#{s[:url]}") }) # @??? をクリックされたらsocial.mikutter.hachune.netのプロフィールページを開く
     end
 
 =end

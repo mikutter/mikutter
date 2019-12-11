@@ -147,7 +147,7 @@ Plugin.create :extract do
 
   defextractcondition(:body, name: _('本文'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (description message) ,(car args))"))
 
-  defextractcondition(:source, name: _('Twitterクライアント'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
+  defextractcondition(:source, name: _('投稿したクライアントアプリケーション名'), operator: true, args: 1, sexp: MIKU.parse("`(,compare (fetch message 'source) ,(car args))"))
 
   defextractcondition(:receiver_idnames, name: _('宛先ユーザ名のいずれか一つ以上'), operator: true, args: 1) do |arg, message: raise, operator: raise, &compare|
     message.receive_user_idnames.any? do |sn|
@@ -234,29 +234,6 @@ Plugin.create :extract do
     end
   end
 
-  on_appear do |messages|
-    Plugin.call :extract_receive_message, :appear, messages end
-
-  on_update do |service, messages|
-    Plugin.call :extract_receive_message, :update, messages
-    if service and service.class.slug == :twitter
-      service_datasource = "home_timeline-#{service.user_obj.id}".to_sym
-      if active_datasources.include? service_datasource
-        Plugin.call :extract_receive_message, service_datasource, messages
-      end
-    end
-  end
-
-  on_mention do |service, messages|
-    Plugin.call :extract_receive_message, :mention, messages
-    if service.class.slug == :twitter
-    service_datasource = "mentions-#{service.user_obj.id}".to_sym
-    if active_datasources.include? service_datasource
-      Plugin.call :extract_receive_message, service_datasource, messages
-    end
-    end
-  end
-
   on_extract_receive_message do |source, messages|
     append_message source, messages
   end
@@ -264,23 +241,6 @@ Plugin.create :extract do
   filter_extract_tabs_get do |tabs|
     [tabs + extract_tabs.values]
   end
-
-  filter_extract_datasources do |datasources|
-    datasources = {
-      appear: _("受信したすべての投稿"),
-      update: _("ホームタイムライン(全てのアカウント)"),
-      mention: _("自分宛ての投稿(全てのアカウント)")
-    }.merge datasources
-    Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.lazy.select{|world|
-      world.class.slug == :twitter
-    }.map(&:user_obj).each{ |user|
-      datasources.merge!({ "home_timeline-#{user.id}".to_sym => "@#{user.idname}/" + _("Home Timeline"),
-                           "mentions-#{user.id}".to_sym => "@#{user.idname}/" + _("Mentions")
-                         })
-    }
-    [datasources] end
 
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs

@@ -39,9 +39,6 @@ class UserConfig
     :follow_queue_delay => 100,
     :direct_message_queue_delay => 100,
 
-    # Streaming API(Twitter)
-    :filter_realtime_rewind => true,
-
     # デフォルトのフッダ
     :footer => "",
 
@@ -140,16 +137,7 @@ class UserConfig
     :reply_clicked_action => :open,
     :quote_clicked_action => :open,
 
-    :intent_selector_rules => [{:uuid=>"8ab31d89-6d5f-4765-bb99-7a93ce5b1139",
-                                :intent=>:user_detail_view_twitter_user,
-                                :model=>"",
-                                :str=>"https://twitter.com/",
-                                :rule=>"start"},
-                               {:uuid=>"c0095e59-75da-4177-98e0-d4955ece1d20",
-                                :intent=>:message_detail_view_twitter_tweet,
-                                :model=>"",
-                                :str=>"https://twitter.com/",
-                                :rule=>"start"}],
+    :intent_selector_rules => [],
 
     :postbox_visibility => :auto,
     :world_shifter_visibility => :auto,

@@ -51,58 +51,57 @@ module Diva::Model::MessageMixin
     false
   end
 
-  # このDivaをReTweetする。
-  # ReTweetとは、Diva自体を添付した、内容が空のDivaを作成すること。
-  # 基本的にはTwitter用で、他の用途は想定していない。
+  # このDiva::ModelをShareする。
+  # ShareとはMastodonのboostのように、自分をフォローしている他人に対して、第三者の投稿を共有すること。
   # ==== Return
   # [Deferred] 成否判定
   def retweet
     Deferred.new{ true }
   end
 
-  # このインスタンスがReTweetの基準を満たしているか否かを返す。
+  # このインスタンスがShareの基準を満たしているか否かを返す。
   # ==== Return
-  # [true] このインスタンスはReTweetである
-  # [false] ReTweetではない
+  # [true] このインスタンスはShareである
+  # [false] Shareではない
   def retweet?
     false
   end
 
-  # _counterpart_ で、このインスタンスがReTweetされているか否かを返す
+  # _counterpart_ で、このインスタンスがShareされているか否かを返す
   # ==== Args
   # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
-  # [true] 既にReTweetしている
+  # [true] 既にShareしている
   # [false] していない
   def retweeted?(counterpart=nil)
     false
   end
 
-  # このインスタンスのReTweetにあたる _Diva::Model_ を列挙する。
+  # このインスタンスのShareにあたる _Diva::Model_ を列挙する。
   # ==== Return
-  # [Enumerable<Diva::Model>] このインスタンスのReTweetにあたるインスタンス
+  # [Enumerable<Diva::Model>] このインスタンスのShareにあたるインスタンス
   def retweeted_by
     []
   end
 
-  # _counterpart_ が、このインスタンスをReTweetすることに対応しているか否かを返す
-  # 既にReTweetしている場合は、必ず _true_ を返す。
+  # _counterpart_ が、このインスタンスをShareすることに対応しているか否かを返す
+  # 既にShareしている場合は、必ず _true_ を返す。
   # ==== Args
   # [counterpart] お気に入りに追加する側のオブジェクト(Worldやユーザ等)。省略した場合は現在選択されているWorld
   # ==== Return
-  # [true] ReTweetに対応している
+  # [true] Shareに対応している
   # [false] していない
   def retweetable?(counterpart=nil)
     false
   end
 
-  # このMessageがリツイートなら、何のリツイートであるかを返す。
+  # このMessageがShareなら、何のShareであるかを返す。
   # 返される値の retweet? は常に false になる
   # ==== Args
-  # [force_retrieve] 真なら、ツイートがメモリ上に見つからなかった場合Twitter APIリクエストを発行する
+  # [force_retrieve] 真なら、投稿がメモリ上に見つからなかった場合外部APIリクエストを発行する
   # ==== Return
-  # [Diva::Model] ReTweet元のMessage
-  # [nil] ReTweetではない
+  # [Diva::Model] Share元のMessage
+  # [nil] Shareではない
   def retweet_source(force_retrieve=nil)
     nil
   end

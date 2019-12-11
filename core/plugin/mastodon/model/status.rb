@@ -375,7 +375,6 @@ module Plugin::Mastodon
       world
     end
 
-    # mentionもしくはretweetが自分に向いている（twitter APIで言うreceiverフィールドが自分ということ）
     def to_me?(world = nil)
       if !world.nil?
         if world.is_a? Plugin::Mastodon::World
@@ -558,7 +557,7 @@ module Plugin::Mastodon
       world, = Plugin.filtering(:world_current, nil)
       Plugin[:mastodon].compose(self, world, body: message, **kwrest)
     end
-    deprecate :post, "spell (see: https://reference.mikutter.hachune.net/reference/2017/11/28/spell.html#compose-twitter)", 2018, 11
+    deprecate :post, :none, 2018, 11
 
     def receive_user_idnames
       mentions.map(&:acct).to_a

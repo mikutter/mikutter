@@ -1,8 +1,8 @@
 # -*- mode: org; coding: utf-8 -*-
-mikutter - simple, powerful and moeful twitter client
+mikutter - simple, powerful and moeful Mastodon client
 file:core/skin/data/icon.png
-全てのミク廃、そしてTwitter中毒者へ贈る、至高のTwitter Clientを目指すTwitter Client。
-略して至高のTwitter Client。
+全てのミク廃、そしてマイクロブログ中毒者へ贈る、至高のMastodonクライアントを目指すMastodonクライアント。
+略して至高のMastodonクライアント。
 
 * 要件
 
@@ -29,12 +29,12 @@ file:core/skin/data/icon.png
 * 生成されるファイルとその意味
   mikutterが生成するファイルは ~/.mikutter 以下に全て配置されます。
 
-| ファイル名 | 説明                                                     |
-|------------+----------------------------------------------------------|
-| cache/     | Twitter API、アイコンなどのレスポンスのキャッシュ。       |
-| settings/  | 設定やアカウント情報など  |
-| logs/      | エラーログなど                                           |
-| tmp/       | 一時ファイル                                             |
+| ファイル名 | 説明                                                      |
+|------------+-----------------------------------------------------------|
+| cache/     | 外部APIリクエスト、アイコンなどのレスポンスのキャッシュ。 |
+| settings/  | 設定やアカウント情報など                                  |
+| logs/      | エラーログなど                                            |
+| tmp/       | 一時ファイル                                              |
 
 各ファイルは、ない場合はすべて自動生成されます。
 キャッシュファイルなどを掃除したい場合は、以下のようなコマンドを使用します。
