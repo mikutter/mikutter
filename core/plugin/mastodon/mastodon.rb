@@ -267,8 +267,14 @@ Plugin.create(:mastodon) do
 
           w_eventbox_image_following.style = w_eventbox_image_following.parent.style
           w_eventbox_image_following.add(::Gtk::WebIcon.new(Skin[following ? 'arrow_following.png' : 'arrow_notfollowing.png'], arrow_size).show_all)
-          w_following_label.text = following ? _("ﾌｮﾛｰしている") : _("ﾌｮﾛｰしていない")
-          followbutton.label = following ? _("解除") : _("ﾌｮﾛｰ")
+          w_following_label.text = if blocked
+                                     _("ﾌﾞﾖｯｸしている")
+                                   elsif following
+                                     _("ﾌｮﾛｰしている")
+                                   else
+                                     _("ﾌｮﾛｰしていない")
+                                   end
+          followbutton.label = (blocked || following) ? _("解除") : _("ﾌｮﾛｰ")
         }
 
         m_followed_refresh = -> {
@@ -285,8 +291,23 @@ Plugin.create(:mastodon) do
 
         followbutton.ssc(:clicked) do
           m_button_sensitive.call(false)
-          spell(following ? :unfollow : :follow, me, user).next {
-            following = !following
+          verb = if blocked
+                   :unblock_user
+                 elsif following
+                   :unfollow
+                 else
+                   :follow
+                 end
+          spell(verb, me, user).next {
+            case verb
+            when :unblock_user
+              blocked = false
+            when :unfollow
+              following = false
+            else
+              following = true
+            end
+
             m_following_refresh.call
             m_button_sensitive.call(true)
           }.terminate.trap {
@@ -340,6 +361,7 @@ Plugin.create(:mastodon) do
 
           m_following_refresh.call
           m_button_sensitive.call(true)
+
           unless relation_container.destroyed?
             relation_container.closeup(followbutton).closeup(menubutton)
             followbutton.show
