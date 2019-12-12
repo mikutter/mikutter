@@ -3,27 +3,32 @@
 module Plugin::Search
   class Search < Diva::Model
     extend Memoist
-    register :twitter_search, name: Plugin[:search]._('Twitter検索')
+    register :search_search, name: Plugin[:search]._('検索')
 
     field.string :query, required: true
+    field.has :world, Diva::Model, required: true
 
-    # https://twitter.com/search?q=%23superfuckjp
-    handle ->uri{
-      uri.scheme == 'https' &&
-        uri.host == 'twitter.com' &&
-        uri.path == '/search' &&
-        uri.query.split('&').any?{|r|r.split('=', 2).first == 'q'}
+    handle ->uri {
+      uri.scheme == 'search' && find_world(uri) && uri.path.size >= 2
     } do |uri|
-      _, query = uri.query.split('&').lazy.map{|r| r.split('=', 2) }.find{|k,v| k == 'q' }
-      new(query: CGI.unescape(query))
+      host = CGI.unescape(uri.host)
+      new(query: CGI.unescape(uri.path), world: find_world(uri))
+    end
+
+    def self.find_world(uri)
+      Enumerator.new { |y|
+        Plugin.filtering(:worlds, y)
+      }.lazy.map { |w|
+        w.slug.to_s
+      }.find(CGI.unescape(uri.host))
     end
 
     def title
-      Plugin[:search]._("「%{query}」でツイート検索") % {query: query}
+      Plugin[:search]._("「%{query}」を%{world}で検索") % {query: query, world: world.title}
     end
 
-    memoize def perma_link
-      Diva::URI.new("https://twitter.com/search?q=#{CGI.escape(self.query)}")
+    def uri
+      Diva::URI.new("search://#{CGI.escape(self.world.slug.to_s)}/#{CGI.escape(self.query)}")
     end
   end
 end

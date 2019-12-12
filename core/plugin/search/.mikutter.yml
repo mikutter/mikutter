@@ -5,8 +5,9 @@ depends:
   plugin:
   - gtk
   - gui
-  - uitranslator
+  - quickstep
   - skin
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 検索
