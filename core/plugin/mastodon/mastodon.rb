@@ -249,9 +249,14 @@ Plugin.create(:mastodon) do
       relation_container.closeup(::Gtk::WebIcon.new(user.icon, icon_size).tooltip(user.title))
 
       if me.account != user
-        # TODO: ブロック、ミュートもいい感じに配置して、状態に応じた表示とかしてあげる必要がある
         followbutton = ::Gtk::Button.new
-        followbutton.sensitive = false
+        menubutton = ::Gtk::Button.new(" … ")
+
+        m_button_sensitive = -> (new) {
+          followbutton.sensitive = new unless followbutton.destroyed?
+          menubutton.sensitive = new unless menubutton.destroyed?
+        }
+        m_button_sensitive.call(false)
 
         m_following_refresh = -> {
           next if w_eventbox_image_following.destroyed?
@@ -278,27 +283,67 @@ Plugin.create(:mastodon) do
           w_followed_label.text = followed ? _("ﾌｮﾛｰされている") : _("ﾌｮﾛｰされていない")
         }
 
+        followbutton.ssc(:clicked) do
+          m_button_sensitive.call(false)
+          spell(following ? :unfollow : :follow, me, user).next {
+            following = !following
+            m_following_refresh.call
+            m_button_sensitive.call(true)
+          }.terminate.trap {
+            m_button_sensitive.call(true)
+          }
+        end
+
+        menubutton.ssc(:clicked) do
+          menu = ::Gtk::Menu.new
+          menu.ssc(:selection_done) do
+            menu.destroy
+            false
+          end
+          menu.ssc(:cancel) do
+            menu.destroy
+            false
+          end
+
+          muted = Plugin::Mastodon::Status.muted?(user.acct)
+          menu.append(::Gtk::MenuItem.new(muted ? _("ミュート解除する") : _("ミュートする")).tap { |item|
+                        item.ssc(:activate) {
+                          m_button_sensitive.call(false)
+                          spell(muted ? :unmute_user : :mute_user, me, user).next {
+                            m_following_refresh.call
+                            m_button_sensitive.call(true)
+                          }.terminate.trap {
+                            m_button_sensitive.call(true)
+                          }
+                        }
+                      })
+          menu.append(::Gtk::MenuItem.new(blocked ? _("ブロック解除する") : _("ブロックする")).tap { |item|
+                        item.ssc(:activate) {
+                          m_button_sensitive.call(false)
+                          spell(blocked ? :unblock_user : :block_user, me, user).next {
+                            blocked = !blocked
+                            following = false if blocked
+                            m_following_refresh.call
+                            m_button_sensitive.call(true)
+                          }.terminate.trap {
+                            m_button_sensitive.call(true)
+                          }
+                        }
+                      })
+
+          menu.show_all.popup(nil, nil, 0, 0)
+        end
+
         Deferred.when(me.followings(cache: false), me.blocks).next { |followings, blocks|
           following = followings.any? { |account| account.acct == user.acct }
           blocked = blocks.any? { |account| account.acct == user.acct }
 
           m_following_refresh.call
-
-          followbutton.ssc(:clicked) do
-            followbutton.sensitive = false
-            spell(following ? :unfollow : :follow, me, user).next {
-              following = !following
-              m_following_refresh.call
-              followbutton.sensitive = true unless followbutton.destroyed?
-            }.terminate.trap {
-              followbutton.sensitive = true unless followbutton.destroyed?
-            }
-          end
-
-          followbutton.sensitive = true
+          m_button_sensitive.call(true)
           unless relation_container.destroyed?
-            relation_container.closeup(followbutton)
+            relation_container.closeup(followbutton).closeup(menubutton)
             followbutton.show
+            menubutton.show
           end
         }.terminate.trap {
           w_following_label.text = _("取得できませんでした")
