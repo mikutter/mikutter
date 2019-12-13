@@ -339,26 +339,57 @@ Plugin.create(:mastodon) do
           muted = Plugin::Mastodon::Status.muted?(user.acct)
           menu.append(::Gtk::MenuItem.new(muted ? _("ミュート解除する") : _("ミュートする")).tap { |item|
                         item.ssc(:activate) {
-                          m_button_sensitive.call(false)
-                          spell(muted ? :unmute_user : :mute_user, me, user).next {
-                            m_following_refresh.call
-                            m_button_sensitive.call(true)
-                          }.terminate.trap {
-                            m_button_sensitive.call(true)
-                          }
+                          if muted
+                            m_button_sensitive.call(false)
+                            unmute_user(me, user).next {
+                              m_following_refresh.call
+                              m_button_sensitive.call(true)
+                            }.terminate.trap {
+                              m_button_sensitive.call(true)
+                            }
+                          else
+                            dialog(_('ミュートする')) {
+                              label _('以下のユーザーをミュートしますか？')
+                              link user
+                            }.next {
+                              m_button_sensitive.call(false)
+                              mute_user(me, user).next {
+                                m_following_refresh.call
+                                m_button_sensitive.call(true)
+                              }.terminate.trap {
+                                m_button_sensitive.call(true)
+                              }
+                            }
+                          end
                         }
                       })
           menu.append(::Gtk::MenuItem.new(blocked ? _("ブロック解除する") : _("ブロックする")).tap { |item|
                         item.ssc(:activate) {
-                          m_button_sensitive.call(false)
-                          spell(blocked ? :unblock_user : :block_user, me, user).next {
-                            blocked = !blocked
-                            following = false if blocked
-                            m_following_refresh.call
-                            m_button_sensitive.call(true)
-                          }.terminate.trap {
-                            m_button_sensitive.call(true)
-                          }
+                          if blocked
+                            m_button_sensitive.call(false)
+                            unblock_user(me, user).next {
+                              blocked = false
+                              m_following_refresh.call
+                              m_button_sensitive.call(true)
+                            }.terminate.trap {
+                              m_button_sensitive.call(true)
+                            }
+                          else
+                            dialog(_('ブロックする')) {
+                              label _('以下のユーザーをブロックしますか？')
+                              link user
+                            }.next {
+                              m_button_sensitive.call(false)
+                              block_user(me, user).next {
+                                blocked = true
+                                following = false
+                                m_following_refresh.call
+                                m_button_sensitive.call(true)
+                              }.terminate.trap {
+                                m_button_sensitive.call(true)
+                              }
+                            }
+                          end
                         }
                       })
 
