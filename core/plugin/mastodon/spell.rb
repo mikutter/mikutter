@@ -158,66 +158,6 @@ Plugin.create(:mastodon) do
     end
   end
 
-  command(:mastodon_follow_user, name: _('フォローする'), visible: true, role: :timeline,
-          condition: lambda { |opt|
-            opt.messages.any? { |m|
-              follow?(opt.world, m.user)
-            }
-          }) do |opt|
-    opt.messages.map { |m|
-      m.user
-    }.each { |user|
-      follow(opt.world, user)
-    }
-  end
-
-  command(:mastodon_unfollow_user, name: _('フォロー解除'), visible: true, role: :timeline,
-          condition: lambda { |opt|
-            opt.messages.any? { |m|
-              unfollow?(opt.world, m.user)
-            }
-          }) do |opt|
-    opt.messages.map { |m|
-      m.user
-    }.each { |user|
-      unfollow(opt.world, user)
-    }
-  end
-
-  command(:mastodon_mute_user, name: _('ミュートする'), visible: true, role: :timeline,
-          condition: lambda { |opt|
-            opt.messages.any? { |m| mute_user?(opt.world, m.user) }
-          }) do |opt|
-    users = opt.messages.map { |m| m.user }.uniq
-    dialog _('ミュートする') do
-      label _('以下のユーザーをミュートしますか？')
-      users.each { |user|
-        link user
-      }
-    end.next do
-      users.each { |user|
-        mute_user(opt.world, user)
-      }
-    end
-  end
-
-  command(:mastodon_block_user, name: _('ブロックする'), visible: true, role: :timeline,
-          condition: lambda { |opt|
-            opt.messages.any? { |m| block_user?(opt.world, m.user) }
-          }) do |opt|
-    users = opt.messages.map { |m| m.user }.uniq
-    dialog _('ブロックする') do
-      label _('以下のユーザーをブロックしますか？')
-      users.each { |user|
-        link user
-      }
-    end.next do
-      users.each { |user|
-        block_user(opt.world, user)
-      }
-    end
-  end
-
   command(:mastodon_report_status, name: _('通報する'), visible: true, role: :timeline,
           condition: lambda { |opt|
             opt.messages.any? { |m| report_for_spam?(opt.world, m) }
