@@ -249,6 +249,16 @@ Plugin.create(:mastodon) do
       relation_container.closeup(::Gtk::WebIcon.new(user.icon, icon_size).tooltip(user.title))
 
       if me.account != user
+        m_get_relationship = -> {
+          Plugin::Mastodon::API.get_local_account_id(me, user).next { |aid|
+            Plugin::Mastodon::API.call(:get, me.domain, '/api/v1/accounts/relationships', me.access_token, id: [aid]).next { |resp|
+              resp[0]
+            }.trap { |e|
+              Deferred.fail(e)
+            }
+          }
+        }
+
         followbutton = ::Gtk::Button.new
         menubutton = ::Gtk::Button.new(" … ")
 
@@ -355,11 +365,13 @@ Plugin.create(:mastodon) do
           menu.show_all.popup(nil, nil, 0, 0)
         end
 
-        Deferred.when(me.followings(cache: false), me.blocks).next { |followings, blocks|
-          following = followings.any? { |account| account.acct == user.acct }
-          blocked = blocks.any? { |account| account.acct == user.acct }
+        m_get_relationship.call.next { |relationship|
+          following = relationship[:following]
+          followed = relationship[:followed_by]
+          blocked = relationship[:blocking]
 
           m_following_refresh.call
+          m_followed_refresh.call
           m_button_sensitive.call(true)
 
           unless relation_container.destroyed?
@@ -369,13 +381,6 @@ Plugin.create(:mastodon) do
           end
         }.terminate.trap {
           w_following_label.text = _("取得できませんでした")
-        }
-
-        me.followers(cache: false).next { |followers|
-          followed = followers.any? { |account| account.acct == user.acct }
-          m_followed_refresh.call
-        }.terminate.trap {
-          w_followed_label.text = _("取得できませんでした")
         }
       end
 
