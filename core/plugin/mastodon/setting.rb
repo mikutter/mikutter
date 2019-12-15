@@ -6,7 +6,7 @@ Plugin.create(:mastodon) do
   # 設定の初期化
   defaults = {
     mastodon_enable_streaming: true,
-    mastodon_rest_interval: UserConfig[:retrieve_interval_friendtl],
+    mastodon_rest_interval: 1,
     mastodon_show_subparts_visibility: true,
     mastodon_show_subparts_bot: true,
     mastodon_show_subparts_pin: true,

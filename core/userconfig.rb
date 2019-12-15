@@ -20,33 +20,11 @@ class UserConfig
   #
 
   @@defaults = {
-    :retrieve_interval_friendtl => 1,   # TLを更新する間隔(int)
-    :retrieve_interval_mention => 20,   # Replyを更新する間隔(int)
-    :retrieve_interval_search => 60,    # 検索を更新する間隔(int)
-    :retrieve_interval_followings => 60,  # followを更新する間隔(int)
-    :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
-    :retrieve_interval_direct_messages => 20,  # DirectMessageを更新する間隔(int)
-    :retrieve_interval_list_timeline => 60,    # リストの更新間隔(int)
-
-    :retrieve_count_friendtl => 20,   # TLを取得する数(int)
-    :retrieve_count_mention => 20,    # Replyを取得する数(int)
-    :retrieve_count_followings => 20,   # followを取得する数(int)
-    :retrieve_count_followers => 20,   # followerを取得する数(int)
-    :retrieve_count_direct_messages => 200,   # followerを取得する数(int)
-
-    :update_queue_delay => 100,
-    :favorite_queue_delay => 100,
-    :follow_queue_delay => 100,
-    :direct_message_queue_delay => 100,
-
     # デフォルトのフッダ
     :footer => "",
 
     # リプライ元を常に取得する
     :retrieve_force_mumbleparent => true,
-
-    # 遅延対策
-    :anti_retrieve_fail => false,
 
     # つぶやきを投稿するキー
     :shortcutkey_keybinds => {1 => {:key => "Control + Return", :name => '投稿する', :slug => :post_it}},
