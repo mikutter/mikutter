@@ -242,6 +242,10 @@ Plugin.create :extract do
     [tabs + extract_tabs.values]
   end
 
+  filter_active_datasources do |ds|
+    [ds & active_datasources]
+  end
+
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values.map(&:export_to_userconfig)
@@ -251,8 +255,9 @@ Plugin.create :extract do
   def active_datasources
     @active_datasources ||=
       extract_tabs.values.map{|tab|
-        tab.sources
-      }.inject(Set.new, &:merge).freeze end
+      tab.sources
+    }.inject(Set.new, &:merge).freeze
+  end
 
   def compile(tab_slug, code)
     atomic do
