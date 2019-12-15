@@ -229,7 +229,14 @@ module Plugin::Mastodon
     end
 
     def block(account)
-      account_action(account, "block").next{ blocks }
+      account_action(account, "block").next{
+        if @@followings[uri.to_s]
+          @@followings[uri.to_s].delete_if do |acc|
+            acc.acct == account.acct
+          end
+        end
+        blocks
+      }
     end
 
     def unblock(account)
