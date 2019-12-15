@@ -65,16 +65,6 @@ Plugin.create(:mastodon_account_viewer) do
       relation_container.closeup(::Gtk::WebIcon.new(user.icon, icon_size).tooltip(user.title))
 
       if me.account != user
-        m_get_relationship = -> {
-          Plugin::Mastodon::API.get_local_account_id(me, user).next { |aid|
-            Plugin::Mastodon::API.call(:get, me.domain, '/api/v1/accounts/relationships', me.access_token, id: [aid]).next { |resp|
-              resp[0]
-            }.trap { |e|
-              Deferred.fail(e)
-            }
-          }
-        }
-
         followbutton = ::Gtk::Button.new
         menubutton = ::Gtk::Button.new(" … ")
 
@@ -212,7 +202,13 @@ Plugin.create(:mastodon_account_viewer) do
           menu.show_all.popup(nil, nil, 0, 0)
         end
 
-        m_get_relationship.call.next { |relationship|
+        Plugin::Mastodon::API.get_local_account_id(me, user).next { |aid|
+          Plugin::Mastodon::API.call(:get, me.domain, '/api/v1/accounts/relationships', me.access_token, id: [aid]).next { |resp|
+            resp[0]
+          }.trap { |e|
+            Deferred.fail(e)
+          }
+        }.next { |relationship|
           following = relationship[:following]
           followed = relationship[:followed_by]
           blocked = relationship[:blocking]
