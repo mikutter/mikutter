@@ -112,26 +112,15 @@ def notice(msg)
   log "notice", msg if Mopt.error_level >= 3
 end
 
-if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
-  alias __mikutter_original_warn warn
-  # 警告メッセージを表示する。
-  def warn(*msg, uplevel: nil)
-    case
-    when uplevel
-      __mikutter_original_warn(*msg, uplevel: uplevel)
-    when Mopt.error_level >= 2
-      msg.each do |m|
-        log "warning", m
-      end
-    end
-  end
-else
-  # 警告メッセージを表示する。
-  def warn(*msg)
-    if Mopt.error_level >= 2
-      msg.each do |m|
-        log "warning", m
-      end
+alias __mikutter_original_warn warn
+# 警告メッセージを表示する。
+def warn(*msg, uplevel: nil)
+  case
+  when uplevel
+    __mikutter_original_warn(*msg, uplevel: uplevel)
+  when Mopt.error_level >= 2
+    msg.each do |m|
+      log "warning", m
     end
   end
 end
@@ -352,17 +341,6 @@ class Object
   # メルト　溶けてしまいそう　（実装が）dupだなんて　絶対に　言えない
   def melt
     if frozen? then dup else self end
-  end
-
-  # Ruby 2.5以前に Object#yield_self をバックポート
-  unless public_methods.include?(:yield_self)
-    def yield_self
-      if block_given?
-        yield(self)
-      else
-        Enumerator.new{|y| y << self }
-      end
-    end
   end
 end
 
