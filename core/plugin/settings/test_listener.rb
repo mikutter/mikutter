@@ -3,7 +3,6 @@
 require 'test/unit'
 require 'rubygems'
 require 'mocha/setup'
-require 'pp'
 listener = File.expand_path File.join(__dir__, 'listener')
 require File.expand_path(__dir__ + '/../../utils')
 require 'lib/test_unit_extensions'

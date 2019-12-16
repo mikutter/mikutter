@@ -4,7 +4,6 @@ namespace 'transifex' do
     require 'tmpdir'
     require 'httpclient'
     require 'json'
-    require 'pp'
     require 'set'
     require_relative '../core/boot/option'
     require_relative '../core/miquire'

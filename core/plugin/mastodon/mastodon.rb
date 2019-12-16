@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'pp'
 
 module Plugin::Mastodon
   PM = Plugin::Mastodon
