@@ -41,13 +41,11 @@ class GLib::Instantiatable
         end
       else
         signal_connect(signal) do |*args|
-          begin
-            if not(destroyed?)
-              proc.call(*args)
-            end
-          rescue Exception => err
-            Gtk.exception = err
+          if !destroyed?
+            proc.call(*args)
           end
+        rescue Exception => err
+          Gtk.exception = err
         end
       end
     else
@@ -111,16 +109,19 @@ module Gtk
       @konami = true
     else
       Thread.new do
-        begin
-          tmpfile = File.join(Environment::TMPDIR, '600eur')
-          open('https://mikutter.hachune.net/img/konami.png', 'rb') { |konami|
-            open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache } }
-          FileUtils.mkdir_p(File.dirname(KonamiCache))
-          FileUtils.mv(tmpfile, KonamiCache)
-          @konami_image = GdkPixbuf::Pixbuf.new(file: KonamiCache, width: 41, height: 52)
-          @konami = true
-        rescue => exception
-          error exception end end end end
+        tmpfile = File.join(Environment::TMPDIR, '600eur')
+        open('https://mikutter.hachune.net/img/konami.png', 'rb') do |konami|
+          open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache }
+        end
+        FileUtils.mkdir_p(File.dirname(KonamiCache))
+        FileUtils.mv(tmpfile, KonamiCache)
+        @konami_image = GdkPixbuf::Pixbuf.new(file: KonamiCache, width: 41, height: 52)
+        @konami = true
+      rescue => exception
+        error exception
+      end
+    end
+  end
 
   def self.keyname(key)
     type_strict key => Array

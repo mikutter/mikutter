@@ -89,12 +89,12 @@ end
 # 存在するかわからないrubyファイル _file_ を読み込む。
 # ただし、_file_ が存在しない場合は例外を投げずにfalseを返す。
 def require_if_exist(file)
-  begin
-    require file
-    true
-  rescue LoadError
-    warn "require-if-exist: file not found: #{file}"
-    false end end
+  require file
+  true
+rescue LoadError
+  warn "require-if-exist: file not found: #{file}"
+  false
+end
 
 # _insertion_ を、 _src_ の挿入するべき場所のインデックスを返す。
 # _order_ は順番を表す配列で、 _src_ 内のオブジェクトの前後関係を表す。

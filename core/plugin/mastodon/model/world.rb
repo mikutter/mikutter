@@ -123,19 +123,17 @@ module Plugin::Mastodon
     def get_accounts!(type)
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        begin
-          accounts = []
-          params = {
-            limit: 80
-          }
-          API.all_with_world!(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
-            accounts << hash
-          end
-          promise.call(accounts.map {|hash| Account.new hash })
-        rescue Exception => e
-          PM::Util.ppf e if Mopt.error_level >= 2 # warn
-          promise.fail("failed to get #{type}")
+        accounts = []
+        params = {
+          limit: 80
+        }
+        API.all_with_world!(self, :get, "/api/v1/accounts/#{account.id}/#{type}", **params) do |hash|
+          accounts << hash
         end
+        promise.call(accounts.map {|hash| Account.new hash })
+      rescue Exception => e
+        PM::Util.ppf e if Mopt.error_level >= 2 # warn
+        promise.fail("failed to get #{type}")
       end
       promise
     end
@@ -172,20 +170,18 @@ module Plugin::Mastodon
     def blocks
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        begin
-          accounts = []
-          params = {
-            limit: 80
-          }
-          API.all_with_world!(self, :get, "/api/v1/blocks", **params) do |hash|
-            accounts << hash
-          end
-          @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
-          promise.call(@@blocks[uri.to_s])
-        rescue Exception => e
-          PM::Util.ppf e if Mopt.error_level >= 2 # warn
-          promise.fail('failed to get blocks')
+        accounts = []
+        params = {
+          limit: 80
+        }
+        API.all_with_world!(self, :get, "/api/v1/blocks", **params) do |hash|
+          accounts << hash
         end
+        @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
+        promise.call(@@blocks[uri.to_s])
+      rescue Exception => e
+        PM::Util.ppf e if Mopt.error_level >= 2 # warn
+        promise.fail('failed to get blocks')
       end
       promise
     end

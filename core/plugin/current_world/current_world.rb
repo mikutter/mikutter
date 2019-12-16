@@ -14,19 +14,17 @@ Plugin.create(:current_world) do
 
   # カレントアカウントを _new_ に変更する
   on_world_change_current do |new|
-    begin
-      if self.current_world != new
-        self.current_world = new
-        Plugin.call(:primary_service_changed, current_world)
-      end
-    rescue Plugin::CurrentWorld::WorldNotfoundError
-      activity :system, _('アカウントを存在しないアカウント(%{uri})に切り替えようとしました') % {uri: new&.uri || 'nil'},
-               description: _('アカウントを切り替えようとしましたが、切り替えようとしたアカウントは存在しませんでした。') + "\n\n" +
-               _("切り替え先のアカウント:\n%{uri}") % {uri: new&.uri || 'nil'} + "\n\n" +
-               _('現在存在するアカウント:') + "\n" +
-               Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map{|w| "#{w.slug} (#{w.uri})" }.to_a.join("\n") + "\n\n" +
-               _('%{world_class}#uri を定義することでこのエラーを回避できます。詳しくは %{see} を参照してください') % {world_class: new.class, see: 'https://dev.mikutter.hachune.net/issues/1231'}
+    if self.current_world != new
+      self.current_world = new
+      Plugin.call(:primary_service_changed, current_world)
     end
+  rescue Plugin::CurrentWorld::WorldNotfoundError
+    activity :system, _('アカウントを存在しないアカウント(%{uri})に切り替えようとしました') % {uri: new&.uri || 'nil'},
+             description: _('アカウントを切り替えようとしましたが、切り替えようとしたアカウントは存在しませんでした。') + "\n\n" +
+             _("切り替え先のアカウント:\n%{uri}") % {uri: new&.uri || 'nil'} + "\n\n" +
+             _('現在存在するアカウント:') + "\n" +
+             Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map{|w| "#{w.slug} (#{w.uri})" }.to_a.join("\n") + "\n\n" +
+             _('%{world_class}#uri を定義することでこのエラーを回避できます。詳しくは %{see} を参照してください') % {world_class: new.class, see: 'https://dev.mikutter.hachune.net/issues/1231'}
   end
 
   # 現在選択されているアカウントを返す

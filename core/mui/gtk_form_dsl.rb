@@ -475,27 +475,23 @@ module Gtk::FormDSL
 
       shortcuts.select { |dir|
         !dialog.shortcut_folders.include?(dir)
-      }.each { |dir|
-        begin
-          dialog.add_shortcut_folder(dir)
-        rescue => e
-          puts e
-          puts e.backtrace
-        end
-      }
+      }.each do |dir|
+        dialog.add_shortcut_folder(dir)
+      rescue => e
+        puts e
+        puts e.backtrace
+      end
 
       if use_preview
         preview = Gtk::Image.new
         dialog.preview_widget = preview
-        dialog.signal_connect("update-preview") do
-          begin
-            path = dialog.preview_filename
-            pixbuf = Gdk::Pixbuf.new(file: path, width: 256, height: 256)
-            preview.set_pixbuf(pixbuf)
-            dialog.set_preview_widget_active(true)
-          rescue => e
-            dialog.set_preview_widget_active(false)
-          end
+        dialog.ssc(:update_preview) do
+          path = dialog.preview_filename
+          pixbuf = Gdk::Pixbuf.new(file: path, width: 256, height: 256)
+          preview.set_pixbuf(pixbuf)
+          dialog.set_preview_widget_active(true)
+        rescue => e
+          dialog.set_preview_widget_active(false)
         end
       end
 

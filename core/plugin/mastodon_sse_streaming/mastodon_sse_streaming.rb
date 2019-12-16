@@ -247,79 +247,75 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, **opts|
-    begin
-      mutex.synchronize {
-        if connections.has_key? slug
-          warn "\n!!!! sse_client streaming duplicate !!!!\n"
-          thread = connections[slug][:thread]
-          connections.delete(slug)
-          thread.kill
-        end
-      }
+    mutex.synchronize {
+      if connections.has_key? slug
+        warn "\n!!!! sse_client streaming duplicate !!!!\n"
+        thread = connections[slug][:thread]
+        connections.delete(slug)
+        thread.kill
+      end
+    }
 
-      conv = []
-      params.each do |key, val|
-        if val.is_a? Array
-          val.each do |v|
-            conv << [key.to_s + '[]', v]
-          end
-        else
-          conv << [key.to_s, val]
+    conv = []
+    params.each do |key, val|
+      if val.is_a? Array
+        val.each do |v|
+          conv << [key.to_s + '[]', v]
         end
+      else
+        conv << [key.to_s, val]
+      end
+    end
+
+    query = {}
+    body = {}
+
+    case method
+    when :get
+      query = conv
+    when :post
+      body = conv
+    end
+
+    Plugin.call(:mastodon_sse_connection_opening, slug)
+    client = HTTPClient.new
+
+    thread = Thread.new do
+      parser = Plugin::MastodonSseStreaming::Parser.new(self, slug)
+      response = client.request(method, uri.to_s, query, body, headers) do |fragment|
+        parser << fragment
       end
 
-      query = {}
-      body = {}
-
-      case method
-      when :get
-        query = conv
-      when :post
-        body = conv
+      case response.status
+      when 200
+      else
+        Plugin.call(:mastodon_sse_connection_failure, slug, response)
+        error "ServerSentEvents connection failure"
+        pp response if Mopt.error_level >= 1
+        $stdout.flush
+        next
       end
 
-      Plugin.call(:mastodon_sse_connection_opening, slug)
-      client = HTTPClient.new
-
-      thread = Thread.new {
-        begin
-          parser = Plugin::MastodonSseStreaming::Parser.new(self, slug)
-          response = client.request(method, uri.to_s, query, body, headers) do |fragment|
-            parser << fragment
-          end
-
-          case response.status
-          when 200
-          else
-            Plugin.call(:mastodon_sse_connection_failure, slug, response)
-            error "ServerSentEvents connection failure"
-            pp response if Mopt.error_level >= 1
-            $stdout.flush
-            next
-          end
-
-          Plugin.call(:mastodon_sse_connection_closed, slug)
-
-        rescue => e
-          Plugin.call(:mastodon_sse_connection_error, slug, e)
-          next
-        end
-      }
-      mutex.synchronize {
-        connections[slug] = {
-          method: method,
-          uri: uri,
-          headers: headers,
-          params: params,
-          opts: opts,
-          thread: thread,
-        }
-      }
+      Plugin.call(:mastodon_sse_connection_closed, slug)
 
     rescue => e
       Plugin.call(:mastodon_sse_connection_error, slug, e)
-      nil
+      next
     end
+    mutex.synchronize {
+      connections[slug] = {
+        method: method,
+        uri: uri,
+        headers: headers,
+        params: params,
+        opts: opts,
+        thread: thread,
+      }
+    }
+
+  rescue => e
+    Plugin.call(:mastodon_sse_connection_error, slug, e)
+    nil
   end
 
   on_mastodon_sse_kill_connection do |slug|

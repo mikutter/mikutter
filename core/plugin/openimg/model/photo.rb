@@ -18,18 +18,16 @@ module Plugin::Openimg
     private
 
     def download_routine
-      begin
-        _, raw = Plugin.filtering(:openimg_raw_image_from_display_url, perma_link.to_s, nil)
-        if raw
-          download_mainloop(raw)
-        else
-          raise "couldn't resolve actual image url of #{perma_link}."
-        end
-      rescue EOFError
-        true
-      ensure
-        raw.close rescue nil
+      _, raw = Plugin.filtering(:openimg_raw_image_from_display_url, perma_link.to_s, nil)
+      if raw
+        download_mainloop(raw)
+      else
+        raise "couldn't resolve actual image url of #{perma_link}."
       end
+    rescue EOFError
+      true
+    ensure
+      raw.close rescue nil
     end
   end
 end

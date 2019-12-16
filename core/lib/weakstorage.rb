@@ -235,12 +235,13 @@ class WeakSet < WeakStore
   end
 
   def each
-    begin
-      atomic{
-        storage.each{ |n| yield(ObjectSpace._id2ref(n)) } }
-    rescue RangeError => e
-      error e
-      nil end end
+    atomic do
+      storage.each{ |n| yield(ObjectSpace._id2ref(n)) }
+    end
+  rescue RangeError => e
+    error e
+    nil
+  end
 
   def add(val)
     type_strict val => @val_class

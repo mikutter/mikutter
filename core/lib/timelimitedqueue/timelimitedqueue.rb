@@ -60,16 +60,19 @@ class TimeLimitedQueue < Queue
   def waiting_proc
     TLQGroup.add(Thread.current)
     loop do
-      catch(:write){
-        loop{
+      catch(:write) do
+        loop do
           if @stock.size > max
-            throw :write end
-          begin
-            Timeout.timeout(expire, WaitingExpire){ @stock << (pop) }
-          rescue WaitingExpire
-            throw :write end } }
+            throw :write
+          end
+          Timeout.timeout(expire, WaitingExpire){ @stock << pop }
+        rescue WaitingExpire
+          throw :write
+        end
+      end
       callback if not @stock.empty?
-      break if empty? end
+      break if empty?
+    end
   end
 
   def callback

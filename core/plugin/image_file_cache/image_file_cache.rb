@@ -26,14 +26,15 @@ Plugin.create :image_file_cache do
 
   # キャッシュがあれば画像を返す
   filter_image_cache do |url, image, &stop|
-    begin
-      body = @db[url]
-      if body
-        stop.call([url, body]) end
-      [url, image]
-    rescue => e
-      error e
-      [url, image] end end
+    body = @db[url]
+    if body
+      stop.call([url, body])
+    end
+    [url, image]
+  rescue => e
+    error e
+    [url, image]
+  end
 
   # キャッシュの有効期限を秒単位で返す
   def cache_expire

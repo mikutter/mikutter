@@ -51,10 +51,12 @@ Plugin.create :bitly do
       expand_mutex.synchronize do
         Plugin::Bitly.expand_url_many(set).each do |shrinked, expanded|
           waiting_expand_entities[shrinked].each do |query|
-            begin
-              query.call expanded
-            rescue => exception
-              error exception end end end end
+            query.(expanded)
+          rescue => exception
+            error exception
+          end
+        end
+      end
     }.trap{|exception|
       warn exception
       set.each do |url|

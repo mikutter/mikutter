@@ -129,13 +129,11 @@ module Diva::Model::PhotoMixin
   end
 
   def download_routine
-    begin
-      open(uri.scheme == 'file' ? uri.path : uri.to_s) do |is|
-        download_mainloop(is)
-      end
-    rescue EOFError
-      true
+    open(uri.scheme == 'file' ? uri.path : uri.to_s) do |is|
+      download_mainloop(is)
     end
+  rescue EOFError
+    true
   end
 
   # _input_stream_ から、画像をダウンロードし、 _@buffer_ に格納する。

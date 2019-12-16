@@ -95,16 +95,17 @@ module Miquire::Plugin
         :thirdparty end end
 
     def load_all
-      each_spec{ |spec|
-        begin
-          load spec
-        rescue Miquire::LoadError => e
-          ::Plugin.call(:modify_activity,
-                        kind: "system",
-                        title: "#{spec[:slug]} load failed",
-                        date: Time.new,
-                        exception: e,
-                        description: e.to_s) end } end
+      each_spec do |spec|
+        load spec
+      rescue Miquire::LoadError => e
+        ::Plugin.call(:modify_activity,
+                      kind: "system",
+                      title: "#{spec[:slug]} load failed",
+                      date: Time.new,
+                      exception: e,
+                      description: e.to_s)
+      end
+    end
 
     def satisfy_mikutter_version?(spec)
       if defined?(spec[:depends][:mikutter]) and spec[:depends][:mikutter]
@@ -147,11 +148,9 @@ module Miquire::Plugin
 
       atomic do
         depended_plugins(spec).each do |depend|
-          begin
-            raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin #{depend.inspect} was not loaded." unless load(depend)
-          rescue Miquire::LoadError => err
-            raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin was not loaded. previous error is:\n#{err.to_s}"
-          end
+          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin #{depend.inspect} was not loaded." unless load(depend)
+        rescue Miquire::LoadError => err
+          raise Miquire::LoadError, "plugin #{spec[:slug].inspect} was not loaded because dependent plugin was not loaded. previous error is:\n#{err.to_s}"
         end
 
         notice "plugin loaded: " + File.join(spec[:path], "#{spec[:slug]}.rb")

@@ -63,29 +63,29 @@ class SerialThreadGroup
 
   def new_thread
     return if @@force_exit
-    @thread_pool << Thread.new{
-      begin
-        while node = Timeout.timeout(1, QueueExpire){ @queue.pop }
-          break if @@force_exit
-          result = node[:proc].call
-          node[:promise].call(result) if node[:promise]
-          break if flush
-          debugging_wait
-          Thread.pass end
-      rescue QueueExpire => e
-        ;
-      rescue ThreadError => e
-        ;
-      rescue Object => e
-        if node[:promise]
-          node[:promise].fail(e)
-        else
-          error e
-          abort
-        end
-      ensure
-        @lock.synchronize{
-          @thread_pool.delete(Thread.current) } end } end
+    @thread_pool << Thread.new do
+      while node = Timeout.timeout(1, QueueExpire){ @queue.pop }
+        break if @@force_exit
+        result = node[:proc].call
+        node[:promise].call(result) if node[:promise]
+        break if flush
+        debugging_wait
+        Thread.pass
+      end
+    rescue QueueExpire, ThreadError
+    rescue Object => e
+      if node[:promise]
+        node[:promise].fail(e)
+      else
+        error e
+        abort
+      end
+    ensure
+      @lock.synchronize do
+        @thread_pool.delete(Thread.current)
+      end
+    end
+  end
 
 end
 

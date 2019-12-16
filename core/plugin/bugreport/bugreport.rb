@@ -5,11 +5,11 @@ require 'net/http'
 Plugin.create :bugreport do
 
   on_boot do |service|
-    begin
-      popup if crashed_exception.is_a? Exception
-    rescue => e
-      # バグ報告中にバグで死んだらつらいもんな
-      error e end end
+    popup if crashed_exception.is_a? Exception
+  rescue => e
+    # バグ報告中にバグで死んだらつらいもんな
+    error e
+  end
 
   def popup
     alert_thread = if(Thread.main != Thread.current) then Thread.current end
@@ -60,45 +60,41 @@ Plugin.create :bugreport do
   end
 
   def send
-    Thread.new{
-      begin
-        exception = crashed_exception
-        m = exception.backtrace.first.match(/(.+?):(\d+)/)
-        crashed_file, crashed_line = m[1], m[2]
-        param = {
-          'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
-          'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
-          'line' => crashed_line,
-          'exception_class' => exception.class,
-          'description' => exception.to_s,
-          'ruby_version' => RUBY_VERSION,
-          'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
-          'platform' => RUBY_PLATFORM,
-          'url' => 'exception',
-          'version' => Environment::VERSION }
-        case exception
-        when TypeStrictError
-          param['causing_value'] = exception.value
-        end
-        Net::HTTP.start('mikutter.hachune.net', 4567){ |http|
-          console = mikutter_error
-          param['stderr'] = console if console
-          eparam = encode_parameters(param)
-          http.post('/', eparam) }
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
-        File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
-        Plugin.activity :system, _("エラー報告を送信しました。ありがとう♡")
-        Plugin.call :send_bugreport, param
-      rescue Timeout::Error, StandardError => e
-        Plugin.activity :system, _("ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww")
-        Plugin.activity :error, e.to_s, exception: e
-      end } end
-
-  def revision
-    begin
-      open('|env LC_ALL=C svn info').read.match(/Revision\s*:\s*(\d+)/)[1]
-    rescue
-      '' end end
+    Thread.new do
+      exception = crashed_exception
+      m = exception.backtrace.first.match(/(.+?):(\d+)/)
+      crashed_file, crashed_line = m[1], m[2]
+      param = {
+        'backtrace' => JSON.generate(exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }),
+        'file' => crashed_file.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}'),
+        'line' => crashed_line,
+        'exception_class' => exception.class,
+        'description' => exception.to_s,
+        'ruby_version' => RUBY_VERSION,
+        'rubygtk_version' => Gtk::BINDING_VERSION.join('.'),
+        'platform' => RUBY_PLATFORM,
+        'url' => 'exception',
+        'version' => Environment::VERSION
+      }
+      case exception
+      when TypeStrictError
+        param['causing_value'] = exception.value
+      end
+      Net::HTTP.start('mikutter.hachune.net', 4567) do |http|
+        console = mikutter_error
+        param['stderr'] = console if console
+        eparam = encode_parameters(param)
+        http.post('/', eparam)
+      end
+      File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
+      File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
+      Plugin.activity :system, _("エラー報告を送信しました。ありがとう♡")
+      Plugin.call :send_bugreport, param
+    rescue Timeout::Error, StandardError => e
+      Plugin.activity :system, _("ﾋﾟｬｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱｱwwwwwwwwwwwwwwwwwwwwww")
+      Plugin.activity :error, e.to_s, exception: e
+    end
+  end
 
   def mikutter_error
     name = File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))

@@ -494,16 +494,14 @@ module Plugin::Mastodon
     def replyto_source_d(force_retrieve=true)
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        begin
-          result = replyto_source(force_retrieve)
-          if result.is_a? Status
-            promise.call(result)
-          else
-            promise.fail(result)
-          end
-        rescue Exception => e
-          promise.fail(e)
+        result = replyto_source(force_retrieve)
+        if result.is_a? Status
+          promise.call(result)
+        else
+          promise.fail(result)
         end
+      rescue Exception => e
+        promise.fail(e)
       end
       promise
     end
@@ -515,15 +513,13 @@ module Plugin::Mastodon
     def retweet_source_d(force_retrieve=false)
       promise = Delayer::Deferred.new(true)
       Thread.new do
-        begin
-          if reblog.is_a? Status
-            promise.call(reblog)
-          else
-            promise.fail(reblog)
-          end
-        rescue Exception => e
-          promise.fail(e)
+        if reblog.is_a? Status
+          promise.call(reblog)
+        else
+          promise.fail(reblog)
         end
+      rescue Exception => e
+        promise.fail(e)
       end
       promise
     end

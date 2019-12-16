@@ -16,11 +16,13 @@ module Pango
 
     # パースエラーが発生した場合、その文字列をerrorで印字する。
     def parse_markup(str)
-      begin
-        old_parse_markup(str)
-      rescue GLib::Error => e
-        error str
-        raise e end end end end
+      old_parse_markup(str)
+    rescue GLib::Error => e
+      error str
+      raise e
+    end
+  end
+end
 
 =begin rdoc
   本文の、描画するためのテキストを生成するモジュール。
