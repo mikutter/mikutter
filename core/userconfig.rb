@@ -20,36 +20,11 @@ class UserConfig
   #
 
   @@defaults = {
-    :retrieve_interval_friendtl => 1,   # TLを更新する間隔(int)
-    :retrieve_interval_mention => 20,   # Replyを更新する間隔(int)
-    :retrieve_interval_search => 60,    # 検索を更新する間隔(int)
-    :retrieve_interval_followings => 60,  # followを更新する間隔(int)
-    :retrieve_interval_followers => 60,  # followerを更新する間隔(int)
-    :retrieve_interval_direct_messages => 20,  # DirectMessageを更新する間隔(int)
-    :retrieve_interval_list_timeline => 60,    # リストの更新間隔(int)
-
-    :retrieve_count_friendtl => 20,   # TLを取得する数(int)
-    :retrieve_count_mention => 20,    # Replyを取得する数(int)
-    :retrieve_count_followings => 20,   # followを取得する数(int)
-    :retrieve_count_followers => 20,   # followerを取得する数(int)
-    :retrieve_count_direct_messages => 200,   # followerを取得する数(int)
-
-    :update_queue_delay => 100,
-    :favorite_queue_delay => 100,
-    :follow_queue_delay => 100,
-    :direct_message_queue_delay => 100,
-
-    # Streaming API(Twitter)
-    :filter_realtime_rewind => true,
-
     # デフォルトのフッダ
     :footer => "",
 
     # リプライ元を常に取得する
     :retrieve_force_mumbleparent => true,
-
-    # 遅延対策
-    :anti_retrieve_fail => false,
 
     # つぶやきを投稿するキー
     :shortcutkey_keybinds => {1 => {:key => "Control + Return", :name => '投稿する', :slug => :post_it}},
@@ -140,16 +115,7 @@ class UserConfig
     :reply_clicked_action => :open,
     :quote_clicked_action => :open,
 
-    :intent_selector_rules => [{:uuid=>"8ab31d89-6d5f-4765-bb99-7a93ce5b1139",
-                                :intent=>:user_detail_view_twitter_user,
-                                :model=>"",
-                                :str=>"https://twitter.com/",
-                                :rule=>"start"},
-                               {:uuid=>"c0095e59-75da-4177-98e0-d4955ece1d20",
-                                :intent=>:message_detail_view_twitter_tweet,
-                                :model=>"",
-                                :str=>"https://twitter.com/",
-                                :rule=>"start"}],
+    :intent_selector_rules => [],
 
     :postbox_visibility => :auto,
     :world_shifter_visibility => :auto,

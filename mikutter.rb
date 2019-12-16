@@ -3,7 +3,7 @@
 exec ruby -x "$0" "$@"
 #!ruby
 =begin rdoc
-= mikutter - the moest twitter client
+= mikutter - simple, powerful and moeful Mastodon client
 Copyright (C) 2009-2019 Toshiaki Asai
 
 This software is released under the MIT License.
@@ -47,8 +47,7 @@ require 'lib/diva_hacks'
 require 'system/system'
 require 'boot/load_plugin'
 
-notice "fire boot event"
-Plugin.call(:boot, Post.primary_service)
+Plugin.call(:boot, nil)
 
 # イベントの待受を開始する。
 # _profile_ がtrueなら、プロファイリングした結果を一時ディレクトリに保存する

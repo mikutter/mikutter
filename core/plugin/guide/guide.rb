@@ -137,13 +137,6 @@ Plugin.create :guide do
       next{ jump_seq :complete }
   end
 
-  defsequence :final do
-    sequence.
-      say(_('……ちょっと短いけど、今私が教えてあげることはこれくらいかな？ Twitter をするために %{mikutter} をインストールしてくれたんだもんね。') % {mikutter: Environment::NAME}).
-      say(_('これから少しずつ使い方を教えてあげるからね。それじゃ、またねー。')).
-      next{ jump_seq :complete }
-  end
-
   defsequence :complete do
     Plugin.call(:finish_guide)
     sequence.

@@ -1,13 +1,14 @@
 ---
 slug: :search
 depends:
-  mikutter: '0.2'
+  mikutter: '4.0'
   plugin:
   - gtk
   - gui
-  - uitranslator
+  - quickstep
   - skin
+  - uitranslator
 version: '1.0'
 author: toshi_a
 name: 検索
-description: Twitter上で、特定のキーワードでツイートを検索する機能を追加する
+description: 検索に対応するWorldで、投稿を検索した結果を表示するタブを追加する

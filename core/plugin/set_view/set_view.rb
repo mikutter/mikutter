@@ -88,8 +88,8 @@ Plugin::create(:set_view) do
     end
 
     settings(_('背景色')) do
-      color(_('コメント付きリツイート'), :quote_background_color).
-        tooltip(_('コメント付きリツイートをすると、下に囲われて表示されるじゃないですか、あれです'))
+      color(_('コメント付きシェア'), :quote_background_color).
+        tooltip(_('コメント付きシェアをすると、下に囲われて表示されるじゃないですか、あれです'))
     end
 
     settings(_('リプライ先')) do
@@ -113,7 +113,7 @@ Plugin::create(:set_view) do
         option :smartthread, _('会話スレッドを表示') end
     end
 
-    settings(_('コメント付きリツイート')) do
+    settings(_('コメント付きシェア')) do
       fontcolor _('フォント'), :quote_text_font, :quote_text_color
       color(_('背景色'), :quote_background_color)
 
@@ -135,39 +135,39 @@ Plugin::create(:set_view) do
     end
 
     settings(_('Mentions')) do
-      boolean(_('リプライを返したつぶやきにはアイコンを表示'), :show_replied_icon).
-        tooltip(_("リプライを返したつぶやきのアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"))
+      boolean(_('リプライを返した投稿にはアイコンを表示'), :show_replied_icon).
+        tooltip(_("リプライを返した投稿のアイコン上に、リプライボタンを隠さずにずっと表示しておきます。"))
     end
 
     settings(_('ふぁぼふぁぼ')) do
       boolean(_('ふぁぼられをリプライの受信として処理する'), :favorited_by_anyone_act_as_reply).
-        tooltip(_("ふぁぼられたつぶやきが、リプライタブに現れるようになります。"))
-      boolean(_('ふぁぼられたつぶやきをTL上でageる'), :favorited_by_anyone_age).
-        tooltip(_("つぶやきがふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"))
-      boolean(_('自分がふぁぼったつぶやきをTL上でageる'), :favorited_by_myself_age).
-        tooltip(_("自分がふぁぼったつぶやきを、TLの一番上に上げます"))
+        tooltip(_("ふぁぼられた投稿が、リプライタブに現れるようになります。"))
+      boolean(_('ふぁぼられた投稿をTL上でageる'), :favorited_by_anyone_age).
+        tooltip(_("投稿がふぁぼられたら、投稿された時刻にかかわらず一番上に上げます"))
+      boolean(_('自分がふぁぼった投稿をTL上でageる'), :favorited_by_myself_age).
+        tooltip(_("自分がふぁぼった投稿を、TLの一番上に上げます"))
     end
 
-    settings(_('Retweets')) do
-      boolean(_('リツイートされたつぶやきをTL上でageる'), :retweeted_by_anyone_age).
-        tooltip(_("つぶやきがリツイートされたら、投稿された時刻にかかわらず一番上に上げます"))
-      boolean(_('自分がリツイートしたつぶやきをTL上でageる'), :retweeted_by_myself_age).
-        tooltip(_("自分がリツイートしたつぶやきを、TLの一番上に上げます"))
+    settings(_('シェア')) do
+      boolean(_('シェアされた投稿をTL上でageる'), :retweeted_by_anyone_age).
+        tooltip(_("投稿がシェアされたら、投稿された時刻にかかわらず一番上に上げます"))
+      boolean(_('自分がシェアした投稿をTL上でageる'), :retweeted_by_myself_age).
+        tooltip(_("自分がシェアした投稿を、TLの一番上に上げます"))
     end
 
     settings(_('非公開アカウント')) do
-      boolean(_('非公開アカウントのつぶやきにはアイコンを表示'), :show_protected_icon).
-        tooltip(_("非公開アカウントのつぶやきのアイコン上に、リツイートできないこと示すアイコンを隠さずにずっと表示しておきます。"))
+      boolean(_('非公開アカウントの投稿にはアイコンを表示'), :show_protected_icon).
+        tooltip(_("非公開アカウントの投稿のアイコン上に、シェアできないこと示すアイコンを隠さずにずっと表示しておきます。"))
     end
 
     settings(_('承認済みアカウント')) do
-      boolean(_('承認済みアカウントのつぶやきにはアイコンを表示'), :show_verified_icon).
-        tooltip(_("Twitterから承認されたアカウントのつぶやきのアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"))
+      boolean(_('承認済みアカウントの投稿にはアイコンを表示'), :show_verified_icon).
+        tooltip(_("承認されたアカウントの投稿のアイコンの上に、そのことを示すアイコンを隠さずにずっと表示しておきます。"))
     end
 
     settings(_('短縮URL')) do
       boolean(_('短縮URLを展開して表示'), :shrinkurl_expand).
-        tooltip(_("受信したつぶやきに短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"))
+        tooltip(_("受信した投稿に短縮URLが含まれていた場合、それを短縮されていない状態に戻してから表示します。"))
     end
 
     select _('タブの位置'), :tab_position, 0 => _('上'), 1 => _('下'), 2 => _('左'), 3 => _('右')

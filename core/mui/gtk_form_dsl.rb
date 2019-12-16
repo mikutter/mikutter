@@ -215,9 +215,9 @@ module Gtk::FormDSL
   #   _:license_ :: ライセンス
   #   _:website_ :: Webページ
   #   _:logo_ :: ロゴ画像。 フルパス(String)か、Photo Modelか、GdkPixbuf::Pixbufを指定する
-  #   _:authors_ :: 作者の名前。通常Twitter screen name（Array）
-  #   _:artists_ :: デザイナとかの名前。通常Twitter screen name（Array）
-  #   _:documenters_ :: ドキュメントかいた人とかの名前。通常Twitter screen name（Array）
+  #   _:authors_ :: 作者の名前。通常MastodonのAcct（Array）
+  #   _:artists_ :: デザイナとかの名前。通常MastodonのAcct（Array）
+  #   _:documenters_ :: ドキュメントかいた人とかの名前。通常MastodonのAcct（Array）
   def about(label, options={})
     name_mapper = Hash.new{|h,k| k }
     name_mapper[:name] = :program_name
