@@ -1,0 +1,13 @@
+---
+slug: :mastodon_account_viewer
+depends:
+  mikutter: 3.10.0
+  plugin:
+    - mastodon
+    - uitranslator
+version: '1.0'
+author:
+  - cobodo
+  - shibafu528
+name: Mastodon Account Viewer
+description: Model Viewerによるプロフィール表示の実装
