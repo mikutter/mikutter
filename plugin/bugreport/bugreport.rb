@@ -4,7 +4,7 @@ require 'net/http'
 
 Plugin.create :bugreport do
 
-  on_boot do |service|
+  Delayer.new do |service|
     popup if crashed_exception.is_a? Exception
   rescue => e
     # バグ報告中にバグで死んだらつらいもんな
