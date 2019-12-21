@@ -14,7 +14,6 @@ require 'mui/cairo_sub_parts_quote'
 require 'mui/cairo_markup_generator'
 require 'mui/cairo_special_edge'
 require 'mui/gtk_photo_pixbuf'
-require 'lib/uithreadonly'
 
 # 一つのMessageをPixbufにレンダリングするためのクラス。名前は言いたかっただけ。クラス名まで全てはつね色に染めて♪
 # 情報を設定してから、 Gdk::MiraclePainter#pixbuf で表示用の GdkPixbuf::Pixbuf のインスタンスを得ることができる。

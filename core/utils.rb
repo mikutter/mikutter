@@ -28,8 +28,6 @@ require File.join(__dir__, 'miquire')
 
 require_relative 'miquire'
 
-require 'lib/lazy'
-
 # すべてのクラスにメモ化機能を
 require 'memoist'
 

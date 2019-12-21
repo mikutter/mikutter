@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'lib/uithreadonly'
-require 'lib/weakstorage'
-
 require 'gtk2'
 
 =begin rdoc

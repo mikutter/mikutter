@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'lib/uithreadonly'
 require 'mui/cairo_timeline'
 require 'mui/gtk_dark_matter_prification'
 require 'mui/gtk_tree_view_pretty_scroll'
