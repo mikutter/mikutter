@@ -28,7 +28,14 @@ Plugin.create(:mastodon_account_viewer) do
     scrolledwindow.add_with_viewport(container)
     scrolledwindow.style = container.style
     wrapper = Gtk::EventBox.new
+    wrapper.no_show_all = true
+    wrapper.show
     nativewidget wrapper.add(scrolledwindow)
+    wrapper.ssc(:expose_event) do
+      wrapper.no_show_all = false
+      wrapper.show_all
+      false
+    end
   end
 
   # フォロー関係の表示・操作用ウィジェット
