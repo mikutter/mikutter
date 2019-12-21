@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-require 'lib/uithreadonly'
+
 require 'userconfig'
 
 require 'gtk2'
