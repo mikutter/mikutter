@@ -4,7 +4,9 @@ require 'net/http'
 
 Plugin.create :bugreport do
 
-  on_boot do |service|
+  @bugreport_uri = Diva::URI('https://mikutter.hachune.net/')
+
+  Delayer.new do |service|
     popup if crashed_exception.is_a? Exception
   rescue => e
     # バグ報告中にバグで死んだらつらいもんな
@@ -80,12 +82,13 @@ Plugin.create :bugreport do
       when TypeStrictError
         param['causing_value'] = exception.value
       end
-      Net::HTTP.start('mikutter.hachune.net', 4567) do |http|
-        console = mikutter_error
-        param['stderr'] = console if console
-        eparam = encode_parameters(param)
-        http.post('/', eparam)
-      end
+      http = Net::HTTP.new(@bugreport_uri.host, @bugreport_uri.port)
+      http.use_ssl = @bugreport_uri.scheme == 'https'
+
+      req = Net::HTTP::Post.new(@bugreport_uri.path)
+      req.set_form_data(param)
+      res = http.request(req)
+
       File.delete(File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))) rescue nil
       File.delete(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
       Plugin.activity :system, _("エラー報告を送信しました。ありがとう♡")
@@ -96,11 +99,6 @@ Plugin.create :bugreport do
     end
   end
 
-  def mikutter_error
-    name = File.expand_path(File.join(Environment::TMPDIR, 'mikutter_error'))
-    if FileTest.exist?(name)
-      file_get_contents(name) end end
-
   def backtrace
     "#{crashed_exception.class} #{crashed_exception.to_s}\n" +
       crashed_exception.backtrace.map{ |msg| msg.gsub(FOLLOW_DIR, '{MIKUTTER_DIR}') }.join("\n")
@@ -108,21 +106,6 @@ Plugin.create :bugreport do
 
   def crashed_exception
     @crashed_exception ||= object_get_contents(File.expand_path(File.join(Environment::TMPDIR, 'crashed_exception'))) rescue nil
-  end
-
-  def encode_parameters(params, delimiter = '&', quote = nil)
-    if params.is_a?(Hash)
-      params = params.map do |key, value|
-        "#{escape(key)}=#{quote}#{escape(value)}#{quote}"
-      end
-    else
-      params = params.map { |value| escape(value) }
-    end
-    delimiter ? params.join(delimiter) : params
-  end
-
-  def escape(value)
-    URI.escape(value.to_s, /[^a-zA-Z0-9\-\.\_\~]/)
   end
 
 end
