@@ -2,7 +2,6 @@
 
 require 'userconfig'
 require 'plugin'
-require 'lib/weakstorage'
 
 module Skin
   class SkinError < RuntimeError; end

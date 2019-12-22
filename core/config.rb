@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # -*- coding: utf-8 -*-
 #
 # Config
@@ -8,10 +9,10 @@
 
 module CHIConfig
   # このアプリケーションの名前。
-  NAME = "mikutter"
+  NAME = 'mikutter'
 
   # 名前の略称
-  ACRO = "mikutter"
+  ACRO = 'mikutter'
 
   # pidファイル
   PIDFILE = "#{File::SEPARATOR}tmp#{File::SEPARATOR}#{ACRO}.pid"
@@ -32,7 +33,7 @@ module CHIConfig
   CACHE = File.join(CONFROOT, 'cache')
 
   # プラグインディレクトリ
-  PLUGIN_PATH = File.expand_path(File.join(__dir__, "plugin"))
+  PLUGIN_PATH = File.expand_path(File.join(__dir__, '..', 'plugin'))
 
   # AutoTag有効？
   AutoTag = false
@@ -41,6 +42,6 @@ module CHIConfig
   NeverRetrieveOverlappedMumble = false
 
   # このソフトのバージョン。
-  VERSION = [4,0,0,2]
+  VERSION = [4,0,0,3]
 
 end

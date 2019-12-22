@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+
 =begin rdoc
 Diva::Modelにこのmixinをincludeすると、findbyid()によってそのIDをもつインスタンスを得ることができる。
 利用するclassは、idメソッドを実装している必要がある。
 =end
+
+require 'memoist'
+
 module Diva::Model::Identity
   extend Memoist
 

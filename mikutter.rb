@@ -34,6 +34,14 @@ require 'thread'
 require 'fileutils'
 
 require_relative 'core/miquire'
+
+require 'lib/diva_hacks'
+require 'lib/lazy'
+require 'lib/reserver'
+require 'lib/timelimitedqueue'
+require 'lib/uithreadonly'
+require 'lib/weakstorage'
+
 require_relative 'core/utils'
 
 require 'boot/check_config_permission'
@@ -43,8 +51,8 @@ require 'environment'
 
 Dir.chdir(Environment::CONFROOT)
 
-require 'lib/diva_hacks'
 require 'system/system'
+
 require 'boot/load_plugin'
 
 Plugin.call(:boot, nil)
