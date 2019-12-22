@@ -243,7 +243,7 @@ Plugin.create :extract do
   end
 
   filter_active_datasources do |ds|
-    [ds & active_datasources]
+    [ds + active_datasources]
   end
 
   # 抽出タブの現在の内容を保存する
