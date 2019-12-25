@@ -305,7 +305,6 @@ class Gdk::MiraclePainter < Gtk::Object
   # 更新イベントを発生させる
   def on_modify(event=true)
     if not destroyed?
-      @modify_source = caller(1)
       @pixmap = nil
       @pixbuf = nil
       @coordinate = nil
