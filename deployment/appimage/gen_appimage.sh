@@ -40,7 +40,8 @@ mkdir -p $APPDIR/usr/share/mikutter
 cp -av "$BUILD_DIR"/{.bundle,core,plugin,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
 
 echo "--> copy Typelibs for gobject-introspection gem"
-cp -av /usr/lib/girepository-* $APPDIR/usr/lib
+mkdir $APPDIR/usr/lib/girepository-1.0 || true
+cp -av /usr/lib/girepository-1.0/* /usr/lib/x86_64-linux-gnu/girepository-1.0/* $APPDIR/usr/lib/girepository-1.0
 
 # echo "--> patch away absolute paths"
 # for gobject-introspection gem
