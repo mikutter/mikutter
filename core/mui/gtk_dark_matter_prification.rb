@@ -36,13 +36,12 @@ module Gtk::TimelineDarkMatterPurification
 
     # ある条件を満たしたらInnerTLを捨てて、全く同じ内容の新しいInnerTLにすげ替えるためのイベントを定義する。
     def refresh_timer
-      Reserver.new(60) {
-        Delayer.new {
-          if !@tl.destroyed?
-            window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
-            @tl.collect_counter -= 1 if not window_active
-            refresh if not(Gtk::TimeLine::InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.collect_counter <= (window_active ? -HYDE : 0)
-            refresh_timer end } } end
+      Delayer.new(delay: 60) {
+        if !@tl.destroyed?
+          window_active = Plugin.filtering(:get_windows, []).first.any?(&:has_toplevel_focus?)
+          @tl.collect_counter -= 1 if not window_active
+          refresh if not(Gtk::TimeLine::InnerTL.current_tl == @tl and window_active and Plugin.filtering(:get_idle_time, nil).first < 3600) and @tl.collect_counter <= (window_active ? -HYDE : 0)
+          refresh_timer end } end
 
     def tl_model_remove(iter)
       iter[Gtk::TimeLine::InnerTL::MIRACLE_PAINTER].destroy

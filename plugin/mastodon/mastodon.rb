@@ -59,7 +59,7 @@ Plugin.create(:mastodon) do
       }.terminate(_('自分のプロフィールやフォロー関係が取得できませんでした(%{acct})') % {acct: world.account.acct})
     end
 
-    Reserver.new(10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
+    Delayer.new(delay: 10 * HYDE, &followings_updater) # 26分ごとにプロフィールとフォロー一覧を更新する
   end
 
   # 起動時

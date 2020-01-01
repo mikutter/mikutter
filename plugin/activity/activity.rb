@@ -74,7 +74,7 @@ Plugin.create(:activity) do
 
   # アクティビティの古い通知を一定時間後に消す
   def reset_activity(model)
-    Reserver.new(60, thread: Delayer) do
+    Delayer.new(delay: 60) do
       if not model.destroyed?
         iters = model.to_enum(:each).to_a
         remove_count = iters.size - UserConfig[:activity_max]
