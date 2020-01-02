@@ -513,6 +513,22 @@ Plugin.create :gtk do
     next [i_timeline, message, text] if not record
     range = record.miracle_painter.textselector_range
     next [i_timeline, message, text] if not range
+    if UserConfig[:miraclepainter_expand_custom_emoji]
+      adjust = score_of(message).each_with_object(Hash.new(0)) do |note, state|
+        if note.respond_to?(:inline_photo)
+          # 1 -> cairo_markup_generatorで便宜上置換された、絵文字の文字長
+          if range.include?(state[:index])
+            state[:end] += note.description.size - 1
+          elsif state[:index] < range.begin
+            state[:begin] += note.description.size - 1
+          end
+          state[:index] += 1
+        else
+          state[:index] += note.description.size
+        end
+      end
+      range = Range.new(range.begin + adjust[:begin], range.end + adjust[:begin] + adjust[:end], true)
+    end
     [i_timeline, message, score_of(message).map(&:description).join[range]]
   end
 
