@@ -15,6 +15,8 @@ require_relative 'command'
 
 Plugin.create :gui do
 
+  defevent :gui_timeline_add_messages, prototype: [Plugin::GUI::Timeline, Pluggaloid::STREAM]
+
   # タブを作成する
   # ==== Args
   # [slug] ユニークな識別名。
