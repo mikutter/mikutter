@@ -18,7 +18,10 @@ namespace 'transifex' do
       Mopt.parse(["--confroot=#{confroot}"], exec_command: false)
       project = Transifex.project_detail(project_name)
       existing_resource_slugs = Set.new(project[:resources].map{|res|res[:slug].to_sym})
-      Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(__dir__, "..", "plugin")
+      Environment::PLUGIN_PATH.each do |path|
+        Miquire::Plugin.loadpath << path
+      end
+      Miquire::Plugin.loadpath << File.join(__dir__, "..", "plugin")
       Miquire::Plugin.each_spec do |spec|
         pot_path = File.join(spec[:path], 'po', "#{spec[:slug]}.pot")
         next unless FileTest.exist?(pot_path)
