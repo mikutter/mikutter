@@ -8,6 +8,8 @@ module Plugin::PhotoSupport
   SUPPORTED_IMAGE_FORMATS = GdkPixbuf::Pixbuf.formats.flat_map{|f| f.extensions }.freeze
   INSTAGRAM_PATTERN = %r{\Ahttps?://(?:instagr\.am|(?:www\.)?instagram\.com)/p/([a-zA-Z0-9_\-]+)/}
   GITHUB_IMAGE_PATTERN = %r<\Ahttps://github\.com/(\w+/\w+)/blob/(.*\.(?:#{SUPPORTED_IMAGE_FORMATS.join('|')}))\z>
+  YOUTUBE_PATTERN = %r<\Ahttps?://(?:www\.youtube\.com/watch\?v=|youtu\.be/)(\w+)>
+  NICOVIDEO_PATTERN = %r<\Ahttps?://(?:(?:www|sp)\.nicovideo\.jp/watch|nico\.ms)/([sn][mo][1-9]\d*)>
 
   class << self
     extend Memoist
@@ -301,5 +303,25 @@ Plugin.create :photo_support do
   defimageopener('ヨドバシドットコム', %r<\Ahttps://www\.yodobashi\.com/product/\d+>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
     open(img) if img
+  end
+
+  # YouTube
+  defimageopener('YouTube', Plugin::PhotoSupport::YOUTUBE_PATTERN) do |display_url|
+    url = Plugin::PhotoSupport::YOUTUBE_PATTERN.match(display_url) do |m|
+      "https://img.youtube.com/vi/#{m[1]}/0.jpg"
+    end
+    open(url) if url
+  end
+
+  # ニコニコ動画
+  defimageopener('NicoVideo', Plugin::PhotoSupport::NICOVIDEO_PATTERN) do |display_url|
+    url = Plugin::PhotoSupport::NICOVIDEO_PATTERN.match(display_url) do |m|
+      json = HTTPClient.new.get_content("https://api.ce.nicovideo.jp/nicoapi/v1/video.info", query: { __format: 'json', v: m[1] })
+      res = JSON.parse(json)
+      if res.dig('nicovideo_video_response', '@status') == 'ok'
+        res.dig('nicovideo_video_response', 'video', 'thumbnail_url')
+      end
+    end
+    open(url) if url
   end
 end
