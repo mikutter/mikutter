@@ -2,8 +2,6 @@
 
 module Diva::Model::PhotoInterface
 
-  GdkPixbufCache = Struct.new(:pixbuf, :width, :height, :read_count, :reserver)
-
   # ローカルファイルシステム上のものなら真
   def local?
     uri.scheme == 'file'.freeze
@@ -55,10 +53,7 @@ module Diva::Model::PhotoInterface
   def pixbuf(width:, height:)
     result = pixbuf_cache[[width, height].hash]
     if result
-      result.read_count += 1
-      result.reserver.cancel if result.reserver
-      result.reserver = pixbuf_forget(width, height, result.read_count)
-      result.pixbuf
+      result
     elsif local?
       pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
     end
@@ -99,21 +94,13 @@ module Diva::Model::PhotoInterface
       error "cache already exists for #{uri} #{width}*#{height}"
       pixbuf(width: width, height: height)
     else
-      key = [width, height].hash
-      pixbuf_cache[key] =
-        GdkPixbufCache.new(pixbuf, width, height, 0, pixbuf_forget(width, height, 0))
+      pixbuf_cache[[width, height].hash] = pixbuf
       pixbuf
     end
   end
 
   def pixbuf_cache
-    @pixbuf_cache ||= Hash.new
-  end
-
-  def pixbuf_forget(width, height, gen)
-    Reserver.new([300, 60 * gen ** 2].max, thread: SerialThread) do
-      pixbuf_cache.delete([width, height].hash)
-    end
+    @pixbuf_cache ||= WeakStorage.new(Integer, GdkPixbuf::Pixbuf, name: "gtk-photo-pixbuf-cache(#{self.class} #{uri})")
   end
 
   # _src_ が _rect_ にアスペクト比を維持した状態で内接するように縮小した場合のサイズを返す

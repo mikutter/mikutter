@@ -27,9 +27,9 @@ module Plugin::Skin
     # ==== Return
     # [GdkPixbuf::Pixbuf] メモリキャッシュやファイルシステムから画像が見つかった場合
     def pixbuf(width:, height:)
-      result = pixbuf_cache[[width, height].hash]
+      result = pixbuf_cache_get(width: width, height: height)[[width, height].hash]
       if result
-        result.pixbuf
+        result
       else
         width, height = width.to_i, height.to_i
         pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
@@ -38,12 +38,28 @@ module Plugin::Skin
 
     private
 
-    def pixbuf_forget(width, height, gen)
-      unless width == height and [12, 16, 24, 32, 48, 64].include?(width)
-        Reserver.new([300, 60 * gen ** 2].max, thread: SerialThread) do
-          pixbuf_cache.delete([width, height].hash)
-        end
+    def pixbuf_cache_get(width:, height:)
+      if width == height && [12, 16, 24, 32, 36, 48, 64, 72].include?(width)
+        persist_pixbuf_cache
+      else
+        pixbuf_cache
       end
+    end
+
+    def pixbuf_cache_set(pixbuf, width:, height:)
+      cache = pixbuf_cache_get(width: width, height: height)
+
+      if cache[[width, height].hash]
+        error "cache already exists for #{uri} #{width}*#{height}"
+        pixbuf(width: width, height: height)
+      else
+        cache[[width, height].hash] = pixbuf
+        pixbuf
+      end
+    end
+
+    def persist_pixbuf_cache
+      @persist_pixbuf_cache ||= Hash.new
     end
   end
 end
