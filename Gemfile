@@ -16,7 +16,7 @@ group :default do
   gem 'diva','>= 1.0.1', '< 1.1'
   gem 'memoist','>= 0.16.2', '< 0.17'
   gem 'oauth','>= 0.5.4'
-  gem 'pluggaloid','>= 1.2.0', '< 1.3'
+  gem 'pluggaloid','>= 1.3.1', '< 1.4'
   gem 'typed-array','>= 0.1.2', '< 0.2'
 end
 
