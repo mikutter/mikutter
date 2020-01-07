@@ -55,7 +55,7 @@ Plugin.create :image_file_cache do
         .map{|x| File.join(dir, x) }
         .select{|x| FileTest.file?(x) }
         .each{|x|
-        Reserver.new((File.atime(x) rescue File.mtime(x)) + cache_expire, thread: SerialThread) do
+        Delayer.new(:destroy_cache, delay: (File.atime(x) rescue File.mtime(x)) + cache_expire) do
           notice "cache deleted #{x}"
           File.delete(x) if FileTest.file?(x)
           if Dir.foreach(dir).select{|y| File.file? File.join(dir, y) }.empty?
@@ -72,13 +72,13 @@ Plugin.create :image_file_cache do
         .each{|subdir|
         check_subdirs(File.join(@cache_directory, subdir))
       }
-      Reserver.new(cache_expire, thread: SerialThread) do
+      Delayer.new(:destroy_cache, delay: cache_expire) do
         check_dirs end
     end
   end
 
   def _loop
-    Reserver.new(60, thread: SerialThread) do
+    Delayer.new(:destroy_cache, delay: 60) do
       if @queue
         @queue.run
         _loop  end end end

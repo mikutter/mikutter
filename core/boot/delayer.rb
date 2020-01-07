@@ -3,13 +3,17 @@
 require "delayer"
 require "delayer/deferred"
 
-Delayer.default = Delayer.generate_class(priority: [:ui_response,
-                                                    :routine_active,
-                                                    :ui_passive,
-                                                    :routine_passive,
-                                                    :ui_favorited],
-                                         default: :routine_passive,
-                                         expire: 0.02)
+Delayer.default = Delayer.generate_class(
+  priority: %i[
+    ui_response
+    routine_active
+    ui_passive
+    routine_passive
+    ui_favorited
+    destroy_cache
+  ],
+  default: :routine_passive,
+  expire: 0.02)
 
 Deferred = Delayer::Deferred::Deferred
 

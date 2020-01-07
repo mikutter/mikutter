@@ -96,8 +96,8 @@ Plugin.create(:mastodon) do
         Plugin.call(:mastodon_request_rest, slug)
       end
     end
-    Reserver.new(60, thread: SerialThread, &pinger)
+    Delayer.new(delay: 60, &pinger)
   end
 
-  Reserver.new(60, thread: SerialThread, &pinger)
+  Delayer.new(delay: 60, &pinger)
 end

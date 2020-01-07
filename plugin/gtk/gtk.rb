@@ -437,7 +437,7 @@ Plugin.create :gtk do
     cid = statusbar.get_context_id("system")
     mid = statusbar.push(cid, text)
     if expire != 0
-      Reserver.new(expire, thread: Delayer) do
+      Delayer.new(delay: expire) do
         if not statusbar.destroyed?
           statusbar.remove(cid, mid)
         end

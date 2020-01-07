@@ -256,8 +256,8 @@ Plugin.create(:mastodon_account_viewer) do
         end
       }
     }.terminate
+    acct, domain = user.acct.split('@', 2)
     if domain != world.domain
-      acct, domain = user.acct.split('@', 2)
       Plugin::Mastodon::API.call(
         :get, domain, "/users/#{acct}/outbox?page=true",
         nil,
