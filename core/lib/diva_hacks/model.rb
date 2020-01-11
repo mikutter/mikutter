@@ -101,7 +101,7 @@ module Mikutter::DivaHacks::ModelExtend
       end
     end
     if block
-      define_method(:find_by_uri, &block)
+      define_singleton_method(:find_by_uri, &block)
     end
   end
 
