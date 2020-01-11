@@ -8,7 +8,6 @@ require 'gtk2'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
-  include UiThreadOnly
   include Gtk::TreeViewPrettyScroll
   include Gtk::InnerTLDarkMatterPurification
 
