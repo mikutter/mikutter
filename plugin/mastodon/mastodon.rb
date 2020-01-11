@@ -22,15 +22,15 @@ Plugin.create(:mastodon) do
   pm = Plugin::Mastodon
 
   defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
-    open(url)
+    URI.open(url)
   end
 
   defimageopener(_('Mastodon添付画像（短縮）'), %r<\Ahttps?://[^/]+/media/[0-9A-Za-z_-]+(?:\?\d+)?\Z>) do |url|
-    open(url)
+    URI.open(url)
   end
 
   defimageopener(_('Mastodon添付画像(proxy)'), %r<\Ahttps?://[^/]+/media_proxy/[0-9]+/(?:original|small)\z>) do |url|
-    open(url)
+    URI.open(url)
   end
 
   defevent :mastodon_appear_toots, prototype: [[pm::Status]]

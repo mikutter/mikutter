@@ -59,7 +59,7 @@ Plugin.create :photo_support do
     result = doc.css('img').lazy.find_all{ |dom|
       %r<https?://.*?\.cloudfront\.net/photos/(?:large|full)/.*> =~ dom.attribute('src')
     }.first
-    open(result.attribute('src'))
+    URI.open(result.attribute('src'))
   end
 
   # moby picture
@@ -69,7 +69,7 @@ Plugin.create :photo_support do
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
     result = doc.css('#main_picture').first
-    open(result.attribute('src'))
+    URI.open(result.attribute('src'))
   end
 
   # gyazo
@@ -78,7 +78,7 @@ Plugin.create :photo_support do
       connection = HTTPClient.new
       json = connection.get_content("https://api.gyazo.com/api/oembed", url: display_url)
       hash = JSON.parse(json, symbolize_names: true)
-      open(hash[:url]) if hash[:url]
+      URI.open(hash[:url]) if hash[:url]
     rescue => e
       error e.to_s
       nil
@@ -94,7 +94,7 @@ Plugin.create :photo_support do
     result = doc.css('.image').lazy.find_all{ |dom|
       %r<^http://image\.movapic\.com/pic/> =~ dom.attribute('src')
     }.first
-    open(result.attribute('src'))
+    URI.open(result.attribute('src'))
   end
 
   # piapro
@@ -106,7 +106,7 @@ Plugin.create :photo_support do
     dom = doc.css('.illust-whole img').first
     url = dom && dom.attribute('src')
     if url
-      open(url) end
+      URI.open(url) end
   end
 
   # img.ly
@@ -116,7 +116,7 @@ Plugin.create :photo_support do
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
     result = doc.css('#the-image').first
-    open(result.attribute('src'))
+    URI.open(result.attribute('src'))
   end
 
   # jigokuno.com
@@ -125,7 +125,7 @@ Plugin.create :photo_support do
     page = connection.get_content(display_url)
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
-    open(doc.css('img.pict').first.attribute('src'))
+    URI.open(doc.css('img.pict').first.attribute('src'))
   end
 
   # はてなフォトライフ
@@ -135,7 +135,7 @@ Plugin.create :photo_support do
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
     result = doc.css('img.foto').first
-    open(result.attribute('src'))
+    URI.open(result.attribute('src'))
   end
 
   # imgur
@@ -145,13 +145,13 @@ Plugin.create :photo_support do
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
     result = doc.css('link[rel="image_src"]').first
-    open(result.attribute('href').to_s)
+    URI.open(result.attribute('href').to_s)
   end
 
   # Fotolog
   defimageopener('Fotolog', %r<\Ahttps?://(?:www\.)?fotolog\.com/\w+/\d+/?>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # フォト蔵
@@ -160,41 +160,41 @@ Plugin.create :photo_support do
     page = connection.get_content(display_url)
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
-    open(doc.css('img[itemprop="image"]').first.attribute('src'))
+    URI.open(doc.css('img[itemprop="image"]').first.attribute('src'))
   end
 
   # instagram
   defimageopener('instagram', Plugin::PhotoSupport::INSTAGRAM_PATTERN) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # d250g2
   defimageopener('d250g2', %r#\Ahttps?://(?:[\w\-]+\.)?d250g2\.com/?\Z#) do |display_url|
     img = Plugin::PhotoSupport.d250g2(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # d250g2(Twitpicが消えたとき用)
   defimageopener('d250g2(Twitpicが消えたとき用)', %r#\Ahttp://twitpic\.com/d250g2\Z#) do
-    open('http://d250g2.com/d250g2.jpg')
+    URI.open('http://d250g2.com/d250g2.jpg')
   end
 
   # 600eur.gochiusa.net
   defimageopener('600eur.gochiusa.net', %r#\Ahttp://600eur\.gochiusa\.net/?\Z#) do |display_url|
     img = Plugin::PhotoSupport.d250g2(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # yfrog
   defimageopener('yfrog', %r#\Ahttps?://yfrog\.com/es3bcstj\Z#) do
     img = Plugin::PhotoSupport.d250g2('http://router-cake.d250g2.com/')
-    open(img) if img
+    URI.open(img) if img
   end
 
   defimageopener('いらすとや', %r<https?://(?:www.)?irasutoya\.com/\d{4}/\d{2}/.+\.html>) do |display_url|
     img = Plugin::PhotoSupport.d250g2(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # vine
@@ -204,7 +204,7 @@ Plugin.create :photo_support do
     next nil if page.empty?
     doc = Nokogiri::HTML(page)
     result = doc.css('meta[property="twitter:image:src"]')
-    open(result.attribute('content').value)
+    URI.open(result.attribute('content').value)
   end
 
   # xkcd.com
@@ -218,25 +218,25 @@ Plugin.create :photo_support do
     if src.start_with?('//')
       src = Diva::URI.new(display_url).scheme + ':' + src
     end
-    open(src)
+    URI.open(src)
   end
 
   # マシュマロ
   defimageopener('marshmallow-qa', %r<\Ahttps?://marshmallow-qa\.com/messages/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # peing
   defimageopener('peing', %r<\Ahttps?://peing\.net/\w+/(?:qs/\d+|q/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})>) do |display_url|
     img = Plugin::PhotoSupport.d250g2(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # ニコニコ静画
   defimageopener('NicoSeiga', %r<\Ahttps?://seiga\.nicovideo\.jp/seiga/im\d+>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # ニコニコ静画 (nico.ms経由)
@@ -245,7 +245,7 @@ Plugin.create :photo_support do
     location = connection.get(display_url).header['Location'].first
     next nil if location.nil?
     img = Plugin::PhotoSupport.インスタ映え(location)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # GitHub
@@ -253,7 +253,7 @@ Plugin.create :photo_support do
     url = Plugin::PhotoSupport::GITHUB_IMAGE_PATTERN.match(display_url) do |m|
       "https://raw.githubusercontent.com/#{m[1]}/#{m[2]}"
     end
-    open(url) if url
+    URI.open(url) if url
   end
 
   # Amazon
@@ -279,30 +279,30 @@ Plugin.create :photo_support do
       max = hash.to_a.max {|v| v[1][0] }
       image_url = max[0]
     end
-    open(image_url)
+    URI.open(image_url)
   end
 
   #reddit
   defimageopener('reddit', %r|^https?://www\.reddit\.com/r/(?:[^/]*)/comments/(?:[^/]*)/(?:[^/]*)|) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # pixiv
   defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/member_illust\.php\?(?:.*)&?illust_id=\d+(?:&.*)?$>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
   # pixiv new
   defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/artworks/\d+$>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # ヨドバシドットコム
   defimageopener('ヨドバシドットコム', %r<\Ahttps://www\.yodobashi\.com/product/\d+>) do |display_url|
     img = Plugin::PhotoSupport.インスタ映え(display_url)
-    open(img) if img
+    URI.open(img) if img
   end
 
   # YouTube
@@ -310,7 +310,7 @@ Plugin.create :photo_support do
     url = Plugin::PhotoSupport::YOUTUBE_PATTERN.match(display_url) do |m|
       "https://img.youtube.com/vi/#{m[1]}/0.jpg"
     end
-    open(url) if url
+    URI.open(url) if url
   end
 
   # ニコニコ動画
@@ -322,6 +322,6 @@ Plugin.create :photo_support do
         res.dig('nicovideo_video_response', 'video', 'thumbnail_url')
       end
     end
-    open(url) if url
+    URI.open(url) if url
   end
 end
