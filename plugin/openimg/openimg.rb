@@ -53,7 +53,7 @@ Plugin.create :openimg do
       }.find(&ret_nth)
       if !content and /\.(?:jpe?g|png|gif|)\z/i.match(display_url)
         begin
-          uri = Diva::URI.parse(display_url)
+          uri = Diva::URI(display_url)
           if uri.scheme == 'file'
             content = File.open(uri.path, 'rb')
           else
