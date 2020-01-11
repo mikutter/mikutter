@@ -32,5 +32,3 @@ module UiThreadOnly
     }
   end
 end
-
-deprecate_constant(:UiThreadOnly)
