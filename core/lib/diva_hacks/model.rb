@@ -44,15 +44,11 @@ module Mikutter::DivaHacks::ModelExtend
     end
   end
 
-  def plugin
+  def plugin(&block)
     if not @slug
       raise Diva::DivaError, "`#{self}'.slug is not set."
     end
-    if block_given?
-      Plugin.create(:"retriever_model_#{@slug}", &Proc.new)
-    else
-      Plugin.create(:"retriever_model_#{@slug}")
-    end
+    Plugin.create(:"retriever_model_#{@slug}", &block)
   end
 
   # Entityクラスを設定する。
@@ -85,7 +81,7 @@ module Mikutter::DivaHacks::ModelExtend
   #   すぐにModelを生成できる場合、そのModel
   # ===== Raise
   # [Diva::ModelNotFoundError] _uri_ に対応するリソースが見つからなかった
-  def handle(condition)       # :yield: uri
+  def handle(condition, &block)       # :yield: uri
     model_slug = self.slug
     plugin do
       if condition.is_a? Regexp
@@ -104,10 +100,8 @@ module Mikutter::DivaHacks::ModelExtend
         end
       end
     end
-    if block_given?
-      class << self
-        define_method(:find_by_uri, Proc.new)
-      end
+    if block
+      define_method(:find_by_uri, &block)
     end
   end
 

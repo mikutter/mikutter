@@ -16,9 +16,10 @@ module ::Plugin::Command
   # [in 3.9.0] この定数はDeprecateです。
   # [see] https://dev.mikutter.hachune.net/issues/1200
   class Condition
-    def initialize
-      @cond = Proc.new
-      type_strict @cond => :call end
+    def initialize(&block)
+      @cond = block
+      type_strict @cond => :call
+    end
 
     def &(follow)
       type_strict follow => :call

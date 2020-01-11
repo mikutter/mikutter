@@ -46,7 +46,7 @@ Plugin.create(:mastodon) do
     Plugin.call(:extract_receive_message, :mastodon_appear_toots, statuses)
   end
 
-  followings_updater = Proc.new do
+  followings_updater = -> do
     activity(:mastodon_followings_update, _('自分のプロフィールやフォロー関係を取得しています...'))
     Plugin.filtering(:mastodon_worlds, nil).first.to_a.each do |world|
       Delayer::Deferred.when(

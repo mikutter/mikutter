@@ -89,7 +89,7 @@ Plugin.create(:mastodon) do
     end
   end
 
-  pinger = Proc.new do
+  pinger = -> do
     now = Time.now.to_i
     settings.each do |slug, setting|
       if (now - settings[slug][:last_time]) >= 60 * UserConfig[:mastodon_rest_interval]

@@ -26,8 +26,8 @@ class Gtk::IntelligentTextview < Gtk::TextView
   def self.addlinkrule(reg, leftclick, rightclick=nil)
     @@linkrule = MIKU::Cons.new([reg, leftclick, rightclick].freeze, @@linkrule).freeze end
 
-  def self.addwidgetrule(reg, widget = nil)
-    @@widgetrule = @@widgetrule.unshift([reg, (widget or Proc.new)]) end
+  def self.addwidgetrule(reg, widget = nil, &block)
+    @@widgetrule = @@widgetrule.unshift([reg, (widget || block)]) end
 
   # URLを開く
   def self.openurl(url)

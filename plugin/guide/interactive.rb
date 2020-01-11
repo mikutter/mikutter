@@ -24,11 +24,11 @@ module Plugin::Guide
       }
     end
 
-    def next
-      super(&Proc.new).extend(InteractiveMixin) end
+    def next(&block)
+      super(&block).extend(InteractiveMixin) end
 
-    def trap
-      super(&Proc.new).extend(InteractiveMixin) end
+    def trap(&block)
+      super(&block).extend(InteractiveMixin) end
 
   end
 

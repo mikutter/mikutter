@@ -25,16 +25,16 @@ class Plugin::Settings::Listener
     else
       @setter = lambda{ |new| value = new } end end
 
-  def get
-    if block_given?
-      @getter = Proc.new
+  def get(&block)
+    if block
+      @getter = block
       self
     else
       @getter.call end end
 
-  def set(value=nil)
-    if block_given?
-      @setter = Proc.new
+  def set(value=nil, &block)
+    if block
+      @setter = block
       self
     else
       @setter.call(value) end end

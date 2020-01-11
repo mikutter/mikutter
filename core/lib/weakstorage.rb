@@ -100,7 +100,8 @@ class SizeLimitedStorage < WeakStore
   # ==== Args
   # [limit] 格納できる容量(Integer)
   # [&proc] 要素の容量を返すブロック(デフォルト: sizeメソッド)
-  def initialize(key_class, val_class, limit, proc=(block_given? ? Proc.new : :size.to_proc))
+  def initialize(key_class, val_class, limit, proc=nil, &block)
+    proc ||= block || :size.to_proc
     @key_class, @val_class, @limit, @get_size = key_class, val_class, limit, proc
     @using = 0
     super()

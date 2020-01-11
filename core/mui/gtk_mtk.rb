@@ -317,11 +317,13 @@ module Mtk
     dialog.destroy
   end
 
-  def self.dialog_button(label, callback = Proc.new)
+  def self.dialog_button(label, callback=nil, &block)
+    callback ||= block
     btn = Gtk::Button.new(label)
-    btn.ssc(:clicked){
+    btn.ssc(:clicked) do
       params = callback.call
-      self.dialog(label, params[:container], &params[:success]) }
+      self.dialog(label, params[:container], &params[:success])
+    end
     btn
   end
 

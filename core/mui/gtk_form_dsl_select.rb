@@ -11,10 +11,10 @@ class Gtk::FormDSL::Select
   # [value] 選択されたらセットされる値
   # [label] ラベル。 _&block_ がなければ使われる。文字列。
   # [&block] Plugin::Settings のインスタンス内で評価され、そのインスタンスが内容として使われる
-  def option(value, label = nil)
-    if block_given?
+  def option(value, label = nil, &block)
+    if block
       widget = @parent_dslobj.create_inner_setting.set_border_width(4)
-      widget.instance_eval(&Proc.new)
+      widget.instance_eval(&block)
       @options += [[value, label, widget].freeze]
     else
       @options += [[value, label].freeze]

@@ -58,7 +58,7 @@ Plugin.create(:mastodon_sse_streaming) do
   @last_all_restarted = Time.new(2007, 8, 31, 0, 0, 0, "+09:00")
   @waiting = false
 
-  restarter = Proc.new do
+  restarter = -> do
     if @waiting
       Plugin.call(:mastodon_sse_kill_all, :mastodon_start_all_streams)
       @last_all_restarted = Time.new

@@ -37,9 +37,9 @@ class TimeLimitedQueue < Queue
       thread.kill if thread.alive?
       thread[:queue].instance_eval{ callback } if thread[:queue] } }
 
-  def initialize(max=1024, expire=5, storage_class=Array, proc=Proc.new) # :yield: data
+  def initialize(max=1024, expire=5, storage_class=Array, proc=nil, &block) # :yield: data
     @thread = nil
-    @callback = proc
+    @callback = proc || block
     @max = max
     @expire = expire
     @storage_class = storage_class
