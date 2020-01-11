@@ -69,8 +69,8 @@ module Gdk::MarkupGenerator
     _plain_description[UserConfig[:miraclepainter_expand_custom_emoji]]
   end
 
-  private memoize def _plain_description
-    Hash.new do |h, expand_emoji|
+  private def _plain_description
+    @_plain_description ||= Hash.new do |h, expand_emoji|
       h[expand_emoji] = score.map{|note|
         if expand_emoji && note.respond_to?(:inline_photo)
           '.'

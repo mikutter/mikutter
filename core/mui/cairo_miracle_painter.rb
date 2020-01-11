@@ -46,8 +46,8 @@ class Gdk::MiraclePainter < Gtk::Object
   deprecate :to_message, :none, 2017, 5
 
   # :nodoc:
-  memoize def score
-    Plugin[:gtk].score_of(message)
+  def score
+    @score ||= Plugin[:gtk].score_of(message)
   end
 
   # @@miracle_painters = Hash.new
@@ -565,10 +565,8 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   class << self
-    extend Memoist
-
-    memoize def gb_foot
-      Enumerator.new{|y|
+    def gb_foot
+      @gb_foot ||= Enumerator.new{|y|
         Plugin.filtering(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, y)
       }.first
     end

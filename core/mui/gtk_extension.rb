@@ -304,8 +304,8 @@ end
 
 class Cairo::Context
   class << self
-    memoize def dummy
-      Gdk::Pixmap.new(nil, 1, 1, Gdk::Visual.system.depth).create_cairo_context
+    def dummy
+      @dummy ||= Gdk::Pixmap.new(nil, 1, 1, Gdk::Visual.system.depth).create_cairo_context
     end
   end
 end

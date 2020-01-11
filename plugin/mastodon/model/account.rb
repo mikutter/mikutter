@@ -21,8 +21,9 @@ module Plugin::Mastodon
 
     private
 
-    memoize def description_score
-      PM::Parser.dictate_score(value, emojis: emojis)
+    # TODO: modelがScoreをキャッシュするべきではない
+    def description_score
+      @description_score ||= PM::Parser.dictate_score(value, emojis: emojis)
     end
   end
 
