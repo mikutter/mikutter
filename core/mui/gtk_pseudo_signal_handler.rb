@@ -6,7 +6,9 @@
 module PseudoSignalHandler
 
   # シグナル _signal_ に、ハンドラを登録する。シグナルIDを返す。
-  def signal_connect(signal, proc=Proc.new)
+  def signal_connect(signal, proc=nil, &block)
+    proc ||= block
+    raise 'no block given.' unless proc
     __signals[signal.to_sym] << proc
     proc.__id__ end
 

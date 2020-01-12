@@ -29,7 +29,6 @@ class Gdk::MiraclePainter < Gtk::Object
   include Gdk::TextSelector
   include Gdk::SubPartsHelper
   include Gdk::MarkupGenerator
-  include UiThreadOnly
 
   EMPTY = Set.new.freeze
   Event = Struct.new(:event, :message, :timeline, :miraclepainter)
@@ -46,8 +45,8 @@ class Gdk::MiraclePainter < Gtk::Object
   deprecate :to_message, :none, 2017, 5
 
   # :nodoc:
-  memoize def score
-    Plugin[:gtk].score_of(message)
+  def score
+    @score ||= Plugin[:gtk].score_of(message)
   end
 
   # @@miracle_painters = Hash.new
@@ -336,6 +335,12 @@ class Gdk::MiraclePainter < Gtk::Object
     freeze
   end
 
+  @@font_description = Hash.new{|h,k| h[k] = {} } # {scale => {font => FontDescription}}
+  def font_description(font)
+    @@font_description[scale(0xffff)][font] ||=
+      Pango::FontDescription.new(font).tap{|fd| fd.size = scale(fd.size) }
+  end
+
   private
 
   def dummy_context
@@ -369,12 +374,6 @@ class Gdk::MiraclePainter < Gtk::Object
       end
     end
     layout end
-
-  @@font_description = Hash.new{|h,k| h[k] = {} } # {scale => {font => FontDescription}}
-  def font_description(font)
-    @@font_description[scale(0xffff)][font] ||=
-      Pango::FontDescription.new(font).tap{|fd| fd.size = scale(fd.size) }
-  end
 
   # 絵文字を描画する時の一辺の大きさを返す
   # ==== Args
@@ -572,10 +571,8 @@ class Gdk::MiraclePainter < Gtk::Object
   end
 
   class << self
-    extend Memoist
-
-    memoize def gb_foot
-      Enumerator.new{|y|
+    def gb_foot
+      @gb_foot ||= Enumerator.new{|y|
         Plugin.filtering(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, y)
       }.first
     end

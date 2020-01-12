@@ -53,10 +53,11 @@ Plugin.create :openimg do
       }.find(&ret_nth)
       if !content and /\.(?:jpe?g|png|gif|)\z/i.match(display_url)
         begin
-          if display_url.start_with?('file:')
-            content = open(Addressable::URI.parse(display_url).path)
+          uri = Diva::URI(display_url)
+          if uri.scheme == 'file'
+            content = File.open(uri.path, 'rb')
           else
-            content = open(display_url)
+            content = URI.open(uri.to_s, 'rb')
           end
         rescue => _
           error _

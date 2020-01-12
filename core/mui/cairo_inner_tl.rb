@@ -8,7 +8,6 @@ require 'gtk2'
 
 class Gtk::TimeLine::InnerTL < Gtk::CRUD
 
-  include UiThreadOnly
   include Gtk::TreeViewPrettyScroll
   include Gtk::InnerTLDarkMatterPurification
 
@@ -79,13 +78,13 @@ class Gtk::TimeLine::InnerTL < Gtk::CRUD
   def handle_row_activated
   end
 
-  def create_postbox(options)
+  def create_postbox(options, &block)
     options = options.dup
     options[:before_post_hook] = ->(this) {
       get_ancestor(Gtk::Window).set_focus(self) unless self.destroyed? }
     pb = Gtk::PostBox.new(options).show_all
     postbox.closeup(pb)
-    pb.on_delete(&Proc.new) if block_given?
+    pb.on_delete(&block) if block
     get_ancestor(Gtk::Window).set_focus(pb.post)
     pb end
   private :create_postbox

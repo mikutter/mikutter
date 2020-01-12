@@ -10,7 +10,7 @@ Plugin.create :notification do
     return unless UserConfig[:notification_enable]
     next_time = (Time.new + 86400).freeze
     Reserver.new(next_time){ main }
-    open('https://mikutter.hachune.net/notification.json') do |io|
+    URI('https://mikutter.hachune.net/notification.json').open('rb:utf-8') do |io|
       JSON.parse(io.read, symbolize_names: true).sort_by{|n| n[:expire]}.reverse_each do |node|
         Plugin.call(:gui_window_rewindstatus, Plugin::GUI::Window.instance(:default), node[:text], [Time.iso8601(node[:expire]),next_time].min)
       end

@@ -43,7 +43,6 @@ module Gdk::SubPartsHelper
 
 class Gdk::SubParts
   extend Gem::Deprecate
-  include UiThreadOnly
 
   attr_reader :helper
 

@@ -92,7 +92,6 @@ module Gtk
   PRESS_WITH_ALT = 'Alt + '.freeze
   PRESS_WITH_SUPER = 'Super + '.freeze
   PRESS_WITH_HYPER = 'Hyper + '.freeze
-
   KonamiCache = File.expand_path(File.join(Environment::CACHE, 'core', 'konami.png'))
 
   class << self
@@ -110,8 +109,8 @@ module Gtk
     else
       Thread.new do
         tmpfile = File.join(Environment::TMPDIR, '600eur')
-        open('https://mikutter.hachune.net/img/konami.png', 'rb') do |konami|
-          open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache }
+        URI('https://mikutter.hachune.net/img/konami.png').open('rb') do |konami|
+          File.open(tmpfile, 'wb'){ |cache| IO.copy_stream konami, cache }
         end
         FileUtils.mkdir_p(File.dirname(KonamiCache))
         FileUtils.mv(tmpfile, KonamiCache)
@@ -304,8 +303,8 @@ end
 
 class Cairo::Context
   class << self
-    memoize def dummy
-      Gdk::Pixmap.new(nil, 1, 1, Gdk::Visual.system.depth).create_cairo_context
+    def dummy
+      @dummy ||= Gdk::Pixmap.new(nil, 1, 1, Gdk::Visual.system.depth).create_cairo_context
     end
   end
 end

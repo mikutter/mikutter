@@ -318,11 +318,13 @@ module Gtk
         destroy
         true end end
 
-    def on_delete
-      if(block_given?)
-        @on_delete = Proc.new
+    def on_delete(&block)
+      if block
+        @on_delete = block
       elsif defined? @on_delete
-        @on_delete.call end end
+        @on_delete.call
+      end
+    end
 
     def reply?
       !@to.empty? and !to_display_only? end

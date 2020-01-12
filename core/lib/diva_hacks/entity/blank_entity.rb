@@ -12,12 +12,12 @@ module Diva::Entity
       @message = message
       @generate_value = [] end
 
-    def each
-      to_a.each(&Proc.new)
+    def each(&block)
+      to_a.each(&block)
     end
 
-    def reverse_each
-      to_a.reverse.each(&Proc.new)
+    def reverse_each(&block)
+      to_a.reverse.each(&block)
     end
 
     # [{range: リンクを貼る場所のRange, face: 表示文字列, url:リンク先}, ...] の配列を返す
