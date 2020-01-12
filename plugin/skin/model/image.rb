@@ -29,20 +29,10 @@ module Plugin::Skin
     def pixbuf(width:, height:)
       result = pixbuf_cache[[width, height].hash]
       if result
-        result.pixbuf
+        result
       else
         width, height = width.to_i, height.to_i
         pixbuf_cache_set(GdkPixbuf::Pixbuf.new(file: uri.path, width: width, height: height), width: width, height: height)
-      end
-    end
-
-    private
-
-    def pixbuf_forget(width, height, gen)
-      unless width == height and [12, 16, 24, 32, 48, 64].include?(width)
-        Delayer.new(:destroy_cache, delay: [300, 60 * gen ** 2].max) do
-          pixbuf_cache.delete([width, height].hash)
-        end
       end
     end
   end
