@@ -66,8 +66,6 @@ Plugin.create(:quickstep) do
     complete
   end
 
-  private
-
   def gen_search_activate_callback(complete)
     ->(_) do
       tab(:quickstep).destroy

@@ -63,6 +63,7 @@ module Plugin::Extract
 end
 
 Plugin.create :extract do
+  defevent :extract_receive_message, prototype: [Plugin::Extract::Setting, Pluggaloid::STREAM]
 
   # 抽出タブオブジェクト。各キーは抽出タブslugで、値は以下のようなオブジェクト
   # name :: タブの名前
@@ -234,10 +235,6 @@ Plugin.create :extract do
     end
   end
 
-  on_extract_receive_message do |source, messages|
-    append_message source, messages
-  end
-
   filter_extract_tabs_get do |tabs|
     [tabs + extract_tabs.values]
   end
@@ -249,7 +246,33 @@ Plugin.create :extract do
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values.map(&:export_to_userconfig)
-    self end
+    @datasource_subscribers&.yield_self(&method(:detach))
+    @datasource_subscribers = handler_tag(:datasource_subscribers) do
+      extract_tabs.values.each do |tab|
+        tl = timeline(tab.slug)
+        tab.sources.map { |source|
+          subscribe(:extract_receive_message, source)
+        }&.yield_self { |a, *rest|
+          rest.empty? ? a : a.merge(*rest)
+        }&.map { |message|
+          message.retweet_source || message
+        }&.select(&compile(tab.slug, tab.sexp))
+          &.reject(&tl.method(:include?))
+          &.each(&tl.method(:<<))
+        if tab.popup?
+          subscribe(:gui_timeline_add_messages, tl).each do |m|
+            Plugin.call(:popup_notify, message.user, message.description)
+          end
+        end
+        if tab.sound.is_a?(String) && FileTest.exist?(tab.sound)
+          subscribe(:gui_timeline_add_messages, tl).throttle(0.5).each do
+            Plugin.call(:play_sound, tab.sound)
+          end
+        end
+      end
+    end
+    self
+  end
 
   # 使用されているデータソースのSetを返す
   def active_datasources
@@ -260,27 +283,34 @@ Plugin.create :extract do
   end
 
   def compile(tab_slug, code)
-    atomic do
-      @compiled ||= {}
-      @compiled[tab_slug] ||=
-        if code.empty?
-          ret_nth
-        else
-          begin
-            before = Set.new
-            extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
-            evaluated = MIKU::Primitive.new(:to_ruby_ne).call(MIKU::SymbolTable.new, metamorphose(code: code, assign: before, extract_condition: extract_condition))
-            code_string = "lambda{ |message|\n" + before.to_a.join("\n") + "\n  " + evaluated + "\n}"
-            instance_eval(code_string)
-          rescue Plugin::Extract::ConditionNotFoundError => exception
-            Plugin.call(:modify_activity,
-                        plugin: self,
-                        kind: 'error'.freeze,
-                        title: _("抽出タブ条件エラー"),
-                        date: Time.new,
-                        description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_slug].name, error_string: exception.to_s})
-            warn exception
-            ret_nth end end end end
+    if code.empty?
+      :itself.to_proc
+    else
+      begin
+        before = Set.new
+        extract_condition ||= Hash[Plugin.filtering(:extract_condition, []).first.map{ |condition| [condition.slug, condition] }]
+        evaluated =
+          MIKU::Primitive.new(:to_ruby_ne).call(
+            MIKU::SymbolTable.new,
+            metamorphose(
+              code: code,
+              assign: before,
+              extract_condition: extract_condition
+            )
+          )
+        instance_eval(['->(message) do', *before, evaluated, 'end'].join("\n"))
+      rescue Plugin::Extract::ConditionNotFoundError => exception
+        Plugin.call(:modify_activity,
+                    plugin: self,
+                    kind: 'error',
+                    title: _('抽出タブ条件エラー'),
+                    date: Time.new,
+                    description: _("抽出タブ「%{tab_name}」で使われている条件が見つかりませんでした:\n%{error_string}") % {tab_name: extract_tabs[tab_slug].name, error_string: exception.to_s})
+        warn exception
+        :itself.to_proc
+      end
+    end
+  end
 
   # 条件をこう、くいっと変形させてな
   def metamorphose(code: raise, assign: Set.new, extract_condition: nil)
@@ -323,33 +353,12 @@ Plugin.create :extract do
       error miku_context
       raise exception end end
 
-  def destroy_compile_cache
-    atomic do
-      @compiled = {} end end
-
-  def append_message(source, messages)
-    type_strict source => Symbol, messages => Enumerable
-    tabs = extract_tabs.values.select{ |r| r.sources && r.using?(source) }
-    return if tabs.empty?
-    converted_messages = messages.map{ |message| message.retweet_source ? message.retweet_source : message }
-    tabs.each{ |record|
-        filtered_messages = timeline(record.slug).not_in_message(converted_messages.select(&compile(record.slug, record.sexp)))
-        timeline(record.slug) << filtered_messages
-        notificate_messages = filtered_messages.lazy.select{|message| message[:created] > defined_time}
-        if record.popup?
-          notificate_messages.deach do |message|
-            Plugin.call(:popup_notify, message.user, message.description) end end
-        if record.sound.is_a?(String) and notificate_messages.first and FileTest.exist?(record.sound)
-          Plugin.call(:play_sound, record.sound) end
-    } end
-
   (UserConfig[:extract_tabs] or []).each do |record|
     Plugin.call(:extract_tab_create, Plugin::Extract::Setting.new(record))
   end
 
   on_userconfig_modify do |key, val|
     next if key != :extract_tabs
-    destroy_compile_cache
     @active_datasources = nil
   end
 end

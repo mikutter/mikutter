@@ -66,7 +66,7 @@ Plugin.create(:mastodon_sse_streaming) do
     end
     @waiting = false
 
-    Reserver.new(60, thread: Delayer, &restarter)
+    Delayer.new(delay: 60, &restarter)
   end
 
   on_mastodon_restart_all_streams do
