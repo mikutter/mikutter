@@ -446,7 +446,7 @@ Plugin.create(:mastodon) do
   end
 
   # プロフィール更新系
-  update_profile_block = Proc.new do |world, **opts|
+  update_profile_block = ->(world, **opts) do
     world.update_profile(**opts)
   end
 

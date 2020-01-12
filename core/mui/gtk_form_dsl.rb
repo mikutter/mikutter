@@ -10,10 +10,10 @@ module Gtk::FormDSL
   PIXBUF_PHOTO_FILTER = Hash[GdkPixbuf::Pixbuf.formats.map{|f| ["#{f.description} (#{f.name})", f.extensions.flat_map{|x| [x.downcase.freeze, x.upcase.freeze] }.freeze] }].freeze
   PHOTO_FILTER = {'All images' => PIXBUF_PHOTO_FILTER.values.flatten}.merge(PIXBUF_PHOTO_FILTER).merge('All files' => ['*'])
 
-  def initialize(*args)
+  def initialize(*args, &block)
     super
-    if block_given?
-      instance_eval(&Proc.new)
+    if block
+      instance_eval(&block)
     end
   end
 
@@ -191,14 +191,14 @@ module Gtk::FormDSL
   # ==== Args
   # [title] ラベル
   # [&block] ブロック
-  def settings(title)
+  def settings(title, &block)
     group = Gtk::Frame.new.set_border_width(8)
     if(title.is_a?(Gtk::Widget))
       group.set_label_widget(title)
     else
       group.set_label(title) end
     box = create_inner_setting.set_border_width(4)
-    box.instance_eval(&Proc.new)
+    box.instance_eval(&block)
     closeup group.add(box)
     group
   end
@@ -272,9 +272,9 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def select(label, config, default = {})
+  def select(label, config, default = {}, &block)
     builder = Gtk::FormDSL::Select.new(self, default)
-    builder.instance_eval(&Proc.new) if block_given?
+    builder.instance_eval(&block) if block
     closeup container = builder.build(label, config)
     container
   end
@@ -287,9 +287,9 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def multiselect(label, config, default = {})
+  def multiselect(label, config, default = {}, &block)
     builder = Gtk::FormDSL::MultiSelect.new(self, default)
-    builder.instance_eval(&Proc.new) if block_given?
+    builder.instance_eval(&block) if block
     closeup container = builder.build(label, config)
     container
   end

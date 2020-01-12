@@ -17,7 +17,7 @@ module Miquire::Plugin
       @loadpath ||= [] end
 
     # プラグインのファイル名(フルパス)で繰り返す。
-    def each
+    def each(&block)
       iterated = Set.new
       detected = []
       loadpath.reverse.each { |path|
@@ -32,7 +32,7 @@ module Miquire::Plugin
             detected << file end } }
       detected.sort_by{ |a|
         [:bundle == get_kind(a) ? 0 : 1, a]
-      }.each(&Proc.new) end
+      }.each(&block) end
 
     def each_spec
       each{ |path|

@@ -19,8 +19,7 @@ Plugin.create :quoted_message do
   command(:quoted_message,
           name: _('URLを引用して投稿'),
           icon: Skin[:quote],
-          condition: Proc.new{ |opt|
-            opt.messages.all?(&:perma_link)},
+          condition: ->(opt) { opt.messages.all?(&:perma_link) },
           visible: true,
           role: :timeline) do |opt|
     messages = opt.messages

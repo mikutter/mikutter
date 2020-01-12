@@ -7,12 +7,12 @@ class Plugin::ChangeAccount::WorldGenerator::Controller
     self.class.new(@plugin)
   end
 
-  def initialize(plugin)
+  def initialize(plugin, &block)
     super()
     @plugin = plugin
     @values = Hash.new
     if block_given?
-      instance_eval(&Proc.new)
+      instance_eval(&block)
     end
   end
 

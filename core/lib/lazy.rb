@@ -21,8 +21,9 @@ class IrregularEval
 
 class Lazy < IrregularEval
 
-  def initialize
-    @proc = Proc.new
+  def initialize(&block)
+    raise 'no block given.' unless block
+    @proc = block
     @obj = nil end
 
   def irregular_eval_object
@@ -35,8 +36,9 @@ class Lazy < IrregularEval
 # Lazyの、呼び出しごとにブロックを評価するバージョン。
 class EveryTime < IrregularEval
 
-  def initialize
-    @proc = Proc.new end
+  def initialize(&block)
+    raise 'no block given.' unless block
+    @proc = block end
 
   def irregular_eval_object
     @proc.call end end
@@ -47,8 +49,9 @@ class EveryTime < IrregularEval
 # ブロッキングされる
 class Parallel < IrregularEval
 
-  def initialize
-    @proc = Thread.new(&Proc.new)
+  def initialize(&block)
+    raise 'no block given.' unless block
+    @proc = Thread.new(&block)
     @obj = nil end
 
   def irregular_eval_object

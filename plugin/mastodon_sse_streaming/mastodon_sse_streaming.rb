@@ -46,7 +46,7 @@ Plugin.create(:mastodon_sse_streaming) do
         headers["Authorization"] = "Bearer " + token
       end
 
-      Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, domain: domain, type: type, token: token)
+      Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, { domain: domain, type: type, token: token })
     }.terminate(_('Mastodon: SSE接続開始時にエラーが発生しました'))
   end
 
@@ -58,7 +58,7 @@ Plugin.create(:mastodon_sse_streaming) do
   @last_all_restarted = Time.new(2007, 8, 31, 0, 0, 0, "+09:00")
   @waiting = false
 
-  restarter = Proc.new do
+  restarter = -> do
     if @waiting
       Plugin.call(:mastodon_sse_kill_all, :mastodon_start_all_streams)
       @last_all_restarted = Time.new
@@ -246,7 +246,7 @@ Plugin.create(:mastodon_sse_streaming) do
     Plugin.call(:mastodon_sse_kill_all)
   end
 
-  on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, **opts|
+  on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, opts = {}|
     mutex.synchronize {
       if connections.has_key? slug
         warn "\n!!!! sse_client streaming duplicate !!!!\n"

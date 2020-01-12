@@ -113,10 +113,13 @@ module Plugin::Openimg
           context.paint end end
       context ||= Cairo::Context.new(@image_surface)
       context.save do
-        context.set_source_pixbuf(pixbuf)
         if paint
+          context.set_source_color(Cairo::Color::BLACK)
+          context.paint
+          context.set_source_pixbuf(pixbuf)
           context.paint
         else
+          context.set_source_pixbuf(pixbuf)
           context.rectangle(x, y, width, height)
           context.fill end end
       redraw(repaint: paint || size_changed)

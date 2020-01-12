@@ -28,7 +28,8 @@ class SerialThreadGroup
   # 実行するブロックを新しく登録する
   # ==== Args
   # [proc] 実行するブロック
-  def push(proc=Proc.new)
+  def push(proc=nil, &block)
+    proc ||= block
     promise = @deferred_class && @deferred_class.new(true)
     return promise if @@force_exit
     @lock.synchronize{
