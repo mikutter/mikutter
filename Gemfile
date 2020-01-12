@@ -11,7 +11,7 @@ ruby '>= 2.5.0'
 
 group :default do
   gem 'addressable','>= 2.7.0', '< 2.8'
-  gem 'delayer','>= 1.0.1', '< 1.1'
+  gem 'delayer','>= 1.0.2', '< 1.1'
   gem 'delayer-deferred','>= 2.1.3', '< 2.2'
   gem 'diva','>= 1.0.2', '< 1.1'
   gem 'memoist','>= 0.16.2', '< 0.17'
