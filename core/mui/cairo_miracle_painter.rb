@@ -445,7 +445,7 @@ class Gdk::MiraclePainter < Gtk::Object
     pm = Gdk::Pixmap.new(nil, width, height, color)
     render_to_context pm.create_cairo_context
     pm
-  rescue exc => Cairo::InvalidSize
+  rescue Cairo::InvalidSize => exc
     error 'Cairo::InvalidSize: width=%{width} height=%{height} message=%{perma_link}' % {
       width: width,
       height: height,
