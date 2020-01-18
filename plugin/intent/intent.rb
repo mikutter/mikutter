@@ -9,7 +9,7 @@ Plugin.create(:intent) do
 
   # _uri_ を開くことができる Model を列挙するためのフィルタ
   defevent :model_of_uri,
-           prototype: [Diva::URI, :<<]
+           prototype: [Diva::URI, Pluggaloid::COLLECT]
 
   # _model_slug_ を開くことができる Intent を列挙するためのフィルタ
   defevent :intent_select_by_model_slug,
@@ -94,12 +94,12 @@ Plugin.create(:intent) do
   # [uri] 対象となるURI
   # [token:] 親となるIntentToken
   def open_uri(uri, token: nil)
-    model_slugs = Plugin.filtering(:model_of_uri, uri.freeze, Set.new).last
+    model_slugs = collect(:model_of_uri, uri).to_a
     if model_slugs.empty?
       error "model not found to open for #{uri}"
       return
     end
-    intents = model_slugs.lazy.flat_map{|model_slug|
+    intents = model_slugs.flat_map{|model_slug|
       Plugin.filtering(:intent_select_by_model_slug, model_slug, []).last
     }
     if token
@@ -108,7 +108,7 @@ Plugin.create(:intent) do
     head = intents.first(2)
     case head.size
     when 0
-      error "intent not found to open for #{model_slugs.to_a}"
+      error "intent not found to open for #{model_slugs}"
       return
     when 1
       Plugin::Intent::IntentToken.open(

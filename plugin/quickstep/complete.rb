@@ -99,7 +99,7 @@ module Plugin::Quickstep
     end
 
     def add_uri_or_models(uri)
-      model_slugs = Plugin.filtering(:model_of_uri, uri.freeze, Set.new).last
+      model_slugs = Plugin.collect(:model_of_uri, uri).to_a
       if model_slugs.empty?
         force_add_uri(uri)
       else

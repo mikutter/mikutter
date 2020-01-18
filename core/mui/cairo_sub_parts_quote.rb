@@ -31,9 +31,7 @@ class Gdk::SubPartsQuote < Gdk::SubPartsMessageBase
     }.select{ |u|
       u.is_a?(Diva::URI)
     }.map{ |target_uri|
-      model_class = Enumerator.new{ |y|
-        Plugin.filtering(:model_of_uri, target_uri, y)
-      }.lazy.map{ |model_slug|
+      model_class = Plugin.collect(:model_of_uri, target_uri).lazy.map{ |model_slug|
         Diva::Model(model_slug)
       }.find{ |mc|
         mc.spec.timeline

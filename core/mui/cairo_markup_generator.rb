@@ -56,9 +56,7 @@ module Gdk::MarkupGenerator
   def clickable?(model)
     has_model_intent = Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model.class.slug, y) }.first
     return true if has_model_intent
-    Enumerator.new {|y|
-      Plugin.filtering(:model_of_uri, model.uri, y)
-    }.any?{|model_slug|
+    Plugin.collect(:model_of_uri, model.uri).any?{|model_slug|
       Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model_slug, y) }.first
     }
   end
