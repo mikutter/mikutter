@@ -23,7 +23,7 @@ Plugin.create(:current_world) do
              description: _('アカウントを切り替えようとしましたが、切り替えようとしたアカウントは存在しませんでした。') + "\n\n" +
              _("切り替え先のアカウント:\n%{uri}") % {uri: new&.uri || 'nil'} + "\n\n" +
              _('現在存在するアカウント:') + "\n" +
-             Enumerator.new{|y| Plugin.filtering(:worlds, y) }.map{|w| "#{w.slug} (#{w.uri})" }.to_a.join("\n") + "\n\n" +
+             Plugin.collect(:worlds).map{|w| "#{w.slug} (#{w.uri})" }.to_a.join("\n") + "\n\n" +
              _('%{world_class}#uri を定義することでこのエラーを回避できます。詳しくは %{see} を参照してください') % {world_class: new.class, see: 'https://dev.mikutter.hachune.net/issues/1231'}
   end
 
@@ -31,7 +31,7 @@ Plugin.create(:current_world) do
   # ==== Return
   # [Diva::Model] カレントアカウント
   def current_world
-    @current ||= Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
+    @current ||= Plugin.collect(:worlds).first
   end
 
   # カレントアカウントを _new_ に変更する。
@@ -44,7 +44,7 @@ Plugin.create(:current_world) do
   # ==== Raise
   # [Plugin::World::InvalidWorldError] _worlds_ にないアカウントが渡された場合
   def current_world=(new)
-    raise Plugin::CurrentWorld::WorldNotfoundError unless Enumerator.new{|y| Plugin.filtering(:worlds, y) }.include?(new)
+    raise Plugin::CurrentWorld::WorldNotfoundError unless Plugin.collect(:worlds).include?(new)
     @current = new
   end
 

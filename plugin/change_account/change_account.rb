@@ -6,28 +6,26 @@ Plugin.create :change_account do
   # アカウント変更用の便利なコマンド
   command(:account_previous,
           name: _('前のアカウント'),
-          condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
+          condition: lambda{ |opt| Plugin.collect(:worlds).take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
+    worlds = Plugin.collect(:worlds).to_a
     index = worlds.index(opt.world)
     Plugin.call(:world_change_current, worlds[index - 1]) if index
   end
 
   command(:account_forward,
           name: _('次のアカウント'),
-          condition: lambda{ |opt| Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size == 2 },
+          condition: lambda{ |opt| Plugin.collect(:worlds).take(2).to_a.size == 2 },
           visible: true,
           role: :window) do |opt|
-    worlds = Enumerator.new{|y| Plugin.filtering(:worlds, y) }.to_a
+    worlds = Plugin.collect(:worlds).to_a
     index = worlds.index(opt.world)
     Plugin.call(:world_change_current, worlds[(index + 1) % worlds.size]) if index
   end
 
   filter_command do |menu|
-    Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.each do |world|
+    Plugin.collect(:worlds).each do |world|
       slug = "switch_account_to_#{world.slug}".to_sym
       menu[slug] = {
         slug: slug,

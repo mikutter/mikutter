@@ -47,7 +47,7 @@ Plugin.create :shortcutkey do
   end
 
   def world_by_uri(uri)
-    Enumerator.new{|y| Plugin.filtering(:worlds, y) }.find{|w| w.uri.to_s == uri }
+    Plugin.collect(:worlds).find{|w| w.uri.to_s == uri }
   end
 
 end

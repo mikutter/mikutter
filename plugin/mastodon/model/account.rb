@@ -155,7 +155,7 @@ module Plugin::Mastodon
       }.first
     end
 
-    def me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    def me?(world = Plugin.collect(:worlds))
       case world
       when Enumerable
         world.any?(&method(:me?))

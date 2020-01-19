@@ -74,9 +74,7 @@ Plugin.create(:mastodon) do
 
   # すべてのmastodon worldを返す
   filter_mastodon_worlds do
-    [Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.select{|world|
+    [Plugin.collect(:worlds).select{|world|
       world.class.slug == :mastodon
     }.to_a]
   end

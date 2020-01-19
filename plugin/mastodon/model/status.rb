@@ -351,7 +351,7 @@ module Plugin::Mastodon
     end
 
     # この投稿の投稿主のアカウントの全権限を所有していればtrueを返す
-    def from_me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    def from_me?(world = Plugin.collect(:worlds))
       account.me?(world)
     end
 
