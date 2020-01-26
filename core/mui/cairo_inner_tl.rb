@@ -6,7 +6,7 @@ require 'mui/gtk_tree_view_pretty_scroll'
 
 require 'gtk2'
 
-class Gtk::TimeLine::InnerTL < Gtk::CRUD
+class Gtk::TimeLine::InnerTL < Gtk::CompatListView
 
   include Gtk::TreeViewPrettyScroll
   include Gtk::InnerTLDarkMatterPurification

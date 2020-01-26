@@ -119,8 +119,12 @@ module Gtk::FormDSL
     container = Gtk::HBox.new(false, 0)
     input = Gtk::Entry.new
     input.text = self[config] || ""
-    container.pack_start(Gtk::Label.new(label), false, true, 0) if label
-    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    if label
+      container.pack_start(Gtk::Label.new(label), false, true, 0)
+      container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(input), true, true, 0)
+    else
+      container.pack_start(input, true, true, 0)
+    end
     input.signal_connect(:changed){ |widget|
       self[config] = widget.text
       false
@@ -264,6 +268,31 @@ module Gtk::FormDSL
     container
   end
 
+  # リストビューを表示する。
+  # ==== Args
+  # [label] ラベル
+  # [config] 設定のキー
+  # [columns:]
+  #   配列の配列で、各要素は[カラムのタイトル(String), カラムの表示文字を返すProc]
+  # [reorder:]
+  #   _true_ なら、ドラッグ＆ドロップによる並び替えを許可する
+  # [&block] 内容
+  def listview(config, columns:, edit: true, reorder: edit, object_initializer: :itself.to_proc, &generate)
+    listview = Gtk::FormDSL::ListView.new(
+      self, columns, config, object_initializer,
+      create: edit,
+      update: edit,
+      delete: edit,
+      reorder: reorder,
+      &generate)
+    pack_start(Gtk::VBox.new(false, 4).
+                 #closeup(listview.filter_entry).
+                 add(Gtk::HBox.new(false, 4).
+                       add(listview)
+                       .closeup(listview.buttons(Gtk::VBox))
+                    ))
+  end
+
   # 要素を１つ選択させる
   # ==== Args
   # [label] ラベル
@@ -272,8 +301,8 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def select(label, config, default = {}, &block)
-    builder = Gtk::FormDSL::Select.new(self, default)
+  def select(label, config, default = {}, mode: :auto, **kwrest, &block)
+    builder = Gtk::FormDSL::Select.new(self, default.merge(kwrest), mode: mode)
     builder.instance_eval(&block) if block
     closeup container = builder.build(label, config)
     container
@@ -287,10 +316,20 @@ module Gtk::FormDSL
   #   連想配列で、 _値_ => _ラベル_ の形式で、デフォルト値を与える。
   #   _block_ と同時に与えれられたら、 _default_ の値が先に入って、 _block_ は後に入る。
   # [&block] 内容
-  def multiselect(label, config, default = {}, &block)
-    builder = Gtk::FormDSL::MultiSelect.new(self, default)
+  def multiselect(label, config, default = {}, mode: :auto, &block)
+    builder = Gtk::FormDSL::MultiSelect.new(self, default, mode: mode)
     builder.instance_eval(&block) if block
     closeup container = builder.build(label, config)
+    container
+  end
+
+  def keybind(title, config)
+    keyconfig = Gtk::KeyConfig.new(title, self[config] || "")
+    container = Gtk::HBox.new(false, 0)
+    container.pack_start(Gtk::Label.new(title), false, true, 0)
+    container.pack_start(Gtk::Alignment.new(1.0, 0.5, 0, 0).add(keyconfig), true, true, 0)
+    keyconfig.change_hook = ->(modify) { self[config] = modify }
+    closeup(container)
     container
   end
 
@@ -522,3 +561,4 @@ end
 
 require 'mui/gtk_form_dsl_select'
 require 'mui/gtk_form_dsl_multi_select'
+require 'mui/gtk_form_dsl_listview'

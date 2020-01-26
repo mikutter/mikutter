@@ -14,12 +14,20 @@ Plugin.create(:intent_selector) do
   end
 
   settings(_('関連付け')) do
-    listview = Plugin::IntentSelector::IntentSelectorListView.new
-    pack_start(Gtk::VBox.new(false, 4).
-                 closeup(listview.filter_entry).
-                 add(Gtk::HBox.new(false, 4).
-                       add(listview).
-                       closeup(listview.buttons(Gtk::VBox))))
+    intents = Plugin.filtering(:intent_all, []).first.map{|i|[i.slug.to_s, i.label]}.to_h
+    models = Plugin.filtering(:retrievers, []).first.map{|s|[s[:slug].to_s,s[:name]]}.to_h.merge('' => _('（未定義）'))
+    listview(
+      :intent_selector_rules,
+      columns: [
+        [_('開く方法'), ->(record) { intents[record[:intent]] }],
+        [_('対象'),     ->(record) { models[record[:model]] }],
+        [_('条件'),     ->(record) { record[:str] }],
+      ],
+    ) do |_record|
+      select(_('開く方法'), :intent, intents)
+      select(_('対象'), :model, models)
+      input '条件', :str
+    end
   end
 
   # _model:_ または _uri:_ を開くintentを _intents_ の中から選び出し、その方法で開く。
@@ -43,65 +51,39 @@ Plugin.create(:intent_selector) do
   end
 
   def intent_choose_dialog(intents, model: nil, uri: model.uri)
-    dialog = Gtk::Dialog.new('開く - %{application_name}' % {application_name: Environment::NAME})
-    dialog.window_position = Gtk::Window::POS_CENTER
-    dialog.add_button(Gtk::Stock::OK, Gtk::Dialog::RESPONSE_OK)
-    dialog.add_button(Gtk::Stock::CANCEL, Gtk::Dialog::RESPONSE_CANCEL)
-    dialog.vbox.closeup(Gtk::Label.new("%{uri}\nを開こうとしています。どの方法で開きますか？" % {uri: uri}, false))
-    intent_token_builder = {
-      uri: uri,
-      model: model,
-      intent: nil,
-      parent: nil }
-    intents.inject(nil) do |group, intent|
-      if group
-        radio = Gtk::RadioButton.new(group, intent.label)
-      else
-        intent_token_builder[:intent] = intent
-        radio = Gtk::RadioButton.new(intent.label) end
-      radio.ssc(:toggled) do |w|
-        intent_token_builder[:intent] = intent
-        false
+    dialog(_('開く - %{application_name}') % {application_name: Environment::NAME}) do
+      set_value(
+        intent: intents.first,
+        save_uri: uri.to_s,
+      )
+      label "%{uri}\nを開こうとしています。どの方法で開きますか？" % {uri: uri}
+      select nil, :intent, mode: :radio do
+        intents.each do |intent|
+          option intent, intent.label
+        end
       end
-      radio.ssc(:activate) do |w|
-        intent_token_builder[:intent] = intent
-        dialog.signal_emit(:response, Gtk::Dialog::RESPONSE_OK)
-        false
+      multiselect(_('関連付け'), :save_flag) do
+        option :save, _('次回から、次の内容から始まるURLはこの方法で開く') do
+          input nil, :save_uri
+        end
       end
-      dialog.vbox.closeup(radio)
-      group || radio
-    end
-    saving_rule_checkbox(dialog, intent_token_builder, specified_model_slug(model))
-    dialog.ssc(:response) do |w, response_id|
-      if response_id == Gtk::Dialog::RESPONSE_OK and intent_token_builder[:intent]
-        Plugin::Intent::IntentToken.open(**intent_token_builder)
+    end.next do |response|
+      if response[:intent]
+        Plugin::Intent::IntentToken.open(
+          uri: uri,
+          model: model,
+          intent: response[:intent],
+          parent: nil
+        )
+        if response[:save_flag].include?(:save)
+          add_intent_rule(
+            intent: response[:intent],
+            str: response.save_uri,
+            rule: 'start',
+            model_slug: specified_model_slug(model))
+        end
       end
-      w.destroy
-      false
     end
-    dialog.show_all
-  end
-
-  def saving_rule_checkbox(dialog, intent_token_builder, model_slug)
-    save_check = Gtk::CheckButton.new(_('次回から、次の内容から始まるURLはこの方法で開く'))
-    rule = Gtk::Entry.new.set_text(intent_token_builder[:uri].to_s)
-    rule.sensitive = false
-    save_check.ssc(:toggled) do |widget|
-      rule.sensitive = widget.active?
-      false
-    end
-    dialog.ssc(:response) do |w, response_id|
-      if response_id == Gtk::Dialog::RESPONSE_OK and intent_token_builder[:intent] and save_check.active?
-        add_intent_rule(intent: intent_token_builder[:intent],
-                        str: rule.text,
-                        rule: 'start',
-                        model_slug: model_slug)
-      end
-      false
-    end
-    dialog.vbox.
-      closeup(save_check).
-      closeup(rule)
   end
 
   def add_intent_rule(intent:, str:, rule:, model_slug:)
