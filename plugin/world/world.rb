@@ -73,7 +73,7 @@ Plugin.create(:world) do
   # ==== Args
   # [new] 追加するアカウント(Diva::Model)
   def register_world(new)
-    return if target.is_a?(Plugin::World::LostWorld)
+    return if new.is_a?(Plugin::World::LostWorld)
     Plugin::World::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
     @worlds = nil
     Plugin.call(:world_after_created, new)
