@@ -4,6 +4,7 @@ require 'mui/gtk_hierarchycal_selectbox'
 
 require_relative 'model/setting'
 require_relative 'option_widget'
+require_relative 'datasource_select_box'
 
 require 'observer'
 
@@ -63,14 +64,14 @@ class  Plugin::Extract::EditWindow < Gtk::Window
     @extract.icon end
 
   def source_widget
-    datasources = (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, source_name|
-      [id, source_name.is_a?(String) ? source_name.split('/'.freeze) : source_name] end
-    datasources_box = Gtk::HierarchycalSelectBox.new(datasources, sources){
-      modify_value sources: datasources_box.selected.to_a }
-    scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
-    @source_widget ||= Gtk::HBox.new().
-      add(datasources_box).
-      closeup(scrollbar) end
+    @source_widget ||= Gtk::HBox.new.tap do |source_widget|
+      datasources_box = Plugin::Extract::DatasourceSelectBox.new(sources) do
+        modify_value(sources: datasources_box.selected.to_a)
+      end
+      scrollbar = ::Gtk::VScrollbar.new(datasources_box.vadjustment)
+      source_widget.add(datasources_box).closeup(scrollbar)
+    end
+  end
 
   def condition_widget
     @condition_widget ||= Gtk::VBox.new().
