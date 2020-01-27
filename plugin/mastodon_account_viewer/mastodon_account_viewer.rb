@@ -252,7 +252,7 @@ Plugin.create(:mastodon_account_viewer) do
     Plugin::Mastodon::API.get_local_account_id(world, user).next{ |account_id|
       Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token).next{ |res|
         if res.value
-          tl << pm::Status.build(world.domain, res.value)
+          tl << Plugin::Mastodon::Status.build(world.domain, res.value)
         end
       }
     }.terminate
