@@ -48,9 +48,7 @@ module Plugin::Quickstep
     def input_change_event(widget)
       @col_kind.set_fixed_width(self.window.geometry[2] * 0.25)
       tree_model = self.model = gen_store
-      Enumerator.new { |y|
-        Plugin.filtering(:quickstep_query, widget.text.freeze, y)
-      }.deach { |detected|
+      Plugin.collect(:quickstep_query, widget.text.freeze, Pluggaloid::COLLECT).deach { |detected|
         tree_model.add_model(detected)
       }.trap { |err|
         error err
