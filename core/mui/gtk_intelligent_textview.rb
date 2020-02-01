@@ -196,10 +196,10 @@ class Gtk::IntelligentTextview < Gtk::TextView
           offset += 1 end } } end
 
   def clickable?(model)
-    has_model_intent = Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model.class.slug, y) }.first
+    has_model_intent = Plugin.collect(:intent_select_by_model_slug, model.class.slug, Pluggaloid::COLLECT).first
     return true if has_model_intent
-    Plugin.collect(:model_of_uri, model.uri).any?{|model_slug|
-      Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model_slug, y) }.first
-    }
+    Plugin.collect(:model_of_uri, model.uri).any? do |model_slug|
+      Plugin.collect(:intent_select_by_model_slug, model_slug, Pluggaloid::COLLECT).first
+    end
   end
 end

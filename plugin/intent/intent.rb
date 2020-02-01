@@ -13,7 +13,7 @@ Plugin.create(:intent) do
 
   # _model_slug_ を開くことができる Intent を列挙するためのフィルタ
   defevent :intent_select_by_model_slug,
-           prototype: [Symbol, :<<]
+           prototype: [Symbol, Pluggaloid::COLLECT]
 
   # 第二引数のリソースを、第一引数のIntentのうちどれで開くかを決められなかった時に発生する。
   # intent_selectorプラグインがこれを受け取ってダイアログとか出す
@@ -99,9 +99,9 @@ Plugin.create(:intent) do
       error "model not found to open for #{uri}"
       return
     end
-    intents = model_slugs.flat_map{|model_slug|
-      Plugin.filtering(:intent_select_by_model_slug, model_slug, []).last
-    }
+    intents = model_slugs.flat_map do |model_slug|
+      Plugin.collect(:intent_select_by_model_slug, model_slug)
+    end
     if token
       intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
     end
@@ -127,7 +127,7 @@ Plugin.create(:intent) do
   # ==== Args
   # [model] 対象となるDiva::Model
   def open_model(model, token: nil)
-    intents = Plugin.filtering(:intent_select_by_model_slug, model.class.slug, Set.new).last
+    intents = Plugin.collect(:intent_select_by_model_slug, model.class.slug).lazy
     if token
       intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
     end
