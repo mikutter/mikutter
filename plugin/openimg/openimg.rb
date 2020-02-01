@@ -24,7 +24,7 @@ Plugin.create :openimg do
 
   # 画像を取得できるURLの条件とその方法を配列で返す
   defevent :openimg_image_openers,
-           prototype: [Array]
+           prototype: [Pluggaloid::COLLECT]
 
   # 画像を新しいウィンドウで開く
   defevent :openimg_open,
@@ -32,10 +32,10 @@ Plugin.create :openimg do
            prototype: [String, Diva::Model]
 
   defdsl :defimageopener do |name, condition, &proc|
-    opener = Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze
-    filter_openimg_image_openers do |openers|
-      openers << opener
-      [openers] end end
+    collection :openimg_image_openers do |mutation|
+      mutation.add(Plugin::Openimg::ImageOpener.new(name.freeze, condition, proc).freeze)
+    end
+  end
 
   filter_openimg_pixbuf_from_display_url do |photo, loader, thread|
     loader = GdkPixbuf::PixbufLoader.new
@@ -44,9 +44,7 @@ Plugin.create :openimg do
 
   filter_openimg_raw_image_from_display_url do |display_url, content|
     unless content
-      content = Enumerator.new{|y|
-        Plugin.filtering(:openimg_image_openers, y)
-      }.lazy.select{ |opener|
+      content = Plugin.collect(:openimg_image_openers).lazy.select{ |opener|
         opener.condition === display_url
       }.map{ |opener|
         opener.open.(display_url)

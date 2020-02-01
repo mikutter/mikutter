@@ -9,8 +9,8 @@ module Plugin::Openimg
 
     handle ->uri{
       uri_str = uri.to_s
-      openers = Plugin.filtering(:openimg_image_openers, Set.new).first
-      openers.any?{ |opener| opener.condition === uri_str } if !openers.empty?
+      openers = Plugin.collect(:openimg_image_openers)
+      openers.any?{ |opener| opener.condition === uri_str } if !openers.first(1).empty?
     } do |uri|
       new(perma_link: uri)
     end
