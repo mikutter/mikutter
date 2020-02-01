@@ -135,14 +135,11 @@ class Plugin::GUI::Timeline
   end
 
   # このタイムライン内の _message_ を繰り返し処理する
-  def each
-    enum = Enumerator.new do |y|
-      Plugin.filtering(:gui_timeline_each_messages, self, y)
-    end.lazy
-    return enum unless block_given?
-
-    enum.each do |m|
-      yield m
+  def each(&block)
+    if block
+      Plugin.collect(:gui_timeline_each_messages, self).each(&block)
+    else
+      Plugin.collect(:gui_timeline_each_messages, self)
     end
   end
 
