@@ -36,8 +36,7 @@ class Plugin::GUI::Window
     when Diva::Model
       @icon = icon
     when String, URI, Addressable::URI, Diva::URI
-      _, photos = Plugin.filtering(:photo_filter, icon, [])
-      @icon = photos.first || Skin[:notfound]
+      @icon = Plugin.collect(:photo_filter, icon, Pluggaloid::COLLECT).first || Skin[:notfound]
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end

@@ -401,9 +401,7 @@ module Gtk::FormDSL
         when Diva::Model
           value.pixbuf(width: 48, height: 48)
         else
-          Enumerator.new{ |y|
-            Plugin.filtering(:photo_filter, value, y)
-          }.first.pixbuf(width: 48, height: 48) rescue nil
+          Plugin.collect(:photo_filter, value, Pluggaloid::COLLECT).first.pixbuf(width: 48, height: 48) rescue nil
         end
       }
     )
@@ -490,7 +488,7 @@ module Gtk::FormDSL
   end
 
   def fs_photo_thumbnail(path)
-    Enumerator.new{|y| Plugin.filtering(:photo_filter, path, y) }.first
+    Plugin.collect(:photo_filter, path, Pluggaloid::COLLECT).first
   end
 
   def gen_fileselect_dialog_generator(title, action, dir, config:, shortcuts: [], filters: {}, use_preview: false, &result_callback)

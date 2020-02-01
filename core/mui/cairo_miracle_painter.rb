@@ -572,9 +572,7 @@ class Gdk::MiraclePainter < Gtk::Object
 
   class << self
     def gb_foot
-      @gb_foot ||= Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, y)
-      }.first
+      @gb_foot ||= Plugin.collect(:photo_filter, Cairo::SpecialEdge::FOOTER_URL, Pluggaloid::COLLECT).first
     end
   end
 

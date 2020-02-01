@@ -9,17 +9,13 @@ module Diva::Model::UserMixin
   end
 
   def icon
-    Enumerator.new{|y|
-      Plugin.filtering(:photo_filter, profile_image_url, y)
-    }.map{|photo|
+    Plugin.collect(:photo_filter, profile_image_url, Pluggaloid::COLLECT).map { |photo|
       Plugin.filtering(:miracle_icon_filter, photo)[0]
     }.first
   end
 
   def icon_large
-    Enumerator.new{|y|
-      Plugin.filtering(:photo_filter, profile_image_url_large, y)
-    }.map{|photo|
+    Plugin.collect(:photo_filter, profile_image_url_large, Pluggaloid::COLLECT).lazy.map { |photo|
       truth = Plugin.filtering(:miracle_icon_filter, photo)[0]
       if photo == truth
         truth

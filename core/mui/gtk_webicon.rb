@@ -31,9 +31,7 @@ module Gtk
       when GdkPixbuf::Pixbuf
         super(url)
       else
-        photo = Enumerator.new{|y|
-          Plugin.filtering(:photo_filter, url, y)
-        }.first
+        photo = Plugin.collect(:photo_filter, url, Pluggaloid::COLLECT).first
         super(load_model(photo || Skin[:notfound], rect))
       end
     end

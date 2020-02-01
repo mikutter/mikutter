@@ -14,7 +14,7 @@ module Plugin::Mastodon
     end
 
     memoize def inline_photo
-      Enumerator.new{|y| Plugin.filtering(:photo_filter, static_url, y) }.first
+      Plugin.collect(:photo_filter, static_url, Pluggaloid::COLLECT).first
     end
 
     def path

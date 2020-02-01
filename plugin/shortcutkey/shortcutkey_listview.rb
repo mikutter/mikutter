@@ -332,7 +332,7 @@ module Plugin::Shortcutkey
         when Diva::Model
           icon
         when String, URI, Addressable::URI, Diva::URI
-          Enumerator.new {|y| Plugin.filtering(:photo_filter, icon, y) }.first
+          Plugin.collect(:photo_filter, icon, Pluggaloid::COLLECT).first
         end
       end
 

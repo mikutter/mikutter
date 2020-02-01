@@ -78,8 +78,7 @@ module Plugin::GUI::TabLike
     when Diva::Model
       icon
     when String, URI, Addressable::URI, Diva::URI
-      _, photos = Plugin.filtering(:photo_filter, icon, [])
-      photos.first || Skin[:notfound]
+      Plugin.collect(:photo_filter, icon, Pluggaloid::COLLECT).first || Skin[:notfound]
     else
       raise RuntimeError, "Unexpected class `#{icon.class}'."
     end
