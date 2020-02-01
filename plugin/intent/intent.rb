@@ -94,16 +94,16 @@ Plugin.create(:intent) do
   # [uri] 対象となるURI
   # [token:] 親となるIntentToken
   def open_uri(uri, token: nil)
-    model_slugs = collect(:model_of_uri, uri).to_a
-    if model_slugs.empty?
+    model_slugs = collect(:model_of_uri, uri).lazy
+    if model_slugs.first(1).empty?
       error "model not found to open for #{uri}"
       return
     end
     intents = model_slugs.flat_map do |model_slug|
-      Plugin.collect(:intent_select_by_model_slug, model_slug)
+      Plugin.collect(:intent_select_by_model_slug, model_slug).to_a
     end
     if token
-      intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
+      intents = intents.reject { |intent| token.intent_ancestors.include?(intent) }
     end
     head = intents.first(2)
     case head.size
@@ -129,7 +129,7 @@ Plugin.create(:intent) do
   def open_model(model, token: nil)
     intents = Plugin.collect(:intent_select_by_model_slug, model.class.slug).lazy
     if token
-      intents = intents.reject{|intent| token.intent_ancestors.include?(intent) }
+      intents = intents.reject { |intent| token.intent_ancestors.include?(intent) }
     end
     head = intents.first(2)
     case head.size
