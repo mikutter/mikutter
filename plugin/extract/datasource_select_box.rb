@@ -13,8 +13,8 @@ class Plugin::Extract::DatasourceSelectBox < Gtk::HierarchycalSelectBox
 
   def menu_pop(widget, _event)
     contextmenu = Gtk::ContextMenu.new
-    contextmenu.register(_('データソース slugをコピー'), &method(:copy_slug))
-    contextmenu.register(_('subscriberをコピー'), &method(:copy_subscriber))
+    contextmenu.register(Plugin[:extract]._('データソース slugをコピー'), &method(:copy_slug))
+    contextmenu.register(Plugin[:extract]._('subscriberをコピー'), &method(:copy_subscriber))
     contextmenu.popup(widget, widget)
   end
 
