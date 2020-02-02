@@ -17,20 +17,20 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo = Plugin.collect(:photo_filter, url).first
   #   photo.load_pixbuf(width: width, height: height, &load_callback)
   def pixbuf(url, width, height = nil, &load_callback)
     if width.respond_to?(:width) and width.respond_to?(:height)
       width, height = width.width, width.height
     end
     if load_callback
-      Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, url, y)
-      }.first.load_pixbuf(width: width, height: height, &load_callback)
+      Plugin.collect(:photo_filter, url, Pluggaloid::COLLECT)
+        .first
+        .load_pixbuf(width: width, height: height, &load_callback)
     else
-      Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, url, y)
-      }.first.pixbuf(width: width, height: height)
+      Plugin.collect(:photo_filter, url, Pluggaloid::COLLECT)
+        .first
+        .pixbuf(width: width, height: height)
     end
   rescue => err
     warn err
@@ -53,7 +53,7 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo = Plugin.collect(:photo_filter, url).first
   #   photo.download.next(&load_callback).trap{|exception|
   #     # ダウンロードに失敗した時に呼ばれる
   #   }
@@ -77,7 +77,7 @@ module Gdk::WebImageLoader
   # mikutter 3.5から、このメソッドはDeprecateです。
   # 今後は、次のようなコードを書いてください。
   # ==== Example
-  #   photo = Plugin.filtering(:photo_filter, url, []).last.first
+  #   photo = Plugin.collect(:photo_filter, url).first
   #   photo.download
   def get_raw_data_d(url)
     Enumerator.new{|y|

@@ -91,7 +91,7 @@ class Gtk::MikutterWindow < Gtk::Window
     when :always
       true
     when :auto
-      !!Enumerator.new{|y| Plugin.filtering(:worlds, y) }.first
+      !!Plugin.collect(:worlds).first
     else
       false
     end

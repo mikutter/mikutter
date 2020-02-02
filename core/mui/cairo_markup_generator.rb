@@ -54,13 +54,11 @@ module Gdk::MarkupGenerator
   end
 
   def clickable?(model)
-    has_model_intent = Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model.class.slug, y) }.first
+    has_model_intent = Plugin.collect(:intent_select_by_model_slug, model.class.slug, Pluggaloid::COLLECT).first
     return true if has_model_intent
-    Enumerator.new {|y|
-      Plugin.filtering(:model_of_uri, model.uri, y)
-    }.any?{|model_slug|
-      Enumerator.new {|y| Plugin.filtering(:intent_select_by_model_slug, model_slug, y) }.first
-    }
+    Plugin.collect(:model_of_uri, model.uri).any? do |model_slug|
+      Plugin.collect(:intent_select_by_model_slug, model_slug, Pluggaloid::COLLECT).first
+    end
   end
 
   # Entityを適用したあとのプレーンテキストを返す。

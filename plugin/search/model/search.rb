@@ -16,9 +16,7 @@ module Plugin::Search
     end
 
     def self.find_world(uri)
-      Enumerator.new { |y|
-        Plugin.filtering(:worlds, y)
-      }.lazy.map { |w|
+      Plugin.collect(:worlds).lazy.map { |w|
         w.slug.to_s
       }.find(CGI.unescape(uri.host))
     end

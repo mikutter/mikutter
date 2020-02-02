@@ -7,6 +7,20 @@ require_relative 'model/lost_world'
 require 'digest/sha1'
 
 Plugin.create(:world) do
+  # 登録されている全てのWorldを列挙する。
+  # 次のような方法で、Enumeratorを取得できる。
+  # ==== Example
+  # collect(:worlds)
+  defevent :worlds, prototype: [Pluggaloid::COLLECT]
+
+  # 新たなアカウント _1_ を追加する
+  defevent :world_create, prototype: [Diva::Model]
+
+  # アカウント _1_ が変更された時に呼ばれる
+  defevent :world_modify, prototype: [Diva::Model]
+
+  # アカウント _1_ を削除する
+  defevent :world_destroy, prototype: [Diva::Model]
 
   world_struct = Struct.new(:slug, :name, :proc)
   @world_slug_dict = {}         # world_slug(Symbol) => World URI(Diva::URI)
@@ -17,88 +31,8 @@ Plugin.create(:world) do
     end
   end
 
-  # 登録済みアカウントを全て取得するのに使うフィルタ。
-  # 登録されているWorld Modelをyielderに格納する。
-  filter_worlds do |yielder|
-    worlds.each do |world|
-      yielder << world
-    end
-    [yielder]
-  end
-
-  # 新たなアカウント _new_ を追加する
-  on_world_create do |new|
-    register_world(new)
-  end
-
-  # アカウント _target_ が変更された時に呼ばれる
-  on_world_modify do |target|
-    modify_world(target)
-  end
-
-  # Worldのリストを、 _worlds_ の順番に並び替える。
-  on_world_reorder do |new_order|
-    store(:world_order, new_order.map(&method(:world_order_hash)))
-    atomic do
-      @worlds = worlds_sort(worlds)
-      Plugin.call(:world_reordered, @worlds)
-    end
-  end
-
-  # アカウント _target_ を削除する
-  on_world_destroy do |target|
-    destroy_world(target)
-  end
-
-  # すべてのWorld Modelを順番通りに含むArrayを返す。
-  # 各要素は、アカウントの順番通りに格納されている。
-  # 外部からこのメソッド相当のことをする場合は、 _worlds_ フィルタを利用すること。
-  # ==== Return
-  # [Array] アカウントModelを格納したArray
-  def worlds
-    if @worlds
-      @worlds
-    else
-      atomic do
-        @worlds ||= worlds_sort(load_world)
-      end
-    end
-  end
-
   def world_order
     at(:world_order) || []
-  end
-
-  # 新たなアカウントを登録する。
-  # ==== Args
-  # [new] 追加するアカウント(Diva::Model)
-  def register_world(new)
-    return if new.is_a?(Plugin::World::LostWorld)
-    Plugin::World::Keep.account_register new.slug, new.to_hash.merge(provider: new.class.slug)
-    @worlds = nil
-    Plugin.call(:world_after_created, new)
-    Plugin.call(:service_registered, new) # 互換性のため
-  rescue Plugin::World::AlreadyExistError
-    description = {
-      new_world: new.title,
-      duplicated_world: @worlds.find{|w| w.slug == new.slug }&.title,
-      world_slug: new.slug }
-    activity :system, _('既に登録されているアカウントと重複しているため、登録に失敗しました。'),
-             description: _('登録しようとしたアカウント「%{new_world}」は、既に登録されている「%{duplicated_world}」と同じ識別子「%{world_slug}」を持っているため、登録に失敗しました。') % description
-  end
-
-  def modify_world(target)
-    return if target.is_a?(Plugin::World::LostWorld)
-    if Plugin::World::Keep.accounts.has_key?(target.slug.to_sym)
-      Plugin::World::Keep.account_modify target.slug, target.to_hash.merge(provider: target.class.slug)
-      @worlds = nil
-    end
-  end
-
-  def destroy_world(target)
-    Plugin::World::Keep.account_destroy target.slug
-    @worlds = nil
-    Plugin.call(:service_destroyed, target) # 互換性のため
   end
 
   def load_world
@@ -140,5 +74,48 @@ Plugin.create(:world) do
 
   def world_order_hash(world)
     Digest::SHA1.hexdigest("#{world.slug}mikutter")
+  end
+
+  collection(:worlds) do |mutation|
+    mutation.rewind { |_| worlds_sort(load_world) }
+
+    on_world_create do |new|
+      return if new.is_a?(Plugin::World::LostWorld)
+      Plugin::World::Keep.account_register(new.slug, { **new.to_hash, provider: new.class.slug })
+      mutation.rewind { |_| worlds_sort(load_world) }
+      Plugin.call(:world_after_created, new)
+      Plugin.call(:service_registered, new) # 互換性のため
+    rescue Plugin::World::AlreadyExistError
+      description = {
+        new_world: new.title,
+        duplicated_world: collect(:worlds).find{|w| w.slug == new.slug }&.title,
+        world_slug: new.slug }
+      activity :system, _('既に登録されているアカウントと重複しているため、登録に失敗しました。'),
+               description: _('登録しようとしたアカウント「%{new_world}」は、既に登録されている「%{duplicated_world}」と同じ識別子「%{world_slug}」を持っているため、登録に失敗しました。') % description
+    end
+
+    on_world_modify do |target|
+      return if target.is_a?(Plugin::World::LostWorld)
+      if Plugin::World::Keep.accounts.has_key?(target.slug.to_sym)
+        Plugin::World::Keep.account_modify(target.slug, { **target.to_hash, provider: target.class.slug })
+        mutation.rewind { |_| worlds_sort(load_world) }
+      end
+    end
+
+    on_world_destroy do |target|
+      Plugin::World::Keep.account_destroy(target.slug)
+      mutation.rewind { |_| worlds_sort(load_world) }
+      Plugin.call(:service_destroyed, target) # 互換性のため
+    end
+
+    # Worldのリストを、 _worlds_ の順番に並び替える。
+    on_world_reorder do |new_order|
+      store(:world_order, new_order.map(&method(:world_order_hash)))
+      mutation.rewind do |worlds|
+        worlds_sort(worlds).tap do |reordered|
+          Plugin.call(:world_reordered, reordered)
+        end
+      end
+    end
   end
 end

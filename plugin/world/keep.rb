@@ -5,6 +5,7 @@ require 'environment'
 require 'fileutils'
 require 'openssl'
 require 'securerandom'
+require 'json'
 
 =begin rdoc
 アカウントデータの永続化を行うユーティリティ。

@@ -56,9 +56,7 @@ Plugin.create :modelviewer do
   def cluster_initialize(model, i_cluster)
     _, cluster_kind, = i_cluster.slug.to_s.split(':', 3)
     order = at("order-#{cluster_kind}", [])
-    fragments = Enumerator.new { |y|
-      Plugin.filtering(:"modelviewer_#{model.class.slug}_fragments", y, model)
-    }.sort_by { |i_fragment|
+    fragments = Plugin.collect(:"modelviewer_#{model.class.slug}_fragments", Pluggaloid::COLLECT, model).sort_by { |i_fragment|
       _, fragment_kind, = i_fragment.slug.to_s.split(':', 3)
       order.index(fragment_kind) || Float::INFINITY
     }.to_a

@@ -64,6 +64,8 @@ end
 
 Plugin.create :extract do
   defevent :extract_receive_message, prototype: [Plugin::Extract::Setting, Pluggaloid::STREAM]
+  defevent :extract_order, prototype: [Pluggaloid::COLLECT]
+
 
   # 抽出タブオブジェクト。各キーは抽出タブslugで、値は以下のようなオブジェクト
   # name :: タブの名前
@@ -133,9 +135,8 @@ Plugin.create :extract do
   defdsl :defextractorder do |slug, name:, &block|
     slug = slug.to_sym
     name = name.to_s.freeze
-    filter_extract_order do |orders|
-      orders << Plugin::Extract::Order.new(slug, name, block)
-      [orders]
+    collection(:extract_order) do |mutation|
+      mutation.add(Plugin::Extract::Order.new(slug, name, block))
     end
   end
 

@@ -78,9 +78,7 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_start_all_streams do
-    worlds, = Plugin.filtering(:mastodon_worlds, nil)
-
-    worlds.each do |world|
+    Plugin.collect(:mastodon_worlds).each do |world|
       Thread.new {
         world.update_mutes!
       }.next {
@@ -364,9 +362,7 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   def stream_world(domain, access_token)
-    Enumerator.new{|y|
-      Plugin.filtering(:mastodon_worlds, nil).first
-    }.lazy.select{|world|
+    Plugin.collect(:mastodon_worlds).lazy.select{|world|
       world.domain == domain && world.access_token == access_token
     }.first
   end

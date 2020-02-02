@@ -32,9 +32,7 @@ module ::Plugin::ChangeAccount
     private
 
     def content_initialize
-      Enumerator.new{|y|
-        Plugin.filtering(:worlds, y)
-      }.each(&method(:add_column))
+      Plugin.collect(:worlds).each(&method(:add_column))
     end
 
     def add_column(world)

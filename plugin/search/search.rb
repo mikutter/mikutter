@@ -8,7 +8,7 @@ Plugin.create :search do
 
   filter_quickstep_query do |query, yielder|
     if /\S/.match?(query)
-      Enumerator.new { |y| Plugin.filtering(:worlds, y) }.each do |world|
+      Plugin.collect(:worlds).each do |world|
         if search?(world)
           yielder << Plugin::Search::Search.new(query: query, world: world)
         end

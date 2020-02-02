@@ -148,14 +148,12 @@ module Plugin::Mastodon
     end
 
     def icon
-      Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, avatar_static, y)
-      }.lazy.map{|photo|
+      Plugin.collect(:photo_filter, avatar_static, Pluggaloid::COLLECT).lazy.map { |photo|
         Plugin.filtering(:miracle_icon_filter, photo)[0]
       }.first
     end
 
-    def me?(world = Enumerator.new{|y| Plugin.filtering(:worlds, y) })
+    def me?(world = Plugin.collect(:worlds))
       case world
       when Enumerable
         world.any?(&method(:me?))

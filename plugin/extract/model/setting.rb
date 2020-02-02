@@ -41,9 +41,7 @@ module Plugin::Extract
     end
 
     def find_ordering_obj
-      Enumerator.new{|y|
-        Plugin.filtering(:extract_order, y)
-      }.find{|o| o.slug == order }
+      Plugin.collect(:extract_order).find { |o| o.slug == order }
     end
 
     def sexp

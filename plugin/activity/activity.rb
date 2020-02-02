@@ -192,9 +192,7 @@ Plugin.create(:activity) do
       when Diva::Model, nil, false
       # nothing to do
       else
-        params[:icon] = Enumerator.new{|y|
-          Plugin.filtering(:photo_filter, params[:icon], y)
-        }.first
+        params[:icon] = Plugin.collect(:photo_filter, params[:icon], Pluggaloid::COLLECT).first
       end
       activity_view.scroll_to_zero_lator! if activity_view.realized? and activity_view.vadjustment.value == 0.0
       model = Plugin::Activity::Activity.new(params)

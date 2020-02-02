@@ -25,9 +25,7 @@ class Gtk::WorldShifter < Gtk::EventBox
 
   def open_menu(event)
     @menu ||= Gtk::Menu.new.tap do |menu|
-      Enumerator.new{|y|
-        Plugin.filtering(:worlds, y)
-      }.each do |world|
+      Plugin.collect(:worlds).each do |world|
         item = Gtk::ImageMenuItem.new(world.title, false)
         item.set_image Gtk::WebIcon.new(world.icon, UserConfig[:gtk_accountbox_geometry], UserConfig[:gtk_accountbox_geometry])
         item.ssc(:activate) { |w|
@@ -87,7 +85,7 @@ class Gtk::WorldShifter < Gtk::EventBox
     when :always
       true
     when :auto
-      1 < Enumerator.new{|y| Plugin.filtering(:worlds, y) }.take(2).to_a.size
+      1 < Plugin.collect(:worlds).take(2).to_a.size
     else
       false
     end

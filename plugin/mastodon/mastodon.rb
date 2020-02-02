@@ -48,7 +48,7 @@ Plugin.create(:mastodon) do
 
   followings_updater = -> do
     activity(:mastodon_followings_update, _('自分のプロフィールやフォロー関係を取得しています...'))
-    Plugin.filtering(:mastodon_worlds, nil).first.to_a.each do |world|
+    Plugin.collect(:mastodon_worlds).each do |world|
       Delayer::Deferred.when(
         world.update_account,
         world.blocks,
@@ -70,15 +70,15 @@ Plugin.create(:mastodon) do
 
   # world系
 
-  defevent :mastodon_worlds, prototype: [NilClass]
-
   # すべてのmastodon worldを返す
-  filter_mastodon_worlds do
-    [Enumerator.new{|y|
-      Plugin.filtering(:worlds, y)
-    }.select{|world|
+  defevent :mastodon_worlds, prototype: [Pluggaloid::COLLECT]
+
+  collection(:mastodon_worlds) do |mutation|
+    subscribe(:worlds__add).select { |world|
       world.class.slug == :mastodon
-    }.to_a]
+    }.each(&mutation.method(:add))
+
+    subscribe(:worlds__delete).each(&mutation.method(:delete))
   end
 
   defevent :mastodon_current, prototype: [NilClass]
@@ -87,8 +87,7 @@ Plugin.create(:mastodon) do
   filter_mastodon_current do
     world, = Plugin.filtering(:world_current, nil)
     unless mastodon?(world)
-      worlds, = Plugin.filtering(:mastodon_worlds, nil)
-      world = worlds.first
+      world = Plugin.collect(:mastodon_worlds).first
     end
     [world]
   end
@@ -172,16 +171,12 @@ Plugin.create(:mastodon) do
   # world削除
   on_world_destroy do |world|
     if world.class.slug == :mastodon
-      Delayer.new {
-        worlds = Plugin.filtering(:mastodon_worlds, nil).first
-        # 他のworldで使わなくなったものは削除してしまう。
-        # filter_worldsから削除されるのはココと同様にon_world_destroyのタイミングらしいので、
-        # この時点では削除済みである保証はなく、そのためworld.slugで判定する必要がある（はず）。
-        unless worlds.any?{|w| w.slug != world.slug && w.domain != world.domain }
+      Delayer.new do
+        unless Plugin.collect(:mastodon_worlds).any? { |w| w.slug != world.slug && w.domain != world.domain }
           Plugin.call(:mastodon_delete_instance, world.domain)
         end
         Plugin.call(:mastodon_remove_auth_stream, world)
-      }
+      end
     end
   end
 

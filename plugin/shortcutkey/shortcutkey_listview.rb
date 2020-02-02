@@ -98,8 +98,7 @@ module Plugin::Shortcutkey
 
     def worlds_dict_slug_to_name
       Hash[
-        Enumerator.new {|y| Plugin.filtering(:worlds, y) }
-          .map {|x| [x.uri, x.title] }
+        Plugin.collect(:worlds).map {|x| [x.uri, x.title] }
       ]
     end
 
@@ -252,7 +251,7 @@ module Plugin::Shortcutkey
 
     def world_selections(key: :itself, value: :itself)
       Hash[[[:current, @plugin._('カレントアカウント')],
-            *Enumerator.new {|y| Plugin.filtering(:worlds, y) }.map { |w|
+            *Plugin.collect(:worlds).map { |w|
               [key.to_proc.call(w), value.to_proc.call(w)]
             }]]
     end
@@ -333,7 +332,7 @@ module Plugin::Shortcutkey
         when Diva::Model
           icon
         when String, URI, Addressable::URI, Diva::URI
-          Enumerator.new {|y| Plugin.filtering(:photo_filter, icon, y) }.first
+          Plugin.collect(:photo_filter, icon, Pluggaloid::COLLECT).first
         end
       end
 

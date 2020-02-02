@@ -44,7 +44,7 @@ Plugin.create(:mastodon_account_viewer) do
     arrow_size = Gdk::Rectangle.new(0, 0, 16, 16)
     container = ::Gtk::VBox.new(false, 4)
 
-    Plugin.filtering(:mastodon_worlds, nil).first.each do |me|
+    Plugin.collect(:mastodon_worlds).each do |me|
       following = followed = blocked = false
 
       w_following_label = ::Gtk::Label.new(_("関係を取得中"))

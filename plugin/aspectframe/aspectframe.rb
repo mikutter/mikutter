@@ -79,9 +79,7 @@ Plugin.create :aspectframe do
 
   def transform(icon)
     if icon.perma_link
-      Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(icon.perma_link.to_s)[0,2].upcase}.png", y)
-      }.first
+      Plugin.collect(:photo_filter, "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(icon.perma_link.to_s)[0,2].upcase}.png", Pluggaloid::COLLECT).first
     else
       icon
     end

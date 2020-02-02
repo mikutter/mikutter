@@ -7,7 +7,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
     return nil if filename.nil?
     path = Pathname(__dir__) / 'icon' / filename
     uri = Diva::URI.new('file://' + path.to_s)
-    Plugin.filtering(:photo_filter, uri, [])[1].first
+    Plugin.collect(:photo_filter, uri, Pluggaloid::COLLECT).first
   end
 
   def filename(visibility)

@@ -5,13 +5,13 @@ module Plugin::Score
 
   def score_by_score(model, target_note=model)
     @score_cache ||= TimeLimitedStorage.new(Array, Object, 60)
-    @score_cache[[model, target_note]] ||= score_by_score_nocache(model, target_note)
+    @score_cache[[model, target_note]] ||= score_by_score_nocache(model, target_note).to_a.freeze
   end
 
   def score_by_score_nocache(model, target_note=model)
     _, _, available_score_list = Plugin.filtering(:score_filter, model, target_note, Set.new)
     selected_score = choose_best_score(available_score_list)
-    if selected_score &&  !selected_score.all? { |s| s.is_a?(Plugin::Score::TextNote) }
+    if selected_score && !selected_score.all? { |s| s.is_a?(Plugin::Score::TextNote) }
       score_expand(selected_score, model)
     elsif target_note.is_a?(Plugin::Score::TextNote)
       [target_note]
@@ -40,13 +40,11 @@ module Plugin::Score
   private
 
   def score_expand(score, model)
-    Enumerator.new do |yielder|
-      score.each do |note|
-        if note.is_a? Plugin::Score::TextNote
-          score_by_score(model, note).each(&yielder.method(:<<))
-        else
-          yielder << note
-        end
+    score.flat_map do |note|
+      if note.is_a? Plugin::Score::TextNote
+        score_by_score(model, note)
+      else
+        [note]
       end
     end
   end
