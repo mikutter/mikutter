@@ -5,7 +5,6 @@ Plugin.create(:mastodon_sse_streaming) do
   defevent :mastodon_start_stream, prototype: [String, String, String, Plugin::Mastodon::World, Integer]
 
   connections = {}
-  mutex = Thread::Mutex.new
 
   on_mastodon_start_stream do |domain, type, slug, world, list_id|
     next unless UserConfig[:mastodon_enable_streaming]
@@ -215,14 +214,12 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, opts = {}|
-    mutex.synchronize {
-      if connections.has_key? slug
-        warn "\n!!!! sse_client streaming duplicate !!!!\n"
-        thread = connections[slug][:thread]
-        connections.delete(slug)
-        thread.kill
-      end
-    }
+    if connections.has_key? slug
+      warn 'sse_client streaming duplicate'
+      thread = connections[slug][:thread]
+      connections.delete(slug)
+      thread.kill
+    end
 
     conv = []
     params.each do |key, val|
@@ -270,15 +267,13 @@ Plugin.create(:mastodon_sse_streaming) do
       Plugin.call(:mastodon_sse_connection_error, slug, e)
       next
     end
-    mutex.synchronize {
-      connections[slug] = {
-        method: method,
-        uri: uri,
-        headers: headers,
-        params: params,
-        opts: opts,
-        thread: thread,
-      }
+    connections[slug] = {
+      method: method,
+      uri: uri,
+      headers: headers,
+      params: params,
+      opts: opts,
+      thread: thread,
     }
 
   rescue => e
@@ -287,29 +282,18 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_sse_kill_connection do |slug|
-    thread = nil
-    mutex.synchronize {
-      if connections.has_key? slug
-        thread = connections[slug][:thread]
-        connections.delete(slug)
-      end
-    }
-    if thread
+    if connections.has_key? slug
+      thread = connections[slug][:thread]
+      connections.delete(slug)
       thread.kill
     end
   end
 
   on_mastodon_sse_kill_all do |event_sym|
-    threads = []
-    mutex.synchronize {
-      connections.each do |slug, hash|
-        threads << hash[:thread]
-      end
-      connections = {}
-    }
-    threads.each do |thread|
-      thread.kill
+    connections.each do |_, hash|
+      hash[:thread].kill
     end
+    connections = {}
 
     Plugin.call(event_sym) if event_sym
   end
