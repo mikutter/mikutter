@@ -8,46 +8,16 @@ Plugin.create(:mastodon_sse_streaming) do
   mutex = Thread::Mutex.new
 
   on_mastodon_start_stream do |domain, type, slug, world, list_id|
-    next if !UserConfig[:mastodon_enable_streaming]
+    next unless UserConfig[:mastodon_enable_streaming]
 
-    Thread.new {
-      sleep(rand(10))
-    }.next {
+    token = mastodon?(world) && world.access_token
 
-      token = nil
-      if mastodon?(world)
-        token = world.access_token
-      end
-
-      base_url = 'https://' + domain + '/api/v1/streaming/'
-      params = {}
-      case type
-      when 'user'
-        uri = Diva::URI.new(base_url + 'user')
-      when 'public'
-        uri = Diva::URI.new(base_url + 'public')
-      when 'public:media'
-        uri = Diva::URI.new(base_url + 'public')
-        params[:only_media] = true
-      when 'public:local'
-        uri = Diva::URI.new(base_url + 'public/local')
-      when 'public:local:media'
-        uri = Diva::URI.new(base_url + 'public/local')
-        params[:only_media] = true
-      when 'list'
-        uri = Diva::URI.new(base_url + 'list')
-        params[:list] = list_id
-      when 'direct'
-        uri = Diva::URI.new(base_url + 'direct')
-      end
-
-      headers = {}
-      if token
-        headers["Authorization"] = "Bearer " + token
-      end
-
-      Plugin.call(:mastodon_sse_create, slug, :get, uri, headers, params, { domain: domain, type: type, token: token })
-    }.terminate(_('Mastodon: SSE接続開始時にエラーが発生しました'))
+    endpoint, params = sse_params(type, list_id: list_id)
+    uri = Diva::URI.new('https://%{domain}/api/v1/streaming/%{endpoint}' % {
+                          domain:   domain,
+                          endpoint: endpoint,
+                        })
+    Plugin.call(:mastodon_sse_create, slug, :get, uri, sse_header(token: token), params, { domain: domain, type: type, token: token })
   end
 
   on_mastodon_stop_stream do |slug|
@@ -442,6 +412,28 @@ Plugin.create(:mastodon_sse_streaming) do
       UserConfig[:favorited_by_myself_age]
     else
       UserConfig[:favorited_by_anyone_age]
+    end
+  end
+
+  def sse_params(type, list_id:)
+    case type
+    when 'user', 'public', 'direct'
+      return type, {}
+    when 'public:local'
+      return 'public/local', {}
+    when 'list'
+      return 'list', {list: list_id}
+    when %r[:media\z]
+      *path, _ = type.split(':')
+      return path.join('/'), {only_media: true}
+    end
+  end
+
+  def sse_header(token:)
+    if token
+      { 'Authorization' => 'Bearer %{token}' % {token: token} }
+    else
+      {}
     end
   end
 end
