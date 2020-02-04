@@ -266,7 +266,7 @@ Plugin.create :extract do
           end
         end
         if tab.sound.is_a?(String) && FileTest.exist?(tab.sound)
-          subscribe(:gui_timeline_add_messages, tl).throttle(0.5).each do
+          subscribe(:gui_timeline_add_messages, tl).debounce(0.5).each do
             Plugin.call(:play_sound, tab.sound)
           end
         end
