@@ -4,7 +4,7 @@ class Gdk::SubPartsMastodonStatusInfo < Gdk::SubParts
   register
 
   def get_photo(filename)
-    return nil if filename.nil?
+    return nil unless filename
     path = Pathname(__dir__) / 'icon' / filename
     uri = Diva::URI.new('file://' + path.to_s)
     Plugin.collect(:photo_filter, uri, Pluggaloid::COLLECT).first

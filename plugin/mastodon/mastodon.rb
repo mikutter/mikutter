@@ -100,7 +100,7 @@ Plugin.create(:mastodon) do
   on_mastodon_update_instance do |domain|
     Thread.new {
       instance = Plugin::Mastodon::Instance.load(domain)
-      next if instance.nil? # 既存にない
+      next unless instance
 
       Plugin.call(:mastodon_restart_instance_stream, domain)
     }
@@ -201,7 +201,7 @@ Plugin.create(:mastodon) do
       domain = result[:domain_selection] == :other ? result[:domain] : result[:domain_selection]
 
       instance = await Plugin::Mastodon::Instance.add_ifn(domain).trap{ nil }
-      if instance.nil?
+      unless instance
         error_msg = _("%{domain} サーバーへの接続に失敗しました。やり直してください。") % {domain: domain}
         next
       end
@@ -228,7 +228,7 @@ Plugin.create(:mastodon) do
         result[:access_token].strip!
       end
 
-      if ((result[:authorization_code].nil? || result[:authorization_code].empty?) && (result[:access_token].nil? || result[:access_token].empty?))
+      if ((!result[:authorization_code] || result[:authorization_code].empty?) && (!result[:access_token] || result[:access_token].empty?))
         error_msg = _('認証コードを入力してください')
         next
       end
@@ -244,10 +244,10 @@ Plugin.create(:mastodon) do
                                          redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
                                          code: result[:authorization_code]
                                         )
-      if resp.nil? || resp.value.has_key?(:error)
+      if !resp || resp.value.has_key?(:error)
         label _('認証に失敗しました。') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
         await_input
-        raise (resp.nil? ? 'error has occurred at /oauth/token' : resp[:error])
+        raise (resp ? resp[:error] : 'error has occurred at /oauth/token')
       end
       token = resp[:access_token]
     else
@@ -257,7 +257,7 @@ Plugin.create(:mastodon) do
     resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
       label _('アカウント情報の取得に失敗しました') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
-      raise (resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
+      raise (resp ? resp[:error] : 'error has occurred at verify_credentials')
     end
 
     screen_name = resp[:acct] + '@' + domain

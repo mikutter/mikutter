@@ -55,7 +55,7 @@ module Plugin::Mastodon
       return @@lists[uri.to_s] if @@lists[uri.to_s]
 
       lists = API.call!(:get, domain, '/api/v1/lists', access_token)
-      if lists.nil?
+      if !lists
         warn "[mastodon] failed to get lists"
       elsif lists.value.is_a? Array
         @@lists[uri.to_s] = lists.value
@@ -69,11 +69,9 @@ module Plugin::Mastodon
       params = { limit: 80 }
       since_id = nil
       Status.clear_mutes
-      while mutes = PM::API.call!(:get, domain, '/api/v1/mutes', access_token, **params)
+      while mutes = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/mutes', access_token, **params)
         Status.add_mutes(mutes.value)
-        if mutes.header.nil? || mutes.header[:prev].nil?
-          return
-        end
+        return unless mutes.header && mutes.header[:prev]
         url = mutes.header[:prev]
         params = URI.decode_www_form(url.query).to_h.map{|k,v| [k.to_sym, v] }.to_h
         return if params[:since_id].to_i == since_id
@@ -106,15 +104,15 @@ module Plugin::Mastodon
     # ==== Return
     # [Delayer::Deferred] boost完了したら、新たに作られたstatusを返すDeferred
     def reblog(status)
-      PM::API.get_local_status_id(self, status.actual_status).next{ |status_id|
-        new_status_hash = +PM::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
-        if new_status_hash.nil? || new_status_hash.value.has_key?(:error)
+      Plugin::Mastodon::API.get_local_status_id(self, status.actual_status).next{ |status_id|
+        new_status_hash = +Plugin::Mastodon::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
+        if !new_status_hash || new_status_hash.value.has_key?(:error)
           error 'failed reblog request'
-          PM::Util.ppf new_status_hash if Mopt.error_level >= 1
+          Plugin::Mastodon::Util.ppf new_status_hash if Mopt.error_level >= 1
           return nil
         end
 
-        new_status = PM::Status.build(domain, [new_status_hash.value]).first
+        new_status = Plugin::Mastodon::Status.build(domain, [new_status_hash.value]).first
         Plugin.call(:share, new_status.user, status)
         new_status
       }
@@ -132,7 +130,7 @@ module Plugin::Mastodon
         end
         promise.call(accounts.map {|hash| Account.new hash })
       rescue Exception => e
-        PM::Util.ppf e if Mopt.error_level >= 2 # warn
+        Plugin::Mastodon::Util.ppf e if Mopt.error_level >= 2 # warn
         promise.fail("failed to get #{type}")
       end
       promise
@@ -180,7 +178,7 @@ module Plugin::Mastodon
         @@blocks[uri.to_s] = accounts.map { |hash| Account.new hash }
         promise.call(@@blocks[uri.to_s])
       rescue Exception => e
-        PM::Util.ppf e if Mopt.error_level >= 2 # warn
+        Plugin::Mastodon::Util.ppf e if Mopt.error_level >= 2 # warn
         promise.fail('failed to get blocks')
       end
       promise
@@ -191,8 +189,8 @@ module Plugin::Mastodon
     end
 
     def account_action(account, type)
-      PM::API.get_local_account_id(self, account).next{ |account_id|
-        PM::API.call(:post, domain, "/api/v1/accounts/#{account_id}/#{type}", access_token)
+      Plugin::Mastodon::API.get_local_account_id(self, account).next{ |account_id|
+        Plugin::Mastodon::API.call(:post, domain, "/api/v1/accounts/#{account_id}/#{type}", access_token)
       }
     end
 
@@ -240,16 +238,16 @@ module Plugin::Mastodon
     end
 
     def pin(status)
-      PM::API.get_local_status_id(self, status).next{ |status_id|
-        PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/pin", access_token)
+      Plugin::Mastodon::API.get_local_status_id(self, status).next{ |status_id|
+        Plugin::Mastodon::API.call(:post, domain, "/api/v1/statuses/#{status_id}/pin", access_token)
       }.next{
         status.pinned = true
       }
     end
 
     def unpin(status)
-      PM::API.get_local_status_id(self, status).next{ |status_id|
-        PM::API.call(:post, domain, "/api/v1/statuses/#{status_id}/unpin", access_token)
+      Plugin::Mastodon::API.get_local_status_id(self, status).next{ |status_id|
+        Plugin::Mastodon::API.call(:post, domain, "/api/v1/statuses/#{status_id}/unpin", access_token)
       }.next{
         status.pinned = false
       }
@@ -257,10 +255,10 @@ module Plugin::Mastodon
 
     def report_for_spam(statuses, comment)
       Deferred.when(
-        PM::API.get_local_account_id(self, statuses.first.account),
-        Deferred.when(statuses.map { |status| PM::API.get_local_status_id(self, status) })
+        Plugin::Mastodon::API.get_local_account_id(self, statuses.first.account),
+        Deferred.when(statuses.map { |status| Plugin::Mastodon::API.get_local_status_id(self, status) })
       ).next{ |account_id, spam_ids|
-        PM::API.call(:post, domain, "/api/v1/reports", access_token,
+        Plugin::Mastodon::API.call(:post, domain, "/api/v1/reports", access_token,
                      account_id: account_id,
                      status_ids: spam_ids,
                      comment: comment)
@@ -268,9 +266,9 @@ module Plugin::Mastodon
     end
 
     def update_account
-      PM::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token).next{ |resp|
+      Plugin::Mastodon::API.call(:get, domain, '/api/v1/accounts/verify_credentials', access_token).next{ |resp|
         resp[:acct] = resp[:acct] + '@' + domain
-        self.account = PM::Account.new(resp.value)
+        self.account = Plugin::Mastodon::Account.new(resp.value)
         Plugin.call(:world_modify, self)
       }
     end
@@ -286,9 +284,9 @@ module Plugin::Mastodon
       params[:note] = opts[:biography] if opts[:biography]
 
       # フォロー承認制
-      params[:locked] = opts[:locked] if !opts[:locked].nil?
+      params[:locked] = opts[:locked] if opts[:locked]
       # botアカウントであることの表明
-      params[:bot] = opts[:bot] if !opts[:bot].nil?
+      params[:bot] = opts[:bot] if opts[:bot]
       if [:privacy, :sensitive, :language].any?{|key| opts[:source] && opts[:source][key] }
         params[:source] = Hash.new
         # デフォルト公開範囲
@@ -331,9 +329,9 @@ module Plugin::Mastodon
         vs.each do |key, val|
           params[key] = val
         end
-        new_account = +PM::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
+        new_account = +Plugin::Mastodon::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
         if new_account.value
-          self.account = PM::Account.new(new_account.value)
+          self.account = Plugin::Mastodon::Account.new(new_account.value)
           Plugin.call(:world_modify, self)
         end
       }

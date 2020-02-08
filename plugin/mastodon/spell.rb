@@ -107,7 +107,7 @@ Plugin.create(:mastodon) do
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
           hash = +pm::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
-          if hash.value && hash[:error].nil?
+          if hash.value && !hash[:error]
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
           else
@@ -173,7 +173,7 @@ Plugin.create(:mastodon) do
         label error_msg if error_msg
 
         result = await_input
-        error_msg = _('コメントを入力してください。') if (result[:comment].nil? || result[:comment].empty?)
+        error_msg = _('コメントを入力してください。') if (!result[:comment] || result[:comment].empty?)
         error_msg = _('コメントが長すぎます（%{input_char_count}文字）') % {input_char_count: result[:comment].to_s.size} if result[:comment].to_s.size > 1000
         break unless error_msg
       end
@@ -305,14 +305,14 @@ Plugin.create(:mastodon) do
 
   # 投稿
   defspell(:compose, :mastodon) do |world, body:, **opts|
-    if opts[:visibility].nil?
-      opts.delete :visibility
-    else
+    if opts[:visibility]
       opts[:visibility] = opts[:visibility].to_s
+    else
+      opts.delete :visibility
     end
 
-    if opts[:sensitive].nil? && opts[:media_ids].nil? && opts[:spoiler_text].nil?
-      opts[:sensitive] = false;
+    unless opts[:sensitive] || opts[:media_ids] || opts[:spoiler_text]
+      opts[:sensitive] = false
     end
 
     world.post(message: body, **opts).next{ |result|
@@ -343,17 +343,17 @@ Plugin.create(:mastodon) do
   end
 
   defspell(:compose, :mastodon, :mastodon_status) do |world, status, body:, **opts|
-    if opts[:visibility].nil?
+    if opts[:visibility]
+      opts[:visibility] = opts[:visibility].to_s
+    else
       opts.delete :visibility
       if status.visibility == "direct"
         # 返信先がDMの場合はデフォルトでDMにする。但し呼び出し元が明示的に指定してきた場合はそちらを尊重する。
         opts[:visibility] = "direct"
       end
-    else
-      opts[:visibility] = opts[:visibility].to_s
     end
-    if opts[:sensitive].nil? && opts[:media_ids].nil? && opts[:spoiler_text].nil?
-      opts[:sensitive] = false;
+    unless opts[:sensitive] || opts[:media_ids] || opts[:spoiler_text]
+      opts[:sensitive] = false
     end
 
     world.post(to: status, message: body, **opts).next{ |result|
@@ -383,7 +383,7 @@ Plugin.create(:mastodon) do
       Plugin.call(:before_favorite, world, world.account, status)
       pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = true
       status.actual_status.favorite_accts << world.account.acct
       Plugin.call(:favorite, world, world.account, status)
@@ -404,7 +404,7 @@ Plugin.create(:mastodon) do
     pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = false
       status.actual_status.favorite_accts.delete(world.account.acct)
       Plugin.call(:favorite, world, world.account, status)
@@ -434,7 +434,7 @@ Plugin.create(:mastodon) do
     pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret.nil? || ret[:error]
+      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.reblogged = false
       reblog = status.actual_status.retweeted_statuses.find{|s|
         s.account.acct == world.user_obj.acct

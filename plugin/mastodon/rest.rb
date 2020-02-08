@@ -7,7 +7,7 @@ Plugin.create(:mastodon) do
     token = settings[slug][:token]
     params = settings[slug][:params]
 
-    if !settings[slug][:last_id].nil?
+    if settings[slug][:last_id]
       params[:since_id] = settings[slug][:last_id]
       params.delete(:limit)
     end
@@ -73,13 +73,13 @@ Plugin.create(:mastodon) do
   def request_statuses_since_previous_received(domain, path, token, params, settings_slug)
     Plugin::Mastodon::API.call(:get, domain, path, token, **params).next do |hashes|
       settings_slug[:last_time] = Time.now.to_i
-      next if hashes.nil?
+      next unless hashes
       statuses = Plugin::Mastodon::Status.build(domain, hashes.value)
       if statuses.size > 0
         settings_slug[:last_id] = statuses.map(&:id).max
       end
       # 2回目以降、limit=20いっぱいまで取れてしまった場合は続きの取得を行なう。
-      if (!settings_slug[:last_id].nil? && statuses.size == 20)
+      if (settings_slug[:last_id] && statuses.size == 20)
         request_statuses_since_previous_received(domain, path, token, {**params, since_id: settings_slug[:last_id]}, settings_slug).next{ |tail|
           [*statuses, *tail]
         }

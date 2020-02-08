@@ -77,9 +77,7 @@ module Plugin::Mastodon
       end
 
       def load(domain)
-        if UserConfig[:mastodon_instances][domain].nil?
-          nil
-        else
+        if UserConfig[:mastodon_instances][domain]
           self.new(
             domain: domain,
             client_key: UserConfig[:mastodon_instances][domain][:client_key],

@@ -83,10 +83,11 @@ module Plugin::Mastodon
     end
 
     def self.regularize_acct_by_domain(domain, acct)
-      if acct.index('@').nil?
-        acct = acct + '@' + domain
+      if acct.include?('@')
+        acct
+      else
+        "#{acct}@#{domain}"
       end
-      acct
     end
 
     def self.regularize_acct(hash)

@@ -186,7 +186,7 @@ module Plugin::Mastodon
 
       def parse_link(resp, hash)
         link = resp.header['Link'].first
-        return APIResult.new(hash) if ((!hash.is_a? Array) || link.nil?)
+        return APIResult.new(hash) if ((!hash.is_a? Array) || !link)
         header =
           link
             .split(', ')

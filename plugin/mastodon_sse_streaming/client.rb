@@ -40,7 +40,7 @@ module Plugin::MastodonSseStreaming
       last_type = nil
       while r = @records.shift
         if last_type == 'data' && r[:key] != 'data'
-          if @event.nil?
+          unless @event
             @event = ''
           end
           Plugin.call(:sse_message_type_event, @slug, @event, @data)

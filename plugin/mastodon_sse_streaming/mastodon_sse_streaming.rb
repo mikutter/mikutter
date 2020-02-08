@@ -153,10 +153,7 @@ Plugin.create(:mastodon_sse_streaming) do
   on_mastodon_restart_sse_stream do |slug|
     Thread.new {
       connection, = Plugin.filtering(:mastodon_sse_connection, slug)
-      if connection.nil?
-        # 終了済み
-        next
-      end
+      next unless connection
       Plugin.call(:mastodon_sse_kill_connection, slug)
 
       sleep(rand(3..10))
@@ -307,7 +304,7 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   def datasource_used?(slug, include_all = false)
-    return false if UserConfig[:extract_tabs].nil?
+    return false unless UserConfig[:extract_tabs]
     UserConfig[:extract_tabs].any? do |setting|
       setting[:sources].any? do |ds|
         ds == slug || include_all && ds == :mastodon_appear_toots
@@ -327,15 +324,13 @@ Plugin.create(:mastodon_sse_streaming) do
     domain = connection[:opts][:domain]
     access_token = connection[:opts][:token]
     status = Plugin::Mastodon::Status.build(domain, [payload]).first
-    return if status.nil?
+    return unless status
 
     Plugin.call(:extract_receive_message, datasource_slug, [status])
-    world = stream_world(domain, access_token)
-    Plugin.call(:update, world, [status])
+    Plugin.call(:update, stream_world(domain, access_token), [status])
     if status.reblog?
       Plugin.call(:share, status.user, status.reblog)
-      world = status.to_me_world
-      if !world.nil?
+      status.to_me_world&.yield_self do |world|
         Plugin.call(:mention, world, [status])
       end
     end
@@ -350,10 +345,9 @@ Plugin.create(:mastodon_sse_streaming) do
     case payload[:type]
     when 'mention'
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first
-      return if status.nil?
+      return unless status
       Plugin.call(:extract_receive_message, datasource_slug, [status])
-      world = status.to_me_world
-      if !world.nil?
+      status.to_me_world&.yield_self do |world|
         Plugin.call(:mention, world, [status])
       end
 
@@ -364,7 +358,7 @@ Plugin.create(:mastodon_sse_streaming) do
     when 'favourite'
       user = Plugin::Mastodon::Account.new(payload[:account])
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first
-      return if status.nil?
+      return unless status
       status.favorite_accts << user.acct
       status.set_modified(Time.now.localtime) if favorite_age?(user)
       if user && status
@@ -374,8 +368,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
     when 'follow'
       user = Plugin::Mastodon::Account.new payload[:account]
-      world = stream_world(domain, access_token)
-      if !world.nil?
+      stream_world(domain, access_token)&.yield_self do |world|
         Plugin.call(:followers_created, world, [user])
       end
 

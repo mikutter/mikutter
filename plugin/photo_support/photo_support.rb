@@ -243,7 +243,7 @@ Plugin.create :photo_support do
   defimageopener('NicoSeiga via nico.ms', %r<\Ahttps?://nico\.ms/im\d+>) do |display_url|
     connection = HTTPClient.new
     location = connection.get(display_url).header['Location'].first
-    next nil if location.nil?
+    next nil unless location
     img = Plugin::PhotoSupport.インスタ映え(location)
     URI.open(img) if img
   end
@@ -263,7 +263,7 @@ Plugin.create :photo_support do
     html = HTTPClient.new.get_content(url, [], [['User-Agent', 'mikutter']])
     m = amazon_json_regex1.match(html)
     via_data_attr = false
-    if m.nil?
+    unless m
       m = amazon_json_regex2.match(html)
       via_data_attr = true
     end
