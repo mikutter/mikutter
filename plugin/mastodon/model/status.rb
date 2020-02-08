@@ -118,7 +118,7 @@ module Plugin::Mastodon
         if record[:reblog]
           is_boost = true
 
-          boost_record = PM::Util.deep_dup(record)
+          boost_record = Plugin::Mastodon::Util.deep_dup(record)
           boost_record[:reblog] = nil
 
           record = record[:reblog]
@@ -226,7 +226,7 @@ module Plugin::Mastodon
       unless spoiler_text.empty?
         content = spoiler_text + "<br>----<br>" + content
       end
-      @description, @score = PM::Parser.dictate_score(content, mentions: mentions, emojis: emojis, media_attachments: media_attachments, poll: poll)
+      @description, @score = Plugin::Mastodon::Parser.dictate_score(content, mentions: mentions, emojis: emojis, media_attachments: media_attachments, poll: poll)
 
       self
     end

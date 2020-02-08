@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 module Plugin::Mastodon
-  PM = Plugin::Mastodon
   CLIENT_NAME = Environment::NAME
   WEB_SITE = 'https://mikutter.hachune.net/'
 end
@@ -19,7 +18,6 @@ require_relative 'rest'
 require_relative 'score'
 
 Plugin.create(:mastodon) do
-  pm = Plugin::Mastodon
 
   defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
     URI.open(url)
@@ -33,7 +31,7 @@ Plugin.create(:mastodon) do
     URI.open(url)
   end
 
-  defevent :mastodon_appear_toots, prototype: [[pm::Status]]
+  defevent :mastodon_appear_toots, prototype: [[Plugin::Mastodon::Status]]
 
   defactivity :mastodon_followings_update, _('プロフィール・フォロー関係の取得通知(Mastodon)')
 
@@ -101,7 +99,7 @@ Plugin.create(:mastodon) do
   # サーバー編集
   on_mastodon_update_instance do |domain|
     Thread.new {
-      instance = pm::Instance.load(domain)
+      instance = Plugin::Mastodon::Instance.load(domain)
       next if instance.nil? # 既存にない
 
       Plugin.call(:mastodon_restart_instance_stream, domain)
@@ -120,7 +118,7 @@ Plugin.create(:mastodon) do
 
   # world追加時用
   on_mastodon_create_or_update_instance do |domain|
-    pm::Instance.add_ifn(domain).next do
+    Plugin::Mastodon::Instance.add_ifn(domain).next do
       Plugin.call(:mastodon_restart_instance_stream, domain)
     end
   end
@@ -202,7 +200,7 @@ Plugin.create(:mastodon) do
       result = await_input
       domain = result[:domain_selection] == :other ? result[:domain] : result[:domain_selection]
 
-      instance = await pm::Instance.add_ifn(domain).trap{ nil }
+      instance = await Plugin::Mastodon::Instance.add_ifn(domain).trap{ nil }
       if instance.nil?
         error_msg = _("%{domain} サーバーへの接続に失敗しました。やり直してください。") % {domain: domain}
         next
@@ -239,13 +237,13 @@ Plugin.create(:mastodon) do
     end
 
     if result[:authorization_code]
-      resp = pm::API.call!(:post, domain, '/oauth/token',
-                           client_id: instance.client_key,
-                           client_secret: instance.client_secret,
-                           grant_type: 'authorization_code',
-                           redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
-                           code: result[:authorization_code]
-                          )
+      resp = Plugin::Mastodon::API.call!(:post, domain, '/oauth/token',
+                                         client_id: instance.client_key,
+                                         client_secret: instance.client_secret,
+                                         grant_type: 'authorization_code',
+                                         redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+                                         code: result[:authorization_code]
+                                        )
       if resp.nil? || resp.value.has_key?(:error)
         label _('認証に失敗しました。') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
         await_input
@@ -256,7 +254,7 @@ Plugin.create(:mastodon) do
       token = result[:access_token]
     end
 
-    resp = pm::API.call!(:get, domain, '/api/v1/accounts/verify_credentials', token)
+    resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/accounts/verify_credentials', token)
     if resp.nil? || resp.value.has_key?(:error)
       label _('アカウント情報の取得に失敗しました') + (resp && resp[:error] ? "：#{resp[:error]}" : '')
       raise (resp.nil? ? 'error has occurred at verify_credentials' : resp[:error])
@@ -264,8 +262,8 @@ Plugin.create(:mastodon) do
 
     screen_name = resp[:acct] + '@' + domain
     resp[:acct] = screen_name
-    account = pm::Account.new(resp.value)
-    world = pm::World.new(
+    account = Plugin::Mastodon::Account.new(resp.value)
+    world = Plugin::Mastodon::World.new(
       id: screen_name,
       slug: :"mastodon:#{screen_name}",
       domain: domain,
