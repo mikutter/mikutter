@@ -178,7 +178,6 @@ module Plugin::Mastodon
           body = query
           query = nil
         end
-        notice "Mastodon::API.call #{method.to_s} #{uri} #{headers.to_s} #{query.to_s} #{body.to_s}"
         HTTPClient.new.request(method, uri.to_s, query, body, headers)
       ensure
         files&.each(&:close)
