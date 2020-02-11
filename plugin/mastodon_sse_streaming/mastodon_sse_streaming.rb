@@ -247,19 +247,10 @@ Plugin.create(:mastodon_sse_streaming) do
       response = client.request(method, uri.to_s, query, body, headers) do |fragment|
         parser << fragment
       end
-
-      case response.status
-      when 200
-      else
+      if response.status != 200
         Plugin.call(:mastodon_sse_connection_failure, slug, response)
-        error "ServerSentEvents connection failure"
-        pp response if Mopt.error_level >= 1
-        $stdout.flush
-        next
       end
-
       Plugin.call(:mastodon_sse_connection_closed, slug)
-
     rescue => e
       Plugin.call(:mastodon_sse_connection_error, slug, e)
       next
