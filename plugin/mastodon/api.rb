@@ -30,6 +30,7 @@ module Plugin::Mastodon
   end
 
   class API
+    LINK_HEADER_MATCHER = %r<^<(.*)>; rel="(.*)"$>.freeze
     ExceptionResponse = Struct.new(:body) do
       def code
         0
@@ -106,13 +107,34 @@ module Plugin::Mastodon
         [results, headers, files]
       end
 
-      # APIアクセスを行うhttpclientのラッパメソッド
-      def call(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
-        Thread.new do
-          call!(method, domain, path, access_token, opts, headers, **params)
-        end
+      # 直接エンドポイントを指定してサーバにHTTPリクエストを行う。
+      # ==== Args
+      # [method] Symbol HTTP method. :get :post :put :patch :delete のいずれか。
+      # [domain] String サーバのドメイン
+      # [path] String エンドポイントのパス
+      # [access_token] String アクセストークン。認証不要のエンドポイントへのアクセスなら省略するかnilを指定可能
+      # [_opts] 使われていない。 TODO: 消す
+      # [headers] Array 追加で送るHTTPヘッダ。[[name, value], ...] のような形式で渡す
+      # [**params] URLのクエリ部分。
+      # ==== Return
+      # [Delayer::Deferred] HTTPレスポンスを受け取るDeferred
+      # HTTPレスポンスが2xx → 成功。APIResponseを渡す
+      # else                → 失敗。HTTPClient::Responseを渡す
+      def call(method, domain, path = nil, access_token = nil, _opts = {}, headers = [], **params)
+        Thread.new {
+          uri = domain_path_to_uri(domain, path)
+          raw_response!(method, uri, access_token, headers, **params)
+        }.next{ |response|
+          case response.status
+          when 200...300
+            parse_link(response, JSON.parse(response.content, symbolize_names: true))
+          else
+            Delayer::Deferred.fail(response)
+          end
+        }
       end
 
+      # TODO: callを使うようにしてdeprecateにする
       def call!(method, domain, path = nil, access_token = nil, opts = {}, headers = [], **params)
         uri = domain_path_to_uri(domain, path)
         resp = raw_response!(method, uri, access_token, headers, **params)
@@ -185,17 +207,16 @@ module Plugin::Mastodon
 
       def parse_link(resp, hash)
         link = resp.header['Link'].first
-        return APIResult.new(hash) if ((!hash.is_a? Array) || !link)
-        header =
+        return APIResult.new(hash) unless hash.is_a?(Array) && link
+        APIResult.new(
+          hash,
           link
             .split(', ')
-            .map do |line|
-          /^<(.*)>; rel="(.*)"$/.match(line) do |m|
-            [$2.to_sym, Diva::URI.new($1)]
-          end
-        end
+            .map(&LINK_HEADER_MATCHER.method(:match))
+            .compact
+            .map { |matched| [matched[2].to_sym, Diva::URI.new(matched[1])] }
             .to_h
-        APIResult.new(hash, header)
+        )
       end
 
       def status(domain, id)

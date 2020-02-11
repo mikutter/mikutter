@@ -71,10 +71,9 @@ Plugin.create(:mastodon) do
   end
 
   def request_statuses_since_previous_received(domain, path, token, params, settings_slug)
-    Plugin::Mastodon::API.call(:get, domain, path, token, **params).next do |hashes|
+    Plugin::Mastodon::API.call(:get, domain, path, token, **params).next do |api_response|
       settings_slug[:last_time] = Time.now.to_i
-      next unless hashes
-      statuses = Plugin::Mastodon::Status.build(domain, hashes.value)
+      statuses = Plugin::Mastodon::Status.build(domain, api_response.value)
       if statuses.size > 0
         settings_slug[:last_id] = statuses.map(&:id).max
       end

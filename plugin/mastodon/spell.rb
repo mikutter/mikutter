@@ -105,14 +105,9 @@ Plugin.create(:mastodon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = +Plugin::Mastodon::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
-          if hash.value && !hash[:error]
-            media_ids << hash[:id].to_i
-            media_urls << hash[:text_url]
-          else
-            Deferred.fail(hash[:error] ? hash[:error] : _('メディアのアップロードに失敗しました'))
-            next
-          end
+          hash = +Plugin::Mastodon::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path) # TODO: Deferred.whenを使えば複数枚同時アップロードできる
+          media_ids << hash[:id].to_i
+          media_urls << hash[:text_url]
         end
       end
       # 画像がアップロードできたらcompose spellを起動
@@ -288,7 +283,7 @@ Plugin.create(:mastodon) do
       end.next { |result|
         Plugin::Mastodon::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: Array(result[:vote]))
       }
-    }.terminate(_("投票中にエラーが発生しました"))
+    }.terminate
   end
 
 
@@ -374,7 +369,6 @@ Plugin.create(:mastodon) do
       Plugin.call(:before_favorite, world, world.account, status)
       Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = true
       status.actual_status.favorite_accts << world.account.acct
       Plugin.call(:favorite, world, world.account, status)
@@ -395,12 +389,11 @@ Plugin.create(:mastodon) do
     Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = false
       status.actual_status.favorite_accts.delete(world.account.acct)
       Plugin.call(:favorite, world, world.account, status)
       status.actual_status
-    }
+    }.terminate
   end
 
   # ブースト
@@ -425,7 +418,6 @@ Plugin.create(:mastodon) do
     Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
     }.next{ |ret|
-      Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.reblogged = false
       reblog = status.actual_status.retweeted_statuses.find{|s|
         s.account.acct == world.user_obj.acct
@@ -546,7 +538,7 @@ Plugin.create(:mastodon) do
     q = opts[:q]
     if q.start_with? '#'
       q = URI.encode_www_form_component(q[1..-1])
-      resp = Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count).next(&:to_a)
+      Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/timelines/tag/#{q}", world.access_token, limit: count).next(&:to_a)
     else
       Plugin::Mastodon::API.call(:get, world.domain, '/api/v2/search', world.access_token, q: q).next{ |resp|
         resp[:statuses]

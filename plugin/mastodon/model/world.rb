@@ -52,23 +52,15 @@ module Plugin::Mastodon
     end
 
     def get_lists
-      Thread.new do
-        get_lists!
+      Delayer::Deferred.new do
+        if @@lists[uri.to_s]
+          @@lists[uri.to_s]  # TODO: キャッシュはAPIクラスで行いたい
+        else
+          API.call(:get, domain, '/api/v1/lists', access_token).next do |lists|
+            @@lists[uri.to_s] = lists.value
+          end
+        end
       end
-    end
-
-    def get_lists!
-      return @@lists[uri.to_s] if @@lists[uri.to_s]
-
-      lists = API.call!(:get, domain, '/api/v1/lists', access_token)
-      if !lists
-        warn "[mastodon] failed to get lists"
-      elsif lists.value.is_a? Array
-        @@lists[uri.to_s] = lists.value
-      elsif lists.value.is_a?(Hash) && lists['error']
-        warn "[mastodon] failed to get lists: #{lists['error'].to_s}"
-      end
-      @@lists[uri.to_s]
     end
 
     def update_mutes!
@@ -112,12 +104,6 @@ module Plugin::Mastodon
     def reblog(status)
       Plugin::Mastodon::API.get_local_status_id(self, status.actual_status).next{ |status_id|
         new_status_hash = +Plugin::Mastodon::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
-        if !new_status_hash || new_status_hash.value.has_key?(:error)
-          error 'failed reblog request'
-          Plugin::Mastodon::Util.ppf new_status_hash if Mopt.error_level >= 1
-          return nil
-        end
-
         new_status = Plugin::Mastodon::Status.build(domain, [new_status_hash.value]).first
         Plugin.call(:share, new_status.user, status)
         new_status
@@ -336,10 +322,8 @@ module Plugin::Mastodon
           params[key] = val
         end
         new_account = +Plugin::Mastodon::API.call(:patch, domain, '/api/v1/accounts/update_credentials', access_token, **params)
-        if new_account.value
-          self.account = Plugin::Mastodon::Account.new(new_account.value)
-          Plugin.call(:world_modify, self)
-        end
+        self.account = Plugin::Mastodon::Account.new(new_account.value)
+        Plugin.call(:world_modify, self)
       }
     end
   end
