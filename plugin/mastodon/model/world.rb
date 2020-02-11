@@ -51,6 +51,12 @@ module Plugin::Mastodon
       end
     end
 
+    def get_lists
+      Thread.new do
+        get_lists!
+      end
+    end
+
     def get_lists!
       return @@lists[uri.to_s] if @@lists[uri.to_s]
 

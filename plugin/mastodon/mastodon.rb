@@ -33,6 +33,13 @@ Plugin.create(:mastodon) do
 
   defevent :mastodon_appear_toots, prototype: [[Plugin::Mastodon::Status]]
 
+  # ユーザの直接の操作によってバックグラウンド通信を行った結果、成功した時の通知
+  # （例: トゥートを投稿した、ふぁぼった等）
+  defactivity :mastodon_background_succeeded, _('Mastodonのバックグラウンド通信の成功')
+  # ユーザの直接の操作によってバックグラウンド通信を行った結果、失敗した時の通知
+  # （例: トゥートを投稿するために通信したら、サーバエラーが返ってきた等）
+  defactivity :mastodon_background_failed, _('Mastodonのバックグラウンド通信の失敗')
+
   defactivity :mastodon_followings_update, _('プロフィール・フォロー関係の取得通知(Mastodon)')
 
   filter_extract_datasources do |dss|

@@ -96,13 +96,13 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_init_auth_stream do |world|
-    Thread.new { world.get_lists! }.next { |lists|
+    world.get_lists.next { |lists|
       filter_extract_datasources do |dss|
         datasources = {
           world.datasource_slug(:home) => _("Mastodonホームタイムライン(Mastodon)/%{acct}") % {acct: world.account.acct},
           world.datasource_slug(:direct) => _("Mastodon DM(Mastodon)/%{acct}") % {acct: world.account.acct},
         }
-        lists.to_a.each do |l|
+        lists.each do |l|
           slug = world.datasource_slug(:list, l[:id])
           datasources[slug] = _("Mastodonリスト(Mastodon)/%{acct}/%{title}") % {acct: world.account.acct, title: l[:title]}
         end
@@ -117,7 +117,7 @@ Plugin.create(:mastodon_sse_streaming) do
         Plugin.call(:mastodon_start_stream, world.domain, 'direct', world.datasource_slug(:direct), world)
       end
 
-      lists.to_a.each do |l|
+      lists.each do |l|
         id = l[:id].to_i
         if datasource_used?(world.datasource_slug(:list, id))
           Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
@@ -127,26 +127,26 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_remove_auth_stream do |world|
-    slugs = []
-    slugs.push world.datasource_slug(:home)
-    slugs.push world.datasource_slug(:direct)
+    world.get_lists.next do |lists|
+      slugs = [
+        world.datasource_slug(:home),
+        world.datasource_slug(:direct),
+        *lists.map do |l|
+          world.datasource_slug(:list, l[:id].to_i)
+        end
+      ]
 
-    lists = world.get_lists!
-    lists.to_a.each do |l|
-      id = l[:id].to_i
-      slugs.push world.datasource_slug(:list, id)
-    end
-
-    slugs.each do |slug|
-      Plugin.call(:mastodon_stop_stream, slug)
-    end
-
-    # TODO: フィルタをdetachして消す
-    filter_extract_datasources do |datasources|
       slugs.each do |slug|
-        datasources.delete slug
+        Plugin.call(:mastodon_stop_stream, slug)
       end
-      [datasources]
+
+      # TODO: フィルタをdetachして消す
+      filter_extract_datasources do |datasources|
+        slugs.each do |slug|
+          datasources.delete slug
+        end
+        [datasources]
+      end
     end
   end
 

@@ -1,7 +1,6 @@
 # coding: utf-8
 
 Plugin.create(:mastodon) do
-  pm = Plugin::Mastodon
 
   def visibility2select(s)
     case s
@@ -57,7 +56,7 @@ Plugin.create(:mastodon) do
       boolean _('閲覧注意'), :sensitive
 
       visibility_default = opt.world.account.source.privacy
-      if reply_to.is_a?(pm::Status) && reply_to.visibility == "direct"
+      if reply_to.is_a?(Plugin::Mastodon::Status) && reply_to.visibility == "direct"
         # 返信先がDMの場合はデフォルトでDMにする。但し編集はできるようにするため、この時点でデフォルト値を代入するのみ。
         visibility_default = "direct"
       end
@@ -106,7 +105,7 @@ Plugin.create(:mastodon) do
       (1..4).each do |i|
         if result[:"media#{i}"]
           path = Pathname(result[:"media#{i}"])
-          hash = +pm::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
+          hash = +Plugin::Mastodon::API.call(:post, opt.world.domain, '/api/v1/media', opt.world.access_token, file: path)
           if hash.value && !hash[:error]
             media_ids << hash[:id].to_i
             media_urls << hash[:text_url]
@@ -225,43 +224,35 @@ Plugin.create(:mastodon) do
     user = opt.messages.first&.user
     next unless user
 
-    lists = opt.world.get_lists!.inject(Hash.new) do |h, l|
-      key = l[:id].to_sym
-      val = l[:title]
-      h[key] = val
-      h
-    end
-
-    pm::API.get_local_account_id(opt.world, user).next{ |user_id|
-      result = +pm::API.call(:get, opt.world.domain, "/api/v1/accounts/#{user_id}/lists", opt.world.access_token)
-      membership = result.value.to_a.inject(Hash.new) do |h, l|
-        key = l[:id].to_sym
-        val = l[:title]
-        h[key] = val
-        h
-      end
-
+    Delayer::Deferred.when(
+      opt.world.get_lists,
+      Plugin::Mastodon::API.get_local_account_id(opt.world, user)
+    ).next{ |lists, user_id|
+      old_membership_ids = Set.new(
+        (+Plugin::Mastodon::API.call(:get, opt.world.domain, "/api/v1/accounts/#{user_id}/lists", opt.world.access_token))
+          .value.map { |member| member[:id].to_sym }
+      ).freeze
 
       dialog _('リストへの追加・削除') do
-        self[:lists] = membership.keys
+        self[:lists] = old_membership_ids
         multiselect _('所属させるリストを選択してください'), :lists do
-          lists.keys.each do |k|
-            option(k, lists[k])
+          lists.each do |list|
+            option(list[:id].to_sym, list[:title])
           end
         end
       end.next do |result|
-        selected_ids = result[:lists]
-        selected_ids.each do |list_id|
-          unless membership[list_id]
-            # 追加
-            pm::API.call(:post, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id]).terminate
+        new_membership_ids = Set.new(result[:lists])
+        Delayer::Deferred.when(
+          *(new_membership_ids - old_membership_ids).map do |list_id|
+            Plugin::Mastodon::API.call(:post, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
+          end,
+          *(old_membership_ids - new_membership_ids).map do |list_id|
+            Plugin::Mastodon::API.call(:delete, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id])
           end
-        end
-        membership.keys.each do |list_id|
-          unless selected_ids.include?(list_id)
-            # 削除
-            pm::API.call(:delete, opt.world.domain, "/api/v1/lists/#{list_id}/accounts", opt.world.access_token, account_ids: [user_id]).terminate
-          end
+        ).next { |*_succeed|
+          activity(:mastodon_background_succeeded, _('リストへの追加・削除が完了しました'))
+        }.trap do |failed|
+          activity(:mastodon_background_failed, _('リストへの追加・削除が失敗しました'), exception: failed)
         end
       end
     }.terminate
@@ -275,8 +266,8 @@ Plugin.create(:mastodon) do
     m = opt.messages.first
 
     # poll idはサーバーごとに異なる。worldが所属するサーバーでの値を取得する。
-    pm::API.status_by_url(opt.world.domain, opt.world.access_token, m.uri).next{ |statuses|
-      pm::Poll.new(statuses.dig(0, :poll))
+    Plugin::Mastodon::API.status_by_url(opt.world.domain, opt.world.access_token, m.uri).next{ |statuses|
+      Plugin::Mastodon::Poll.new(statuses.dig(0, :poll))
     }.next{ |poll|
       Delayer::Deferred.fail("The poll already expired.") unless poll.expires_at >= Time.now
 
@@ -295,7 +286,7 @@ Plugin.create(:mastodon) do
           end
         end
       end.next { |result|
-        pm::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: Array(result[:vote]))
+        Plugin::Mastodon::API.call(:post, opt.world.domain, "/api/v1/polls/#{poll.id}/votes", opt.world.access_token, choices: Array(result[:vote]))
       }
     }.terminate(_("投票中にエラーが発生しました"))
   end
@@ -316,7 +307,7 @@ Plugin.create(:mastodon) do
     end
 
     world.post(message: body, **opts).next{ |result|
-      new_status = pm::Status.build(world.domain, [result.value]).first
+      new_status = Plugin::Mastodon::Status.build(world.domain, [result.value]).first
       Plugin.call(:posted, world, [new_status])
       Plugin.call(:update, world, [new_status])
       new_status
@@ -335,7 +326,7 @@ Plugin.create(:mastodon) do
       tmp_name = Digest::MD5.hexdigest(photo.uri.to_s) + ".#{ext}"
       tmp_path = media_tmp_dir / tmp_name
       file_put_contents(tmp_path, photo.blob)
-      pm::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s).next{ |hash|
+      Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/media', world.access_token, file: tmp_path.to_s).next{ |hash|
         media_id = hash[:id]
         compose(world, body: body, media_ids: [media_id], **opts)
       }
@@ -357,7 +348,7 @@ Plugin.create(:mastodon) do
     end
 
     world.post(to: status, message: body, **opts).next{ |result|
-      new_status = pm::Status.build(world.domain, [result.value]).first
+      new_status = Plugin::Mastodon::Status.build(world.domain, [result.value]).first
       Plugin.call(:posted, world, [new_status]) if new_status
       Plugin.call(:update, world, [new_status]) if new_status
       new_status
@@ -367,8 +358,8 @@ Plugin.create(:mastodon) do
   defspell(:destroy, :mastodon, :mastodon_status, condition: -> (world, status) {
              world.account.acct == status.actual_status.account.acct
            }) do |world, status|
-    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
-      pm::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
+    Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      Plugin::Mastodon::API.call(:delete, world.domain, "/api/v1/statuses/#{status_id}", world.access_token)
     }.next{
       Plugin.call(:destroyed, [status.actual_status])
       status.actual_status
@@ -379,9 +370,9 @@ Plugin.create(:mastodon) do
   defspell(:favorite, :mastodon, :mastodon_status,
            condition: -> (world, status) { !status.actual_status.favorite?(world) }
           ) do |world, status|
-    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+    Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
       Plugin.call(:before_favorite, world, world.account, status)
-      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
+      Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/favourite', world.access_token)
     }.next{ |ret|
       Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = true
@@ -401,8 +392,8 @@ Plugin.create(:mastodon) do
   end
 
   defspell(:unfavorite, :mastodon, :mastodon_status, condition: -> (world, status) { status.favorite?(world) }) do |world, status|
-    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
-      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
+    Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unfavourite', world.access_token)
     }.next{ |ret|
       Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.favourited = false
@@ -431,8 +422,8 @@ Plugin.create(:mastodon) do
   end
 
   defspell(:destroy_share, :mastodon, :mastodon_status, condition: -> (world, status) { status.actual_status.shared?(world) }) do |world, status|
-    pm::API.get_local_status_id(world, status.actual_status).next{ |status_id|
-      pm::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
+    Plugin::Mastodon::API.get_local_status_id(world, status.actual_status).next{ |status_id|
+      Plugin::Mastodon::API.call(:post, world.domain, '/api/v1/statuses/' + status_id.to_s + '/unreblog', world.access_token)
     }.next{ |ret|
       Delayer::Deferred.fail(ret) if ret&.dig(:error)
       status.actual_status.reblogged = false
