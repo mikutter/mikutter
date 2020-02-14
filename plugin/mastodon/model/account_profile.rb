@@ -17,7 +17,7 @@ module Plugin::Mastodon
     def initialize(hash)
       super hash
 
-      @description, @score = PM::Parser.dictate_score(account.note, emojis: account.emojis)
+      @description, @score = Plugin::Mastodon::Parser.dictate_score(account.note, emojis: account.emojis)
     end
 
     def created
