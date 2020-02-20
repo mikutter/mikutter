@@ -1,4 +1,5 @@
 require_relative 'client'
+require_relative 'connection'
 
 Plugin.create(:mastodon_sse_streaming) do
   # ストリーム開始＆直近取得イベント
@@ -157,7 +158,7 @@ Plugin.create(:mastodon_sse_streaming) do
       Plugin.call(:mastodon_sse_kill_connection, slug)
 
       sleep(rand(3..10))
-      Plugin.call(:mastodon_sse_create, slug, :get, connection[:uri], connection[:headers], connection[:params], connection[:opts])
+      Plugin.call(:mastodon_sse_create, slug, :get, connection.uri, connection.headers, connection.params, connection.opts)
     }
   end
 
@@ -213,7 +214,7 @@ Plugin.create(:mastodon_sse_streaming) do
   on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, opts = {}|
     if connections.has_key? slug
       warn 'sse_client streaming duplicate'
-      thread = connections[slug][:thread]
+      thread = connections[slug].thread
       connections.delete(slug)
       thread.kill
     end
@@ -255,14 +256,14 @@ Plugin.create(:mastodon_sse_streaming) do
       Plugin.call(:mastodon_sse_connection_error, slug, e)
       next
     end
-    connections[slug] = {
+    connections[slug] = Plugin::MastodonSseStreaming::Connection.new(
       method: method,
       uri: uri,
       headers: headers,
       params: params,
       opts: opts,
       thread: thread,
-    }
+    )
 
   rescue => e
     Plugin.call(:mastodon_sse_connection_error, slug, e)
@@ -271,7 +272,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
   on_mastodon_sse_kill_connection do |slug|
     if connections.has_key? slug
-      thread = connections[slug][:thread]
+      thread = connections[slug].thread
       connections.delete(slug)
       thread.kill
     end
@@ -279,7 +280,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
   on_mastodon_sse_kill_all do |event_sym|
     connections.each do |_, hash|
-      hash[:thread].kill
+      hash.thread.kill
     end
     connections = {}
 
@@ -312,8 +313,8 @@ Plugin.create(:mastodon_sse_streaming) do
   def update_handler(datasource_slug, payload)
     connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
-    domain = connection[:opts][:domain]
-    access_token = connection[:opts][:token]
+    domain = connection.opts[:domain]
+    access_token = connection.opts[:token]
     status = Plugin::Mastodon::Status.build(domain, [payload]).first
     return unless status
 
@@ -330,8 +331,8 @@ Plugin.create(:mastodon_sse_streaming) do
   def notification_handler(datasource_slug, payload)
     connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
-    domain = connection[:opts][:domain]
-    access_token = connection[:opts][:token]
+    domain = connection.opts[:domain]
+    access_token = connection.opts[:token]
 
     case payload[:type]
     when 'mention'
