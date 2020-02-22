@@ -18,7 +18,6 @@ Plugin.create(:mastodon_sse_streaming) do
                         })
     connections[slug] ||= Plugin::MastodonSseStreaming::Connection.new(
       stream_slug: slug,
-      method: :get,
       uri: uri,
       token: token,
       params: params,

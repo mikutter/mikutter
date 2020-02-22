@@ -7,14 +7,12 @@ module Plugin::MastodonSseStreaming
   class Connection
 
     attr_reader :stream_slug
-    attr_reader :method
     attr_reader :uri
     attr_reader :params
     attr_reader :token
 
-    def initialize(stream_slug:, method:, uri:, token:, params:)
+    def initialize(stream_slug:, uri:, token:, params:)
       @stream_slug = stream_slug
-      @method = method
       @uri = uri
       @token = token
       @params = params
@@ -45,7 +43,7 @@ module Plugin::MastodonSseStreaming
     def connect
       parser = Plugin::MastodonSseStreaming::Parser.new(Plugin[:mastodon_sse_streaming], stream_slug)
       client = HTTPClient.new
-      response = client.request(method, uri.to_s, *get_query_and_body, headers) do |fragment|
+      response = client.request(:get, uri.to_s, params_to_array_of_array.to_a, {}, headers) do |fragment|
         @cooldown_time.reset
         parser << fragment
       end
@@ -61,15 +59,6 @@ module Plugin::MastodonSseStreaming
         { 'Authorization' => 'Bearer %{token}' % {token: token} }
       else
         {}
-      end
-    end
-
-    def get_query_and_body
-      case method
-      when :get
-        return params_to_array_of_array.to_a, {}
-      when :post
-        return {}, params_to_array_of_array.to_a
       end
     end
 
