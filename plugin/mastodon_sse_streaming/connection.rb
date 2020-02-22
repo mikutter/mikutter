@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 require_relative 'client'
+require_relative 'cooldown_time'
 
 module Plugin::MastodonSseStreaming
   class Connection
-    COOLDOWN_NONE_DURATION = 0
-    COOLDOWN_MIN_DURATION = 1
-    COOLDOWN_MAX_DURATION = 64
 
     attr_reader :stream_slug
     attr_reader :method
@@ -23,7 +21,7 @@ module Plugin::MastodonSseStreaming
       @params = params
       @opts = opts
       @thread = nil
-      @cooldown_time = COOLDOWN_NONE_DURATION
+      @cooldown_time = Plugin::MastodonSseStreaming::CooldownTime.new
       start
     end
 
@@ -37,10 +35,7 @@ module Plugin::MastodonSseStreaming
       @thread ||= Thread.new do
         loop do
           connect
-          unless @cooldown_time == COOLDOWN_NONE_DURATION
-            warn "reconnect #{@cooldown_time}s later."
-            sleep(@cooldown_time)
-          end
+          @cooldown_time.sleep
         end
       end
     end
@@ -49,35 +44,14 @@ module Plugin::MastodonSseStreaming
       parser = Plugin::MastodonSseStreaming::Parser.new(Plugin[:mastodon_sse_streaming], stream_slug)
       client = HTTPClient.new
       response = client.request(method, uri.to_s, *get_query_and_body, headers) do |fragment|
-        @cooldown_time = COOLDOWN_NONE_DURATION
+        @cooldown_time.reset
         parser << fragment
       end
-      case response.status
-      when 200..300
-        @cooldown_time = COOLDOWN_NONE_DURATION
-      when 410                  # HTTP 410 Gone
-        Plugin.call(:mastodon_sse_kill_connection, stream_slug)
-        @cooldown_time = COOLDOWN_MAX_DURATION
-      when 400..500
-        cooldown_increase_client_error
-      when 500..600
-        cooldown_increase_server_error
-      else
-        cooldown_increase_client_error
-      end
+      Plugin.call(:mastodon_sse_kill_connection, stream_slug) if response.status == 401
+      @cooldown_time.status_code(response.status)
     rescue => exc
-      cooldown_increase_client_error
+      @cooldown_time.client_error
       error exc
-    end
-
-    def cooldown_increase_client_error
-      @cooldown_time = (@cooldown_time + 0.25)
-                         .clamp(COOLDOWN_MIN_DURATION, COOLDOWN_MAX_DURATION)
-    end
-
-    def cooldown_increase_server_error
-      @cooldown_time = (@cooldown_time * 2)
-                         .clamp(COOLDOWN_MIN_DURATION, COOLDOWN_MAX_DURATION)
     end
 
     def get_query_and_body
