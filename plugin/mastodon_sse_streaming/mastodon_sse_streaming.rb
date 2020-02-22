@@ -9,18 +9,14 @@ Plugin.create(:mastodon_sse_streaming) do
   on_mastodon_start_stream do |domain, type, slug, world, list_id|
     next unless UserConfig[:mastodon_enable_streaming]
 
-    token = mastodon?(world) && world.access_token
-
-    endpoint, params = sse_params(type, list_id: list_id)
-    uri = Diva::URI.new('https://%{domain}/api/v1/streaming/%{endpoint}' % {
-                          domain:   domain,
-                          endpoint: endpoint,
-                        })
     connections[slug] ||= Plugin::MastodonSseStreaming::Connection.new(
+      connection_type: Plugin::MastodonSseStreaming::ConnectionType.create(
+        domain: domain,
+        stream_type: type,
+        list_id: list_id
+      ),
       stream_slug: slug,
-      uri: uri,
-      token: token,
-      params: params,
+      token: mastodon?(world) && world.access_token
     )
   end
 
