@@ -4,6 +4,10 @@ require_relative 'client'
 
 module Plugin::MastodonSseStreaming
   class Connection
+    COOLDOWN_NONE_DURATION = 0
+    COOLDOWN_MIN_DURATION = 1
+    COOLDOWN_MAX_DURATION = 64
+
     attr_reader :stream_slug
     attr_reader :method
     attr_reader :uri
@@ -19,6 +23,7 @@ module Plugin::MastodonSseStreaming
       @params = params
       @opts = opts
       @thread = nil
+      @cooldown_time = COOLDOWN_NONE_DURATION
       start
     end
 
@@ -27,6 +32,53 @@ module Plugin::MastodonSseStreaming
     end
 
     private
+
+    def start
+      @thread ||= Thread.new do
+        loop do
+          connect
+          unless @cooldown_time == COOLDOWN_NONE_DURATION
+            warn "reconnect #{@cooldown_time}s later."
+            sleep(@cooldown_time)
+          end
+        end
+      end
+    end
+
+    def connect
+      parser = Plugin::MastodonSseStreaming::Parser.new(Plugin[:mastodon_sse_streaming], stream_slug)
+      client = HTTPClient.new
+      response = client.request(method, uri.to_s, *get_query_and_body, headers) do |fragment|
+        @cooldown_time = COOLDOWN_NONE_DURATION
+        parser << fragment
+      end
+      case response.status
+      when 200..300
+        @cooldown_time = COOLDOWN_NONE_DURATION
+      when 410                  # HTTP 410 Gone
+        Plugin.call(:mastodon_sse_kill_connection, stream_slug)
+        @cooldown_time = COOLDOWN_MAX_DURATION
+      when 400..500
+        cooldown_increase_client_error
+      when 500..600
+        cooldown_increase_server_error
+      else
+        cooldown_increase_client_error
+      end
+    rescue => exc
+      cooldown_increase_client_error
+      error exc
+    end
+
+    def cooldown_increase_client_error
+      @cooldown_time = (@cooldown_time + 0.25)
+                         .clamp(COOLDOWN_MIN_DURATION, COOLDOWN_MAX_DURATION)
+    end
+
+    def cooldown_increase_server_error
+      @cooldown_time = (@cooldown_time * 2)
+                         .clamp(COOLDOWN_MIN_DURATION, COOLDOWN_MAX_DURATION)
+    end
 
     def get_query_and_body
       case method
@@ -48,25 +100,6 @@ module Plugin::MastodonSseStreaming
             yielder << [key, val]
           end
         end
-      end
-    end
-
-    def start
-      @thread ||= Thread.new do
-        Plugin.call(:mastodon_sse_connection_opening, stream_slug)
-        parser = Plugin::MastodonSseStreaming::Parser.new(Plugin[:mastodon_sse_streaming], stream_slug)
-        client = HTTPClient.new
-        response = client.request(method, uri.to_s, *get_query_and_body, headers) do |fragment|
-          parser << fragment
-        end
-        if response.status != 200
-          Plugin.call(:mastodon_sse_connection_failure, stream_slug, response)
-        end
-        Plugin.call(:mastodon_sse_connection_closed, stream_slug)
-      rescue => exc
-        error exc
-        Plugin.call(:mastodon_sse_connection_error, stream_slug, exc)
-        next
       end
     end
   end

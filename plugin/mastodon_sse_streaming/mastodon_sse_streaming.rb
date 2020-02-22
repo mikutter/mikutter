@@ -150,43 +150,6 @@ Plugin.create(:mastodon_sse_streaming) do
     end
   end
 
-  on_mastodon_restart_sse_stream do |slug|
-    Thread.new {
-      connection, = Plugin.filtering(:mastodon_sse_connection, slug)
-      next unless connection
-      Plugin.call(:mastodon_sse_kill_connection, slug)
-
-      sleep(rand(3..10))
-      Plugin.call(:mastodon_sse_create, slug, :get, connection.uri, connection.headers, connection.params, connection.opts)
-    }
-  end
-
-  on_mastodon_sse_connection_opening do |slug|
-    notice "SSE: connection open for #{slug.to_s}"
-  end
-
-  on_mastodon_sse_connection_failure do |slug, response|
-    error "SSE: connection failure for #{slug.to_s}"
-    Plugin::Mastodon::Util.ppf response if Mopt.error_level >= 1
-
-    if (response.status / 100) == 4
-      # 4xx系レスポンスはリトライせず終了する
-      Plugin.call(:mastodon_sse_kill_connection, slug)
-    else
-      Plugin.call(:mastodon_restart_sse_stream, slug)
-    end
-  end
-
-  on_mastodon_sse_connection_closed do |slug|
-    warn "SSE: connection closed for #{slug.to_s}"
-
-    Plugin.call(:mastodon_restart_sse_stream, slug)
-  end
-
-  on_mastodon_sse_connection_error do |slug, exception|
-    Plugin.call(:mastodon_restart_sse_stream, slug)
-  end
-
   on_mastodon_sse_on_update do |slug, json|
     data = JSON.parse(json, symbolize_names: true)
     update_handler(slug, data)
@@ -219,9 +182,6 @@ Plugin.create(:mastodon_sse_streaming) do
       params: params,
       opts: opts
     )
-  rescue => exc
-    error exc
-    Plugin.call(:mastodon_sse_connection_error, slug, exc)
   end
 
   on_mastodon_sse_kill_connection do |slug|
