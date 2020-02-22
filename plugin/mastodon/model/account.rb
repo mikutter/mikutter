@@ -23,7 +23,7 @@ module Plugin::Mastodon
 
     # TODO: modelがScoreをキャッシュするべきではない
     def description_score
-      @description_score ||= PM::Parser.dictate_score(value, emojis: emojis)
+      @description_score ||= Plugin::Mastodon::Parser.dictate_score(value, emojis: emojis)
     end
   end
 
