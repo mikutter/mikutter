@@ -16,11 +16,17 @@ Plugin.create(:mastodon_sse_streaming) do
                           domain:   domain,
                           endpoint: endpoint,
                         })
-    Plugin.call(:mastodon_sse_create, slug, :get, uri, sse_header(token: token), params, { domain: domain, type: type, token: token })
+    connections[slug] ||= Plugin::MastodonSseStreaming::Connection.new(
+      stream_slug: slug,
+      method: :get,
+      uri: uri,
+      token: token,
+      params: params,
+    )
   end
 
   on_mastodon_stop_stream do |slug|
-    Plugin.call(:mastodon_sse_kill_connection, slug)
+    connections.delete(slug)&.stop
   end
 
   # mikutterにとって自明に60秒以上過去となる任意の日時
@@ -173,21 +179,6 @@ Plugin.create(:mastodon_sse_streaming) do
     Plugin.call(:mastodon_sse_kill_all)
   end
 
-  on_mastodon_sse_create do |slug, method, uri, headers = {}, params = {}, opts = {}|
-    connections[slug] ||= Plugin::MastodonSseStreaming::Connection.new(
-      stream_slug: slug,
-      method: method,
-      uri: uri,
-      headers: headers,
-      params: params,
-      opts: opts
-    )
-  end
-
-  on_mastodon_sse_kill_connection do |slug|
-    connections.delete(slug)&.stop
-  end
-
   on_mastodon_sse_kill_all do |event_sym|
     connections.values.each(&:stop)
     connections = {}
@@ -221,13 +212,11 @@ Plugin.create(:mastodon_sse_streaming) do
   def update_handler(datasource_slug, payload)
     connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
-    domain = connection.opts[:domain]
-    access_token = connection.opts[:token]
-    status = Plugin::Mastodon::Status.build(domain, [payload]).first
+    status = Plugin::Mastodon::Status.build(connection.domain, [payload]).first
     return unless status
 
     Plugin.call(:extract_receive_message, datasource_slug, [status])
-    Plugin.call(:update, stream_world(domain, access_token), [status])
+    Plugin.call(:update, stream_world(connection.domain, connection.token), [status])
     if status.reblog?
       Plugin.call(:share, status.user, status.reblog)
       status.to_me_world&.yield_self do |world|
@@ -239,8 +228,7 @@ Plugin.create(:mastodon_sse_streaming) do
   def notification_handler(datasource_slug, payload)
     connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
     return unless connection
-    domain = connection.opts[:domain]
-    access_token = connection.opts[:token]
+    domain = connection.domain
 
     case payload[:type]
     when 'mention'
@@ -268,7 +256,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
     when 'follow'
       user = Plugin::Mastodon::Account.new payload[:account]
-      stream_world(domain, access_token)&.yield_self do |world|
+      stream_world(domain, connection.token)&.yield_self do |world|
         Plugin.call(:followers_created, world, [user])
       end
 
@@ -303,14 +291,6 @@ Plugin.create(:mastodon_sse_streaming) do
     when %r[:media\z]
       *path, _ = type.split(':')
       return path.join('/'), {only_media: true}
-    end
-  end
-
-  def sse_header(token:)
-    if token
-      { 'Authorization' => 'Bearer %{token}' % {token: token} }
-    else
-      {}
     end
   end
 end

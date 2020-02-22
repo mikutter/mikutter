@@ -9,20 +9,22 @@ module Plugin::MastodonSseStreaming
     attr_reader :stream_slug
     attr_reader :method
     attr_reader :uri
-    attr_reader :headers
-    attr_reader :params           # TODO: paramsとoptsは名前何とかする
-    attr_reader :opts
+    attr_reader :params
+    attr_reader :token
 
-    def initialize(stream_slug:, method:, uri:, headers:, params:, opts:)
+    def initialize(stream_slug:, method:, uri:, token:, params:)
       @stream_slug = stream_slug
       @method = method
       @uri = uri
-      @headers = headers
+      @token = token
       @params = params
-      @opts = opts
       @thread = nil
       @cooldown_time = Plugin::MastodonSseStreaming::CooldownTime.new
       start
+    end
+
+    def domain
+      uri.host
     end
 
     def stop
@@ -47,11 +49,19 @@ module Plugin::MastodonSseStreaming
         @cooldown_time.reset
         parser << fragment
       end
-      Plugin.call(:mastodon_sse_kill_connection, stream_slug) if response.status == 401
+      Plugin.call(:mastodon_stop_stream, stream_slug) if response.status == 410
       @cooldown_time.status_code(response.status)
     rescue => exc
       @cooldown_time.client_error
       error exc
+    end
+
+    def headers
+      if token
+        { 'Authorization' => 'Bearer %{token}' % {token: token} }
+      else
+        {}
+      end
     end
 
     def get_query_and_body
