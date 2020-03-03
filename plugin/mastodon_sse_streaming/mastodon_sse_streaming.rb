@@ -2,24 +2,21 @@ require_relative 'connection'
 
 Plugin.create(:mastodon_sse_streaming) do
   # ストリーム開始＆直近取得イベント
-  defevent :mastodon_start_stream, prototype: [String, String, String, Plugin::Mastodon::World, Integer]
+  # Plugin::Mastodon::SSEAuthorizedType または Plugin::Mastodon::SSEAuthorizedTypeを渡す
+  defevent :mastodon_start_stream, prototype: [Diva::Model]
 
   connections = {}
 
-  on_mastodon_start_stream do |domain, type, slug, world, list_id|
+  # TODO: 接続時に判断するのではなく、データソースの購読状況を購読してconnectionを制御する
+  on_mastodon_start_stream do |sse_type|
     next unless UserConfig[:mastodon_enable_streaming]
 
-    connections[slug] ||= Plugin::MastodonSseStreaming::Connection.new(
-      connection_type: Plugin::MastodonSseStreaming::ConnectionType.create(
-        domain: domain,
-        stream_type: type,
-        list_id: list_id
-      ),
-      stream_slug: slug,
-      token: mastodon?(world) && world.access_token
+    connections[sse_type] ||= Plugin::MastodonSseStreaming::Connection.new(
+      connection_type: sse_type
     )
   end
 
+  # TODO: slug -> SSEAuthorizedType
   on_mastodon_stop_stream do |slug|
     connections.delete(slug)&.stop
   end
@@ -56,8 +53,10 @@ Plugin.create(:mastodon_sse_streaming) do
       }.terminate(_('Mastodon: SSEコネクション確立前にエラーが発生しました'))
     end
 
-    UserConfig[:mastodon_instances].each do |domain, setting|
-      Plugin.call(:mastodon_init_instance_stream, domain)
+    UserConfig[:mastodon_instances].each do |domain, _|
+      Plugin::Mastodon::Instance.add_ifn(domain).next do |server|
+        Plugin.call(:mastodon_init_instance_stream, server)
+      end
     end
   end
 
@@ -71,23 +70,18 @@ Plugin.create(:mastodon_sse_streaming) do
 
     Plugin.call(:mastodon_remove_instance_stream, domain)
     if retrieve
-      Plugin.call(:mastodon_init_instance_stream, domain)
+      Plugin::Mastodon::Instance.add_ifn(domain).next do |server|
+        Plugin.call(:mastodon_init_instance_stream, server)
+      end
     end
   end
 
-  on_mastodon_init_instance_stream do |domain|
-    Plugin::Mastodon::Instance.add_datasources(domain)
-
-    ftl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated)
-    ftl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :federated_media)
-    ltl_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local)
-    ltl_media_slug = Plugin::Mastodon::Instance.datasource_slug(domain, :local_media)
-
+  on_mastodon_init_instance_stream do |server|
     # ストリーム開始
-    Plugin.call(:mastodon_start_stream, domain, 'public', ftl_slug) if datasource_used?(ftl_slug, true)
-    Plugin.call(:mastodon_start_stream, domain, 'public:media', ftl_media_slug) if datasource_used?(ftl_media_slug)
-    Plugin.call(:mastodon_start_stream, domain, 'public:local', ltl_slug) if datasource_used?(ltl_slug)
-    Plugin.call(:mastodon_start_stream, domain, 'public:local:media', ltl_media_slug) if datasource_used?(ltl_media_slug)
+    Plugin.call(:mastodon_start_stream, server.sse.public)
+    Plugin.call(:mastodon_start_stream, server.sse.public(only_media: true))
+    Plugin.call(:mastodon_start_stream, server.sse.public_local)
+    Plugin.call(:mastodon_start_stream, server.sse.public_local(only_media: true))
   end
 
   on_mastodon_remove_instance_stream do |domain|
@@ -97,32 +91,11 @@ Plugin.create(:mastodon_sse_streaming) do
   end
 
   on_mastodon_init_auth_stream do |world|
+    Plugin.call(:mastodon_start_stream, world.sse.user)
+    Plugin.call(:mastodon_start_stream, world.sse.direct)
     world.get_lists.next { |lists|
-      filter_extract_datasources do |dss|
-        datasources = {
-          world.datasource_slug(:home) => _("Mastodonホームタイムライン(Mastodon)/%{acct}") % {acct: world.account.acct},
-          world.datasource_slug(:direct) => _("Mastodon DM(Mastodon)/%{acct}") % {acct: world.account.acct},
-        }
-        lists.each do |l|
-          slug = world.datasource_slug(:list, l[:id])
-          datasources[slug] = _("Mastodonリスト(Mastodon)/%{acct}/%{title}") % {acct: world.account.acct, title: l[:title]}
-        end
-        [datasources.merge(dss)]
-      end
-
-      # ストリーム開始
-      if datasource_used?(world.datasource_slug(:home), true)
-        Plugin.call(:mastodon_start_stream, world.domain, 'user', world.datasource_slug(:home), world)
-      end
-      if datasource_used?(world.datasource_slug(:direct), true)
-        Plugin.call(:mastodon_start_stream, world.domain, 'direct', world.datasource_slug(:direct), world)
-      end
-
       lists.each do |l|
-        id = l[:id].to_i
-        if datasource_used?(world.datasource_slug(:list, id))
-          Plugin.call(:mastodon_start_stream, world.domain, 'list', world.datasource_slug(:list, id), world, id)
-        end
+        Plugin.call(:mastodon_start_stream, world.sse.list(list_id: l[:id].to_i, title: l[:title]))
       end
     }.terminate(_('Mastodon: SSEコネクション確立時にエラーが発生しました'))
   end
@@ -140,25 +113,15 @@ Plugin.create(:mastodon_sse_streaming) do
       slugs.each do |slug|
         Plugin.call(:mastodon_stop_stream, slug)
       end
-
-      # TODO: フィルタをdetachして消す
-      filter_extract_datasources do |datasources|
-        slugs.each do |slug|
-          datasources.delete slug
-        end
-        [datasources]
-      end
     end
   end
 
-  on_mastodon_sse_on_update do |slug, json|
-    data = JSON.parse(json, symbolize_names: true)
-    update_handler(slug, data)
+  on_mastodon_sse_on_update do |connection, json|
+    update_handler(connection, JSON.parse(json, symbolize_names: true))
   end
 
-  on_mastodon_sse_on_notification do |slug, json|
-    data = JSON.parse(json, symbolize_names: true)
-    notification_handler(slug, data)
+  on_mastodon_sse_on_notification do |connection, json|
+    notification_handler(connection, JSON.parse(json, symbolize_names: true))
   end
 
   on_mastodon_sse_on_delete do |slug, id|
@@ -181,10 +144,13 @@ Plugin.create(:mastodon_sse_streaming) do
     Plugin.call(event_sym) if event_sym
   end
 
+  # TODO: slug -> SSEAuthorizedType
+  # TODO: これいる？
   filter_mastodon_sse_connection do |slug|
     [connections[slug]]
   end
 
+  # TODO: これいる？
   filter_mastodon_sse_connection_all do |_|
     [connections]
   end
@@ -204,14 +170,12 @@ Plugin.create(:mastodon_sse_streaming) do
     }.first
   end
 
-  def update_handler(datasource_slug, payload)
-    connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
-    return unless connection
-    status = Plugin::Mastodon::Status.build(connection.domain, [payload]).first
+  def update_handler(connection_type, payload)
+    status = Plugin::Mastodon::Status.build(connection_type.domain, [payload]).first
     return unless status
 
-    Plugin.call(:extract_receive_message, datasource_slug, [status])
-    Plugin.call(:update, stream_world(connection.domain, connection.token), [status])
+    Plugin.call(:extract_receive_message, connection_type.stream_slug, [status])
+    Plugin.call(:update, stream_world(connection_type.domain, connection_type.token), [status])
     if status.reblog?
       Plugin.call(:share, status.user, status.reblog)
       status.to_me_world&.yield_self do |world|
@@ -220,16 +184,14 @@ Plugin.create(:mastodon_sse_streaming) do
     end
   end
 
-  def notification_handler(datasource_slug, payload)
-    connection, = Plugin.filtering(:mastodon_sse_connection, datasource_slug)
-    return unless connection
-    domain = connection.domain
+  def notification_handler(connection_type, payload)
+    domain = connection_type.domain
 
     case payload[:type]
     when 'mention'
       status = Plugin::Mastodon::Status.build(domain, [payload[:status]]).first
       return unless status
-      Plugin.call(:extract_receive_message, datasource_slug, [status])
+      Plugin.call(:extract_receive_message, connection_type.stream_slug, [status])
       status.to_me_world&.yield_self do |world|
         Plugin.call(:mention, world, [status])
       end
@@ -251,7 +213,7 @@ Plugin.create(:mastodon_sse_streaming) do
 
     when 'follow'
       user = Plugin::Mastodon::Account.new payload[:account]
-      stream_world(domain, connection.token)&.yield_self do |world|
+      stream_world(domain, connection_type.token)&.yield_self do |world|
         Plugin.call(:followers_created, world, [user])
       end
 
@@ -272,20 +234,6 @@ Plugin.create(:mastodon_sse_streaming) do
       UserConfig[:favorited_by_myself_age]
     else
       UserConfig[:favorited_by_anyone_age]
-    end
-  end
-
-  def sse_params(type, list_id:)
-    case type
-    when 'user', 'public', 'direct'
-      return type, {}
-    when 'public:local'
-      return 'public/local', {}
-    when 'list'
-      return 'list', {list: list_id}
-    when %r[:media\z]
-      *path, _ = type.split(':')
-      return path.join('/'), {only_media: true}
     end
   end
 end

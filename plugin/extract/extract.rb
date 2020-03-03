@@ -63,6 +63,12 @@ module Plugin::Extract
 end
 
 Plugin.create :extract do
+  # ストリームオブジェクトの集合。
+  # ストリームオブジェクトは、以下のようなフィールドを持っている必要がある。
+  # field.string :title, required: true           # 画面に表示される、抽出タブの名前
+  # field.string :datasource_slug, required: true # データソーススラッグ
+  defevent :message_stream, prototype: [Pluggaloid::COLLECT]
+
   defevent :extract_receive_message, prototype: [Plugin::Extract::Setting, Pluggaloid::STREAM]
   defevent :extract_order, prototype: [Pluggaloid::COLLECT]
 
@@ -234,6 +240,13 @@ Plugin.create :extract do
       event.detach
       false
     end
+  end
+
+  # TODO: extract_datasourcesを非推奨に、message_streamを使う
+  filter_extract_datasources do |ds_dict|
+    [{ **ds_dict,
+       **collect(:message_stream).map { |ms| [ms.title, ms.datasource_slug.to_sym] }
+     }]
   end
 
   filter_extract_tabs_get do |tabs|

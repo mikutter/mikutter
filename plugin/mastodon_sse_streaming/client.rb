@@ -4,9 +4,11 @@ module Plugin::MastodonSseStreaming
   class Parser
     attr_reader :buffer
 
-    def initialize(plugin, slug)
-      @plugin = plugin
-      @slug = slug
+    #
+    # @param [Plugin::Mastodon::SSEAuthorizedType|Plugin::Mastodon::SSEPublicType] connection_type
+    #
+    def initialize(connection_type)
+      @connection_type = connection_type
       @buffer = ''
       @event = @data = nil
     end
@@ -36,8 +38,8 @@ module Plugin::MastodonSseStreaming
           unless @event
             @event = ''
           end
-          Plugin.call(:sse_message_type_event, @slug, @event, @data)
-          Plugin.call(:"mastodon_sse_on_#{@event}", @slug, @data)  # 利便性のため
+          Plugin.call(:sse_message_type_event, @connection_type, @event, @data)
+          Plugin.call(:"mastodon_sse_on_#{@event}", @connection_type, @data)  # 利便性のため
           @event = @data = nil  # 一応リセット
         end
 
@@ -61,7 +63,7 @@ module Plugin::MastodonSseStreaming
           last_type = 'data'
         when 'id'
           # EventSource オブジェクトの last event ID の値に設定する、イベント ID です。
-          Plugin.call(:sse_message_type_id, @slug, id)
+          Plugin.call(:sse_message_type_id, @connection_type, id)
           @event = @data = nil  # 一応リセット
           last_type = 'id'
         when 'retry'
@@ -71,7 +73,7 @@ module Plugin::MastodonSseStreaming
           #
           # [What code handles this?]じゃねんじゃｗ
           if payload =~ /\A-?(0|[1-9][0-9]*)\Z/
-            Plugin.call(:sse_message_type_retry, @slug, payload.to_i)
+            Plugin.call(:sse_message_type_retry, @connection_type, payload.to_i)
           end
           @event = @data = nil  # 一応リセット
           last_type = 'retry'

@@ -14,11 +14,9 @@ require_relative 'spell'
 require_relative 'setting'
 require_relative 'subparts_status_info'
 require_relative 'extractcondition'
-require_relative 'rest'
 require_relative 'score'
 
 Plugin.create(:mastodon) do
-
   defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
     URI.open(url)
   end
@@ -31,11 +29,18 @@ Plugin.create(:mastodon) do
     URI.open(url)
   end
 
+  # すべてのmastodon worldを返す
+  defevent :mastodon_worlds, prototype: [Pluggaloid::COLLECT]
+
+  # Mastodonサーバの集合。
+  defevent :mastodon_servers, prototype: [Pluggaloid::COLLECT]
+
   defevent :mastodon_appear_toots, prototype: [[Plugin::Mastodon::Status]]
 
   # ユーザの直接の操作によってバックグラウンド通信を行った結果、成功した時の通知
   # （例: トゥートを投稿した、ふぁぼった等）
   defactivity :mastodon_background_succeeded, _('Mastodonのバックグラウンド通信の成功')
+
   # ユーザの直接の操作によってバックグラウンド通信を行った結果、失敗した時の通知
   # （例: トゥートを投稿するために通信したら、サーバエラーが返ってきた等）
   defactivity :mastodon_background_failed, _('Mastodonのバックグラウンド通信の失敗')
@@ -72,11 +77,43 @@ Plugin.create(:mastodon) do
     followings_updater.call
   }
 
+  # Mastodonサーバが初期化されたら、サーバの集合に加える
+  collection(:mastodon_servers) do |servers|
+    on_mastodon_server_created do |server|
+      servers << server
+    end
+  end
+
+  # 存在するサーバやWorldに応じて、選択できる全ての抽出タブデータソースを提示する
+  collection(:message_stream) do |message_stream|
+    subscribe(:mastodon_worlds__add) do |worlds|
+      message_stream.rewind do |a|
+        a | worlds.flat_map{|world| [world.sse.user, world.sse.direct] }
+      end
+      worlds.each do |world|
+        world.get_lists.next do |lists|
+          message_stream.rewind do |a|
+            a | lists.map do |list|
+              world.sse.list(list_id: list[:id], title: list[:title])
+            end
+          end
+        end
+      end
+    end
+
+    subscribe(:mastodon_servers__add).each do |server|
+      message_stream.rewind do |a|
+        a | [
+          server.sse.public,
+          server.sse.public(only_media: true),
+          server.sse.public_local,
+          server.sse.public_local(only_media: true)
+        ]
+      end
+    end
+  end
 
   # world系
-
-  # すべてのmastodon worldを返す
-  defevent :mastodon_worlds, prototype: [Pluggaloid::COLLECT]
 
   collection(:mastodon_worlds) do |mutation|
     subscribe(:worlds__add).select { |world|

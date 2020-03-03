@@ -8,45 +8,6 @@ module Plugin::Mastodon
     field.bool :retrieve, required: true
 
     class << self
-      def datasource_slug(domain, type)
-        case type
-        when :local
-          # ローカルTL
-          "mastodon-#{domain}-local".to_sym
-        when :local_media
-          # ローカルメディアTL
-          "mastodon-#{domain}-local-media".to_sym
-        when :federated
-          # 連合TL
-          "mastodon-#{domain}-federated".to_sym
-        when :federated_media
-          # 連合メディアTL
-          "mastodon-#{domain}-federated-media".to_sym
-        end
-      end
-
-      def add_datasources(domain)
-        Plugin[:mastodon].filter_extract_datasources do |dss|
-          datasources = {
-            datasource_slug(domain, :local) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} ローカル') % {domain: domain},
-            datasource_slug(domain, :local_media) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} ローカル（メディア）') % {domain: domain},
-            datasource_slug(domain, :federated) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} 連合') % {domain: domain},
-            datasource_slug(domain, :federated_media) => Plugin[:mastodon]._('Mastodon公開タイムライン/%{domain} 連合（メディア）') % {domain: domain},
-          }
-          [datasources.merge(dss)]
-        end
-      end
-
-      def remove_datasources(domain)
-        Plugin[:mastodon].filter_extract_datasources do |datasources|
-          datasources.delete datasource_slug(domain, :local)
-          datasources.delete datasource_slug(domain, :local_media)
-          datasources.delete datasource_slug(domain, :federated)
-          datasources.delete datasource_slug(domain, :federated_media)
-          [datasources]
-        end
-      end
-
       def add(domain, retrieve = true)
         Delayer::Deferred.new.next {
           return nil if UserConfig[:mastodon_instances].has_key?(domain)
@@ -88,7 +49,6 @@ module Plugin::Mastodon
       end
 
       def remove(domain)
-        remove_datasources(domain)
         UserConfig[:mastodon_instances].delete(domain)
       end
 
@@ -102,6 +62,15 @@ module Plugin::Mastodon
         end
       end
     end # class instance
+
+    def initialize(*)
+      super
+      Plugin.call(:mastodon_server_created, self)
+    end
+
+    def sse
+      Plugin::Mastodon::SSEPublicType.new(server: self)
+    end
 
     def store
       configs = UserConfig[:mastodon_instances].dup

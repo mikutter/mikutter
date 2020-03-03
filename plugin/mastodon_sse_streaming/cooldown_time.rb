@@ -24,11 +24,11 @@ module Plugin::MastodonSseStreaming
 
     def status_code(code)
       case code
-      when 410      then @cooldown_time.meltdown # Gone 二度と戻ってくることはないだろう
-      when 200..300 then @cooldown_time.reset
-      when 400..500 then @cooldown_time.client_error
-      when 500..600 then @cooldown_time.server_error
-      else               @cooldown_time.client_error
+      when 410      then meltdown # Gone 二度と戻ってくることはないだろう
+      when 200..300 then reset
+      when 400..500 then client_error
+      when 500..600 then server_error
+      else               client_error
       end
     end
 

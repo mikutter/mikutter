@@ -1,0 +1,11 @@
+---
+slug: :mastodon_rest
+depends:
+  mikutter: 4.1.0
+  plugin:
+  - mastodon
+version: '1.0'
+author: toshi_a
+name: REST
+description: >-
+  Mastodonプラグインが提供する抽出タブデータソースのうち、抽出タブで利用されているデータソースの新規Tootを一定期間ごとにサーバに問い合わせる。

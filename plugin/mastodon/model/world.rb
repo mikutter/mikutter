@@ -35,6 +35,18 @@ module Plugin::Mastodon
       account.title
     end
 
+    def server
+      @server ||= Plugin::Mastodon::Instance.load(domain)
+    end
+
+    def sse
+      Plugin::Mastodon::SSEAuthorizedType.new(world: self)
+    end
+
+    def rest
+      Plugin::Mastodon::RestAuthorizedType.new(world: self)
+    end
+
     def datasource_slug(type, n = nil)
       case type
       when :home

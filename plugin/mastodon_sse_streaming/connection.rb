@@ -4,69 +4,12 @@ require_relative 'client'
 require_relative 'cooldown_time'
 
 module Plugin::MastodonSseStreaming
-  module ConnectionType
-    class AbstractType
-      attr_reader :domain
-      attr_reader :uri
-
-      def initialize(domain:, endpoint:)
-        @domain = domain.freeze
-        @uri = Diva::URI.new('https://%{domain}/api/v1/streaming/%{endpoint}' % {
-                              domain:   domain,
-                              endpoint: endpoint,
-                            })
-      end
-
-      def params; {} end
-    end
-
-    class BaseType < AbstractType; end
-    class ListType < AbstractType
-      attr_reader :list_id
-
-      def initialize(domain:, list_id:)
-        @list_id = list_id
-        super(domain: domain, endpoint: 'list')
-      end
-
-      def params
-        { list: @list_id }
-      end
-    end
-    module MediaType
-      def params
-        { **super, only_media: true }
-      end
-    end
-
-    def self.create(domain:, stream_type:, list_id:)
-      case stream_type
-      when 'user', 'public', 'direct'
-        BaseType.new(domain: domain, endpoint: stream_type)
-      when 'public:local'
-        BaseType.new(domain: domain, endpoint: 'public/local')
-      when 'list'
-        ListType.new(domain: domain, list_id: list_id)
-      when %r[:media\z]
-        *rest, _ = stream_type.split(':')
-        create(
-          domain: domain,
-          stream_type: rest.join(':'),
-          list_id: list_id
-        ).extend(MediaType)
-      end
-    end
-  end
-
   class Connection
 
-    attr_reader :stream_slug
     attr_reader :connection_type
-    attr_reader :token
 
-    def initialize(stream_slug:, token:, connection_type:)
-      @stream_slug = stream_slug
-      @token = token
+    def initialize(connection_type:)
+      type_strict connection_type => tcor(Plugin::Mastodon::SSEPublicType, Plugin::Mastodon::SSEAuthorizedType)
       @connection_type = connection_type
       @thread = nil
       @cooldown_time = Plugin::MastodonSseStreaming::CooldownTime.new
@@ -74,7 +17,15 @@ module Plugin::MastodonSseStreaming
     end
 
     def domain
-      connection_type.domain
+      connection_type.server.domain
+    end
+
+    def stream_slug
+      connection_type.datasource_slug
+    end
+
+    def token
+      connection_type.token
     end
 
     def stop
@@ -84,17 +35,21 @@ module Plugin::MastodonSseStreaming
     private
 
     def start
-      @thread ||= Thread.new do
+      @thread = Thread.new do
         loop do
           connect
           @cooldown_time.sleep
         end
+      ensure
+        @cooldown_time.sleep
+        start
       end
     end
 
     def connect
-      parser = Plugin::MastodonSseStreaming::Parser.new(Plugin[:mastodon_sse_streaming], stream_slug)
+      parser = Plugin::MastodonSseStreaming::Parser.new(self)
       client = HTTPClient.new
+      notice "connect #{connection_type.uri.to_s}"
       response = client.request(:get, connection_type.uri.to_s, connection_type.params, {}, headers) do |fragment|
         @cooldown_time.reset
         parser << fragment

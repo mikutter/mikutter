@@ -121,10 +121,14 @@ module Plugin::Mastodon
       # HTTPレスポンスが2xx → 成功。APIResponseを渡す
       # else                → 失敗。HTTPClient::Responseを渡す
       def call(method, domain, path = nil, access_token = nil, _opts = {}, headers = [], **params)
-        Thread.new {
+        promise = Delayer::Deferred.new(true)
+        Thread.new do
           uri = domain_path_to_uri(domain, path)
-          raw_response!(method, uri, access_token, headers, **params)
-        }.next{ |response|
+          promise.call(raw_response!(method, uri, access_token, headers, **params))
+        rescue => err
+          promise.fail(err)
+        end
+        promise.next{ |response|
           case response.status
           when 200...300
             parse_link(response, JSON.parse(response.content, symbolize_names: true))
