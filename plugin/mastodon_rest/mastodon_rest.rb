@@ -3,7 +3,6 @@ Plugin.create(:mastodon_rest) do
 
   subscribe(:mastodon_worlds__add).each do |new_world|
     tag = @tags[new_world.hash] ||= handler_tag()
-    connection = new_world.rest.user
     [ new_world.rest.user,
       new_world.rest.direct
     ].each { |stream| generate_stream(stream, tag: tag) }

@@ -35,7 +35,7 @@ Plugin.create(:mastodon) do
   # Mastodonサーバの集合。
   defevent :mastodon_servers, prototype: [Pluggaloid::COLLECT]
 
-  defevent :mastodon_appear_toots, prototype: [[Plugin::Mastodon::Status]]
+  defevent :mastodon_appear_toots, prototype: [Pluggaloid::STREAM]
 
   # ユーザの直接の操作によってバックグラウンド通信を行った結果、成功した時の通知
   # （例: トゥートを投稿した、ふぁぼった等）
@@ -52,8 +52,19 @@ Plugin.create(:mastodon) do
     [datasources.merge(dss)]
   end
 
-  on_mastodon_appear_toots do |statuses|
-    Plugin.call(:extract_receive_message, :mastodon_appear_toots, statuses)
+  # データソース「mastodon_appear_toots」の定義
+  generate(:extract_receive_message, :mastodon_appear_toots) do |appear|
+    subscribe(:mastodon_appear_toots, &appear.method(:bulk_add))
+  end
+
+  # shareされたトゥートに関してイベントを発生させる
+  subscribe(:mastodon_appear_toots).each do |message|
+    if message.reblog?
+      Plugin.call(:share, message.user, message.reblog)
+      message.to_me_world&.yield_self do |world|
+        Plugin.call(:mention, world, [message])
+      end
+    end
   end
 
   followings_updater = -> do
@@ -134,25 +145,16 @@ Plugin.create(:mastodon) do
     [world]
   end
 
-  on_userconfig_modify do |key, value|
-    if [:mastodon_enable_streaming, :extract_tabs].include?(key)
-      Plugin.call(:mastodon_restart_all_streams)
-    end
-  end
-
   # サーバー編集
   on_mastodon_update_instance do |domain|
     Thread.new {
       instance = Plugin::Mastodon::Instance.load(domain)
       next unless instance
-
-      Plugin.call(:mastodon_restart_instance_stream, domain)
     }
   end
 
   # サーバー削除
   on_mastodon_delete_instance do |domain|
-    Plugin.call(:mastodon_remove_instance_stream, domain)
     if UserConfig[:mastodon_instances].has_key?(domain)
       config = UserConfig[:mastodon_instances].dup
       config.delete(domain)
@@ -162,9 +164,7 @@ Plugin.create(:mastodon) do
 
   # world追加時用
   on_mastodon_create_or_update_instance do |domain|
-    Plugin::Mastodon::Instance.add_ifn(domain).next do
-      Plugin.call(:mastodon_restart_instance_stream, domain)
-    end
+    Plugin::Mastodon::Instance.add_ifn(domain)
   end
 
   on_world_create do |world|
@@ -207,18 +207,6 @@ Plugin.create(:mastodon) do
   on_world_create do |world|
     if world.class.slug == :mastodon
       Plugin.call(:mastodon_create_or_update_instance, world.domain, true)
-    end
-  end
-
-  # world削除
-  on_world_destroy do |world|
-    if world.class.slug == :mastodon
-      Delayer.new do
-        unless Plugin.collect(:mastodon_worlds).any? { |w| w.slug != world.slug && w.domain != world.domain }
-          Plugin.call(:mastodon_delete_instance, world.domain)
-        end
-        Plugin.call(:mastodon_remove_auth_stream, world)
-      end
     end
   end
 

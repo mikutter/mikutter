@@ -51,7 +51,6 @@ Plugin.create(:mastodon) do
       end
       domain = result[:domain]
       label _('%{domain} サーバーを追加しました') % {domain: domain}
-      Plugin.call(:mastodon_restart_instance_stream, domain)
       Plugin.call(:mastodon_instance_created, domain)
     end
   end

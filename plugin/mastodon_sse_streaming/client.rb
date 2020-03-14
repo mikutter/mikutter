@@ -7,16 +7,24 @@ module Plugin::MastodonSseStreaming
     #
     # @param [Plugin::Mastodon::SSEAuthorizedType|Plugin::Mastodon::SSEPublicType] connection_type
     #
-    def initialize(connection_type)
-      @connection_type = connection_type
+    def initialize(connection, receiver)
+      @connection = connection
       @buffer = ''
       @event = @data = nil
+      @receiver = receiver
     end
 
     def <<(str)
       @buffer += str
       consume
       self
+    end
+
+    def event_received(event, payload)
+      case event
+      when 'update'       then update_handler(payload)
+      when 'notification' then notification_handler(payload)
+      end
     end
 
     def consume
@@ -38,8 +46,9 @@ module Plugin::MastodonSseStreaming
           unless @event
             @event = ''
           end
-          Plugin.call(:sse_message_type_event, @connection_type, @event, @data)
-          Plugin.call(:"mastodon_sse_on_#{@event}", @connection_type, @data)  # 利便性のため
+          Plugin.call(:sse_message_type_event, @connection, @event, @data)
+          Plugin.call(:"mastodon_sse_on_#{@event}", @connection, @data)  # 利便性のため
+          event_received(@event, JSON.parse(@data, symbolize_names: true))
           @event = @data = nil  # 一応リセット
         end
 
@@ -62,8 +71,6 @@ module Plugin::MastodonSseStreaming
           @data += payload
           last_type = 'data'
         when 'id'
-          # EventSource オブジェクトの last event ID の値に設定する、イベント ID です。
-          Plugin.call(:sse_message_type_id, @connection_type, id)
           @event = @data = nil  # 一応リセット
           last_type = 'id'
         when 'retry'
@@ -72,12 +79,74 @@ module Plugin::MastodonSseStreaming
           # 整数値ではない値が指定されると、このフィールドは無視されます。
           #
           # [What code handles this?]じゃねんじゃｗ
-          if payload =~ /\A-?(0|[1-9][0-9]*)\Z/
-            Plugin.call(:sse_message_type_retry, @connection_type, payload.to_i)
-          end
           @event = @data = nil  # 一応リセット
           last_type = 'retry'
         end
+      end
+    end
+
+    def update_handler(payload)
+      message = Plugin::Mastodon::Status.build(@connection.domain, [payload]).first
+      if message
+        @receiver << message
+        Plugin.call(:update, nil, [message])
+      end
+    end
+
+    def mention_handler(status)
+      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      if message
+        @receiver << message
+      end
+    end
+
+    def reblog_handler(account:, status:)
+      Plugin.call(:share,
+                  Plugin::Mastodon::Account.new(account),
+                  Plugin::Mastodon::Status.build(@connection.domain, [status]).first)
+    end
+
+    def favorite_handler(account:, status:)
+      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      user = Plugin::Mastodon::Account.new(account)
+      if message
+        message.favorite_accts << user.acct
+        message.set_modified(Time.now.localtime) if favorite_age?(user)
+        Plugin.call(:favorite, @connection.connection_type.world, user, message)
+      end
+    end
+
+    def follow_handler(account)
+      Plugin.call(:followers_created, @connection.connection_type.world,
+                  [Plugin::Mastodon::Account.new(account)])
+    end
+
+    def poll_handler(status)
+      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      if message
+        activity(:poll, _('投票が終了しました'), description: "#{message.uri}")
+      end
+    end
+
+    def notification_handler(payload)
+      case payload[:type]
+      when 'mention'   then mention_handler(payload[:status])
+      when 'reblog'    then reblog_handler(**payload.slice(:account, :status))
+      when 'favourite' then favorite_handler(**payload.slice(:account, :status))
+      when 'follow'    then follow_handler(payload[:account])
+      when 'poll'      then poll_handler(payload[:status])
+      else
+        # 未知の通知
+        warn 'unknown notification'
+        Plugin::Mastodon::Util.ppf payload if Mopt.error_level >= 2
+      end
+    end
+
+    def favorite_age?(user)
+      if user.me?
+        UserConfig[:favorited_by_myself_age]
+      else
+        UserConfig[:favorited_by_anyone_age]
       end
     end
   end

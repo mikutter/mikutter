@@ -8,11 +8,12 @@ module Plugin::MastodonSseStreaming
 
     attr_reader :connection_type
 
-    def initialize(connection_type:)
+    def initialize(connection_type:, receiver:)
       type_strict connection_type => tcor(Plugin::Mastodon::SSEPublicType, Plugin::Mastodon::SSEAuthorizedType)
       @connection_type = connection_type
       @thread = nil
       @cooldown_time = Plugin::MastodonSseStreaming::CooldownTime.new
+      @receiver = receiver
       start
     end
 
@@ -40,21 +41,24 @@ module Plugin::MastodonSseStreaming
           connect
           @cooldown_time.sleep
         end
+      rescue Pluggaloid::NoReceiverError
+        @thread = nil
       ensure
-        @cooldown_time.sleep
-        start
+        if @thread == Thread.current
+          @cooldown_time.sleep
+          start
+        end
       end
     end
 
     def connect
-      parser = Plugin::MastodonSseStreaming::Parser.new(self)
+      parser = Plugin::MastodonSseStreaming::Parser.new(self, @receiver)
       client = HTTPClient.new
       notice "connect #{connection_type.uri.to_s}"
       response = client.request(:get, connection_type.uri.to_s, connection_type.params, {}, headers) do |fragment|
         @cooldown_time.reset
         parser << fragment
       end
-      Plugin.call(:mastodon_stop_stream, stream_slug) if response.status == 410
       @cooldown_time.status_code(response.status)
     rescue => exc
       @cooldown_time.client_error
