@@ -245,7 +245,7 @@ Plugin.create :extract do
   # TODO: extract_datasourcesを非推奨に、message_streamを使う
   filter_extract_datasources do |ds_dict|
     [{ **ds_dict,
-       **collect(:message_stream).map { |ms| [ms.title, ms.datasource_slug.to_sym] }
+       **collect(:message_stream).map { |ms| [ms.datasource_slug.to_sym, ms.title] }.to_h
      }]
   end
 
@@ -260,8 +260,8 @@ Plugin.create :extract do
   # 抽出タブの現在の内容を保存する
   def modify_extract_tabs
     UserConfig[:extract_tabs] = extract_tabs.values.map(&:export_to_userconfig)
-    @datasource_subscribers&.yield_self(&method(:detach))
-    @datasource_subscribers = handler_tag(:datasource_subscribers) do
+    old_subscribers = @datasource_subscribers
+    @datasource_subscribers = handler_tag do
       extract_tabs.values.each do |tab|
         tl = timeline(tab.slug)
         tab.sources.map { |source|
@@ -285,6 +285,7 @@ Plugin.create :extract do
         end
       end
     end
+    old_subscribers&.yield_self(&method(:detach))
     self
   end
 

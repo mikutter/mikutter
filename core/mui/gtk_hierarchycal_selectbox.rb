@@ -19,8 +19,7 @@ class Gtk::HierarchycalSelectBox < Gtk::SelectBox
 
   def setting_values(values, selected)
     root_nodes = []
-    values.each do |pair|
-      id, name = *pair
+    values.each do |id, name|
       fullpath = []
       last_node = name.inject(nil) do |parent_node, hierarchy|
         fullpath << hierarchy

@@ -14,24 +14,26 @@ module Plugin::Mastodon
 
     def public(only_media: false)
       params[:only_media] = only_media
-      @datasource_slug =
-        if only_media
-          "mastodon-#{server.domain}-federated-media".to_sym
-        else
-          "mastodon-#{server.domain}-federated".to_sym
-        end
+      if only_media
+        @datasource_slug = "mastodon-#{server.domain}-federated-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（メディアのみ）") % {domain: server.domain}
+      else
+        @datasource_slug = "mastodon-#{server.domain}-federated".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（全て）") % {domain: server.domain}
+      end
       set_endpoint('public')
     end
 
     def public_local(only_media: false)
       params[:only_media] = only_media
-      @datasource_slug =
-        if only_media
-          "mastodon-#{server.domain}-local-media".to_sym
-        else
-          "mastodon-#{server.domain}-local".to_sym
-        end
-      set_endpoint('public_local')
+      if only_media
+        @datasource_slug = "mastodon-#{server.domain}-local-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（メディアのみ）") % {domain: server.domain}
+      else
+        @datasource_slug = "mastodon-#{server.domain}-local".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（全て）") % {domain: server.domain}
+      end
+      set_endpoint('public/local')
     end
 
     def set_endpoint(endpoint)

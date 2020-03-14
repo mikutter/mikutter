@@ -18,42 +18,44 @@ module Plugin::Mastodon
 
     def user
       @datasource_slug = "mastodon-#{world.account.acct}-home".to_sym
-      @title = Plugin[:mastodon]._("Mastodonホームタイムライン(Mastodon)/%{acct}") % {acct: world.account.acct}
+      @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/ホームタイムライン") % {domain: world.server.domain, acct: world.account.acct}
       set_endpoint('user')
     end
 
     def direct
       @datasource_slug = "mastodon-#{world.account.acct}-direct".to_sym
-      @title = Plugin[:mastodon]._("Mastodon DM(Mastodon)/%{acct}") % {acct: world.account.acct}
+      @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/ダイレクトメッセージ") % {domain: world.server.domain, acct: world.account.acct}
       set_endpoint('direct')
     end
 
     def list(list_id:, title:)
       params[:list] = list_id
       @datasource_slug = "mastodon-#{world.account.acct}-list-#{list_id}".to_sym
-      @title = Plugin[:mastodon]._("Mastodonリスト(Mastodon)/%{acct}/%{title}") % {acct: world.account.acct, title: title}
+      @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/%{title}") % {domain: world.server.domain, acct: world.account.acct, title: title}
       set_endpoint('list')
     end
 
     def public(only_media: false)
       params[:only_media] = only_media
-      @datasource_slug =
-        if only_media
-          "mastodon-#{server.domain}-federated-media".to_sym
-        else
-          "mastodon-#{server.domain}-federated".to_sym
-        end
+      if only_media
+        @datasource_slug = "mastodon-#{server.domain}-federated-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（メディアのみ）") % {domain: server.domain}
+      else
+        @datasource_slug = "mastodon-#{server.domain}-federated".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（全て）") % {domain: server.domain}
+      end
       set_endpoint('public')
     end
 
     def public_local(only_media: false)
       params[:only_media] = only_media
-      @datasource_slug =
-        if only_media
-          "mastodon-#{server.domain}-local-media".to_sym
-        else
-          "mastodon-#{server.domain}-local".to_sym
-        end
+      if only_media
+        @datasource_slug = "mastodon-#{server.domain}-local-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（メディアのみ）") % {domain: server.domain}
+      else
+        @datasource_slug = "mastodon-#{server.domain}-local".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（全て）") % {domain: server.domain}
+      end
       set_endpoint('public_local')
     end
 
