@@ -144,17 +144,6 @@ Plugin.create(:mastodon_sse_streaming) do
     Plugin.call(event_sym) if event_sym
   end
 
-  # TODO: slug -> SSEAuthorizedType
-  # TODO: これいる？
-  filter_mastodon_sse_connection do |slug|
-    [connections[slug]]
-  end
-
-  # TODO: これいる？
-  filter_mastodon_sse_connection_all do |_|
-    [connections]
-  end
-
   def datasource_used?(slug, include_all = false)
     return false unless UserConfig[:extract_tabs]
     UserConfig[:extract_tabs].any? do |setting|
