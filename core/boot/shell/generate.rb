@@ -16,7 +16,7 @@ FileUtils.mkdir_p(plugin_path)
 puts "directory generated: #{plugin_path}"
 File.open("#{plugin_path}/#{slug}.rb", "w"){ |io|
   io.write <<"EOM";
-# -*- coding: utf-8 -*-
+# frozen_string_literal: true
 
 Plugin.create(:#{slug}) do
 
