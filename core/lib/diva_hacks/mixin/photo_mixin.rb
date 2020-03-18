@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'serialthread'
+require 'lib/weakstorage'
 
 =begin rdoc
 画像リソースを扱うModelのためのmix-in。
@@ -9,7 +10,8 @@ require 'serialthread'
 このmoduleをincludeしたクラスは、必要に応じて _download_routine_ をオーバライドする
 =end
 module Diva::Model::PhotoMixin
-  DownloadThread = SerialThreadGroup.new(max_threads: 4, deferred: Delayer::Deferred)
+  DOWNLOAD_THREADS = WeakStorage.new(Array, SerialThreadGroup)
+  PARALELL_DOWNLOAD_LIMIT_BY_SCHEME_AUTHORITY = 4
   PARTIAL_READ_BYTESIZE = 1024 ** 2
 
   include Diva::Model::PhotoInterface
@@ -76,11 +78,17 @@ module Diva::Model::PhotoMixin
 
   private
 
+  def download_thread
+    DOWNLOAD_THREADS[[uri.host, uri.port, uri.scheme == 'https']] ||=
+      SerialThreadGroup.new(max_threads: PARALELL_DOWNLOAD_LIMIT_BY_SCHEME_AUTHORITY, deferred: Delayer::Deferred)
+  end
+
   def download!(&partial_callback)
     atomic do
       return download(&partial_callback) unless ready?
       promise = initialize_download(&partial_callback)
-      DownloadThread.new(&method(:cache_read_or_download)).next{|success|
+      thread = download_thread # 接続中参照させてWeakRefを開放しないようにするんやで（闇運用）
+      thread.new(&method(:cache_read_or_download)).next{|success|
         if success
           finalize_download_as_success
         else
@@ -117,6 +125,8 @@ module Diva::Model::PhotoMixin
 
   def cache_read_or_download
     cache_read_routine || download_routine
+  rescue => err
+    error err
   end
 
   def cache_read_routine
@@ -129,8 +139,11 @@ module Diva::Model::PhotoMixin
   end
 
   def download_routine
-    if uri.scheme == 'file'
+    case uri.scheme
+    when 'file'
       File.open(uri.path, &method(:download_mainloop))
+    when 'http', 'https'
+      http_download
     else
       URI.open(uri.to_s, &method(:download_mainloop))
     end
@@ -155,6 +168,33 @@ module Diva::Model::PhotoMixin
       end
       atomic{ @partials.each{|c|c.(partial)} }
     end
+  end
+
+  def http_download
+    http_connection.request_get(uri.path) do |response|
+      case response
+      when Net::HTTPSuccess
+        response.read_body do |partial|
+          if @buffer
+            @buffer << partial
+          else
+            @buffer = +partial
+          end
+          atomic{ @partials.each{|c|c.(partial)} }
+        end
+      else
+        notice "download failed #{response} #{uri}"
+      end
+    end
+  rescue => err
+    error err
+    raise
+  end
+
+  def http_connection
+    connection = Net::HTTP.new(uri.host, uri.port)
+    connection.use_ssl = uri.scheme == 'https'
+    connection
   end
 
   def initialize_download(&partial_callback)
