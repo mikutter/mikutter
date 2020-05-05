@@ -1,18 +1,19 @@
-# -*- coding: utf-8 -*-
+# frozen_string_literal: true
+
 require 'shellwords'
 require 'open3'
 
 Plugin.create(:pulseaudio) do
-  defsound :pulseaudio, "PulseAudio" do |filename|
+  defsound :pulseaudio, 'PulseAudio' do |filename|
     SerialThread.new do
       if FileTest.exist?(filename)
         begin
           pacmd.puts "play-file #{Shellwords.escape(filename)} #{default_sink}"
         rescue => err
-          error "Error occured. Force close connection.".freeze
+          error 'Error occured. Force close connection.'
           error err
           pacmd.close
-          notice "Retry to play sound.".freeze
+          notice 'Retry to play sound.'
           pacmd.puts "play-file #{filename} #{default_sink}" end end end end
 
   # pacmd コマンドを実行して、書き込み用IOを返す。既に書き込み用IOが開いているならそちらを返す。
@@ -23,10 +24,10 @@ Plugin.create(:pulseaudio) do
     if defined?(@pacmd) and not @pacmd.closed?
       @pacmd
     else
-      notice "connection refused or not connected. reconnecting...".freeze
+      notice 'connection refused or not connected. reconnecting...'
       @default_sink = nil
-      @pacmd = IO.popen("pacmd".freeze, File::Constants::WRONLY).tap{ |pacmd|
-        notice "connected.".freeze
+      @pacmd = IO.popen('pacmd', File::Constants::WRONLY).tap{ |pacmd|
+        notice 'connected.'
         pacmd.close_on_exec = true
         pacmd.autoclose = true
         pacmd.sync = true } end end
@@ -35,9 +36,9 @@ Plugin.create(:pulseaudio) do
   # ==== Return
   # String デフォルトシンクの名前
   def default_sink
-    @default_sink ||= Open3.popen2({"LC_ALL" => "C".freeze} ,"pactl info".freeze){ |input, output, _|
+    @default_sink ||= Open3.popen2({'LC_ALL' => 'C'} ,'pactl info'){ |input, output, _|
       input.close
-      target_line = output.find{ |line| line.start_with?("Default Sink".freeze) }
+      target_line = output.find{ |line| line.start_with?('Default Sink') }
       if target_line
         result = target_line.match(/^Default Sink\s*:\s*(.+)$/)[1]
         notice "detected default sink: #{result}"
