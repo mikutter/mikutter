@@ -274,13 +274,13 @@ Plugin.create :extract do
           &.reject(&tl.method(:include?))
           &.each(&tl.method(:<<))
         if tab.popup?
-          subscribe(:gui_timeline_add_messages, tl).each do |m|
+          subscribe(:gui_timeline_add_messages, tl).each do |message|
             Plugin.call(:popup_notify, message.user, message.description)
           end
         end
-        if tab.sound.is_a?(String) && FileTest.exist?(tab.sound)
-          subscribe(:gui_timeline_add_messages, tl).debounce(0.5).each do
-            Plugin.call(:play_sound, tab.sound)
+        if tab.sound&.yield_self { |sound_uri| FileTest.exist?(sound_uri.to_s) }
+          subscribe(:gui_timeline_add_messages, tl).each do
+            Plugin.call(:play_sound, tab.sound.to_s)
           end
         end
       end
