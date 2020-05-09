@@ -67,6 +67,10 @@ module Plugin::Mastodon
       @@status_storage = WeakStorage.new(String, Status, name: 'toot')
 
       def add_status_storage(toot)
+        raise "uri must not nil. but given #{toot.uri.inspect}" unless toot.uri
+        if @@status_storage.has_key?("#{toot.domain}:#{toot.uri}")
+          warn "key already exists: #{toot.domain}:#{toot.uri}"
+        end
         @@status_storage["#{toot.domain}:#{toot.uri}"] = toot
       end
 
@@ -108,9 +112,7 @@ module Plugin::Mastodon
       # ==== Return
       # Plugin::Mastodon::Status
       def build(server, record)
-        status = json2status(server.domain, record)
-        Plugin.call(:mastodon_appear_toots, [status])
-        status
+        json2status(server.domain, record)
       end
 
       # buildと似ているが、配列を受け取って複数のインスタンスを同時に取得できる。
@@ -121,10 +123,8 @@ module Plugin::Mastodon
       # Plugin::Mastodon::Status の配列
       def bulk_build(server, json)
         json.map do |record|
-          json2status(server.domain, record)
-        end.compact.tap do |statuses|
-          Plugin.call(:mastodon_appear_toots, statuses)
-        end
+          build(server, record)
+        end.to_a
       end
 
       def json2status(domain_name, record)
@@ -151,7 +151,7 @@ module Plugin::Mastodon
             # ブーストではないので、普通にstatusを返す。
         else
           boost_uri = boost_record[:uri] # reblogには:urlが無いので:uriで入れておく
-          boost = merge_or_create(domain_name, boost_uri, boost_record)
+          boost = merge_or_create(domain_name, boost_uri, {**boost_record, url: boost_uri})
           return nil unless boost
           status.reblog_status_uris << { uri: boost_uri, acct: boost_record[:account][:acct] }
           status.reblog_status_uris.uniq!
@@ -182,7 +182,6 @@ module Plugin::Mastodon
         else
           status = Status.new(new_hash)
         end
-        add_status_storage(status)
         status
       end
 
@@ -244,7 +243,8 @@ module Plugin::Mastodon
       end
       @description, @score = Plugin::Mastodon::Parser.dictate_score(content, mentions: mentions, emojis: emojis, media_attachments: media_attachments, poll: poll)
 
-      self
+      self.class.add_status_storage(self)
+      Plugin.call(:mastodon_appear_toots, [self])
     end
 
     def inspect
