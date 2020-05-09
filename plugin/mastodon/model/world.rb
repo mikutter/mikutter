@@ -116,7 +116,7 @@ module Plugin::Mastodon
     def reblog(status)
       Plugin::Mastodon::API.get_local_status_id(self, status.actual_status).next{ |status_id|
         new_status_hash = +Plugin::Mastodon::API.call(:post, domain, '/api/v1/statuses/' + status_id.to_s + '/reblog', access_token)
-        new_status = Plugin::Mastodon::Status.build(domain, [new_status_hash.value]).first
+        new_status = Plugin::Mastodon::Status.build(server, new_status_hash.value)
         Plugin.call(:share, new_status.user, status)
         new_status
       }

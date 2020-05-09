@@ -251,7 +251,7 @@ Plugin.create(:mastodon_account_viewer) do
     world, = Plugin.filtering(:mastodon_current, nil)
     Plugin::Mastodon::API.get_local_account_id(world, user).next{ |account_id|
       Plugin::Mastodon::API.call(:get, world.domain, "/api/v1/accounts/#{account_id}/statuses", world.access_token).next{ |res|
-        tl << Plugin::Mastodon::Status.build(world.domain, res.value)
+        tl << Plugin::Mastodon::Status.bulk_build(world.server, res.value)
       }
     }.terminate
     acct, domain = user.acct.split('@', 2)

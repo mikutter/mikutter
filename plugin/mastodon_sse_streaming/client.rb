@@ -86,7 +86,7 @@ module Plugin::MastodonSseStreaming
     end
 
     def update_handler(payload)
-      message = Plugin::Mastodon::Status.build(@connection.domain, [payload]).first
+      message = Plugin::Mastodon::Status.build(@connection.connection_type.server, payload)
       if message
         @receiver << message
         Plugin.call(:update, nil, [message])
@@ -94,7 +94,7 @@ module Plugin::MastodonSseStreaming
     end
 
     def mention_handler(status)
-      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      message = Plugin::Mastodon::Status.build(@connection.connection_type.server, status)
       if message
         @receiver << message
       end
@@ -103,11 +103,11 @@ module Plugin::MastodonSseStreaming
     def reblog_handler(account:, status:)
       Plugin.call(:share,
                   Plugin::Mastodon::Account.new(account),
-                  Plugin::Mastodon::Status.build(@connection.domain, [status]).first)
+                  Plugin::Mastodon::Status.build(@connection.connection_type.server, status))
     end
 
     def favorite_handler(account:, status:)
-      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      message = Plugin::Mastodon::Status.build(@connection.connection_type.server, status)
       user = Plugin::Mastodon::Account.new(account)
       if message
         message.favorite_accts << user.acct
@@ -122,7 +122,7 @@ module Plugin::MastodonSseStreaming
     end
 
     def poll_handler(status)
-      message = Plugin::Mastodon::Status.build(@connection.domain, [status]).first
+      message = Plugin::Mastodon::Status.build(@connection.connection_type.server, status)
       if message
         activity(:poll, _('投票が終了しました'), description: "#{message.uri}")
       end

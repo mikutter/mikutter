@@ -39,7 +39,7 @@ Plugin.create(:mastodon_rest) do
 
   def query(connection)
     Plugin::Mastodon::API.call(:get, connection.uri.host, connection.uri.path, connection.token, limit: 200, **connection.params).next { |api_response|
-      Plugin::Mastodon::Status.build(connection.uri.host, api_response.value)
+      Plugin::Mastodon::Status.bulk_build(connection.server, api_response.value)
     }.terminate(_('Mastodon: %{title}取得時にエラーが発生しました') % {title: connection.title})
       .trap{ nil }
   end

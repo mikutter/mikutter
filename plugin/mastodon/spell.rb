@@ -302,7 +302,7 @@ Plugin.create(:mastodon) do
     end
 
     world.post(message: body, **opts).next{ |result|
-      new_status = Plugin::Mastodon::Status.build(world.domain, [result.value]).first
+      new_status = Plugin::Mastodon::Status.build(world.server, result.value)
       Plugin.call(:posted, world, [new_status])
       Plugin.call(:update, world, [new_status])
       new_status
@@ -343,7 +343,7 @@ Plugin.create(:mastodon) do
     end
 
     world.post(to: status, message: body, **opts).next{ |result|
-      new_status = Plugin::Mastodon::Status.build(world.domain, [result.value]).first
+      new_status = Plugin::Mastodon::Status.build(world.server, result.value)
       Plugin.call(:posted, world, [new_status]) if new_status
       Plugin.call(:update, world, [new_status]) if new_status
       new_status
@@ -544,7 +544,7 @@ Plugin.create(:mastodon) do
         resp[:statuses]
       }
     end.next{|resp|
-      Plugin::Mastodon::Status.build(world.domain, resp)
+      Plugin::Mastodon::Status.bulk_build(world.server, resp)
     }
   end
 

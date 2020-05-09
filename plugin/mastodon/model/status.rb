@@ -100,12 +100,28 @@ module Plugin::Mastodon
         }
       end
 
-      def build(domain_name, json)
-        return [] unless json
-        return build(domain_name, [json]) if json.is_a? Hash
+      # Mastodon APIレスポンスのJSONをパースした結果のHashを受け取り、それに対応する
+      # インスタンスを返す。
+      # ==== Args
+      # [server] Mastodonサーバ (Plugin::Mastodon::Instance)
+      # [record] APIレスポンスのstatusオブジェクト (Hash)
+      # ==== Return
+      # Plugin::Mastodon::Status
+      def build(server, record)
+        status = json2status(server.domain, record)
+        Plugin.call(:mastodon_appear_toots, [status])
+        status
+      end
 
+      # buildと似ているが、配列を受け取って複数のインスタンスを同時に取得できる。
+      # ==== Args
+      # [server] Mastodonサーバ (Plugin::Mastodon::Instance)
+      # [json] APIレスポンスのstatusオブジェクトの配列 (Array)
+      # ==== Return
+      # Plugin::Mastodon::Status の配列
+      def bulk_build(server, json)
         json.map do |record|
-          json2status(domain_name, record)
+          json2status(server.domain, record)
         end.compact.tap do |statuses|
           Plugin.call(:mastodon_appear_toots, statuses)
         end
@@ -175,7 +191,7 @@ module Plugin::Mastodon
           domain_name = m[1]
           id = m[2]
           Plugin::Mastodon::API.status(domain_name, id).next{ |resp|
-            Status.build(domain_name, [resp.value]).first
+            Status.build(Plugin::Mastodon::Instance.load(domain_name), resp.value)
           }
         else
           Delayer::Deferred.new(true).tap{|d| d.fail(nil) }
@@ -263,6 +279,10 @@ module Plugin::Mastodon
 
     def user
       account
+    end
+
+    def server
+      @server ||= Plugin::Mastodon::Instance.load(domain)
     end
 
     def retweet_count
@@ -408,9 +428,9 @@ module Plugin::Mastodon
       if force_retrieve
         resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
         return [self] unless resp
-        @around = [*Status.build(domain, resp[:ancestors]),
+        @around = [*Status.bulk_build(server, resp[:ancestors]),
                    self,
-                   *Status.build(domain, resp[:descendants])]
+                   *Status.bulk_build(server, resp[:descendants])]
       else
         @around || [self]
       end
@@ -433,7 +453,7 @@ module Plugin::Mastodon
     private def ancestors_force
       resp = Plugin::Mastodon::API.call!(:get, domain, '/api/v1/statuses/' + id + '/context')
       if resp
-        [self, *Status.build(domain, resp[:ancestors]).reverse]
+        [self, *Status.bulk_build(server, resp[:ancestors]).reverse]
       else
         [self]
       end
@@ -475,7 +495,7 @@ module Plugin::Mastodon
         end
       end
       Plugin::Mastodon::API.status!(domain, in_reply_to_id)
-        &.yield_self { |r| Status.build(domain, r.value).first }
+        &.yield_self { |r| Status.build(server, r.value) }
         &.tap { |parent| parent.add_child(self) }
     end
 
