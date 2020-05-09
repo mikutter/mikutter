@@ -72,6 +72,7 @@ Plugin.create :extract do
   defevent :extract_receive_message, prototype: [Plugin::Extract::Setting, Pluggaloid::STREAM]
   defevent :extract_order, prototype: [Pluggaloid::COLLECT]
 
+  @load_time = Time.new.freeze
 
   # 抽出タブオブジェクト。各キーは抽出タブslugで、値は以下のようなオブジェクト
   # name :: タブの名前
@@ -80,6 +81,10 @@ Plugin.create :extract do
   # slug :: タイムラインとタブのスラッグ
   def extract_tabs
     @extract_tabs ||= {} end
+
+  def message_created_after_load_proc
+    @message_created_after_load_proc ||= ->(message) { message.created >= @load_time }
+  end
 
   settings _("抽出タブ") do
     tablist = Plugin::Extract::ExtractTabList.new(Plugin[:extract])
@@ -274,12 +279,12 @@ Plugin.create :extract do
           &.reject(&tl.method(:include?))
           &.each(&tl.method(:<<))
         if tab.popup?
-          subscribe(:gui_timeline_add_messages, tl).each do |message|
+          subscribe(:gui_timeline_add_messages, tl).select(&message_created_after_load_proc).each do |message|
             Plugin.call(:popup_notify, message.user, message.description)
           end
         end
         if tab.sound&.yield_self { |sound_uri| FileTest.exist?(sound_uri.to_s) }
-          subscribe(:gui_timeline_add_messages, tl).each do
+          subscribe(:gui_timeline_add_messages, tl).select(&message_created_after_load_proc).each do
             Plugin.call(:play_sound, tab.sound.to_s)
           end
         end
