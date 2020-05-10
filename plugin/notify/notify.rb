@@ -69,14 +69,19 @@ Plugin.create(:notify) do
       if(UserConfig[:notify_sound_favorited])
         self.notify_sound(UserConfig[:notify_sound_favorited]) end end end
 
-  onmention do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| m[:retweet] and not m.from_me? }).first
-    if not(messages.empty?)
-      if(UserConfig[:notify_retweeted])
-        messages.each{ |message|
-          self.notify(message[:user], _('ReTweet: %{tweet}') % {tweet: message.to_s}) } end
+  onmention do |_, raw_messages|
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| m.created > defined_time && m.retweet? && !m.from_me? }).first.to_a
+    if !messages.empty?
+      if UserConfig[:notify_retweeted]
+        messages.each do |message|
+          self.notify(message[:user], _('Share: %{tweet}') % {tweet: message.to_s})
+        end
+      end
       if(UserConfig[:notify_sound_retweeted])
-        self.notify_sound(UserConfig[:notify_sound_retweeted]) end end end
+        self.notify_sound(UserConfig[:notify_sound_retweeted])
+      end
+    end
+  end
 
   on_direct_messages do |post, dms|
     newer_dms = dms.select{ |dm| Time.parse(dm[:created_at]) > defined_time }
