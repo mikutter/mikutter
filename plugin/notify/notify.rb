@@ -29,57 +29,65 @@ Plugin.create(:notify) do
   end
 
   onupdate do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > defined_time }).first
-    if not(messages.empty?)
-      if(UserConfig[:notify_friend_timeline])
-        messages.each{ |message|
-          self.notify(message[:user], message) if not message.from_me? } end
-      if(UserConfig[:notify_sound_friend_timeline])
-        self.notify_sound(UserConfig[:notify_sound_friend_timeline]) end end end
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| !(m.from_me? || m.to_me?) && m.created > defined_time }).first
+    unless messages.empty?
+      if UserConfig[:notify_friend_timeline]
+        messages.reject(&:from_me?).each do |message|
+          notify(message.user, message)
+        end
+      end
+      notify_sound(UserConfig[:notify_sound_friend_timeline])
+    end
+  end
 
   onmention do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m[:retweet]) and m[:created] > defined_time }).first
-    if not(messages.empty?)
-      if(not(UserConfig[:notify_friend_timeline]) and UserConfig[:notify_mention])
-        messages.each{ |message|
-          self.notify(message[:user], message) } end
-      if(UserConfig[:notify_sound_mention])
-        self.notify_sound(UserConfig[:notify_sound_mention]) end end end
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| !(m.from_me? && m.retweet?) && m.created > defined_time }).first
+    unless messages.empty?
+      if !UserConfig[:notify_friend_timeline] && UserConfig[:notify_mention]
+        messages.each do |message|
+          notify(message.user, message)
+        end
+      end
+      notify_sound(UserConfig[:notify_sound_mention])
+    end
+  end
 
-  on_followers_created do |post, users|
-    if not(users.empty?)
-      if(UserConfig[:notify_followed])
-        self.notify(users.first, _('%{users} にフォローされました。') % {users: users.map{|u| u && "@#{u[:idname]}" }.join(' ')}) end
-      if(UserConfig[:notify_sound_followed])
-        self.notify_sound(UserConfig[:notify_sound_followed]) end end end
+  on_followers_created do |world, users|
+    unless users.empty?
+      if UserConfig[:notify_followed]
+        notify(users.first, _('%{users} にフォローされました。') % { users: users.map{|u| "@#{u[:idname]}" }.join(' ') })
+      end
+      notify_sound(UserConfig[:notify_sound_followed])
+    end
+  end
 
-  on_followers_destroy do |post, users|
-    if not(users.empty?)
-      if(UserConfig[:notify_removed])
-        self.notify(users.first, _('%{users} にリムーブされました。') % {users: users.map{|u| u && "@#{u[:idname]}" }.join(' ')}) end
-      if(UserConfig[:notify_sound_removed])
-        self.notify_sound(UserConfig[:notify_sound_removed]) end end end
+  on_followers_destroy do |world, users|
+    unless users.empty?
+      if UserConfig[:notify_removed]
+        notify(users.first, _('%{users} にリムーブされました。') % { users: users.map{|u| "@#{u.idname}" }.join(' ') })
+      end
+      notify_sound(UserConfig[:notify_sound_removed])
+    end
+  end
 
-  on_favorite do |service, by, to|
+  on_favorite do |_, by, to|
     if to.from_me?
-      if(UserConfig[:notify_favorited])
-        self.notify(by, _("fav by %{from_user} \"%{tweet}\"") % {
-                      from_user: by[:idname],
-                      tweet: to.to_s }) end
-      if(UserConfig[:notify_sound_favorited])
-        self.notify_sound(UserConfig[:notify_sound_favorited]) end end end
+      if UserConfig[:notify_favorited]
+        notify(by, _("fav by %{from_user} \"%{text}\"") % { from_user: by.idname, text: to.to_s })
+      end
+      notify_sound(UserConfig[:notify_sound_favorited])
+    end
+  end
 
   onmention do |_, raw_messages|
     messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| m.created > defined_time && m.retweet? && !m.from_me? }).first.to_a
-    if !messages.empty?
+    unless messages.empty?
       if UserConfig[:notify_retweeted]
         messages.each do |message|
-          self.notify(message[:user], _('Share: %{tweet}') % {tweet: message.to_s})
+          notify(message.user, _('Share by %{from_user}: %{text}') % { from_user: message.user.idname, text: message.retweet_source.to_s })
         end
       end
-      if(UserConfig[:notify_sound_retweeted])
-        self.notify_sound(UserConfig[:notify_sound_retweeted])
-      end
+      notify_sound(UserConfig[:notify_sound_retweeted])
     end
   end
 
@@ -88,15 +96,18 @@ Plugin.create(:notify) do
     if not(newer_dms.empty?)
       if(UserConfig[:notify_direct_message])
         newer_dms.each{ |dm|
-          self.notify(User.generate(dm[:sender]), dm[:text]) } end
+          notify(User.generate(dm[:sender]), dm[:text]) } end
       if(UserConfig[:notify_sound_direct_message])
-        self.notify_sound(UserConfig[:notify_sound_direct_message]) end end end
+        notify_sound(UserConfig[:notify_sound_direct_message]) end end end
 
-  def self.notify(user, text)
-    Plugin.call(:popup_notify, user, text) end
+  def notify(user, text)
+    Plugin.call(:popup_notify, user, text)
+  end
 
-  def self.notify_sound(sndfile)
-    if sndfile.respond_to?(:to_s) and FileTest.exist?(sndfile.to_s)
-      Plugin.call(:play_sound, sndfile) end end
+  def notify_sound(sndfile)
+    if sndfile&.respond_to?(:to_s) && FileTest.exist?(sndfile.to_s)
+      Plugin.call(:play_sound, sndfile)
+    end
+  end
 
 end
