@@ -70,11 +70,11 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
 
   # レコードをもとにリストビューを更新する
   # ==== Args
-  # [record] 更新されたレコード(Hash)
+  # [record] 更新されたレコード(Plugin::Extract::Setting)
   def update_record(record)
     update_iter = model.to_enum
                     .map { |_, _, iter| iter }
-                    .find { |iter| iter[COL_SLUG] == record[:slug] }
+                    .find { |iter| iter[COL_SLUG].to_sym == record[:slug] }
     setup_iter update_iter, record if update_iter
   end
 
@@ -115,7 +115,7 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # イテレータにレコードの内容をコピーする
   # ==== Args
   # [iter] TreeIter
-  # [record] 参照するレコード (Hash)
+  # [record] 参照するレコード (Plugin::Extract::Setting)
   def setup_iter(iter, record)
     size = { width: ICON_SIZE, height: ICON_SIZE }
     set_icon = lambda { |col, photo|
