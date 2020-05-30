@@ -133,16 +133,14 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
       set_icon.call COL_ICON, photo
     end
     if record[:sound].to_s.empty?
-      # FIXME: 適当なアイコンを標準スキンに入れる
-      set_icon.call COL_SOUND, Skin['speaker-x.png']
+      set_icon.call COL_SOUND, Skin[:notify_sound_off]
     else
-      set_icon.call COL_SOUND, Skin['speaker-l.png']
+      set_icon.call COL_SOUND, Skin[:notify_sound_on]
     end
     if record[:popup]
-      # FIXME: 適当なアイコンを標準スキンに入れる
-      set_icon.call COL_POPUP, Skin['popup.png']
+      set_icon.call COL_POPUP, Skin[:notify_popup_on]
     else
-      set_icon.call COL_POPUP, Skin['no-popup.png']
+      set_icon.call COL_POPUP, Skin[:notify_popup_off]
     end
   end
 
