@@ -103,7 +103,7 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
     end
   end
 
-# ==== utility
+  # ==== utility
 
   # レコードの配列を返す
   # ==== Return
@@ -117,12 +117,12 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # [iter] TreeIter
   # [record] 参照するレコード (Plugin::Extract::Setting)
   def setup_iter(iter, record)
-    set_icon = lambda { |col, photo|
     size = { width: Gdk.scale(ICON_SIZE), height: Gdk.scale(ICON_SIZE) }
+    set_icon = ->(col, photo) do
       iter[col] = photo.load_pixbuf(**size) do |pb|
         iter[col] = pb unless destroyed?
       end
-    }
+    end
 
     iter[COL_NAME] = record[:name]
     iter[COL_SLUG] = record[:slug]
@@ -130,17 +130,17 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
       photo = Enumerator.new do |y|
         Plugin.filtering :photo_filter, record[:icon], y
       end.first
-      set_icon.call COL_ICON, photo
+      set_icon.(COL_ICON, photo)
     end
     if record[:sound].to_s.empty?
-      set_icon.call COL_SOUND, Skin[:notify_sound_off]
+      set_icon.(COL_SOUND, Skin[:notify_sound_off])
     else
-      set_icon.call COL_SOUND, Skin[:notify_sound_on]
+      set_icon.(COL_SOUND, Skin[:notify_sound_on])
     end
     if record[:popup]
-      set_icon.call COL_POPUP, Skin[:notify_popup_on]
+      set_icon.(COL_POPUP, Skin[:notify_popup_on])
     else
-      set_icon.call COL_POPUP, Skin[:notify_popup_off]
+      set_icon.(COL_POPUP, Skin[:notify_popup_off])
     end
   end
 
