@@ -117,8 +117,8 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # [iter] TreeIter
   # [record] 参照するレコード (Plugin::Extract::Setting)
   def setup_iter(iter, record)
-    size = { width: ICON_SIZE, height: ICON_SIZE }
     set_icon = lambda { |col, photo|
+    size = { width: Gdk.scale(ICON_SIZE), height: Gdk.scale(ICON_SIZE) }
       iter[col] = photo.load_pixbuf(**size) do |pb|
         iter[col] = pb unless destroyed?
       end
