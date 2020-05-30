@@ -3,9 +3,9 @@ require 'fileutils'
 
 =begin
 このファイルを見た人へ
-このことを絶対ツイートしないでください
+このことを絶対誰にも言わないでください
 
-どうしてもしたい人は、毎年4/1(JST)の間だけしてもいいですよ
+どうしても言いたい人は、毎年4/1(JST)の間だけはいいですよ
 
 としぁ
 =end
@@ -38,13 +38,13 @@ Plugin.create :aspectframe do
     Plugin::AspectFrame.now
   end
 
-  if (Plugin::AspectFrame::PREFETCH.first..Plugin::AspectFrame::SequenceTrueMikutter.range.last).cover? now
+  if Plugin::AspectFrame::PREFETCH.cover?(now)
     FileUtils.mkdir_p(Plugin::AspectFrame::CACHE_DIR)
     # prefetch
-    onappear do |messages|
+    on_gui_timeline_add_messages do |_tl, messages|
       if Plugin::AspectFrame::PREFETCH.cover?(now)
         messages.deach do |message|
-          if rand(1000) < Time.new.day**2
+          if rand(1000) < now.day**2
             Plugin.call(:image_file_cache_photo, transform(message.user.icon))
           end
         end
@@ -57,7 +57,7 @@ Plugin.create :aspectframe do
 
   # return fetched data
   filter_image_cache do |url, image, &stop|
-    if /http:\/\/toshia.dip.jp\/img\/api\/([0-9A-F]{2})\.png/ =~ url
+    if /https:\/\/mikutter\.hachune\.net\/img\/api\/([0-9A-F]{2})\.png/ =~ url
       local = localfile_hash($1)
       if FileTest.exist? local
         raw = file_get_contents(local)
@@ -80,7 +80,7 @@ Plugin.create :aspectframe do
   def transform(icon)
     if icon.perma_link
       Enumerator.new{|y|
-        Plugin.filtering(:photo_filter, "http://toshia.dip.jp/img/api/#{Digest::MD5.hexdigest(icon.perma_link.to_s)[0,2].upcase}.png", y)
+        Plugin.filtering(:photo_filter, "https://mikutter.hachune.net/img/api/#{Digest::MD5.hexdigest(icon.perma_link.to_s)[0,2].upcase}.png", y)
       }.first
     else
       icon
