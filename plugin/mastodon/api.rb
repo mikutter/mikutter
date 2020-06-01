@@ -204,7 +204,10 @@ module Plugin::Mastodon
           body = query
           query = nil
         end
+        notice uri.to_s
         HTTPClient.new.request(method, uri.to_s, query, body, headers)
+      rescue err
+        error err
       ensure
         files&.each(&:close)
       end

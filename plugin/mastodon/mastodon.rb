@@ -232,7 +232,10 @@ Plugin.create(:mastodon) do
       result = await_input
       domain = result[:domain_selection] == :other ? result[:domain] : result[:domain_selection]
 
-      instance = await Plugin::Mastodon::Instance.add_ifn(domain).trap{ nil }
+      instance = await Plugin::Mastodon::Instance.add_ifn(domain).trap{ |err|
+        error err
+        nil
+      }
       unless instance
         error_msg = _("%{domain} サーバーへの接続に失敗しました。やり直してください。") % {domain: domain}
         next
