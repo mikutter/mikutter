@@ -47,12 +47,6 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
 
     extract_tabs.each(&method(:add_record))
     register_signal_handlers
-
-    Plugin[:extract].on_userconfig_modify do |key, value|
-      next if key != :extract_tabs
-      model.clear
-      extract_tabs.each(&method(:add_record))
-    end
   end
 
   # 現在選択されている抽出タブのslugを返す
