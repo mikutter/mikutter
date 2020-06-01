@@ -72,9 +72,9 @@ class Plugin::Extract::ExtractTabList < ::Gtk::TreeView
   # ==== Args
   # [record] 更新されたレコード(Plugin::Extract::Setting)
   def update_record(record)
-    update_iter = model.to_enum
-                    .map { |_, _, iter| iter }
-                    .find { |iter| iter[COL_SLUG].to_sym == record[:slug] }
+    update_iter = model.to_enum(:each)
+      .map { |_, _, iter| iter }
+      .find { |iter| record[:slug].to_sym == iter[COL_SLUG].to_sym }
     setup_iter update_iter, record if update_iter
   end
 
