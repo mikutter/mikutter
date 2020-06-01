@@ -233,14 +233,12 @@ module Plugin::Mastodon
 
       def status_by_url(domain, access_token, url)
         call(:get, domain, '/api/v2/search', access_token, q: url.to_s, resolve: true).next{ |resp|
-          resp[:statuses]
+          resp[:statuses]&.first
         }
       end
 
       def status_by_url!(domain, access_token, url)
-        call!(:get, domain, '/api/v2/search', access_token, q: url.to_s, resolve: true).next{ |resp|
-          resp[:statuses]
-        }
+        call!(:get, domain, '/api/v2/search', access_token, q: url.to_s, resolve: true).value[:statuses]&.first
       end
 
       def account_by_url(domain, access_token, url)
