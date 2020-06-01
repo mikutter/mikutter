@@ -202,8 +202,10 @@ module Plugin::Mastodon
       @reblog_status_uris = []
       @favorite_accts = []
 
-      # タイムゾーン考慮
-      hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      if hash[:created_at].is_a? String
+        # タイムゾーン考慮
+        hash[:created_at] = Time.parse(hash[:created_at]).localtime
+      end
       # cairo_sub_parts_message_base用
       hash[:created] = hash[:created_at]
       hash[:modified] = hash[:created_at] unless hash[:modified]
