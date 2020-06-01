@@ -70,5 +70,9 @@ module Plugin::Mastodon
     def params
       @params ||= {}
     end
+
+    def uri
+      "#{@perma_link}?#{params.to_a.map { |a| a.join '=' }.join '&'}"
+    end
   end
 end
