@@ -32,6 +32,7 @@ Plugin.create(:mastodon_rest) do
       rescue Pluggaloid::NoReceiverError
         # ignore
       end.trap do |err|
+        error err
         Delayer.new { raise err }
       end
     end
