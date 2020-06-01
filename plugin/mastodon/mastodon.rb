@@ -47,11 +47,6 @@ Plugin.create(:mastodon) do
 
   defactivity :mastodon_followings_update, _('プロフィール・フォロー関係の取得通知(Mastodon)')
 
-  filter_extract_datasources do |dss|
-    datasources = { mastodon_appear_toots: _('受信したすべてのトゥート(Mastodon)') }
-    [datasources.merge(dss)]
-  end
-
   # データソース「mastodon_appear_toots」の定義
   generate(:extract_receive_message, :mastodon_appear_toots) do |appear|
     subscribe(:mastodon_appear_toots, &appear.method(:bulk_add))
@@ -97,6 +92,11 @@ Plugin.create(:mastodon) do
 
   # 存在するサーバやWorldに応じて、選択できる全ての抽出タブデータソースを提示する
   collection(:message_stream) do |message_stream|
+    message_stream << Class.new do
+      def title; Plugin[:mastodon]._('受信したすべてのトゥート(Mastodon)') end
+      def datasource_slug; :mastodon_appear_toots end
+    end.new
+
     subscribe(:mastodon_worlds__add) do |worlds|
       message_stream.rewind do |a|
         a | worlds.flat_map{|world| [world.sse.user, world.sse.direct] }
