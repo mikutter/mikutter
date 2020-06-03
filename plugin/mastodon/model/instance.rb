@@ -20,8 +20,6 @@ module Plugin::Mastodon
             website: Plugin::Mastodon::WEB_SITE
           )
         }.next{ |resp|
-          add_datasources(domain)
-
           self.new(
             domain: domain,
             client_key: resp[:client_id],
