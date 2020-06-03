@@ -6,8 +6,8 @@ class Plugin::Extract::DatasourceSelectBox < Gtk::HierarchycalSelectBox
   end
 
   def datasources
-    Plugin.collect(:message_stream).map do |model|
-      [model.datasource_slug, model.title.split('/').freeze]
+    (Plugin.filtering(:extract_datasources, {}) || [{}]).first.map do |id, source_name|
+      [id, source_name.is_a?(String) ? source_name.split('/'.freeze) : source_name]
     end
   end
 
