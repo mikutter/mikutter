@@ -60,10 +60,11 @@ module Plugin::Mastodon
     end
 
     def set_endpoint(endpoint)
-      @perma_link = Diva::URI.new('https://%{domain}/api/v1/streaming/%{endpoint}' % {
-                             domain:   server.domain,
-                             endpoint: endpoint,
-                           })
+      @perma_link = Diva::URI.new('https://%{domain}/api/v1/streaming/%{endpoint}?%{query}' % {
+                                    domain:   server.domain,
+                                    endpoint: endpoint,
+                                    query:    query,
+                                  })
       self
     end
 
@@ -73,10 +74,6 @@ module Plugin::Mastodon
 
     def query
       params.map { |pair| pair.join('=') }.join('&')
-    end
-
-    def uri
-      "#{@perma_link}?#{query}"
     end
   end
 end

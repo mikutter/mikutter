@@ -54,8 +54,8 @@ module Plugin::MastodonSseStreaming
     def connect
       parser = Plugin::MastodonSseStreaming::Parser.new(self, @receiver)
       client = HTTPClient.new
-      notice "connect #{connection_type.uri.to_s}"
-      response = client.request(:get, connection_type.uri.to_s, connection_type.params, {}, headers) do |fragment|
+      notice "connect #{connection_type.perma_link.to_s}"
+      response = client.request(:get, connection_type.perma_link.to_s, {}, {}, headers) do |fragment|
         @cooldown_time.reset
         parser << fragment
       end
