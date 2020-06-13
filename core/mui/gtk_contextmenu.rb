@@ -10,16 +10,15 @@ module Gtk
       @contextmenu = context
     end
 
-    def register(label, condition=ret_nth(), &callback)
-      @contextmenu = @contextmenu.push([label, condition, callback]) end
+    def register(label, condition=:itself, &callback)
+      @contextmenu = @contextmenu.push([label, condition.to_proc, callback])
+    end
     alias :registmenu :register
     deprecate :registmenu, "register", 2018, 04
 
-    def line
-      if block_given?
-        register(nil, lambda{ |*a| yield(*a) }){ |a,b| }
-      else
-        register(nil){ |a,b| } end end
+    def line(&proc)
+      register(nil, proc || :itself)
+    end
     alias :registline :line
     deprecate :registline, "line", 2018, 04
 
@@ -36,26 +35,23 @@ module Gtk
       menu end
 
     def build!(widget, optional, menu = temporary_menu)
-     @contextmenu.each{ |param|
+      @contextmenu.each do |param|
         label, cond, proc, icon = param
         if cond.call(*[optional, widget][0, (cond.arity == -1 ? 1 : cond.arity)])
           if label
-            label_text = defined?(label.call) ? label.call(*[optional, widget][0, (label.arity == -1 ? 1 : label.arity)]) : label
-            if icon.is_a? Proc
-              icon = icon.call(*[optional, widget][0, (icon.arity == -1 ? 1 : icon.arity)]) end
-            if icon
-              item = Gtk::ImageMenuItem.new(label_text)
-              item.set_image(Gtk::WebIcon.new(icon, 16, 16))
-            else
-              item = Gtk::MenuItem.new(label_text)
-            end
+            item = gen_menu_item(label_text(label, optional, widget), icon, optional, widget)
             if proc
-              item.ssc('activate') { |w|
+              item.ssc(:activate) do |w|
                 proc.call(*[optional, widget][0...proc.arity])
-                false } end
+                false
+              end
+            end
             menu.append(item)
           else
-            menu.append(Gtk::MenuItem.new) end end }
+            menu.append(Gtk::MenuItem.new)
+          end
+        end
+      end
       menu
     end
 
@@ -63,6 +59,31 @@ module Gtk
       menu = build!(widget, optional)
 
       if not menu.children.empty?
-        menu.show_all.popup(nil, nil, 0, 0) end end
+        menu.show_all.popup(nil, nil, 0, 0)
+      end
+    end
+
+    private
+
+    def label_text(label, optional, widget)
+      if defined?(label.call)
+        label.call(*[optional, widget][0, (label.arity == -1 ? 1 : label.arity)])
+      else
+        label
+      end
+    end
+
+    def gen_menu_item(label_text, icon, optional, widget)
+      if icon.is_a?(Proc)
+        icon = icon.call(*[optional, widget][0, (icon.arity == -1 ? 1 : icon.arity)])
+      end
+      if icon
+        Gtk::ImageMenuItem.new(label_text).tap do |item|
+          item.set_image(Gtk::WebIcon.new(icon, 16, 16))
+        end
+      else
+        Gtk::MenuItem.new(label_text)
+      end
+    end
   end
 end

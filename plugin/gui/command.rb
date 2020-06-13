@@ -21,10 +21,10 @@ module Plugin::GUI
             index = where_should_insert_it(record[:slug].to_s, labels, UserConfig[:mumble_contextmenu_order] || [])
             labels.insert(index, record[:slug].to_s)
             face = record[:show_face] || record[:name] || record[:slug].to_s
-            name = if defined? face.call then lambda{ |x| face.call(event) } else face end
+            name = if defined?(face.call) then -> { face.call(event) } else face end
             contextmenu.insert(index, [name,
-                                       lambda{ |x| record[:condition] === event },
-                                       lambda{ |x| record[:exec].call(event) },
+                                       -> { record[:condition] === event },
+                                       -> { record[:exec].call(event) },
                                        record[:icon]]) end }
 
         [event,contextmenu]
