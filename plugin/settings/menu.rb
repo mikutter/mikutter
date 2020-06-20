@@ -35,8 +35,12 @@ module Plugin::Settings
       iter[COL_LABEL] = record.name
       iter[COL_RECORD] = record
       iter[COL_ORDER] = (record_order.index(record.name) || record_order.size)
-      record.children.each do |child_record|
-        add_record(child_record, parent: iter)
+      Delayer.new do
+        next if destroyed?
+        record.children.deach do |child_record|
+          break if destroyed?
+          add_record(child_record, parent: iter)
+        end
       end
     end
   end
