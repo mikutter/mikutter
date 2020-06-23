@@ -146,6 +146,11 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
 
   def update_button
     edit = Gtk::Button.new(Gtk::Stock::EDIT)
+    edit.set_sensitive(false)
+    selection.ssc(:changed) do
+      edit.set_sensitive(selection.count_selected_rows != 0)
+      false
+    end
     edit.ssc(:clicked) do
       record_update
       true
@@ -155,6 +160,11 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
 
   def delete_button
     delete = Gtk::Button.new(Gtk::Stock::DELETE)
+    delete.set_sensitive(false)
+    selection.ssc(:changed) do
+      delete.set_sensitive(selection.count_selected_rows != 0)
+      false
+    end
     delete.ssc(:clicked) do
       record_delete
       true
@@ -175,6 +185,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
 
   def record_update
     _, _, iter = selection.to_enum(:selected_each).first
+    return unless iter
     target = iter[0]
     proc = @generate
     Plugin[:gui].dialog('hogefuga の編集') do
@@ -191,6 +202,7 @@ class Gtk::FormDSL::ListView < Gtk::TreeView
   def record_delete
     _, _, iter = selection.to_enum(:selected_each).first
     columns = @columns
+    return unless iter
     target = iter[0]
     Plugin[:gui].dialog('hogefuga の削除') do
       label _('次のhogefugaを本当に削除しますか？削除すると二度と戻ってこないよ')
