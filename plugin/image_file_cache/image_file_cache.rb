@@ -4,6 +4,9 @@ require 'moneta'
 
 Plugin.create :image_file_cache do
 
+  UserConfig[:image_file_cache_expire]     ||= 32
+  UserConfig[:image_file_cache_size_limit] ||= 128
+
   @queue = Delayer.generate_class(priority: %i[none check_subdirs check_dirs],
                                   default: :none,
                                   expire: 0.02)
@@ -43,13 +46,21 @@ Plugin.create :image_file_cache do
     [url, image]
   end
 
+  settings _('画像キャッシュ') do
+    adjustment(_('画像をキャッシュする最大日数(日)'), :image_file_cache_expire, 1, 365)
+      .tooltip(_('キャッシュされた画像は、この日数が経てば、無条件に削除されます。もしもう一度使われることがあれば、ネット上から再取得されるでしょう。'))
+    adjustment(_('画像キャッシュを保存する最大容量(MB)'), :image_file_cache_size_limit, 1, 1024)
+      .tooltip(_('この容量に達するまで、アイコンなどの、また使われる可能性のある画像をローカルに保存しておきます。例えば1024を指定すると、最大で1GBのストレージを消費する可能性があります。'))
+  end
+
   # キャッシュの有効期限を秒単位で返す
   def cache_expire
-    (UserConfig[:image_file_cache_expire] || 32) * 24 * 60 * 60 end
+    [1, UserConfig[:image_file_cache_expire].to_i].max * 24 * 60 * 60
+  end
 
   # キャッシュの容量制限を返す(Bytes)
   def cache_size_limit
-    (UserConfig[:image_file_cache_size_limit] || 8) << 20 # MB単位でしか設定できないよ
+    [1, UserConfig[:image_file_cache_size_limit].to_i].max << 20
   end
 
   # 容量オーバーの時、一度に開放する画像の最小点数

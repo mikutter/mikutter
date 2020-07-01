@@ -3,7 +3,7 @@ slug: :image_file_cache
 depends:
   mikutter: '4.0'
   plugin:
-  - gtk
+  - settings
 version: '2.0'
 author: toshi_a
 name: 画像キャッシュ
