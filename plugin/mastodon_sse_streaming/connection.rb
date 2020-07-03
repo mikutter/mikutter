@@ -59,10 +59,19 @@ module Plugin::MastodonSseStreaming
         @cooldown_time.reset
         parser << fragment
       end
-      @cooldown_time.status_code(response.status)
+      if response
+        @cooldown_time.status_code(response.status_code)
+      else
+        @cooldown_time.client_error
+      end
     rescue => exc
-      @cooldown_time.client_error
       error exc
+      notice "disconnect #{response&.status} #{exc}"
+      @cooldown_time.client_error
+    rescue Exception => exc
+      notice "disconnect #{response&.status} #{exc}"
+      @cooldown_time.client_error
+      raise
     end
 
     def headers

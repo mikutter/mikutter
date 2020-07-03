@@ -87,9 +87,15 @@ module Plugin::Mastodon
       'https://' + domain + '/oauth/authorize?' + params
     end
 
-    def inspect
-      "mastodon-instance(#{domain})"
+    def ==(other)
+      case other
+      when Plugin::Mastodon::Instance
+        domain == other.domain
+      end
     end
 
+    def inspect
+      "#<#{self.class.name}: #{domain}>"
+    end
   end
 end

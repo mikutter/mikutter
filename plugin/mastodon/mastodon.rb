@@ -91,7 +91,10 @@ Plugin.create(:mastodon) do
   # Mastodonサーバが初期化されたら、サーバの集合に加える
   collection(:mastodon_servers) do |servers|
     on_mastodon_server_created do |server|
-      servers << server
+      servers.rewind do |stored|
+        stored << server unless stored.include?(server)
+        stored
+      end
     end
   end
 
