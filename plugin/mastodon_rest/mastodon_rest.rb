@@ -2,31 +2,29 @@ Plugin.create(:mastodon_rest) do
   @tags = {}                    # world_hash => handler_tag
 
   subscribe(:mastodon_worlds__add).each do |new_world|
-    tag = @tags[new_world.hash] ||= handler_tag()
     [ new_world.rest.user,
       new_world.rest.direct
-    ].each { |stream| generate_stream(stream, tag: tag) }
+    ].each { |stream| generate_stream(stream, tag: tag_of(new_world)) }
     new_world.get_lists.next { |lists|
       lists.each do |l|
-        generate_stream(new_world.rest.list(list_id: l[:id].to_i, title: l[:title]), tag: tag)
+        generate_stream(new_world.rest.list(list_id: l[:id].to_i, title: l[:title]), tag: tag_of(new_world))
       end
     }.terminate(_('Mastodon: リスト取得時にエラーが発生しました'))
   end
 
   subscribe(:mastodon_worlds__delete).each do |lost_world|
-    detach(@tags[lost_world.hash])
+    detach(tag_of(lost_world))
   end
 
   subscribe(:mastodon_servers__add).each do |server|
-    tag = @tags[server.hash] ||= handler_tag()
-    generate_stream(server.rest.public,                         tag: tag)
-    generate_stream(server.rest.public_local,                   tag: tag)
-    generate_stream(server.rest.public(only_media: true),       tag: tag)
-    generate_stream(server.rest.public_local(only_media: true), tag: tag)
+    generate_stream(server.rest.public,                         tag: tag_of(server))
+    generate_stream(server.rest.public_local,                   tag: tag_of(server))
+    generate_stream(server.rest.public(only_media: true),       tag: tag_of(server))
+    generate_stream(server.rest.public_local(only_media: true), tag: tag_of(server))
   end
 
   subscribe(:mastodon_servers__delete).each do |lost_server|
-    detach(@tags[lost_server.hash])
+    detach(tag_of(lost_server))
   end
 
   def generate_stream(connection, tag:)
@@ -54,5 +52,9 @@ Plugin.create(:mastodon_rest) do
       Plugin::Mastodon::Status.bulk_build(connection.server, api_response.value)
     }.terminate(_('Mastodon: %{title}取得時にエラーが発生しました') % {title: connection.title})
       .trap{ nil }
+  end
+
+  def tag_of(world_or_server)
+    @tags[world_or_server.hash] ||= handler_tag()
   end
 end
