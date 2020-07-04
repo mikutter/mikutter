@@ -17,6 +17,18 @@ Plugin.create(:mastodon_rest) do
     detach(@tags[lost_world.hash])
   end
 
+  subscribe(:mastodon_servers__add).each do |server|
+    tag = @tags[server.hash] ||= handler_tag()
+    generate_stream(server.rest.public,                         tag: tag)
+    generate_stream(server.rest.public_local,                   tag: tag)
+    generate_stream(server.rest.public(only_media: true),       tag: tag)
+    generate_stream(server.rest.public_local(only_media: true), tag: tag)
+  end
+
+  subscribe(:mastodon_servers__delete).each do |lost_server|
+    detach(@tags[lost_server.hash])
+  end
+
   def generate_stream(connection, tag:)
     generate(:extract_receive_message, connection.datasource_slug, tags: [tag]) do |stream_input|
       Delayer::Deferred.next do

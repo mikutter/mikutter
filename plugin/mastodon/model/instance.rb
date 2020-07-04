@@ -70,6 +70,10 @@ module Plugin::Mastodon
       Plugin::Mastodon::SSEPublicType.new(server: self)
     end
 
+    def rest
+      Plugin::Mastodon::RestPublicType.new(server: self)
+    end
+
     def store
       configs = UserConfig[:mastodon_instances].dup
       configs[domain] = { client_key: client_key, client_secret: client_secret, retrieve: retrieve }
