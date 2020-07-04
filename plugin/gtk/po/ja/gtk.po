@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "Statusbar default message"
-msgstr "新世代のmikutterへ、ようこそ。"
+msgstr "欲しい情報を、ほしいままに。"
 
 msgid "Worldを追加"
 msgstr ""
