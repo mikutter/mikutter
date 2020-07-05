@@ -171,38 +171,38 @@ Plugin.create(:mastodon) do
   end
 
   on_world_create do |world|
-    if world.class.slug == :mastodon
-      slug_param = {id: Digest::SHA1.hexdigest(world.uri.to_s), domain: world.domain}
-      name_param = {name: world.user_obj.acct, domain: world.domain}
-      htl_slug = ('mastodon_htl_%{id}' % slug_param).to_sym
-      mention_slug = ('mastodon_mentions_%{id}' % slug_param).to_sym
-      ltl_slug = ('mastodon_ltl_%{domain}' % slug_param).to_sym
-      exists_slugs = Set.new(Plugin.filtering(:extract_tabs_get, []).first.map(&:slug))
-      if !exists_slugs.include?(htl_slug)
-        Plugin.call(:extract_tab_create, {
-                      name: _('ホームタイムライン (%{name})') % name_param,
-                      slug: htl_slug,
-                      sources: [world.datasource_slug(:home)],
-                      icon: Skin[:timeline].uri,
-                    })
-      end
-      if !exists_slugs.include?(mention_slug)
-        Plugin.call(:extract_tab_create, {
-                      name: _('メンション (%{name})') % name_param,
-                      slug: mention_slug,
-                      sources: [:mastodon_appear_toots],
-                      sexp: [:or, [:include?, :receiver_idnames, world.user_obj.idname]],
-                      icon: Skin[:reply].uri,
-                    })
-      end
-      if !exists_slugs.include?(ltl_slug)
-        Plugin.call(:extract_tab_create, {
-                      name: _('ローカルタイムライン (%{domain})') % name_param,
-                      slug: ltl_slug,
-                      sources: [Plugin::Mastodon::Instance.datasource_slug(world.domain, :local)],
-                      icon: 'https://%{domain}/apple-touch-icon.png' % slug_param,
-                    })
-      end
+    next unless world.class.slug == :mastodon
+
+    slug_param = {id: Digest::SHA1.hexdigest(world.uri.to_s), domain: world.domain}
+    name_param = {name: world.user_obj.acct, domain: world.domain}
+    htl_slug = ('mastodon_htl_%{id}' % slug_param).to_sym
+    mention_slug = ('mastodon_mentions_%{id}' % slug_param).to_sym
+    ltl_slug = ('mastodon_ltl_%{domain}' % slug_param).to_sym
+    exists_slugs = Set.new(Plugin.filtering(:extract_tabs_get, []).first.map(&:slug))
+    unless exists_slugs.include?(htl_slug)
+      Plugin.call(:extract_tab_create, {
+                    name: _('ホームタイムライン (%{name})') % name_param,
+                    slug: htl_slug,
+                    sources: [world.sse.user.datasource_slug],
+                    icon: Skin[:timeline].uri,
+                  })
+    end
+    unless exists_slugs.include?(mention_slug)
+      Plugin.call(:extract_tab_create, {
+                    name: _('メンション (%{name})') % name_param,
+                    slug: mention_slug,
+                    sources: [:mastodon_appear_toots],
+                    sexp: [:or, [:include?, :receiver_idnames, world.user_obj.idname]],
+                    icon: Skin[:reply].uri,
+                  })
+    end
+    unless exists_slugs.include?(ltl_slug)
+      Plugin.call(:extract_tab_create, {
+                    name: _('ローカルタイムライン (%{domain})') % name_param,
+                    slug: ltl_slug,
+                    sources: [world.sse.public_local.datasource_slug],
+                    icon: 'https://%{domain}/apple-touch-icon.png' % slug_param,
+                  })
     end
   end
 
