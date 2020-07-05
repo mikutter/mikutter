@@ -179,7 +179,7 @@ Plugin.create(:mastodon) do
     mention_slug = ('mastodon_mentions_%{id}' % slug_param).to_sym
     ltl_slug = ('mastodon_ltl_%{domain}' % slug_param).to_sym
     exists_slugs = Set.new(Plugin.filtering(:extract_tabs_get, []).first.map(&:slug))
-    unless exists_slugs.include? htl_slug
+    unless exists_slugs.include?(htl_slug)
       Plugin.call(:extract_tab_create, {
                     name: _('ホームタイムライン (%{name})') % name_param,
                     slug: htl_slug,
@@ -187,7 +187,7 @@ Plugin.create(:mastodon) do
                     icon: Skin[:timeline].uri,
                   })
     end
-    unless exists_slugs.include? mention_slug
+    unless exists_slugs.include?(mention_slug)
       Plugin.call(:extract_tab_create, {
                     name: _('メンション (%{name})') % name_param,
                     slug: mention_slug,
@@ -196,7 +196,7 @@ Plugin.create(:mastodon) do
                     icon: Skin[:reply].uri,
                   })
     end
-    unless exists_slugs.include? ltl_slug
+    unless exists_slugs.include?(ltl_slug)
       Plugin.call(:extract_tab_create, {
                     name: _('ローカルタイムライン (%{domain})') % name_param,
                     slug: ltl_slug,
