@@ -88,7 +88,7 @@ module Plugin::Shortcutkey
     end
 
     def command_dict_slug_to_name
-      Hash[
+      @command_dict_slug_to_name ||= Hash[
         Plugin.filtering(:command, Hash.new)
           .first
           .values
@@ -151,7 +151,7 @@ module Plugin::Shortcutkey
       btn_ok.ssc(:clicked) {
         error = catch(:validate) {
           throw :validate, @plugin._("キーバインドを選択してください") unless (values[COLUMN_KEYBIND] && values[COLUMN_KEYBIND] != "")
-          throw :validate, @plugin._("コマンドを選択してください") unless values[COLUMN_SLUG]
+          throw :validate, @plugin._("コマンドを選択してください") unless command_dict_slug_to_name.has_key?(values[COLUMN_SLUG]&.to_sym)
           result = values
           window.destroy }
         if error
