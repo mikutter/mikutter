@@ -78,7 +78,7 @@ Plugin.create(:intent_selector) do
         if response[:save_flag].include?(:save)
           add_intent_rule(
             intent: response[:intent],
-            str: response.save_uri,
+            str: response[:save_uri],
             rule: 'start',
             model_slug: specified_model_slug(model))
         end
