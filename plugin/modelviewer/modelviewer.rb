@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+UserConfig[:profile_icon_size] ||= 48
+UserConfig[:profile_icon_margin] ||= 4
+
 Plugin.create :modelviewer do
   defdsl :defmodelviewer do |model_class, &block|
     model_class = Diva::Model(model_class) unless model_class.is_a?(Class)
