@@ -18,6 +18,7 @@ RUN apt update && apt install -y \
     libgdk-pixbuf2.0-dev \
     libpango1.0-dev \
     libgtk2.0-dev \
+    librsvg2-dev \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 

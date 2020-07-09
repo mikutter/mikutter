@@ -15,6 +15,10 @@ export GI_TYPELIB_PATH="$APPDIR"/usr/lib/girepository-1.0
 export LD_LIBRARY_PATH="$APPDIR"/usr/lib
 export LD_PRELOAD="$APPDIR"/usr/optional/exec.so
 
+export GDK_PIXBUF_MODULEDIR="$APPDIR"/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders
+export GDK_PIXBUF_MODULE_FILE=/tmp/loaders.cache
+"$APPDIR"/usr/lib/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders > $GDK_PIXBUF_MODULE_FILE
+
 # enable debug output of exec.so
 # export APPIMAGE_CHECKRT_DEBUG=1
 

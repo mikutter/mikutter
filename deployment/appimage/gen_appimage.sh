@@ -39,6 +39,12 @@ echo "--> copy mikutter"
 mkdir -p $APPDIR/usr/share/mikutter
 cp -av "$BUILD_DIR"/{.bundle,core,plugin,mikutter.rb,Gemfile,LICENSE,README} $APPDIR/usr/share/mikutter
 
+echo "--> copy libs"
+cp -av /usr/lib/x86_64-linux-gnu/{libffi.so*,libgirepository-1.0.so*,libgobject-2.0.so*,libgio-2.0.so*,libgdk-x11-2.0.so*,libgdk_pixbuf-2.0.so*,libgdk_pixbuf_xlib-2.0.so*,libgtk-x11-2.0.so*} $APPDIR/usr/lib/
+
+echo "--> copy Pixbuf loaders"
+cp -av /usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0 $APPDIR/usr/lib/
+
 echo "--> copy Typelibs for gobject-introspection gem"
 mkdir $APPDIR/usr/lib/girepository-1.0 || true
 cp -av /usr/lib/girepository-1.0/* /usr/lib/x86_64-linux-gnu/girepository-1.0/* $APPDIR/usr/lib/girepository-1.0
