@@ -19,6 +19,8 @@ RUN apt update && apt install -y \
     libpango1.0-dev \
     libgtk2.0-dev \
     librsvg2-dev \
+    gnome-themes-standard \
+    gtk2-engines-murrine \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
