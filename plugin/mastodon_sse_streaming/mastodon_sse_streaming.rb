@@ -6,7 +6,11 @@ Plugin.create(:mastodon_sse_streaming) do
 
   subscribe(:mastodon_worlds__add).each do |new_world|
     [ new_world.sse.user,
-      new_world.sse.direct
+      new_world.sse.direct,
+      new_world.sse.public,
+      new_world.sse.public_local,
+      new_world.sse.public(only_media: true),
+      new_world.sse.public_local(only_media: true)
     ].each { |stream| generate_stream(stream, tag: tag_of(new_world)) }
     new_world.get_lists.next { |lists|
       lists.each do |l|

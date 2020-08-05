@@ -3,7 +3,11 @@ Plugin.create(:mastodon_rest) do
 
   subscribe(:mastodon_worlds__add).each do |new_world|
     [ new_world.rest.user,
-      new_world.rest.direct
+      new_world.rest.direct,
+      new_world.rest.public,
+      new_world.rest.public_local,
+      new_world.rest.public(only_media: true),
+      new_world.rest.public_local(only_media: true)
     ].each { |stream| generate_stream(stream, tag: tag_of(new_world)) }
     new_world.get_lists.next { |lists|
       lists.each do |l|
