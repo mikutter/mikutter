@@ -39,9 +39,9 @@ module Plugin::Mastodon
       params[:only_media] = only_media
       @datasource_slug =
         if only_media
-          "mastodon-#{server.domain}-#{world.account.acct}-federated-media".to_sym
+          "mastodon-#{world.account.acct}-federated-media".to_sym
         else
-          "mastodon-#{server.domain}-#{world.account.acct}-federated".to_sym
+          "mastodon-#{world.account.acct}-federated".to_sym
         end
       set_endpoint('public')
     end
@@ -51,9 +51,9 @@ module Plugin::Mastodon
       params[:local] = 1
       @datasource_slug =
         if only_media
-          "mastodon-#{server.domain}-#{world.account.acct}-local-media".to_sym
+          "mastodon-#{world.account.acct}-local-media".to_sym
         else
-          "mastodon-#{server.domain}-#{world.account.acct}-local".to_sym
+          "mastodon-#{world.account.acct}-local".to_sym
         end
       set_endpoint('public')
     end
