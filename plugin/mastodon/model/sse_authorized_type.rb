@@ -38,11 +38,11 @@ module Plugin::Mastodon
     def public(only_media: false)
       params[:only_media] = only_media
       if only_media
-        @datasource_slug = "mastodon-#{server.domain}-federated-media".to_sym
-        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（メディアのみ）") % {domain: server.domain}
+        @datasource_slug = "mastodon-#{world.account.acct}-federated-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/連合タイムライン（メディアのみ）") % {domain: server.domain, acct: world.account.acct}
       else
-        @datasource_slug = "mastodon-#{server.domain}-federated".to_sym
-        @title = Plugin[:mastodon]._("Mastodon/%{domain}/連合タイムライン（全て）") % {domain: server.domain}
+        @datasource_slug = "mastodon-#{world.account.acct}-federated".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/連合タイムライン（全て）") % {domain: server.domain, acct: world.account.acct}
       end
       set_endpoint('public')
     end
@@ -50,13 +50,13 @@ module Plugin::Mastodon
     def public_local(only_media: false)
       params[:only_media] = only_media
       if only_media
-        @datasource_slug = "mastodon-#{server.domain}-local-media".to_sym
-        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（メディアのみ）") % {domain: server.domain}
+        @datasource_slug = "mastodon-#{world.account.acct}-local-media".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/ローカルタイムライン（メディアのみ）") % {domain: server.domain, acct: world.account.acct}
       else
-        @datasource_slug = "mastodon-#{server.domain}-local".to_sym
-        @title = Plugin[:mastodon]._("Mastodon/%{domain}/ローカルタイムライン（全て）") % {domain: server.domain}
+        @datasource_slug = "mastodon-#{world.account.acct}-local".to_sym
+        @title = Plugin[:mastodon]._("Mastodon/%{domain}/%{acct}/ローカルタイムライン（全て）") % {domain: server.domain, acct: world.account.acct}
       end
-      set_endpoint('public_local')
+      set_endpoint('public/local')
     end
 
     def set_endpoint(endpoint)

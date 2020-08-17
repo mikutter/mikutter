@@ -102,7 +102,16 @@ Plugin.create(:mastodon) do
   collection(:message_stream) do |message_stream|
     subscribe(:mastodon_worlds__add) do |worlds|
       message_stream.rewind do |a|
-        a | worlds.flat_map{|world| [world.sse.user, world.sse.direct] }
+        a | worlds.flat_map do |world|
+          [
+            world.sse.user,
+            world.sse.direct,
+            world.sse.public,
+            world.sse.public(only_media: true),
+            world.sse.public_local,
+            world.sse.public_local(only_media: true)
+          ]
+        end
       end
       worlds.each do |world|
         world.get_lists.next do |lists|
