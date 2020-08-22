@@ -6,10 +6,6 @@ Plugin.create(:mastodon_account_viewer) do
     [
       [_('名前'), user.display_name],
       [_('acct'), user.acct],
-      *user.fields&.map{|f|
-        f.emojis ||= user.emojis
-        [f.name, f]
-      },
       [_('フォロー'), user.following_count],
       [_('フォロワー'), user.followers_count],
       [_('Toot'), user.statuses_count]
@@ -21,6 +17,11 @@ Plugin.create(:mastodon_account_viewer) do
     score = score_of(user.profile)
     bio = ::Gtk::IntelligentTextview.new(score)
     container = ::Gtk::VBox.new.
+                  closeup(user_field_table(
+                            user.fields&.map{|f|
+                              f.emojis ||= user.emojis
+                              [f.name, f]
+                            })).
                   closeup(bio).
                   closeup(relation_bar(user))
     scrolledwindow = ::Gtk::ScrolledWindow.new
@@ -35,6 +36,29 @@ Plugin.create(:mastodon_account_viewer) do
       wrapper.no_show_all = false
       wrapper.show_all
       false
+    end
+  end
+
+  def user_field_table(header_columns)
+    ::Gtk::Table.new(2, header_columns.size).tap{|table|
+      header_columns.each_with_index do |(key, value), index|
+        table.
+          attach(::Gtk::Label.new(key.to_s).right, 0, 1, index, index+1).
+          attach(cell_widget(value), 1, 2, index, index+1)
+      end
+    }.set_row_spacing(0, 4).
+      set_row_spacing(1, 4).
+      set_column_spacing(0, 16)
+  end
+
+  def cell_widget(model_or_str)
+    case model_or_str
+    when Diva::Model
+      ::Gtk::IntelligentTextview.new(
+        Plugin[:modelviewer].score_of(model_or_str)
+      )
+    else
+      ::Gtk::IntelligentTextview.new(model_or_str.to_s)
     end
   end
 
