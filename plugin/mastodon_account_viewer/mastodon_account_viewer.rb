@@ -3,12 +3,25 @@
 
 Plugin.create(:mastodon_account_viewer) do
   defmodelviewer(Plugin::Mastodon::Account) do |user|
+    since_day = (Time.now - user.created_at).to_i / (60 * 60 * 24)
     [
       [_('名前'), user.display_name],
       [_('acct'), user.acct],
       [_('フォロー'), user.following_count],
       [_('フォロワー'), user.followers_count],
-      [_('Toot'), user.statuses_count]
+      [_('Mastodon開始'), _('%{year}/%{month}/%{day} %{hour}:%{minute}:%{second} (%{since_day}日)') % {
+         year: user.created_at.strftime('%Y'),
+         month: user.created_at.strftime('%m'),
+         day: user.created_at.strftime('%d'),
+         hour: user.created_at.strftime('%H'),
+         minute: user.created_at.strftime('%M'),
+         second: user.created_at.strftime('%S'),
+         since_day: since_day,
+       }],
+      [_('Toot'), _('%{count} (%{toots_per_day}toots/day)') % {
+         count: user.statuses_count,
+         toots_per_day: since_day == 0 ? user.statuses_count : "%.2f" % (Rational(user.statuses_count, since_day).to_f)
+       }],
     ]
   end
 
