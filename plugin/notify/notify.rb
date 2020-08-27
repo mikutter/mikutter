@@ -41,7 +41,7 @@ Plugin.create(:notify) do
   end
 
   onmention do |post, raw_messages|
-    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| !(m.from_me? && m.retweet?) && m.created > defined_time }).first
+    messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| !(m.from_me? || m.retweet?) && m.created > defined_time }).first
     unless messages.empty?
       if !UserConfig[:notify_friend_timeline] && UserConfig[:notify_mention]
         messages.each do |message|
