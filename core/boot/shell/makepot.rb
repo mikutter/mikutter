@@ -9,7 +9,10 @@ require 'rake'
 
 mo_root = File.join(CHIConfig::CACHE, "uitranslator", "locale")
 
-Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(__dir__, "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
+Environment::PLUGIN_PATH.each do |path|
+  Miquire::Plugin.loadpath << path
+end
+Miquire::Plugin.loadpath << File.join(Environment::CONFROOT, 'plugin')
 
 enable_plugins = ARGV[1,]
 failed_plugins = []

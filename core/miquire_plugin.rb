@@ -89,7 +89,7 @@ module Miquire::Plugin
     # プラグインがthirdpartyかbundleかを返す
     def get_kind(path)
       type_strict path => String
-      if path.start_with?(Environment::PLUGIN_PATH)
+      if Environment::PLUGIN_PATH.any?(&path.method(:start_with?))
         :bundle
       else
         :thirdparty end end

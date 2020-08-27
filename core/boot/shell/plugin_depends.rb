@@ -5,7 +5,10 @@ require 'miquire_plugin'
 
 using Miquire::ToSpec
 
-Miquire::Plugin.loadpath << Environment::PLUGIN_PATH << File.join(__dir__, "..", "..", "plugin") << File.join(Environment::CONFROOT, 'plugin')
+Environment::PLUGIN_PATH.each do |path|
+  Miquire::Plugin.loadpath << path
+end
+Miquire::Plugin.loadpath << File.join(Environment::CONFROOT, 'plugin')
 
 writer = lambda do |spec|
   depends = Miquire::Plugin.depended_plugins(spec)
