@@ -17,7 +17,7 @@ require_relative 'extractcondition'
 require_relative 'score'
 
 Plugin.create(:mastodon) do
-  defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://[^/]+/system/media_attachments/files/[0-9]{3}/[0-9]{3}/[0-9]{3}/\w+/\w+\.\w+(?:\?\d+)?\Z>) do |url|
+  defimageopener(_('Mastodon添付画像'), %r<\Ahttps?://.+/media_attachments/files/(?:[0-9]{3}/)+original/[0-9a-f]+\.>) do |url|
     URI.open(url)
   end
 
