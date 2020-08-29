@@ -88,7 +88,15 @@ module Plugin::Mastodon::Parser
     end
 
     if poll
-      score << Plugin::Score::TextNote.new(description: "#{poll.options.map{|opt| "\n○ #{opt.title}"}.join('')}\n#{poll.votes_count}票#{poll.expires_at ? " #{poll.expires_at.strftime("%Y-%m-%d %H:%M:%S")}に終了" : ''}")
+      y = []
+      poll.options.each do |opt|
+        y << '○ %{title}' % {title: opt.title}
+      end
+      y << '%{count}票' % {count: poll.votes_count}
+      if poll.expires_at
+        y << '%{expire}に終了' % {expire: poll.expires_at.strftime("%Y-%m-%d %H:%M:%S")}
+      end
+      score << Plugin::Score::TextNote.new(description: "\n" + y.join("\n"))
     end
 
     score = score.flat_map do |note|
