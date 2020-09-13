@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 # ／(^o^)＼
 
 require 'environment'
@@ -14,7 +15,6 @@ require 'observer'
 # メモリキャッシュ、ストレージキャッシュがついてる。
 module Gtk
   class WebIcon < Image
-
     DEFAULT_RECTANGLE = Gdk::Rectangle.new(0, 0, 48, 48)
 
     include Observable
@@ -27,26 +27,30 @@ module Gtk
       rect = Gdk::Rectangle.new(0, 0, rect, height) if height
       case url
       when Diva::Model
-        super(load_model(url, rect))
+        super(load_model(url, rect, set_loading_image: false))
       when GdkPixbuf::Pixbuf
         super(url)
       else
         photo = Plugin.collect(:photo_filter, url, Pluggaloid::COLLECT).first
-        super(load_model(photo || Skin[:notfound], rect))
+        super(load_model(photo || Skin[:notfound], rect, set_loading_image: false))
       end
     end
 
-    def load_model(photo, rect)
-      photo.load_pixbuf(width: Gdk.scale(rect.width), height: Gdk.scale(rect.height)){|pb|
+    def load_model(photo, rect, set_loading_image: true)
+      loading = photo.load_pixbuf(width: Gdk.scale(rect.width), height: Gdk.scale(rect.height)) do |pb|
         update_pixbuf(pb)
-      }
+      end
+      if set_loading_image
+        self.pixbuf = loading
+      end
+      loading
     end
 
     def update_pixbuf(pixbuf)
       unless destroyed?
         self.pixbuf = pixbuf
-        self.changed
-        self.notify_observers
+        changed
+        notify_observers
       end
     end
   end
