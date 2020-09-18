@@ -290,12 +290,13 @@ Plugin.create :photo_support do
 
   # pixiv
   defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/member_illust\.php\?(?:.*)&?illust_id=\d+(?:&.*)?$>) do |display_url|
-    img = Plugin::PhotoSupport.インスタ映え(display_url) << "&mode=sns-automator"
+    img = Plugin::PhotoSupport.インスタ映え(display_url) << '&mode=sns-automator'
     URI.open(img) if img
   end
+
   # pixiv new
   defimageopener('pixiv', %r<https?://(?:www\.)?pixiv\.net/artworks/\d+$>) do |display_url|
-    img = Plugin::PhotoSupport.インスタ映え(display_url) << "&mode=sns-automator"
+    img = Plugin::PhotoSupport.インスタ映え(display_url) << '&mode=sns-automator'
     URI.open(img) if img
   end
 
