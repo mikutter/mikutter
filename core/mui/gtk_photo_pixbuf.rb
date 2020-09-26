@@ -42,7 +42,7 @@ module Diva::Model::PhotoInterface
 
   # 引数の寸法の GdkPixbuf::Pixbuf を、Pixbufキャッシュから返す。
   # Pixbufキャッシュに存在しない場合は nil を返す。
-  # ただし、ロファイルシステム上に見つかった場合は、その場でそれを読み込んで返す。
+  # ただし、ファイルシステム上に見つかった場合は、その場でそれを読み込んで返す。
   # つまり、ファイルシステムのファイルを示している場合は、このメソッドはnilを返さず、常に GdkPixbuf::Pixbuf を返す。
   # ==== Args
   # [width:] Pixbufの幅(px)
@@ -100,7 +100,7 @@ module Diva::Model::PhotoInterface
   end
 
   def pixbuf_cache
-    @pixbuf_cache ||= WeakStorage.new(Integer, GdkPixbuf::Pixbuf, name: "gtk-photo-pixbuf-cache(#{self.class} #{uri})")
+    @pixbuf_cache ||= TimeLimitedStorage.new(Integer, GdkPixbuf::Pixbuf, 60)
   end
 
   # _src_ が _rect_ にアスペクト比を維持した状態で内接するように縮小した場合のサイズを返す
