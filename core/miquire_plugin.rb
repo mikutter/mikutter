@@ -122,22 +122,20 @@ module Miquire::Plugin
         error "spec #{_spec.inspect}"
         return false
       end
-      if defined? spec[:depends][:plugin]
+      if spec.dig(:depends, :plugin)
         if recursive
-          local_depends = Array(spec[:depends][:plugin]).map{ |s| Array(s).first.to_sym }
-          local_depends += local_depends.map {|s|
-            depended_plugins(s, recursive: recursive).map{|d|d[:slug].to_sym}
-          }.flatten
-          local_depends.uniq.map{|d| d.to_spec }
+          Array(spec.dig(:depends, :plugin)).map { |s| Array(s).first.to_sym }.flat_map { |s|
+            depended_plugins(s, recursive: recursive).map { |d| d[:slug].to_sym }
+          }.uniq.map { |d| d.to_spec }
         else
-          Array(spec[:depends][:plugin]).map do |s|
-            slug = Array(s).first.to_sym
-            if slug
-              slug.to_spec
-            else
-              slug end end end
+          Array(spec.dig(:depends, :plugin)).map do |s|
+            Array(s).first.to_sym&.to_spec
+          end
+        end
       else
-        [] end end
+        []
+      end
+    end
 
     def load(_spec)
       return false unless _spec
