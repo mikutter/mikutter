@@ -196,7 +196,7 @@ module Mtk
   deprecate :expander, :none, 2020, 8
 
   def fileselect(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
   deprecate :fileselect, :none, 2020, 8
 
@@ -231,35 +231,35 @@ module Mtk
   deprecate :fontcolorselect, :none, 2020, 8
 
   def accountdialog_button(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
   deprecate :accountdialog_button, :none, 2020, 8
 
   def account_dialog_inner(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   def adi(symbol, label)
     input(lambda{ |new| UserConfig[symbol] }, label){ |c, i| yield(i) } end
 
   def account_dialog(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   def alert(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   def dialog_button(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   def scrolled_dialog(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   def dialog(*)
-    raise Mtk::Read994Error, 'It\'s always crash when this method call. see: https://dev.mikutter.hachune.net/issues/994'
+    raise Mtk::Read994Error, 'This method always crashes when it\'s called. see: https://dev.mikutter.hachune.net/issues/994'
   end
 
   class Mtk::ValidateError < StandardError;  end
