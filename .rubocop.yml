@@ -1,0 +1,280 @@
+Metrics/BlockLength:
+  Exclude:
+    - test/**/*.rb
+    - lib/tasks/**/*.rake
+    - Gemfile
+  Max: 156
+
+Layout/LineLength:
+  AllowHeredoc: true
+  AllowURI: true
+  Max: 293
+  Exclude:
+    - test/**/*.rb
+
+Metrics/ModuleLength:
+  Exclude:
+    - test/**/*.rb
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Style/Alias:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Naming/AsciiIdentifiers:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+Style/CaseEquality:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/ClassVars:
+  Enabled: false
+
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: map
+    detect: find
+    find_all: select
+    member?: include?
+    reduce: inject
+
+Style/ColonMethodCall:
+  Enabled: true
+
+Style/CommentAnnotation:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Layout/DotPosition:
+  EnforcedStyle: leading
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/EachWithObject:
+  Enabled: false
+
+Style/EmptyLiteral:
+  Enabled: true
+
+Style/Encoding:
+  Enabled: false
+
+Style/FormatString:
+  EnforcedStyle: percent
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/GlobalVars:
+  Enabled: true
+
+Style/GuardClause:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/IfWithSemicolon:
+  Enabled: false
+
+Layout/IndentationConsistency:
+  EnforcedStyle: normal
+
+Style/InlineComment:
+  Enabled: false
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/LambdaCall:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Style/ModuleFunction:
+  Enabled: false
+
+Style/NegatedIf:
+  Enabled: true
+  EnforcedStyle: both
+
+Style/Next:
+  Enabled: false
+
+# false と nil の違いで分岐するようなコードは書くべきではない。
+# `if a.nil?` のようなコードは、 `if a` に置き換える。
+# nil と false を区別せざるを得ないところでのみ、 Style/NilComparison を無効化して nil? 利用すること
+Style/NilComparison:
+  EnforcedStyle: comparison
+
+Style/NumericLiterals:
+  Enabled: false
+
+Style/OneLineConditional:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Naming/PredicateName:
+  ForbiddenPrefixes:
+    - is_
+  MethodDefinitionMacros:
+    - define_method
+    - define_singleton_method
+    - defdsl
+  Exclude:
+    - 'test/*/'
+
+Style/RaiseArgs:
+  Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/SingleLineBlockParams:
+  Enabled: false
+
+Style/SignalException:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: no_comma
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: no_comma
+
+Style/TrailingCommaInArguments:
+  Enabled: true
+  EnforcedStyleForMultiline: no_comma
+
+Style/FormatStringToken:
+  EnforcedStyle: template
+
+Style/TrivialAccessors:
+  Enabled: false
+
+Lint/UnusedMethodArgument:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/WhileUntilModifier:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
+
+Lint/AssignmentInCondition:
+  AllowSafeAssignment: false
+
+Lint/SuppressedException:
+  Enabled: false
+
+Lint/UnderscorePrefixedVariableName:
+  AllowKeywordBlockArguments: true
+
+Lint/Void:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Exclude:
+    - test/**/*.rb
+
+Layout/EmptyLines:
+  Exclude:
+    - test/**/*.rb
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
+
+# 結果が配列になるもの　　　→ []
+# 　　　配列にならないもの　→ <>
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    "%":  '<>'
+    "%i": '[]'
+    "%q": '<>'
+    "%Q": '<>'
+    "%r": '<>'
+    "%s": '<>'
+    "%w": '[]'
+    "%W": '[]'
+    "%x": '<>'
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: true
+
+Lint/RaiseException:
+  Enabled: true
+
+Lint/StructNewOverride:
+  Enabled: true
+
+Style/ExponentialNotation:
+  Enabled: true
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/PreferredHashMethods:
+  EnforcedStyle: verbose
+
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+
+Style/BlockDelimiters:
+  EnforcedStyle: braces_for_chaining
+
+Metrics/AbcSize:
+  Max: 24.27
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented_relative_to_receiver
+
+Naming/MemoizedInstanceVariableName:
+  EnforcedStyleForLeadingUnderscores: optional
+
+Layout/SpaceAroundOperators:
+  EnforcedStyleForExponentOperator: space
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: no_space
