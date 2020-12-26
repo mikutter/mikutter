@@ -208,7 +208,7 @@ module Gtk
       w_replies = Gtk::VBox.new.add(result)
       @to.select{|m|m.respond_to?(:description)}.each{ |message|
         w_reply = Gtk::HBox.new
-        itv = Gtk::IntelligentTextview.new(message.description, 'font' => :mumble_basic_font)
+        itv = Gtk::IntelligentTextview.new(message.description, { 'font' => :mumble_basic_font })
         itv.style_generator = lambda{ get_backgroundstyle(message) }
         itv.bg_modifier
         ev = Gtk::EventBox.new
@@ -271,7 +271,7 @@ module Gtk
         if @options[:delegate_other].respond_to? :to_proc
           @options[:delegate_other].to_proc.(options)
         else
-          @options[:postboxstorage].pack_start(Gtk::PostBox.new(nil, options)).show_all
+          @options[:postboxstorage].pack_start(Gtk::PostBox.new(nil, **options)).show_all
         end
         true
       end

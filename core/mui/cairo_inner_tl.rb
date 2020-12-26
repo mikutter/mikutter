@@ -82,7 +82,7 @@ class Gtk::TimeLine::InnerTL < Gtk::CompatListView
     options = options.dup
     options[:before_post_hook] = ->(this) {
       get_ancestor(Gtk::Window).set_focus(self) unless self.destroyed? }
-    pb = Gtk::PostBox.new(options).show_all
+    pb = Gtk::PostBox.new(**options).show_all
     postbox.closeup(pb)
     pb.on_delete(&block) if block
     get_ancestor(Gtk::Window).set_focus(pb.post)
