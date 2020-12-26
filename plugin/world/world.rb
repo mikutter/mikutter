@@ -81,7 +81,7 @@ Plugin.create(:world) do
 
     on_world_create do |new|
       return if new.is_a?(Plugin::World::LostWorld)
-      Plugin::World::Keep.account_register(new.slug, { **new.to_hash, provider: new.class.slug })
+      Plugin::World::Keep.account_register(new.slug, **new.to_hash, provider: new.class.slug)
       mutation.rewind { |_| worlds_sort(load_world) }
       Plugin.call(:world_after_created, new)
       Plugin.call(:service_registered, new) # 互換性のため
