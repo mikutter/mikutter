@@ -29,7 +29,6 @@ end
 ENV['LIBOVERLAY_SCROLLBAR'] = '0'
 
 require 'benchmark'
-require 'webrick'
 require 'thread'
 require 'fileutils'
 
