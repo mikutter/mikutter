@@ -7,7 +7,7 @@ Plugin::create(:basic_settings) do
     about (_("%s について") % Environment::NAME), {
       :name => Environment::NAME,
       :version => Environment::VERSION.to_s,
-      :copyright => _('2009-%s Toshiaki Asai') % '2020',
+      :copyright => _('2009-%s Toshiaki Asai') % '2021',
       :comments => _("全てのミク廃、そしてマイクロブログ中毒者へ贈る、至高のMastodonクライアントを目指すMastodonクライアント。\n略して至高のMastodonクライアント。\n圧倒的なかわいさではないか我がミクは\n\nこのソフトウェアは %{license} によって浄化されています。") % {license: 'MIT License'},
       :license => (file_get_contents('../LICENSE') rescue nil),
       :website => _('https://mikutter.hachune.net/'),

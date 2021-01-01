@@ -4,7 +4,7 @@ exec ruby -x "$0" "$@"
 #!ruby
 =begin rdoc
 = mikutter - simple, powerful and moeful Mastodon client
-Copyright (C) 2009-2020 Toshiaki Asai
+Copyright (C) 2009-2021 Toshiaki Asai
 
 This software is released under the MIT License.
 
