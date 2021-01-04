@@ -2,6 +2,55 @@
 require_relative 'error'
 
 module MIKU
+  class RootSymbolTable
+    def self.generate
+      @root_symbol_table ||= RootSymbolTable.new
+    end
+
+    def initialize
+      @__cache__table = {}
+    end
+
+    def root?
+      true
+    end
+
+    def [](key)
+      @__cache__table[key] ||= table(key)
+    end
+
+    private
+
+    def table(key)
+      case key.to_sym
+      when :cons, :listp, :set, :function, :value, :quote, :eval, :list,
+           :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
+           :<, :>, :<=, :>=, :eq, :eql, :equal
+        Cons.new(nil, Primitive.new(key))
+      when :lambda
+        Cons.new(nil, Primitive.new(:negi))
+      when :def
+        Cons.new(nil, Primitive.new(:defun))
+      when :'macro-expand'
+        Cons.new(nil, Primitive.new(:macro_expand))
+      when :'macro-expand-all'
+        Cons.new(nil, Primitive.new(:macro_expand_all))
+      when :'to-ruby'
+        Cons.new(nil, Primitive.new(:to_ruby))
+      when :"="
+        Cons.new(nil, Primitive.new(:eq))
+      when :not
+        Cons.new(nil, Primitive.new(:_not))
+      when :true
+        Cons.new(true, nil)
+      when :false
+        Cons.new(false, nil)
+      when *Object.constants
+        Cons.new(Object.const_get(key.to_s))
+      end
+    end
+  end
+
   class SymbolTable < Hash
 
     INITIALIZE_FILE = File.expand_path(File.join(__dir__, 'init.miku'))
@@ -14,15 +63,22 @@ module MIKU
         @parent = parent
       else
         @parent = MIKU::SymbolTable.initialized_table end
-      if(SymbolTable.defaults.equal?(parent))
-        def self.ancestor
-          self end end
       super(){ |this, key| @parent[key.to_sym] }
       merge!(default) unless default.empty?
     end
 
+    def root?
+      false
+    end
+
+    # なんかわからんけどRootSymbolTableの一個手前を返すらしい
     def ancestor
-      @parent.ancestor end
+      if @parent.root?
+        self
+      else
+        @parent.ancestor
+      end
+    end
 
     def []=(key, val)
       if not(key.is_a?(Symbol)) then
@@ -63,44 +119,7 @@ module MIKU
       symtable end
 
     def self.initialized_table
-      @@initialized_table ||= (@@initialized_table = MIKU::SymbolTable.new(SymbolTable.defaults)).run_init_script end
-
-    def self.defsform(fn=nil, *other)
-      return [] if fn == nil
-      [fn , Cons.new(nil, Primitive.new(fn))] + defsform(*other) end
-
-    def self.defun(fn=nil, *other)
-      return [] if fn == nil
-      [fn , Cons.new(nil, fn)] + defun(*other) end
-
-    def self.consts
-      Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c.to_s))] }.inject([]){ |a, b| a + b } end
-    # Module.constants.map{ |c| [c.to_sym, Cons.new(eval(c))] }.inject([]){ |a, b| a + b } end
-
-    def self.defaults
-      @@defaults ||= __defaults end
-
-    def self.__defaults
-      default = Hash[*(defsform(:cons, :listp, :set, :function, :value, :quote, :eval, :list,
-                                :if, :backquote, :macro, :require_runtime_library, :+, :-, :*, :/,
-                                :<, :>, :<=, :>=, :eq, :eql, :equal) +
-                       [:lambda , Cons.new(nil, Primitive.new(:negi)),
-                        :def , Cons.new(nil, Primitive.new(:defun)),
-                        :'macro-expand' , Cons.new(nil, Primitive.new(:macro_expand)),
-                        :'macro-expand-all' , Cons.new(nil, Primitive.new(:macro_expand_all)),
-                        :'to-ruby' , Cons.new(nil, Primitive.new(:to_ruby)),
-                        :"=", Cons.new(nil, Primitive.new(:eq)),
-                        :not, Cons.new(nil, Primitive.new(:_not)),
-                        :true, Cons.new(true, nil),
-                        :false, Cons.new(false, nil)
-                       ] + consts)].freeze
-      Hash.new{ |h, k|
-        if default[k]
-          h[k] = default[k]
-        elsif /^[A-Z][a-zA-Z0-9_]*/ =~ k.to_s and klass = eval(k.to_s)
-          h[k] = klass
-        end }
-    end
+      @@initialized_table ||= (@@initialized_table = MIKU::SymbolTable.new(RootSymbolTable.generate)).run_init_script end
 
     def run_init_script
       miku_stream(File.open(INITIALIZE_FILE), self)
