@@ -391,10 +391,17 @@ end
 
 class String
   def match_regexp(str)
-    if(str.is_a? String)
-      match(Regexp.new(str))
+    if str.is_a?(String)
+      begin
+        match(Regexp.new(str))
+      rescue RegexpError => err
+        error err
+        nil
+      end
     else
-      match(str) end end
+      match(str)
+    end
+  end
 
   def matches(regexp)
     warn "String#matches is obsolete method. use String#scan"

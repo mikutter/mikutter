@@ -320,7 +320,11 @@ Plugin.create :extract do
               extract_condition: extract_condition
             )
           )
-        instance_eval(['->(message) do', *before, evaluated, 'end'].join("\n"))
+        source = ['->(message) do', *before, evaluated, 'end'].join("\n")
+        instance_eval(source)
+      rescue SyntaxError
+        error "compiled code: #{source}"
+        raise
       rescue Plugin::Extract::ConditionNotFoundError => exception
         Plugin.call(:modify_activity,
                     plugin: self,

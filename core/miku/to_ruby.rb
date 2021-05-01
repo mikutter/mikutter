@@ -2,6 +2,9 @@
 
 module MIKU
   module ToRuby
+    STRING_LITERAL_ESCAPE_MAP = {'\\' => '\\\\', "'" => "\\'"}.freeze
+    STRING_LITERAL_ESCAPE_MATCHER = Regexp.union(STRING_LITERAL_ESCAPE_MAP.keys).freeze
+
     class << self
       def indent(code)
         code.each_line.map{|l| "  #{l}"}.join("\n")
@@ -30,7 +33,7 @@ module MIKU
         when Numeric
           expanded.to_s
         when String
-          '"' + expanded.gsub("\n", '\n') + '"'
+          string_literal(expanded)
         when TrueClass
           'true'
         when FalseClass
@@ -93,6 +96,11 @@ module MIKU
         else
           expanded.to_s
         end
+      end
+
+      def string_literal(str)
+        escaped = str.gsub(STRING_LITERAL_ESCAPE_MATCHER, STRING_LITERAL_ESCAPE_MAP)
+        "'#{escaped}'"
       end
     end
   end
