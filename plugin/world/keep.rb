@@ -122,13 +122,13 @@ module Plugin::World
       account_data end
 
     def encrypt(str)
-      cipher = OpenSSL::Cipher.new('bf-ecb').encrypt
+      cipher = OpenSSL::Cipher.new('aes-128-ecb').encrypt
       cipher.key_len = ACCOUNT_CRYPT_KEY_LEN
       cipher.key = key
       cipher.update(str) << cipher.final end
 
     def decrypt(binary_data)
-      cipher = OpenSSL::Cipher.new('bf-ecb').decrypt
+      cipher = OpenSSL::Cipher.new('aes-128-ecb').decrypt
       cipher.key = key
       str = cipher.update(binary_data) << cipher.final
       str.force_encoding(Encoding::UTF_8)
